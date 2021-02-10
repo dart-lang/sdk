@@ -39,8 +39,6 @@ import 'package:meta/meta_meta.dart';
 /// Instances of the class `BestPracticesVerifier` traverse an AST structure
 /// looking for violations of Dart best practices.
 class BestPracticesVerifier extends RecursiveAstVisitor<void> {
-  static const String _NULL_TYPE_NAME = "Null";
-
   static const String _TO_INT_METHOD_NAME = "toInt";
 
   /// The class containing the AST nodes being visited, or `null` if we are not
@@ -717,56 +715,52 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
       return true;
     }
-    var rhsElement = rhsType.element;
-    var libraryElement = rhsElement?.library;
-    if (libraryElement != null && libraryElement.isDartCore) {
-      // `is Null` or `is! Null`
-      if (rhsNameStr == _NULL_TYPE_NAME) {
-        if (expression is NullLiteral) {
-          if (node.notOperator == null) {
-            _errorReporter.reportErrorForNode(
-              HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
-              node,
-            );
-          } else {
-            _errorReporter.reportErrorForNode(
-              HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
-              node,
-            );
-          }
+    // `is Null` or `is! Null`
+    if (rhsType.isDartCoreNull) {
+      if (expression is NullLiteral) {
+        if (node.notOperator == null) {
+          _errorReporter.reportErrorForNode(
+            HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
+            node,
+          );
         } else {
-          if (node.notOperator == null) {
-            _errorReporter.reportErrorForNode(
-              HintCode.TYPE_CHECK_IS_NULL,
-              node,
-            );
-          } else {
-            _errorReporter.reportErrorForNode(
-              HintCode.TYPE_CHECK_IS_NOT_NULL,
-              node,
-            );
-          }
+          _errorReporter.reportErrorForNode(
+            HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
+            node,
+          );
+        }
+      } else {
+        if (node.notOperator == null) {
+          _errorReporter.reportErrorForNode(
+            HintCode.TYPE_CHECK_IS_NULL,
+            node,
+          );
+        } else {
+          _errorReporter.reportErrorForNode(
+            HintCode.TYPE_CHECK_IS_NOT_NULL,
+            node,
+          );
+        }
+      }
+      return true;
+    }
+    // `is Object` or `is! Object`
+    if (rhsType.isDartCoreObject) {
+      var nullability = rhsType.nullabilitySuffix;
+      if (nullability == NullabilitySuffix.star ||
+          nullability == NullabilitySuffix.question) {
+        if (node.notOperator == null) {
+          _errorReporter.reportErrorForNode(
+            HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
+            node,
+          );
+        } else {
+          _errorReporter.reportErrorForNode(
+            HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
+            node,
+          );
         }
         return true;
-      }
-      // `is Object` or `is! Object`
-      if (rhsType.isDartCoreObject) {
-        var nullability = rhsType.nullabilitySuffix;
-        if (nullability == NullabilitySuffix.star ||
-            nullability == NullabilitySuffix.question) {
-          if (node.notOperator == null) {
-            _errorReporter.reportErrorForNode(
-              HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
-              node,
-            );
-          } else {
-            _errorReporter.reportErrorForNode(
-              HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
-              node,
-            );
-          }
-          return true;
-        }
       }
     }
     return false;

@@ -144,6 +144,8 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
       return;
     }
 
+    type.aliasArguments?.forEach(_assertLegacyType);
+
     if (type is TypeParameterType) {
       _assertLegacyType(type.bound);
     } else if (type is InterfaceType) {
@@ -151,7 +153,6 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
     } else if (type is FunctionType) {
       _assertLegacyType(type.returnType);
       type.parameters.map((param) => param.type).forEach(_assertLegacyType);
-      type.typeArguments.forEach(_assertLegacyType);
       type.typeFormals.map((param) => param.bound).forEach(_assertLegacyType);
     }
 

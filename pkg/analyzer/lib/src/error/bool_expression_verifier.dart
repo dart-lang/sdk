@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -18,7 +17,6 @@ class BoolExpressionVerifier {
   final ErrorReporter _errorReporter;
   final NullableDereferenceVerifier _nullableDereferenceVerifier;
 
-  final ClassElement _boolElement;
   final InterfaceType _boolType;
 
   BoolExpressionVerifier({
@@ -28,7 +26,6 @@ class BoolExpressionVerifier {
   })   : _typeSystem = typeSystem,
         _errorReporter = errorReporter,
         _nullableDereferenceVerifier = nullableDereferenceVerifier,
-        _boolElement = typeSystem.typeProvider.boolElement,
         _boolType = typeSystem.typeProvider.boolType;
 
   /// Check to ensure that the [condition] is of type bool, are. Otherwise an
@@ -49,7 +46,7 @@ class BoolExpressionVerifier {
     var type = expression.staticType!;
     if (!_checkForUseOfVoidResult(expression) &&
         !_typeSystem.isAssignableTo(type, _boolType)) {
-      if (type.element == _boolElement) {
+      if (type.isDartCoreBool) {
         _nullableDereferenceVerifier.report(expression, type,
             errorCode: CompileTimeErrorCode
                 .UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION);

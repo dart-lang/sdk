@@ -339,24 +339,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(node, type);
   }
 
-  /// We have a contract with the Angular team that FunctionType(s) from
-  /// typedefs carry the element of the typedef, and the type arguments.
-  void assertFunctionTypeTypedef(
-    FunctionType type, {
-    required FunctionTypeAliasElement element,
-    required List<String> typeArguments,
-  }) {
-    assertElement2(type.aliasElement, declaration: element);
-    assertElementTypeStrings(type.aliasArguments, typeArguments);
-
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-    assertElement2(
-      type.element,
-      declaration: element.aliasedElement as GenericFunctionTypeElement,
-    );
-    assertElementTypeStrings(type.typeArguments, typeArguments);
-  }
-
   void assertHasTestErrors() {
     expect(result.errors, isNotEmpty);
   }
@@ -755,6 +737,28 @@ mixin ResolutionTest implements ResourceProviderMixin {
       fail('Null, expected: $expected');
     } else {
       expect(typeString(actual), expected);
+    }
+  }
+
+  /// We have a contract with the Angular team that FunctionType(s) from
+  /// typedefs carry the element of the typedef, and the type arguments.
+  void assertTypeAlias(
+    DartType type, {
+    required TypeAliasElement element,
+    required List<String> typeArguments,
+  }) {
+    assertElement2(type.aliasElement, declaration: element);
+    assertElementTypeStrings(type.aliasArguments, typeArguments);
+
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
+    if (type is FunctionType) {
+      assertElement2(
+        // ignore: deprecated_member_use_from_same_package
+        type.element,
+        declaration: element.aliasedElement as GenericFunctionTypeElement,
+      );
+      // ignore: deprecated_member_use_from_same_package
+      assertElementTypeStrings(type.typeArguments, typeArguments);
     }
   }
 

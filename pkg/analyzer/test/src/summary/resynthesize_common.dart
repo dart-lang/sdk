@@ -7446,10 +7446,6 @@ F<int> a;
 
     expect(type.aliasElement, same(unit.typeAliases[0]));
     _assertTypeStrings(type.aliasArguments!, ['int']);
-
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-    expect(type.element!.enclosingElement, same(unit.typeAliases[0]));
-    _assertTypeStrings(type.typeArguments, ['int']);
   }
 
   test_functionTypeAlias_typeParameters_variance_contravariant() async {

@@ -119,6 +119,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         super(element,
             aliasElement: aliasElement, aliasArguments: aliasArguments);
 
+  @Deprecated('Use aliasElement instead')
   @override
   FunctionTypedElement? get element {
     // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
@@ -138,9 +139,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   int get hashCode {
-    if (element == null) {
-      return 0;
-    }
     // Reference the arrays of parameters
     List<DartType> normalParameterTypes = this.normalParameterTypes;
     List<DartType> optionalParameterTypes = this.optionalParameterTypes;
@@ -208,6 +206,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return types;
   }
 
+  @Deprecated('Use aliasArguments instead')
   @override
   List<DartType> get typeArguments {
     // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629

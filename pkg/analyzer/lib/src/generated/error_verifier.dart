@@ -4836,7 +4836,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     for (var interfaceNode in implementsClause.interfaces) {
-      if (interfaceNode.type!.element == superElement) {
+      var type = interfaceNode.type;
+      if (type is InterfaceType && type.element == superElement) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
           interfaceNode,
@@ -4958,7 +4959,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     for (var mixinNode in withClause.mixinTypes) {
-      if (mixinNode.type!.element == superElement) {
+      var type = mixinNode.type;
+      if (type is InterfaceType && type.element == superElement) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MIXINS_SUPER_CLASS,
           mixinNode,

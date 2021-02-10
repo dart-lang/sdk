@@ -3176,8 +3176,6 @@ class C<T> {
 ''');
     MethodInvocation f = findNode.methodInvocation('f<int>(3);');
     assertInvokeType(f, 'S Function(int)');
-    var ft = f.staticInvokeType as FunctionType;
-    expect('${ft.typeArguments}', '[S, int]');
 
     expectIdentifierType('f;', 'S Function<S₀ extends S>(S₀)');
   }

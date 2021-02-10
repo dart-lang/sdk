@@ -195,6 +195,10 @@ abstract class DynamicType implements DartType {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionType implements ParameterizedType {
+  @Deprecated('Use aliasElement instead')
+  @override
+  FunctionTypedElement? get element;
+
   /// Return a map from the names of named parameters to the types of the named
   /// parameters of this type of function. The entries in the map will be
   /// iterated in the same order as the order in which the named parameters were
@@ -230,6 +234,10 @@ abstract class FunctionType implements ParameterizedType {
   /// Return the type of object returned by this type of function.
   DartType get returnType;
 
+  @Deprecated('Use aliasArguments instead')
+  @override
+  List<DartType> get typeArguments;
+
   /// The formal type parameters of this generic function.
   /// For example `<T> T -> T`.
   ///
@@ -240,7 +248,7 @@ abstract class FunctionType implements ParameterizedType {
   List<TypeParameterElement> get typeFormals;
 
   /// Produces a new function type by substituting type parameters of this
-  /// function type with the given [typeArguments]. The resulting function
+  /// function type with the given [argumentTypes]. The resulting function
   /// type will have no type parameters.
   FunctionType instantiate(List<DartType> argumentTypes);
 }
