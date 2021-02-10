@@ -1962,9 +1962,9 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d, bool is_canonical) {
-    for (intptr_t id = start_index_; id < stop_index_; id += 1) {
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
       const intptr_t length = d->ReadUnsigned();
-      ObjectPoolPtr pool = static_cast<ObjectPoolPtr>(d->Ref(id + 0));
+      ObjectPoolPtr pool = static_cast<ObjectPoolPtr>(d->Ref(id));
       Deserializer::InitializeHeader(pool, kObjectPoolCid,
                                      ObjectPool::InstanceSize(length));
       pool->untag()->length_ = length;
@@ -2113,7 +2113,7 @@ class PcDescriptorsDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d, bool is_canonical) {
-    for (intptr_t id = start_index_; id < stop_index_; id += 1) {
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
       const intptr_t length = d->ReadUnsigned();
       PcDescriptorsPtr desc = static_cast<PcDescriptorsPtr>(d->Ref(id));
       Deserializer::InitializeHeader(desc, kPcDescriptorsCid,
@@ -2126,6 +2126,161 @@ class PcDescriptorsDeserializationCluster : public DeserializationCluster {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+class CodeSourceMapSerializationCluster : public SerializationCluster {
+ public:
+  CodeSourceMapSerializationCluster() : SerializationCluster("CodeSourceMap") {}
+  ~CodeSourceMapSerializationCluster() {}
+
+  void Trace(Serializer* s, ObjectPtr object) {
+    CodeSourceMapPtr map = CodeSourceMap::RawCast(object);
+    objects_.Add(map);
+  }
+
+  void WriteAlloc(Serializer* s) {
+    s->WriteCid(kCodeSourceMapCid);
+    const intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      CodeSourceMapPtr map = objects_[i];
+      s->AssignRef(map);
+      AutoTraceObject(map);
+      const intptr_t length = map->untag()->length_;
+      s->WriteUnsigned(length);
+      target_memory_size_ +=
+          compiler::target::PcDescriptors::InstanceSize(length);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    const intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      CodeSourceMapPtr map = objects_[i];
+      AutoTraceObject(map);
+      const intptr_t length = map->untag()->length_;
+      s->WriteUnsigned(length);
+      uint8_t* cdata = reinterpret_cast<uint8_t*>(map->untag()->data());
+      s->WriteBytes(cdata, length);
+    }
+  }
+
+ private:
+  GrowableArray<CodeSourceMapPtr> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class CodeSourceMapDeserializationCluster : public DeserializationCluster {
+ public:
+  CodeSourceMapDeserializationCluster()
+      : DeserializationCluster("CodeSourceMap") {}
+  ~CodeSourceMapDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d, bool is_canonical) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t length = d->ReadUnsigned();
+      d->AssignRef(AllocateUninitialized(old_space,
+                                         CodeSourceMap::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d, bool is_canonical) {
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      const intptr_t length = d->ReadUnsigned();
+      CodeSourceMapPtr map = static_cast<CodeSourceMapPtr>(d->Ref(id));
+      Deserializer::InitializeHeader(map, kPcDescriptorsCid,
+                                     CodeSourceMap::InstanceSize(length));
+      map->untag()->length_ = length;
+      uint8_t* cdata = reinterpret_cast<uint8_t*>(map->untag()->data());
+      d->ReadBytes(cdata, length);
+    }
+  }
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class CompressedStackMapsSerializationCluster : public SerializationCluster {
+ public:
+  CompressedStackMapsSerializationCluster()
+      : SerializationCluster("CompressedStackMaps") {}
+  ~CompressedStackMapsSerializationCluster() {}
+
+  void Trace(Serializer* s, ObjectPtr object) {
+    CompressedStackMapsPtr desc = CompressedStackMaps::RawCast(object);
+    objects_.Add(desc);
+  }
+
+  void WriteAlloc(Serializer* s) {
+    s->WriteCid(kCompressedStackMapsCid);
+    const intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      CompressedStackMapsPtr map = objects_[i];
+      s->AssignRef(map);
+      AutoTraceObject(map);
+      const intptr_t length = UntaggedCompressedStackMaps::SizeField::decode(
+          map->untag()->flags_and_size_);
+      s->WriteUnsigned(length);
+      target_memory_size_ +=
+          compiler::target::CompressedStackMaps::InstanceSize(length);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    const intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      CompressedStackMapsPtr map = objects_[i];
+      AutoTraceObject(map);
+      s->WriteUnsigned(map->untag()->flags_and_size_);
+      const intptr_t length = UntaggedCompressedStackMaps::SizeField::decode(
+          map->untag()->flags_and_size_);
+      uint8_t* cdata = reinterpret_cast<uint8_t*>(map->untag()->data());
+      s->WriteBytes(cdata, length);
+    }
+  }
+
+ private:
+  GrowableArray<CompressedStackMapsPtr> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class CompressedStackMapsDeserializationCluster
+    : public DeserializationCluster {
+ public:
+  CompressedStackMapsDeserializationCluster()
+      : DeserializationCluster("CompressedStackMaps") {}
+  ~CompressedStackMapsDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d, bool is_canonical) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t length = d->ReadUnsigned();
+      d->AssignRef(AllocateUninitialized(
+          old_space, CompressedStackMaps::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d, bool is_canonical) {
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      const intptr_t flags_and_size = d->ReadUnsigned();
+      const intptr_t length =
+          UntaggedCompressedStackMaps::SizeField::decode(flags_and_size);
+      CompressedStackMapsPtr map =
+          static_cast<CompressedStackMapsPtr>(d->Ref(id));
+      Deserializer::InitializeHeader(map, kCompressedStackMapsCid,
+                                     CompressedStackMaps::InstanceSize(length));
+      map->untag()->flags_and_size_ = flags_and_size;
+      uint8_t* cdata = reinterpret_cast<uint8_t*>(map->untag()->data());
+      d->ReadBytes(cdata, length);
+    }
+  }
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_COMPRESSED_POINTERS)
 // PcDescriptor, CompressedStackMaps, OneByteString, TwoByteString
 class RODataSerializationCluster : public SerializationCluster {
  public:
@@ -2186,8 +2341,9 @@ class RODataSerializationCluster : public SerializationCluster {
   GrowableArray<ObjectPtr> objects_;
   const char* const type_;
 };
-#endif  // !DART_PRECOMPILED_RUNTIME
+#endif  // !DART_PRECOMPILED_RUNTIME && !DART_COMPRESSED_POINTERS
 
+#if !defined(DART_COMPRESSED_POINTERS)
 class RODataDeserializationCluster : public DeserializationCluster {
  public:
   explicit RODataDeserializationCluster(intptr_t cid)
@@ -2228,6 +2384,7 @@ class RODataDeserializationCluster : public DeserializationCluster {
  private:
   const intptr_t cid_;
 };
+#endif  // !DART_COMPRESSED_POINTERS
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class ExceptionHandlersSerializationCluster : public SerializationCluster {
@@ -5532,11 +5689,21 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
     return new (Z) TypedDataSerializationCluster(cid);
   }
 
+#if !defined(DART_COMPRESSED_POINTERS)
+  // Sometimes we write memory images for read-only objects that contain no
+  // pointers. These can be mmapped directly, needing no relocation, and added
+  // to the list of heap pages. This gives us lazy/demand paging from the OS.
+  // We do not do this for snapshots without code to keep snapshots portable
+  // between machines with different word sizes. We do not do this when we use
+  // compressed pointers because we cannot always control the load address of
+  // the memory image, and it might be outside the 4GB region addressable by
+  // compressed pointers.
   if (Snapshot::IncludesCode(kind_)) {
     if (auto const type = ReadOnlyObjectType(cid)) {
       return new (Z) RODataSerializationCluster(Z, type, cid);
     }
   }
+#endif
 
   switch (cid) {
     case kClassCid:
@@ -5567,6 +5734,10 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) ObjectPoolSerializationCluster();
     case kPcDescriptorsCid:
       return new (Z) PcDescriptorsSerializationCluster();
+    case kCodeSourceMapCid:
+      return new (Z) CodeSourceMapSerializationCluster();
+    case kCompressedStackMapsCid:
+      return new (Z) CompressedStackMapsSerializationCluster();
     case kExceptionHandlersCid:
       return new (Z) ExceptionHandlersSerializationCluster();
     case kContextCid:
@@ -6224,6 +6395,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
     return new (Z) TypedDataDeserializationCluster(cid);
   }
 
+#if !defined(DART_COMPRESSED_POINTERS)
   if (Snapshot::IncludesCode(kind_)) {
     switch (cid) {
       case kPcDescriptorsCid:
@@ -6238,6 +6410,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
         break;
     }
   }
+#endif
 
   switch (cid) {
     case kClassCid:
@@ -6270,6 +6443,10 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) ObjectPoolDeserializationCluster();
     case kPcDescriptorsCid:
       return new (Z) PcDescriptorsDeserializationCluster();
+    case kCodeSourceMapCid:
+      return new (Z) CodeSourceMapDeserializationCluster();
+    case kCompressedStackMapsCid:
+      return new (Z) CompressedStackMapsDeserializationCluster();
     case kExceptionHandlersCid:
       return new (Z) ExceptionHandlersDeserializationCluster();
     case kContextCid:
