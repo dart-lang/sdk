@@ -544,7 +544,7 @@ static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 12;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
 static constexpr dart::compiler::target::word
-    WeakSerializationReference_InstanceSize = 8;
+    WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_ARM) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_X64) && !defined(DART_COMPRESSED_POINTERS)
@@ -1082,7 +1082,7 @@ static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
 static constexpr dart::compiler::target::word
-    WeakSerializationReference_InstanceSize = 16;
+    WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_X64) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_IA32) && !defined(DART_COMPRESSED_POINTERS)
@@ -1609,7 +1609,7 @@ static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 12;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
 static constexpr dart::compiler::target::word
-    WeakSerializationReference_InstanceSize = 8;
+    WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_IA32) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_ARM64) && !defined(DART_COMPRESSED_POINTERS)
@@ -2148,7 +2148,7 @@ static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
 static constexpr dart::compiler::target::word
-    WeakSerializationReference_InstanceSize = 16;
+    WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
@@ -2686,7 +2686,7 @@ static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
 static constexpr dart::compiler::target::word
-    WeakSerializationReference_InstanceSize = 16;
+    WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_ARM64) && defined(DART_COMPRESSED_POINTERS)
@@ -3225,7 +3225,7 @@ static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
 static constexpr dart::compiler::target::word
-    WeakSerializationReference_InstanceSize = 16;
+    WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_ARM64) && defined(DART_COMPRESSED_POINTERS)
 
 #else  // !defined(PRODUCT)
@@ -3751,7 +3751,7 @@ static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 12;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
 static constexpr dart::compiler::target::word
-    WeakSerializationReference_InstanceSize = 8;
+    WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_ARM) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_X64) && !defined(DART_COMPRESSED_POINTERS)
@@ -4283,7 +4283,7 @@ static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
 static constexpr dart::compiler::target::word
-    WeakSerializationReference_InstanceSize = 16;
+    WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_X64) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_IA32) && !defined(DART_COMPRESSED_POINTERS)
@@ -4804,7 +4804,7 @@ static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 12;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
 static constexpr dart::compiler::target::word
-    WeakSerializationReference_InstanceSize = 8;
+    WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_IA32) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_ARM64) && !defined(DART_COMPRESSED_POINTERS)
@@ -5337,7 +5337,7 @@ static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
 static constexpr dart::compiler::target::word
-    WeakSerializationReference_InstanceSize = 16;
+    WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
@@ -5869,7 +5869,7 @@ static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
 static constexpr dart::compiler::target::word
-    WeakSerializationReference_InstanceSize = 16;
+    WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_ARM64) && defined(DART_COMPRESSED_POINTERS)
@@ -6402,7 +6402,7 @@ static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
 static constexpr dart::compiler::target::word
-    WeakSerializationReference_InstanceSize = 16;
+    WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_ARM64) && defined(DART_COMPRESSED_POINTERS)
 
 #endif  // !defined(PRODUCT)
@@ -6997,7 +6997,7 @@ static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
-    AOT_WeakSerializationReference_InstanceSize = 8;
+    AOT_WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_ARM) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_X64) && !defined(DART_COMPRESSED_POINTERS)
@@ -7592,7 +7592,7 @@ static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
-    AOT_WeakSerializationReference_InstanceSize = 16;
+    AOT_WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_X64) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_IA32) && !defined(DART_COMPRESSED_POINTERS)
@@ -8191,7 +8191,7 @@ static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
-    AOT_WeakSerializationReference_InstanceSize = 16;
+    AOT_WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
@@ -8786,7 +8786,7 @@ static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
-    AOT_WeakSerializationReference_InstanceSize = 16;
+    AOT_WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_ARM64) && defined(DART_COMPRESSED_POINTERS)
@@ -9382,7 +9382,7 @@ static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
-    AOT_WeakSerializationReference_InstanceSize = 16;
+    AOT_WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_ARM64) && defined(DART_COMPRESSED_POINTERS)
 
 #else  // !defined(PRODUCT)
@@ -9968,7 +9968,7 @@ static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
-    AOT_WeakSerializationReference_InstanceSize = 8;
+    AOT_WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_ARM) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_X64) && !defined(DART_COMPRESSED_POINTERS)
@@ -10556,7 +10556,7 @@ static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
-    AOT_WeakSerializationReference_InstanceSize = 16;
+    AOT_WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_X64) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_IA32) && !defined(DART_COMPRESSED_POINTERS)
@@ -11148,7 +11148,7 @@ static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
-    AOT_WeakSerializationReference_InstanceSize = 16;
+    AOT_WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
@@ -11736,7 +11736,7 @@ static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
-    AOT_WeakSerializationReference_InstanceSize = 16;
+    AOT_WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_ARM64) && defined(DART_COMPRESSED_POINTERS)
@@ -12325,7 +12325,7 @@ static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
-    AOT_WeakSerializationReference_InstanceSize = 16;
+    AOT_WeakSerializationReference_InstanceSize = 24;
 #endif  // defined(TARGET_ARCH_ARM64) && defined(DART_COMPRESSED_POINTERS)
 
 #endif  // !defined(PRODUCT)

@@ -152,7 +152,9 @@ class HashTable : public ValueObject {
   template <typename Key>
   intptr_t FindKey(const Key& key) const {
     const intptr_t num_entries = NumEntries();
-    ASSERT(NumOccupied() < num_entries);
+    // Deleted may undercount due to weak references used during AOT
+    // snapshotting.
+    NOT_IN_PRECOMPILED(ASSERT(NumOccupied() < num_entries));
     // TODO(koda): Add salt.
     NOT_IN_PRODUCT(intptr_t collisions = 0;)
     uword hash = KeyTraits::Hash(key);
@@ -188,7 +190,9 @@ class HashTable : public ValueObject {
   bool FindKeyOrDeletedOrUnused(const Key& key, intptr_t* entry) const {
     const intptr_t num_entries = NumEntries();
     ASSERT(entry != NULL);
-    ASSERT(NumOccupied() < num_entries);
+    // Deleted may undercount due to weak references used during AOT
+    // snapshotting.
+    NOT_IN_PRECOMPILED(ASSERT(NumOccupied() < num_entries));
     NOT_IN_PRODUCT(intptr_t collisions = 0;)
     uword hash = KeyTraits::Hash(key);
     ASSERT(Utils::IsPowerOfTwo(num_entries));
@@ -236,7 +240,9 @@ class HashTable : public ValueObject {
     }
     InternalSetKey(entry, key);
     ASSERT(IsOccupied(entry));
-    ASSERT(NumOccupied() < NumEntries());
+    // Deleted may undercount due to weak references used during AOT
+    // snapshotting.
+    NOT_IN_PRECOMPILED(ASSERT(NumOccupied() < NumEntries()));
   }
 
   const Object& UnusedMarker() const { return Object::transition_sentinel(); }
@@ -258,7 +264,8 @@ class HashTable : public ValueObject {
   }
   ObjectPtr GetPayload(intptr_t entry, intptr_t component) const {
     ASSERT(IsOccupied(entry));
-    return data_->At(PayloadIndex(entry, component));
+    return WeakSerializationReference::Unwrap(
+        data_->At(PayloadIndex(entry, component)));
   }
   void UpdatePayload(intptr_t entry,
                      intptr_t component,
@@ -371,7 +378,7 @@ class HashTable : public ValueObject {
   }
 
   ObjectPtr InternalGetKey(intptr_t entry) const {
-    return data_->At(KeyIndex(entry));
+    return WeakSerializationReference::Unwrap(data_->At(KeyIndex(entry)));
   }
 
   void InternalSetKey(intptr_t entry, const Object& key) const {
@@ -531,6 +538,22 @@ class HashTables : public AllStatic {
     }
     return result.ptr();
   }
+
+#if defined(DART_PRECOMPILER)
+  // Replace elements of this set with WeakSerializationReferences.
+  static void Weaken(const Array& table) {
+    if (!table.IsNull()) {
+      Object& element = Object::Handle();
+      for (intptr_t i = 0; i < table.Length(); i++) {
+        element = table.At(i);
+        if (!element.IsSmi()) {
+          element = WeakSerializationReference::New(element, table);
+          table.SetAt(i, element);
+        }
+      }
+    }
+  }
+#endif
 };
 
 template <typename BaseIterTable>
@@ -724,7 +747,7 @@ class UnorderedHashSet : public HashSet<UnorderedHashTable<KeyTraits, 0> > {
   void Dump() const {
     Object& entry = Object::Handle();
     for (intptr_t i = 0; i < this->data_->Length(); i++) {
-      entry = this->data_->At(i);
+      entry = WeakSerializationReference::Unwrap(this->data_->At(i));
       if (entry.ptr() == BaseSet::UnusedMarker().ptr() ||
           entry.ptr() == BaseSet::DeletedMarker().ptr() || entry.IsSmi()) {
         // empty, deleted, num_used/num_deleted

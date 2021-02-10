@@ -5853,87 +5853,32 @@ class ExceptionHandlers : public Object {
 //
 // Current uses of WSRs:
 //  * Code::owner_
+//  * Canonical table elements
 class WeakSerializationReference : public Object {
  public:
   ObjectPtr target() const { return TargetOf(ptr()); }
-  static ObjectPtr TargetOf(const WeakSerializationReferencePtr raw) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    // WSRs in the precompiled runtime only contain some remaining info about
-    // their old target, not a reference to the target itself..
-    return Object::null();
-#else
-    // Outside the precompiled runtime, they should always have a target.
-    ASSERT(raw->untag()->target() != Object::null());
-    return raw->untag()->target();
-#endif
+  static ObjectPtr TargetOf(const WeakSerializationReferencePtr obj) {
+    return obj->untag()->target();
   }
 
-  classid_t TargetClassId() const { return TargetClassIdOf(ptr()); }
-  static classid_t TargetClassIdOf(const WeakSerializationReferencePtr raw) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    // No new instances of WSRs are created in the precompiled runtime, so
-    // this instance came from deserialization and thus must be the empty WSR.
-    return raw->untag()->cid_;
-#else
-    return TargetOf(raw)->GetClassId();
-#endif
-  }
-
-  static ObjectPtr Unwrap(const Object& obj) { return Unwrap(obj.ptr()); }
-  // Gets the underlying object from a WSR, or the original object if it is
-  // not one. Notably, Unwrap(Wrap(r)) == r for all raw objects r, whether
-  // CanWrap(r) or not. However, this will not hold if a serialization and
-  // deserialization step is put between the two calls.
   static ObjectPtr Unwrap(ObjectPtr obj) {
-    if (!obj->IsWeakSerializationReference()) return obj;
-    return TargetOf(static_cast<WeakSerializationReferencePtr>(obj));
-  }
-
-  // An Unwrap that only unwraps if there's a valid target, otherwise the
-  // WSR is returned. Useful for cases where we want to call Object methods
-  // like ToCString() on whatever non-null object we can get.
-  static ObjectPtr UnwrapIfTarget(const Object& obj) {
-    return UnwrapIfTarget(obj.ptr());
-  }
-  static ObjectPtr UnwrapIfTarget(ObjectPtr raw) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    // In the precompiled runtime, WSRs never have a target so we always return
-    // the argument.
-    return raw;
-#else
-    if (!raw->IsWeakSerializationReference()) return raw;
-    // Otherwise, they always do.
-    return TargetOf(WeakSerializationReference::RawCast(raw));
+#if defined(DART_PRECOMPILER)
+    if (obj->IsHeapObject() && obj->IsWeakSerializationReference()) {
+      return TargetOf(static_cast<WeakSerializationReferencePtr>(obj));
+    }
 #endif
+    return obj;
   }
-
-  static classid_t UnwrappedClassIdOf(const Object& obj) {
-    return UnwrappedClassIdOf(obj.ptr());
-  }
-  // Gets the class ID of the underlying object from a WSR, or the class ID of
-  // the object if it is not one.
-  //
-  // UnwrappedClassOf(Wrap(r)) == UnwrappedClassOf(r) for all raw objects r,
-  // whether CanWrap(r) or not. Unlike Unwrap, this is still true even if
-  // there is a serialization and deserialization step between the two calls,
-  // since that information is saved in the serialized WSR.
-  static classid_t UnwrappedClassIdOf(ObjectPtr obj) {
-    if (!obj->IsWeakSerializationReference()) return obj->GetClassId();
-    return TargetClassIdOf(WeakSerializationReference::RawCast(obj));
-  }
+  static ObjectPtr Unwrap(const Object& obj) { return Unwrap(obj.ptr()); }
+  static ObjectPtr UnwrapIfTarget(ObjectPtr obj) { return Unwrap(obj); }
+  static ObjectPtr UnwrapIfTarget(const Object& obj) { return Unwrap(obj); }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedWeakSerializationReference));
   }
 
-#if defined(DART_PRECOMPILER)
-  // Returns true if a new WSR would be created when calling Wrap.
-  static bool CanWrap(const Object& object);
-
-  // This returns ObjectPtr, not WeakSerializationReferencePtr, because
-  // target.ptr() is returned when CanWrap(target) is false.
-  static ObjectPtr Wrap(Zone* zone, const Object& target);
-#endif
+  static WeakSerializationReferencePtr New(const Object& target,
+                                           const Object& replacement);
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakSerializationReference, Object);
@@ -6294,17 +6239,21 @@ class Code : public Object {
   // while generating the snapshot.
   FunctionPtr function() const {
     ASSERT(IsFunctionCode());
-    return Function::RawCast(
-        WeakSerializationReference::Unwrap(untag()->owner()));
+    return Function::RawCast(owner());
   }
 
-  ObjectPtr owner() const { return untag()->owner(); }
+  ObjectPtr owner() const {
+    return WeakSerializationReference::Unwrap(untag()->owner());
+  }
   void set_owner(const Object& owner) const;
 
   classid_t OwnerClassId() const { return OwnerClassIdOf(ptr()); }
   static classid_t OwnerClassIdOf(CodePtr raw) {
-    return WeakSerializationReference::UnwrappedClassIdOf(
-        raw->untag()->owner());
+    ObjectPtr owner = WeakSerializationReference::Unwrap(raw->untag()->owner());
+    if (!owner->IsHeapObject()) {
+      return RawSmiValue(static_cast<SmiPtr>(owner));
+    }
+    return owner->GetClassId();
   }
 
   static intptr_t owner_offset() { return OFFSET_OF(UntaggedCode, owner_); }

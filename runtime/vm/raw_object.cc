@@ -536,6 +536,7 @@ REGULAR_VISITOR(UserTag)
 REGULAR_VISITOR(SubtypeTestCache)
 REGULAR_VISITOR(LoadingUnit)
 REGULAR_VISITOR(KernelProgramInfo)
+REGULAR_VISITOR(WeakSerializationReference)
 VARIABLE_VISITOR(TypeArguments, Smi::Value(raw_obj->untag()->length_))
 VARIABLE_VISITOR(LocalVarDescriptors, raw_obj->untag()->num_entries_)
 VARIABLE_VISITOR(ExceptionHandlers, raw_obj->untag()->num_entries_)
@@ -576,11 +577,6 @@ UNREACHABLE_VISITOR(String)
 UNREACHABLE_VISITOR(FutureOr)
 // Smi has no heap representation.
 UNREACHABLE_VISITOR(Smi)
-#if defined(DART_PRECOMPILED_RUNTIME)
-NULL_VISITOR(WeakSerializationReference)
-#else
-REGULAR_VISITOR(WeakSerializationReference)
-#endif
 
 intptr_t UntaggedField::VisitFieldPointers(FieldPtr raw_obj,
                                            ObjectPointerVisitor* visitor) {

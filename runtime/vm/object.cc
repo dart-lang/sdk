@@ -1325,6 +1325,7 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
   SET_CLASS_NAME(library, LibraryClass);
   SET_CLASS_NAME(namespace, Namespace);
   SET_CLASS_NAME(kernel_program_info, KernelProgramInfo);
+  SET_CLASS_NAME(weak_serialization_reference, WeakSerializationReference);
   SET_CLASS_NAME(code, Code);
   SET_CLASS_NAME(instructions, Instructions);
   SET_CLASS_NAME(instructions_section, InstructionsSection);
@@ -4767,6 +4768,8 @@ const char* Class::GenerateUserVisibleName() const {
       return Symbols::Namespace().ToCString();
     case kKernelProgramInfoCid:
       return Symbols::KernelProgramInfo().ToCString();
+    case kWeakSerializationReferenceCid:
+      return Symbols::WeakSerializationReference().ToCString();
     case kCodeCid:
       return Symbols::Code().ToCString();
     case kInstructionsCid:
@@ -16027,26 +16030,14 @@ ICDataPtr ICData::Clone(const ICData& from) {
 #endif
 
 const char* WeakSerializationReference::ToCString() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Symbols::OptimizedOut().ToCString();
-#else
   return Object::Handle(target()).ToCString();
-#endif
 }
 
-#if defined(DART_PRECOMPILER)
-bool WeakSerializationReference::CanWrap(const Object& object) {
-  // Currently we do not wrap the null object (which cannot be dropped from
-  // snapshots), non-heap objects, and WSRs (as there is no point in deeply
-  // nesting them). We also only wrap objects in the precompiler.
-  return FLAG_precompiled_mode && !object.IsNull() &&
-         object.ptr()->IsHeapObject() && !object.IsWeakSerializationReference();
-}
-
-ObjectPtr WeakSerializationReference::Wrap(Zone* zone, const Object& target) {
-  if (!CanWrap(target)) return target.ptr();
+WeakSerializationReferencePtr WeakSerializationReference::New(
+    const Object& target,
+    const Object& replacement) {
   ASSERT(Object::weak_serialization_reference_class() != Class::null());
-  WeakSerializationReference& result = WeakSerializationReference::Handle(zone);
+  WeakSerializationReference& result = WeakSerializationReference::Handle();
   {
     ObjectPtr raw = Object::Allocate(WeakSerializationReference::kClassId,
                                      WeakSerializationReference::InstanceSize(),
@@ -16055,10 +16046,10 @@ ObjectPtr WeakSerializationReference::Wrap(Zone* zone, const Object& target) {
 
     result ^= raw;
     result.untag()->set_target(target.ptr());
+    result.untag()->set_replacement(replacement.ptr());
   }
   return result.ptr();
 }
-#endif
 
 #if defined(INCLUDE_IL_PRINTER)
 Code::Comments& Code::Comments::New(intptr_t count) {
@@ -24772,6 +24763,7 @@ const char* StackTrace::ToCString() const {
   auto const T = Thread::Current();
   auto const zone = T->zone();
   auto& stack_trace = StackTrace::Handle(zone, this->ptr());
+  auto& owner = Object::Handle(zone);
   auto& function = Function::Handle(zone);
   auto& code_object = Object::Handle(zone);
   auto& code = Code::Handle(zone);
@@ -24861,7 +24853,12 @@ const char* StackTrace::ToCString() const {
       ASSERT(code_object.IsCode());
       code ^= code_object.ptr();
       ASSERT(code.IsFunctionCode());
-      function = code.function();
+      owner = code.owner();
+      if (owner.IsFunction()) {
+        function ^= owner.ptr();
+      } else {
+        function = Function::null();
+      }
       const uword pc = code.PayloadStart() + pc_offset;
 
       // If the function is not to be shown, skip.

@@ -1749,7 +1749,8 @@ void Precompiler::DropFunctions() {
       // Wrap the owner of the code object in case the code object will be
       // serialized but the function object will not.
       owner = code.owner();
-      owner = WeakSerializationReference::Wrap(Z, owner);
+      owner = WeakSerializationReference::New(
+          owner, Smi::Handle(Smi::New(owner.GetClassId())));
       code.set_owner(owner);
     }
     dropped_function_count_++;
@@ -2286,6 +2287,14 @@ void Precompiler::DropClasses() {
 
   ClassTable* class_table = IG->class_table();
   intptr_t num_cids = class_table->NumCids();
+
+  for (intptr_t cid = 0; cid < num_cids; cid++) {
+    if (!class_table->IsValidIndex(cid)) continue;
+    if (!class_table->HasValidClassAt(cid)) continue;
+    cls = class_table->At(cid);
+    constants = cls.constants();
+    HashTables::Weaken(constants);
+  }
 
   for (intptr_t cid = kNumPredefinedCids; cid < num_cids; cid++) {
     if (!class_table->IsValidIndex(cid)) continue;
