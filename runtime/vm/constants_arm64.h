@@ -325,7 +325,7 @@ const RegList kAllCpuRegistersList = 0xFFFFFFFF;
 const RegList kAbiArgumentCpuRegs =
     R(R0) | R(R1) | R(R2) | R(R3) | R(R4) | R(R5) | R(R6) | R(R7);
 #if defined(TARGET_OS_FUCHSIA)
-// We rely on R18 not bying touched by Dart generated assembly or stubs at all.
+// We rely on R18 not being touched by Dart generated assembly or stubs at all.
 // We rely on that any calls into C++ also preserve R18.
 const RegList kAbiPreservedCpuRegs = R(R18) | R(R19) | R(R20) | R(R21) |
                                      R(R22) | R(R23) | R(R24) | R(R25) |
