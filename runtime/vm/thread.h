@@ -418,6 +418,9 @@ class Thread : public ThreadState {
   // The isolate that this thread is operating on, or nullptr if none.
   Isolate* isolate() const { return isolate_; }
   static intptr_t isolate_offset() { return OFFSET_OF(Thread, isolate_); }
+  static intptr_t isolate_group_offset() {
+    return OFFSET_OF(Thread, isolate_group_);
+  }
 
   // The isolate group that this thread is operating on, or nullptr if none.
   IsolateGroup* isolate_group() const { return isolate_group_; }

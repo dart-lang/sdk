@@ -1027,6 +1027,7 @@ class Thread : public AllStatic {
   static word top_offset();
   static word end_offset();
   static word isolate_offset();
+  static word isolate_group_offset();
   static word field_table_values_offset();
   static word store_buffer_block_offset();
   static word call_to_runtime_entry_point_offset();
@@ -1151,11 +1152,15 @@ class Isolate : public AllStatic {
   static word current_tag_offset();
   static word user_tag_offset();
   static word cached_class_table_table_offset();
-  static word shared_class_table_offset();
   static word ic_miss_code_offset();
 #if !defined(PRODUCT)
   static word single_step_offset();
 #endif  // !defined(PRODUCT)
+};
+
+class IsolateGroup : public AllStatic {
+ public:
+  static word shared_class_table_offset();
 };
 
 class SharedClassTable : public AllStatic {

@@ -332,7 +332,8 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data,
                            ObjectStore* object_store,
                            Dart_IsolateFlags api_flags)
-    : embedder_data_(embedder_data),
+    : shared_class_table_(new SharedClassTable()),
+      embedder_data_(embedder_data),
       thread_pool_(),
       isolates_lock_(new SafepointRwLock()),
       isolates_(),
@@ -346,7 +347,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       api_state_(new ApiState()),
       thread_registry_(new ThreadRegistry()),
       safepoint_handler_(new SafepointHandler(this)),
-      shared_class_table_(new SharedClassTable()),
       object_store_(object_store),
       class_table_(new ClassTable(shared_class_table_.get())),
       store_buffer_(new StoreBuffer()),
@@ -1669,7 +1669,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
       ic_miss_code_(Code::null()),
-      shared_class_table_(isolate_group->shared_class_table()),
       field_table_(new FieldTable(/*isolate=*/this)),
       isolate_group_(isolate_group),
       isolate_object_store_(
@@ -1702,7 +1701,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       handler_info_cache_(),
       catch_entry_moves_cache_() {
   cached_object_store_ = object_store_shared_ptr_.get();
-  cached_class_table_table_ = class_table_->table();
+  cached_class_table_table_ = group()->class_table_->table();
   FlagsCopyFrom(api_flags);
   SetErrorsFatal(true);
   // TODO(asiva): A Thread is not available here, need to figure out

@@ -466,6 +466,10 @@ void Assembler::LoadIsolate(Register dst) {
   ldr(dst, Address(THR, target::Thread::isolate_offset()));
 }
 
+void Assembler::LoadIsolateGroup(Register rd) {
+  ldr(rd, Address(THR, target::Thread::isolate_group_offset()));
+}
+
 void Assembler::LoadObjectHelper(Register dst,
                                  const Object& object,
                                  bool is_unique) {
@@ -1717,12 +1721,12 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   ASSERT(cid > 0);
 
   const intptr_t shared_table_offset =
-      target::Isolate::shared_class_table_offset();
+      target::IsolateGroup::shared_class_table_offset();
   const intptr_t table_offset =
       target::SharedClassTable::class_heap_stats_table_offset();
   const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
 
-  LoadIsolate(temp_reg);
+  LoadIsolateGroup(temp_reg);
   ldr(temp_reg, Address(temp_reg, shared_table_offset));
   ldr(temp_reg, Address(temp_reg, table_offset));
   AddImmediate(temp_reg, class_offset);

@@ -826,6 +826,7 @@ class Assembler : public AssemblerBase {
   void SetupGlobalPoolAndDispatchTable();
 
   void LoadIsolate(Register rd);
+  void LoadIsolateGroup(Register dst);
 
   // Load word from pool from the given index using encoding that
   // InstructionPattern::DecodeLoadWordFromPool can decode.

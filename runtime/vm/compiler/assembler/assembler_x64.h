@@ -733,6 +733,7 @@ class Assembler : public AssemblerBase {
   }
 
   void LoadIsolate(Register dst);
+  void LoadIsolateGroup(Register dst);
   void LoadDispatchTable(Register dst);
   void LoadObject(Register dst, const Object& obj);
   void LoadUniqueObject(Register dst, const Object& obj);

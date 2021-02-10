@@ -1228,6 +1228,10 @@ void Assembler::LoadIsolate(Register dst) {
   movq(dst, Address(THR, target::Thread::isolate_offset()));
 }
 
+void Assembler::LoadIsolateGroup(Register dst) {
+  movq(dst, Address(THR, target::Thread::isolate_group_offset()));
+}
+
 void Assembler::LoadDispatchTable(Register dst) {
   movq(dst, Address(THR, target::Thread::dispatch_table_array_offset()));
 }
@@ -1922,13 +1926,13 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      JumpDistance distance) {
   ASSERT(cid > 0);
   const intptr_t shared_table_offset =
-      target::Isolate::shared_class_table_offset();
+      target::IsolateGroup::shared_class_table_offset();
   const intptr_t table_offset =
       target::SharedClassTable::class_heap_stats_table_offset();
   const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
 
   Register temp_reg = TMP;
-  LoadIsolate(temp_reg);
+  LoadIsolateGroup(temp_reg);
   movq(temp_reg, Address(temp_reg, shared_table_offset));
   movq(temp_reg, Address(temp_reg, table_offset));
   cmpb(Address(temp_reg, class_offset), Immediate(0));

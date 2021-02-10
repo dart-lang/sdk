@@ -1704,6 +1704,7 @@ class Assembler : public AssemblerBase {
                        const ExternalLabel* label,
                        ObjectPoolBuilderEntry::Patchability patchable);
   void LoadIsolate(Register dst);
+  void LoadIsolateGroup(Register dst);
 
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadObject(Register dst, const Object& obj);
