@@ -177,7 +177,7 @@ class AnalyzeCommand extends DartdevCommand {
     for (final AnalysisError error in errors) {
       // error • Message ... at path.dart:line:col • (code)
 
-      var filePath = path.relative(error.file, from: relativeToDir?.path);
+      var filePath = _relativePath(error.file, relativeToDir?.path);
       var severity = error.severity.toLowerCase().padLeft(_severityWidth);
       if (error.isError) {
         severity = log.ansi.error(severity);
@@ -192,10 +192,13 @@ class AnalyzeCommand extends DartdevCommand {
 
       if (verbose) {
         for (var message in error.contextMessages) {
+          var contextPath = _relativePath(error.file, relativeToDir?.path);
+          var messageSentenceFragment = trimEnd(message.message, '.');
+
           // Wrap longer context messages.
           var contextMessage = wrapText(
-              '${message.message} at '
-              '${message.filePath}:${message.line}:${message.column}',
+              '$messageSentenceFragment at '
+              '$contextPath:${message.line}:${message.column}',
               width: wrapWidth);
           log.stdout('$_bodyIndent'
               '${contextMessage.replaceAll('\n', '\n$_bodyIndent')}');
@@ -220,6 +223,12 @@ class AnalyzeCommand extends DartdevCommand {
 
     final errorCount = errors.length;
     log.stdout('$errorCount ${pluralize('issue', errorCount)} found.');
+  }
+
+  /// Return a relative path if it is a shorter reference than the given path.
+  static String _relativePath(String givenPath, String fromPath) {
+    String relative = path.relative(givenPath, from: fromPath);
+    return relative.length <= givenPath.length ? relative : givenPath;
   }
 
   @visibleForTesting
