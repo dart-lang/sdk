@@ -159,6 +159,50 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct16bytesHomogenousx10) {
   RunSignatureTest(Z, "struct16bytesHomogenousx10", arguments, struct_type);
 }
 
+// Test with homogenous struct (2).
+//
+// This time with nested structs and inline arrays.
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct16bytesHomogenousx10_2) {
+  const auto& float_type = *new (Z) NativePrimitiveType(kFloat);
+  const auto& int8type = *new (Z) NativePrimitiveType(kInt8);
+
+  const auto& float_1_array_type = *new (Z) NativeArrayType(float_type, 1);
+
+  const auto& float_2_array_type = *new (Z) NativeArrayType(float_type, 2);
+  auto& full_float_member_types = *new (Z) NativeTypes(Z, 1);
+  full_float_member_types.Add(&float_2_array_type);
+  const auto& float_array_struct_type =
+      NativeCompoundType::FromNativeTypes(Z, full_float_member_types);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 3);
+  member_types.Add(&float_1_array_type);
+  member_types.Add(&float_array_struct_type);
+  member_types.Add(&float_type);
+  const auto& struct_type =
+      NativeCompoundType::FromNativeTypes(Z, member_types);
+
+  auto& arguments = *new (Z) NativeTypes(Z, 13);
+  arguments.Add(&struct_type);
+  arguments.Add(&float_type);  // Claim a single FPU register.
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&float_type);   // Check float register back filling, if any.
+  arguments.Add(&int8type);     // Check integer register back filling, if any.
+  arguments.Add(&struct_type);  // Check stack alignment of struct.
+
+  // Identical expectation files as previous test, struct contains the same
+  // members, but nested in arrays and nested structs.
+  RunSignatureTest(Z, "struct16bytesHomogenousx10", arguments, struct_type);
+}
+
 // A fairly big struct.
 //
 // On arm, split up in 8-byte chunks. The first chunk goes into two registers,
@@ -268,6 +312,65 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct16bytesMixedx10_2) {
   arguments.Add(&int32_type);  // Use remaining integer register.
 
   RunSignatureTest(Z, "struct16bytesMixedx10_2", arguments, struct_type);
+}
+
+// On x64 non-Windows a struct can be spread over an FPU and int register.
+//
+// This behavior also happens with nested structs and inline arrays.
+//
+// typedef struct  {
+//   int32_t a0;
+//   float a1;
+// } HalfFloat;
+//
+// typedef struct  {
+//   float a1[1];
+// } FullFloat;
+//
+// typedef struct  {
+//   int32_t a0;
+//   HalfFloat a1;
+//   FullFloat a2;
+// } HalfFloat2;
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct16bytesMixedx10_3) {
+  const auto& float_type = *new (Z) NativePrimitiveType(kFloat);
+  const auto& int32_type = *new (Z) NativePrimitiveType(kInt32);
+
+  auto& half_float_member_types = *new (Z) NativeTypes(Z, 2);
+  half_float_member_types.Add(&int32_type);
+  half_float_member_types.Add(&float_type);
+  const auto& half_float_type =
+      NativeCompoundType::FromNativeTypes(Z, half_float_member_types);
+
+  const auto& float_array_type = *new (Z) NativeArrayType(float_type, 1);
+  auto& full_float_member_types = *new (Z) NativeTypes(Z, 1);
+  full_float_member_types.Add(&float_array_type);
+  const auto& full_float_type =
+      NativeCompoundType::FromNativeTypes(Z, full_float_member_types);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 3);
+  member_types.Add(&int32_type);
+  member_types.Add(&half_float_type);
+  member_types.Add(&full_float_type);
+  const auto& struct_type =
+      NativeCompoundType::FromNativeTypes(Z, member_types);
+
+  auto& arguments = *new (Z) NativeTypes(Z, 11);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);  // Integer registers exhausted, on stack.
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&float_type);  // Use remaining FPU register.
+
+  RunSignatureTest(Z, "struct16bytesMixedx10_3", arguments, struct_type);
 }
 #endif  // defined(TARGET_ARCH_X64)
 

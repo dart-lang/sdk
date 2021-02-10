@@ -10,6 +10,9 @@
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/ffi/range.h"
+#endif
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 #include "vm/compiler/backend/locations.h"
 #endif
@@ -26,6 +29,7 @@ namespace compiler {
 namespace ffi {
 
 class NativePrimitiveType;
+class NativeArrayType;
 class NativeCompoundType;
 
 // NativeTypes are the types used in calling convention specifications:
@@ -64,6 +68,8 @@ class NativeType : public ZoneAllocated {
 
   virtual bool IsPrimitive() const { return false; }
   const NativePrimitiveType& AsPrimitive() const;
+  virtual bool IsArray() const { return false; }
+  const NativeArrayType& AsArray() const;
   virtual bool IsCompound() const { return false; }
   const NativeCompoundType& AsCompound() const;
 
@@ -83,6 +89,13 @@ class NativeType : public ZoneAllocated {
 
   // The alignment in bytes of this representation as member of a composite.
   virtual intptr_t AlignmentInBytesField() const = 0;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Returns true iff a range within this type contains only floats.
+  //
+  // Useful for determining whether struct is passed in FP registers on x64.
+  virtual bool ContainsOnlyFloats(Range range) const = 0;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
   // NativeTypes which are available as unboxed Representations.
@@ -117,10 +130,8 @@ class NativeType : public ZoneAllocated {
   const char* ToCString() const;
 #endif
 
-  virtual intptr_t NumPrimitiveMembersRecursive() const { UNREACHABLE(); }
-  virtual const NativePrimitiveType& FirstPrimitiveMember() const {
-    UNREACHABLE();
-  }
+  virtual intptr_t NumPrimitiveMembersRecursive() const = 0;
+  virtual const NativePrimitiveType& FirstPrimitiveMember() const = 0;
 
   virtual ~NativeType() {}
 
@@ -170,6 +181,10 @@ class NativePrimitiveType : public NativeType {
   virtual intptr_t AlignmentInBytesStack() const;
   virtual intptr_t AlignmentInBytesField() const;
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  virtual bool ContainsOnlyFloats(Range range) const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
   virtual bool IsExpressibleAsRepresentation() const;
   virtual Representation AsRepresentation() const;
@@ -191,12 +206,53 @@ class NativePrimitiveType : public NativeType {
   const PrimitiveType representation_;
 };
 
+// Fixed-length arrays.
+class NativeArrayType : public NativeType {
+ public:
+  NativeArrayType(const NativeType& element_type, intptr_t length)
+      : element_type_(element_type), length_(length) {
+    ASSERT(!element_type.IsArray());
+    ASSERT(length > 0);
+  }
+
+  const NativeType& element_type() const { return element_type_; }
+  intptr_t length() const { return length_; }
+
+  virtual bool IsArray() const { return true; }
+
+  virtual intptr_t SizeInBytes() const {
+    return element_type_.SizeInBytes() * length_;
+  }
+  virtual intptr_t AlignmentInBytesField() const {
+    return element_type_.AlignmentInBytesField();
+  }
+  virtual intptr_t AlignmentInBytesStack() const {
+    return element_type_.AlignmentInBytesStack();
+  }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  virtual bool ContainsOnlyFloats(Range range) const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  virtual bool Equals(const NativeType& other) const;
+
+  virtual void PrintTo(BaseTextBuffer* f,
+                       bool multi_line = false,
+                       bool verbose = true) const;
+
+  virtual intptr_t NumPrimitiveMembersRecursive() const;
+  virtual const NativePrimitiveType& FirstPrimitiveMember() const;
+
+ private:
+  const NativeType& element_type_;
+  const intptr_t length_;
+};
+
 using NativeTypes = ZoneGrowableArray<const NativeType*>;
 
 // Struct
 //
 // TODO(dartbug.com/38491): Support unions.
-// TODO(dartbug.com/35763): Support inline fixed-length arrays.
 class NativeCompoundType : public NativeType {
  public:
   static NativeCompoundType& FromNativeTypes(Zone* zone,
@@ -219,11 +275,8 @@ class NativeCompoundType : public NativeType {
                        bool multi_line = false,
                        bool verbose = true) const;
 
-  // Whether a range within a struct contains only floats.
-  //
-  // Useful for determining whether struct is passed in FP registers on x64.
-  bool ContainsOnlyFloats(intptr_t offset_in_bytes,
-                          intptr_t size_in_bytes) const;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  virtual bool ContainsOnlyFloats(Range range) const;
 
   // Returns how many word-sized chuncks _only_ contain floats.
   //
@@ -234,6 +287,7 @@ class NativeCompoundType : public NativeType {
   //
   // Useful for determining whether struct is passed in FP registers on x64.
   intptr_t NumberOfWordSizeChunksNotOnlyFloat() const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   // Whether this type has only same-size floating point members.
   //

@@ -46,6 +46,11 @@ const NativePrimitiveType& NativeType::AsPrimitive() const {
   return static_cast<const NativePrimitiveType&>(*this);
 }
 
+const NativeArrayType& NativeType::AsArray() const {
+  ASSERT(IsArray());
+  return static_cast<const NativeArrayType&>(*this);
+}
+
 const NativeCompoundType& NativeType::AsCompound() const {
   ASSERT(IsCompound());
   return static_cast<const NativeCompoundType&>(*this);
@@ -256,6 +261,14 @@ bool NativePrimitiveType::Equals(const NativeType& other) const {
   return other.AsPrimitive().representation_ == representation_;
 }
 
+bool NativeArrayType::Equals(const NativeType& other) const {
+  if (!other.IsArray()) {
+    return false;
+  }
+  return other.AsArray().length_ == length_ &&
+         other.AsArray().element_type_.Equals(element_type_);
+}
+
 bool NativeCompoundType::Equals(const NativeType& other) const {
   if (!other.IsCompound()) {
     return false;
@@ -462,6 +475,16 @@ const char* NativeFunctionType::ToCString(Zone* zone) const {
   return textBuffer.buffer();
 }
 
+void NativeArrayType::PrintTo(BaseTextBuffer* f,
+                              bool multi_line,
+                              bool verbose) const {
+  f->AddString("Array(");
+  f->Printf("element type: ");
+  element_type_.PrintTo(f, /*multi_line*/ false, verbose);
+  f->Printf(", length: %" Pd "", length_);
+  f->AddString(")");
+}
+
 void NativeCompoundType::PrintTo(BaseTextBuffer* f,
                                  bool multi_line,
                                  bool verbose) const {
@@ -518,6 +541,10 @@ intptr_t NativePrimitiveType::NumPrimitiveMembersRecursive() const {
   return 1;
 }
 
+intptr_t NativeArrayType::NumPrimitiveMembersRecursive() const {
+  return element_type_.NumPrimitiveMembersRecursive() * length_;
+}
+
 intptr_t NativeCompoundType::NumPrimitiveMembersRecursive() const {
   intptr_t count = 0;
   for (intptr_t i = 0; i < members_.length(); i++) {
@@ -530,6 +557,10 @@ const NativePrimitiveType& NativePrimitiveType::FirstPrimitiveMember() const {
   return *this;
 }
 
+const NativePrimitiveType& NativeArrayType::FirstPrimitiveMember() const {
+  return element_type_.FirstPrimitiveMember();
+}
+
 const NativePrimitiveType& NativeCompoundType::FirstPrimitiveMember() const {
   ASSERT(NumPrimitiveMembersRecursive() >= 1);
   for (intptr_t i = 0; i < members().length(); i++) {
@@ -540,30 +571,77 @@ const NativePrimitiveType& NativeCompoundType::FirstPrimitiveMember() const {
   UNREACHABLE();
 }
 
-bool NativeCompoundType::ContainsOnlyFloats(intptr_t offset_in_bytes,
-                                            intptr_t size_in_bytes) const {
-  ASSERT(size_in_bytes >= 0);
-  const intptr_t first_byte = offset_in_bytes;
-  const intptr_t last_byte = offset_in_bytes + size_in_bytes - 1;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+bool NativePrimitiveType::ContainsOnlyFloats(Range range) const {
+  const auto this_range = Range::StartAndEnd(0, SizeInBytes());
+  ASSERT(this_range.Contains(range));
+
+  return IsFloat();
+}
+
+bool NativeArrayType::ContainsOnlyFloats(Range range) const {
+  const auto this_range = Range::StartAndEnd(0, SizeInBytes());
+  ASSERT(this_range.Contains(range));
+
+  const intptr_t element_size_in_bytes = element_type_.SizeInBytes();
+
+  // Assess how many elements are (partially) covered by the range.
+  const intptr_t first_element_start = range.start() / element_size_in_bytes;
+  const intptr_t last_element_index =
+      range.end_inclusive() / element_size_in_bytes;
+  const intptr_t num_elements = last_element_index - first_element_start + 1;
+  ASSERT(num_elements >= 1);
+
+  if (num_elements > 2) {
+    // At least one full element covered.
+    return element_type_.ContainsOnlyFloats(
+        Range::StartAndLength(0, element_size_in_bytes));
+  }
+
+  // Check first element, which falls (partially) in range.
+  const intptr_t first_start = first_element_start * element_size_in_bytes;
+  const auto first_range =
+      Range::StartAndLength(first_start, element_size_in_bytes);
+  const auto first_range_clipped = range.Intersect(first_range);
+  const auto range_in_first = first_range_clipped.Translate(-first_start);
+  if (!element_type_.ContainsOnlyFloats(range_in_first)) {
+    // First element contains not only floats in specified range.
+    return false;
+  }
+
+  if (num_elements == 2) {
+    // Check the second (and last) element, which falls (partially) in range.
+    const intptr_t second_element_index = first_element_start + 1;
+    const intptr_t second_start = second_element_index * element_size_in_bytes;
+    const auto second_range =
+        Range::StartAndLength(second_start, element_size_in_bytes);
+    const auto second_range_clipped = range.Intersect(second_range);
+    const auto range_in_second = second_range_clipped.Translate(-second_start);
+    return element_type_.ContainsOnlyFloats(range_in_second);
+  }
+
+  return true;
+}
+
+bool NativeCompoundType::ContainsOnlyFloats(Range range) const {
+  const auto this_range = Range::StartAndEnd(0, SizeInBytes());
+  ASSERT(this_range.Contains(range));
+
   for (intptr_t i = 0; i < members_.length(); i++) {
-    const intptr_t member_first_byte = member_offsets_[i];
-    const intptr_t member_last_byte =
-        member_first_byte + members_[i]->SizeInBytes() - 1;
-    if ((first_byte <= member_first_byte && member_first_byte <= last_byte) ||
-        (first_byte <= member_last_byte && member_last_byte <= last_byte)) {
-      if (members_[i]->IsPrimitive() && !members_[i]->IsFloat()) {
+    const auto& member = *members_[i];
+    const intptr_t member_offset = member_offsets_[i];
+    const intptr_t member_size = member.SizeInBytes();
+    const auto member_range = Range::StartAndLength(member_offset, member_size);
+    if (range.Overlaps(member_range)) {
+      const auto member_range_clipped = member_range.Intersect(range);
+      const auto range_in_member =
+          member_range_clipped.Translate(-member_offset);
+      if (!member.ContainsOnlyFloats(range_in_member)) {
+        // Member contains not only floats in specified range.
         return false;
       }
-      if (members_[i]->IsCompound()) {
-        const auto& nested = members_[i]->AsCompound();
-        const bool nested_only_floats = nested.ContainsOnlyFloats(
-            offset_in_bytes - member_first_byte, size_in_bytes);
-        if (!nested_only_floats) {
-          return false;
-        }
-      }
     }
-    if (member_first_byte > last_byte) {
+    if (member_range.After(range)) {
       // None of the remaining members fits the range.
       break;
     }
@@ -574,13 +652,14 @@ bool NativeCompoundType::ContainsOnlyFloats(intptr_t offset_in_bytes,
 intptr_t NativeCompoundType::NumberOfWordSizeChunksOnlyFloat() const {
   // O(n^2) implementation, but only invoked for small structs.
   ASSERT(SizeInBytes() <= 16);
+  const auto this_range = Range::StartAndEnd(0, SizeInBytes());
   const intptr_t size = SizeInBytes();
   intptr_t float_only_chunks = 0;
   for (intptr_t offset = 0; offset < size;
        offset += compiler::target::kWordSize) {
-    if (ContainsOnlyFloats(
-            offset, Utils::Minimum<intptr_t>(size - offset,
-                                             compiler::target::kWordSize))) {
+    const auto chunk_range =
+        Range::StartAndLength(offset, compiler::target::kWordSize);
+    if (ContainsOnlyFloats(chunk_range.Intersect(this_range))) {
       float_only_chunks++;
     }
   }
@@ -593,19 +672,22 @@ intptr_t NativeCompoundType::NumberOfWordSizeChunksNotOnlyFloat() const {
       compiler::target::kWordSize;
   return total_chunks - NumberOfWordSizeChunksOnlyFloat();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 static void ContainsHomogenuousFloatsRecursive(const NativeTypes& types,
                                                bool* only_float,
                                                bool* only_double) {
   for (intptr_t i = 0; i < types.length(); i++) {
-    const auto& member_type = types.At(i);
-    if (member_type->IsPrimitive()) {
-      PrimitiveType type = member_type->AsPrimitive().representation();
+    const auto& type = *types.At(i);
+    const auto& member_type =
+        type.IsArray() ? type.AsArray().element_type() : type;
+    if (member_type.IsPrimitive()) {
+      PrimitiveType type = member_type.AsPrimitive().representation();
       *only_float = *only_float && (type == kFloat);
       *only_double = *only_double && (type == kDouble);
     }
-    if (member_type->IsCompound()) {
-      ContainsHomogenuousFloatsRecursive(member_type->AsCompound().members(),
+    if (member_type.IsCompound()) {
+      ContainsHomogenuousFloatsRecursive(member_type.AsCompound().members(),
                                          only_float, only_double);
     }
   }
