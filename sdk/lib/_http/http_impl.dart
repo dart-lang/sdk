@@ -2219,25 +2219,10 @@ class _ConnectionTarget {
       Future socketFuture = task.socket;
       final Duration? connectionTimeout = client.connectionTimeout;
       if (connectionTimeout != null) {
-        socketFuture = socketFuture.timeout(connectionTimeout, onTimeout: () {
-          _socketTasks.remove(task);
-          task.cancel();
-          return null;
-        });
+        socketFuture = socketFuture.timeout(connectionTimeout);
       }
       return socketFuture.then((socket) {
-        // When there is a timeout, there is a race in which the connectionTask
-        // Future won't be completed with an error before the socketFuture here
-        // is completed with 'null' by the onTimeout callback above. In this
-        // case, propagate a SocketException as specified by the
-        // HttpClient.connectionTimeout docs.
         _connecting--;
-        if (socket == null) {
-          assert(connectionTimeout != null);
-          throw new SocketException(
-              "HTTP connection timed out after ${connectionTimeout}, "
-              "host: ${host}, port: ${port}");
-        }
         socket.setOption(SocketOption.tcpNoDelay, true);
         var connection =
             new _HttpClientConnection(key, socket, client, false, context);
@@ -2258,6 +2243,20 @@ class _ConnectionTarget {
           return new _ConnectionInfo(connection, proxy);
         }
       }, onError: (error) {
+        // When there is a timeout, there is a race in which the connectionTask
+        // Future won't be completed with an error before the socketFuture here
+        // is completed with a TimeoutException by the onTimeout callback above.
+        // In this case, propagate a SocketException as specified by the
+        // HttpClient.connectionTimeout docs.
+        if (error is TimeoutException) {
+          assert(connectionTimeout != null);
+          _connecting--;
+          _socketTasks.remove(task);
+          task.cancel();
+          throw SocketException(
+              "HTTP connection timed out after ${connectionTimeout}, "
+              "host: ${host}, port: ${port}");
+        }
         _socketTasks.remove(task);
         _checkPending();
         throw error;
