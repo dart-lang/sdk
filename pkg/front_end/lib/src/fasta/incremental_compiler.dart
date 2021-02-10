@@ -2137,6 +2137,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     for (Uri entryPoint in entryPoints) {
       LibraryBuilder parent = partUriToParent[entryPoint];
+      if (parent == null) continue;
+      // TODO(jensj): .contains on a list is O(n).
+      // It will only be done for each entry point that's a part though, i.e.
+      // most likely very rarely.
       if (reusedLibraries.contains(parent)) {
         result.registerLibraryUriForPartUsedAsEntryPoint(
             entryPoint, parent.importUri);

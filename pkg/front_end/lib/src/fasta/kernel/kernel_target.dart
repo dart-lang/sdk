@@ -303,7 +303,7 @@ class KernelTarget extends TargetImplementation {
   /// Returns classes defined in libraries in [loader].
   List<SourceClassBuilder> collectMyClasses() {
     List<SourceClassBuilder> result = <SourceClassBuilder>[];
-    loader.builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in loader.builders.values) {
       if (library.loader == loader) {
         Iterator<Builder> iterator = library.iterator;
         while (iterator.moveNext()) {
@@ -313,7 +313,7 @@ class KernelTarget extends TargetImplementation {
           }
         }
       }
-    });
+    }
     return result;
   }
 
@@ -557,7 +557,7 @@ class KernelTarget extends TargetImplementation {
 
   void installDefaultSupertypes() {
     Class objectClass = this.objectClass;
-    loader.builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in loader.builders.values) {
       if (library.loader == loader) {
         Iterator<Builder> iterator = library.iterator;
         while (iterator.moveNext()) {
@@ -581,7 +581,7 @@ class KernelTarget extends TargetImplementation {
           }
         }
       }
-    });
+    }
     ticker.logMs("Installed Object as implicit superclass");
   }
 
@@ -1047,32 +1047,28 @@ class KernelTarget extends TargetImplementation {
         new Map<ConstructorBuilder, Set<FieldBuilder>>.identity();
     Set<FieldBuilder> initializedFields = null;
 
-    builder
-        .forEachDeclaredConstructor((String name, Builder constructorBuilder) {
-      if (constructorBuilder is ConstructorBuilder) {
-        if (constructorBuilder.isExternal) return;
-        // In case of duplicating constructors the earliest ones (those that
-        // declared towards the beginning of the file) come last in the list.
-        // To report errors on the first definition of a constructor, we need to
-        // iterate until that last element.
-        ConstructorBuilder earliest = constructorBuilder;
-        while (earliest.next != null) {
-          earliest = earliest.next;
-        }
+    builder.forEachDeclaredConstructor(
+        (String name, ConstructorBuilder constructorBuilder) {
+      if (constructorBuilder.isExternal) return;
+      // In case of duplicating constructors the earliest ones (those that
+      // declared towards the beginning of the file) come last in the list.
+      // To report errors on the first definition of a constructor, we need to
+      // iterate until that last element.
+      ConstructorBuilder earliest = constructorBuilder;
+      while (earliest.next != null) {
+        earliest = earliest.next;
+      }
 
-        bool isRedirecting = false;
-        for (Initializer initializer in earliest.constructor.initializers) {
-          if (initializer is RedirectingInitializer) {
-            isRedirecting = true;
-          }
+      bool isRedirecting = false;
+      for (Initializer initializer in earliest.constructor.initializers) {
+        if (initializer is RedirectingInitializer) {
+          isRedirecting = true;
         }
-        if (!isRedirecting) {
-          Set<FieldBuilder> fields =
-              earliest.takeInitializedFields() ?? const {};
-          constructorInitializedFields[earliest] = fields;
-          (initializedFields ??= new Set<FieldBuilder>.identity())
-              .addAll(fields);
-        }
+      }
+      if (!isRedirecting) {
+        Set<FieldBuilder> fields = earliest.takeInitializedFields() ?? const {};
+        constructorInitializedFields[earliest] = fields;
+        (initializedFields ??= new Set<FieldBuilder>.identity()).addAll(fields);
       }
     });
 
@@ -1339,7 +1335,9 @@ class KernelTarget extends TargetImplementation {
 
   /// Return `true` if the given [library] was built by this [KernelTarget]
   /// from sources, and not loaded from a [DillTarget].
-  bool isSourceLibrary(Library library) {
+  /// Note that this is meant for debugging etc and that it is slow, each
+  /// call takes O(# libraries).
+  bool isSourceLibraryForDebugging(Library library) {
     return loader.libraries.contains(library);
   }
 
