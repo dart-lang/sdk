@@ -3008,7 +3008,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode UNUSED_LOCAL_VARIABLE = HintCode(
       'UNUSED_LOCAL_VARIABLE',
       "The value of the local variable '{0}' isn't used.",
-      correction: "Try removing the variable, or using it.",
+      correction: "Try removing the variable or using it.",
       hasPublishedDocs: true);
 
   /**

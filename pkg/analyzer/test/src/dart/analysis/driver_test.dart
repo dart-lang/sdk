@@ -1453,7 +1453,7 @@ main() {
       expect(error.length, 2);
       expect(error.errorCode, HintCode.UNUSED_LOCAL_VARIABLE);
       expect(error.message, "The value of the local variable 'vv' isn't used.");
-      expect(error.correction, "Try removing the variable, or using it.");
+      expect(error.correction, "Try removing the variable or using it.");
     }
   }
 
