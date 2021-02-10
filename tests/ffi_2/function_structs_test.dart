@@ -12,7 +12,6 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
-import 'calloc.dart';
 import 'coordinate.dart';
 import 'dylib_utils.dart';
 import 'very_large_struct.dart';

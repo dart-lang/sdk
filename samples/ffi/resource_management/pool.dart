@@ -9,8 +9,6 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
-import '../calloc.dart';
-
 /// An [Allocator] which frees all allocations at the same time.
 ///
 /// The pool allows you to allocate heap memory, but ignores calls to [free].

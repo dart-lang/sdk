@@ -10,8 +10,6 @@ import 'dart:ffi'; //# 01: compile-time error
 
 import 'package:ffi/ffi.dart'; //# 01: compile-time error
 
-import 'calloc.dart'; //# 01: compile-time error
-
 void main() {
   Pointer<Int8> p = //# 01: compile-time error
       calloc(); //# 01: compile-time error

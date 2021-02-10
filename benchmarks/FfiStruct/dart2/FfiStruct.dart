@@ -14,8 +14,6 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
 
-import 'calloc.dart';
-
 //
 // Struct field store (plus Pointer elementAt and load).
 //

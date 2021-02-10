@@ -11,7 +11,6 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
-import 'calloc.dart';
 // Reuse the struct classes.
 import 'function_structs_by_value_generated_test.dart';
 
