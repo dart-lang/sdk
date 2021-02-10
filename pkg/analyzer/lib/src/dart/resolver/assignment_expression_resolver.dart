@@ -279,14 +279,17 @@ class AssignmentExpressionShared {
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
   void checkFinalAlreadyAssigned(Expression left) {
-    var flow = _resolver.flowAnalysis?.flow;
-    if (flow != null && left is SimpleIdentifier) {
+    var flowAnalysis = _resolver.flowAnalysis;
+    if (flowAnalysis == null) return;
+
+    var flow = flowAnalysis.flow;
+    if (flow == null) return;
+
+    if (left is SimpleIdentifier) {
       var element = left.staticElement;
       if (element is PromotableElement) {
-        var assigned =
-            _resolver.flowAnalysis!.isDefinitelyAssigned(left, element);
-        var unassigned =
-            _resolver.flowAnalysis!.isDefinitelyUnassigned(left, element);
+        var assigned = flowAnalysis.isDefinitelyAssigned(left, element);
+        var unassigned = flowAnalysis.isDefinitelyUnassigned(left, element);
 
         if (element.isFinal) {
           if (element.isLate) {

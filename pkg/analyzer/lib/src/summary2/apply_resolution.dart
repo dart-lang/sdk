@@ -349,8 +349,9 @@ resolution.byteOffset: ${_resolution.byteOffset}
 
     var enclosing = _enclosingElements.last;
     var name = node.identifier?.name ?? '';
-    var reference = node.isNamed && enclosing.reference != null
-        ? enclosing.reference!.getChild('@parameter').getChild(name)
+    var enclosingReference = enclosing.reference;
+    var reference = node.isNamed && enclosingReference != null
+        ? enclosingReference.getChild('@parameter').getChild(name)
         : null;
     ParameterElementImpl element;
     if (node.parameter is FieldFormalParameter) {
@@ -475,11 +476,12 @@ resolution.byteOffset: ${_resolution.byteOffset}
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    ParameterElementImpl? element;
-    if (node.parent is! DefaultFormalParameter) {
+    if (node.declaredElement == null) {
+      assert(node.parent is! DefaultFormalParameter);
       var enclosing = _enclosingElements.last;
-      element =
+      var element =
           FieldFormalParameterElementImpl.forLinkedNode(enclosing, null, node);
+      _normalFormalParameterNotDefault(node, element);
     }
 
     var localElementsLength = _localElements.length;
@@ -491,7 +493,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
     _expectMarker(MarkerTag.FieldFormalParameter_parameters);
     node.parameters?.accept(this);
     _expectMarker(MarkerTag.FieldFormalParameter_normalFormalParameter);
-    _normalFormalParameter(node, element);
+    _normalFormalParameter(node);
     _expectMarker(MarkerTag.FieldFormalParameter_end);
 
     _localElements.length = localElementsLength;
@@ -625,11 +627,12 @@ resolution.byteOffset: ${_resolution.byteOffset}
 
   @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    var element = node.declaredElement as ParameterElementImpl?;
-    if (node.parent is! DefaultFormalParameter) {
+    if (node.declaredElement == null) {
+      assert(node.parent is! DefaultFormalParameter);
       var enclosing = _enclosingElements.last;
-      element =
+      var element =
           ParameterElementImpl.forLinkedNodeFactory(enclosing, null, node);
+      _normalFormalParameterNotDefault(node, element);
     }
 
     var localElementsLength = _localElements.length;
@@ -641,7 +644,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
     _expectMarker(MarkerTag.FunctionTypedFormalParameter_parameters);
     node.parameters.accept(this);
     _expectMarker(MarkerTag.FunctionTypedFormalParameter_normalFormalParameter);
-    _normalFormalParameter(node, element);
+    _normalFormalParameter(node);
     _expectMarker(MarkerTag.FunctionTypedFormalParameter_end);
 
     _localElements.length = localElementsLength;
@@ -1139,15 +1142,17 @@ resolution.byteOffset: ${_resolution.byteOffset}
   visitSimpleFormalParameter(SimpleFormalParameter node) {
     var element = node.declaredElement as ParameterElementImpl?;
     if (element == null) {
+      assert(node.parent is! DefaultFormalParameter);
       var enclosing = _enclosingElements.last;
       element =
           ParameterElementImpl.forLinkedNodeFactory(enclosing, null, node);
+      _normalFormalParameterNotDefault(node, element);
     }
 
     _expectMarker(MarkerTag.SimpleFormalParameter_type);
     node.type?.accept(this);
     _expectMarker(MarkerTag.SimpleFormalParameter_normalFormalParameter);
-    _normalFormalParameter(node, element);
+    _normalFormalParameter(node);
 
     _expectMarker(MarkerTag.SimpleFormalParameter_flags);
     element.inheritsCovariant = _resolution.readByte() != 0;
@@ -1477,21 +1482,19 @@ resolution.byteOffset: ${_resolution.byteOffset}
     return _resolution.nextType();
   }
 
-  void _normalFormalParameter(
-    NormalFormalParameter node,
-    ParameterElementImpl? element,
-  ) {
-    if (node.parent is! DefaultFormalParameter) {
-      var nodeImpl = node as NormalFormalParameterImpl;
-      var summaryData = nodeImpl.summaryData as SummaryDataForFormalParameter;
-      element!.setCodeRange(summaryData.codeOffset, summaryData.codeLength);
-    }
-
+  void _normalFormalParameter(NormalFormalParameter node) {
     _expectMarker(MarkerTag.NormalFormalParameter_metadata);
     node.metadata.accept(this);
     _expectMarker(MarkerTag.NormalFormalParameter_formalParameter);
     _formalParameter(node);
     _expectMarker(MarkerTag.NormalFormalParameter_end);
+  }
+
+  void _normalFormalParameterNotDefault(
+      NormalFormalParameter node, ParameterElementImpl element) {
+    var nodeImpl = node as NormalFormalParameterImpl;
+    var summaryData = nodeImpl.summaryData as SummaryDataForFormalParameter;
+    element.setCodeRange(summaryData.codeOffset, summaryData.codeLength);
   }
 
   /// TODO(scheglov) also enclosing elements
