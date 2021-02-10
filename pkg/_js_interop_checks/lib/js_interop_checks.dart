@@ -23,7 +23,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 
 import 'src/js_interop.dart';
 
-class JsInteropChecks extends RecursiveVisitor<void> {
+class JsInteropChecks extends RecursiveVisitor {
   final CoreTypes _coreTypes;
   final DiagnosticReporter<Message, LocatedMessage> _diagnosticsReporter;
   final Map<String, Class> _nativeClasses;

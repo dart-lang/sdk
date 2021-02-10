@@ -107,6 +107,12 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitLoadLibrary(LoadLibrary _) => "load";
   String visitConstantExpression(ConstantExpression _) => "const";
   String visitInstanceCreation(InstanceCreation _) => "object";
+
+  @override
+  String defaultExpression(Expression node) {
+    throw new UnimplementedError(
+        'Unimplemented expression $node (${node.runtimeType})');
+  }
 }
 
 const TextSerializer<InvalidExpression> invalidExpressionSerializer =
@@ -846,6 +852,11 @@ class DartTypeTagger extends DartTypeVisitor<String>
   String visitTypedefType(TypedefType _) => "typedef";
   String visitFutureOrType(FutureOrType _) => "futureor";
   String visitNullType(NullType _) => "null-type";
+
+  @override
+  String defaultDartType(DartType node) {
+    throw UnimplementedError('Unimplemented type $node (${node.runtimeType})');
+  }
 }
 
 const TextSerializer<InvalidType> invalidTypeSerializer =
@@ -1031,6 +1042,12 @@ class StatementTagger extends StatementVisitor<String>
   String visitContinueSwitchStatement(ContinueSwitchStatement node) =>
       "continue";
   String visitFunctionDeclaration(FunctionDeclaration node) => "local-fun";
+
+  @override
+  String defaultStatement(Statement node) {
+    throw new UnimplementedError(
+        "Unimplemented statement $node (${node.runtimeType})");
+  }
 }
 
 TextSerializer<ExpressionStatement> expressionStatementSerializer = new Wrapped(
@@ -1795,6 +1812,12 @@ class ConstantTagger extends ConstantVisitor<String>
   String visitTearOffConstant(TearOffConstant node) => "const-tearoff";
   String visitTypeLiteralConstant(TypeLiteralConstant node) => "const-type";
   String visitUnevaluatedConstant(UnevaluatedConstant node) => "const-expr";
+
+  @override
+  String defaultConstant(Constant node) {
+    throw new UnimplementedError(
+        'Unimplemented constant $node (${node.runtimeType})');
+  }
 }
 
 TextSerializer<BoolConstant> boolConstantSerializer =
