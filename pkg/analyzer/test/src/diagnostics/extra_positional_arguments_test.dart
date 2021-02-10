@@ -46,6 +46,21 @@ class B extends A {
     ]);
   }
 
+  test_constConstructor_typedef() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A({int x = 0});
+}
+typedef B = A;
+main() {
+  const B(0);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 70,
+          1),
+    ]);
+  }
+
   test_functionExpressionInvocation() async {
     await assertErrorsInCode('''
 main() {

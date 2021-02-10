@@ -28,6 +28,21 @@ f() {
     ]);
   }
 
+  test_nonFunctionTypedef() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A.name();
+}
+typedef B = A;
+f() {
+  return const B();
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 66, 1),
+    ]);
+  }
+
   test_unnamed() async {
     await assertErrorsInCode(r'''
 class A {

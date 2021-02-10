@@ -1129,6 +1129,22 @@ typedef F = void Function<T, T>();
     ]);
   }
 
+  test_typeParameters_genericTypedef_functionType() async {
+    await assertErrorsInCode(r'''
+typedef F<T, T> = void Function();
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 13, 1),
+    ]);
+  }
+
+  test_typeParameters_genericTypedef_interfaceType() async {
+    await assertErrorsInCode(r'''
+typedef F<T, T> = Map;
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 13, 1),
+    ]);
+  }
+
   test_typeParameters_method() async {
     await assertErrorsInCode(r'''
 class A {

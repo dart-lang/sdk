@@ -31,6 +31,25 @@ main() {
     ]);
   }
 
+  test_nonFunctionTypedef() async {
+    newFile('$testPackageLibPath/lib1.dart', content: '''
+library lib1;
+class A {
+  const A();
+}
+typedef B = A;
+''');
+    await assertErrorsInCode('''
+library root;
+import 'lib1.dart' deferred as a;
+main() {
+  const a.B();
+}
+''', [
+      error(CompileTimeErrorCode.CONST_DEFERRED_CLASS, 65, 3),
+    ]);
+  }
+
   test_unnamed() async {
     newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;

@@ -43,4 +43,13 @@ typedef as = void Function();
       error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 8, 2)
     ]);
   }
+
+  test_typedef_interfaceType() async {
+    await assertErrorsInCode(r'''
+typedef as = List<int>;
+''', [
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 8, 2),
+      error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 8, 2)
+    ]);
+  }
 }
