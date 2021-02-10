@@ -15,9 +15,9 @@ import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/src/tool/find_referenced_libraries.dart'
     show duplicateLibrariesReachable;
+import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:meta/meta.dart';
 import 'package:vm/http_filesystem.dart';
 
@@ -422,6 +422,7 @@ class ExpressionCompilerWorker {
     // instead on expression evaluation.
     // TODO(annagrin): throw on load failures when blaze build starts
     // producing all summaries.
+    var futures = <Future>[];
     for (var input in request.inputs) {
       // Support older debugger versions that do not provide summary
       // path by loading full dill kernel instead.
@@ -432,11 +433,11 @@ class ExpressionCompilerWorker {
                 ' Loading full dill instead.');
       }
       var summaryPath = input.summaryPath ?? input.path;
-      await _loadAndUpdateComponent(
-          Uri.parse(summaryPath), input.moduleName, hasSummary);
-
       _fullModules[input.moduleName] = Uri.parse(input.path);
+      futures.add(_loadAndUpdateComponent(
+          Uri.parse(summaryPath), input.moduleName, hasSummary));
     }
+    await Future.wait(futures);
 
     _processedOptions.ticker
         .logMs('Updated dependencies for expression evaluation');
