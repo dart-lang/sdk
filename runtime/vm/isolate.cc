@@ -972,7 +972,7 @@ void Isolate::ValidateConstants() {
 
   // Verify that all canonical instances are correctly setup in the
   // corresponding canonical tables.
-  BackgroundCompiler::Stop(this);
+  NoBackgroundCompilerScope no_bg_compiler(Thread::Current());
   group()->heap()->CollectAllGarbage();
   Thread* thread = Thread::Current();
   HeapIterationScope iteration(thread);
@@ -1717,8 +1717,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
         "         See dartbug.com/30524 for more information.\n");
   }
 
-  NOT_IN_PRECOMPILED(optimizing_background_compiler_ =
-                         new BackgroundCompiler(this, /* optimizing = */ true));
+  NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(this));
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
@@ -1730,8 +1729,8 @@ Isolate::~Isolate() {
   // RELEASE_ASSERT(program_reload_context_ == NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
-  delete optimizing_background_compiler_;
-  optimizing_background_compiler_ = nullptr;
+  delete background_compiler_;
+  background_compiler_ = nullptr;
 
 #if !defined(PRODUCT)
   delete debugger_;
@@ -2433,9 +2432,9 @@ void Isolate::set_forward_table_old(WeakTable* table) {
 
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
-  BackgroundCompiler::Stop(this);
-  delete optimizing_background_compiler_;
-  optimizing_background_compiler_ = nullptr;
+  NOT_IN_PRECOMPILED(BackgroundCompiler::Stop(this));
+  NOT_IN_PRECOMPILED(delete background_compiler_);
+  background_compiler_ = nullptr;
 
   Thread* thread = Thread::Current();
 
@@ -2597,9 +2596,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   if (background_compiler() != nullptr) {
     background_compiler()->VisitPointers(visitor);
-  }
-  if (optimizing_background_compiler() != nullptr) {
-    optimizing_background_compiler()->VisitPointers(visitor);
   }
 
 #if !defined(PRODUCT)

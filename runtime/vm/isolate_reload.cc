@@ -664,8 +664,11 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       [&](Isolate* isolate) { number_of_isolates++; });
 
   // Disable the background compiler while we are performing the reload.
-  ForEachIsolate(
-      [&](Isolate* isolate) { BackgroundCompiler::Disable(isolate); });
+  ForEachIsolate([&](Isolate* isolate) {
+    // TODO(dartbug.com/36097): Once the BG compiler moves from Isolate to
+    // IsolateGroup this scope should cover most of this function.
+    NoBackgroundCompilerScope stop_bg_compiler(isolate->mutator_thread());
+  });
 
   // Wait for any concurrent marking tasks to finish and turn off the
   // concurrent marker during reload as we might be allocating new instances
@@ -873,10 +876,6 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       AcceptCompilation(thread);
     }
   }
-
-  // Re-enable the background compiler. Do this before propagating any errors.
-  ForEachIsolate(
-      [&](Isolate* isolate) { BackgroundCompiler::Enable(isolate); });
 
   // Reenable concurrent marking if it was initially on.
   if (old_concurrent_mark_flag) {

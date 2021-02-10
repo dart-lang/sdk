@@ -1230,10 +1230,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return background_compiler_;
   }
 
-  BackgroundCompiler* optimizing_background_compiler() const {
-    return optimizing_background_compiler_;
-  }
-
   intptr_t BlockClassFinalization() {
     ASSERT(defer_finalization_count_ >= 0);
     return defer_finalization_count_++;
@@ -1591,11 +1587,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   uint32_t isolate_flags_ = 0;
 
-  // Unoptimized background compilation.
   BackgroundCompiler* background_compiler_ = nullptr;
-
-  // Optimized background compilation.
-  BackgroundCompiler* optimizing_background_compiler_ = nullptr;
 
 // Fields that aren't needed in a product build go here with boolean flags at
 // the top.

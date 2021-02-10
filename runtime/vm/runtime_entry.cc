@@ -2774,17 +2774,14 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 
   if (Compiler::CanOptimizeFunction(thread, function)) {
     if (FLAG_background_compilation) {
-      if (!BackgroundCompiler::IsDisabled(isolate,
-                                          /* optimizing_compiler = */ true) &&
-          function.is_background_optimizable()) {
-        // Ensure background compiler is running, if not start it.
-        BackgroundCompiler::Start(isolate);
+      if (function.is_background_optimizable() &&
+          isolate->background_compiler()->EnqueueCompilation(function)) {
         // Reduce the chance of triggering a compilation while the function is
         // being compiled in the background. INT32_MIN should ensure that it
         // takes long time to trigger a compilation.
         // Note that the background compilation queue rejects duplicate entries.
         function.SetUsageCounter(INT32_MIN);
-        isolate->optimizing_background_compiler()->Compile(function);
+
         // Continue in the same code.
         arguments.SetReturn(function);
         return;
