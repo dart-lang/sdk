@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class UndefinedMethodTest extends PubPackageResolutionTest
-    with WithNonFunctionTypeAliasesMixin {
+class UndefinedMethodTest extends PubPackageResolutionTest {
   test_constructor_defined() async {
     await assertNoErrorsInCode(r'''
 class C {

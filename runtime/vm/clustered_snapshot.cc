@@ -1997,113 +1997,44 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
 class WeakSerializationReferenceSerializationCluster
     : public SerializationCluster {
  public:
-  WeakSerializationReferenceSerializationCluster(Zone* zone, Heap* heap)
+  WeakSerializationReferenceSerializationCluster()
       : SerializationCluster(
             "WeakSerializationReference",
-            compiler::target::WeakSerializationReference::InstanceSize()),
-        heap_(ASSERT_NOTNULL(heap)),
-        objects_(zone, 0),
-        canonical_wsrs_(zone, 0),
-        canonical_wsr_map_(zone) {}
+            compiler::target::WeakSerializationReference::InstanceSize()) {}
   ~WeakSerializationReferenceSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
     ASSERT(s->kind() == Snapshot::kFullAOT);
-    // Make sure we don't trace again after choosing canonical WSRs.
-    ASSERT(!have_canonicalized_wsrs_);
-
-    auto const ref = WeakSerializationReference::RawCast(object);
-    objects_.Add(ref);
-    // We do _not_ push the target, since this is not a strong reference.
+    WeakSerializationReferencePtr weak =
+        WeakSerializationReference::RawCast(object);
+    objects_.Add(weak);
   }
+
+  intptr_t FinalizeWeak(Serializer* s) { return objects_.length(); }
 
   void WriteAlloc(Serializer* s) {
-    ASSERT(s->kind() == Snapshot::kFullAOT);
-    ASSERT(have_canonicalized_wsrs_);
-
     s->WriteCid(kWeakSerializationReferenceCid);
-    s->WriteUnsigned(WrittenCount());
-
-    // Set up references for those objects that will be written.
-    for (auto const& ref : canonical_wsrs_) {
-      s->AssignRef(ref);
-    }
-
-    // In precompiled mode, set the object ID of each non-canonical WSR to
-    // its canonical counterpart's object ID. This ensures that any reference to
-    // it is serialized as a reference to the canonicalized one.
-    for (auto const& ref : objects_) {
-      ASSERT(IsReachableReference(heap_->GetObjectId(ref)));
-      if (ShouldDrop(ref)) {
-        // For dropped references, reset their ID to be the unreachable
-        // reference value, so RefId retrieves the target ID instead.
-        heap_->SetObjectId(ref, kUnreachableReference);
-        continue;
-      }
-      // Skip if we've already allocated a reference (this is a canonical WSR).
-      if (IsAllocatedReference(heap_->GetObjectId(ref))) continue;
-      auto const target_cid = WeakSerializationReference::TargetClassIdOf(ref);
-      ASSERT(canonical_wsr_map_.HasKey(target_cid));
-      auto const canonical_index = canonical_wsr_map_.Lookup(target_cid) - 1;
-      auto const canonical_wsr = objects_[canonical_index];
-      // Set the object ID of this non-canonical WSR to the same as its
-      // canonical WSR entry, so we'll reference the canonical WSR when
-      // serializing references to this object.
-      auto const canonical_heap_id = heap_->GetObjectId(canonical_wsr);
-      ASSERT(IsAllocatedReference(canonical_heap_id));
-      heap_->SetObjectId(ref, canonical_heap_id);
-    }
   }
 
-  void WriteFill(Serializer* s) {
-    ASSERT(s->kind() == Snapshot::kFullAOT);
-    for (auto const& ref : canonical_wsrs_) {
-      AutoTraceObject(ref);
-
-      // In precompiled mode, we drop the reference to the target and only
-      // keep the class ID.
-      s->WriteCid(WeakSerializationReference::TargetClassIdOf(ref));
-    }
-  }
-
-  // Picks a WSR for each target class ID to be canonical. Should only be run
-  // after all objects have been traced.
-  void CanonicalizeReferences() {
-    ASSERT(!have_canonicalized_wsrs_);
+  void ForwardWeakRefs(Serializer* s) {
+    Heap* heap = s->heap();
     for (intptr_t i = 0; i < objects_.length(); i++) {
-      auto const ref = objects_[i];
-      if (ShouldDrop(ref)) continue;
-      auto const target_cid = WeakSerializationReference::TargetClassIdOf(ref);
-      if (canonical_wsr_map_.HasKey(target_cid)) continue;
-      canonical_wsr_map_.Insert(target_cid, i + 1);
-      canonical_wsrs_.Add(ref);
+      WeakSerializationReferencePtr weak = objects_[i];
+
+      intptr_t id = heap->GetObjectId(weak->untag()->target());
+      if (id == kUnreachableReference) {
+        id = heap->GetObjectId(weak->untag()->replacement());
+        ASSERT(id != kUnreachableReference);
+      }
+      ASSERT(IsAllocatedReference(id));
+      heap->SetObjectId(weak, id);
     }
-    have_canonicalized_wsrs_ = true;
   }
 
-  intptr_t WrittenCount() const {
-    ASSERT(have_canonicalized_wsrs_);
-    return canonical_wsrs_.length();
-  }
-
-  intptr_t DroppedCount() const { return TotalCount() - WrittenCount(); }
-
-  intptr_t TotalCount() const { return objects_.length(); }
+  void WriteFill(Serializer* s) {}
 
  private:
-  // Returns whether a WSR should be dropped due to its target being reachable
-  // via strong references. WSRs only wrap heap objects, so we can just retrieve
-  // the object ID from the heap directly.
-  bool ShouldDrop(WeakSerializationReferencePtr ref) const {
-    auto const target = WeakSerializationReference::TargetOf(ref);
-    return IsReachableReference(heap_->GetObjectId(target));
-  }
-
-  Heap* const heap_;
   GrowableArray<WeakSerializationReferencePtr> objects_;
-  GrowableArray<WeakSerializationReferencePtr> canonical_wsrs_;
-  IntMap<intptr_t> canonical_wsr_map_;
-  bool have_canonicalized_wsrs_ = false;
 };
 #endif
 
@@ -2115,29 +2046,8 @@ class WeakSerializationReferenceDeserializationCluster
       : DeserializationCluster("WeakSerializationReference") {}
   ~WeakSerializationReferenceDeserializationCluster() {}
 
-  void ReadAlloc(Deserializer* d, bool is_canonical) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    const intptr_t count = d->ReadUnsigned();
-
-    for (intptr_t i = 0; i < count; i++) {
-      auto ref = AllocateUninitialized(
-          old_space, WeakSerializationReference::InstanceSize());
-      d->AssignRef(ref);
-    }
-
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d, bool is_canonical) {
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      auto const ref = static_cast<WeakSerializationReferencePtr>(d->Ref(id));
-      Deserializer::InitializeHeader(
-          ref, kWeakSerializationReferenceCid,
-          WeakSerializationReference::InstanceSize());
-      ref->untag()->cid_ = d->ReadCid();
-    }
-  }
+  void ReadAlloc(Deserializer* d, bool stamp_canonical) {}
+  void ReadFill(Deserializer* d, bool stamp_canonical) {}
 };
 #endif
 
@@ -5008,7 +4918,7 @@ class VMDeserializationRoots : public DeserializationRoots {
  public:
   VMDeserializationRoots() : symbol_table_(Array::Handle()) {}
 
-  void AddBaseObjects(Deserializer* d) {
+  bool AddBaseObjects(Deserializer* d) {
     // These objects are always allocated by Object::InitOnce, so they are not
     // written into the snapshot.
 
@@ -5057,6 +4967,8 @@ class VMDeserializationRoots : public DeserializationRoots {
         d->AddBaseObject(StubCode::EntryAt(i).ptr());
       }
     }
+
+    return true;  // primary
   }
 
   void ReadRoots(Deserializer* d) {
@@ -5101,43 +5013,26 @@ class ProgramSerializationRoots : public SerializationRoots {
                             ObjectStore* object_store)
       : base_objects_(base_objects),
         object_store_(object_store),
-        saved_symbol_table_(Array::Handle()),
-        saved_canonical_types_(Array::Handle()),
-        saved_canonical_function_types_(Array::Handle()),
-        saved_canonical_type_parameters_(Array::Handle()),
-        saved_canonical_type_arguments_(Array::Handle()),
         dispatch_table_entries_(Array::Handle()) {
-    saved_symbol_table_ = object_store->symbol_table();
-    object_store->set_symbol_table(
-        Array::Handle(HashTables::New<CanonicalStringSet>(4)));
-
-    saved_canonical_types_ = object_store->canonical_types();
-    object_store->set_canonical_types(
-        Array::Handle(HashTables::New<CanonicalTypeSet>(4)));
-
-    saved_canonical_function_types_ = object_store->canonical_function_types();
-    object_store->set_canonical_function_types(
-        Array::Handle(HashTables::New<CanonicalFunctionTypeSet>(4)));
-
-    saved_canonical_type_parameters_ =
-        object_store->canonical_type_parameters();
-    object_store->set_canonical_type_parameters(
-        Array::Handle(HashTables::New<CanonicalTypeParameterSet>(4)));
-
-    saved_canonical_type_arguments_ = object_store->canonical_type_arguments();
-    object_store->set_canonical_type_arguments(
-        Array::Handle(HashTables::New<CanonicalTypeArgumentsSet>(4)));
+#if defined(DART_PRECOMPILER)
+    if (FLAG_precompiled_mode) {
+      // Elements of constant tables are treated as weak so literals used only
+      // in deferred libraries do not end up in the main snapshot.
+      Array& table = Array::Handle();
+      table = object_store->symbol_table();
+      HashTables::Weaken(table);
+      table = object_store->canonical_types();
+      HashTables::Weaken(table);
+      table = object_store->canonical_function_types();
+      HashTables::Weaken(table);
+      table = object_store->canonical_type_parameters();
+      HashTables::Weaken(table);
+      table = object_store->canonical_type_arguments();
+      HashTables::Weaken(table);
+    }
+#endif
   }
-  ~ProgramSerializationRoots() {
-    object_store_->set_symbol_table(saved_symbol_table_);
-    object_store_->set_canonical_types(saved_canonical_types_);
-    object_store_->set_canonical_function_types(
-        saved_canonical_function_types_);
-    object_store_->set_canonical_type_parameters(
-        saved_canonical_type_parameters_);
-    object_store_->set_canonical_type_arguments(
-        saved_canonical_type_arguments_);
-  }
+  ~ProgramSerializationRoots() {}
 
   void AddBaseObjects(Serializer* s) {
     if (base_objects_ == nullptr) {
@@ -5192,11 +5087,6 @@ class ProgramSerializationRoots : public SerializationRoots {
  private:
   ZoneGrowableArray<Object*>* base_objects_;
   ObjectStore* object_store_;
-  Array& saved_symbol_table_;
-  Array& saved_canonical_types_;
-  Array& saved_canonical_function_types_;
-  Array& saved_canonical_type_parameters_;
-  Array& saved_canonical_type_arguments_;
   Array& dispatch_table_entries_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -5206,12 +5096,13 @@ class ProgramDeserializationRoots : public DeserializationRoots {
   explicit ProgramDeserializationRoots(ObjectStore* object_store)
       : object_store_(object_store) {}
 
-  void AddBaseObjects(Deserializer* d) {
+  bool AddBaseObjects(Deserializer* d) {
     // N.B.: Skipping index 0 because ref 0 is illegal.
     const Array& base_objects = Object::vm_isolate_snapshot_object_table();
     for (intptr_t i = kFirstReference; i < base_objects.Length(); i++) {
       d->AddBaseObject(base_objects.At(i));
     }
+    return true;  // primary
   }
 
   void ReadRoots(Deserializer* d) {
@@ -5312,12 +5203,13 @@ class UnitDeserializationRoots : public DeserializationRoots {
  public:
   explicit UnitDeserializationRoots(const LoadingUnit& unit) : unit_(unit) {}
 
-  void AddBaseObjects(Deserializer* d) {
+  bool AddBaseObjects(Deserializer* d) {
     const Array& base_objects =
         Array::Handle(LoadingUnit::Handle(unit_.parent()).base_objects());
     for (intptr_t i = kFirstReference; i < base_objects.Length(); i++) {
       d->AddBaseObject(base_objects.At(i));
     }
+    return false;  // primary
   }
 
   void ReadRoots(Deserializer* d) {
@@ -5326,7 +5218,8 @@ class UnitDeserializationRoots : public DeserializationRoots {
     for (intptr_t id = deferred_start_index_; id < deferred_stop_index_; id++) {
       CodePtr code = static_cast<CodePtr>(d->Ref(id));
       d->ReadInstructions(code, false);
-      if (code->untag()->owner_->IsFunction()) {
+      if (code->untag()->owner_->IsHeapObject() &&
+          code->untag()->owner_->IsFunction()) {
         FunctionPtr func = static_cast<FunctionPtr>(code->untag()->owner_);
         uword entry_point = code->untag()->entry_point_;
         ASSERT(entry_point != 0);
@@ -5731,8 +5624,7 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
     case kWeakSerializationReferenceCid:
 #if defined(DART_PRECOMPILER)
       ASSERT(kind_ == Snapshot::kFullAOT);
-      return new (Z)
-          WeakSerializationReferenceSerializationCluster(zone_, heap_);
+      return new (Z) WeakSerializationReferenceSerializationCluster();
 #endif
     default:
       break;
@@ -5988,16 +5880,10 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   }
 
 #if defined(DART_PRECOMPILER)
-  // Before we finalize the count of written objects, pick canonical versions
-  // of WSR objects that will be serialized and then remove any non-serialized
-  // or non-canonical WSR objects from that count.
   if (auto const cluster =
           reinterpret_cast<WeakSerializationReferenceSerializationCluster*>(
               clusters_by_cid_[kWeakSerializationReferenceCid])) {
-    cluster->CanonicalizeReferences();
-    auto const dropped_count = cluster->DroppedCount();
-    ASSERT(dropped_count == 0 || kind() == Snapshot::kFullAOT);
-    num_written_objects_ -= dropped_count;
+    num_written_objects_ -= cluster->FinalizeWeak(this);
   }
 #endif
 
@@ -6038,6 +5924,12 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   ASSERT(objects_->length() == num_objects);
 
 #if defined(DART_PRECOMPILER)
+  if (auto cluster =
+          reinterpret_cast<WeakSerializationReferenceSerializationCluster*>(
+              clusters_by_cid_[kWeakSerializationReferenceCid])) {
+    cluster->ForwardWeakRefs(this);
+  }
+
   // When writing snapshot profile, we want to retain some of the program
   // structure information (e.g. information about libraries, classes and
   // functions - even if it was dropped when writing snapshot itself).
@@ -6760,6 +6652,7 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
     ASSERT_EQUAL(initial_field_table_->NumFieldIds(), initial_field_table_len);
   }
 
+  bool primary;
   {
     // The deserializer initializes objects without using the write barrier,
     // partly for speed since we know all the deserialized objects will be
@@ -6777,7 +6670,7 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
     NoSafepointScope no_safepoint;
     refs_ = refs.ptr();
 
-    roots->AddBaseObjects(this);
+    primary = roots->AddBaseObjects(this);
 
     if (num_base_objects_ != (next_ref_index_ - kFirstReference)) {
       FATAL2("Snapshot expects %" Pd
@@ -6813,8 +6706,8 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
     {
       TIMELINE_DURATION(thread(), Isolate, "ReadFill");
       for (intptr_t i = 0; i < num_canonical_clusters_; i++) {
-        TIMELINE_DURATION(thread(), Isolate, canonical_clusters_[i]->name());
-        canonical_clusters_[i]->ReadFill(this, /*is_canonical*/ true);
+        bool stamp_canonical = primary;
+        canonical_clusters_[i]->ReadFill(this, stamp_canonical);
 #if defined(DEBUG)
         int32_t section_marker = Read<int32_t>();
         ASSERT(section_marker == kSectionMarker);
@@ -6858,7 +6751,8 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
     TIMELINE_DURATION(thread(), Isolate, "PostLoad");
     for (intptr_t i = 0; i < num_canonical_clusters_; i++) {
       TIMELINE_DURATION(thread(), Isolate, canonical_clusters_[i]->name());
-      canonical_clusters_[i]->PostLoad(this, refs, /*is_canonical*/ true);
+      bool canonicalize = !primary;
+      canonical_clusters_[i]->PostLoad(this, refs, canonicalize);
     }
     for (intptr_t i = 0; i < num_clusters_; i++) {
       TIMELINE_DURATION(thread(), Isolate, clusters_[i]->name());

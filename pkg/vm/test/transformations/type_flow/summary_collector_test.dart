@@ -61,7 +61,7 @@ class FakeEntryPointsListener implements EntryPointsListener {
   void recordTearOff(Procedure target) {}
 }
 
-class PrintSummaries extends RecursiveVisitor<Null> {
+class PrintSummaries extends RecursiveVisitor {
   SummaryCollector _summaryCollector;
   final StringBuffer _buf = new StringBuffer();
 

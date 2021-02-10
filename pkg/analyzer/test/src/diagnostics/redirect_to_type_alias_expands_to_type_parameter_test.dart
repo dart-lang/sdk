@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class RedirectTypeAliasExpandsToTypeParameterTest
-    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+    extends PubPackageResolutionTest {
   test_generic_typeParameter_withArgument_named() async {
     await assertErrorsInCode(r'''
 class A implements C {

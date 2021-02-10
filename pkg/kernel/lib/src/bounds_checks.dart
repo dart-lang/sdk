@@ -74,35 +74,35 @@ class TypeVariableGraph extends Graph<int> {
   }
 }
 
-class OccurrenceCollectorVisitor extends DartTypeVisitor {
+class OccurrenceCollectorVisitor extends DartTypeVisitor<void> {
   final Set<TypeParameter> typeParameters;
   Set<TypeParameter> occurred = new Set<TypeParameter>();
 
   OccurrenceCollectorVisitor(this.typeParameters);
 
-  visit(DartType node) => node.accept(this);
+  void visit(DartType node) => node.accept(this);
 
-  visitNamedType(NamedType node) {
+  void visitNamedType(NamedType node) {
     node.type.accept(this);
   }
 
-  visitInvalidType(InvalidType node);
-  visitDynamicType(DynamicType node);
-  visitVoidType(VoidType node);
+  void visitInvalidType(InvalidType node);
+  void visitDynamicType(DynamicType node);
+  void visitVoidType(VoidType node);
 
-  visitInterfaceType(InterfaceType node) {
+  void visitInterfaceType(InterfaceType node) {
     for (DartType argument in node.typeArguments) {
       argument.accept(this);
     }
   }
 
-  visitTypedefType(TypedefType node) {
+  void visitTypedefType(TypedefType node) {
     for (DartType argument in node.typeArguments) {
       argument.accept(this);
     }
   }
 
-  visitFunctionType(FunctionType node) {
+  void visitFunctionType(FunctionType node) {
     for (TypeParameter typeParameter in node.typeParameters) {
       typeParameter.bound.accept(this);
       typeParameter.defaultType?.accept(this);
@@ -116,11 +116,14 @@ class OccurrenceCollectorVisitor extends DartTypeVisitor {
     node.returnType.accept(this);
   }
 
-  visitTypeParameterType(TypeParameterType node) {
+  void visitTypeParameterType(TypeParameterType node) {
     if (typeParameters.contains(node.parameter)) {
       occurred.add(node.parameter);
     }
   }
+
+  @override
+  void defaultDartType(DartType node) {}
 }
 
 DartType instantiateToBounds(

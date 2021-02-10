@@ -162,9 +162,11 @@ typedef A B();
   }
 }
 
+/// TODO(https://github.com/dart-lang/sdk/issues/44666): Combine this class
+/// with the one it extends.
 @reflectiveTest
 class TypeAliasCannotReferenceItselfWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+    extends PubPackageResolutionTest {
   test_nonFunction_aliasedType_cycleOf2() async {
     await assertErrorsInCode('''
 typedef T1 = T2;

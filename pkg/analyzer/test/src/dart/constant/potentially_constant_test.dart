@@ -15,6 +15,7 @@ main() {
     defineReflectiveTests(IsPotentiallyConstantTypeExpressionTest);
     defineReflectiveTests(PotentiallyConstantTest);
     defineReflectiveTests(PotentiallyConstantWithNonFunctionTypeAliasesTest);
+    defineReflectiveTests(PotentiallyConstantWithoutNullSafetyTest);
   });
 }
 
@@ -179,10 +180,7 @@ class A<T> {
 }
 
 @reflectiveTest
-class PotentiallyConstantTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+class PotentiallyConstantTest extends PubPackageResolutionTest {
   test_adjacentStrings() async {
     await _assertConst(r'''
 var x = 'a' 'b';
@@ -204,14 +202,14 @@ var x = a as int;
   }
 
   test_asExpression_typeParameter() async {
-    await _assertNotConst(r'''
+    await _assertConst(r'''
 const a = 0;
 class A<T> {
   m() {
     var x = a as T;
   }
 }
-''', () => _xInitializer(), () => [findNode.typeName('T;')]);
+''', () => _xInitializer());
   }
 
   test_conditional() async {
@@ -300,14 +298,14 @@ var x = a is int;
   }
 
   test_isExpression_typeParameter() async {
-    await _assertNotConst(r'''
+    await _assertConst(r'''
 const a = 0;
 class A<T> {
   m() {
     var x = a is T;
   }
 }
-''', () => _xInitializer(), () => [findNode.typeName('T;')]);
+''', () => _xInitializer());
   }
 
   test_listLiteral() async {
@@ -927,9 +925,11 @@ var x = 'a';
   }
 }
 
+/// TODO(https://github.com/dart-lang/sdk/issues/44666): Combine this class
+/// with the one it extends.
 @reflectiveTest
 class PotentiallyConstantWithNonFunctionTypeAliasesTest
-    extends PotentiallyConstantTest with WithNonFunctionTypeAliasesMixin {
+    extends PotentiallyConstantTest {
   @override
   test_asExpression_typeParameter() async {
     await _assertConst(r'''
@@ -991,5 +991,48 @@ var x = p.A;
 typedef A = List<int>;
 var x = A;
 ''', () => _xInitializer());
+  }
+}
+
+@reflectiveTest
+class PotentiallyConstantWithoutNullSafetyTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  test_asExpression_typeParameter() async {
+    await _assertNotConst(r'''
+const a = 0;
+class A<T> {
+  m() {
+    var x = a as T;
+  }
+}
+''', () => _xInitializer(), () => [findNode.typeName('T;')]);
+  }
+
+  test_isExpression_typeParameter() async {
+    await _assertNotConst(r'''
+const a = 0;
+class A<T> {
+  m() {
+    var x = a is T;
+  }
+}
+''', () => _xInitializer(), () => [findNode.typeName('T;')]);
+  }
+
+  _assertNotConst(String code, AstNode Function() getNode,
+      List<AstNode> Function() getNotConstList) async {
+    await resolveTestCode(code);
+    var node = getNode();
+    var notConstList = getNotPotentiallyConstants(
+      node,
+      isNonNullableByDefault: typeSystem.isNonNullableByDefault,
+    );
+
+    var expectedNotConst = getNotConstList();
+    expect(notConstList, unorderedEquals(expectedNotConst));
+  }
+
+  Expression _xInitializer() {
+    return findNode.variableDeclaration('x = ').initializer!;
   }
 }

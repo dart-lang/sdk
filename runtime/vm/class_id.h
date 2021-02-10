@@ -28,6 +28,7 @@ typedef uint16_t ClassIdTagType;
   V(Library)                                                                   \
   V(Namespace)                                                                 \
   V(KernelProgramInfo)                                                         \
+  V(WeakSerializationReference)                                                \
   V(Code)                                                                      \
   V(Instructions)                                                              \
   V(InstructionsSection)                                                       \
@@ -87,8 +88,7 @@ typedef uint16_t ClassIdTagType;
   V(LinkedHashMap)                                                             \
   V(FutureOr)                                                                  \
   V(UserTag)                                                                   \
-  V(TransferableTypedData)                                                     \
-  V(WeakSerializationReference)
+  V(TransferableTypedData)
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
   V(Array)                                                                     \

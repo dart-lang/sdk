@@ -329,9 +329,10 @@ class KernelLoopHandler extends LoopHandler {
   int loopKind(ir.TreeNode node) => node.accept(new _KernelLoopTypeVisitor());
 }
 
-class _KernelLoopTypeVisitor extends ir.Visitor<int> {
+class _KernelLoopTypeVisitor extends ir.Visitor<int>
+    with ir.VisitorDefaultValueMixin<int> {
   @override
-  int defaultNode(ir.Node node) => HLoopBlockInformation.NOT_A_LOOP;
+  int get defaultValue => HLoopBlockInformation.NOT_A_LOOP;
 
   @override
   int visitWhileStatement(ir.WhileStatement node) =>

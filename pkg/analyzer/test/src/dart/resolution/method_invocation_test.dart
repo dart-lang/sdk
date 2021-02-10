@@ -2447,9 +2447,11 @@ main() {
   }
 }
 
+/// TODO(https://github.com/dart-lang/sdk/issues/44666): Combine this class
+/// with the one it extends.
 @reflectiveTest
 class MethodInvocationResolutionWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+    extends PubPackageResolutionTest {
   test_hasReceiver_typeAlias_staticMethod() async {
     await assertNoErrorsInCode(r'''
 class A {

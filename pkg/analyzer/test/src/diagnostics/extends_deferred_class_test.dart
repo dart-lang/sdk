@@ -43,4 +43,19 @@ class B extends a.A {}
       error(CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS, 64, 3),
     ]);
   }
+
+  test_extends_deferred_interfaceTypeTypedef() async {
+    newFile('$testPackageLibPath/lib1.dart', content: '''
+library lib1;
+class A {}
+class B {}
+''');
+    await assertErrorsInCode('''
+library root;
+import 'lib1.dart' deferred as a;
+class B extends a.B {}
+''', [
+      error(CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS, 64, 3),
+    ]);
+  }
 }

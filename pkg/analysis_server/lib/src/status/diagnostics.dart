@@ -483,7 +483,7 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln(writeOption('Analysis options path',
         escape(driver.contextRoot.optionsFilePath ?? 'none')));
     buf.writeln(
-        writeOption('SDK root', escape(driver.analysisContext.sdkRoot.path)));
+        writeOption('SDK root', escape(driver.analysisContext.sdkRoot?.path)));
 
     buf.writeln('<div class="columns">');
 

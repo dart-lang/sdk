@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class NullableTypeInImplementsClauseTest extends PubPackageResolutionTest
-    with WithNonFunctionTypeAliasesMixin {
+class NullableTypeInImplementsClauseTest extends PubPackageResolutionTest {
   test_class_nonNullable() async {
     await assertNoErrorsInCode('''
 class A {}

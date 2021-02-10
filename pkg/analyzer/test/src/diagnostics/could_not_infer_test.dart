@@ -251,6 +251,8 @@ main() { new C().f(<S>(S s) => s); }
   }
 }
 
+/// TODO(https://github.com/dart-lang/sdk/issues/44078): Add tests with
+/// non-function typedefs.
 @reflectiveTest
 class CouldNotInferWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {

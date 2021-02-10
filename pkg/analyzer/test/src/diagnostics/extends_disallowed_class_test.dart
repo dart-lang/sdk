@@ -49,6 +49,16 @@ class A extends FutureOr<int> {}
     ]);
   }
 
+  test_class_FutureOr_typedef() async {
+    await assertErrorsInCode('''
+import 'dart:async';
+typedef F = FutureOr<void>;
+class A extends F {}
+''', [
+      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 65, 1),
+    ]);
+  }
+
   test_class_FutureOr_typeVariable() async {
     await assertErrorsInCode('''
 import 'dart:async';

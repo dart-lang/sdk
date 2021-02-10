@@ -321,7 +321,10 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 FunctionPtr StackFrame::LookupDartFunction() const {
   const Code& code = Code::Handle(LookupDartCode());
   if (!code.IsNull()) {
-    return code.function();
+    const Object& owner = Object::Handle(code.owner());
+    if (owner.IsFunction()) {
+      return Function::Cast(owner).ptr();
+    }
   }
   return Function::null();
 }

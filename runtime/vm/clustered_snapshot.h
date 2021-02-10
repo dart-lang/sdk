@@ -163,7 +163,11 @@ class SerializationRoots {
 class DeserializationRoots {
  public:
   virtual ~DeserializationRoots() {}
-  virtual void AddBaseObjects(Deserializer* deserializer) = 0;
+  // Returns true if these roots are the first snapshot loaded into a heap, and
+  // so can assume any canonical objects don't already exist. Returns false if
+  // some other snapshot may be loaded before these roots, and so written
+  // canonical objects need to run canoncalization during load.
+  virtual bool AddBaseObjects(Deserializer* deserializer) = 0;
   virtual void ReadRoots(Deserializer* deserializer) = 0;
   virtual void PostLoad(Deserializer* deserializer, const Array& refs) = 0;
 };
@@ -412,17 +416,8 @@ class Serializer : public ThreadStackResource {
       return -id;
     }
     ASSERT(!IsArtificialReference(id));
-    if (IsAllocatedReference(id)) return id;
-    if (object->IsWeakSerializationReference()) {
-      // If a reachable WSR has an object ID of 0, then its target was marked
-      // for serialization due to reachable strong references and the WSR will
-      // be dropped instead. Thus, we change the reference to the WSR to a
-      // direct reference to the serialized target.
-      auto const ref = WeakSerializationReference::RawCast(object);
-      auto const target = WeakSerializationReference::TargetOf(ref);
-      auto const target_id = heap_->GetObjectId(target);
-      ASSERT(IsAllocatedReference(target_id));
-      return target_id;
+    if (IsAllocatedReference(id)) {
+      return id;
     }
     if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
       return RefId(Object::null());

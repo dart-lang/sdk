@@ -391,8 +391,7 @@ f() {
 
 @reflectiveTest
 class AstRewriteMethodInvocationWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest
-    with WithNonFunctionTypeAliasesMixin, AstRewriteMethodInvocationTestCases {
+    extends PubPackageResolutionTest with AstRewriteMethodInvocationTestCases {
   test_targetNull_typeAlias_interfaceType() async {
     await assertNoErrorsInCode(r'''
 class A<T, U> {

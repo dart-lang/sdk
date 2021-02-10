@@ -1508,14 +1508,10 @@ class UntaggedKernelProgramInfo : public UntaggedObject {
 class UntaggedWeakSerializationReference : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakSerializationReference);
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-  VISIT_NOTHING();
-  ClassIdTagType cid_;
-#else
   VISIT_FROM(ObjectPtr, target)
   POINTER_FIELD(ObjectPtr, target)
-  VISIT_TO(ObjectPtr, target)
-#endif
+  POINTER_FIELD(ObjectPtr, replacement)
+  VISIT_TO(ObjectPtr, replacement)
 };
 
 class UntaggedCode : public UntaggedObject {

@@ -290,7 +290,7 @@ void f(A a) {
 
 @reflectiveTest
 class PrefixedIdentifierResolutionWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+    extends PubPackageResolutionTest {
   test_hasReceiver_typeAlias_staticGetter() async {
     await assertNoErrorsInCode(r'''
 class A {

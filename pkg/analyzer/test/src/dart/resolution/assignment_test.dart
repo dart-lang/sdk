@@ -2385,9 +2385,11 @@ void f(int a) {
   }
 }
 
+/// TODO(https://github.com/dart-lang/sdk/issues/44666): Combine this class
+/// with the one above.
 @reflectiveTest
 class AssignmentDriverResolutionWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+    extends PubPackageResolutionTest {
   test_prefixedIdentifier_typeAlias_static_compound() async {
     await assertNoErrorsInCode(r'''
 class A {

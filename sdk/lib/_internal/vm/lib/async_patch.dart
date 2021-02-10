@@ -36,8 +36,13 @@ dynamic Function(dynamic) _asyncThenWrapperHelper(
   // zone is the root zone, we don't wrap the continuation, and a bad
   // `Future` implementation could potentially invoke the callback with the
   // wrong number of arguments.
-  if (Zone.current == Zone.root) return continuation;
-  return Zone.current.registerUnaryCallback<dynamic, dynamic>(continuation);
+  final currentZone = Zone._current;
+  if (identical(currentZone, _rootZone) ||
+      identical(currentZone._registerUnaryCallback,
+          _rootZone._registerUnaryCallback)) {
+    return continuation;
+  }
+  return currentZone.registerUnaryCallback<dynamic, dynamic>(continuation);
 }
 
 // We need to pass the exception and stack trace objects as second and third
@@ -46,8 +51,13 @@ dynamic Function(Object, StackTrace) _asyncErrorWrapperHelper(
     dynamic Function(dynamic, dynamic, StackTrace) continuation) {
   // See comments of `_asyncThenWrapperHelper`.
   dynamic errorCallback(Object e, StackTrace s) => continuation(null, e, s);
-  if (Zone.current == Zone.root) return errorCallback;
-  return Zone.current
+  final currentZone = Zone._current;
+  if (identical(currentZone, _rootZone) ||
+      identical(currentZone._registerBinaryCallback,
+          _rootZone._registerBinaryCallback)) {
+    return errorCallback;
+  }
+  return currentZone
       .registerBinaryCallback<dynamic, Object, StackTrace>(errorCallback);
 }
 
