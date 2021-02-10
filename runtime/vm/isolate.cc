@@ -432,7 +432,10 @@ void IsolateGroup::RegisterIsolateLocked(Isolate* isolate) {
 
 bool IsolateGroup::ContainsOnlyOneIsolate() {
   SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
-  return isolate_count_ == 1;
+  // We do allow 0 here as well, because the background compiler might call
+  // this method while the mutator thread is in shutdown procedure and
+  // unregistered itself already.
+  return isolate_count_ == 0 || isolate_count_ == 1;
 }
 
 void IsolateGroup::RunWithLockedGroup(std::function<void()> fun) {
@@ -2706,8 +2709,7 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
 
   {
     SafepointReadRwLocker ml(thread, isolates_lock_.get());
-    const bool only_one_isolate = isolates_.First() == isolates_.Last();
-    if (thread->IsMutatorThread() && only_one_isolate) {
+    if (thread->IsMutatorThread() && ContainsOnlyOneIsolate()) {
       single_current_mutator->Call();
       return;
     }
