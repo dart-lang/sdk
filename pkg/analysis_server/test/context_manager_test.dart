@@ -1551,8 +1551,6 @@ abstract class ContextManagerTest with ResourceProviderMixin {
   List<Glob> get analysisFilesGlobs {
     var patterns = <String>[
       '**/*.${AnalysisEngine.SUFFIX_DART}',
-      '**/*.${AnalysisEngine.SUFFIX_HTML}',
-      '**/*.${AnalysisEngine.SUFFIX_HTM}',
       '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}'
     ];
     return patterns

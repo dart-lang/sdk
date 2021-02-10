@@ -92,12 +92,6 @@ class AnalysisEngine {
   /// The suffix used for Dart source files.
   static const String SUFFIX_DART = "dart";
 
-  /// The short suffix used for HTML files.
-  static const String SUFFIX_HTM = "htm";
-
-  /// The long suffix used for HTML files.
-  static const String SUFFIX_HTML = "html";
-
   /// The file name used for analysis options files.
   static const String ANALYSIS_OPTIONS_YAML_FILE = 'analysis_options.yaml';
 
@@ -167,7 +161,7 @@ class AnalysisEngine {
     return extension == SUFFIX_DART;
   }
 
-  /// Return `true` if the given [fileName] is AndroidManifest.xml
+  /// Return `true` if the given [fileName] is AndroidManifest.xml.
   static bool isManifestFileName(String? fileName) {
     if (fileName == null) {
       return false;
