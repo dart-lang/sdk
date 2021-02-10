@@ -6,7 +6,6 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
-import 'calloc.dart';
 import 'dylib_utils.dart';
 
 typedef NativeUnaryOp = Int32 Function(Int32);

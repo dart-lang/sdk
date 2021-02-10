@@ -7,8 +7,6 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
-import 'calloc.dart';
-
 main(List<String> arguments) {
   for (int i = 0; i < 100; i++) {
     testStoreLoad();

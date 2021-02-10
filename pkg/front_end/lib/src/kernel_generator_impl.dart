@@ -110,7 +110,7 @@ Future<CompilerResult> generateKernelInternal(
       }
       if (options.debugDump) {
         printComponentText(summaryComponent,
-            libraryFilter: kernelTarget.isSourceLibrary);
+            libraryFilter: kernelTarget.isSourceLibraryForDebugging);
       }
 
       // Create the requested component ("truncating" or not).
@@ -164,7 +164,7 @@ Future<CompilerResult> generateKernelInternal(
       component = await kernelTarget.buildComponent(verify: options.verify);
       if (options.debugDump) {
         printComponentText(component,
-            libraryFilter: kernelTarget.isSourceLibrary);
+            libraryFilter: kernelTarget.isSourceLibraryForDebugging);
       }
       options.ticker.logMs("Generated component");
     }

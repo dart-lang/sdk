@@ -158,8 +158,8 @@ class ArgumentAllocator : public ValueObject {
             zone_, required_regs + required_xmm_regs);
         for (intptr_t offset = 0; offset < size;
              offset += compiler::target::kWordSize) {
-          if (payload_type.ContainsOnlyFloats(
-                  offset, Utils::Minimum<intptr_t>(size - offset, 8))) {
+          if (payload_type.ContainsOnlyFloats(Range::StartAndEnd(
+                  offset, Utils::Minimum<intptr_t>(size, offset + 8)))) {
             const intptr_t reg_index = FirstFreeFpuRegisterIndex(kQuadFpuReg);
             AllocateFpuRegisterAtIndex(kQuadFpuReg, reg_index);
             const auto& type = *new (zone_) NativePrimitiveType(kDouble);
@@ -527,8 +527,8 @@ static const NativeLocation& CompoundResultLocation(
     const auto& double_type = *new (zone) NativePrimitiveType(kDouble);
     const auto& int64_type = *new (zone) NativePrimitiveType(kInt64);
 
-    const bool first_half_in_xmm =
-        payload_type.ContainsOnlyFloats(0, Utils::Minimum<intptr_t>(size, 8));
+    const bool first_half_in_xmm = payload_type.ContainsOnlyFloats(
+        Range::StartAndEnd(0, Utils::Minimum<intptr_t>(size, 8)));
     if (first_half_in_xmm) {
       multiple_locations.Add(new (zone) NativeFpuRegistersLocation(
           double_type, double_type, kQuadFpuReg,
@@ -541,7 +541,7 @@ static const NativeLocation& CompoundResultLocation(
     }
     if (size > 8) {
       const bool second_half_in_xmm = payload_type.ContainsOnlyFloats(
-          8, Utils::Minimum<intptr_t>(size - 8, 8));
+          Range::StartAndEnd(8, Utils::Minimum<intptr_t>(size, 16)));
       if (second_half_in_xmm) {
         const FpuRegister reg = used_xmm_regs == 0
                                     ? CallingConventions::kReturnFpuReg

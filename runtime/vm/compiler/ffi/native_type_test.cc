@@ -70,7 +70,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_int8x10) {
   const auto& struct_type = RunStructTest(Z, "struct_int8x10", members);
 
   EXPECT(!struct_type.ContainsHomogenuousFloats());
-  EXPECT(!struct_type.ContainsOnlyFloats(0, 8));
+  EXPECT(!struct_type.ContainsOnlyFloats(Range::StartAndEnd(0, 8)));
   EXPECT_EQ(0, struct_type.NumberOfWordSizeChunksOnlyFloat());
   EXPECT_EQ(
       Utils::RoundUp(struct_type.SizeInBytes(), compiler::target::kWordSize) /
@@ -97,8 +97,8 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_floatx4) {
 
   // On x64, 8-byte parts of the chunks contain only floats and will be passed
   // in FPU registers.
-  EXPECT(struct_type.ContainsOnlyFloats(0, 8));
-  EXPECT(struct_type.ContainsOnlyFloats(8, 8));
+  EXPECT(struct_type.ContainsOnlyFloats(Range::StartAndEnd(0, 8)));
+  EXPECT(struct_type.ContainsOnlyFloats(Range::StartAndEnd(8, 16)));
   EXPECT_EQ(struct_type.SizeInBytes() / compiler::target::kWordSize,
             struct_type.NumberOfWordSizeChunksOnlyFloat());
   EXPECT_EQ(0, struct_type.NumberOfWordSizeChunksNotOnlyFloat());
@@ -151,6 +151,49 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_VeryLargeStruct) {
   members.Add(new (Z) NativePrimitiveType(kInt8));
 
   RunStructTest(Z, "struct_VeryLargeStruct", members);
+}
+
+UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_int8array) {
+  const auto& int8type = *new (Z) NativePrimitiveType(kInt8);
+  const auto& array_type = *new (Z) NativeArrayType(int8type, 8);
+
+  auto& members = *new (Z) NativeTypes(Z, 1);
+  members.Add(&array_type);
+
+  const auto& struct_type = RunStructTest(Z, "struct_int8array", members);
+
+  EXPECT_EQ(8, struct_type.SizeInBytes());
+  EXPECT(!struct_type.ContainsHomogenuousFloats());
+  EXPECT(!struct_type.ContainsOnlyFloats(Range::StartAndEnd(0, 8)));
+  EXPECT_EQ(0, struct_type.NumberOfWordSizeChunksOnlyFloat());
+  EXPECT_EQ(
+      Utils::RoundUp(struct_type.SizeInBytes(), compiler::target::kWordSize) /
+          compiler::target::kWordSize,
+      struct_type.NumberOfWordSizeChunksNotOnlyFloat());
+}
+
+UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_floatarray) {
+  const auto& float_type = *new (Z) NativePrimitiveType(kFloat);
+
+  const auto& inner_array_type = *new (Z) NativeArrayType(float_type, 2);
+
+  auto& inner_struct_members = *new (Z) NativeTypes(Z, 1);
+  inner_struct_members.Add(&inner_array_type);
+  const auto& inner_struct =
+      NativeCompoundType::FromNativeTypes(Z, inner_struct_members);
+
+  const auto& array_type = *new (Z) NativeArrayType(inner_struct, 2);
+
+  auto& members = *new (Z) NativeTypes(Z, 1);
+  members.Add(&array_type);
+
+  const auto& struct_type = RunStructTest(Z, "struct_floatarray", members);
+
+  EXPECT_EQ(16, struct_type.SizeInBytes());
+  EXPECT(struct_type.ContainsHomogenuousFloats());
+  EXPECT(struct_type.ContainsOnlyFloats(Range::StartAndEnd(0, 8)));
+  EXPECT_EQ(16 / compiler::target::kWordSize,
+            struct_type.NumberOfWordSizeChunksOnlyFloat());
 }
 
 }  // namespace ffi

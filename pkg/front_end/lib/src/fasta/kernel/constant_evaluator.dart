@@ -1449,17 +1449,17 @@ class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
         instanceBuilder.setFieldValue(fieldRef.asField, constant);
       });
       if (error != null) return error;
-      node.unusedArguments.forEach((Expression value) {
-        if (error != null) return;
+      for (Expression value in node.unusedArguments) {
+        if (error != null) return error;
         Constant constant = _evaluateSubexpression(value);
         if (constant is AbortConstant) {
           error ??= constant;
-          return;
+          return error;
         }
         if (constant is UnevaluatedConstant) {
           instanceBuilder.unusedArguments.add(extract(constant));
         }
-      });
+      }
       if (error != null) return error;
       if (shouldBeUnevaluated) {
         return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
@@ -1485,7 +1485,7 @@ class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
     //     - or the empty string (the default name of a library with no library
     //       name declaration).
 
-    const List<String> operatorNames = const <String>[
+    const Set<String> operatorNames = const <String>{
       '+',
       '-',
       '*',
@@ -1507,7 +1507,7 @@ class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
       '[]',
       '[]=',
       'unary-'
-    ];
+    };
 
     if (name == null) return false;
     if (name == '') return true;
@@ -1554,7 +1554,7 @@ class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
   static final RegExp publicIdentifierRegExp =
       new RegExp(r'^[a-zA-Z$][a-zA-Z0-9_$]*$');
 
-  static const List<String> nonUsableKeywords = const <String>[
+  static const Set<String> nonUsableKeywords = const <String>{
     'assert',
     'break',
     'case',
@@ -1587,7 +1587,7 @@ class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
     'var',
     'while',
     'with',
-  ];
+  };
 
   bool isValidPublicIdentifier(String name) {
     return publicIdentifierRegExp.hasMatch(name) &&
@@ -3035,7 +3035,7 @@ class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
     if (arguments.named.isEmpty) return const <String, Constant>{};
 
     final Map<String, Constant> named = {};
-    arguments.named.forEach((NamedExpression pair) {
+    for (NamedExpression pair in arguments.named) {
       if (_gotError != null) return null;
       Constant constant = _evaluateSubexpression(pair.value);
       if (constant is AbortConstant) {
@@ -3043,7 +3043,7 @@ class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
         return null;
       }
       named[pair.name] = constant;
-    });
+    }
     if (_gotError != null) return null;
     return named;
   }

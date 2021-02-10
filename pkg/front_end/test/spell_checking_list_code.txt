@@ -912,6 +912,7 @@ ran
 randomly
 ranges
 ranked
+rarely
 ratio
 rb
 rc
