@@ -332,7 +332,8 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data,
                            ObjectStore* object_store,
                            Dart_IsolateFlags api_flags)
-    : embedder_data_(embedder_data),
+    : shared_class_table_(new SharedClassTable()),
+      embedder_data_(embedder_data),
       thread_pool_(),
       isolates_lock_(new SafepointRwLock()),
       isolates_(),
@@ -346,7 +347,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       api_state_(new ApiState()),
       thread_registry_(new ThreadRegistry()),
       safepoint_handler_(new SafepointHandler(this)),
-      shared_class_table_(new SharedClassTable()),
       object_store_(object_store),
       class_table_(new ClassTable(shared_class_table_.get())),
       store_buffer_(new StoreBuffer()),
@@ -432,7 +432,10 @@ void IsolateGroup::RegisterIsolateLocked(Isolate* isolate) {
 
 bool IsolateGroup::ContainsOnlyOneIsolate() {
   SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
-  return isolate_count_ == 1;
+  // We do allow 0 here as well, because the background compiler might call
+  // this method while the mutator thread is in shutdown procedure and
+  // unregistered itself already.
+  return isolate_count_ == 0 || isolate_count_ == 1;
 }
 
 void IsolateGroup::RunWithLockedGroup(std::function<void()> fun) {
@@ -969,7 +972,7 @@ void Isolate::ValidateConstants() {
 
   // Verify that all canonical instances are correctly setup in the
   // corresponding canonical tables.
-  BackgroundCompiler::Stop(this);
+  NoBackgroundCompilerScope no_bg_compiler(Thread::Current());
   group()->heap()->CollectAllGarbage();
   Thread* thread = Thread::Current();
   HeapIterationScope iteration(thread);
@@ -1666,7 +1669,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
       ic_miss_code_(Code::null()),
-      shared_class_table_(isolate_group->shared_class_table()),
       field_table_(new FieldTable(/*isolate=*/this)),
       isolate_group_(isolate_group),
       isolate_object_store_(
@@ -1699,7 +1701,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       handler_info_cache_(),
       catch_entry_moves_cache_() {
   cached_object_store_ = object_store_shared_ptr_.get();
-  cached_class_table_table_ = class_table_->table();
+  cached_class_table_table_ = group()->class_table_->table();
   FlagsCopyFrom(api_flags);
   SetErrorsFatal(true);
   // TODO(asiva): A Thread is not available here, need to figure out
@@ -1714,8 +1716,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
         "         See dartbug.com/30524 for more information.\n");
   }
 
-  NOT_IN_PRECOMPILED(optimizing_background_compiler_ =
-                         new BackgroundCompiler(this, /* optimizing = */ true));
+  NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(this));
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
@@ -1727,8 +1728,8 @@ Isolate::~Isolate() {
   // RELEASE_ASSERT(program_reload_context_ == NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
-  delete optimizing_background_compiler_;
-  optimizing_background_compiler_ = nullptr;
+  delete background_compiler_;
+  background_compiler_ = nullptr;
 
 #if !defined(PRODUCT)
   delete debugger_;
@@ -2430,9 +2431,9 @@ void Isolate::set_forward_table_old(WeakTable* table) {
 
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
-  BackgroundCompiler::Stop(this);
-  delete optimizing_background_compiler_;
-  optimizing_background_compiler_ = nullptr;
+  NOT_IN_PRECOMPILED(BackgroundCompiler::Stop(this));
+  NOT_IN_PRECOMPILED(delete background_compiler_);
+  background_compiler_ = nullptr;
 
   Thread* thread = Thread::Current();
 
@@ -2595,9 +2596,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   if (background_compiler() != nullptr) {
     background_compiler()->VisitPointers(visitor);
   }
-  if (optimizing_background_compiler() != nullptr) {
-    optimizing_background_compiler()->VisitPointers(visitor);
-  }
 
 #if !defined(PRODUCT)
   // Visit objects in the debugger.
@@ -2706,8 +2704,7 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
 
   {
     SafepointReadRwLocker ml(thread, isolates_lock_.get());
-    const bool only_one_isolate = isolates_.First() == isolates_.Last();
-    if (thread->IsMutatorThread() && only_one_isolate) {
+    if (thread->IsMutatorThread() && ContainsOnlyOneIsolate()) {
       single_current_mutator->Call();
       return;
     }

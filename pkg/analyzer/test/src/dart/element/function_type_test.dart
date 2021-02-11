@@ -37,8 +37,7 @@ class FunctionTypeTest with ElementsTypesMixin {
   InterfaceType get objectType => typeProvider.objectType;
 
   void basicChecks(FunctionType f,
-      {element,
-      displayName = 'dynamic Function()',
+      {displayName = 'dynamic Function()',
       returnType,
       namedParameterTypes = isEmpty,
       normalParameterNames = isEmpty,
@@ -47,7 +46,6 @@ class FunctionTypeTest with ElementsTypesMixin {
       optionalParameterTypes = isEmpty,
       parameters = isEmpty,
       typeFormals = isEmpty,
-      typeArguments = isEmpty,
       typeParameters = isEmpty}) {
     // DartType properties
     expect(
@@ -55,9 +53,6 @@ class FunctionTypeTest with ElementsTypesMixin {
       displayName,
       reason: 'displayName',
     );
-    expect(f.element, element, reason: 'element');
-    // ParameterizedType properties
-    expect(f.typeArguments, typeArguments, reason: 'typeArguments');
     // FunctionType properties
     expect(f.namedParameterTypes, namedParameterTypes,
         reason: 'namedParameterTypes');
@@ -274,7 +269,7 @@ class FunctionTypeTest with ElementsTypesMixin {
       returnType: dynamicType,
       nullabilitySuffix: NullabilitySuffix.star,
     );
-    basicChecks(f, element: isNull);
+    basicChecks(f);
   }
 
   test_synthetic_instantiate() {
@@ -289,7 +284,6 @@ class FunctionTypeTest with ElementsTypesMixin {
     );
     FunctionType instantiated = f.instantiate([objectType]);
     basicChecks(instantiated,
-        element: isNull,
         displayName: 'Object Function(Object)',
         returnType: same(objectType),
         normalParameterNames: ['x'],
@@ -328,7 +322,6 @@ class FunctionTypeTest with ElementsTypesMixin {
       nullabilitySuffix: NullabilitySuffix.star,
     );
     basicChecks(f,
-        element: isNull,
         displayName: 'dynamic Function({Object x})',
         namedParameterTypes: {'x': same(objectType)},
         parameters: hasLength(1));
@@ -346,7 +339,6 @@ class FunctionTypeTest with ElementsTypesMixin {
       nullabilitySuffix: NullabilitySuffix.star,
     );
     basicChecks(f,
-        element: isNull,
         displayName: 'dynamic Function(Object)',
         normalParameterNames: ['x'],
         normalParameterTypes: [same(objectType)],
@@ -365,7 +357,6 @@ class FunctionTypeTest with ElementsTypesMixin {
       nullabilitySuffix: NullabilitySuffix.star,
     );
     basicChecks(f,
-        element: isNull,
         displayName: 'dynamic Function([Object])',
         optionalParameterNames: ['x'],
         optionalParameterTypes: [same(objectType)],
@@ -383,9 +374,7 @@ class FunctionTypeTest with ElementsTypesMixin {
       nullabilitySuffix: NullabilitySuffix.star,
     );
     basicChecks(f,
-        element: isNull,
-        displayName: 'Object Function()',
-        returnType: same(objectType));
+        displayName: 'Object Function()', returnType: same(objectType));
   }
 
   test_synthetic_typeFormals() {
@@ -397,7 +386,6 @@ class FunctionTypeTest with ElementsTypesMixin {
       nullabilitySuffix: NullabilitySuffix.star,
     );
     basicChecks(f,
-        element: isNull,
         displayName: 'T Function<T>()',
         returnType: typeParameterTypeStar(t),
         typeFormals: [same(t)]);

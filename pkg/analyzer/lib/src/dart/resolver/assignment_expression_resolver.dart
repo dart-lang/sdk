@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -89,7 +90,7 @@ class AssignmentExpressionResolver {
     if (flow != null) {
       if (writeElement is PromotableElement) {
         flow.write(
-            node, writeElement, node.staticType!, hasRead ? null : right);
+            node, writeElement, node.typeOrThrow, hasRead ? null : right);
       }
       if (isIfNull) {
         flow.ifNullExpression_end();
@@ -197,7 +198,7 @@ class AssignmentExpressionResolver {
 
     var operator = node.operator.type;
     if (operator == TokenType.EQ) {
-      assignedType = node.rightHandSide.staticType!;
+      assignedType = node.rightHandSide.typeOrThrow;
       nodeType = assignedType;
     } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
       var leftType = node.readType!;
@@ -207,7 +208,7 @@ class AssignmentExpressionResolver {
         leftType = _typeSystem.promoteToNonNull(leftType);
       }
 
-      assignedType = node.rightHandSide.staticType!;
+      assignedType = node.rightHandSide.typeOrThrow;
       nodeType = _typeSystem.getLeastUpperBound(leftType, assignedType);
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
@@ -217,7 +218,7 @@ class AssignmentExpressionResolver {
       var operatorElement = node.staticElement;
       if (operatorElement != null) {
         var leftType = node.readType!;
-        var rightType = node.rightHandSide.staticType!;
+        var rightType = node.rightHandSide.typeOrThrow;
         assignedType = _typeSystem.refineBinaryExpressionType(
           leftType,
           operator,
@@ -278,14 +279,17 @@ class AssignmentExpressionShared {
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
   void checkFinalAlreadyAssigned(Expression left) {
-    var flow = _resolver.flowAnalysis?.flow;
-    if (flow != null && left is SimpleIdentifier) {
+    var flowAnalysis = _resolver.flowAnalysis;
+    if (flowAnalysis == null) return;
+
+    var flow = flowAnalysis.flow;
+    if (flow == null) return;
+
+    if (left is SimpleIdentifier) {
       var element = left.staticElement;
       if (element is PromotableElement) {
-        var assigned =
-            _resolver.flowAnalysis!.isDefinitelyAssigned(left, element);
-        var unassigned =
-            _resolver.flowAnalysis!.isDefinitelyUnassigned(left, element);
+        var assigned = flowAnalysis.isDefinitelyAssigned(left, element);
+        var unassigned = flowAnalysis.isDefinitelyUnassigned(left, element);
 
         if (element.isFinal) {
           if (element.isLate) {

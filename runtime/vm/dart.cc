@@ -1056,6 +1056,9 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #else
 #error What architecture?
 #endif
+#if defined(DART_COMPRESSED_POINTERS)
+    buffer.AddString(" compressed");
+#endif
   }
 
   if (!Snapshot::IsAgnosticToNullSafety(kind)) {

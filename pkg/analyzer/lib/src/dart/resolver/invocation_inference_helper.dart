@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -241,7 +242,7 @@ class InvocationInferenceHelper {
         targetType,
         node.methodName.staticElement,
         [
-          for (var argument in node.argumentList.arguments) argument.staticType!
+          for (var argument in node.argumentList.arguments) argument.typeOrThrow
         ],
         returnType,
       );
@@ -289,7 +290,7 @@ class InvocationInferenceHelper {
       ParameterElement? parameter = rawParameters[i];
       if (parameter != null) {
         params.add(parameter);
-        argTypes.add(argumentList.arguments[i].staticType!);
+        argTypes.add(argumentList.arguments[i].typeOrThrow);
       }
     }
     var typeArgs = _typeSystem.inferGenericFunctionOrType(

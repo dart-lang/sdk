@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -62,7 +63,7 @@ class PropertyElementResolver {
       return _toIndexResult(result);
     }
 
-    var targetType = target.staticType!;
+    var targetType = target.typeOrThrow;
     targetType = _resolveTypeParameter(targetType);
 
     if (targetType.isVoid) {
@@ -343,7 +344,7 @@ class PropertyElementResolver {
       }
     }
 
-    var targetType = target.staticType!;
+    var targetType = target.typeOrThrow;
 
     if (targetType is FunctionType && propertyName.name == 'call') {
       return PropertyElementResolverResult(

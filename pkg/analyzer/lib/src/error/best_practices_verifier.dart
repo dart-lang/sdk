@@ -39,8 +39,6 @@ import 'package:meta/meta_meta.dart';
 /// Instances of the class `BestPracticesVerifier` traverse an AST structure
 /// looking for violations of Dart best practices.
 class BestPracticesVerifier extends RecursiveAstVisitor<void> {
-  static const String _NULL_TYPE_NAME = "Null";
-
   static const String _TO_INT_METHOD_NAME = "toInt";
 
   /// The class containing the AST nodes being visited, or `null` if we are not
@@ -625,7 +623,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitPostfixExpression(PostfixExpression node) {
     _deprecatedVerifier.postfixExpression(node);
     if (node.operator.type == TokenType.BANG &&
-        node.operand.staticType!.isDartCoreNull) {
+        node.operand.typeOrThrow.isDartCoreNull) {
       _errorReporter.reportErrorForNode(HintCode.NULL_CHECK_ALWAYS_FAILS, node);
     }
     super.visitPostfixExpression(node);
@@ -717,56 +715,52 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
       return true;
     }
-    var rhsElement = rhsType.element;
-    var libraryElement = rhsElement?.library;
-    if (libraryElement != null && libraryElement.isDartCore) {
-      // `is Null` or `is! Null`
-      if (rhsNameStr == _NULL_TYPE_NAME) {
-        if (expression is NullLiteral) {
-          if (node.notOperator == null) {
-            _errorReporter.reportErrorForNode(
-              HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
-              node,
-            );
-          } else {
-            _errorReporter.reportErrorForNode(
-              HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
-              node,
-            );
-          }
+    // `is Null` or `is! Null`
+    if (rhsType.isDartCoreNull) {
+      if (expression is NullLiteral) {
+        if (node.notOperator == null) {
+          _errorReporter.reportErrorForNode(
+            HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
+            node,
+          );
         } else {
-          if (node.notOperator == null) {
-            _errorReporter.reportErrorForNode(
-              HintCode.TYPE_CHECK_IS_NULL,
-              node,
-            );
-          } else {
-            _errorReporter.reportErrorForNode(
-              HintCode.TYPE_CHECK_IS_NOT_NULL,
-              node,
-            );
-          }
+          _errorReporter.reportErrorForNode(
+            HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
+            node,
+          );
+        }
+      } else {
+        if (node.notOperator == null) {
+          _errorReporter.reportErrorForNode(
+            HintCode.TYPE_CHECK_IS_NULL,
+            node,
+          );
+        } else {
+          _errorReporter.reportErrorForNode(
+            HintCode.TYPE_CHECK_IS_NOT_NULL,
+            node,
+          );
+        }
+      }
+      return true;
+    }
+    // `is Object` or `is! Object`
+    if (rhsType.isDartCoreObject) {
+      var nullability = rhsType.nullabilitySuffix;
+      if (nullability == NullabilitySuffix.star ||
+          nullability == NullabilitySuffix.question) {
+        if (node.notOperator == null) {
+          _errorReporter.reportErrorForNode(
+            HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
+            node,
+          );
+        } else {
+          _errorReporter.reportErrorForNode(
+            HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
+            node,
+          );
         }
         return true;
-      }
-      // `is Object` or `is! Object`
-      if (rhsType.isDartCoreObject) {
-        var nullability = rhsType.nullabilitySuffix;
-        if (nullability == NullabilitySuffix.star ||
-            nullability == NullabilitySuffix.question) {
-          if (node.notOperator == null) {
-            _errorReporter.reportErrorForNode(
-              HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
-              node,
-            );
-          } else {
-            _errorReporter.reportErrorForNode(
-              HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
-              node,
-            );
-          }
-          return true;
-        }
       }
     }
     return false;
@@ -1079,14 +1073,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     void checkLeftRight(HintCode errorCode) {
       if (node.leftOperand is NullLiteral) {
-        var rightType = node.rightOperand.staticType!;
+        var rightType = node.rightOperand.typeOrThrow;
         if (_typeSystem.isStrictlyNonNullable(rightType)) {
           reportStartEnd(errorCode, node.leftOperand, node.operator);
         }
       }
 
       if (node.rightOperand is NullLiteral) {
-        var leftType = node.leftOperand.staticType!;
+        var leftType = node.leftOperand.typeOrThrow;
         if (_typeSystem.isStrictlyNonNullable(leftType)) {
           reportStartEnd(errorCode, node.operator, node.rightOperand);
         }
@@ -1597,7 +1591,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// Returns `true` if and only if an unnecessary cast hint should be generated
   /// on [node].  See [HintCode.UNNECESSARY_CAST].
   static bool isUnnecessaryCast(AsExpression node, TypeSystemImpl typeSystem) {
-    var leftType = node.expression.staticType!;
+    var leftType = node.expression.typeOrThrow;
     var rightType = node.type.type!;
 
     // `dynamicValue as SomeType` is a valid use case.
@@ -1630,13 +1624,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           : parent.thenExpression;
 
       var currentType = typeSystem.leastUpperBound(
-        node.staticType!,
-        other.staticType!,
+        node.typeOrThrow,
+        other.typeOrThrow,
       );
 
       var typeWithoutCast = typeSystem.leastUpperBound(
-        node.expression.staticType!,
-        other.staticType!,
+        node.expression.typeOrThrow,
+        other.typeOrThrow,
       );
 
       if (typeWithoutCast != currentType) {

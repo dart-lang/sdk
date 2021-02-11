@@ -91,7 +91,7 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void checkAssignment(Expression expr, DartType to) {
-    checkForCast(expr, from: expr.staticType!, to: to);
+    checkForCast(expr, from: expr.typeOrThrow, to: to);
   }
 
   /// Analyzer checks boolean conversions, but we need to check too, because
@@ -116,7 +116,7 @@ class CodeChecker extends RecursiveAstVisitor {
       DartType expressionCastType = typeProvider.iterableDynamicType;
       checkAssignment(element.expression, expressionCastType);
 
-      var exprType = element.expression.staticType!;
+      var exprType = element.expression.typeOrThrow;
       var asIterableType = exprType.asInstanceOf(typeProvider.iterableElement);
 
       if (asIterableType != null) {
@@ -159,7 +159,7 @@ class CodeChecker extends RecursiveAstVisitor {
           DynamicTypeImpl.instance, DynamicTypeImpl.instance);
       checkAssignment(element.expression, expressionCastType);
 
-      var exprType = element.expression.staticType!;
+      var exprType = element.expression.typeOrThrow;
       var asMapType = exprType.asInstanceOf(typeProvider.mapElement);
 
       if (asMapType != null) {
@@ -193,7 +193,7 @@ class CodeChecker extends RecursiveAstVisitor {
     TokenType operatorType = operator.type;
     if (operatorType == TokenType.EQ ||
         operatorType == TokenType.QUESTION_QUESTION_EQ) {
-      checkForCast(right, from: right.staticType!, to: node.writeType!);
+      checkForCast(right, from: right.typeOrThrow, to: node.writeType!);
     } else if (operatorType == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operatorType == TokenType.BAR_BAR_EQ) {
       checkBoolean(left);
@@ -376,7 +376,7 @@ class CodeChecker extends RecursiveAstVisitor {
         type = targs[0].type!;
       }
     } else {
-      DartType staticType = node.staticType!;
+      DartType staticType = node.typeOrThrow;
       if (staticType is InterfaceType) {
         type = staticType.typeArguments[0];
       }
@@ -449,7 +449,7 @@ class CodeChecker extends RecursiveAstVisitor {
           valueType = typeArguments[1].type!;
         }
       } else {
-        DartType staticType = node.staticType!;
+        DartType staticType = node.typeOrThrow;
         if (staticType is InterfaceType) {
           keyType = staticType.typeArguments[0];
         }
@@ -466,7 +466,7 @@ class CodeChecker extends RecursiveAstVisitor {
           type = typeArguments[0].type!;
         }
       } else {
-        DartType staticType = node.staticType!;
+        DartType staticType = node.typeOrThrow;
         if (staticType is InterfaceType) {
           type = staticType.typeArguments[0];
         }
@@ -522,7 +522,7 @@ class CodeChecker extends RecursiveAstVisitor {
         var initializer = variable.initializer;
         if (initializer != null) {
           checkForCast(initializer,
-              from: initializer.staticType!, to: type.type!);
+              from: initializer.typeOrThrow, to: type.type!);
         }
       }
     }
@@ -556,7 +556,7 @@ class CodeChecker extends RecursiveAstVisitor {
       assert(functionType.optionalParameterTypes.isEmpty);
 
       // Refine the return type.
-      var rhsType = expr.rightHandSide.staticType!;
+      var rhsType = expr.rightHandSide.typeOrThrow;
       var returnType = rules.refineBinaryExpressionType(
         expr.readType!,
         op,
@@ -947,7 +947,7 @@ class CodeChecker extends RecursiveAstVisitor {
     var sequenceElement = awaitKeyword != null
         ? typeProvider.streamElement
         : typeProvider.iterableElement;
-    var iterableType = node.iterable.staticType!;
+    var iterableType = node.iterable.typeOrThrow;
     var elementType = _getInstanceTypeArgument(iterableType, sequenceElement);
 
     // If the sequence is not an Iterable (or Stream for await for) but is a

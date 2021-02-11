@@ -195,7 +195,7 @@ int f() {
     expect(result.exitCode, 3);
     expect(result.stderr, isEmpty);
     var stdout = result.stdout;
-    expect(stdout, contains("The declaration of 'one' is on line 3."));
+    expect(stdout, contains("The declaration of 'one' is on line 3 at "));
     expect(
         stdout, contains('Try moving the declaration to before the first use'));
     expect(

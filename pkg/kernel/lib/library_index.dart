@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.library_index;
 
+// ignore: import_of_legacy_library_into_null_safe
 import 'ast.dart';
 
 /// Provides name-based access to library, class, and member AST nodes.
@@ -58,7 +57,7 @@ class LibraryIndex {
   }
 
   _ClassTable _getLibraryIndex(String uri) {
-    _ClassTable libraryIndex = _libraries[uri];
+    _ClassTable? libraryIndex = _libraries[uri];
     if (libraryIndex == null) {
       throw "The library '$uri' has not been indexed";
     }
@@ -71,7 +70,7 @@ class LibraryIndex {
   Library getLibrary(String uri) => _getLibraryIndex(uri).library;
 
   /// Like [getLibrary] but returns `null` if not found.
-  Library tryGetLibrary(String uri) => _libraries[uri]?.library;
+  Library? tryGetLibrary(String uri) => _libraries[uri]?.library;
 
   /// True if the library with the given URI exists and was indexed.
   bool containsLibrary(String uri) => _libraries.containsKey(uri);
@@ -84,7 +83,7 @@ class LibraryIndex {
   }
 
   /// Like [getClass] but returns `null` if not found.
-  Class tryGetClass(String library, String className) {
+  Class? tryGetClass(String library, String className) {
     return _libraries[library]?.tryGetClass(className);
   }
 
@@ -106,7 +105,7 @@ class LibraryIndex {
   }
 
   /// Like [getMember] but returns `null` if not found.
-  Member tryGetMember(String library, String className, String memberName) {
+  Member? tryGetMember(String library, String className, String memberName) {
     return _libraries[library]?.tryGetMember(className, memberName);
   }
 
@@ -125,7 +124,7 @@ class LibraryIndex {
   }
 
   /// Like [getTopLevelMember] but returns `null` if not found.
-  Member tryGetTopLevelMember(
+  Member? tryGetTopLevelMember(
       String library, String className, String memberName) {
     return tryGetMember(library, topLevel, memberName);
   }
@@ -134,31 +133,31 @@ class LibraryIndex {
 class _ClassTable {
   final Library library;
 
-  Map<String, _MemberTable> _classes;
+  Map<String, _MemberTable>? _classes;
 
   _ClassTable(this.library);
 
   Map<String, _MemberTable> get classes {
     if (_classes == null) {
       _classes = <String, _MemberTable>{};
-      _classes[LibraryIndex.topLevel] = new _MemberTable.topLevel(this);
+      _classes![LibraryIndex.topLevel] = new _MemberTable.topLevel(this);
       for (Class class_ in library.classes) {
-        _classes[class_.name] = new _MemberTable.fromClass(this, class_);
+        _classes![class_.name] = new _MemberTable.fromClass(this, class_);
       }
       for (Extension extension_ in library.extensions) {
-        _classes[extension_.name] =
+        _classes![extension_.name] =
             new _MemberTable.fromExtension(this, extension_);
       }
       for (Reference reference in library.additionalExports) {
         NamedNode node = reference.node;
         if (node is Class) {
-          _classes[node.name] = new _MemberTable.fromClass(this, node);
+          _classes![node.name] = new _MemberTable.fromClass(this, node);
         } else if (node is Extension) {
-          _classes[node.name] = new _MemberTable.fromExtension(this, node);
+          _classes![node.name] = new _MemberTable.fromExtension(this, node);
         }
       }
     }
-    return _classes;
+    return _classes!;
   }
 
   String get containerName {
@@ -166,7 +165,7 @@ class _ClassTable {
   }
 
   _MemberTable _getClassIndex(String name) {
-    _MemberTable indexer = classes[name];
+    _MemberTable? indexer = classes[name];
     if (indexer == null) {
       throw "Class '$name' not found in $containerName";
     }
@@ -174,10 +173,10 @@ class _ClassTable {
   }
 
   Class getClass(String name) {
-    return _getClassIndex(name).class_;
+    return _getClassIndex(name).class_!;
   }
 
-  Class tryGetClass(String name) {
+  Class? tryGetClass(String name) {
     return classes[name]?.class_;
   }
 
@@ -185,16 +184,16 @@ class _ClassTable {
     return _getClassIndex(className).getMember(memberName);
   }
 
-  Member tryGetMember(String className, String memberName) {
+  Member? tryGetMember(String className, String memberName) {
     return classes[className]?.tryGetMember(memberName);
   }
 }
 
 class _MemberTable {
   final _ClassTable parent;
-  final Class class_; // Null for top-level or extension.
-  final Extension extension_; // Null for top-level or class.
-  Map<String, Member> _members;
+  final Class? class_; // Null for top-level or extension.
+  final Extension? extension_; // Null for top-level or class.
+  Map<String, Member>? _members;
 
   Library get library => parent.library;
 
@@ -208,17 +207,17 @@ class _MemberTable {
     if (_members == null) {
       _members = <String, Member>{};
       if (class_ != null) {
-        class_.procedures.forEach(addMember);
-        class_.fields.forEach(addMember);
-        class_.constructors.forEach(addMember);
+        class_!.procedures.forEach(_addMember);
+        class_!.fields.forEach(_addMember);
+        class_!.constructors.forEach(_addMember);
       } else if (extension_ != null) {
-        extension_.members.forEach(addExtensionMember);
+        extension_!.members.forEach(_addExtensionMember);
       } else {
-        library.procedures.forEach(addMember);
-        library.fields.forEach(addMember);
+        library.procedures.forEach(_addMember);
+        library.fields.forEach(_addMember);
       }
     }
-    return _members;
+    return _members!;
   }
 
   String getDisambiguatedName(Member member) {
@@ -229,13 +228,13 @@ class _MemberTable {
     return member.name.text;
   }
 
-  void addMember(Member member) {
+  void _addMember(Member member) {
     if (member.name.isPrivate && member.name.library != library) {
       // Members whose name is private to other libraries cannot currently
       // be found with the LibraryIndex class.
       return;
     }
-    _members[getDisambiguatedName(member)] = member;
+    _members![getDisambiguatedName(member)] = member;
   }
 
   String getDisambiguatedExtensionName(
@@ -252,7 +251,7 @@ class _MemberTable {
     return extensionMember.name.text;
   }
 
-  void addExtensionMember(ExtensionMemberDescriptor extensionMember) {
+  void _addExtensionMember(ExtensionMemberDescriptor extensionMember) {
     final NamedNode replacement = extensionMember.member.node;
     if (replacement is! Member) return;
     Member member = replacement;
@@ -263,21 +262,21 @@ class _MemberTable {
     }
 
     final String name = getDisambiguatedExtensionName(extensionMember);
-    _members[name] = replacement;
+    _members![name] = replacement;
   }
 
   String get containerName {
     if (class_ != null) {
-      return "class '${class_.name}' in ${parent.containerName}";
+      return "class '${class_!.name}' in ${parent.containerName}";
     } else if (extension_ != null) {
-      return "extension '${extension_.name}' in ${parent.containerName}";
+      return "extension '${extension_!.name}' in ${parent.containerName}";
     } else {
       return "top-level of ${parent.containerName}";
     }
   }
 
   Member getMember(String name) {
-    Member member = members[name];
+    Member? member = members[name];
     if (member == null) {
       String message = "A member with disambiguated name '$name' was not found "
           "in $containerName";
@@ -291,5 +290,5 @@ class _MemberTable {
     return member;
   }
 
-  Member tryGetMember(String name) => members[name];
+  Member? tryGetMember(String name) => members[name];
 }

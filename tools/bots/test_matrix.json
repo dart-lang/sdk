@@ -1961,7 +1961,8 @@
             "language_2",
             "corelib_2",
             "lib_2",
-            "dartdevc_2"
+            "dartdevc_2",
+            "web_2"
           ]
         },
         {
@@ -2045,7 +2046,8 @@
             "language_2",
             "corelib_2",
             "lib_2",
-            "dartdevc_2"
+            "dartdevc_2",
+            "web_2"
           ]
         }
       ]
@@ -2090,7 +2092,8 @@
             "language",
             "corelib",
             "lib",
-            "dartdevc"
+            "dartdevc",
+            "web"
           ],
           "shards": 5,
           "fileset": "web_platform_nnbd"
@@ -2111,7 +2114,8 @@
             "language",
             "corelib",
             "lib",
-            "dartdevc"
+            "dartdevc",
+            "web"
           ]
         },
         {
@@ -2146,7 +2150,8 @@
             "language_2",
             "corelib_2",
             "lib_2",
-            "dartdevc_2"
+            "dartdevc_2",
+            "web_2"
           ]
         },
         {

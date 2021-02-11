@@ -68,10 +68,11 @@ class AnalysisOptionsProvider {
   YamlMap getOptionsFromSource(Source source) {
     YamlMap options = getOptionsFromString(_readAnalysisOptions(source));
     var node = getValue(options, AnalyzerOptions.include);
+    var sourceFactory = this.sourceFactory;
     if (sourceFactory != null && node is YamlScalar) {
       var path = node.value;
       if (path is String) {
-        var parent = sourceFactory!.resolveUri(source, path);
+        var parent = sourceFactory.resolveUri(source, path);
         if (parent != null) {
           options = merge(getOptionsFromSource(parent), options);
         }

@@ -1820,7 +1820,6 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
 #else
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
-  auto I = T->isolate();
   if (vm_snapshot_data_buffer != nullptr) {
     CHECK_NULL(vm_snapshot_data_size);
   }
@@ -1831,7 +1830,7 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
   if (Api::IsError(state)) {
     return state;
   }
-  BackgroundCompiler::Stop(I);
+  NoBackgroundCompilerScope no_bg_compiler(T);
 
 #if defined(DEBUG)
   T->isolate_group()->heap()->CollectAllGarbage();
@@ -6532,9 +6531,11 @@ DART_EXPORT Dart_Handle Dart_SortClasses() {
   return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
 #else
   DARTSCOPE(Thread::Current());
+
   // Prevent background compiler from running while code is being cleared and
   // adding new code.
-  BackgroundCompiler::Stop(Isolate::Current());
+  NoBackgroundCompilerScope no_bg_compiler(T);
+
   // We don't have mechanisms to change class-ids that are embedded in code and
   // ICData.
   ClassFinalizer::ClearAllCode();
@@ -6930,7 +6931,6 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
 #else
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
-  Isolate* I = T->isolate();
   CHECK_NULL(vm_snapshot_data_buffer);
   CHECK_NULL(vm_snapshot_data_size);
   CHECK_NULL(vm_snapshot_instructions_buffer);
@@ -6944,7 +6944,9 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
   if (Api::IsError(state)) {
     return state;
   }
-  BackgroundCompiler::Stop(I);
+
+  NoBackgroundCompilerScope no_bg_compiler(T);
+
   DropRegExpMatchCode(Z);
 
   ProgramVisitor::Dedup(T);
@@ -7031,7 +7033,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   // Kill off any auxiliary isolates before starting with deduping.
   KillNonMainIsolatesSlow(T, I);
 
-  BackgroundCompiler::Stop(I);
+  NoBackgroundCompilerScope no_bg_compiler(T);
   DropRegExpMatchCode(Z);
 
   ProgramVisitor::Dedup(T);

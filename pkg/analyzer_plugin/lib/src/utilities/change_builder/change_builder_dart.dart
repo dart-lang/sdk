@@ -1061,9 +1061,17 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// that is locally visible. Otherwise, return `null`.
   DartType _getVisibleType(DartType type,
       {ExecutableElement methodBeingCopied}) {
-    var element = type.element;
+    if (type is InterfaceType) {
+      var element = type.element;
+      if (element.isPrivate &&
+          !dartFileEditBuilder._isDefinedLocally(element)) {
+        return null;
+      }
+      return type;
+    }
     if (type is TypeParameterType) {
       _initializeEnclosingElements();
+      var element = type.element;
       var enclosing = element.enclosingElement;
       while (enclosing is GenericFunctionTypeElement ||
           enclosing is ParameterElement) {
@@ -1074,12 +1082,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           enclosing == methodBeingCopied) {
         return type;
       }
-      return null;
-    }
-    if (element == null) {
-      return type;
-    }
-    if (element.isPrivate && !dartFileEditBuilder._isDefinedLocally(element)) {
       return null;
     }
     return type;

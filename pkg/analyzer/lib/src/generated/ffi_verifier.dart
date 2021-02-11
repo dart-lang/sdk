@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
 
@@ -766,7 +767,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     Expression f = node.argumentList.arguments[0];
-    DartType FT = f.staticType!;
+    DartType FT = f.typeOrThrow;
     if (!_validateCompatibleFunctionTypes(FT, T)) {
       _errorReporter.reportErrorForNode(
           FfiCode.MUST_BE_A_SUBTYPE, f, [f.staticType, T, 'fromFunction']);
@@ -789,7 +790,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     } else {
       Expression e = node.argumentList.arguments[1];
       // TODO(brianwilkerson) Validate that `e` is a constant expression.
-      if (!_validateCompatibleNativeType(e.staticType!, R, true)) {
+      if (!_validateCompatibleNativeType(e.typeOrThrow, R, true)) {
         _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_SUBTYPE, e, [e.staticType, R, 'fromFunction']);
       }
@@ -845,7 +846,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Validate the invocation of the extension method
   /// `Pointer<T extends Struct>.ref`.
   void _validateRefPrefixedIdentifier(PrefixedIdentifier node) {
-    var targetType = node.prefix.staticType!;
+    var targetType = node.prefix.typeOrThrow;
     if (!_isValidFfiNativeType(targetType,
         allowVoid: false, allowEmptyStruct: true)) {
       final AstNode errorNode = node;

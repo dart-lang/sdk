@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -25,16 +23,10 @@ typedef T G<T>();
 ''');
     var type = findElement.topVar('g').type as FunctionType;
     assertType(type, 'int Function()');
-
-    var typedefG = findElement.typeAlias('G');
-    var functionG = typedefG.aliasedElement as GenericFunctionTypeElement;
-
-    expect(type.aliasElement, typedefG);
-    assertElementTypeStrings(type.aliasArguments, ['int']);
-
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-    expect(type.element, functionG);
-    expect(type.element?.enclosingElement, typedefG);
-    assertElementTypeStrings(type.typeArguments, ['int']);
+    assertTypeAlias(
+      type,
+      element: findElement.typeAlias('G'),
+      typeArguments: ['int'],
+    );
   }
 }

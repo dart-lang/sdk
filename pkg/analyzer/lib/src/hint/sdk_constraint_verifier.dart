@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -131,7 +132,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
               operatorType == TokenType.BAR ||
               operatorType == TokenType.CARET) &&
           (node as BinaryExpressionImpl).inConstantContext) {
-        if (node.leftOperand.staticType!.isDartCoreBool) {
+        if (node.leftOperand.typeOrThrow.isDartCoreBool) {
           _errorReporter.reportErrorForToken(
               HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT,
               node.operator,
@@ -140,7 +141,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       } else if (operatorType == TokenType.EQ_EQ &&
           (node as BinaryExpressionImpl).inConstantContext) {
         bool primitive(Expression node) {
-          DartType type = node.staticType!;
+          DartType type = node.typeOrThrow;
           return type.isDartCoreBool ||
               type.isDartCoreDouble ||
               type.isDartCoreInt ||

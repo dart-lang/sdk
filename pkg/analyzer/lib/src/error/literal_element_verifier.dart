@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -68,7 +69,7 @@ class LiteralElementVerifier {
         if (!elementType!.isVoid && checkForUseOfVoidResult(element)) {
           return;
         }
-        _checkAssignableToElementType(element.staticType!, element);
+        _checkAssignableToElementType(element.typeOrThrow, element);
       } else {
         errorReporter.reportErrorForNode(
             CompileTimeErrorCode.EXPRESSION_IN_MAP, element);
@@ -107,7 +108,7 @@ class LiteralElementVerifier {
       return;
     }
 
-    var keyType = entry.key.staticType!;
+    var keyType = entry.key.typeOrThrow;
     if (!typeSystem.isAssignableTo(keyType, mapKeyType!)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
@@ -116,7 +117,7 @@ class LiteralElementVerifier {
       );
     }
 
-    var valueType = entry.value.staticType!;
+    var valueType = entry.value.typeOrThrow;
     if (!typeSystem.isAssignableTo(valueType, mapValueType!)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
@@ -129,7 +130,7 @@ class LiteralElementVerifier {
   /// Verify that the type of the elements of the given [expression] can be
   /// assigned to the [elementType] of the enclosing collection.
   void _verifySpreadForListOrSet(bool isNullAware, Expression expression) {
-    var expressionType = expression.staticType!;
+    var expressionType = expression.typeOrThrow;
     if (expressionType.isDynamic) return;
 
     if (typeSystem.isNonNullableByDefault) {
@@ -186,7 +187,7 @@ class LiteralElementVerifier {
   /// Verify that the [expression] is a subtype of `Map<Object, Object>`, and
   /// its key and values are assignable to [mapKeyType] and [mapValueType].
   void _verifySpreadForMap(bool isNullAware, Expression expression) {
-    var expressionType = expression.staticType!;
+    var expressionType = expression.typeOrThrow;
     if (expressionType.isDynamic) return;
 
     if (typeSystem.isNonNullableByDefault) {

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -141,7 +142,7 @@ class ExtensionMemberResolver {
     }
 
     var receiverExpression = arguments[0];
-    var receiverType = receiverExpression.staticType!;
+    var receiverType = receiverExpression.typeOrThrow;
 
     if (node.isNullAware) {
       receiverType = _typeSystem.promoteToNonNull(receiverType);

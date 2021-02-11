@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:test/test.dart';
@@ -94,11 +95,11 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
       return parent.readType!;
     } else if (parent is PostfixExpression) {
-      return parent.readType ?? node.staticType!;
+      return parent.readType ?? node.typeOrThrow;
     } else if (parent is PrefixExpression) {
-      return parent.readType ?? node.staticType!;
+      return parent.readType ?? node.typeOrThrow;
     } else {
-      return node.staticType!;
+      return node.typeOrThrow;
     }
   }
 }

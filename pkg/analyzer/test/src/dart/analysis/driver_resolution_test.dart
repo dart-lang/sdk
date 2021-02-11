@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -5553,7 +5554,7 @@ class C<T> {
     var fooInvocation = fooStatement.expression as MethodInvocation;
     assertInvokeType(fooInvocation, 'T Function(C<T>)');
     assertType(fooInvocation.staticType, 'T');
-    expect(fooInvocation.staticType!.element, same(tElement));
+    expect(fooInvocation.typeOrThrow.element, same(tElement));
   }
 
   test_methodInvocation_topLevelFunction() async {
@@ -8287,7 +8288,7 @@ main() {
 
     SimpleIdentifier name = invocation.methodName;
     expect(name.staticElement, isNull);
-    assertUnresolvedInvokeType(name.staticType!);
+    assertUnresolvedInvokeType(name.typeOrThrow);
 
     assertTypeArguments(invocation.typeArguments!, [intType, doubleType]);
     _assertInvocationArguments(invocation.argumentList,
@@ -8314,7 +8315,7 @@ main() {
 
     SimpleIdentifier name = invocation.methodName;
     assertElementNull(name);
-    assertUnresolvedInvokeType(name.staticType!);
+    assertUnresolvedInvokeType(name.typeOrThrow);
 
     assertTypeArguments(invocation.typeArguments!, [intType, doubleType]);
     _assertInvocationArguments(invocation.argumentList,

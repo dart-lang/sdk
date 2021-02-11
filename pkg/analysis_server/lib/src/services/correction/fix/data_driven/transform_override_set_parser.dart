@@ -8,8 +8,6 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analysis_server/src/utilities/extensions/yaml.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:yaml/src/yaml_exception.dart';
-import 'package:yaml/src/yaml_node.dart';
 import 'package:yaml/yaml.dart';
 
 /// A parser used to parse the content of a configuration file.

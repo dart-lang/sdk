@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -337,24 +338,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertTypeArgumentTypes(node, typeArgumentTypes);
     assertInvokeType(node, invokeType);
     assertType(node, type);
-  }
-
-  /// We have a contract with the Angular team that FunctionType(s) from
-  /// typedefs carry the element of the typedef, and the type arguments.
-  void assertFunctionTypeTypedef(
-    FunctionType type, {
-    required FunctionTypeAliasElement element,
-    required List<String> typeArguments,
-  }) {
-    assertElement2(type.aliasElement, declaration: element);
-    assertElementTypeStrings(type.aliasArguments, typeArguments);
-
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-    assertElement2(
-      type.element,
-      declaration: element.aliasedElement as GenericFunctionTypeElement,
-    );
-    assertElementTypeStrings(type.typeArguments, typeArguments);
   }
 
   void assertHasTestErrors() {
@@ -758,6 +741,28 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
+  /// We have a contract with the Angular team that FunctionType(s) from
+  /// typedefs carry the element of the typedef, and the type arguments.
+  void assertTypeAlias(
+    DartType type, {
+    required TypeAliasElement element,
+    required List<String> typeArguments,
+  }) {
+    assertElement2(type.aliasElement, declaration: element);
+    assertElementTypeStrings(type.aliasArguments, typeArguments);
+
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
+    if (type is FunctionType) {
+      assertElement2(
+        // ignore: deprecated_member_use_from_same_package
+        type.element,
+        declaration: element.aliasedElement as GenericFunctionTypeElement,
+      );
+      // ignore: deprecated_member_use_from_same_package
+      assertElementTypeStrings(type.typeArguments, typeArguments);
+    }
+  }
+
   /// Assert that the given [identifier] is a reference to a type alias, in the
   /// form that is not a separate expression, e.g. in a static method
   /// invocation like `C.staticMethod()`, or a type annotation `C c = null`.
@@ -789,7 +794,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertTypeLegacy(Expression? expression) {
     expression!;
-    NullabilitySuffix actual = expression.staticType!.nullabilitySuffix;
+    NullabilitySuffix actual = expression.typeOrThrow.nullabilitySuffix;
     expect(actual, NullabilitySuffix.star);
   }
 

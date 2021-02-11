@@ -418,6 +418,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return shared_class_table_.get();
   }
 
+  static intptr_t shared_class_table_offset() {
+    COMPILE_ASSERT(sizeof(IsolateGroup::shared_class_table_) == kWordSize);
+    return OFFSET_OF(IsolateGroup, shared_class_table_);
+  }
+
   void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
   const char** obfuscation_map() const { return obfuscation_map_; }
 
@@ -796,6 +801,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return object_store_;
   }
 
+  // Accessed from generated code.
+  std::unique_ptr<SharedClassTable> shared_class_table_;
+  // End accessed from generated code.
+
   const char** obfuscation_map_ = nullptr;
 
   bool is_vm_isolate_heap_ = false;
@@ -845,7 +854,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   uint64_t id_ = 0;
 
-  std::unique_ptr<SharedClassTable> shared_class_table_;
   std::shared_ptr<ObjectStore> object_store_;
   std::shared_ptr<ClassTable> class_table_;
   std::unique_ptr<StoreBuffer> store_buffer_;
@@ -971,15 +979,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
   static intptr_t cached_class_table_table_offset() {
     return OFFSET_OF(Isolate, cached_class_table_table_);
-  }
-
-  // Used during isolate creation to re-register isolate with right group.
-  void set_shared_class_table(SharedClassTable* table) {
-    shared_class_table_ = table;
-  }
-  // Used by the generated code.
-  static intptr_t shared_class_table_offset() {
-    return OFFSET_OF(Isolate, shared_class_table_);
   }
 
   void set_object_store(ObjectStore* object_store);
@@ -1228,10 +1227,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   BackgroundCompiler* background_compiler() const {
     return background_compiler_;
-  }
-
-  BackgroundCompiler* optimizing_background_compiler() const {
-    return optimizing_background_compiler_;
   }
 
   intptr_t BlockClassFinalization() {
@@ -1545,7 +1540,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   CodePtr ic_miss_code_;
   // Cached value of object_store_shared_ptr_, here for generated code access
   ObjectStore* cached_object_store_ = nullptr;
-  SharedClassTable* shared_class_table_ = nullptr;
   // Cached value of class_table_->table_, here for generated code access
   ClassPtr* cached_class_table_table_ = nullptr;
   FieldTable* field_table_ = nullptr;
@@ -1591,11 +1585,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   uint32_t isolate_flags_ = 0;
 
-  // Unoptimized background compilation.
   BackgroundCompiler* background_compiler_ = nullptr;
-
-  // Optimized background compilation.
-  BackgroundCompiler* optimizing_background_compiler_ = nullptr;
 
 // Fields that aren't needed in a product build go here with boolean flags at
 // the top.

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -72,7 +73,7 @@ class YieldStatementResolver {
     var declaredReturnType = _enclosingFunction.returnType;
 
     var expression = node.expression;
-    var expressionType = expression.staticType!;
+    var expressionType = expression.typeOrThrow;
 
     DartType impliedReturnType;
     if (isYieldEach) {

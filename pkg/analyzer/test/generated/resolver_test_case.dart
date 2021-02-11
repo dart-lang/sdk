@@ -295,7 +295,6 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest
   /// output.
   FunctionType expectFunctionType(String name, String type,
       {String typeParams = '[]',
-      String typeArgs = '[]',
       String typeFormals = '[]',
       String? identifierType}) {
     identifierType ??= type;
@@ -311,7 +310,6 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest
     var functionType = _getFunctionTypedElementType(identifier);
     assertType(functionType, type);
     expect(identifier.staticType, isNull);
-    expect(functionType.typeArguments.toString(), typeArgs);
     expect(typeParametersStr(functionType.typeFormals), typeFormals);
     return functionType;
   }

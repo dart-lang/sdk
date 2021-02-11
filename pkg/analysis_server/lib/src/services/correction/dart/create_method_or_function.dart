@@ -36,8 +36,8 @@ class CreateMethodOrFunction extends CorrectionProducer {
         var target = getQualifiedPropertyTarget(node);
         if (target != null) {
           var targetType = target.staticType;
-          if (targetType != null && targetType.element is ClassElement) {
-            targetElement = targetType.element as ClassElement;
+          if (targetType is InterfaceType) {
+            targetElement = targetType.element;
             argument = target.parent as Expression;
           } else {
             return;

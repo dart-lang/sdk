@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.ast.visitor;
 
 import 'dart:core' hide MapEntry;
 import 'dart:collection';
 
+// ignore: import_of_legacy_library_into_null_safe
 import 'ast.dart';
 
 abstract class ExpressionVisitor<R> {
@@ -436,7 +435,7 @@ class _ConstantCallbackVisitor<R> implements ConstantVisitor<R> {
 /// value for each subnode. The visitor caches the computed values ensuring that
 /// each subnode is only visited once.
 abstract class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
-  _ConstantCallbackVisitor<R> _visitor;
+  late final _ConstantCallbackVisitor<R> _visitor;
   Map<Constant, R> cache = new LinkedHashMap.identity();
 
   ComputeOnceConstantVisitor() {
@@ -485,7 +484,7 @@ abstract class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
 /// The visitor records the visited node to ensure that each subnode is only
 /// visited once.
 abstract class VisitOnceConstantVisitor implements _ConstantCallback<void> {
-  _ConstantCallbackVisitor<void> _visitor;
+  late final _ConstantCallbackVisitor<void> _visitor;
   Set<Constant> cache = new LinkedHashSet.identity();
 
   VisitOnceConstantVisitor() {
@@ -673,21 +672,21 @@ mixin VisitorThrowingMixin<R> implements Visitor<R> {
 
 /// Visitor mixin that returns a value of type [R] or `null` and uses `null` as
 /// its base case.
-mixin VisitorNullMixin<R> implements Visitor<R /*?*/ > {
+mixin VisitorNullMixin<R> implements Visitor<R?> {
   @override
-  R defaultNode(Node node) => null;
+  R? defaultNode(Node node) => null;
 
   @override
-  R visitClassReference(Class node) => null;
+  R? visitClassReference(Class node) => null;
 
   @override
-  R visitTypedefReference(Typedef node) => null;
+  R? visitTypedefReference(Typedef node) => null;
 
   @override
-  R defaultConstantReference(Constant node) => null;
+  R? defaultConstantReference(Constant node) => null;
 
   @override
-  R defaultMemberReference(Member node) => null;
+  R? defaultMemberReference(Member node) => null;
 }
 
 /// Visitor mixin that returns void.
@@ -741,11 +740,10 @@ class RecursiveVisitor<T> extends Visitor<void> with VisitorVoidMixin {
 
 /// Recursive visitor that returns a result of type [R] or `null` from its
 /// visit methods.
-class RecursiveResultVisitor<R> extends Visitor<R /*?*/ >
-    with VisitorNullMixin<R> {
+class RecursiveResultVisitor<R> extends Visitor<R?> with VisitorNullMixin<R> {
   const RecursiveResultVisitor();
 
-  R defaultNode(Node node) {
+  R? defaultNode(Node node) {
     node.visitChildren(this);
     return null;
   }

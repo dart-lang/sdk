@@ -1629,7 +1629,7 @@ void Debugger::DeoptimizeWorld() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
-  BackgroundCompiler::Stop(isolate_);
+  NoBackgroundCompilerScope no_bg_compiler(Thread::Current());
   if (FLAG_trace_deoptimization) {
     THR_Print("Deopt for debugger\n");
   }

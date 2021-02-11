@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
@@ -37,9 +38,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   /// The set of variables declared using '-D' on the command line.
   final DeclaredVariables declaredVariables;
-
-  /// The type representing the type 'int'.
-  final InterfaceType _intType;
 
   /// The current library that is being analyzed.
   final LibraryElementImpl _currentLibrary;
@@ -67,8 +65,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     this._typeSystem,
     this._typeProvider,
     this.declaredVariables,
-  )   : _intType = _typeProvider.intType,
-        _evaluationEngine = ConstantEvaluationEngine(declaredVariables);
+  ) : _evaluationEngine = ConstantEvaluationEngine(declaredVariables);
 
   bool get _isNonNullableByDefault => _currentLibrary.isNonNullableByDefault;
 
@@ -287,16 +284,14 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   ///         not <i>int</i> or <i>String</i>.
   bool _implementsEqualsWhenNotAllowed(DartType? type) {
     // ignore int or String
-    if (type == null ||
-        type.element == _intType.element ||
-        type.element == _typeProvider.stringType.element) {
+    if (type == null || type.isDartCoreInt || type.isDartCoreString) {
       return false;
-    } else if (type.element == _typeProvider.doubleType.element) {
+    } else if (type.isDartCoreDouble) {
       return true;
     }
     // prepare ClassElement
-    var element = type.element;
-    if (element is ClassElement) {
+    if (type is InterfaceType) {
+      var element = type.element;
       // lookup for ==
       var method = element.lookUpConcreteMethod("==", _currentLibrary);
       if (method == null ||
@@ -579,7 +574,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _validateSwitchStatement_nullSafety(SwitchStatement node) {
-    var switchType = node.expression.staticType!;
+    var switchType = node.expression.typeOrThrow;
     for (var switchMember in node.members) {
       if (switchMember is SwitchCase) {
         Expression expression = switchMember.expression;

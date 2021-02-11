@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -101,7 +102,7 @@ class BinaryExpressionResolver {
     var flow = _resolver.flowAnalysis?.flow;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
-      flow?.equalityOp_rightBegin(left, left.staticType!);
+      flow?.equalityOp_rightBegin(left, left.typeOrThrow);
     }
 
     var right = node.rightOperand;
@@ -109,7 +110,7 @@ class BinaryExpressionResolver {
     right = node.rightOperand;
 
     if (!leftExtensionOverride) {
-      flow?.equalityOp_end(node, right, right.staticType!, notEqual: notEqual);
+      flow?.equalityOp_end(node, right, right.typeOrThrow, notEqual: notEqual);
     }
 
     _resolveUserDefinableElement(
@@ -133,7 +134,7 @@ class BinaryExpressionResolver {
 
     left.accept(_resolver);
     left = node.leftOperand;
-    var leftType = left.staticType!;
+    var leftType = left.typeOrThrow;
 
     var rightContextType = InferenceContext.getContext(node);
     if (rightContextType == null || rightContextType.isDynamic) {
@@ -146,7 +147,7 @@ class BinaryExpressionResolver {
     right = node.rightOperand;
     flow?.ifNullExpression_end();
 
-    var rightType = right.staticType!;
+    var rightType = right.typeOrThrow;
     if (_isNonNullableByDefault) {
       var promotedLeftType = _typeSystem.promoteToNonNull(leftType);
       _analyzeLeastUpperBoundTypes(node, promotedLeftType, rightType);
@@ -285,7 +286,7 @@ class BinaryExpressionResolver {
       return;
     }
 
-    var leftType = leftOperand.staticType!;
+    var leftType = leftOperand.typeOrThrow;
     leftType = _resolveTypeParameter(leftType);
 
     if (identical(leftType, NeverTypeImpl.instance)) {
@@ -334,7 +335,7 @@ class BinaryExpressionResolver {
     if (leftOperand is ExtensionOverride) {
       leftType = leftOperand.extendedType!;
     } else {
-      leftType = leftOperand.staticType!;
+      leftType = leftOperand.typeOrThrow;
       leftType = _resolveTypeParameter(leftType);
     }
 
@@ -349,7 +350,7 @@ class BinaryExpressionResolver {
       staticType = _typeSystem.refineBinaryExpressionType(
         leftType,
         node.operator.type,
-        node.rightOperand.staticType!,
+        node.rightOperand.typeOrThrow,
         staticType,
         node.staticElement,
       );

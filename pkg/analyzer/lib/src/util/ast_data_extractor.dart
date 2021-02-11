@@ -74,19 +74,20 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
 
   Id createMemberId(Declaration node) {
     var element = node.declaredElement!;
-    if (element.enclosingElement is CompilationUnitElement) {
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement is CompilationUnitElement) {
       var memberName = element.name!;
       if (element is PropertyAccessorElement && element.isSetter) {
         memberName += '=';
       }
       return MemberId.internal(memberName);
-    } else if (element.enclosingElement is ClassElement) {
+    } else if (enclosingElement is ClassElement) {
       var memberName = element.name!;
-      var className = element.enclosingElement!.name;
+      var className = enclosingElement.name;
       return MemberId.internal(memberName, className: className);
-    } else if (element.enclosingElement is ExtensionElement) {
-      var memberName = element.name;
-      var extensionName = element.enclosingElement!.name;
+    } else if (enclosingElement is ExtensionElement) {
+      var memberName = element.name!;
+      var extensionName = enclosingElement.name;
       if (element is PropertyAccessorElement) {
         memberName = '${element.isGetter ? 'get' : 'set'}#$memberName';
       }

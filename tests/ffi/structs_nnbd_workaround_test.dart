@@ -105,7 +105,7 @@ void testTypeTest() {
 
 void testUtf8() {
   final String test = 'Hasta Mañana';
-  final Pointer<Utf8> medium = Utf8.toUtf8(test);
-  Expect.equals(test, Utf8.fromUtf8(medium));
+  final Pointer<Utf8> medium = test.toNativeUtf8();
+  Expect.equals(test, medium.toDartString());
   calloc.free(medium);
 }

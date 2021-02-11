@@ -46,7 +46,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
     List<DartType> typeArgs;
     var constructorName = '';
 
-    if (type.element is FunctionTypedElement) {
+    if (type is FunctionType) {
       constructorId = 'ObjectFlagProperty';
       typeArgs = [type];
       constructorName = '.has';
