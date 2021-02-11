@@ -3148,6 +3148,7 @@ intptr_t Class::ComputeNumTypeArguments() const {
   // modified by finalization, only shifted to higher indices in the vector.
   // The super type may not even be resolved yet. This is not necessary, since
   // we only check for matching type parameters, which are resolved by default.
+  const auto& type_params = TypeArguments::Handle(zone, type_parameters());
   // Determine the maximum overlap of a prefix of the vector consisting of the
   // type parameters of this class with a suffix of the vector consisting of the
   // type arguments of the super type of this class.
@@ -3156,6 +3157,7 @@ intptr_t Class::ComputeNumTypeArguments() const {
   // Attempt to overlap the whole vector of type parameters; reduce the size
   // of the vector (keeping the first type parameter) until it fits or until
   // its size is zero.
+  auto& type_param = TypeParameter::Handle(zone);
   auto& sup_type_arg = AbstractType::Handle(zone);
   for (intptr_t num_overlapping_type_args =
            (num_type_params < sup_type_args_length) ? num_type_params
@@ -3163,16 +3165,12 @@ intptr_t Class::ComputeNumTypeArguments() const {
        num_overlapping_type_args > 0; num_overlapping_type_args--) {
     intptr_t i = 0;
     for (; i < num_overlapping_type_args; i++) {
+      type_param ^= type_params.TypeAt(i);
+      ASSERT(!type_param.IsNull());
       sup_type_arg = sup_type_args.TypeAt(sup_type_args_length -
                                           num_overlapping_type_args + i);
       ASSERT(!sup_type_arg.IsNull());
-      if (!sup_type_arg.IsTypeParameter()) break;
-      // The only type parameters appearing in the type arguments of the super
-      // type are those declared by this class. Their finalized indices depend
-      // on the number of type arguments being computed here. Therefore, they
-      // cannot possibly be finalized yet.
-      ASSERT(!TypeParameter::Cast(sup_type_arg).IsFinalized());
-      if (TypeParameter::Cast(sup_type_arg).index() != i) break;
+      if (!type_param.Equals(sup_type_arg)) break;
     }
     if (i == num_overlapping_type_args) {
       // Overlap found.
@@ -20970,12 +20968,12 @@ bool TypeParameter::IsEquivalent(const Instance& other,
     return false;
   }
   const TypeParameter& other_type_param = TypeParameter::Cast(other);
-  ASSERT(IsFinalized() && other_type_param.IsFinalized());
   // Compare index, name, bound, default argument, and flags.
   if (IsFunctionTypeParameter()) {
     if (!other_type_param.IsFunctionTypeParameter()) {
       return false;
     }
+    ASSERT(IsFinalized() && other_type_param.IsFinalized());
     if (kind == TypeEquality::kInSubtypeTest) {
       // To be equivalent, the function type parameters should be declared
       // at the same position in the generic function. Their index therefore
@@ -21042,6 +21040,7 @@ bool TypeParameter::IsEquivalent(const Instance& other,
         return false;
       }
     } else {
+      ASSERT(IsFinalized() && other_type_param.IsFinalized());
       if (index() != other_type_param.index()) {
         return false;
       }
