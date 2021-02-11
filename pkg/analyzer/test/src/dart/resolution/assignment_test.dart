@@ -12,9 +12,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentDriverResolutionTest);
-    defineReflectiveTests(
-      AssignmentDriverResolutionWithNonFunctionTypeAliasesTest,
-    );
   });
 }
 
@@ -856,6 +853,42 @@ void f() {
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
     assertImportPrefix(prefixed.prefix, importFind.prefix);
 
+    assertSimpleIdentifierAssignmentTarget(
+      prefixed.identifier,
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
+  test_prefixedIdentifier_typeAlias_static_compound() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static int get x => 0;
+  static set x(int _) {}
+}
+
+typedef B = A;
+
+void f() {
+  B.x += 2;
+}
+''');
+
+    var assignment = findNode.assignment('x += 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('x'),
+      readType: 'int',
+      writeElement: findElement.setter('x'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
     assertSimpleIdentifierAssignmentTarget(
       prefixed.identifier,
     );
@@ -2382,47 +2415,5 @@ void f(int a) {
       element: findElement.parameter('a'),
       type: 'int',
     );
-  }
-}
-
-/// TODO(https://github.com/dart-lang/sdk/issues/44666): Combine this class
-/// with the one above.
-@reflectiveTest
-class AssignmentDriverResolutionWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest {
-  test_prefixedIdentifier_typeAlias_static_compound() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  static int get x => 0;
-  static set x(int _) {}
-}
-
-typedef B = A;
-
-void f() {
-  B.x += 2;
-}
-''');
-
-    var assignment = findNode.assignment('x += 2');
-    assertAssignment(
-      assignment,
-      readElement: findElement.getter('x'),
-      readType: 'int',
-      writeElement: findElement.setter('x'),
-      writeType: 'int',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
-      ),
-      type: 'int',
-    );
-
-    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifierAssignmentTarget(
-      prefixed.identifier,
-    );
-
-    assertType(assignment.rightHandSide, 'int');
   }
 }

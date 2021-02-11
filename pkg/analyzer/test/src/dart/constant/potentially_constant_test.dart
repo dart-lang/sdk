@@ -14,7 +14,6 @@ main() {
     defineReflectiveTests(IsConstantTypeExpressionTest);
     defineReflectiveTests(IsPotentiallyConstantTypeExpressionTest);
     defineReflectiveTests(PotentiallyConstantTest);
-    defineReflectiveTests(PotentiallyConstantWithNonFunctionTypeAliasesTest);
     defineReflectiveTests(PotentiallyConstantWithoutNullSafetyTest);
   });
 }
@@ -212,6 +211,17 @@ class A<T> {
 ''', () => _xInitializer());
   }
 
+  test_asExpression_typeParameter_nested() async {
+    await _assertConst(r'''
+const a = 0;
+class A<T> {
+  m() {
+    var x = a as List<T>;
+  }
+}
+''', () => _xInitializer());
+  }
+
   test_conditional() async {
     await _assertConst(r'''
 const a = 0;
@@ -303,6 +313,17 @@ const a = 0;
 class A<T> {
   m() {
     var x = a is T;
+  }
+}
+''', () => _xInitializer());
+  }
+
+  test_isExpression_typeParameter_nested() async {
+    await _assertConst(r'''
+const a = 0;
+class A<T> {
+  m() {
+    var x = a is List<T>;
   }
 }
 ''', () => _xInitializer());
@@ -603,6 +624,16 @@ var x = A.a + 1;
     );
   }
 
+  test_prefixedIdentifier_typedef_interfaceType() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+typedef A = List<int>;
+''');
+    await _assertConst(r'''
+import 'a.dart' as p;
+var x = p.A;
+''', () => _xInitializer());
+  }
+
   test_prefixExpression_bang() async {
     await _assertConst(r'''
 const a = 0;
@@ -859,6 +890,13 @@ var x = A;
 ''', () => _xInitializer());
   }
 
+  test_simpleIdentifier_typedef_interfaceType() async {
+    await _assertConst(r'''
+typedef A = List<int>;
+var x = A;
+''', () => _xInitializer());
+  }
+
   test_spreadElement() async {
     await _assertConst(r'''
 const a = [0, 1, 2];
@@ -922,75 +960,6 @@ var x = 'a';
 
   Expression _xInitializer() {
     return findNode.variableDeclaration('x = ').initializer!;
-  }
-}
-
-/// TODO(https://github.com/dart-lang/sdk/issues/44666): Combine this class
-/// with the one it extends.
-@reflectiveTest
-class PotentiallyConstantWithNonFunctionTypeAliasesTest
-    extends PotentiallyConstantTest {
-  @override
-  test_asExpression_typeParameter() async {
-    await _assertConst(r'''
-const a = 0;
-class A<T> {
-  m() {
-    var x = a as T;
-  }
-}
-''', () => _xInitializer());
-  }
-
-  test_asExpression_typeParameter_nested() async {
-    await _assertConst(r'''
-const a = 0;
-class A<T> {
-  m() {
-    var x = a as List<T>;
-  }
-}
-''', () => _xInitializer());
-  }
-
-  @override
-  test_isExpression_typeParameter() async {
-    await _assertConst(r'''
-const a = 0;
-class A<T> {
-  m() {
-    var x = a is T;
-  }
-}
-''', () => _xInitializer());
-  }
-
-  test_isExpression_typeParameter_nested() async {
-    await _assertConst(r'''
-const a = 0;
-class A<T> {
-  m() {
-    var x = a is List<T>;
-  }
-}
-''', () => _xInitializer());
-  }
-
-  test_prefixedIdentifier_typedef_interfaceType() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-typedef A = List<int>;
-''');
-    await _assertConst(r'''
-import 'a.dart' as p;
-var x = p.A;
-''', () => _xInitializer());
-  }
-
-  test_simpleIdentifier_typedef_interfaceType() async {
-    await _assertConst(r'''
-typedef A = List<int>;
-var x = A;
-''', () => _xInitializer());
   }
 }
 
