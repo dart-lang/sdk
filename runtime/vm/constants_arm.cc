@@ -13,8 +13,13 @@ namespace dart {
 using dart::bit_cast;
 
 const char* cpu_reg_names[kNumberOfCpuRegisters] = {
-    "r0", "r1",  "r2", "r3", "r4", "r5", "r6", "r7",
-    "r8", "ctx", "pp", "fp", "ip", "sp", "lr", "pc",
+#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+    "r0", "r1", "r2",  "r3",  "r4", "pp", "r6", "fp",
+    "r8", "r9", "thr", "r11", "ip", "sp", "lr", "pc",
+#else
+    "r0", "r1", "r2",  "r3", "r4", "pp", "r6", "r7",
+    "r8", "r9", "thr", "fp", "ip", "sp", "lr", "pc",
+#endif
 };
 
 const char* fpu_reg_names[kNumberOfFpuRegisters] = {
