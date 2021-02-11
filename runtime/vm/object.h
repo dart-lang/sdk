@@ -4658,12 +4658,16 @@ class Library : public Object {
   // If [only_core] is true, then the annotations on the object will only
   // be inspected if it is part of a core library.
   //
+  // If [multiple] is true, then sets [options] to an GrowableObjectArray
+  // containing all results and [options] may not be nullptr.
+  //
   // WARNING: If the isolate received an [UnwindError] this function will not
   // return and rather unwinds until the enclosing setjmp() handler.
   static bool FindPragma(Thread* T,
                          bool only_core,
                          const Object& object,
                          const String& pragma_name,
+                         bool multiple = false,
                          Object* options = nullptr);
 
   ClassPtr toplevel_class() const { return untag()->toplevel_class(); }
@@ -6144,11 +6148,9 @@ class Code : public Object {
     explicit Comments(const Array& comments);
 
     // Layout of entries describing comments.
-    enum {
-      kPCOffsetEntry = 0,  // PC offset to a comment as a Smi.
-      kCommentEntry,       // Comment text as a String.
-      kNumberOfEntries
-    };
+    enum {kPCOffsetEntry = 0,  // PC offset to a comment as a Smi.
+          kCommentEntry,       // Comment text as a String.
+          kNumberOfEntries};
 
     const Array& comments_;
     String& string_;

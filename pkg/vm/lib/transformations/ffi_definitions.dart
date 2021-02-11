@@ -474,7 +474,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   void _annoteStructWithFields(Class node, List<Class> fieldTypes) {
-    final types = fieldTypes.map((Class c) {
+    final constants = fieldTypes.map((Class c) {
       List<DartType> typeArg = const [];
       if (c == pointerClass) {
         typeArg = [
@@ -488,10 +488,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     node.addAnnotation(ConstantExpression(
         InstanceConstant(pragmaClass.reference, [], {
           pragmaName.getterReference: StringConstant("vm:ffi:struct-fields"),
-          // TODO(dartbug.com/38158): Wrap list in class to be able to encode
-          // more information when needed.
-          pragmaOptions.getterReference: ListConstant(
-              InterfaceType(typeClass, Nullability.nonNullable), types)
+          pragmaOptions.getterReference:
+              InstanceConstant(ffiStructLayoutClass.reference, [], {
+            ffiStructLayoutTypesField.getterReference: ListConstant(
+                InterfaceType(typeClass, Nullability.nonNullable), constants)
+          })
         }),
         InterfaceType(pragmaClass, Nullability.nonNullable, [])));
   }

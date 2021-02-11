@@ -124,6 +124,7 @@ class ObjectPointerVisitor;
   V(FfiCallback, "_FfiCallback")                                               \
   V(FfiDouble, "Double")                                                       \
   V(FfiDynamicLibrary, "DynamicLibrary")                                       \
+  V(FfiFieldTypes, "fieldTypes")                                               \
   V(FfiFloat, "Float")                                                         \
   V(FfiInt16, "Int16")                                                         \
   V(FfiInt32, "Int32")                                                         \
@@ -133,6 +134,7 @@ class ObjectPointerVisitor;
   V(FfiNativeFunction, "NativeFunction")                                       \
   V(FfiNativeType, "NativeType")                                               \
   V(FfiPointer, "Pointer")                                                     \
+  V(FfiStructLayout, "_FfiStructLayout")                                       \
   V(FfiTrampolineData, "FfiTrampolineData")                                    \
   V(FfiUint16, "Uint16")                                                       \
   V(FfiUint32, "Uint32")                                                       \

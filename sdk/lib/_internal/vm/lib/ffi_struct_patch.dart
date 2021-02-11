@@ -10,3 +10,11 @@ import 'dart:isolate';
 
 @pragma("vm:entry-point")
 abstract class Struct extends NativeType {}
+
+@pragma("vm:entry-point")
+class _FfiStructLayout {
+  @pragma("vm:entry-point")
+  final List<Type> fieldTypes;
+
+  const _FfiStructLayout(this.fieldTypes);
+}

@@ -1121,7 +1121,8 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
 
   Object& options = Object::Handle(Z);
   if (!Library::FindPragma(thread_, /*only_core=*/false, function,
-                           Symbols::vm_trace_entrypoints(), &options) ||
+                           Symbols::vm_trace_entrypoints(), /*multiple=*/false,
+                           &options) ||
       options.IsNull() || !options.IsClosure()) {
     return Drop();
   }

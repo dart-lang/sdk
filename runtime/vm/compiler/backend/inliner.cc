@@ -2266,13 +2266,15 @@ static bool IsInlineableOperator(const Function& function) {
 bool FlowGraphInliner::FunctionHasPreferInlinePragma(const Function& function) {
   Object& options = Object::Handle();
   return Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
-                             function, Symbols::vm_prefer_inline(), &options);
+                             function, Symbols::vm_prefer_inline(),
+                             /*multiple=*/false, &options);
 }
 
 bool FlowGraphInliner::FunctionHasNeverInlinePragma(const Function& function) {
   Object& options = Object::Handle();
   return Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
-                             function, Symbols::vm_never_inline(), &options);
+                             function, Symbols::vm_never_inline(),
+                             /*multiple=*/false, &options);
 }
 
 bool FlowGraphInliner::AlwaysInline(const Function& function) {
@@ -2890,7 +2892,6 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
                                  call->GetBlock()->try_index(), DeoptId::kNone);
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
-
 
   // Generates a template for the load, either a dynamic conditional
   // that dispatches on external and internal storage, or a single

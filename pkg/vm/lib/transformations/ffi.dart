@@ -214,6 +214,8 @@ class FfiTransformer extends Transformer {
   final Class opaqueClass;
   final Class pointerClass;
   final Class structClass;
+  final Class ffiStructLayoutClass;
+  final Field ffiStructLayoutTypesField;
   final Procedure allocateMethod;
   final Procedure allocatorAllocateMethod;
   final Procedure castMethod;
@@ -274,6 +276,9 @@ class FfiTransformer extends Transformer {
         opaqueClass = index.getClass('dart:ffi', 'Opaque'),
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
         structClass = index.getClass('dart:ffi', 'Struct'),
+        ffiStructLayoutClass = index.getClass('dart:ffi', '_FfiStructLayout'),
+        ffiStructLayoutTypesField =
+            index.getMember('dart:ffi', '_FfiStructLayout', 'fieldTypes'),
         allocateMethod = index.getMember('dart:ffi', 'AllocatorAlloc', 'call'),
         allocatorAllocateMethod =
             index.getMember('dart:ffi', 'Allocator', 'allocate'),
