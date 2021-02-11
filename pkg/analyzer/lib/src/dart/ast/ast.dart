@@ -2403,9 +2403,8 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   /// or `null` if this is not a redirecting factory constructor.
   ConstructorNameImpl? _redirectedConstructor;
 
-  /// The body of the constructor, or `null` if the constructor does not have a
-  /// body.
-  FunctionBodyImpl? _body;
+  /// The body of the constructor.
+  FunctionBodyImpl _body;
 
   /// The element associated with this constructor, or `null` if the AST
   /// structure has not been resolved or if this constructor could not be
@@ -2450,11 +2449,11 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  FunctionBody? get body => _body;
+  FunctionBody get body => _body;
 
   @override
-  set body(FunctionBody? functionBody) {
-    _body = _becomeParentOf(functionBody as FunctionBodyImpl?);
+  set body(FunctionBody functionBody) {
+    _body = _becomeParentOf(functionBody as FunctionBodyImpl);
   }
 
   @override
@@ -2473,12 +2472,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @override
   Token get endToken {
-    if (_body != null) {
-      return _body!.endToken;
-    } else if (_initializers.isNotEmpty) {
-      return _initializers.endToken!;
-    }
-    return _parameters.endToken;
+    return _body.endToken;
   }
 
   @override
@@ -2539,7 +2533,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
     _parameters.accept(visitor);
     _initializers.accept(visitor);
     _redirectedConstructor?.accept(visitor);
-    _body?.accept(visitor);
+    _body.accept(visitor);
   }
 }
 

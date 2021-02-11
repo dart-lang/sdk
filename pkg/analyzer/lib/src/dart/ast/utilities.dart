@@ -322,7 +322,7 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNullableToken(node.separator),
           cloneNodeList(node.initializers),
           cloneNullableNode(node.redirectedConstructor),
-          cloneNullableNode(node.body));
+          cloneNode(node.body));
 
   @override
   ConstructorFieldInitializer visitConstructorFieldInitializer(

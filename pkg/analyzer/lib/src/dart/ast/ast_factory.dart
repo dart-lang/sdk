@@ -273,7 +273,7 @@ class AstFactoryImpl extends AstFactory {
           separator,
           initializers,
           redirectedConstructor as ConstructorNameImpl?,
-          body as FunctionBodyImpl?);
+          body as FunctionBodyImpl);
 
   @override
   ConstructorFieldInitializer constructorFieldInitializer(

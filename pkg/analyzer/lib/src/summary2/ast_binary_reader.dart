@@ -495,7 +495,7 @@ class AstBinaryReader {
       ),
       initializers,
       redirectedConstructor,
-      null,
+      AstTestFactory.emptyFunctionBody(),
     ) as ConstructorDeclarationImpl;
 
     node.linkedContext = LinkedContext(

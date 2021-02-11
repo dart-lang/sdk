@@ -212,9 +212,9 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     node.name?.accept(this);
     node.parameters.accept(this);
     _token(node.separator);
-    _nodeList(node.initializers, node.body!.beginToken);
+    _nodeList(node.initializers, node.body.beginToken);
     node.redirectedConstructor?.accept(this);
-    node.body!.accept(this);
+    node.body.accept(this);
   }
 
   @override

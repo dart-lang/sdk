@@ -341,14 +341,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (!_isNonNullableByDefault && node.declaredElement!.isFactory) {
       if (node.body is BlockFunctionBody) {
         // Check the block for a return statement, if not, create the hint.
-        if (!ExitDetector.exits(node.body!)) {
+        if (!ExitDetector.exits(node.body)) {
           _errorReporter.reportErrorForNode(
               HintCode.MISSING_RETURN, node, [node.returnType.name]);
         }
       }
     }
     _checkStrictInferenceInParameters(node.parameters,
-        body: node.body!, initializers: node.initializers);
+        body: node.body, initializers: node.initializers);
     super.visitConstructorDeclaration(node);
   }
 

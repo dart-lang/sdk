@@ -297,7 +297,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
           _resolveRedirectedConstructor(node);
           node.initializers.accept(this);
-          node.body?.accept(this);
+          node.body.accept(this);
         });
       });
     });

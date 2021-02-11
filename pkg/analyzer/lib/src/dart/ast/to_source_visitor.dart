@@ -333,7 +333,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     safelyVisitNode(node.parameters);
     safelyVisitNodeListWithSeparatorAndPrefix(" : ", node.initializers, ", ");
     safelyVisitNodeWithPrefix(" = ", node.redirectedConstructor);
-    safelyVisitFunctionWithPrefix(" ", node.body!);
+    safelyVisitFunctionWithPrefix(" ", node.body);
   }
 
   @override
