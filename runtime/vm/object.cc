@@ -13450,7 +13450,6 @@ LibraryPrefixPtr LibraryPrefix::New(const String& name,
   result.set_num_imports(0);
   result.set_importer(importer);
   result.StoreNonPointer(&result.untag()->is_deferred_load_, deferred_load);
-  result.StoreNonPointer(&result.untag()->is_loaded_, !deferred_load);
   result.set_imports(Array::Handle(Array::New(kInitialSize)));
   result.AddImport(import);
   return result.ptr();

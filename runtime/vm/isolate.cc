@@ -1661,6 +1661,24 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
 
 #define REUSABLE_HANDLE_INITIALIZERS(object) object##_handle_(nullptr),
 
+class LibraryPrefixMapTraits {
+ public:
+  static bool ReportStats() { return false; }
+  static const char* Name() { return "LibraryPrefixMapTraits"; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    if (!a.IsLibraryPrefix() || !b.IsLibraryPrefix()) {
+      return false;
+    }
+    return a.ptr() == b.ptr();
+  }
+
+  static uword Hash(const Object& obj) {
+    auto& prefix = LibraryPrefix::Cast(obj);
+    return String::Hash(prefix.name());
+  }
+};
+
 // TODO(srdjan): Some Isolate monitors can be shared. Replace their usage with
 // that shared monitor.
 Isolate::Isolate(IsolateGroup* isolate_group,
@@ -1699,7 +1717,8 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       sticky_error_(Error::null()),
       spawn_count_monitor_(),
       handler_info_cache_(),
-      catch_entry_moves_cache_() {
+      catch_entry_moves_cache_(),
+      loaded_prefixes_set_storage_(nullptr) {
   cached_object_store_ = object_store_shared_ptr_.get();
   cached_class_table_table_ = group()->class_table_->table();
   FlagsCopyFrom(api_flags);
@@ -2621,6 +2640,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     deopt_context()->VisitObjectPointers(visitor);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  visitor->VisitPointer(
+      reinterpret_cast<ObjectPtr*>(&loaded_prefixes_set_storage_));
 }
 
 void IsolateGroup::ReleaseStoreBuffers() {
@@ -2637,6 +2659,27 @@ void Isolate::DeferredMarkLiveTemporaries() {
   if (mutator_thread_ != nullptr) {
     mutator_thread_->DeferredMarkLiveTemporaries();
   }
+}
+
+void Isolate::init_loaded_prefixes_set_storage() {
+  ASSERT(loaded_prefixes_set_storage_ == nullptr);
+  loaded_prefixes_set_storage_ =
+      HashTables::New<UnorderedHashSet<LibraryPrefixMapTraits> >(4);
+}
+
+bool Isolate::IsPrefixLoaded(const LibraryPrefix& prefix) const {
+  UnorderedHashSet<LibraryPrefixMapTraits> loaded_prefixes_set(
+      loaded_prefixes_set_storage_);
+  bool result = loaded_prefixes_set.GetOrNull(prefix) != Object::null();
+  loaded_prefixes_set.Release();
+  return result;
+}
+
+void Isolate::SetPrefixIsLoaded(const LibraryPrefix& prefix) {
+  UnorderedHashSet<LibraryPrefixMapTraits> loaded_prefixes_set(
+      loaded_prefixes_set_storage_);
+  loaded_prefixes_set.InsertOrGet(prefix);
+  loaded_prefixes_set_storage_ = loaded_prefixes_set.Release().ptr();
 }
 
 void IsolateGroup::EnableIncrementalBarrier(

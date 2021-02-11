@@ -7262,10 +7262,6 @@ class LibraryPrefix : public Instance {
   void AddImport(const Namespace& import) const;
 
   bool is_deferred_load() const { return untag()->is_deferred_load_; }
-  bool is_loaded() const { return untag()->is_loaded_; }
-  void set_is_loaded(bool value) const {
-    return StoreNonPointer(&untag()->is_loaded_, value);
-  }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedLibraryPrefix));

@@ -852,12 +852,9 @@ void Library::CheckReload(const Library& replacement,
       original_name = original_prefix.name();
       if (!name.Equals(original_name)) continue;
 
-      if (original_prefix.is_loaded()) {
-        prefix.set_is_loaded(true);
-      }
-
-      // The old prefix may be captured in the message queue for a pending load
-      // completion. This pending load should carry to the new prefix.
+      // The replacement of the old prefix with the new prefix
+      // in Isolate::loaded_prefixes_set_ implicitly carried
+      // the loaded state over to the new prefix.
       context->AddBecomeMapping(original_prefix, prefix);
     }
   }
