@@ -465,7 +465,7 @@ abstract class AstFactory {
 
   /// Returns a newly created function declaration.
   FunctionExpression functionExpression(TypeParameterList? typeParameters,
-      FormalParameterList? parameters, FunctionBody? body);
+      FormalParameterList? parameters, FunctionBody body);
 
   /// Returns a newly created function expression invocation.
   FunctionExpressionInvocation functionExpressionInvocation(Expression function,

@@ -4903,8 +4903,8 @@ class FunctionExpressionImpl extends ExpressionImpl
   /// part of a top-level getter.
   FormalParameterListImpl? _parameters;
 
-  /// The body of the function, or `null` if this is an external function.
-  FunctionBodyImpl? _body;
+  /// The body of the function.
+  FunctionBodyImpl _body;
 
   @override
   ExecutableElement? declaredElement;
@@ -4922,20 +4922,16 @@ class FunctionExpressionImpl extends ExpressionImpl
       return _typeParameters!.beginToken;
     } else if (_parameters != null) {
       return _parameters!.beginToken;
-    } else if (_body != null) {
-      return _body!.beginToken;
     }
-    // This should never be reached because external functions must be named,
-    // hence either the body or the name should be non-null.
-    throw StateError("Non-external functions must have a body");
+    return _body.beginToken;
   }
 
   @override
-  FunctionBody? get body => _body;
+  FunctionBody get body => _body;
 
   @override
-  set body(FunctionBody? functionBody) {
-    _body = _becomeParentOf(functionBody as FunctionBodyImpl?);
+  set body(FunctionBody functionBody) {
+    _body = _becomeParentOf(functionBody as FunctionBodyImpl);
   }
 
   @override
@@ -4944,14 +4940,7 @@ class FunctionExpressionImpl extends ExpressionImpl
 
   @override
   Token get endToken {
-    if (_body != null) {
-      return _body!.endToken;
-    } else if (_parameters != null) {
-      return _parameters!.endToken;
-    }
-    // This should never be reached because external functions must be named,
-    // hence either the body or the name should be non-null.
-    throw StateError("Non-external functions must have a body");
+    return _body.endToken;
   }
 
   @override
@@ -4980,7 +4969,7 @@ class FunctionExpressionImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     _typeParameters?.accept(visitor);
     _parameters?.accept(visitor);
-    _body?.accept(visitor);
+    _body.accept(visitor);
   }
 }
 

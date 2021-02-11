@@ -501,10 +501,10 @@ class NullSafetyDeadCodeVerifier {
         // But we trim it to the last statement for presentation purposes.
         if (node != firstDeadNode) {
           if (node is FunctionDeclaration) {
-            node = node.functionExpression.body!;
+            node = node.functionExpression.body;
           }
           if (node is FunctionExpression) {
-            node = node.body!;
+            node = node.body;
           }
           if (node is MethodDeclaration) {
             node = node.body;

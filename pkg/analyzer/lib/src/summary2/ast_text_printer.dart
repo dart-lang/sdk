@@ -473,7 +473,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitFunctionExpression(FunctionExpression node) {
     node.typeParameters?.accept(this);
     node.parameters?.accept(this);
-    node.body!.accept(this);
+    node.body.accept(this);
   }
 
   @override

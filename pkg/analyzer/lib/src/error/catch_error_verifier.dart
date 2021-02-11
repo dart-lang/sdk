@@ -62,7 +62,7 @@ class CatchErrorVerifier {
       var returnStatementVerifier =
           _ReturnStatementVerifier(_returnTypeVerifier);
       _returnTypeVerifier.enclosingExecutable = catchErrorOnErrorExecutable;
-      callback.body!.accept(returnStatementVerifier);
+      callback.body.accept(returnStatementVerifier);
     } else {
       var callbackType = callback.staticType;
       if (callbackType is FunctionType) {

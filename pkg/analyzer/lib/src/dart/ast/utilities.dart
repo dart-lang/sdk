@@ -573,7 +573,7 @@ class AstCloner implements AstVisitor<AstNode> {
   @override
   FunctionExpression visitFunctionExpression(FunctionExpression node) =>
       astFactory.functionExpression(cloneNullableNode(node.typeParameters),
-          cloneNullableNode(node.parameters), cloneNullableNode(node.body));
+          cloneNullableNode(node.parameters), cloneNode(node.body));
 
   @override
   FunctionExpressionInvocation visitFunctionExpressionInvocation(

@@ -1406,7 +1406,7 @@ class ResolverVisitor extends ScopedVisitor {
         isLocal,
       );
     } else {
-      _promoteManager.enterFunctionBody(node.functionExpression.body!);
+      _promoteManager.enterFunctionBody(node.functionExpression.body);
     }
 
     var functionType = _enclosingFunction!.type;
@@ -1417,15 +1417,15 @@ class ResolverVisitor extends ScopedVisitor {
     if (flowAnalysis != null) {
       // TODO(scheglov) encapsulate
       var bodyContext = BodyInferenceContext.of(
-        node.functionExpression.body!,
+        node.functionExpression.body,
       );
       checkForBodyMayCompleteNormally(
         returnType: bodyContext?.contextType,
-        body: node.functionExpression.body!,
+        body: node.functionExpression.body,
         errorNode: node.name,
       );
       flowAnalysis!.executableDeclaration_exit(
-        node.functionExpression.body!,
+        node.functionExpression.body,
         isLocal,
       );
       if (isLocal) {

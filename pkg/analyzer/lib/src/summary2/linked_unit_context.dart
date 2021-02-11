@@ -501,7 +501,7 @@ class LinkedUnitContext {
     } else if (node is FunctionDeclaration) {
       return isAsynchronous(node.functionExpression);
     } else if (node is FunctionExpression) {
-      return node.body!.isAsynchronous;
+      return node.body.isAsynchronous;
     } else if (node is MethodDeclaration) {
       return node.body.isAsynchronous;
     } else {
@@ -580,7 +580,7 @@ class LinkedUnitContext {
     } else if (node is FunctionDeclaration) {
       return isGenerator(node.functionExpression);
     } else if (node is FunctionExpression) {
-      return node.body!.isGenerator;
+      return node.body.isGenerator;
     } else if (node is MethodDeclaration) {
       return node.body.isGenerator;
     } else {

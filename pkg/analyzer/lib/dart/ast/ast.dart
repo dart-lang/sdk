@@ -2747,12 +2747,11 @@ abstract class FunctionDeclarationStatement implements Statement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionExpression implements Expression {
-  /// Return the body of the function, or `null` if this is an external
-  /// function.
-  FunctionBody? get body;
+  /// Return the body of the function.
+  FunctionBody get body;
 
   /// Set the body of the function to the given [functionBody].
-  set body(FunctionBody? functionBody);
+  set body(FunctionBody functionBody);
 
   /// Return the element associated with the function, or `null` if the AST
   /// structure has not been resolved.

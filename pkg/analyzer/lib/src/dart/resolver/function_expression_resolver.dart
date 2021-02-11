@@ -36,7 +36,7 @@ class FunctionExpressionResolver {
 
   void resolve(FunctionExpression node) {
     var isFunctionDeclaration = node.parent is FunctionDeclaration;
-    var body = node.body!;
+    var body = node.body;
 
     if (_resolver.flowAnalysis != null) {
       if (_resolver.flowAnalysis!.flow != null && !isFunctionDeclaration) {
@@ -64,7 +64,7 @@ class FunctionExpressionResolver {
 
     if (_resolver.flowAnalysis != null) {
       if (_resolver.flowAnalysis!.flow != null && !isFunctionDeclaration) {
-        var bodyContext = BodyInferenceContext.of(node.body!);
+        var bodyContext = BodyInferenceContext.of(node.body);
         _resolver.checkForBodyMayCompleteNormally(
           returnType: bodyContext?.contextType,
           body: body,

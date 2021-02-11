@@ -429,7 +429,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _inDoNotStoreMember = true;
     }
     try {
-      _checkForMissingReturn(node.functionExpression.body!, node);
+      _checkForMissingReturn(node.functionExpression.body, node);
 
       // Return types are inferred only on non-recursive local functions.
       if (node.parent is CompilationUnit && !node.isSetter) {
@@ -454,7 +454,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
-      _checkForMissingReturn(node.body!, node);
+      _checkForMissingReturn(node.body, node);
     }
     var functionType = InferenceContext.getContext(node);
     if (functionType is! FunctionType) {
