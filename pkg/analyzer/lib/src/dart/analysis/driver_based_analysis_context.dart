@@ -57,9 +57,11 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   }
 
   Workspace _buildWorkspace() {
-    String path = contextRoot.root.path;
-    ContextBuilder builder = ContextBuilder(
-        resourceProvider, null /* sdkManager */, null /* contentCache */);
-    return ContextBuilder.createWorkspace(resourceProvider, path, builder);
+    var path = contextRoot.root.path;
+    return ContextBuilder.createWorkspace(
+      resourceProvider: resourceProvider,
+      options: ContextBuilderOptions(),
+      rootPath: path,
+    );
   }
 }
