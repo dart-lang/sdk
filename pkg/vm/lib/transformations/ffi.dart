@@ -247,6 +247,9 @@ class FfiTransformer extends Transformer {
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
 
+  Library currentLibrary;
+  IndexedLibrary currentLibraryIndex;
+
   FfiTransformer(this.index, this.coreTypes, this.hierarchy,
       this.diagnosticReporter, this.referenceFromIndex)
       : env = new TypeEnvironment(coreTypes, hierarchy),
@@ -335,6 +338,16 @@ class FfiTransformer extends Transformer {
             'dart:ffi',
             'DynamicLibraryExtension',
             LibraryIndex.tearoffPrefix + 'lookupFunction');
+
+  @override
+  TreeNode visitLibrary(Library node) {
+    assert(currentLibrary == null);
+    currentLibrary = node;
+    currentLibraryIndex = referenceFromIndex?.lookupLibrary(node);
+    final result = super.visitLibrary(node);
+    currentLibrary = null;
+    return result;
+  }
 
   /// Computes the Dart type corresponding to a ffi.[NativeType], returns null
   /// if it is not a valid NativeType.
@@ -440,6 +453,111 @@ class FfiTransformer extends Transformer {
         Name("[]"),
         Arguments([StaticInvocation(abiMethod, Arguments([]))]),
         listElementAt);
+  }
+
+  /// Generates an expression that returns a new `Pointer<dartType>` offset
+  /// by [offset] from [pointer].
+  ///
+  /// Sample output:
+  ///
+  /// ```
+  /// _fromAddress<dartType>(pointer.address + #offset)
+  /// ```
+  Expression _pointerOffset(Expression pointer, Expression offset,
+          DartType dartType, int fileOffset) =>
+      StaticInvocation(
+          fromAddressInternal,
+          Arguments([
+            MethodInvocation(
+                PropertyGet(pointer, addressGetter.name, addressGetter)
+                  ..fileOffset = fileOffset,
+                numAddition.name,
+                Arguments([offset]),
+                numAddition)
+          ], types: [
+            dartType
+          ]))
+        ..fileOffset = fileOffset;
+
+  /// Generates an expression that returns a new `TypedData` offset
+  /// by [offset] from [typedData].
+  ///
+  /// Sample output:
+  ///
+  /// ```
+  /// TypedData #typedData = typedData;
+  /// #typedData.buffer.asInt8List(#typedData.offsetInBytes + offset, length)
+  /// ```
+  Expression _typedDataOffset(Expression typedData, Expression offset,
+      Expression length, int fileOffset) {
+    final typedDataVar = VariableDeclaration("#typedData",
+        initializer: typedData,
+        type: InterfaceType(typedDataClass, Nullability.nonNullable))
+      ..fileOffset = fileOffset;
+    return Let(
+        typedDataVar,
+        MethodInvocation(
+            PropertyGet(VariableGet(typedDataVar), typedDataBufferGetter.name,
+                typedDataBufferGetter)
+              ..fileOffset = fileOffset,
+            byteBufferAsUint8List.name,
+            Arguments([
+              MethodInvocation(
+                  PropertyGet(
+                      VariableGet(typedDataVar),
+                      typedDataOffsetInBytesGetter.name,
+                      typedDataOffsetInBytesGetter)
+                    ..fileOffset = fileOffset,
+                  numAddition.name,
+                  Arguments([offset]),
+                  numAddition),
+              length
+            ]),
+            byteBufferAsUint8List));
+  }
+
+  /// Generates an expression that returns a new `TypedDataBase` offset
+  /// by [offset] from [typedDataBase].
+  ///
+  /// If [typedDataBase] is a `Pointer`, returns a `Pointer<dartType>`.
+  /// If [typedDataBase] is a `TypedData` returns a `TypedData`.
+  ///
+  /// Sample output:
+  ///
+  /// ```
+  /// Object #typedDataBase = typedDataBase;
+  /// int #offset = offset;
+  /// #typedDataBase is Pointer ?
+  ///   _pointerOffset<dartType>(#typedDataBase, #offset) :
+  ///   _typedDataOffset((#typedDataBase as TypedData), #offset, length)
+  /// ```
+  Expression typedDataBaseOffset(Expression typedDataBase, Expression offset,
+      Expression length, DartType dartType, int fileOffset) {
+    final typedDataBaseVar = VariableDeclaration("#typedDataBase",
+        initializer: typedDataBase, type: coreTypes.objectNonNullableRawType)
+      ..fileOffset = fileOffset;
+    final offsetVar = VariableDeclaration("#offset",
+        initializer: offset, type: coreTypes.intNonNullableRawType)
+      ..fileOffset = fileOffset;
+    return BlockExpression(
+        Block([typedDataBaseVar, offsetVar]),
+        ConditionalExpression(
+            IsExpression(VariableGet(typedDataBaseVar),
+                InterfaceType(pointerClass, Nullability.nonNullable)),
+            _pointerOffset(VariableGet(typedDataBaseVar),
+                VariableGet(offsetVar), dartType, fileOffset),
+            _typedDataOffset(
+                StaticInvocation(
+                    unsafeCastMethod,
+                    Arguments([
+                      VariableGet(typedDataBaseVar)
+                    ], types: [
+                      InterfaceType(typedDataClass, Nullability.nonNullable)
+                    ])),
+                VariableGet(offsetVar),
+                length,
+                fileOffset),
+            coreTypes.objectNonNullableRawType));
   }
 }
 
