@@ -20,10 +20,13 @@ class AnalysisException implements Exception {
     StringBuffer buffer = StringBuffer();
     buffer.write('$runtimeType: ');
     buffer.writeln(message);
+
+    var cause = this.cause;
     if (cause != null) {
       buffer.write('Caused by ');
-      cause!._writeOn(buffer);
+      cause._writeOn(buffer);
     }
+
     return buffer.toString();
   }
 }

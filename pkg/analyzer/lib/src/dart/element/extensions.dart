@@ -32,13 +32,20 @@ extension ElementExtension on Element {
     if (hasDoNotStore) {
       return true;
     }
+
     var ancestor = enclosingElement;
-    if (ancestor is ClassElement || ancestor is ExtensionElement) {
-      if (ancestor!.hasDoNotStore) {
+    if (ancestor is ClassElement) {
+      if (ancestor.hasDoNotStore) {
+        return true;
+      }
+      ancestor = ancestor.enclosingElement;
+    } else if (ancestor is ExtensionElement) {
+      if (ancestor.hasDoNotStore) {
         return true;
       }
       ancestor = ancestor.enclosingElement;
     }
+
     return ancestor is CompilationUnitElement &&
         ancestor.enclosingElement.hasDoNotStore;
   }
