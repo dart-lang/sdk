@@ -314,16 +314,18 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    if (node.condition != null) {
-      checkBoolean(node.condition!);
+    var condition = node.condition;
+    if (condition != null) {
+      checkBoolean(condition);
     }
     node.visitChildren(this);
   }
 
   @override
   void visitForPartsWithExpression(ForPartsWithExpression node) {
-    if (node.condition != null) {
-      checkBoolean(node.condition!);
+    var condition = node.condition;
+    if (condition != null) {
+      checkBoolean(condition);
     }
     node.visitChildren(this);
   }
@@ -370,10 +372,11 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitListLiteral(ListLiteral node) {
     DartType type = DynamicTypeImpl.instance;
-    if (node.typeArguments != null) {
-      NodeList<TypeAnnotation> targs = node.typeArguments!.arguments;
-      if (targs.isNotEmpty) {
-        type = targs[0].type!;
+    var typeArgumentList = node.typeArguments;
+    if (typeArgumentList != null) {
+      var typeArguments = typeArgumentList.arguments;
+      if (typeArguments.isNotEmpty) {
+        type = typeArguments[0].type!;
       }
     } else {
       DartType staticType = node.typeOrThrow;
@@ -437,11 +440,12 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    var typeArgumentsList = node.typeArguments;
     if (node.isMap) {
       DartType keyType = DynamicTypeImpl.instance;
       DartType valueType = DynamicTypeImpl.instance;
-      if (node.typeArguments != null) {
-        NodeList<TypeAnnotation> typeArguments = node.typeArguments!.arguments;
+      if (typeArgumentsList != null) {
+        NodeList<TypeAnnotation> typeArguments = typeArgumentsList.arguments;
         if (typeArguments.isNotEmpty) {
           keyType = typeArguments[0].type!;
         }
@@ -460,8 +464,8 @@ class CodeChecker extends RecursiveAstVisitor {
       }
     } else if (node.isSet) {
       DartType type = DynamicTypeImpl.instance;
-      if (node.typeArguments != null) {
-        NodeList<TypeAnnotation> typeArguments = node.typeArguments!.arguments;
+      if (typeArgumentsList != null) {
+        NodeList<TypeAnnotation> typeArguments = typeArgumentsList.arguments;
         if (typeArguments.isNotEmpty) {
           type = typeArguments[0].type!;
         }
@@ -502,13 +506,12 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitVariableDeclaration(VariableDeclaration node) {
     var variableElement = node.declaredElement;
     var parent = node.parent;
-    if (variableElement != null &&
+    if (variableElement is PropertyInducingElement &&
         parent is VariableDeclarationList &&
-        parent.type == null &&
-        node.initializer != null) {
-      if (variableElement.kind == ElementKind.TOP_LEVEL_VARIABLE ||
-          variableElement.kind == ElementKind.FIELD) {
-        _validateTopLevelInitializer(variableElement.name!, node.initializer!);
+        parent.type == null) {
+      var initializer = node.initializer;
+      if (initializer != null) {
+        _validateTopLevelInitializer(variableElement.name, initializer);
       }
     }
     node.visitChildren(this);
@@ -890,14 +893,12 @@ class CodeChecker extends RecursiveAstVisitor {
       }
 
       var e = _getKnownElement(expr);
-      if (e is FunctionElement || e is MethodElement && e.isStatic) {
+      if (e is FunctionElement) {
+        _recordMessage(expr, CompileTimeErrorCode.INVALID_CAST_FUNCTION,
+            [e.name, from, to]);
+      } else if (e is MethodElement && e.isStatic) {
         _recordMessage(
-            expr,
-            e is MethodElement
-                ? CompileTimeErrorCode.INVALID_CAST_METHOD
-                : CompileTimeErrorCode.INVALID_CAST_FUNCTION,
-            [e!.name, from, to]);
-        return;
+            expr, CompileTimeErrorCode.INVALID_CAST_METHOD, [e.name, from, to]);
       }
     }
   }
