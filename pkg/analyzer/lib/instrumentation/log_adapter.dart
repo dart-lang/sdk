@@ -25,7 +25,7 @@ class InstrumentationLogAdapter implements InstrumentationService {
   static const String TAG_WATCH_EVENT = 'Watch';
 
   /// A logger used to log instrumentation in string format.
-  final InstrumentationLogger? _instrumentationLogger;
+  final InstrumentationLogger _instrumentationLogger;
 
   /// Initialize a newly created instrumentation service to communicate with the
   /// given [_instrumentationLogger].
@@ -43,11 +43,9 @@ class InstrumentationLogAdapter implements InstrumentationService {
     StackTrace? stackTrace,
     List<InstrumentationServiceAttachment>? attachments,
   ]) {
-    if (_instrumentationLogger != null) {
-      String message = _toString(exception);
-      String trace = _toString(stackTrace);
-      _instrumentationLogger!.log(_join([TAG_EXCEPTION, message, trace]));
-    }
+    String message = _toString(exception);
+    String trace = _toString(stackTrace);
+    _instrumentationLogger.log(_join([TAG_EXCEPTION, message, trace]));
   }
 
   @override
@@ -57,20 +55,18 @@ class InstrumentationLogAdapter implements InstrumentationService {
   @override
   void logLogEntry(String level, DateTime? time, String message,
       Object exception, StackTrace stackTrace) {
-    if (_instrumentationLogger != null) {
-      String timeStamp =
-          time == null ? 'null' : time.millisecondsSinceEpoch.toString();
-      String exceptionText = exception.toString();
-      String stackTraceText = stackTrace.toString();
-      _instrumentationLogger!.log(_join([
-        TAG_LOG_ENTRY,
-        level,
-        timeStamp,
-        message,
-        exceptionText,
-        stackTraceText
-      ]));
-    }
+    String timeStamp =
+        time == null ? 'null' : time.millisecondsSinceEpoch.toString();
+    String exceptionText = exception.toString();
+    String stackTraceText = stackTrace.toString();
+    _instrumentationLogger.log(_join([
+      TAG_LOG_ENTRY,
+      level,
+      timeStamp,
+      message,
+      exceptionText,
+      stackTraceText
+    ]));
   }
 
   @override
@@ -80,63 +76,46 @@ class InstrumentationLogAdapter implements InstrumentationService {
   @override
   void logPluginError(
       PluginData plugin, String code, String message, String stackTrace) {
-    if (_instrumentationLogger != null) {
-      List<String> fields = <String>[
-        TAG_PLUGIN_ERROR,
-        code,
-        message,
-        stackTrace
-      ];
-      plugin.addToFields(fields);
-      _instrumentationLogger!.log(_join(fields));
-    }
+    List<String> fields = <String>[TAG_PLUGIN_ERROR, code, message, stackTrace];
+    plugin.addToFields(fields);
+    _instrumentationLogger.log(_join(fields));
   }
 
   @override
   void logPluginException(
       PluginData plugin, dynamic exception, StackTrace? stackTrace) {
-    if (_instrumentationLogger != null) {
-      List<String> fields = <String>[
-        TAG_PLUGIN_EXCEPTION,
-        _toString(exception),
-        _toString(stackTrace)
-      ];
-      plugin.addToFields(fields);
-      _instrumentationLogger!.log(_join(fields));
-    }
+    List<String> fields = <String>[
+      TAG_PLUGIN_EXCEPTION,
+      _toString(exception),
+      _toString(stackTrace)
+    ];
+    plugin.addToFields(fields);
+    _instrumentationLogger.log(_join(fields));
   }
 
   @override
   void logPluginNotification(String pluginId, String notification) {
-    if (_instrumentationLogger != null) {
-      _instrumentationLogger!.log(
-          _join([TAG_PLUGIN_NOTIFICATION, notification, pluginId, '', '']));
-    }
+    _instrumentationLogger
+        .log(_join([TAG_PLUGIN_NOTIFICATION, notification, pluginId, '', '']));
   }
 
   @override
   void logPluginRequest(String pluginId, String request) {
-    if (_instrumentationLogger != null) {
-      _instrumentationLogger!
-          .log(_join([TAG_PLUGIN_REQUEST, request, pluginId, '', '']));
-    }
+    _instrumentationLogger
+        .log(_join([TAG_PLUGIN_REQUEST, request, pluginId, '', '']));
   }
 
   @override
   void logPluginResponse(String pluginId, String response) {
-    if (_instrumentationLogger != null) {
-      _instrumentationLogger!
-          .log(_join([TAG_PLUGIN_RESPONSE, response, pluginId, '', '']));
-    }
+    _instrumentationLogger
+        .log(_join([TAG_PLUGIN_RESPONSE, response, pluginId, '', '']));
   }
 
   @override
   void logPluginTimeout(PluginData plugin, String request) {
-    if (_instrumentationLogger != null) {
-      List<String> fields = <String>[TAG_PLUGIN_TIMEOUT, request];
-      plugin.addToFields(fields);
-      _instrumentationLogger!.log(_join(fields));
-    }
+    List<String> fields = <String>[TAG_PLUGIN_TIMEOUT, request];
+    plugin.addToFields(fields);
+    _instrumentationLogger.log(_join(fields));
   }
 
   @override
@@ -151,29 +130,25 @@ class InstrumentationLogAdapter implements InstrumentationService {
     String normalize(String? value) =>
         value != null && value.isNotEmpty ? value : 'unknown';
 
-    if (_instrumentationLogger != null) {
-      _instrumentationLogger!.log(_join([
-        TAG_VERSION,
-        uuid,
-        normalize(clientId),
-        normalize(clientVersion),
-        serverVersion,
-        sdkVersion
-      ]));
-    }
+    _instrumentationLogger.log(_join([
+      TAG_VERSION,
+      uuid,
+      normalize(clientId),
+      normalize(clientVersion),
+      serverVersion,
+      sdkVersion
+    ]));
   }
 
   @override
   void logWatchEvent(String folderPath, String filePath, String changeType) {
-    if (_instrumentationLogger != null) {
-      _instrumentationLogger!
-          .log(_join([TAG_WATCH_EVENT, folderPath, filePath, changeType]));
-    }
+    _instrumentationLogger
+        .log(_join([TAG_WATCH_EVENT, folderPath, filePath, changeType]));
   }
 
   @override
   Future<void> shutdown() async {
-    await _instrumentationLogger?.shutdown();
+    await _instrumentationLogger.shutdown();
   }
 
   /// Write an escaped version of the given [field] to the given [buffer].
@@ -208,9 +183,7 @@ class InstrumentationLogAdapter implements InstrumentationService {
 
   /// Log the given message with the given tag.
   void _log(String tag, String message) {
-    if (_instrumentationLogger != null) {
-      _instrumentationLogger!.log(_join([tag, message]));
-    }
+    _instrumentationLogger.log(_join([tag, message]));
   }
 
   /// Convert the given [object] to a string.
