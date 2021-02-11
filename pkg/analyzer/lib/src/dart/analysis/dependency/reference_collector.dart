@@ -429,9 +429,12 @@ class ReferenceCollector {
         DefaultFormalParameter defaultParameter = parameter;
         parameter = defaultParameter.parameter;
       }
-      if (parameter.identifier != null) {
-        _localScopes.add(parameter.identifier!.name);
+
+      var identifier = parameter.identifier;
+      if (identifier != null) {
+        _localScopes.add(identifier.name);
       }
+
       if (parameter is FieldFormalParameter) {
         _visitTypeAnnotation(parameter.type);
         // Strongly speaking, we reference a field of the enclosing class.
@@ -462,8 +465,9 @@ class ReferenceCollector {
         parameter = defaultParameter.parameter;
       }
 
-      if (parameter.identifier != null) {
-        _localScopes.add(parameter.identifier!.name);
+      var identifier = parameter.identifier;
+      if (identifier != null) {
+        _localScopes.add(identifier.name);
       }
     }
   }
@@ -783,8 +787,9 @@ class ReferenceCollector {
     if (node is GenericFunctionType) {
       _localScopes.enter();
 
-      if (node.typeParameters != null) {
-        var typeParameters = node.typeParameters!.typeParameters;
+      var typeParameterList = node.typeParameters;
+      if (typeParameterList != null) {
+        var typeParameters = typeParameterList.typeParameters;
         for (var i = 0; i < typeParameters.length; i++) {
           var typeParameter = typeParameters[i];
           _localScopes.add(typeParameter.name.name);

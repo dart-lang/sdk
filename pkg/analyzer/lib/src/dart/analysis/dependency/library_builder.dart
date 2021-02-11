@@ -142,12 +142,6 @@ class _LibraryBuilder {
   /// are different.
   late List<int> uriSignature;
 
-  /// The name of the enclosing class name, or `null` if outside a class.
-  String? enclosingClassName;
-
-  /// The super class of the enclosing class, or `null` if outside a class.
-  TypeName? enclosingSuperClass;
-
   /// The precomputed signature of the enclosing class name, or `null` if
   /// outside a class.
   ///
@@ -155,9 +149,6 @@ class _LibraryBuilder {
   /// for example even though types of two methods might be the same, their
   /// locations are different.
   List<int>? enclosingClassNameSignature;
-
-  /// The node of the enclosing class.
-  Node? enclosingClass;
 
   _LibraryBuilder(this.uri, this.units);
 
@@ -176,25 +167,29 @@ class _LibraryBuilder {
   }
 
   void _addClassOrMixin(ClassOrMixinDeclaration node) {
-    enclosingClassName = node.name.name;
+    var enclosingClassName = node.name.name;
+
+    TypeName? enclosingSuperClass;
     if (node is ClassDeclaration) {
       enclosingSuperClass = node.extendsClause?.superclass;
     }
 
     enclosingClassNameSignature =
-        (ApiSignature()..addString(enclosingClassName!)).toByteList();
+        (ApiSignature()..addString(enclosingClassName)).toByteList();
 
     var apiTokenSignature = _computeTokenSignature(
       node.beginToken,
       node.leftBracket,
     );
 
+    var typeParameters = node.typeParameters;
+
     Dependencies api;
     if (node is ClassDeclaration) {
       api = referenceCollector.collect(
         apiTokenSignature,
         thisNodeName: enclosingClassName,
-        typeParameters: node.typeParameters,
+        typeParameters: typeParameters,
         extendsClause: node.extendsClause,
         withClause: node.withClause,
         implementsClause: node.implementsClause,
@@ -203,7 +198,7 @@ class _LibraryBuilder {
       api = referenceCollector.collect(
         apiTokenSignature,
         thisNodeName: enclosingClassName,
-        typeParameters: node.typeParameters,
+        typeParameters: typeParameters,
         onClause: node.onClause,
         implementsClause: node.implementsClause,
       );
@@ -211,8 +206,8 @@ class _LibraryBuilder {
       throw UnimplementedError('(${node.runtimeType}) $node');
     }
 
-    enclosingClass = Node(
-      LibraryQualifiedName(uri, enclosingClassName!),
+    var enclosingClass = Node(
+      LibraryQualifiedName(uri, enclosingClassName),
       node is MixinDeclaration ? NodeKind.MIXIN : NodeKind.CLASS,
       api,
       Dependencies.none,
@@ -224,9 +219,9 @@ class _LibraryBuilder {
 
     // TODO(scheglov) do we need type parameters at all?
     List<Node> classTypeParameters;
-    if (node.typeParameters != null) {
+    if (typeParameters != null) {
       classTypeParameters = <Node>[];
-      for (var typeParameter in node.typeParameters!.typeParameters) {
+      for (var typeParameter in typeParameters.typeParameters) {
         var api = referenceCollector.collect(
           _computeNodeTokenSignature(typeParameter),
           enclosingClassName: enclosingClassName,
@@ -238,11 +233,11 @@ class _LibraryBuilder {
           NodeKind.TYPE_PARAMETER,
           api,
           Dependencies.none,
-          enclosingClass: enclosingClass!,
+          enclosingClass: enclosingClass,
         ));
       }
       classTypeParameters.sort(Node.compare);
-      enclosingClass!.setTypeParameters(classTypeParameters);
+      enclosingClass.setTypeParameters(classTypeParameters);
     }
 
     var classMembers = <Node>[];
@@ -250,16 +245,22 @@ class _LibraryBuilder {
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
         hasConstructor = true;
-        _addConstructor(classMembers, member);
+        _addConstructor(
+          enclosingClass,
+          enclosingSuperClass,
+          classMembers,
+          member,
+        );
       } else if (member is FieldDeclaration) {
         _addVariables(
+          enclosingClass,
           classMembers,
           member.metadata,
           member.fields,
           hasConstConstructor,
         );
       } else if (member is MethodDeclaration) {
-        _addMethod(classMembers, member);
+        _addMethod(enclosingClass, classMembers, member);
       } else {
         throw UnimplementedError('(${member.runtimeType}) $member');
       }
@@ -271,18 +272,15 @@ class _LibraryBuilder {
         NodeKind.CONSTRUCTOR,
         Dependencies.none,
         Dependencies.none,
-        enclosingClass: enclosingClass!,
+        enclosingClass: enclosingClass,
       ));
     }
 
     classMembers.sort(Node.compare);
-    enclosingClass!.setClassMembers(classMembers);
+    enclosingClass.setClassMembers(classMembers);
 
-    declaredNodes.add(enclosingClass!);
-    enclosingClassName = null;
+    declaredNodes.add(enclosingClass);
     enclosingClassNameSignature = null;
-    enclosingSuperClass = null;
-    enclosingClass = null;
   }
 
   void _addClassTypeAlias(ClassTypeAlias node) {
@@ -303,7 +301,12 @@ class _LibraryBuilder {
     ));
   }
 
-  void _addConstructor(List<Node> classMembers, ConstructorDeclaration node) {
+  void _addConstructor(
+    Node enclosingClass,
+    TypeName? enclosingSuperClass,
+    List<Node> classMembers,
+    ConstructorDeclaration node,
+  ) {
     var builder = _newApiSignatureBuilder();
     _appendMetadataTokens(builder, node.metadata);
     _appendFormalParametersTokens(builder, node.parameters);
@@ -311,14 +314,14 @@ class _LibraryBuilder {
 
     var api = referenceCollector.collect(
       apiTokenSignature,
-      enclosingClassName: enclosingClassName,
+      enclosingClassName: enclosingClass.name.name,
       formalParameters: node.parameters,
     );
 
     var implTokenSignature = _computeNodeTokenSignature(node.body);
     var impl = referenceCollector.collect(
       implTokenSignature,
-      enclosingClassName: enclosingClassName,
+      enclosingClassName: enclosingClass.name.name,
       enclosingSuperClass: enclosingSuperClass,
       formalParametersForImpl: node.parameters,
       constructorInitializers: node.initializers,
@@ -331,7 +334,7 @@ class _LibraryBuilder {
       NodeKind.CONSTRUCTOR,
       api,
       impl,
-      enclosingClass: enclosingClass!,
+      enclosingClass: enclosingClass,
     ));
   }
 
@@ -392,9 +395,11 @@ class _LibraryBuilder {
     for (var directive in units.first.directives) {
       if (directive is ExportDirective) {
         var refUri = directive.uri.stringValue;
-        var importUri = uri.resolve(refUri!);
-        var combinators = _getCombinators(directive);
-        exports.add(Export(importUri, combinators));
+        if (refUri != null) {
+          var importUri = uri.resolve(refUri);
+          var combinators = _getCombinators(directive);
+          exports.add(Export(importUri, combinators));
+        }
       }
     }
   }
@@ -499,7 +504,11 @@ class _LibraryBuilder {
     for (var directive in units.first.directives) {
       if (directive is ImportDirective) {
         var refUri = directive.uri.stringValue;
-        var importUri = uri.resolve(refUri!);
+        if (refUri == null) {
+          continue;
+        }
+
+        var importUri = uri.resolve(refUri);
 
         if (importUri.toString() == 'dart:core') {
           hasDartCoreImport = true;
@@ -521,7 +530,11 @@ class _LibraryBuilder {
     }
   }
 
-  void _addMethod(List<Node> classMembers, MethodDeclaration node) {
+  void _addMethod(
+    Node enclosingClass,
+    List<Node> classMembers,
+    MethodDeclaration node,
+  ) {
     var builder = _newApiSignatureBuilder();
     _appendMetadataTokens(builder, node.metadata);
     _appendNodeTokens(builder, node.returnType);
@@ -541,7 +554,7 @@ class _LibraryBuilder {
     // TODO(scheglov) metadata, here and everywhere
     var api = referenceCollector.collect(
       apiTokenSignature,
-      enclosingClassName: enclosingClassName,
+      enclosingClassName: enclosingClass.name.name,
       thisNodeName: node.name.name,
       typeParameters: node.typeParameters,
       formalParameters: node.parameters,
@@ -551,7 +564,7 @@ class _LibraryBuilder {
     var implTokenSignature = _computeNodeTokenSignature(node.body);
     var impl = referenceCollector.collect(
       implTokenSignature,
-      enclosingClassName: enclosingClassName,
+      enclosingClassName: enclosingClass.name.name,
       thisNodeName: node.name.name,
       formalParametersForImpl: node.parameters,
       functionBody: node.body,
@@ -559,7 +572,7 @@ class _LibraryBuilder {
 
     var name = LibraryQualifiedName(uri, node.name.name);
     classMembers.add(
-      Node(name, kind, api, impl, enclosingClass: enclosingClass!),
+      Node(name, kind, api, impl, enclosingClass: enclosingClass),
     );
   }
 
@@ -579,6 +592,7 @@ class _LibraryBuilder {
         _addGenericTypeAlias(declaration);
       } else if (declaration is TopLevelVariableDeclaration) {
         _addVariables(
+          null,
           declaredNodes,
           declaration.metadata,
           declaration.variables,
@@ -590,8 +604,13 @@ class _LibraryBuilder {
     }
   }
 
-  void _addVariables(List<Node> variableNodes, List<Annotation> metadata,
-      VariableDeclarationList variables, bool appendInitializerToApi) {
+  void _addVariables(
+    Node? enclosingClass,
+    List<Node> variableNodes,
+    List<Annotation> metadata,
+    VariableDeclarationList variables,
+    bool appendInitializerToApi,
+  ) {
     if (variables.isConst || variables.type == null) {
       appendInitializerToApi = true;
     }
@@ -610,7 +629,7 @@ class _LibraryBuilder {
       var apiTokenSignature = builder.toByteList();
       var api = referenceCollector.collect(
         apiTokenSignature,
-        enclosingClassName: enclosingClassName,
+        enclosingClassName: enclosingClass?.name.name,
         thisNodeName: variable.name.name,
         type: variables.type,
         expression: appendInitializerToApi ? initializer : null,
@@ -619,7 +638,7 @@ class _LibraryBuilder {
       var implTokenSignature = _computeNodeTokenSignature(initializer);
       var impl = referenceCollector.collect(
         implTokenSignature,
-        enclosingClassName: enclosingClassName,
+        enclosingClassName: enclosingClass?.name.name,
         thisNodeName: variable.name.name,
         expression: initializer,
       );
@@ -668,9 +687,12 @@ class _LibraryBuilder {
   ApiSignature _newApiSignatureBuilder() {
     var builder = ApiSignature();
     builder.addBytes(uriSignature);
+
+    var enclosingClassNameSignature = this.enclosingClassNameSignature;
     if (enclosingClassNameSignature != null) {
-      builder.addBytes(enclosingClassNameSignature!);
+      builder.addBytes(enclosingClassNameSignature);
     }
+
     return builder;
   }
 
@@ -692,13 +714,12 @@ class _LibraryBuilder {
 
       // If a simple not named parameter, we don't need its name.
       // We should be careful to include also annotations.
-      if (parameter is SimpleFormalParameter && parameter.type != null) {
-        _appendTokens(
-          signature,
-          parameter.beginToken,
-          parameter.type!.endToken,
-        );
-        continue;
+      if (parameter is SimpleFormalParameter) {
+        var type = parameter.type;
+        if (type != null) {
+          _appendTokens(signature, parameter.beginToken, type.endToken);
+          continue;
+        }
       }
 
       // We don't know anything better than adding the whole parameter.
