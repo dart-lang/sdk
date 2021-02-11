@@ -131,4 +131,14 @@ ISOLATE_UNIT_TEST_CASE(BitmapBuilder) {
   EXPECT(builder1->Get(900));
 }
 
+ISOLATE_UNIT_TEST_CASE(BitmapBuilder_Regress44946) {
+  BitmapBuilder* builder1 = new BitmapBuilder();
+  EXPECT_EQ(0, builder1->Length());
+
+  builder1->Set(10000, false);
+  EXPECT_EQ(10001, builder1->Length());
+  builder1->Set(9999, true);
+  EXPECT(builder1->Get(9999));
+}
+
 }  // namespace dart
