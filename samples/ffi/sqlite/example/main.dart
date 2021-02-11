@@ -35,7 +35,7 @@ void main() {
   for (Row r in result) {
     int id = r.readColumnAsInt("id");
     String name = r.readColumnByIndex(1);
-    String alternativeName = r.readColumn("alternative_name");
+    String? alternativeName = r.readColumn("alternative_name");
     dynamic multiTypedValue = r.readColumn("multi_typed_column");
     print("$id $name $alternativeName $multiTypedValue");
   }
@@ -54,7 +54,7 @@ void main() {
   for (Row r in result) {
     int id = r.readColumnAsInt("id");
     String name = r.readColumnByIndex(1);
-    String alternativeName = r.readColumn("alternative_name");
+    String? alternativeName = r.readColumn("alternative_name");
     dynamic multiTypedValue = r.readColumn("multi_typed_column");
     print("$id $name $alternativeName $multiTypedValue");
     if (id == 2) {
