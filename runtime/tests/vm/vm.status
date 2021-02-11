@@ -279,6 +279,10 @@ dart_2/minimal_kernel_test: SkipByDesign # Test needs to run from source
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipByDesign # Test needs to run from source
 dart_2/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 
+[ $compiler == dartkp && ($arch == simarm || $arch == simarm64) ]
+dart/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart_2/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
 dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
 dart/spawn_shutdown_test: SkipSlow
