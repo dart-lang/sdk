@@ -128,7 +128,7 @@ analyzer:
   ignore:
     - bar
 ''');
-    YamlMap options = _getOptions('/foo/bar', crawlUp: true);
+    YamlMap options = _getOptions('/foo/bar');
     expect(options, hasLength(1));
     {
       var analyzer = getValue(options, 'analyzer') as YamlMap;
@@ -149,7 +149,7 @@ analyzer:
   ignore:
     - bar
 ''');
-    YamlMap options = _getOptions('/foo/bar/baz', crawlUp: true);
+    YamlMap options = _getOptions('/foo/bar/baz');
     expect(options, hasLength(1));
     {
       var analyzer = getValue(options, 'analyzer') as YamlMap;
@@ -230,8 +230,8 @@ analyzer:
     }
   }
 
-  YamlMap _getOptions(String posixPath, {bool crawlUp = false}) {
+  YamlMap _getOptions(String posixPath) {
     var resource = pathTranslator.getResource(posixPath) as Folder;
-    return provider.getOptions(resource, crawlUp: crawlUp);
+    return provider.getOptions(resource);
   }
 }

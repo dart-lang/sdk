@@ -987,7 +987,7 @@ class ContextManagerImpl implements ContextManager {
     YamlMap optionMap;
     try {
       var provider = _createAnalysisOptionsProvider(disposition.packages);
-      optionsFile = provider.getOptionsFile(info.folder, crawlUp: true);
+      optionsFile = provider.getOptionsFile(info.folder);
       if (optionsFile != null) {
         optionMap = provider.getOptionsFromFile(optionsFile);
       }
