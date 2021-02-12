@@ -409,7 +409,8 @@ m(B b) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          100, 3),
+          100, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
 
     assertAssignment(
@@ -550,7 +551,8 @@ m(B b) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          101, 3),
+          101, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
 
     assertAssignment(
@@ -1424,7 +1426,8 @@ m(B b) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          101, 3),
+          101, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
     var propertyAccess1 = findNode.propertyAccess('b.a?.x; // 1');
     var propertyAccess2 = findNode.propertyAccess('b.a.x; // 2');
@@ -1493,7 +1496,8 @@ m(C c) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          142, 5),
+          142, 5,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
@@ -1530,7 +1534,8 @@ m(C c) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          148, 3),
+          148, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 101, 1)]),
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');

@@ -393,24 +393,6 @@ class ExpressionInfo<Variable extends Object, Type extends Object> {
       'ExpressionInfo(after: $after, _ifTrue: $ifTrue, ifFalse: $ifFalse)';
 }
 
-/// Non-promotion reason describing the situation where an expression was not
-/// promoted due to the fact that it's a field (technically, a property get).
-class FieldNotPromoted extends NonPromotionReason {
-  /// The name of the property.
-  final String propertyName;
-
-  FieldNotPromoted(this.propertyName);
-
-  @override
-  String get shortName => 'fieldNotPromoted($propertyName)';
-
-  @override
-  R accept<R, Node extends Object, Expression extends Object,
-              Variable extends Object>(
-          NonPromotionReasonVisitor<R, Node, Expression, Variable> visitor) =>
-      visitor.visitFieldNotPromoted(this);
-}
-
 /// Implementation of flow analysis to be shared between the analyzer and the
 /// front end.
 ///
@@ -2405,7 +2387,25 @@ abstract class NonPromotionReasonVisitor<R, Node extends Object,
   R visitDemoteViaForEachVariableWrite(
       DemoteViaForEachVariableWrite<Variable, Node> reason);
 
-  R visitFieldNotPromoted(FieldNotPromoted reason);
+  R visitPropertyNotPromoted(PropertyNotPromoted reason);
+}
+
+/// Non-promotion reason describing the situation where an expression was not
+/// promoted due to the fact that it's a property get.
+class PropertyNotPromoted extends NonPromotionReason {
+  /// The name of the property.
+  final String propertyName;
+
+  PropertyNotPromoted(this.propertyName);
+
+  @override
+  String get shortName => 'propertyNotPromoted';
+
+  @override
+  R accept<R, Node extends Object, Expression extends Object,
+              Variable extends Object>(
+          NonPromotionReasonVisitor<R, Node, Expression, Variable> visitor) =>
+      visitor.visitPropertyNotPromoted(this);
 }
 
 /// Immutable data structure modeling the reachability of the given point in the
@@ -5000,7 +5000,7 @@ class _PropertyGetReference<Variable extends Object, Type extends Object>
     List<Type>? promotedTypes = _getInfo(variableInfo)?.promotedTypes;
     if (promotedTypes != null) {
       for (Type type in promotedTypes) {
-        result[type] = new FieldNotPromoted(propertyName);
+        result[type] = new PropertyNotPromoted(propertyName);
       }
     }
     return result;

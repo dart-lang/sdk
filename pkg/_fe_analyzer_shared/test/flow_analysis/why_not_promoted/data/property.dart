@@ -3,48 +3,48 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class C {
-  int? i;
-  int? j;
+  int? get i => null;
+  int? get j => null;
 
-  get_field_via_explicit_this() {
+  get_property_via_explicit_this() {
     if (this.i == null) return;
     this.i. /*notPromoted(propertyNotPromoted(member:C.i))*/ isEven;
   }
 
-  get_field_via_explicit_this_parenthesized() {
+  get_property_via_explicit_this_parenthesized() {
     if ((this).i == null) return;
     (this).i. /*notPromoted(propertyNotPromoted(member:C.i))*/ isEven;
   }
 
-  get_field_by_implicit_this() {
+  get_property_by_implicit_this() {
     if (i == null) return;
     i. /*notPromoted(propertyNotPromoted(member:C.i))*/ isEven;
   }
 }
 
 class D extends C {
-  get_field_via_explicit_super() {
+  get_property_via_explicit_super() {
     if (super.i == null) return;
     super.i. /*notPromoted(propertyNotPromoted(member:C.i))*/ isEven;
   }
 
-  get_field_by_implicit_super() {
+  get_property_by_implicit_super() {
     if (i == null) return;
     i. /*notPromoted(propertyNotPromoted(member:C.i))*/ isEven;
   }
 }
 
-get_field_via_prefixed_identifier(C c) {
+get_property_via_prefixed_identifier(C c) {
   if (c.i == null) return;
   c.i. /*notPromoted(propertyNotPromoted(member:C.i))*/ isEven;
 }
 
-get_field_via_prefixed_identifier_mismatched_target(C c1, C c2) {
+get_property_via_prefixed_identifier_mismatched_target(C c1, C c2) {
   if (c1.i == null) return;
   c2.i.isEven;
 }
 
-get_field_via_prefixed_identifier_mismatched_property(C c) {
+get_property_via_prefixed_identifier_mismatched_property(C c) {
   if (c.i == null) return;
   c.j.isEven;
 }

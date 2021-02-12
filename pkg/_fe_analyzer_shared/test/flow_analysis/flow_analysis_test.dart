@@ -5638,7 +5638,7 @@ main() {
       ]);
     });
 
-    group('because field', () {
+    group('because property', () {
       test('via explicit this', () {
         var h = Harness();
         h.run([
@@ -5648,7 +5648,7 @@ main() {
           this_('C').propertyGet('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason = reasons.values.single;
-            expect(nonPromotionReason, TypeMatcher<FieldNotPromoted>());
+            expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
           }).stmt,
         ]);
       });
@@ -5662,7 +5662,7 @@ main() {
           thisOrSuperPropertyGet('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason = reasons.values.single;
-            expect(nonPromotionReason, TypeMatcher<FieldNotPromoted>());
+            expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
           }).stmt,
         ]);
       });
@@ -5678,7 +5678,7 @@ main() {
           x.read.propertyGet('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason = reasons.values.single;
-            expect(nonPromotionReason, TypeMatcher<FieldNotPromoted>());
+            expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
           }).stmt,
         ]);
       });
