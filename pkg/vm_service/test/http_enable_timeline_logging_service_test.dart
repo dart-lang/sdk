@@ -87,5 +87,9 @@ var tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) async =>
-    runIsolateTests(args, tests, testeeBefore: setup);
+main([args = const <String>[]]) async => runIsolateTests(
+      args,
+      tests,
+      'http_enable_timeline_logging_service_test.dart',
+      testeeBefore: setup,
+    );

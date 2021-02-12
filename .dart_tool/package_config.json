@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-02-08T17:50:36.420568",
+  "generated": "2021-02-11T15:59:54.232365",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -506,8 +506,20 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "platform",
+      "rootUri": "../third_party/pkg/platform",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "pool",
       "rootUri": "../third_party/pkg/pool",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "process",
+      "rootUri": "../third_party/pkg/process",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },

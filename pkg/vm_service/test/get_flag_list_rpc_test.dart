@@ -72,4 +72,8 @@ var tests = <VMTest>[
   }
 ];
 
-main([args = const <String>[]]) async => runVMTests(args, tests);
+main([args = const <String>[]]) async => runVMTests(
+      args,
+      tests,
+      'get_flag_list_rpc_test.dart',
+    );

@@ -29,4 +29,8 @@ var tests = <VMTest>[
   },
 ];
 
-main(args) async => runVMTests(args, tests);
+main([args = const <String>[]]) async => runVMTests(
+      args,
+      tests,
+      'get_memory_usage_test.dart',
+    );

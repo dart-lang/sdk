@@ -42,5 +42,9 @@ var tests = <IsolateTest>[
   resumeIsolate,
 ];
 
-main([args = const <String>[]]) =>
-    runIsolateTests(args, tests, testeeConcurrent: testMain);
+main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'async_next_test.dart',
+      testeeConcurrent: testMain,
+    );

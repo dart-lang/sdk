@@ -74,7 +74,9 @@ observatory_test_package:runtime/observatory/tests/service/observatory_test_pack
 package_config:third_party/pkg_tested/package_config/lib
 path:third_party/pkg/path/lib
 pedantic:third_party/pkg/pedantic/lib
+platform:third_party/pkg/platform/lib
 pool:third_party/pkg/pool/lib
+process:third_party/pkg/process/lib
 protobuf:third_party/pkg/protobuf/protobuf/lib
 pub:third_party/pkg/pub/lib
 pub_semver:third_party/pkg/pub_semver/lib

@@ -144,5 +144,9 @@ final tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) =>
-    runIsolateTests(args, tests, testeeConcurrent: testMain);
+main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'get_stack_test.dart',
+      testeeConcurrent: testMain,
+    );
