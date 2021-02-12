@@ -125,6 +125,7 @@ void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
 /// * [The Event Loop and Dart](https://dart.dev/articles/event-loop/):
 /// Learn how Dart handles the event queue and microtask queue, so you can write
 /// better asynchronous code with fewer surprises.
+@pragma('vm:entry-point', 'call')
 void scheduleMicrotask(void Function() callback) {
   _Zone currentZone = Zone._current;
   if (identical(_rootZone, currentZone)) {

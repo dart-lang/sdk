@@ -282,7 +282,6 @@ mixin WithNonFunctionTypeAliasesMixin on AbstractContextTest {
   @override
   String get testPackageLanguageVersion => null;
 
-  @nonVirtual
   @override
   void setUp() {
     super.setUp();
