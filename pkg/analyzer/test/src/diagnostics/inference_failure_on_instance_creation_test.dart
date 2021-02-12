@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,6 +22,7 @@ class InferenceFailureOnInstanceCreationTest extends PubPackageResolutionTest {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
+        experiments: [EnableString.nonfunction_type_aliases],
         strictInference: true,
       ),
     );
@@ -66,6 +68,18 @@ HashMap<int, int> f() {
   return HashMap();
 }
 ''');
+  }
+
+  test_missingTypeArgument_interfaceTypeTypedef_noInference() async {
+    await assertErrorsInCode(r'''
+import 'dart:collection';
+typedef A = HashMap;
+void f() {
+  A();
+}
+''', [
+      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 60, 1),
+    ]);
   }
 
   test_missingTypeArgument_noInference() async {

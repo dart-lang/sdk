@@ -16,42 +16,63 @@ main() {
 @reflectiveTest
 class NonTypeInCatchClauseTest extends PubPackageResolutionTest {
   test_isClass() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 f() {
   try {
   } on String catch (e) {
+    e;
   }
 }
-''', [
-      error(HintCode.UNUSED_CATCH_CLAUSE, 35, 1),
-    ]);
+''');
   }
 
   test_isFunctionTypeAlias() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 typedef F();
 f() {
   try {
   } on F catch (e) {
+    e;
   }
 }
-''', [
-      error(HintCode.UNUSED_CATCH_CLAUSE, 43, 1),
-    ]);
+''');
+  }
+
+  test_isGenericFunctionTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+typedef F<T> = void Function(T);
+f() {
+  try {
+  } on F catch (e) {
+    e;
+  }
+}
+''');
+  }
+
+  test_isInterfaceTypeTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+typedef F = String;
+f() {
+  try {
+  } on F catch (e) {
+    e;
+  }
+}
+''');
   }
 
   test_isTypeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class A<T extends Object> {
   f() {
     try {
     } on T catch (e) {
+      e;
     }
   }
 }
-''', [
-      error(HintCode.UNUSED_CATCH_CLAUSE, 64, 1),
-    ]);
+''');
   }
 
   test_notDefined() async {
@@ -59,13 +80,13 @@ class A<T extends Object> {
 f() {
   try {
   } on T catch (e) {
+    e;
   }
 }
 ''', [
       // TODO(srawlins): Ideally the first error should not be reported.
       error(HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 21, 1),
       error(CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE, 21, 1),
-      error(HintCode.UNUSED_CATCH_CLAUSE, 30, 1),
     ]);
   }
 
@@ -75,13 +96,13 @@ var T = 0;
 f() {
   try {
   } on T catch (e) {
+    e;
   }
 }
 ''', [
       // TODO(srawlins): Ideally the first error should not be reported.
       error(HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 32, 1),
       error(CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE, 32, 1),
-      error(HintCode.UNUSED_CATCH_CLAUSE, 41, 1),
     ]);
   }
 

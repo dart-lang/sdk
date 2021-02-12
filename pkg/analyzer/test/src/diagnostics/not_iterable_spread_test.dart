@@ -10,13 +10,23 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NotIterableSpreadTest);
-    defineReflectiveTests(NotIterableSpreadNullSafetyTest);
+    defineReflectiveTests(NotIterableSpreadWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class NotIterableSpreadNullSafetyTest extends NotIterableSpreadTest
-    with WithNullSafetyMixin {
+class NotIterableSpreadTest extends PubPackageResolutionTest
+    with NotIterableSpreadTestCases {
+  test_iterable_interfaceTypeTypedef() async {
+    await assertNoErrorsInCode('''
+typedef A = List<int>;
+f(A a) {
+  var v = [...a];
+  v;
+}
+''');
+  }
+
   test_iterable_typeParameter_bound_listQuestion() async {
     await assertNoErrorsInCode('''
 void f<T extends List<int>?>(T a) {
@@ -27,9 +37,7 @@ void f<T extends List<int>?>(T a) {
   }
 }
 
-@reflectiveTest
-class NotIterableSpreadTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+mixin NotIterableSpreadTestCases on PubPackageResolutionTest {
   test_iterable_list() async {
     await assertNoErrorsInCode('''
 var a = [0];
@@ -100,3 +108,7 @@ void f<T extends num>(T a) {
     ]);
   }
 }
+
+@reflectiveTest
+class NotIterableSpreadWithoutNullSafetyTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, NotIterableSpreadTestCases {}
