@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
+// ignore: import_of_legacy_library_into_null_safe
 import '../ast.dart'
     show
         BottomType,
@@ -53,7 +52,6 @@ class Types with StandardBounds {
       case SubtypeCheckMode.withNullabilities:
         return result.isSubtypeWhenUsingNullabilities();
     }
-    return throw new StateError("Unhandled subtype check mode '$mode'.");
   }
 
   bool _isSubtypeFromMode(IsSubtypeOf isSubtypeOf, SubtypeCheckMode mode) {
@@ -86,8 +84,8 @@ class Types with StandardBounds {
     IsSubtypeOf result = const IsSubtypeOf.always();
     //result = _performNullabilityAwareSubtypeCheck(subtype, supertype, mode);
     bool booleanResult = _isSubtypeFromMode(result, mode);
-    typeChecksForTesting ??= <Object>[];
-    typeChecksForTesting.add([subtype, supertype, booleanResult]);
+    (typeChecksForTesting ??= <Object>[])
+        .add([subtype, supertype, booleanResult]);
     return booleanResult;
   }
 
@@ -315,14 +313,14 @@ class Types with StandardBounds {
     return result;
   }
 
-  static List<Object> typeChecksForTesting;
+  static List<Object>? typeChecksForTesting;
 
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+  InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,
       Library clientLibrary, CoreTypes coreTypes) {
     return hierarchy.getTypeAsInstanceOf(type, superclass, clientLibrary);
   }
 
-  List<DartType> getTypeArgumentsAsInstanceOf(
+  List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
     return hierarchy.getTypeArgumentsAsInstanceOf(type, superclass);
   }
@@ -368,7 +366,7 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   @override
   IsSubtypeOf isInterfaceRelated(
       InterfaceType s, InterfaceType t, Types types) {
-    List<DartType> asSupertypeArguments =
+    List<DartType>? asSupertypeArguments =
         types.hierarchy.getTypeArgumentsAsInstanceOf(s, t.classNode);
     if (asSupertypeArguments == null) {
       return const IsSubtypeOf.never();
@@ -477,7 +475,7 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
           }
         }
       }
-      s = substitution.substituteType(s.withoutTypeParameters);
+      s = substitution.substituteType(s.withoutTypeParameters) as FunctionType;
     }
     result = result.and(
         types.performNullabilityAwareSubtypeCheck(s.returnType, t.returnType));
@@ -520,7 +518,7 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
       for (int tCount = 0; tCount < tNamedParameters.length; tCount++) {
         NamedType tNamedParameter = tNamedParameters[tCount];
         String name = tNamedParameter.name;
-        NamedType sNamedParameter;
+        NamedType? sNamedParameter;
         for (; sCount < sNamedParameters.length; sCount++) {
           sNamedParameter = sNamedParameters[sCount];
           if (sNamedParameter.name == name) {
@@ -538,7 +536,7 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
         // loop above or below and assume it is an extra (unmatched) parameter.
         sCount++;
         result = result.and(types.performNullabilityAwareSubtypeCheck(
-            tNamedParameter.type, sNamedParameter.type));
+            tNamedParameter.type, sNamedParameter!.type));
         if (!result.isSubtypeWhenIgnoringNullabilities()) {
           return const IsSubtypeOf.never();
         }

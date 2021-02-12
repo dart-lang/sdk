@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
+// ignore: import_of_legacy_library_into_null_safe
 import '../ast.dart' hide MapEntry;
 
 import 'replacement_visitor.dart';
@@ -20,7 +19,7 @@ DartType legacyErasure(DartType type) {
 /// named parameters are not required.
 ///
 /// Returns `null` if the type wasn't changed.
-DartType rawLegacyErasure(DartType type) {
+DartType? rawLegacyErasure(DartType type) {
   return type.accept1(const _LegacyErasure(), Variance.covariant);
 }
 
@@ -31,10 +30,10 @@ Supertype legacyErasureSupertype(Supertype supertype) {
   if (supertype.typeArguments.isEmpty) {
     return supertype;
   }
-  List<DartType> newTypeArguments;
+  List<DartType>? newTypeArguments;
   for (int i = 0; i < supertype.typeArguments.length; i++) {
     DartType typeArgument = supertype.typeArguments[i];
-    DartType newTypeArgument =
+    DartType? newTypeArgument =
         typeArgument.accept1(const _LegacyErasure(), Variance.covariant);
     if (newTypeArgument != null) {
       newTypeArguments ??= supertype.typeArguments.toList(growable: false);
@@ -54,7 +53,7 @@ Supertype legacyErasureSupertype(Supertype supertype) {
 class _LegacyErasure extends ReplacementVisitor {
   const _LegacyErasure();
 
-  Nullability visitNullability(DartType node) {
+  Nullability? visitNullability(DartType node) {
     if (node.declaredNullability != Nullability.legacy) {
       return Nullability.legacy;
     }
@@ -62,7 +61,7 @@ class _LegacyErasure extends ReplacementVisitor {
   }
 
   @override
-  NamedType createNamedType(NamedType node, DartType newType) {
+  NamedType? createNamedType(NamedType node, DartType? newType) {
     if (node.isRequired || newType != null) {
       return new NamedType(node.name, newType ?? node.type, isRequired: false);
     }
@@ -101,7 +100,7 @@ class _LegacyErasure extends ReplacementVisitor {
 ///    }
 ///
 bool needsLegacyErasure(Class enclosingClass, Class declaringClass) {
-  Class cls = enclosingClass;
+  Class? cls = enclosingClass;
   while (cls != null) {
     if (!cls.enclosingLibrary.isNonNullableByDefault) {
       return true;

@@ -450,6 +450,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return OFFSET_OF(IsolateGroup, cached_class_table_table_);
   }
 
+  void set_object_store(ObjectStore* object_store);
+  static intptr_t object_store_offset() {
+    COMPILE_ASSERT(sizeof(IsolateGroup::object_store_) == kWordSize);
+    return OFFSET_OF(IsolateGroup, object_store_);
+  }
+
   void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
   const char** obfuscation_map() const { return obfuscation_map_; }
 
@@ -833,14 +839,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   void set_heap(std::unique_ptr<Heap> value);
 
-  const std::shared_ptr<ObjectStore>& object_store_shared_ptr() const {
-    return object_store_;
-  }
-
   // Accessed from generated code.
   std::unique_ptr<SharedClassTable> shared_class_table_;
   std::unique_ptr<ClassTable> class_table_;
   AcqRelAtomic<ClassPtr*> cached_class_table_table_;
+  std::unique_ptr<ObjectStore> object_store_;
   // End accessed from generated code.
 
   const char** obfuscation_map_ = nullptr;
@@ -895,7 +898,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   uint64_t id_ = 0;
 
-  std::shared_ptr<ObjectStore> object_store_;
   std::unique_ptr<StoreBuffer> store_buffer_;
   std::unique_ptr<Heap> heap_;
   std::unique_ptr<DispatchTable> dispatch_table_;
@@ -1002,11 +1004,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   SafepointHandler* safepoint_handler() const {
     return group()->safepoint_handler();
-  }
-
-  void set_object_store(ObjectStore* object_store);
-  static intptr_t cached_object_store_offset() {
-    return OFFSET_OF(Isolate, cached_object_store_);
   }
 
   FieldTable* field_table() const { return field_table_; }
@@ -1537,8 +1534,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   UserTagPtr current_tag_;
   UserTagPtr default_tag_;
   CodePtr ic_miss_code_;
-  // Cached value of object_store_shared_ptr_, here for generated code access
-  ObjectStore* cached_object_store_ = nullptr;
   FieldTable* field_table_ = nullptr;
   bool single_step_ = false;
   bool is_system_isolate_ = false;
@@ -1547,8 +1542,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   IsolateGroup* isolate_group_;
   IdleTimeHandler idle_time_handler_;
   std::unique_ptr<IsolateObjectStore> isolate_object_store_;
-  // shared in AOT(same pointer as on IsolateGroup), not shared in JIT
-  std::shared_ptr<ObjectStore> object_store_shared_ptr_;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   NativeCallbackTrampolines native_callback_trampolines_;

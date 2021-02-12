@@ -4,7 +4,6 @@
 
 // ignore: import_of_legacy_library_into_null_safe
 import '../ast.dart' hide MapEntry;
-// ignore: import_of_legacy_library_into_null_safe
 import '../type_algebra.dart';
 
 /// Helper visitor that clones a type if a nested type is replaced, and

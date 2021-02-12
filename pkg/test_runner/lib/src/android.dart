@@ -344,7 +344,7 @@ class AdbDevice {
 /// Helper to list all adb devices available.
 class AdbHelper {
   static final RegExp _deviceLineRegexp =
-      RegExp(r'^([a-zA-Z0-9_-]+)[ \t]+device$', multiLine: true);
+      RegExp(r'^([a-zA-Z0-9:_-]+)[ \t]+device$', multiLine: true);
 
   static Future<List<String>> listDevices() {
     return Process.run('adb', ['devices']).then((ProcessResult result) {

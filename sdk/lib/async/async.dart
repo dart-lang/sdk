@@ -5,8 +5,16 @@
 /// Support for asynchronous programming,
 /// with classes such as Future and Stream.
 ///
-/// Understanding [Future]s and [Stream]s is a prerequisite for
-/// writing just about any Dart program.
+/// [Future]s and [Stream]s are the fundamental building blocks
+/// of asynchronous programming in Dart. They are supported
+/// directly in the language through `async` and `async*`
+/// functions, and are available to all libraries through
+/// the `dart:core` library.
+///
+/// This library provides further tools for creating, consuming
+/// and transforming futures and streams, as well as direct access to
+/// other asynchronous primitives like [timers][Timer],
+/// [microtasks][scheduleMicrotask] and [zones][Zone].
 ///
 /// To use this library in your code:
 /// ```dart
@@ -21,8 +29,8 @@
 /// Futures are often used for potentially lengthy computations
 /// such as I/O and interaction with users.
 ///
-/// Many methods in the Dart libraries return Futures when
-/// performing tasks. For example, when binding an HttpServer
+/// Many methods in the Dart libraries return `Future`s when
+/// performing tasks. For example, when binding an `HttpServer`
 /// to a host and port, the `bind()` method returns a Future.
 /// ```dart
 ///  HttpServer.bind('127.0.0.1', 4444)
@@ -47,14 +55,17 @@
 /// contents of a file
 /// such as mouse clicks, and a stream of byte lists read from a file.
 /// The following example opens a file for reading.
-/// [Stream.listen] registers a callback function that runs
-/// each time more data is available.
+/// [Stream.listen] registers callback functions that run
+/// each time more data is available, an error has occurred, or
+/// the stream has finished.
+/// Further functionality is provided on [Stream], implemented by calling
+/// [Stream.listen] to get the actual data.
 /// ```dart
 /// Stream<List<int>> stream = File('quotes.txt').openRead();
-/// stream.transform(utf8.decoder).listen(print);
+/// stream.transform(utf8.decoder).forEach(print);
 /// ```
-/// The stream emits a sequence of a list of bytes.
-/// The program must interpret the bytes or handle the raw byte data.
+/// This stream emits a sequence of lists of bytes.
+/// The program must then handle those lists of bytes in some way.
 /// Here, the code uses a UTF-8 decoder (provided in the `dart:convert` library)
 /// to convert the sequence of bytes into a sequence
 /// of Dart strings.
@@ -62,7 +73,7 @@
 /// Another common use of streams is for user-generated events
 /// in a web app: The following code listens for mouse clicks on a button.
 /// ```dart
-/// querySelector('#myButton').onClick.listen((_) => print('Click.'));
+/// querySelector('#myButton').onClick.forEach((_) => print('Click.'));
 /// ```
 /// ## Other resources
 ///

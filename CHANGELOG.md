@@ -245,7 +245,7 @@ Updated the Linter to `0.1.129`, which includes:
 * The `--server` option to `dart pub publish` and `dart pub uploader` have been
   deprecated. Use `publish_to` in your `pubspec.yaml` or set the
   `$PUB_HOSTED_URL` environment variable.
-* `pub global activate no longer re-precompiles if current global installed was
+* `pub global activate` no longer re-precompiles if current global installed was
    same version.
 * The Flutter SDK constraint upper bound is now ignored in pubspecs and
   deprecated when publishing.

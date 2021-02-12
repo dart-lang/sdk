@@ -295,10 +295,8 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     StackZone zone(T);
     HandleScope handle_scope(T);
     Object::InitNullAndBool(vm_isolate_->group());
-    vm_isolate_->set_object_store(new ObjectStore());
+    vm_isolate_->isolate_group_->set_object_store(new ObjectStore());
     vm_isolate_->isolate_object_store()->Init();
-    vm_isolate_->isolate_group_->object_store_ =
-        vm_isolate_->object_store_shared_ptr_;
     TargetCPUFeatures::Init();
     Object::Init(vm_isolate_->group());
     ArgumentsDescriptor::Init();
@@ -942,7 +940,9 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
       return error.ptr();
     }
   }
-  error ^= I->isolate_object_store()->PreallocateObjects();
+  const auto& out_of_memory =
+      Object::Handle(IG->object_store()->out_of_memory());
+  error ^= I->isolate_object_store()->PreallocateObjects(out_of_memory);
   if (!error.IsNull()) {
     return error.ptr();
   }

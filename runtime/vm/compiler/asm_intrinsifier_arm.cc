@@ -1467,29 +1467,29 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ CompareImmediate(R1, kDoubleCid);
   __ b(&not_double, NE);
 
-  __ LoadIsolate(R0);
-  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
+  __ LoadIsolateGroup(R0);
+  __ LoadFromOffset(R0, R0, target::IsolateGroup::object_store_offset());
   __ LoadFromOffset(R0, R0, target::ObjectStore::double_type_offset());
   __ Ret();
 
   __ Bind(&not_double);
   JumpIfNotInteger(assembler, R1, R0, &not_integer);
-  __ LoadIsolate(R0);
-  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
+  __ LoadIsolateGroup(R0);
+  __ LoadFromOffset(R0, R0, target::IsolateGroup::object_store_offset());
   __ LoadFromOffset(R0, R0, target::ObjectStore::int_type_offset());
   __ Ret();
 
   __ Bind(&not_integer);
   JumpIfNotString(assembler, R1, R0, &not_string);
-  __ LoadIsolate(R0);
-  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
+  __ LoadIsolateGroup(R0);
+  __ LoadFromOffset(R0, R0, target::IsolateGroup::object_store_offset());
   __ LoadFromOffset(R0, R0, target::ObjectStore::string_type_offset());
   __ Ret();
 
   __ Bind(&not_string);
   JumpIfNotType(assembler, R1, R0, &use_declaration_type);
-  __ LoadIsolate(R0);
-  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
+  __ LoadIsolateGroup(R0);
+  __ LoadFromOffset(R0, R0, target::IsolateGroup::object_store_offset());
   __ LoadFromOffset(R0, R0, target::ObjectStore::type_type_offset());
   __ Ret();
 

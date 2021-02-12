@@ -1147,7 +1147,6 @@ class ObjectStore : public AllStatic {
 
 class Isolate : public AllStatic {
  public:
-  static word cached_object_store_offset();
   static word default_tag_offset();
   static word current_tag_offset();
   static word user_tag_offset();
@@ -1159,6 +1158,7 @@ class Isolate : public AllStatic {
 
 class IsolateGroup : public AllStatic {
  public:
+  static word object_store_offset();
   static word shared_class_table_offset();
   static word cached_class_table_table_offset();
 };

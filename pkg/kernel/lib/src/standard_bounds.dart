@@ -2,29 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import 'dart:math' as math;
 
-import '../ast.dart'
-    show
-        BottomType,
-        Class,
-        DartType,
-        DynamicType,
-        FunctionType,
-        FutureOrType,
-        InterfaceType,
-        InvalidType,
-        Library,
-        NamedType,
-        NeverType,
-        NullType,
-        Nullability,
-        TypeParameter,
-        TypeParameterType,
-        Variance,
-        VoidType;
+// ignore: import_of_legacy_library_into_null_safe
+import '../ast.dart' hide MapEntry;
 import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../type_algebra.dart';
@@ -835,10 +816,12 @@ mixin StandardBounds {
     // relation is established.
     InterfaceType typeWithoutNullabilityMarker1 =
         computeTypeWithoutNullabilityMarker(type1,
-            isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
+                isNonNullableByDefault: clientLibrary.isNonNullableByDefault)
+            as InterfaceType;
     InterfaceType typeWithoutNullabilityMarker2 =
         computeTypeWithoutNullabilityMarker(type2,
-            isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
+                isNonNullableByDefault: clientLibrary.isNonNullableByDefault)
+            as InterfaceType;
 
     if (isSubtypeOf(typeWithoutNullabilityMarker1,
         typeWithoutNullabilityMarker2, SubtypeCheckMode.withNullabilities)) {
@@ -861,7 +844,7 @@ mixin StandardBounds {
         int n = klass.typeParameters.length;
         List<DartType> leftArguments = type1.typeArguments;
         List<DartType> rightArguments = type2.typeArguments;
-        List<DartType> typeArguments = new List<DartType>.filled(n, null);
+        List<DartType> typeArguments = new List<DartType>.from(leftArguments);
         for (int i = 0; i < n; ++i) {
           int variance = klass.typeParameters[i].variance;
           if (variance == Variance.contravariant) {
@@ -888,7 +871,8 @@ mixin StandardBounds {
 
     // UP(C0<T0, ..., Tn>, C1<S0, ..., Sk>)
     //   = least upper bound of two interfaces as in Dart 1.
-    return hierarchy.getLegacyLeastUpperBound(type1, type2, clientLibrary);
+    return hierarchy.getLegacyLeastUpperBound(
+        type1 as InterfaceType, type2 as InterfaceType, clientLibrary);
   }
 
   /// Computes the nullability-aware lower bound of two function types.
@@ -983,7 +967,7 @@ mixin StandardBounds {
     List<TypeParameter> typeParameters = f.typeParameters;
 
     List<DartType> positionalParameters =
-        new List<DartType>.filled(maxPos, null);
+        new List<DartType>.filled(maxPos, dartTypeDummy);
     for (int i = 0; i < minPos; ++i) {
       positionalParameters[i] = _getNullabilityAwareStandardUpperBound(
           f.positionalParameters[i],
@@ -1180,7 +1164,7 @@ mixin StandardBounds {
     List<TypeParameter> typeParameters = f.typeParameters;
 
     List<DartType> positionalParameters =
-        new List<DartType>.filled(minPos, null);
+        new List<DartType>.filled(minPos, dartTypeDummy);
     for (int i = 0; i < minPos; ++i) {
       positionalParameters[i] = _getNullabilityAwareStandardLowerBound(
           f.positionalParameters[i],
@@ -1435,7 +1419,7 @@ mixin StandardBounds {
     int totalPositional =
         math.max(f.positionalParameters.length, g.positionalParameters.length);
     List<DartType> positionalParameters =
-        new List<DartType>.filled(totalPositional, null);
+        new List<DartType>.filled(totalPositional, dartTypeDummy);
     for (int i = 0; i < totalPositional; i++) {
       if (i < f.positionalParameters.length) {
         DartType fType = f.positionalParameters[i];
@@ -1539,7 +1523,7 @@ mixin StandardBounds {
     int totalPositional =
         math.min(f.positionalParameters.length, g.positionalParameters.length);
     List<DartType> positionalParameters =
-        new List<DartType>.filled(totalPositional, null);
+        new List<DartType>.filled(totalPositional, dartTypeDummy);
     for (int i = 0; i < totalPositional; i++) {
       positionalParameters[i] = getStandardLowerBound(
           f.positionalParameters[i], g.positionalParameters[i], clientLibrary);
@@ -1618,7 +1602,7 @@ mixin StandardBounds {
 
       assert(tArgs1.length == tArgs2.length);
       assert(tArgs1.length == tParams.length);
-      List<DartType> tArgs = new List.filled(tArgs1.length, null);
+      List<DartType> tArgs = new List.filled(tArgs1.length, dartTypeDummy);
       for (int i = 0; i < tArgs1.length; i++) {
         if (tParams[i].variance == Variance.contravariant) {
           tArgs[i] = getStandardLowerBound(tArgs1[i], tArgs2[i], clientLibrary);

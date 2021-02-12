@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
+// ignore: import_of_legacy_library_into_null_safe
 import '../ast.dart' hide MapEntry;
 import '../core_types.dart';
 import '../type_algebra.dart';
@@ -19,9 +18,9 @@ DartType norm(CoreTypes coreTypes, DartType type) {
 Supertype normSupertype(CoreTypes coreTypes, Supertype supertype) {
   if (supertype.typeArguments.isEmpty) return supertype;
   _Norm normVisitor = new _Norm(coreTypes);
-  List<DartType> typeArguments = null;
+  List<DartType>? typeArguments = null;
   for (int i = 0; i < supertype.typeArguments.length; ++i) {
-    DartType typeArgument =
+    DartType? typeArgument =
         supertype.typeArguments[i].accept1(normVisitor, Variance.covariant);
     if (typeArgument != null) {
       typeArguments ??= supertype.typeArguments.toList();
@@ -43,7 +42,7 @@ class _Norm extends ReplacementVisitor {
   _Norm(this.coreTypes);
 
   @override
-  DartType visitInterfaceType(InterfaceType node, int variance) {
+  DartType? visitInterfaceType(InterfaceType node, int variance) {
     return super
         .visitInterfaceType(node, variance)
         ?.withDeclaredNullability(node.nullability);
@@ -87,11 +86,13 @@ class _Norm extends ReplacementVisitor {
     assert(!coreTypes.isObject(typeArgument));
     assert(!coreTypes.isBottom(typeArgument));
     assert(!coreTypes.isNull(typeArgument));
+    // TODO(johnniwinther): We should return `null` if [typeArgument] is
+    // the same as `node.typeArgument`.
     return new FutureOrType(typeArgument, node.nullability);
   }
 
   @override
-  DartType visitTypeParameterType(TypeParameterType node, int variance) {
+  DartType? visitTypeParameterType(TypeParameterType node, int variance) {
     if (node.promotedBound == null) {
       DartType bound = node.parameter.bound;
       if (normalizesToNever(bound)) {
@@ -133,7 +134,7 @@ class _Norm extends ReplacementVisitor {
   }
 
   @override
-  DartType visitNeverType(NeverType node, int variance) {
+  DartType? visitNeverType(NeverType node, int variance) {
     if (node.nullability == Nullability.nullable) return const NullType();
     return null;
   }
