@@ -9,7 +9,6 @@ import 'dart:math' as math;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         templateFfiEmptyStruct,
-        templateFfiEmptyStructWarning,
         templateFfiFieldAnnotation,
         templateFfiFieldCyclic,
         templateFfiFieldNoAnnotation,
@@ -427,11 +426,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
     _annoteStructWithFields(node, types);
     if (types.isEmpty) {
-      diagnosticReporter.report(
-          templateFfiEmptyStructWarning.withArguments(node.name),
-          node.fileOffset,
-          node.name.length,
-          node.location.file);
+      diagnosticReporter.report(templateFfiEmptyStruct.withArguments(node.name),
+          node.fileOffset, node.name.length, node.location.file);
       emptyStructs.add(node);
     }
 

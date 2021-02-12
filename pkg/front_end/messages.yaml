@@ -4249,13 +4249,6 @@ FfiEmptyStruct:
   template: "Struct '#name' is empty. Empty structs are undefined behavior."
   external: test/ffi_test.dart
 
-FfiEmptyStructWarning:
-  # Used by dart:ffi
-  template: "Struct '#name' is empty. Support for empty structs is deprecated and will be removed in the next stable version of Dart. Use Opaque instead."
-  analyzerCode: EMPTY_STRUCT_WARNING
-  severity: INFO
-  external: test/ffi_test.dart
-
 FfiTypeInvalid:
   # Used by dart:ffi
   template: "Expected type '#type' to be a valid and instantiated subtype of 'NativeType'."
