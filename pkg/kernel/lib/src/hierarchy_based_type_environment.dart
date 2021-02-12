@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.hierarchy_based_type_environment;
 
+// ignore: import_of_legacy_library_into_null_safe
 import '../ast.dart' show Class, DartType, InterfaceType, Library, Member, Name;
 
 import '../class_hierarchy.dart' show ClassHierarchyBase;
@@ -21,20 +20,20 @@ class HierarchyBasedTypeEnvironment extends TypeEnvironment {
       : super.fromSubclass(coreTypes, hierarchy);
 
   @override
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+  InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,
       Library clientLibrary, CoreTypes coreTypes) {
     return hierarchy.getTypeAsInstanceOf(type, superclass, clientLibrary);
   }
 
   @override
-  List<DartType> getTypeArgumentsAsInstanceOf(
+  List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
     if (type.classNode == superclass) return type.typeArguments;
     return hierarchy.getTypeArgumentsAsInstanceOf(type, superclass);
   }
 
   @override
-  Member getInterfaceMember(Class cls, Name name, {bool setter: false}) {
+  Member? getInterfaceMember(Class cls, Name name, {bool setter: false}) {
     return hierarchy.getInterfaceMember(cls, name, setter: setter);
   }
 }
