@@ -2239,7 +2239,6 @@ class UntaggedLibraryPrefix : public UntaggedInstance {
   }
   uint16_t num_imports_;  // Number of library entries in libraries_.
   bool is_deferred_load_;
-  bool is_loaded_;
 };
 
 class UntaggedTypeArguments : public UntaggedInstance {

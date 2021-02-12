@@ -96,6 +96,29 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
+  Future<void> test_filtersCorrectly() async {
+    const content = '''
+    import 'dart:async';
+    [[import]] 'dart:convert';
+
+    Future foo;
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final ofKind = (CodeActionKind kind) => getCodeActions(
+          mainFileUri.toString(),
+          range: rangeFromMarkers(content),
+          kinds: [kind],
+        );
+
+    // The code above will return a quickfix.remove.unusedImport
+    expect(await ofKind(CodeActionKind.QuickFix), isNotEmpty);
+    expect(await ofKind(CodeActionKind('quickfix.remove')), isNotEmpty);
+    expect(await ofKind(CodeActionKind('quickfix.other')), isEmpty);
+    expect(await ofKind(CodeActionKind.Refactor), isEmpty);
+  }
+
   Future<void> test_noDuplicates_sameFix() async {
     const content = '''
     var a = [Test, Test, Te[[]]st];

@@ -366,21 +366,57 @@ NativeType& NativeType::FromAbstractType(Zone* zone, const AbstractType& type) {
   // User-defined structs.
   const auto& cls = Class::Handle(zone, type.type_class());
 
-  auto& options = Object::Handle(zone);
+  auto& pragmas = Object::Handle(zone);
   Library::FindPragma(dart::Thread::Current(), /*only_core=*/false, cls,
-                      Symbols::vm_ffi_struct_fields(), &options);
-  ASSERT(!options.IsNull());
-  ASSERT(options.IsArray());
+                      Symbols::vm_ffi_struct_fields(), /*multiple=*/true,
+                      &pragmas);
+  ASSERT(!pragmas.IsNull());
+  ASSERT(pragmas.IsGrowableObjectArray());
+  const auto& pragmas_array = GrowableObjectArray::Cast(pragmas);
+  auto& pragma = Instance::Handle(zone);
+  auto& clazz = Class::Handle(zone);
+  auto& library = Library::Handle(zone);
+  for (intptr_t i = 0; i < pragmas_array.Length(); i++) {
+    pragma ^= pragmas_array.At(i);
+    clazz ^= pragma.clazz();
+    library ^= clazz.library();
+    if (String::Handle(zone, clazz.UserVisibleName())
+            .Equals(Symbols::FfiStructLayout()) &&
+        String::Handle(zone, library.url()).Equals(Symbols::DartFfi())) {
+      break;
+    }
+  }
 
-  const auto& field_types = Array::Cast(options);
+  const auto& struct_layout = pragma;
+  const auto& struct_layout_class = clazz;
+  ASSERT(String::Handle(zone, struct_layout_class.UserVisibleName())
+             .Equals(Symbols::FfiStructLayout()));
+  ASSERT(String::Handle(zone, library.url()).Equals(Symbols::DartFfi()));
+  const auto& struct_layout_fields = Array::Handle(zone, clazz.fields());
+  ASSERT(struct_layout_fields.Length() == 1);
+  const auto& field =
+      Field::Handle(zone, Field::RawCast(struct_layout_fields.At(0)));
+  ASSERT(String::Handle(zone, field.name()).Equals(Symbols::FfiFieldTypes()));
+  const auto& field_types =
+      Array::Handle(zone, Array::RawCast(struct_layout.GetField(field)));
+
+  auto& field_instance = Instance::Handle(zone);
   auto& field_type = AbstractType::Handle(zone);
   auto& field_native_types = *new (zone) ZoneGrowableArray<const NativeType*>(
       zone, field_types.Length());
   for (intptr_t i = 0; i < field_types.Length(); i++) {
-    field_type ^= field_types.At(i);
-    const NativeType& field_native_type =
-        NativeType::FromAbstractType(zone, field_type);
-    field_native_types.Add(&field_native_type);
+    field_instance ^= field_types.At(i);
+    if (field_instance.IsAbstractType()) {
+      // Subtype of NativeType: Struct, native integer or native float.
+      field_type ^= field_types.At(i);
+      const auto& field_native_type =
+          NativeType::FromAbstractType(zone, field_type);
+      field_native_types.Add(&field_native_type);
+    } else {
+      // Inline array.
+      // TODO(http://dartbug.com/35763): Implement this.
+      UNIMPLEMENTED();
+    }
   }
 
   return NativeCompoundType::FromNativeTypes(zone, field_native_types);

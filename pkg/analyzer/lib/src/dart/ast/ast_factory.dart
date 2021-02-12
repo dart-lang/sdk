@@ -273,7 +273,7 @@ class AstFactoryImpl extends AstFactory {
           separator,
           initializers,
           redirectedConstructor as ConstructorNameImpl?,
-          body as FunctionBodyImpl?);
+          body as FunctionBodyImpl);
 
   @override
   ConstructorFieldInitializer constructorFieldInitializer(
@@ -607,9 +607,9 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   FunctionExpression functionExpression(TypeParameterList? typeParameters,
-          FormalParameterList? parameters, FunctionBody? body) =>
+          FormalParameterList? parameters, FunctionBody body) =>
       FunctionExpressionImpl(typeParameters as TypeParameterListImpl?,
-          parameters as FormalParameterListImpl?, body as FunctionBodyImpl?);
+          parameters as FormalParameterListImpl?, body as FunctionBodyImpl);
 
   @override
   FunctionExpressionInvocation functionExpressionInvocation(Expression function,

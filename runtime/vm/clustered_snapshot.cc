@@ -3360,7 +3360,6 @@ class LibraryPrefixDeserializationCluster : public DeserializationCluster {
       ReadFromTo(prefix);
       prefix->untag()->num_imports_ = d->Read<uint16_t>();
       prefix->untag()->is_deferred_load_ = d->Read<bool>();
-      prefix->untag()->is_loaded_ = !prefix->untag()->is_deferred_load_;
     }
   }
 };

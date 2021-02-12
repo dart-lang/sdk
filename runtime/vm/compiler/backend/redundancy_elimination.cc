@@ -4230,7 +4230,8 @@ static bool IsMarkedWithNoInterrupts(const Function& function) {
   Object& options = Object::Handle();
   return Library::FindPragma(dart::Thread::Current(),
                              /*only_core=*/false, function,
-                             Symbols::vm_unsafe_no_interrupts(), &options);
+                             Symbols::vm_unsafe_no_interrupts(),
+                             /*multiple=*/false, &options);
 }
 
 void CheckStackOverflowElimination::EliminateStackOverflow(FlowGraph* graph) {

@@ -201,8 +201,7 @@ abstract class AstFactory {
   /// initializers and does not redirect to a different constructor. The list of
   /// [initializers] can be `null` if the constructor does not have any
   /// initializers. The [redirectedConstructor] can be `null` if the constructor
-  /// does not redirect to a different constructor. The [body] can be `null` if
-  /// the constructor does not have a body.
+  /// does not redirect to a different constructor.
   ConstructorDeclaration constructorDeclaration(
       Comment? comment,
       List<Annotation>? metadata,
@@ -216,7 +215,7 @@ abstract class AstFactory {
       Token? separator,
       List<ConstructorInitializer>? initializers,
       ConstructorName? redirectedConstructor,
-      FunctionBody? body);
+      FunctionBody body);
 
   /// Returns a newly created field initializer to initialize the field with
   /// the given name to the value of the given expression. The [thisKeyword] and
@@ -465,7 +464,7 @@ abstract class AstFactory {
 
   /// Returns a newly created function declaration.
   FunctionExpression functionExpression(TypeParameterList? typeParameters,
-      FormalParameterList? parameters, FunctionBody? body);
+      FormalParameterList? parameters, FunctionBody body);
 
   /// Returns a newly created function expression invocation.
   FunctionExpressionInvocation functionExpressionInvocation(Expression function,

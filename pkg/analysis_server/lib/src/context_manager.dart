@@ -1525,7 +1525,11 @@ class ContextManagerImpl implements ContextManager {
     var builder = callbacks.createContextBuilder(info.folder);
     var options = builder.getAnalysisOptions(contextRoot,
         contextRoot: driver.contextRoot);
-    var packages = builder.createPackageMap(contextRoot);
+    var packages = ContextBuilder.createPackageMap(
+      resourceProvider: builder.resourceProvider,
+      options: builder.builderOptions,
+      rootPath: contextRoot,
+    );
     var factory = builder.createSourceFactory(contextRoot);
     driver.configure(
       analysisOptions: options,

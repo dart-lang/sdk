@@ -76,9 +76,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   final Set<Class> emptyStructs;
   StaticTypeContext _staticTypeContext;
 
-  Library currentLibrary;
   bool get isFfiLibrary => currentLibrary == ffiLibrary;
-  IndexedLibrary currentLibraryIndex;
 
   // Used to create private top-level fields with unique names for each
   // callback.
@@ -98,8 +96,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   @override
   TreeNode visitLibrary(Library node) {
-    currentLibrary = node;
-    currentLibraryIndex = referenceFromIndex?.lookupLibrary(node);
     callbackCount = 0;
     return super.visitLibrary(node);
   }

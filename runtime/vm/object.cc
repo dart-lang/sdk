@@ -3621,6 +3621,7 @@ bool Library::FindPragma(Thread* T,
                          bool only_core,
                          const Object& obj,
                          const String& pragma_name,
+                         bool multiple,
                          Object* options) {
   auto IG = T->isolate_group();
   auto Z = T->zone();
@@ -3666,6 +3667,13 @@ bool Library::FindPragma(Thread* T,
       Field::Handle(Z, pragma_class.LookupField(Symbols::options()));
 
   auto& pragma = Object::Handle(Z);
+  bool found = false;
+  auto& options_value = Object::Handle(Z);
+  auto& results = GrowableObjectArray::Handle(Z);
+  if (multiple) {
+    ASSERT(options != nullptr);
+    results ^= GrowableObjectArray::New(1);
+  }
   for (intptr_t i = 0; i < metadata.Length(); ++i) {
     pragma = metadata.At(i);
     if (pragma.clazz() != pragma_class.ptr() ||
@@ -3673,13 +3681,22 @@ bool Library::FindPragma(Thread* T,
             pragma_name.ptr()) {
       continue;
     }
+    options_value = Instance::Cast(pragma).GetField(pragma_options_field);
+    found = true;
+    if (multiple) {
+      results.Add(options_value);
+      continue;
+    }
     if (options != nullptr) {
-      *options = Instance::Cast(pragma).GetField(pragma_options_field);
+      *options = options_value.ptr();
     }
     return true;
   }
 
-  return false;
+  if (found && options != nullptr) {
+    *options = results.ptr();
+  }
+  return found;
 }
 
 bool Function::IsDynamicInvocationForwarderName(const String& name) {
@@ -13450,7 +13467,6 @@ LibraryPrefixPtr LibraryPrefix::New(const String& name,
   result.set_num_imports(0);
   result.set_importer(importer);
   result.StoreNonPointer(&result.untag()->is_deferred_load_, deferred_load);
-  result.StoreNonPointer(&result.untag()->is_loaded_, !deferred_load);
   result.set_imports(Array::Handle(Array::New(kInitialSize)));
   result.AddImport(import);
   return result.ptr();

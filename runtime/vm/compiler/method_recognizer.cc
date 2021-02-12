@@ -29,7 +29,8 @@ intptr_t MethodRecognizer::ResultCidFromPragma(
   auto Z = T->zone();
   auto& option = Object::Handle(Z);
   if (Library::FindPragma(T, /*only_core=*/true, function_or_field,
-                          Symbols::vm_exact_result_type(), &option)) {
+                          Symbols::vm_exact_result_type(),
+                          /*multiple=*/false, &option)) {
     if (option.IsType()) {
       return Type::Cast(option).type_class_id();
     } else if (option.IsString()) {
@@ -82,7 +83,8 @@ bool MethodRecognizer::HasNonNullableResultTypeFromPragma(
   auto Z = T->zone();
   auto& option = Object::Handle(Z);
   if (Library::FindPragma(T, /*only_core=*/true, function_or_field,
-                          Symbols::vm_non_nullable_result_type(), &option)) {
+                          Symbols::vm_non_nullable_result_type(),
+                          /*multiple=*/false, &option)) {
     return true;
   }
 
@@ -203,9 +205,9 @@ bool MethodRecognizer::IsMarkedAsRecognized(const Function& function,
           ? &Function::Handle(function.ForwardingTarget())
           : &function;
   Object& options = Object::Handle();
-  bool is_recognized =
-      Library::FindPragma(Thread::Current(), /*only_core=*/true, *functionp,
-                          Symbols::vm_recognized(), &options);
+  bool is_recognized = Library::FindPragma(
+      Thread::Current(), /*only_core=*/true, *functionp,
+      Symbols::vm_recognized(), /*multiple=*/false, &options);
   if (!is_recognized) return false;
   if (kind == nullptr) return true;
 

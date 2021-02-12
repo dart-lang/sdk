@@ -21,8 +21,8 @@ enum Register {
   RCX = 1,
   RDX = 2,
   RBX = 3,
-  RSP = 4,
-  RBP = 5,
+  RSP = 4,  // SP
+  RBP = 5,  // FP
   RSI = 6,
   RDI = 7,
   R8 = 8,
@@ -31,8 +31,8 @@ enum Register {
   R11 = 11,
   R12 = 12,
   R13 = 13,
-  R14 = 14,
-  R15 = 15,
+  R14 = 14,  // THR
+  R15 = 15,  // PP
   kNumberOfCpuRegisters = 16,
   kNoRegister = -1,  // Signals an illegal register.
 };

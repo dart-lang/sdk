@@ -171,7 +171,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
 
     void check(String name, Asserter<InterfaceType> typeTest) {
       FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, name);
-      var body = test.functionExpression.body as FunctionBody;
+      var body = test.functionExpression.body;
       Expression returnExp;
       if (body is ExpressionFunctionBody) {
         returnExp = body.expression;
@@ -538,7 +538,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
       var exp = decl.initializer as FunctionExpression;
-      FunctionBody body = exp.body!;
+      FunctionBody body = exp.body;
       if (body is ExpressionFunctionBody) {
         return body.expression;
       } else {
@@ -791,7 +791,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
       var exp = decl.initializer as FunctionExpression;
-      FunctionBody body = exp.body!;
+      FunctionBody body = exp.body;
       if (body is ExpressionFunctionBody) {
         return body.expression;
       } else {

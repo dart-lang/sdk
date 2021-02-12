@@ -978,6 +978,8 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
   I->set_current_tag(default_tag);
 
+  I->init_loaded_prefixes_set_storage();
+
   return Error::null();
 }
 

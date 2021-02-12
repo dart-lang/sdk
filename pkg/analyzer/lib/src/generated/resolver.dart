@@ -1162,7 +1162,7 @@ class ResolverVisitor extends ScopedVisitor {
       flowAnalysis!.topLevelDeclaration_enter(node, node.parameters, node.body);
       flowAnalysis!.executableDeclaration_enter(node, node.parameters, false);
     } else {
-      _promoteManager.enterFunctionBody(node.body!);
+      _promoteManager.enterFunctionBody(node.body);
     }
 
     var returnType = _enclosingFunction!.type.returnType;
@@ -1172,14 +1172,14 @@ class ResolverVisitor extends ScopedVisitor {
 
     if (flowAnalysis != null) {
       if (node.factoryKeyword != null) {
-        var bodyContext = BodyInferenceContext.of(node.body!);
+        var bodyContext = BodyInferenceContext.of(node.body);
         checkForBodyMayCompleteNormally(
           returnType: bodyContext?.contextType,
-          body: node.body!,
+          body: node.body,
           errorNode: node,
         );
       }
-      flowAnalysis!.executableDeclaration_exit(node.body!, false);
+      flowAnalysis!.executableDeclaration_exit(node.body, false);
       flowAnalysis!.topLevelDeclaration_exit();
       nullSafetyDeadCodeVerifier.flowEnd(node);
     } else {
@@ -1406,7 +1406,7 @@ class ResolverVisitor extends ScopedVisitor {
         isLocal,
       );
     } else {
-      _promoteManager.enterFunctionBody(node.functionExpression.body!);
+      _promoteManager.enterFunctionBody(node.functionExpression.body);
     }
 
     var functionType = _enclosingFunction!.type;
@@ -1417,15 +1417,15 @@ class ResolverVisitor extends ScopedVisitor {
     if (flowAnalysis != null) {
       // TODO(scheglov) encapsulate
       var bodyContext = BodyInferenceContext.of(
-        node.functionExpression.body!,
+        node.functionExpression.body,
       );
       checkForBodyMayCompleteNormally(
         returnType: bodyContext?.contextType,
-        body: node.functionExpression.body!,
+        body: node.functionExpression.body,
         errorNode: node.name,
       );
       flowAnalysis!.executableDeclaration_exit(
-        node.functionExpression.body!,
+        node.functionExpression.body,
         isLocal,
       );
       if (isLocal) {
@@ -2607,7 +2607,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 
   void visitConstructorDeclarationInScope(ConstructorDeclaration node) {
-    node.body?.accept(this);
+    node.body.accept(this);
   }
 
   @override

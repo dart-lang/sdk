@@ -467,7 +467,7 @@ class C<NoBound,
   auto expected_can_be_smi = [&](const Field& f) {
     auto& options = Object::Handle();
     return lib.FindPragma(thread, /*only_core=*/false, f, pragma_can_be_smi,
-                          &options);
+                          /*multiple=*/false, &options);
   };
 
   const auto& cls = Class::Handle(GetClass(lib, "C"));

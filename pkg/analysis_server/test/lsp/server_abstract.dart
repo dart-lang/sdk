@@ -1470,7 +1470,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   WorkspaceFolder toWorkspaceFolder(Uri uri) {
     return WorkspaceFolder(
       uri: uri.toString(),
-      name: path.basename(uri.toFilePath()),
+      name: path.basename(uri.path),
     );
   }
 

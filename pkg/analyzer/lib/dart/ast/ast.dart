@@ -1491,12 +1491,11 @@ abstract class Configuration implements AstNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ConstructorDeclaration implements ClassMember {
-  /// Return the body of the constructor, or `null` if the constructor does not
-  /// have a body.
-  FunctionBody? get body;
+  /// Return the body of the constructor.
+  FunctionBody get body;
 
   /// Set the body of the constructor to the given [functionBody].
-  set body(FunctionBody? functionBody);
+  set body(FunctionBody functionBody);
 
   /// Return the token for the 'const' keyword, or `null` if the constructor is
   /// not a const constructor.
@@ -2747,12 +2746,11 @@ abstract class FunctionDeclarationStatement implements Statement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionExpression implements Expression {
-  /// Return the body of the function, or `null` if this is an external
-  /// function.
-  FunctionBody? get body;
+  /// Return the body of the function.
+  FunctionBody get body;
 
   /// Set the body of the function to the given [functionBody].
-  set body(FunctionBody? functionBody);
+  set body(FunctionBody functionBody);
 
   /// Return the element associated with the function, or `null` if the AST
   /// structure has not been resolved.

@@ -21,9 +21,9 @@ enum Register {
   ECX = 1,
   EDX = 2,
   EBX = 3,
-  ESP = 4,
-  EBP = 5,
-  ESI = 6,
+  ESP = 4,  // SP
+  EBP = 5,  // FP
+  ESI = 6,  // THR
   EDI = 7,
   kNumberOfCpuRegisters = 8,
   kNoRegister = -1,  // Signals an illegal register.

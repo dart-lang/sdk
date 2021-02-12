@@ -93,10 +93,11 @@ Packages parsePackageConfigJsonFile(ResourceProvider provider, File file) {
     );
 
     Version? languageVersion;
-    if (jsonPackage.languageVersion != null) {
+    var jsonLanguageVersion = jsonPackage.languageVersion;
+    if (jsonLanguageVersion != null) {
       languageVersion = Version(
-        jsonPackage.languageVersion!.major,
-        jsonPackage.languageVersion!.minor,
+        jsonLanguageVersion.major,
+        jsonLanguageVersion.minor,
         0,
       );
       // New features were added in `2.2.2` over `2.2.0`.

@@ -804,8 +804,8 @@ class ExpressionParserTest extends FastaParserTestCase {
     Expression expression = parseExpression('() async {}');
     var functionExpression = expression as FunctionExpression;
     expect(functionExpression.body, isNotNull);
-    expect(functionExpression.body!.isAsynchronous, isTrue);
-    expect(functionExpression.body!.isGenerator, isFalse);
+    expect(functionExpression.body.isAsynchronous, isTrue);
+    expect(functionExpression.body.isGenerator, isFalse);
     expect(functionExpression.parameters, isNotNull);
   }
 
@@ -813,8 +813,8 @@ class ExpressionParserTest extends FastaParserTestCase {
     Expression expression = parseExpression('() async* {}');
     var functionExpression = expression as FunctionExpression;
     expect(functionExpression.body, isNotNull);
-    expect(functionExpression.body!.isAsynchronous, isTrue);
-    expect(functionExpression.body!.isGenerator, isTrue);
+    expect(functionExpression.body.isAsynchronous, isTrue);
+    expect(functionExpression.body.isGenerator, isTrue);
     expect(functionExpression.parameters, isNotNull);
   }
 
@@ -822,8 +822,8 @@ class ExpressionParserTest extends FastaParserTestCase {
     Expression expression = parseExpression('() {}');
     var functionExpression = expression as FunctionExpression;
     expect(functionExpression.body, isNotNull);
-    expect(functionExpression.body!.isAsynchronous, isFalse);
-    expect(functionExpression.body!.isGenerator, isFalse);
+    expect(functionExpression.body.isAsynchronous, isFalse);
+    expect(functionExpression.body.isGenerator, isFalse);
     expect(functionExpression.parameters, isNotNull);
   }
 
@@ -831,8 +831,8 @@ class ExpressionParserTest extends FastaParserTestCase {
     Expression expression = parseExpression('() sync* {}');
     var functionExpression = expression as FunctionExpression;
     expect(functionExpression.body, isNotNull);
-    expect(functionExpression.body!.isAsynchronous, isFalse);
-    expect(functionExpression.body!.isGenerator, isTrue);
+    expect(functionExpression.body.isAsynchronous, isFalse);
+    expect(functionExpression.body.isGenerator, isTrue);
     expect(functionExpression.parameters, isNotNull);
   }
 

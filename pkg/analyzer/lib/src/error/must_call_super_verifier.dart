@@ -91,8 +91,9 @@ class MustCallSuperVerifier {
         .any(isConcrete)) {
       return true;
     }
-    if (classElement.supertype != null &&
-        isConcrete(classElement.supertype!.element)) {
+
+    var supertype = classElement.supertype;
+    if (supertype != null && isConcrete(supertype.element)) {
       return true;
     }
 

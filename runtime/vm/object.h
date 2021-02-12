@@ -4658,12 +4658,16 @@ class Library : public Object {
   // If [only_core] is true, then the annotations on the object will only
   // be inspected if it is part of a core library.
   //
+  // If [multiple] is true, then sets [options] to an GrowableObjectArray
+  // containing all results and [options] may not be nullptr.
+  //
   // WARNING: If the isolate received an [UnwindError] this function will not
   // return and rather unwinds until the enclosing setjmp() handler.
   static bool FindPragma(Thread* T,
                          bool only_core,
                          const Object& object,
                          const String& pragma_name,
+                         bool multiple = false,
                          Object* options = nullptr);
 
   ClassPtr toplevel_class() const { return untag()->toplevel_class(); }
@@ -6144,11 +6148,9 @@ class Code : public Object {
     explicit Comments(const Array& comments);
 
     // Layout of entries describing comments.
-    enum {
-      kPCOffsetEntry = 0,  // PC offset to a comment as a Smi.
-      kCommentEntry,       // Comment text as a String.
-      kNumberOfEntries
-    };
+    enum {kPCOffsetEntry = 0,  // PC offset to a comment as a Smi.
+          kCommentEntry,       // Comment text as a String.
+          kNumberOfEntries};
 
     const Array& comments_;
     String& string_;
@@ -7262,10 +7264,6 @@ class LibraryPrefix : public Instance {
   void AddImport(const Namespace& import) const;
 
   bool is_deferred_load() const { return untag()->is_deferred_load_; }
-  bool is_loaded() const { return untag()->is_loaded_; }
-  void set_is_loaded(bool value) const {
-    return StoreNonPointer(&untag()->is_loaded_, value);
-  }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedLibraryPrefix));

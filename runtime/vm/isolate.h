@@ -1460,6 +1460,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     regexp_backtracking_stack_cache_ = std::move(stack);
   }
 
+  void init_loaded_prefixes_set_storage();
+  bool IsPrefixLoaded(const LibraryPrefix& prefix) const;
+  void SetPrefixIsLoaded(const LibraryPrefix& prefix);
+
  private:
   friend class Dart;                  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
@@ -1693,6 +1697,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // This monitor protects [creation_enabled_].
   static Monitor* isolate_creation_monitor_;
   static bool creation_enabled_;
+
+  ArrayPtr loaded_prefixes_set_storage_;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;

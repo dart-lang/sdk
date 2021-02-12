@@ -322,7 +322,7 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNullableToken(node.separator),
           cloneNodeList(node.initializers),
           cloneNullableNode(node.redirectedConstructor),
-          cloneNullableNode(node.body));
+          cloneNode(node.body));
 
   @override
   ConstructorFieldInitializer visitConstructorFieldInitializer(
@@ -573,7 +573,7 @@ class AstCloner implements AstVisitor<AstNode> {
   @override
   FunctionExpression visitFunctionExpression(FunctionExpression node) =>
       astFactory.functionExpression(cloneNullableNode(node.typeParameters),
-          cloneNullableNode(node.parameters), cloneNullableNode(node.body));
+          cloneNullableNode(node.parameters), cloneNode(node.body));
 
   @override
   FunctionExpressionInvocation visitFunctionExpressionInvocation(

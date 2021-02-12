@@ -104,7 +104,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   Map<Class, IndexedClass> indexedStructClasses = {};
   Map<Class, Set<Class>> structClassDependencies = {};
   Map<Class, bool> fieldsValid = {};
-  Map<Class, Map<Abi, StructLayout>> structLayouts = {};
+  Map<Class, StructNativeTypeCfe> structCache = {};
 
   Map<Field, Procedure> replacedGetters = {};
   Map<Field, Procedure> replacedSetters = {};
@@ -150,12 +150,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               e.name.length,
               e.fileUri);
         });
+      } else {
+        // Only visit the ones without cycles.
+        visitClassInTopologicalOrder(component.single);
       }
     });
-
-    final structClassesSorted = connectedComponents.expand((i) => i).toList();
-
-    structClassesSorted.forEach(visitClassInTopologicalOrder);
   }
 
   @override
@@ -216,6 +215,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   bool _isPointerType(DartType type) {
+    if (type is InvalidType) {
+      return false;
+    }
     return env.isSubtypeOf(
         type,
         InterfaceType(pointerClass, Nullability.legacy, [
@@ -226,6 +228,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   bool _isStructSubtype(DartType type) {
+    if (type is InvalidType) {
+      return false;
+    }
     return env.isSubtypeOf(type, InterfaceType(structClass, Nullability.legacy),
         SubtypeCheckMode.ignoringNullabilities);
   }
@@ -272,6 +277,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               f.fileOffset,
               f.name.text.length,
               f.fileUri);
+          // This class is invalid, but continue reporting other errors on it.
+          success = false;
         }
       }
       final nativeTypeAnnos = _getNativeTypeAnnotations(f).toList();
@@ -283,6 +290,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               f.fileOffset,
               f.name.text.length,
               f.fileUri);
+          // This class is invalid, but continue reporting other errors on it.
+          success = false;
         }
         if (_isStructSubtype(type)) {
           final clazz = (type as InterfaceType).classNode;
@@ -294,6 +303,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             f.fileOffset,
             f.name.text.length,
             f.fileUri);
+        // This class is invalid, but continue reporting other errors on it.
+        success = false;
       } else {
         final DartType nativeType = InterfaceType(
             nativeTypesClasses[_getFieldType(nativeTypeAnnos.first).index],
@@ -311,6 +322,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               f.fileOffset,
               1,
               f.location.file);
+          // This class is invalid, but continue reporting other errors on it.
           success = false;
         }
       }
@@ -364,8 +376,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   ///
   /// Returns the total size of the struct (for all ABIs).
   Map<Abi, int> _replaceFields(Class node, IndexedClass indexedClass) {
-    final classes = <Class>[];
-    final types = <NativeType>[];
+    final types = <NativeTypeCfe>[];
     final fields = <int, Field>{};
     final getters = <int, Procedure>{};
     final setters = <int, Procedure>{};
@@ -374,14 +385,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     for (final Member m in _structFieldMembers(node)) {
       final dartType = _structFieldMemberType(m);
 
-      NativeType nativeType;
-      Class clazz;
+      NativeTypeCfe type;
       if (_isPointerType(dartType)) {
-        nativeType = NativeType.kPointer;
-        clazz = pointerClass;
+        type = PointerNativeTypeCfe();
       } else if (_isStructSubtype(dartType)) {
-        nativeType = NativeType.kStruct;
-        clazz = (dartType as InterfaceType).classNode;
+        final clazz = (dartType as InterfaceType).classNode;
+        type = structCache[clazz];
         if (emptyStructs.contains(clazz)) {
           diagnosticReporter.report(
               templateFfiEmptyStruct.withArguments(clazz.name),
@@ -392,15 +401,14 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       } else {
         final nativeTypeAnnos = _getNativeTypeAnnotations(m).toList();
         if (nativeTypeAnnos.length == 1) {
-          clazz = nativeTypeAnnos.first;
-          nativeType = _getFieldType(clazz);
+          final clazz = nativeTypeAnnos.first;
+          final nativeType = _getFieldType(clazz);
+          type = PrimitiveNativeTypeCfe(nativeType, clazz);
         }
       }
 
-      if ((m is Field || (m is Procedure && m.isGetter)) &&
-          nativeType != null) {
-        types.add(nativeType);
-        classes.add(clazz);
+      if ((m is Field || (m is Procedure && m.isGetter)) && type != null) {
+        types.add(type);
         if (m is Field) {
           fields[i] = m;
         }
@@ -417,8 +425,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       }
     }
 
-    _annoteStructWithFields(node, classes);
-    if (classes.isEmpty) {
+    _annoteStructWithFields(node, types);
+    if (types.isEmpty) {
       diagnosticReporter.report(
           templateFfiEmptyStructWarning.withArguments(node.name),
           node.fileOffset,
@@ -427,11 +435,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       emptyStructs.add(node);
     }
 
-    final structLayout = <Abi, StructLayout>{};
-    for (final Abi abi in Abi.values) {
-      structLayout[abi] = _calculateStructLayout(types, classes, abi);
-    }
-    structLayouts[node] = structLayout;
+    final structType = StructNativeTypeCfe(node, types);
+    structCache[node] = structType;
+    final structLayout = structType.layout;
 
     for (final i in fields.keys) {
       final fieldOffsets = structLayout
@@ -449,11 +455,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       final fieldOffsets = structLayout
           .map((Abi abi, StructLayout v) => MapEntry(abi, v.offsets[i]));
       Procedure getter = getters[i];
-      getter.function.body = _generateGetterStatement(
-          getter.function.returnType,
-          types[i],
-          getter.fileOffset,
-          fieldOffsets);
+      getter.function.body = types[i].generateGetterStatement(
+          getter.function.returnType, getter.fileOffset, fieldOffsets, this);
       getter.isExternal = false;
     }
 
@@ -461,207 +464,38 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       final fieldOffsets = structLayout
           .map((Abi abi, StructLayout v) => MapEntry(abi, v.offsets[i]));
       Procedure setter = setters[i];
-      setter.function.body = _generateSetterStatement(
+      setter.function.body = types[i].generateSetterStatement(
           setter.function.positionalParameters.single.type,
-          types[i],
           setter.fileOffset,
           fieldOffsets,
-          setter.function.positionalParameters.single);
+          setter.function.positionalParameters.single,
+          this);
       setter.isExternal = false;
     }
 
     return structLayout.map((k, v) => MapEntry(k, v.size));
   }
 
-  void _annoteStructWithFields(Class node, List<Class> fieldTypes) {
-    final types = fieldTypes.map((Class c) {
-      List<DartType> typeArg = const [];
-      if (c == pointerClass) {
-        typeArg = [
-          InterfaceType(pointerClass.superclass, Nullability.nonNullable)
-        ];
-      }
-      return TypeLiteralConstant(
-          InterfaceType(c, Nullability.nonNullable, typeArg));
-    }).toList();
+  void _annoteStructWithFields(Class node, List<NativeTypeCfe> types) {
+    List<Constant> constants =
+        types.map((t) => t.generateConstant(this)).toList();
 
     node.addAnnotation(ConstantExpression(
         InstanceConstant(pragmaClass.reference, [], {
           pragmaName.getterReference: StringConstant("vm:ffi:struct-fields"),
-          // TODO(dartbug.com/38158): Wrap list in class to be able to encode
-          // more information when needed.
-          pragmaOptions.getterReference: ListConstant(
-              InterfaceType(typeClass, Nullability.nonNullable), types)
+          pragmaOptions.getterReference:
+              InstanceConstant(ffiStructLayoutClass.reference, [], {
+            ffiStructLayoutTypesField.getterReference: ListConstant(
+                InterfaceType(typeClass, Nullability.nonNullable), constants)
+          })
         }),
         InterfaceType(pragmaClass, Nullability.nonNullable, [])));
   }
 
-  Statement _generateGetterStatement(DartType dartType, NativeType type,
-      int fileOffset, Map<Abi, int> offsets) {
-    final bool isPointer = type == NativeType.kPointer;
-    final bool isStruct = type == NativeType.kStruct;
-
-    // Sample output:
-    // int get x => _loadInt8(pointer, offset);
-    //
-    // Treat Pointer fields different to get correct behavior without casts:
-    // Pointer<Int8> get x =>
-    //   _fromAddress<Int8>(_loadIntPtr(pointer, offset));
-    //
-    // Nested structs:
-    // MyStruct get x =>
-    //   MyStruct.#fromTypedDataBase(
-    //     _addressOf is Pointer ?
-    //       _fromAddress<MyStruct>((_addressOf as Pointer).address + offset) :
-    //       (_addressOf as TypedData).buffer.asInt8List(
-    //         (_addressOf as TypedData).offsetInBytes + offset,
-    //         size
-    //       )
-    //   );
-    if (isStruct) {
-      final clazz = (dartType as InterfaceType).classNode;
-      final constructor = clazz.constructors
-          .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
-      final lengths =
-          structLayouts[clazz].map((key, value) => MapEntry(key, value.size));
-      Expression thisDotAddressOf() =>
-          PropertyGet(ThisExpression(), addressOfField.name, addressOfField)
-            ..fileOffset = fileOffset;
-      return ReturnStatement(ConstructorInvocation(
-          constructor,
-          Arguments([
-            ConditionalExpression(
-                IsExpression(thisDotAddressOf(),
-                    InterfaceType(pointerClass, Nullability.legacy)),
-                StaticInvocation(
-                    fromAddressInternal,
-                    Arguments([
-                      MethodInvocation(
-                          PropertyGet(thisDotAddressOf(), addressGetter.name,
-                              addressGetter)
-                            ..fileOffset = fileOffset,
-                          numAddition.name,
-                          Arguments([runtimeBranchOnLayout(offsets)]),
-                          numAddition)
-                    ], types: [
-                      dartType
-                    ]))
-                  ..fileOffset = fileOffset,
-                MethodInvocation(
-                    PropertyGet(
-                        StaticInvocation(
-                            unsafeCastMethod,
-                            Arguments([
-                              thisDotAddressOf()
-                            ], types: [
-                              InterfaceType(typedDataClass, Nullability.legacy)
-                            ]))
-                          ..fileOffset = fileOffset,
-                        typedDataBufferGetter.name,
-                        typedDataBufferGetter)
-                      ..fileOffset = fileOffset,
-                    byteBufferAsUint8List.name,
-                    Arguments([
-                      MethodInvocation(
-                          PropertyGet(
-                              StaticInvocation(
-                                  unsafeCastMethod,
-                                  Arguments([
-                                    thisDotAddressOf()
-                                  ], types: [
-                                    InterfaceType(
-                                        typedDataClass, Nullability.legacy)
-                                  ]))
-                                ..fileOffset = fileOffset,
-                              typedDataOffsetInBytesGetter.name,
-                              typedDataOffsetInBytesGetter)
-                            ..fileOffset = fileOffset,
-                          numAddition.name,
-                          Arguments([runtimeBranchOnLayout(offsets)]),
-                          numAddition),
-                      runtimeBranchOnLayout(lengths)
-                    ]),
-                    byteBufferAsUint8List),
-                InterfaceType(objectClass, Nullability.nonNullable))
-          ]))
-        ..fileOffset = fileOffset);
-    }
-    final loadMethod =
-        isPointer ? loadMethods[NativeType.kIntptr] : loadMethods[type];
-    Expression getterReturnValue = StaticInvocation(
-        loadMethod,
-        Arguments([
-          PropertyGet(ThisExpression(), addressOfField.name, addressOfField)
-            ..fileOffset = fileOffset,
-          runtimeBranchOnLayout(offsets)
-        ]))
-      ..fileOffset = fileOffset;
-    if (isPointer) {
-      final typeArg = (dartType as InterfaceType).typeArguments.single;
-      getterReturnValue = StaticInvocation(
-          fromAddressInternal, Arguments([getterReturnValue], types: [typeArg]))
-        ..fileOffset = fileOffset;
-    }
-    return ReturnStatement(getterReturnValue);
-  }
-
-  Statement _generateSetterStatement(DartType dartType, NativeType type,
-      int fileOffset, Map<Abi, int> offsets, VariableDeclaration argument) {
-    final bool isPointer = type == NativeType.kPointer;
-    final bool isStruct = type == NativeType.kStruct;
-
-    // Sample output:
-    // set x(int v) => _storeInt8(pointer, offset, v);
-    //
-    // Treat Pointer fields different to get correct behavior without casts:
-    // set x(Pointer<Int8> v) =>
-    //   _storeIntPtr(pointer, offset, (v as Pointer<Int8>).address);
-    //
-    // Nested structs:
-    // set x(MyStruct v) =>
-    //   _memCopy(this._address, offset, v._address, 0, size);
-    if (isStruct) {
-      final clazz = (dartType as InterfaceType).classNode;
-      final lengths =
-          structLayouts[clazz].map((key, value) => MapEntry(key, value.size));
-      return ReturnStatement(StaticInvocation(
-          memCopy,
-          Arguments([
-            PropertyGet(ThisExpression(), addressOfField.name, addressOfField)
-              ..fileOffset = fileOffset,
-            runtimeBranchOnLayout(offsets),
-            PropertyGet(
-                VariableGet(argument), addressOfField.name, addressOfField)
-              ..fileOffset = fileOffset,
-            ConstantExpression(IntConstant(0)),
-            runtimeBranchOnLayout(lengths),
-          ]))
-        ..fileOffset = fileOffset);
-    }
-    final storeMethod =
-        isPointer ? storeMethods[NativeType.kIntptr] : storeMethods[type];
-    Expression argumentExpression = VariableGet(argument)
-      ..fileOffset = fileOffset;
-    if (isPointer) {
-      argumentExpression =
-          PropertyGet(argumentExpression, addressGetter.name, addressGetter)
-            ..fileOffset = fileOffset;
-    }
-    return ReturnStatement(StaticInvocation(
-        storeMethod,
-        Arguments([
-          PropertyGet(ThisExpression(), addressOfField.name, addressOfField)
-            ..fileOffset = fileOffset,
-          runtimeBranchOnLayout(offsets),
-          argumentExpression
-        ]))
-      ..fileOffset = fileOffset);
-  }
-
-  List<Procedure> _generateMethodsForField(Field field, NativeType type,
+  List<Procedure> _generateMethodsForField(Field field, NativeTypeCfe type,
       Map<Abi, int> offsets, IndexedClass indexedClass) {
-    final getterStatement =
-        _generateGetterStatement(field.type, type, field.fileOffset, offsets);
+    final getterStatement = type.generateGetterStatement(
+        field.type, field.fileOffset, offsets, this);
     final Procedure getter = Procedure(field.name, ProcedureKind.Getter,
         FunctionNode(getterStatement, returnType: field.type),
         fileUri: field.fileUri,
@@ -674,8 +508,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       final VariableDeclaration argument =
           VariableDeclaration('#v', type: field.type)
             ..fileOffset = field.fileOffset;
-      final setterStatement = _generateSetterStatement(
-          field.type, type, field.fileOffset, offsets, argument);
+      final setterStatement = type.generateSetterStatement(
+          field.type, field.fileOffset, offsets, argument, this);
       setter = Procedure(
           field.name,
           ProcedureKind.Setter,
@@ -709,64 +543,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       ..fileOffset = struct.fileOffset;
     _makeEntryPoint(sizeOf);
     struct.addField(sizeOf);
-  }
-
-  int _sizeInBytes(NativeType type, Class clazz, Abi abi) {
-    if (type == NativeType.kStruct) {
-      final structLayout = structLayouts[clazz];
-      if (structLayout == null) {
-        // We have a cycle, so we don't know the size.
-        return 0;
-      }
-      return structLayout[abi].size;
-    }
-    final int size = nativeTypeSizes[type.index];
-    if (size == WORD_SIZE) {
-      return wordSize[abi];
-    }
-    return size;
-  }
-
-  int _alignmentOf(NativeType type, Class clazz, Abi abi) {
-    if (type == NativeType.kStruct) {
-      final structLayout = structLayouts[clazz];
-      if (structLayout == null) {
-        // We have a cycle, so we don't know the size.
-        return 0;
-      }
-      return structLayout[abi].alignment;
-    }
-    final int alignment = nonSizeAlignment[abi][type];
-    if (alignment != null) return alignment;
-    return _sizeInBytes(type, clazz, abi);
-  }
-
-  int _alignOffset(int offset, int alignment) {
-    final int remainder = offset % alignment;
-    if (remainder != 0) {
-      offset -= remainder;
-      offset += alignment;
-    }
-    return offset;
-  }
-
-  // Keep consistent with runtime/vm/compiler/ffi/native_type.cc
-  // NativeCompoundType::FromNativeTypes.
-  StructLayout _calculateStructLayout(
-      List<NativeType> types, List<Class> classes, Abi abi) {
-    int offset = 0;
-    final offsets = <int>[];
-    int structAlignment = 1;
-    for (int i = 0; i < types.length; i++) {
-      final int size = _sizeInBytes(types[i], classes[i], abi);
-      final int alignment = _alignmentOf(types[i], classes[i], abi);
-      offset = _alignOffset(offset, alignment);
-      offsets.add(offset);
-      offset += size;
-      structAlignment = math.max(structAlignment, alignment);
-    }
-    final int size = _alignOffset(offset, structAlignment);
-    return StructLayout(size, structAlignment, offsets);
   }
 
   void _makeEntryPoint(Annotatable node) {
@@ -811,3 +587,275 @@ class StructLayout {
 
   StructLayout(this.size, this.alignment, this.offsets);
 }
+
+/// AST node wrapper for native types.
+///
+/// This algebraic data structure does not stand on its own but refers
+/// intimately to AST nodes such as [Class].
+abstract class NativeTypeCfe {
+  /// The size in bytes per [Abi].
+  Map<Abi, int> get size;
+
+  /// The alignment inside structs in bytes per [Abi].
+  ///
+  /// This is not the alignment on stack, this is only calculated in the VM.
+  Map<Abi, int> get alignment;
+
+  /// Generates a Constant representing the type which is consumed by the VM.
+  ///
+  /// Takes [transformer] to be able to lookup classes and methods.
+  ///
+  /// See runtime/vm/compiler/ffi/native_type.cc:NativeType::FromAbstractType.
+  Constant generateConstant(FfiTransformer transformer);
+
+  /// Generates the return statement for a struct field getter with this type.
+  ///
+  /// Takes [transformer] to be able to lookup classes and methods.
+  ReturnStatement generateGetterStatement(DartType dartType, int fileOffset,
+      Map<Abi, int> offsets, FfiTransformer transformer);
+
+  /// Generates the return statement for a struct field setter with this type.
+  ///
+  /// Takes [transformer] to be able to lookup classes and methods.
+  ReturnStatement generateSetterStatement(
+      DartType dartType,
+      int fileOffset,
+      Map<Abi, int> offsets,
+      VariableDeclaration argument,
+      FfiTransformer transformer);
+}
+
+class PrimitiveNativeTypeCfe implements NativeTypeCfe {
+  final NativeType nativeType;
+
+  final Class clazz;
+
+  PrimitiveNativeTypeCfe(this.nativeType, this.clazz);
+
+  @override
+  Map<Abi, int> get size {
+    final int size = nativeTypeSizes[nativeType.index];
+    if (size == WORD_SIZE) {
+      return wordSize;
+    }
+    return Map.fromEntries(Abi.values.map((abi) => MapEntry(abi, size)));
+  }
+
+  @override
+  Map<Abi, int> get alignment => Map.fromEntries(Abi.values.map(
+      (abi) => MapEntry(abi, nonSizeAlignment[abi][nativeType] ?? size[abi])));
+
+  @override
+  Constant generateConstant(FfiTransformer transformer) =>
+      TypeLiteralConstant(InterfaceType(clazz, Nullability.nonNullable));
+
+  /// Sample output for `int get x =>`:
+  ///
+  /// ```
+  /// _loadInt8(_addressOf, offset);
+  /// ```
+  @override
+  ReturnStatement generateGetterStatement(DartType dartType, int fileOffset,
+          Map<Abi, int> offsets, FfiTransformer transformer) =>
+      ReturnStatement(StaticInvocation(
+          transformer.loadMethods[nativeType],
+          Arguments([
+            PropertyGet(ThisExpression(), transformer.addressOfField.name,
+                transformer.addressOfField)
+              ..fileOffset = fileOffset,
+            transformer.runtimeBranchOnLayout(offsets)
+          ]))
+        ..fileOffset = fileOffset);
+
+  /// Sample output for `set x(int #v) =>`:
+  ///
+  /// ```
+  /// _storeInt8(_addressOf, offset, #v);
+  /// ```
+  @override
+  ReturnStatement generateSetterStatement(
+          DartType dartType,
+          int fileOffset,
+          Map<Abi, int> offsets,
+          VariableDeclaration argument,
+          FfiTransformer transformer) =>
+      ReturnStatement(StaticInvocation(
+          transformer.storeMethods[nativeType],
+          Arguments([
+            PropertyGet(ThisExpression(), transformer.addressOfField.name,
+                transformer.addressOfField)
+              ..fileOffset = fileOffset,
+            transformer.runtimeBranchOnLayout(offsets),
+            VariableGet(argument)
+          ]))
+        ..fileOffset = fileOffset);
+}
+
+class PointerNativeTypeCfe implements NativeTypeCfe {
+  @override
+  Map<Abi, int> get size => wordSize;
+
+  @override
+  Map<Abi, int> get alignment => wordSize;
+
+  @override
+  Constant generateConstant(FfiTransformer transformer) => TypeLiteralConstant(
+          InterfaceType(transformer.pointerClass, Nullability.nonNullable, [
+        InterfaceType(
+            transformer.pointerClass.superclass, Nullability.nonNullable)
+      ]));
+
+  /// Sample output for `Pointer<Int8> get x =>`:
+  ///
+  /// ```
+  /// _fromAddress<Int8>(_loadIntPtr(_addressOf, offset));
+  /// ```
+  @override
+  ReturnStatement generateGetterStatement(DartType dartType, int fileOffset,
+          Map<Abi, int> offsets, FfiTransformer transformer) =>
+      ReturnStatement(StaticInvocation(
+          transformer.fromAddressInternal,
+          Arguments([
+            StaticInvocation(
+                transformer.loadMethods[NativeType.kIntptr],
+                Arguments([
+                  PropertyGet(ThisExpression(), transformer.addressOfField.name,
+                      transformer.addressOfField)
+                    ..fileOffset = fileOffset,
+                  transformer.runtimeBranchOnLayout(offsets)
+                ]))
+              ..fileOffset = fileOffset
+          ], types: [
+            (dartType as InterfaceType).typeArguments.single
+          ]))
+        ..fileOffset = fileOffset);
+
+  /// Sample output for `set x(Pointer<Int8> #v) =>`:
+  ///
+  /// ```
+  /// _storeIntPtr(_addressOf, offset, (#v as Pointer<Int8>).address);
+  /// ```
+  @override
+  ReturnStatement generateSetterStatement(
+          DartType dartType,
+          int fileOffset,
+          Map<Abi, int> offsets,
+          VariableDeclaration argument,
+          FfiTransformer transformer) =>
+      ReturnStatement(StaticInvocation(
+          transformer.storeMethods[NativeType.kIntptr],
+          Arguments([
+            PropertyGet(ThisExpression(), transformer.addressOfField.name,
+                transformer.addressOfField)
+              ..fileOffset = fileOffset,
+            transformer.runtimeBranchOnLayout(offsets),
+            PropertyGet(VariableGet(argument), transformer.addressGetter.name,
+                transformer.addressGetter)
+              ..fileOffset = fileOffset
+          ]))
+        ..fileOffset = fileOffset);
+}
+
+class StructNativeTypeCfe implements NativeTypeCfe {
+  final Class clazz;
+
+  final List<NativeTypeCfe> members;
+
+  final Map<Abi, StructLayout> layout;
+
+  factory StructNativeTypeCfe(Class clazz, List<NativeTypeCfe> members) {
+    final layout = Map.fromEntries(
+        Abi.values.map((abi) => MapEntry(abi, _calculateLayout(members, abi))));
+    return StructNativeTypeCfe._(clazz, members, layout);
+  }
+
+  // Keep consistent with runtime/vm/compiler/ffi/native_type.cc
+  // NativeCompoundType::FromNativeTypes.
+  static StructLayout _calculateLayout(List<NativeTypeCfe> types, Abi abi) {
+    int offset = 0;
+    final offsets = <int>[];
+    int structAlignment = 1;
+    for (int i = 0; i < types.length; i++) {
+      final int size = types[i].size[abi];
+      final int alignment = types[i].alignment[abi];
+      offset = _alignOffset(offset, alignment);
+      offsets.add(offset);
+      offset += size;
+      structAlignment = math.max(structAlignment, alignment);
+    }
+    final int size = _alignOffset(offset, structAlignment);
+    return StructLayout(size, structAlignment, offsets);
+  }
+
+  StructNativeTypeCfe._(this.clazz, this.members, this.layout);
+
+  @override
+  Map<Abi, int> get size =>
+      layout.map((abi, layout) => MapEntry(abi, layout.size));
+
+  @override
+  Map<Abi, int> get alignment =>
+      layout.map((abi, layout) => MapEntry(abi, layout.alignment));
+
+  @override
+  Constant generateConstant(FfiTransformer transformer) =>
+      TypeLiteralConstant(InterfaceType(clazz, Nullability.nonNullable));
+
+  /// Sample output for `MyStruct get x =>`:
+  ///
+  /// ```
+  /// MyStruct.#fromTypedDataBase(
+  ///   typedDataBaseOffset(_addressOf, offset, size, dartType)
+  /// );
+  /// ```
+  @override
+  ReturnStatement generateGetterStatement(DartType dartType, int fileOffset,
+      Map<Abi, int> offsets, FfiTransformer transformer) {
+    final constructor = clazz.constructors
+        .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
+
+    return ReturnStatement(ConstructorInvocation(
+        constructor,
+        Arguments([
+          transformer.typedDataBaseOffset(
+              PropertyGet(ThisExpression(), transformer.addressOfField.name,
+                  transformer.addressOfField)
+                ..fileOffset = fileOffset,
+              transformer.runtimeBranchOnLayout(offsets),
+              transformer.runtimeBranchOnLayout(size),
+              dartType,
+              fileOffset)
+        ]))
+      ..fileOffset = fileOffset);
+  }
+
+  /// Sample output for `set x(MyStruct #v) =>`:
+  ///
+  /// ```
+  /// _memCopy(_addressOf, offset, #v._addressOf, 0, size);
+  /// ```
+  @override
+  ReturnStatement generateSetterStatement(
+          DartType dartType,
+          int fileOffset,
+          Map<Abi, int> offsets,
+          VariableDeclaration argument,
+          FfiTransformer transformer) =>
+      ReturnStatement(StaticInvocation(
+          transformer.memCopy,
+          Arguments([
+            PropertyGet(ThisExpression(), transformer.addressOfField.name,
+                transformer.addressOfField)
+              ..fileOffset = fileOffset,
+            transformer.runtimeBranchOnLayout(offsets),
+            PropertyGet(VariableGet(argument), transformer.addressOfField.name,
+                transformer.addressOfField)
+              ..fileOffset = fileOffset,
+            ConstantExpression(IntConstant(0)),
+            transformer.runtimeBranchOnLayout(size),
+          ]))
+        ..fileOffset = fileOffset);
+}
+
+int _alignOffset(int offset, int alignment) =>
+    ((offset + alignment - 1) ~/ alignment) * alignment;

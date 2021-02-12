@@ -31,18 +31,18 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   final ErrorReporter _errorReporter;
 
   /// The object used to track the usage of labels within a given label scope.
-  _LabelTracker? labelTracker;
+  _LabelTracker? _labelTracker;
 
   DeadCodeVerifier(this._errorReporter);
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    labelTracker?.recordUsage(node.label?.name);
+    _labelTracker?.recordUsage(node.label?.name);
   }
 
   @override
   void visitContinueStatement(ContinueStatement node) {
-    labelTracker?.recordUsage(node.label?.name);
+    _labelTracker?.recordUsage(node.label?.name);
   }
 
   @override
@@ -78,12 +78,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    _pushLabels(node.labels);
-    try {
+    _withLabelTracker(node.labels, () {
       super.visitLabeledStatement(node);
-    } finally {
-      _popLabels();
-    }
+    });
   }
 
   @override
@@ -92,12 +89,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     for (SwitchMember member in node.members) {
       labels.addAll(member.labels);
     }
-    _pushLabels(labels);
-    try {
+    _withLabelTracker(labels, () {
       super.visitSwitchStatement(node);
-    } finally {
-      _popLabels();
-    }
+    });
   }
 
   /// Resolve the names in the given [combinator] in the scope of the given
@@ -125,19 +119,18 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Exit the most recently entered label scope after reporting any labels that
-  /// were not referenced within that scope.
-  void _popLabels() {
-    for (Label label in labelTracker!.unusedLabels()) {
-      _errorReporter
-          .reportErrorForNode(HintCode.UNUSED_LABEL, label, [label.label.name]);
+  void _withLabelTracker(List<Label> labels, void Function() f) {
+    var labelTracker = _LabelTracker(_labelTracker, labels);
+    try {
+      _labelTracker = labelTracker;
+      f();
+    } finally {
+      for (Label label in labelTracker.unusedLabels()) {
+        _errorReporter.reportErrorForNode(
+            HintCode.UNUSED_LABEL, label, [label.label.name]);
+      }
+      _labelTracker = labelTracker.outerTracker;
     }
-    labelTracker = labelTracker!.outerTracker;
-  }
-
-  /// Enter a new label scope in which the given [labels] are defined.
-  void _pushLabels(List<Label> labels) {
-    labelTracker = _LabelTracker(labelTracker, labels);
   }
 }
 
@@ -491,13 +484,14 @@ class NullSafetyDeadCodeVerifier {
   /// not `null`, and is covered by the [node], then we reached the end of
   /// the current dead code interval.
   void flowEnd(AstNode node) {
-    if (_firstDeadNode != null) {
+    var firstDeadNode = _firstDeadNode;
+    if (firstDeadNode != null) {
       if (!_containsFirstDeadNode(node)) {
         return;
       }
 
-      var parent = _firstDeadNode!.parent;
-      if (parent is Assertion && identical(_firstDeadNode, parent.message)) {
+      var parent = firstDeadNode.parent;
+      if (parent is Assertion && identical(firstDeadNode, parent.message)) {
         // Don't report "dead code" for the message part of an assert statement,
         // because this causes nuisance warnings for redundant `!= null`
         // asserts.
@@ -505,12 +499,12 @@ class NullSafetyDeadCodeVerifier {
         // We know that [node] is the first dead node, or contains it.
         // So, technically the code code interval ends at the end of [node].
         // But we trim it to the last statement for presentation purposes.
-        if (node != _firstDeadNode) {
+        if (node != firstDeadNode) {
           if (node is FunctionDeclaration) {
-            node = node.functionExpression.body!;
+            node = node.functionExpression.body;
           }
           if (node is FunctionExpression) {
-            node = node.body!;
+            node = node.body;
           }
           if (node is MethodDeclaration) {
             node = node.body;
@@ -526,7 +520,7 @@ class NullSafetyDeadCodeVerifier {
           }
         }
 
-        var offset = _firstDeadNode!.offset;
+        var offset = firstDeadNode.offset;
         var length = node.end - offset;
         _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
       }
@@ -570,10 +564,11 @@ class NullSafetyDeadCodeVerifier {
     // So, they look unreachable, but this does not make sense.
     if (node is Comment) return;
 
-    if (_flowAnalysis == null) return;
-    _flowAnalysis!.checkUnreachableNode(node);
+    var flowAnalysis = _flowAnalysis;
+    if (flowAnalysis == null) return;
+    flowAnalysis.checkUnreachableNode(node);
 
-    var flow = _flowAnalysis!.flow;
+    var flow = flowAnalysis.flow;
     if (flow == null) return;
 
     if (flow.isReachable) return;
@@ -678,8 +673,8 @@ class _LabelTracker {
       var index = labelMap[labelName];
       if (index != null) {
         used[index] = true;
-      } else if (outerTracker != null) {
-        outerTracker!.recordUsage(labelName);
+      } else {
+        outerTracker?.recordUsage(labelName);
       }
     }
   }

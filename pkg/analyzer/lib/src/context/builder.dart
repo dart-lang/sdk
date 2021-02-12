@@ -67,7 +67,7 @@ class ContextBuilder {
 
   /// The manager used to manage the DartSdk's that have been created so that
   /// they can be shared across contexts.
-  final DartSdkManager? sdkManager;
+  final DartSdkManager sdkManager;
 
   /// The cache containing the contents of overlaid files. If this builder will
   /// be used to build analysis drivers, set the [fileContentOverlay] instead.
@@ -114,13 +114,19 @@ class ContextBuilder {
     String path = contextRoot.root;
     var options = getAnalysisOptions(path, contextRoot: contextRoot);
     //_processAnalysisOptions(context, optionMap);
+
     SummaryDataStore? summaryData;
-    if (builderOptions.librarySummaryPaths != null) {
-      summaryData = SummaryDataStore(builderOptions.librarySummaryPaths!);
+    var librarySummaryPaths = builderOptions.librarySummaryPaths;
+    if (librarySummaryPaths != null) {
+      summaryData = SummaryDataStore(librarySummaryPaths);
     }
+
     Workspace workspace = ContextBuilder.createWorkspace(
-        resourceProvider, path, this,
-        lookForBazelBuildFileSubstitutes: lookForBazelBuildFileSubstitutes);
+      resourceProvider: resourceProvider,
+      options: builderOptions,
+      rootPath: path,
+      lookForBazelBuildFileSubstitutes: lookForBazelBuildFileSubstitutes,
+    );
     final sf =
         createSourceFactoryFromWorkspace(workspace, summaryData: summaryData);
 
@@ -133,7 +139,11 @@ class ContextBuilder {
       contextRoot,
       sf,
       options,
-      packages: createPackageMap(path),
+      packages: createPackageMap(
+        resourceProvider: resourceProvider,
+        options: builderOptions,
+        rootPath: path,
+      ),
       enableIndex: enableIndex,
       externalSummaries: summaryData,
       retainDataForTesting: retainDataForTesting,
@@ -196,21 +206,13 @@ class ContextBuilder {
 //    }
 //  }
 
-  Packages createPackageMap(String rootDirectoryPath) {
-    var configPath = builderOptions.defaultPackageFilePath;
-    if (configPath != null) {
-      var configFile = resourceProvider.getFile(configPath);
-      return parsePackagesFile(resourceProvider, configFile);
-    } else {
-      var resource = resourceProvider.getResource(rootDirectoryPath);
-      return findPackagesFrom(resourceProvider, resource);
-    }
-  }
-
   SourceFactory createSourceFactory(String rootPath,
       {SummaryDataStore? summaryData}) {
-    Workspace workspace =
-        ContextBuilder.createWorkspace(resourceProvider, rootPath, this);
+    Workspace workspace = ContextBuilder.createWorkspace(
+      resourceProvider: resourceProvider,
+      options: builderOptions,
+      rootPath: rootPath,
+    );
     DartSdk sdk = findSdk(workspace);
     if (summaryData != null && sdk is SummaryBasedDartSdk) {
       summaryData.addBundle(null, sdk.bundle);
@@ -248,9 +250,9 @@ class ContextBuilder {
 
     DartSdk folderSdk;
     {
-      String sdkPath = sdkManager!.defaultSdkDirectory;
+      String sdkPath = sdkManager.defaultSdkDirectory;
       SdkDescription description = SdkDescription(sdkPath);
-      folderSdk = sdkManager!.getSdk(description, () {
+      folderSdk = sdkManager.getSdk(description, () {
         return FolderBasedDartSdk(
           resourceProvider,
           resourceProvider.getFolder(sdkPath),
@@ -296,8 +298,11 @@ class ContextBuilder {
 
     // TODO(danrubel) restructure so that we don't create a workspace
     // both here and in createSourceFactory
-    Workspace workspace =
-        ContextBuilder.createWorkspace(resourceProvider, path, this);
+    Workspace workspace = ContextBuilder.createWorkspace(
+      resourceProvider: resourceProvider,
+      options: builderOptions,
+      rootPath: path,
+    );
     SourceFactory sourceFactory = workspace.createSourceFactory(null, null);
     AnalysisOptionsProvider optionsProvider =
         AnalysisOptionsProvider(sourceFactory);
@@ -342,8 +347,9 @@ class ContextBuilder {
 
     if (optionMap != null) {
       applyToAnalysisOptions(options, optionMap);
-      if (builderOptions.argResults != null) {
-        applyAnalysisOptionFlags(options, builderOptions.argResults!,
+      var argResults = builderOptions.argResults;
+      if (argResults != null) {
+        applyAnalysisOptionFlags(options, argResults,
             verbosePrint: verbosePrint);
       }
     } else {
@@ -402,10 +408,33 @@ class ContextBuilder {
     return null;
   }
 
-  static Workspace createWorkspace(ResourceProvider resourceProvider,
-      String rootPath, ContextBuilder contextBuilder,
-      {bool lookForBazelBuildFileSubstitutes = true}) {
-    var packages = contextBuilder.createPackageMap(rootPath);
+  /// Return [Packages] to analyze a resource with the [rootPath].
+  static Packages createPackageMap({
+    required ResourceProvider resourceProvider,
+    required ContextBuilderOptions options,
+    required String rootPath,
+  }) {
+    var configPath = options.defaultPackageFilePath;
+    if (configPath != null) {
+      var configFile = resourceProvider.getFile(configPath);
+      return parsePackagesFile(resourceProvider, configFile);
+    } else {
+      var resource = resourceProvider.getResource(rootPath);
+      return findPackagesFrom(resourceProvider, resource);
+    }
+  }
+
+  static Workspace createWorkspace({
+    required ResourceProvider resourceProvider,
+    required ContextBuilderOptions options,
+    required String rootPath,
+    bool lookForBazelBuildFileSubstitutes = true,
+  }) {
+    var packages = ContextBuilder.createPackageMap(
+      resourceProvider: resourceProvider,
+      options: options,
+      rootPath: rootPath,
+    );
     var packageMap = <String, List<Folder>>{};
     for (var package in packages.packages) {
       packageMap[package.name] = [package.libFolder];

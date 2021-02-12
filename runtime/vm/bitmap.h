@@ -60,6 +60,11 @@ class BitmapBuilder : public ZoneAllocated {
     return (offset < length_);
   }
 
+  bool InBackingStore(intptr_t bit_offset) {
+    intptr_t byte_offset = bit_offset >> kBitsPerByteLog2;
+    return byte_offset < data_size_in_bytes_;
+  }
+
   // Get/Set a bit that is known to be covered by the backing store.
   bool GetBit(intptr_t bit_offset) const;
   void SetBit(intptr_t bit_offset, bool value);

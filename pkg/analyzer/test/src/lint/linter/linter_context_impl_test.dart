@@ -34,11 +34,12 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest
     var contextUnit = LinterContextUnit(result.content!, result.unit!);
 
     final libraryPath = result.libraryElement.source.fullName;
-    final builder = ContextBuilder(
-        resourceProvider, null /* sdkManager */, null /* contentCache */);
     // todo (pq): get workspace from analysis context
-    final workspace =
-        ContextBuilder.createWorkspace(resourceProvider, libraryPath, builder);
+    final workspace = ContextBuilder.createWorkspace(
+      resourceProvider: resourceProvider,
+      options: ContextBuilderOptions(),
+      rootPath: libraryPath,
+    );
     final workspacePackage = workspace.findPackageFor(libraryPath);
 
     context = LinterContextImpl(

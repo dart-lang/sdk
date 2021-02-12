@@ -523,7 +523,8 @@ bool Options::ParseArguments(int argc,
     // The analytics flags are a special case as we don't have a target script
     // or DartDev command but we still want to launch DartDev.
     DartDevIsolate::set_should_run_dart_dev(true);
-
+    dart_options->AddArgument(enable_dartdev_analytics ? "--enable-analytics"
+                                                       : "--disable-analytics");
     return true;
   }
 

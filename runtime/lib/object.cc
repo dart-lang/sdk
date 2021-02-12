@@ -225,13 +225,13 @@ DEFINE_NATIVE_ENTRY(FunctionType_equality, 0, 2) {
 DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 0, 1) {
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return Bool::Get(prefix.is_loaded()).ptr();
+  return Bool::Get(isolate->IsPrefixLoaded(prefix)).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_setLoaded, 0, 1) {
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
-  prefix.set_is_loaded(true);
+  isolate->SetPrefixIsLoaded(prefix);
   return Instance::null();
 }
 

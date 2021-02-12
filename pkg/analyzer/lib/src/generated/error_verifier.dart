@@ -523,7 +523,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     var element = node.declaredElement!;
     _withEnclosingExecutable(element, () {
       _checkForInvalidModifierOnBody(
-          node.body!, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
+          node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
       _checkForConstConstructorWithNonFinalField(node, element);
       _checkForConstConstructorWithNonConstSuper(node);
       _constructorFieldsVerifier.verify(node);
@@ -4077,7 +4077,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     // block body (with possible return statement) is checked elsewhere
-    FunctionBody body = declaration.body!;
+    FunctionBody body = declaration.body;
     if (body is! ExpressionFunctionBody) {
       return;
     }

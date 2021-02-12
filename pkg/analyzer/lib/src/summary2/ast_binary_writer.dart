@@ -860,8 +860,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     var body = node.body;
     _writeByte(
       AstBinaryFlags.encode(
-        isAsync: body?.isAsynchronous ?? false,
-        isGenerator: body?.isGenerator ?? false,
+        isAsync: body.isAsynchronous,
+        isGenerator: body.isGenerator,
       ),
     );
 
