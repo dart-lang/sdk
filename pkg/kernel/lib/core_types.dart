@@ -7,7 +7,6 @@ library kernel.core_types;
 // ignore: import_of_legacy_library_into_null_safe
 import 'ast.dart';
 import 'library_index.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'type_algebra.dart';
 
 /// Provides access to the classes and libraries in the core libraries.

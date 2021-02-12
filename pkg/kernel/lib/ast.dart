@@ -9371,7 +9371,7 @@ class NamedType extends Node implements Comparable<NamedType> {
   final DartType type;
   final bool isRequired;
 
-  NamedType(this.name, this.type, {this.isRequired: false});
+  const NamedType(this.name, this.type, {this.isRequired: false});
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -11550,3 +11550,12 @@ class Version extends Object {
     return "Version(major=$major, minor=$minor)";
   }
 }
+
+/// Non-nullable `DartType` value to be used as a dummy initial value for the
+/// `List.filled` constructor.
+const DartType dartTypeDummy = const DynamicType();
+
+/// Non-nullable `NamedType` value to be used as a dummy initial value for the
+/// `List.filled` constructor.
+const NamedType namedTypeDummy =
+    const NamedType('', dartTypeDummy, isRequired: false);
