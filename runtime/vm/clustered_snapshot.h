@@ -537,12 +537,12 @@ class SnapshotHeaderReader {
   // Returns null on success and a malloc()ed error on failure.
   // The [offset] will be the next position in the snapshot stream after the
   // features.
-  char* VerifyVersionAndFeatures(Isolate* isolate, intptr_t* offset);
+  char* VerifyVersionAndFeatures(IsolateGroup* isolate_group, intptr_t* offset);
 
  private:
   char* VerifyVersion();
   char* ReadFeatures(const char** features, intptr_t* features_length);
-  char* VerifyFeatures(Isolate* isolate);
+  char* VerifyFeatures(IsolateGroup* isolate_group);
   char* BuildError(const char* message);
 
   Snapshot::Kind kind_;
@@ -685,7 +685,6 @@ class FullSnapshotWriter {
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
-  Isolate* isolate() const { return thread_->isolate(); }
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   Heap* heap() const { return isolate_group()->heap(); }
 

@@ -484,11 +484,11 @@ class WritableVMIsolateScope : ThreadStackResource {
 
 class WritableCodePages : StackResource {
  public:
-  explicit WritableCodePages(Thread* thread, Isolate* isolate);
+  WritableCodePages(Thread* thread, IsolateGroup* isolate_group);
   ~WritableCodePages();
 
  private:
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
 };
 
 #if defined(TESTING)

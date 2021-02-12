@@ -344,6 +344,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void RehashConstants();
 #if defined(DEBUG)
   void ValidateConstants();
+  void ValidateClassTable();
 #endif
 
   IsolateGroupSource* source() const { return source_.get(); }
@@ -384,6 +385,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   SafepointHandler* safepoint_handler() { return safepoint_handler_.get(); }
 
   void CreateHeap(bool is_vm_isolate, bool is_service_or_kernel_isolate);
+  void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
   void Shutdown();
 
 #define ISOLATE_METRIC_ACCESSOR(type, variable, name, unit)                    \
@@ -979,9 +981,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   // Register a newly introduced class.
   void RegisterClass(const Class& cls);
-#if defined(DEBUG)
-  void ValidateClassTable();
-#endif
 
   ThreadRegistry* thread_registry() const { return group()->thread_registry(); }
 
@@ -1099,8 +1098,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return group()->deferred_load_handler() != nullptr;
   }
   ObjectPtr CallDeferredLoadHandler(intptr_t id);
-
-  void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
 
   void ScheduleInterrupts(uword interrupt_bits);
 

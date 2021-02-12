@@ -879,9 +879,6 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   HandleScope handle_scope(T);
   bool was_child_cloned_into_existing_isolate = false;
   if (source_isolate_group != nullptr) {
-    I->isolate_object_store()->Init();
-    I->isolate_object_store()->PreallocateObjects();
-
     // If a static field gets registered in [IsolateGroup::RegisterStaticField]:
     //
     //   * before this block it will ignore this isolate. The [Clone] of the
@@ -938,16 +935,16 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
 
   I->set_ic_miss_code(StubCode::SwitchableCallMiss());
 
-  if ((snapshot_data == NULL) || (kernel_buffer != NULL)) {
-    Error& error = Error::Handle();
+  Error& error = Error::Handle();
+  if (snapshot_data == nullptr || kernel_buffer != nullptr) {
     error ^= IG->object_store()->PreallocateObjects();
     if (!error.IsNull()) {
       return error.ptr();
     }
-    error ^= I->isolate_object_store()->PreallocateObjects();
-    if (!error.IsNull()) {
-      return error.ptr();
-    }
+  }
+  error ^= I->isolate_object_store()->PreallocateObjects();
+  if (!error.IsNull()) {
+    return error.ptr();
   }
 
   if (!was_child_cloned_into_existing_isolate) {
@@ -983,11 +980,9 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   return Error::null();
 }
 
-const char* Dart::FeaturesString(Isolate* isolate,
+const char* Dart::FeaturesString(IsolateGroup* isolate_group,
                                  bool is_vm_isolate,
                                  Snapshot::Kind kind) {
-  auto isolate_group = isolate != nullptr ? isolate->group() : nullptr;
-
   TextBuffer buffer(64);
 
 // Different fields are included for DEBUG/RELEASE/PRODUCT.

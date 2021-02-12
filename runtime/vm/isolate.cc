@@ -905,8 +905,8 @@ void Isolate::RegisterClass(const Class& cls) {
 }
 
 #if defined(DEBUG)
-void Isolate::ValidateClassTable() {
-  group()->class_table()->Validate();
+void IsolateGroup::ValidateClassTable() {
+  class_table()->Validate();
 }
 #endif  // DEBUG
 
@@ -1918,10 +1918,11 @@ ObjectPtr Isolate::CallDeferredLoadHandler(intptr_t id) {
   return Api::UnwrapHandle(api_result);
 }
 
-void Isolate::SetupImagePage(const uint8_t* image_buffer, bool is_executable) {
+void IsolateGroup::SetupImagePage(const uint8_t* image_buffer,
+                                  bool is_executable) {
   Image image(image_buffer);
-  group()->heap()->SetupImagePage(image.object_start(), image.object_size(),
-                                  is_executable);
+  heap()->SetupImagePage(image.object_start(), image.object_size(),
+                         is_executable);
 }
 
 void Isolate::ScheduleInterrupts(uword interrupt_bits) {
