@@ -59,6 +59,7 @@ linter:
     - constant_identifier_names
     - control_flow_in_finally
     - curly_braces_in_flow_control_structures
+    - deprecated_consistency
     - diagnostic_describe_all_properties
     - directives_ordering
     - do_not_use_environment
