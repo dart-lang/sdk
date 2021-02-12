@@ -1771,6 +1771,26 @@ class EnterIsolateGroupScope {
   DISALLOW_COPY_AND_ASSIGN(EnterIsolateGroupScope);
 };
 
+// Ensure that isolate is not available for the duration of this scope.
+//
+// This can be used in code (e.g. GC, Kernel Loader) that should not operate on
+// an individual isolate.
+class NoActiveIsolateScope {
+ public:
+  NoActiveIsolateScope() : thread_(Thread::Current()) {
+    saved_isolate_ = thread_->isolate_;
+    thread_->isolate_ = nullptr;
+  }
+  ~NoActiveIsolateScope() {
+    ASSERT(thread_->isolate_ == nullptr);
+    thread_->isolate_ = saved_isolate_;
+  }
+
+ private:
+  Thread* thread_;
+  Isolate* saved_isolate_;
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_ISOLATE_H_

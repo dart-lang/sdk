@@ -40,23 +40,6 @@ DEFINE_FLAG(bool,
             false,
             "Explicitly disable heap verification.");
 
-// We ensure that the GC does not use the current isolate.
-class NoActiveIsolateScope {
- public:
-  NoActiveIsolateScope() : thread_(Thread::Current()) {
-    saved_isolate_ = thread_->isolate_;
-    thread_->isolate_ = nullptr;
-  }
-  ~NoActiveIsolateScope() {
-    ASSERT(thread_->isolate_ == nullptr);
-    thread_->isolate_ = saved_isolate_;
-  }
-
- private:
-  Thread* thread_;
-  Isolate* saved_isolate_;
-};
-
 Heap::Heap(IsolateGroup* isolate_group,
            bool is_vm_isolate,
            intptr_t max_new_gen_semi_words,
