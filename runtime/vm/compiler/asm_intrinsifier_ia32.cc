@@ -1559,8 +1559,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ cmpl(EDI, Immediate(kDoubleCid));
   __ j(NOT_EQUAL, &not_double);
 
-  __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
+  __ LoadIsolateGroup(EAX);
+  __ movl(EAX, Address(EAX, target::IsolateGroup::object_store_offset()));
   __ movl(EAX, Address(EAX, target::ObjectStore::double_type_offset()));
   __ ret();
 
@@ -1569,8 +1569,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ movl(EAX, EDI);
   JumpIfNotInteger(assembler, EAX, &not_integer);
 
-  __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
+  __ LoadIsolateGroup(EAX);
+  __ movl(EAX, Address(EAX, target::IsolateGroup::object_store_offset()));
   __ movl(EAX, Address(EAX, target::ObjectStore::int_type_offset()));
   __ ret();
 
@@ -1580,8 +1580,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ movl(EAX, EDI);
   JumpIfNotString(assembler, EAX, &not_string);
 
-  __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
+  __ LoadIsolateGroup(EAX);
+  __ movl(EAX, Address(EAX, target::IsolateGroup::object_store_offset()));
   __ movl(EAX, Address(EAX, target::ObjectStore::string_type_offset()));
   __ ret();
 
@@ -1590,8 +1590,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ movl(EAX, EDI);
   JumpIfNotType(assembler, EAX, &use_declaration_type);
 
-  __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
+  __ LoadIsolateGroup(EAX);
+  __ movl(EAX, Address(EAX, target::IsolateGroup::object_store_offset()));
   __ movl(EAX, Address(EAX, target::ObjectStore::type_type_offset()));
   __ ret();
 

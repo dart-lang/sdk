@@ -335,6 +335,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
     : shared_class_table_(new SharedClassTable()),
       class_table_(new ClassTable(shared_class_table_.get())),
       cached_class_table_table_(class_table_->table()),
+      object_store_(object_store),
       embedder_data_(embedder_data),
       thread_pool_(),
       isolates_lock_(new SafepointRwLock()),
@@ -350,7 +351,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       api_state_(new ApiState()),
       thread_registry_(new ThreadRegistry()),
       safepoint_handler_(new SafepointHandler(this)),
-      object_store_(object_store),
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
@@ -1018,11 +1018,8 @@ void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
       writer.WriteMessage(msg, main_port(), Message::kOOBPriority));
 }
 
-void Isolate::set_object_store(ObjectStore* object_store) {
-  ASSERT(cached_object_store_ == nullptr);
-  object_store_shared_ptr_.reset(object_store);
-  cached_object_store_ = object_store;
-  isolate_object_store_->set_object_store(object_store);
+void IsolateGroup::set_object_store(ObjectStore* object_store) {
+  object_store_.reset(object_store);
 }
 
 class IsolateMessageHandler : public MessageHandler {
@@ -1710,9 +1707,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       ic_miss_code_(Code::null()),
       field_table_(new FieldTable(/*isolate=*/this)),
       isolate_group_(isolate_group),
-      isolate_object_store_(
-          new IsolateObjectStore(isolate_group->object_store())),
-      object_store_shared_ptr_(isolate_group->object_store_shared_ptr()),
+      isolate_object_store_(new IsolateObjectStore()),
 #if !defined(DART_PRECOMPILED_RUNTIME)
       native_callback_trampolines_(),
 #endif
@@ -1726,7 +1721,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       ISOLATE_METRIC_LIST(ISOLATE_METRIC_CONSTRUCTORS)
 #undef ISOLATE_METRIC_CONSTRUCTORS
 #endif  // !defined(PRODUCT)
-      start_time_micros_(OS::GetCurrentMonotonicMicros()),
+          start_time_micros_(OS::GetCurrentMonotonicMicros()),
       on_shutdown_callback_(Isolate::ShutdownCallback()),
       on_cleanup_callback_(Isolate::CleanupCallback()),
       random_(),
@@ -1738,7 +1733,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       handler_info_cache_(),
       catch_entry_moves_cache_(),
       loaded_prefixes_set_storage_(nullptr) {
-  cached_object_store_ = object_store_shared_ptr_.get();
   FlagsCopyFrom(api_flags);
   SetErrorsFatal(true);
   // TODO(asiva): A Thread is not available here, need to figure out

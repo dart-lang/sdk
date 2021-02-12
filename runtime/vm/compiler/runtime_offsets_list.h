@@ -130,7 +130,7 @@
   FIELD(Isolate, current_tag_offset)                                           \
   FIELD(Isolate, default_tag_offset)                                           \
   FIELD(Isolate, ic_miss_code_offset)                                          \
-  FIELD(Isolate, cached_object_store_offset)                                   \
+  FIELD(IsolateGroup, object_store_offset)                                     \
   FIELD(IsolateGroup, shared_class_table_offset)                               \
   FIELD(IsolateGroup, cached_class_table_table_offset)                         \
   NOT_IN_PRODUCT(FIELD(Isolate, single_step_offset))                           \
