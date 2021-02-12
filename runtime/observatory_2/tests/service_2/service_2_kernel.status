@@ -26,6 +26,7 @@ evaluate_in_frame_with_scope_test: SkipByDesign # No incremental compiler availa
 evaluate_in_sync_star_activation_test: SkipByDesign # No incremental compiler available.
 evaluate_with_escaping_closure_test: SkipByDesign # No incremental compiler available.
 evaluate_with_scope_test: SkipByDesign # No incremental compiler available.
+get_allocation_traces_test: SkipByDesign # Allocation traces aren't consistent when running from snapshot.
 get_object_rpc_test: SkipByDesign # App-JIT snapshots don't contain script sources.
 pause_on_exceptions_test: SkipByDesign # No incremental compiler available.
 rewind_optimized_out_test: SkipByDesign # No incremental compiler available.
@@ -108,6 +109,7 @@ evaluate_with_escaping_closure_test: SkipByDesign # Debugger is disabled in AOT 
 evaluate_with_scope_test: SkipByDesign # Debugger is disabled in AOT mode.
 field_script_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_allocation_samples_test: SkipByDesign # Debugger is disabled in AOT mode.
+get_allocation_traces_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_object_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_source_report_const_coverage_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_source_report_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -289,6 +291,7 @@ evaluate_in_frame_rpc_test: RuntimeError # Issue #34736
 evaluate_in_frame_with_scope_test: RuntimeError # Issue #34736
 evaluate_in_sync_star_activation_test: SkipByDesign # No incremental compiler available.
 evaluate_with_scope_test: RuntimeError # Issue #34736
+get_allocation_traces_test: SkipByDesign # Allocation traces aren't consistent when running from snapshot.
 pause_on_exceptions_test: RuntimeError, Timeout # Issue #34736
 reload_sources_test: Skip # Times out.
 rewind_optimized_out_test: RuntimeError # Issue #34736
