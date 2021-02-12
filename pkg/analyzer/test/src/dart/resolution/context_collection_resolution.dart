@@ -263,7 +263,10 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
-        experiments: [EnableString.nonfunction_type_aliases],
+        experiments: [
+          EnableString.nonfunction_type_aliases,
+          EnableString.triple_shift,
+        ],
       ),
     );
     writeTestPackageConfig(
