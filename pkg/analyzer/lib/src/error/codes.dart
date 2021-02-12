@@ -10801,7 +10801,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the type used in the instance creation that should be
    *    limited by the bound as specified in the class declaration
-   * 1: the name of the bounding type
+   * 1: the name of the type parameter
+   * 2: the substituted bound of the type parameter
    */
   // #### Description
   //
@@ -10830,9 +10831,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS =
       CompileTimeErrorCode(
-          'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', "'{0}' doesn't extend '{1}'.",
-          correction: "Try using a type that is or is a subclass of '{1}'.",
-          hasPublishedDocs: true);
+    'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS',
+    "'{0}' doesn't conform to the bound '{2}' of the type parameter '{1}'.",
+    correction: "Try using a type that is or is a subclass of '{2}'.",
+    hasPublishedDocs: true,
+  );
 
   /**
    * No parameters.

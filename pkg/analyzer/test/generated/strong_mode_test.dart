@@ -1252,7 +1252,7 @@ test() {
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'String' for 'T' which doesn't work:
-  Type parameter 'T' declared to extend 'num'.
+  Type parameter 'T' is declared to extend 'num' producing 'num'.
 The type 'String' was inferred from:
   Return type declared as 'T Function(T)'
               used where  'String Function(String)' is required.

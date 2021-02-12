@@ -140,6 +140,7 @@ class GenericInferrer {
       if (considerExtendsClause && bound != null) {
         extendsClause = _TypeConstraint.fromExtends(
           typeParam,
+          bound,
           Substitution.fromPairs(typeFormals, inferredTypes)
               .substituteType(bound),
           isNonNullableByDefault: isNonNullableByDefault,
@@ -164,30 +165,30 @@ class GenericInferrer {
     // Check the inferred types against all of the constraints.
     var knownTypes = <TypeParameterElement, DartType>{};
     for (int i = 0; i < typeFormals.length; i++) {
-      TypeParameterElement typeParam = typeFormals[i];
-      var constraints = _constraints[typeParam]!;
-
-      var typeParamBound = typeParam.bound;
-      if (typeParamBound != null) {
-        typeParamBound = Substitution.fromPairs(typeFormals, inferredTypes)
-            .substituteType(typeParamBound);
-        typeParamBound = _toLegacyElementIfOptOut(typeParamBound);
-      } else {
-        typeParamBound = typeProvider.dynamicType;
-      }
+      TypeParameterElement parameter = typeFormals[i];
+      var constraints = _constraints[parameter]!;
 
       var inferred = inferredTypes[i];
       bool success =
           constraints.every((c) => c.isSatisfiedBy(_typeSystem, inferred));
-      if (success && !typeParamBound.isDynamic) {
-        // If everything else succeeded, check the `extends` constraint.
-        var extendsConstraint = _TypeConstraint.fromExtends(
-          typeParam,
-          typeParamBound,
-          isNonNullableByDefault: isNonNullableByDefault,
-        );
-        constraints.add(extendsConstraint);
-        success = extendsConstraint.isSatisfiedBy(_typeSystem, inferred);
+
+      // If everything else succeeded, check the `extends` constraint.
+      if (success) {
+        var parameterBoundRaw = parameter.bound;
+        if (parameterBoundRaw != null) {
+          var parameterBound =
+              Substitution.fromPairs(typeFormals, inferredTypes)
+                  .substituteType(parameterBoundRaw);
+          parameterBound = _toLegacyElementIfOptOut(parameterBound);
+          var extendsConstraint = _TypeConstraint.fromExtends(
+            parameter,
+            parameterBoundRaw,
+            parameterBound,
+            isNonNullableByDefault: isNonNullableByDefault,
+          );
+          constraints.add(extendsConstraint);
+          success = extendsConstraint.isSatisfiedBy(_typeSystem, inferred);
+        }
       }
 
       if (!success) {
@@ -195,7 +196,7 @@ class GenericInferrer {
         errorReporter?.reportErrorForNode(
             CompileTimeErrorCode.COULD_NOT_INFER,
             errorNode!,
-            [typeParam.name, _formatError(typeParam, inferred, constraints)]);
+            [parameter.name, _formatError(parameter, inferred, constraints)]);
 
         // Heuristic: even if we failed, keep the erroneous type.
         // It should satisfy at least some of the constraints (e.g. the return
@@ -209,7 +210,7 @@ class GenericInferrer {
         var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
         errorReporter?.reportErrorForNode(
             CompileTimeErrorCode.COULD_NOT_INFER, errorNode!, [
-          typeParam.name,
+          parameter.name,
           ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
               ' [$typeFormalsStr], but a function with'
               ' type parameters cannot be used as a type argument.'
@@ -223,7 +224,7 @@ class GenericInferrer {
       }
 
       if (UnknownInferredType.isKnown(inferred)) {
-        knownTypes[typeParam] = inferred;
+        knownTypes[parameter] = inferred;
       } else if (_typeSystem.strictInference) {
         // [typeParam] could not be inferred. A result will still be returned
         // by [infer], with [typeParam] filled in as its bounds. This is
@@ -538,11 +539,12 @@ class _TypeConstraint extends _TypeRange {
       : super(upper: upper, lower: lower);
 
   _TypeConstraint.fromExtends(
-      TypeParameterElement element, DartType extendsType,
+      TypeParameterElement element, DartType boundType, DartType extendsType,
       {required bool isNonNullableByDefault})
       : this(
             _TypeConstraintFromExtendsClause(
               element,
+              boundType,
               extendsType,
               isNonNullableByDefault: isNonNullableByDefault,
             ),
@@ -601,17 +603,31 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
 
 class _TypeConstraintFromExtendsClause extends _TypeConstraintOrigin {
   final TypeParameterElement typeParam;
+
+  /// The declared bound of [typeParam], not `null`, because we create
+  /// this clause only when it is not `null`.
+  ///
+  /// For example `Iterable<T>` for `<T, E extends Iterable<T>>`.
+  final DartType boundType;
+
+  /// [boundType] in which type parameters are substituted with inferred
+  /// type arguments.
+  ///
+  /// For example `Iterable<int>` if `T` inferred to `int`.
   final DartType extendsType;
 
-  _TypeConstraintFromExtendsClause(this.typeParam, this.extendsType,
+  _TypeConstraintFromExtendsClause(
+      this.typeParam, this.boundType, this.extendsType,
       {required bool isNonNullableByDefault})
       : super(isNonNullableByDefault: isNonNullableByDefault);
 
   @override
   List<String> formatError() {
+    var boundStr = _typeStr(boundType);
+    var extendsStr = _typeStr(extendsType);
     return [
       "Type parameter '${typeParam.name}'",
-      "declared to extend '${_typeStr(extendsType)}'."
+      "is declared to extend '$boundStr' producing '$extendsStr'."
     ];
   }
 }

@@ -234,7 +234,7 @@ class TypeArgumentsVerifier {
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
         issues ??= <_TypeArgumentIssue>[];
         issues.add(
-          _TypeArgumentIssue(i, typeParameter, typeArgument),
+          _TypeArgumentIssue(i, typeParameter, bound, typeArgument),
         );
       }
     }
@@ -250,7 +250,7 @@ class TypeArgumentsVerifier {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           _typeArgumentErrorNode(typeName, issue.index),
-          [issue.argument, issue.parameter],
+          [issue.argument, issue.parameter.name, issue.parameterBound],
         );
       }
       return;
@@ -284,7 +284,7 @@ class TypeArgumentsVerifier {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           _typeArgumentErrorNode(typeName, i),
-          [typeArgument, bound],
+          [typeArgument, typeParameter.name, bound],
         );
       }
     }
@@ -361,7 +361,8 @@ class TypeArgumentsVerifier {
           continue;
         }
 
-        var rawBound = fnTypeParams[i].bound;
+        var fnTypeParam = fnTypeParams[i];
+        var rawBound = fnTypeParam.bound;
         if (rawBound == null) {
           continue;
         }
@@ -372,7 +373,7 @@ class TypeArgumentsVerifier {
           _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               typeArgumentList[i],
-              [argType, bound]);
+              [argType, fnTypeParam.name, bound]);
         }
       }
     }
@@ -457,14 +458,22 @@ class _TypeArgumentIssue {
   /// The type parameter with the bound that was violated.
   final TypeParameterElement parameter;
 
-  /// The type argument that violated the bound.
+  /// The substituted bound of the [parameter].
+  final DartType parameterBound;
+
+  /// The type argument that violated the [parameterBound].
   final DartType argument;
 
-  _TypeArgumentIssue(this.index, this.parameter, this.argument);
+  _TypeArgumentIssue(
+    this.index,
+    this.parameter,
+    this.parameterBound,
+    this.argument,
+  );
 
   @override
   String toString() {
     return 'TypeArgumentIssue(index=$index, parameter=$parameter, '
-        'argument=$argument)';
+        'parameterBound=$parameterBound, argument=$argument)';
   }
 }

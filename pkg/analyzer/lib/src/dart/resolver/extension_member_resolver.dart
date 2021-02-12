@@ -223,15 +223,16 @@ class ExtensionMemberResolver {
   ) {
     if (typeArgumentList != null) {
       for (var i = 0; i < typeArgumentTypes.length; i++) {
-        var argType = typeArgumentTypes[i];
-        var boundType = typeParameters[i].bound;
-        if (boundType != null) {
-          boundType = substitution.substituteType(boundType);
-          if (!_typeSystem.isSubtypeOf(argType, boundType)) {
+        var argument = typeArgumentTypes[i];
+        var parameter = typeParameters[i];
+        var parameterBound = parameter.bound;
+        if (parameterBound != null) {
+          parameterBound = substitution.substituteType(parameterBound);
+          if (!_typeSystem.isSubtypeOf(argument, parameterBound)) {
             _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               typeArgumentList.arguments[i],
-              [argType, boundType],
+              [argument, parameter.name, parameterBound],
             );
           }
         }
