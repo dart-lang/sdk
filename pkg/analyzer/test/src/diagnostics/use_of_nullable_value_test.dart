@@ -17,8 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class InvalidUseOfNullValueTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class InvalidUseOfNullValueTest extends PubPackageResolutionTest {
   test_as() async {
     await assertNoErrorsInCode(r'''
 m() {
@@ -124,7 +123,7 @@ m(bool cond) {
 
 @reflectiveTest
 class UncheckedUseOfNullableValueInsideExtensionTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_indexExpression_nonNullable() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -338,8 +337,7 @@ extension E on A? {
 }
 
 @reflectiveTest
-class UncheckedUseOfNullableValueTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class UncheckedUseOfNullableValueTest extends PubPackageResolutionTest {
   test_and_nonNullable() async {
     await assertNoErrorsInCode(r'''
 m() {
@@ -1611,6 +1609,19 @@ m(bool cond) {
   cond ? 0 : x;
 }
 ''');
+  }
+
+  test_tripleShift_nullable() async {
+    await assertErrorsInCode(r'''
+m(String? s) {
+  s?.length >>> 2;
+}
+''', [
+      error(
+          CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+          17,
+          9),
+    ]);
   }
 
   test_yieldEach_nonNullable() async {

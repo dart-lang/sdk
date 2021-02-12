@@ -13,11 +13,10 @@ main() {
   });
 }
 
+/// This diagnostic is only reported in pre-null safe code.
 @reflectiveTest
 class NullAwareBeforeOperatorTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
   test_assignment() async {
     await assertNoErrorsInCode(r'''
 m(x) {

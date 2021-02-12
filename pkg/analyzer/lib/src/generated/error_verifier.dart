@@ -4623,6 +4623,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         "&" == name ||
         "<<" == name ||
         ">>" == name ||
+        ">>>" == name ||
         "[]" == name) {
       expected = 1;
     } else if ("~" == name) {
