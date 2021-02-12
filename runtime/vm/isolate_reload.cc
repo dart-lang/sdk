@@ -664,11 +664,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       [&](Isolate* isolate) { number_of_isolates++; });
 
   // Disable the background compiler while we are performing the reload.
-  ForEachIsolate([&](Isolate* isolate) {
-    // TODO(dartbug.com/36097): Once the BG compiler moves from Isolate to
-    // IsolateGroup this scope should cover most of this function.
-    NoBackgroundCompilerScope stop_bg_compiler(isolate->mutator_thread());
-  });
+  NoBackgroundCompilerScope stop_bg_compiler(thread);
 
   // Wait for any concurrent marking tasks to finish and turn off the
   // concurrent marker during reload as we might be allocating new instances
@@ -1705,11 +1701,11 @@ void ProgramReloadContext::CommitAfterInstanceMorphing() {
   // content may have changed from fields being added or removed.
   {
     TIMELINE_SCOPE(RehashConstants);
-    I->RehashConstants();
+    IG->RehashConstants();
   }
 
 #ifdef DEBUG
-  I->ValidateConstants();
+  IG->ValidateConstants();
 #endif
 
   if (FLAG_identity_reload) {

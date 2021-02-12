@@ -6963,7 +6963,7 @@ FullSnapshotWriter::FullSnapshotWriter(
 
 #if defined(DEBUG)
   isolate()->ValidateClassTable();
-  isolate()->ValidateConstants();
+  isolate_group()->ValidateConstants();
 #endif  // DEBUG
 
 #if defined(DART_PRECOMPILER)

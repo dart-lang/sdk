@@ -342,6 +342,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       random_(),
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
+      reload_every_n_stack_overflow_checks_(FLAG_reload_every),
 #endif
       source_(std::move(source)),
       api_state_(new ApiState()),
@@ -353,6 +354,9 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
       initial_field_table_(new FieldTable(/*isolate=*/nullptr)),
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      background_compiler_(new BackgroundCompiler(this)),
+#endif
       symbols_lock_(new SafepointRwLock()),
       type_canonicalization_mutex_(
           NOT_IN_PRODUCT("IsolateGroup::type_canonicalization_mutex_")),
@@ -850,11 +854,15 @@ bool IsolateVisitor::IsSystemIsolate(Isolate* isolate) const {
 
 NoOOBMessageScope::NoOOBMessageScope(Thread* thread)
     : ThreadStackResource(thread) {
-  thread->DeferOOBMessageInterrupts();
+  if (thread->isolate() != nullptr) {
+    thread->DeferOOBMessageInterrupts();
+  }
 }
 
 NoOOBMessageScope::~NoOOBMessageScope() {
-  thread()->RestoreOOBMessageInterrupts();
+  if (thread()->isolate() != nullptr) {
+    thread()->RestoreOOBMessageInterrupts();
+  }
 }
 
 NoReloadScope::NoReloadScope(IsolateGroup* isolate_group, Thread* thread)
@@ -934,7 +942,7 @@ void IsolateGroup::RegisterStaticField(const Field& field,
   }
 }
 
-void Isolate::RehashConstants() {
+void IsolateGroup::RehashConstants() {
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
@@ -942,10 +950,10 @@ void Isolate::RehashConstants() {
   thread->heap()->ResetCanonicalHashTable();
 
   Class& cls = Class::Handle(zone);
-  intptr_t top = group()->class_table()->NumCids();
+  intptr_t top = class_table()->NumCids();
   for (intptr_t cid = kInstanceCid; cid < top; cid++) {
-    if (!group()->class_table()->IsValidIndex(cid) ||
-        !group()->class_table()->HasValidClassAt(cid)) {
+    if (!class_table()->IsValidIndex(cid) ||
+        !class_table()->HasValidClassAt(cid)) {
       continue;
     }
     if ((cid == kTypeArgumentsCid) || IsStringClassId(cid)) {
@@ -953,27 +961,27 @@ void Isolate::RehashConstants() {
       // that aren't based on address.
       continue;
     }
-    cls = group()->class_table()->At(cid);
+    cls = class_table()->At(cid);
     cls.RehashConstants(zone);
   }
 }
 
 #if defined(DEBUG)
-void Isolate::ValidateConstants() {
+void IsolateGroup::ValidateConstants() {
   if (FLAG_precompiled_mode) {
     // TODO(27003)
     return;
   }
   // Issue(https://dartbug.com/44862): Figure out why hot-reload causes
   // existence of non-canonical constants.
-  if (group()->HasAttemptedReload()) {
+  if (HasAttemptedReload()) {
     return;
   }
 
   // Verify that all canonical instances are correctly setup in the
   // corresponding canonical tables.
   NoBackgroundCompilerScope no_bg_compiler(Thread::Current());
-  group()->heap()->CollectAllGarbage();
+  heap()->CollectAllGarbage();
   Thread* thread = Thread::Current();
   HeapIterationScope iteration(thread);
   VerifyCanonicalVisitor check_canonical(thread);
@@ -1705,7 +1713,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
   metric_##variable##_(),
       ISOLATE_METRIC_LIST(ISOLATE_METRIC_CONSTRUCTORS)
 #undef ISOLATE_METRIC_CONSTRUCTORS
-          reload_every_n_stack_overflow_checks_(FLAG_reload_every),
 #endif  // !defined(PRODUCT)
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       on_shutdown_callback_(Isolate::ShutdownCallback()),
@@ -1734,8 +1741,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
         "which violates the Dart standard.\n"
         "         See dartbug.com/30524 for more information.\n");
   }
-
-  NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(this));
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
@@ -1746,9 +1751,6 @@ Isolate::~Isolate() {
   // TODO(32796): Re-enable assertion.
   // RELEASE_ASSERT(program_reload_context_ == NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
-  delete background_compiler_;
-  background_compiler_ = nullptr;
 
 #if !defined(PRODUCT)
   delete debugger_;
@@ -1845,6 +1847,10 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   result->set_pause_capability(result->random()->NextUInt64());
   result->set_terminate_capability(result->random()->NextUInt64());
 
+#if !defined(PRODUCT)
+  result->debugger_ = new Debugger(result);
+#endif
+
   // Now we register the isolate in the group. From this point on any GC would
   // traverse the isolate roots (before this point, the roots are only pointing
   // to vm-isolate objects, e.g. null)
@@ -1860,9 +1866,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
-#if !defined(PRODUCT)
-  result->debugger_ = new Debugger(result);
-#endif
   if (FLAG_trace_isolates) {
     if (name_prefix == nullptr || strcmp(name_prefix, "vm-isolate") != 0) {
       OS::PrintErr(
@@ -2424,12 +2427,13 @@ void Isolate::LowLevelShutdown() {
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
+void IsolateGroup::MaybeIncreaseReloadEveryNStackOverflowChecks() {
   if (FLAG_reload_every_back_off) {
     if (reload_every_n_stack_overflow_checks_ < 5000) {
       reload_every_n_stack_overflow_checks_ += 99;
     } else {
-      reload_every_n_stack_overflow_checks_ *= 2;
+      const auto old_value = reload_every_n_stack_overflow_checks_;
+      reload_every_n_stack_overflow_checks_ = old_value * old_value;
     }
     // Cap the value.
     if (reload_every_n_stack_overflow_checks_ > 1000000) {
@@ -2449,12 +2453,8 @@ void Isolate::set_forward_table_old(WeakTable* table) {
 }
 
 void Isolate::Shutdown() {
-  ASSERT(this == Isolate::Current());
-  NOT_IN_PRECOMPILED(BackgroundCompiler::Stop(this));
-  NOT_IN_PRECOMPILED(delete background_compiler_);
-  background_compiler_ = nullptr;
-
   Thread* thread = Thread::Current();
+  ASSERT(this == thread->isolate());
 
   // Don't allow anymore dart code to execution on this isolate.
   thread->ClearStackLimit();
@@ -2535,6 +2535,15 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   const bool shutdown_group =
       isolate_group->UnregisterIsolateDecrementCount(isolate);
   if (shutdown_group) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    if (!is_vm_isolate) {
+      Thread::EnterIsolateGroupAsHelper(isolate_group, Thread::kUnknownTask,
+                                        /*bypass_safepoint=*/false);
+      BackgroundCompiler::Stop(isolate_group);
+      Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
+    }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
     // The "vm-isolate" does not have a thread pool.
     ASSERT(is_vm_isolate == (isolate_group->thread_pool() == nullptr));
     if (is_vm_isolate ||
@@ -2611,10 +2620,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&registered_service_extension_handlers_));
 #endif  // !defined(PRODUCT)
-
-  if (background_compiler() != nullptr) {
-    background_compiler()->VisitPointers(visitor);
-  }
 
 #if !defined(PRODUCT)
   // Visit objects in the debugger.
@@ -2789,6 +2794,8 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // is guarded with a monitor. This means that we can visit it only
   // when at safepoint or the field_list_mutex_ lock has been taken.
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&boxed_field_list_));
+
+  NOT_IN_PRECOMPILED(background_compiler()->VisitPointers(visitor));
 }
 
 void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,

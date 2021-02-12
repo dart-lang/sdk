@@ -3506,9 +3506,23 @@ bool Debugger::IsDebuggable(const Function& func) {
 }
 
 bool Debugger::IsDebugging(Thread* thread, const Function& func) {
-  Debugger* debugger = thread->isolate()->debugger();
-  return debugger->IsStepping() ||
-         debugger->HasBreakpoint(func, thread->zone());
+  // TODO(dartbug.com/36097): We might need to adjust this once we start adding
+  // debugging support to --enable-isolate-groups.
+  auto isolate_group = thread->isolate_group();
+
+  bool has_breakpoint = false;
+  bool is_single_stepping = false;
+  isolate_group->ForEachIsolate(
+      [&](Isolate* isolate) {
+        if (isolate->debugger()->IsStepping()) {
+          is_single_stepping = true;
+        }
+        if (isolate->debugger()->HasBreakpoint(func, thread->zone())) {
+          has_breakpoint = true;
+        }
+      },
+      thread->IsAtSafepoint());
+  return has_breakpoint || is_single_stepping;
 }
 
 void Debugger::SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt) {

@@ -2481,7 +2481,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
   bool do_reload = false;
   bool do_gc = false;
   const intptr_t isolate_reload_every =
-      isolate->reload_every_n_stack_overflow_checks();
+      isolate->group()->reload_every_n_stack_overflow_checks();
   if ((FLAG_deoptimize_every > 0) || (FLAG_stacktrace_every > 0) ||
       (FLAG_gc_every > 0) || (isolate_reload_every > 0)) {
     if (!Isolate::IsSystemIsolate(isolate)) {
@@ -2548,7 +2548,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
   if (do_reload) {
     JSONStream js;
     // Maybe adjust the rate of future reloads.
-    isolate->MaybeIncreaseReloadEveryNStackOverflowChecks();
+    isolate->group()->MaybeIncreaseReloadEveryNStackOverflowChecks();
 
     const char* script_uri;
     {
@@ -2773,15 +2773,15 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(function.HasCode());
 
   if (Compiler::CanOptimizeFunction(thread, function)) {
+    auto isolate_group = thread->isolate_group();
     if (FLAG_background_compilation) {
       if (function.is_background_optimizable() &&
-          isolate->background_compiler()->EnqueueCompilation(function)) {
+          isolate_group->background_compiler()->EnqueueCompilation(function)) {
         // Reduce the chance of triggering a compilation while the function is
         // being compiled in the background. INT32_MIN should ensure that it
         // takes long time to trigger a compilation.
         // Note that the background compilation queue rejects duplicate entries.
         function.SetUsageCounter(INT32_MIN);
-
         // Continue in the same code.
         arguments.SetReturn(function);
         return;

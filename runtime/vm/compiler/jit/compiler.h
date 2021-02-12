@@ -119,12 +119,11 @@ class Compiler : public AllStatic {
 // No OSR compilation in the background compiler.
 class BackgroundCompiler {
  public:
-  explicit BackgroundCompiler(Isolate* isolate);
+  explicit BackgroundCompiler(IsolateGroup* isolate_group);
   virtual ~BackgroundCompiler();
 
-  static void Stop(Isolate* isolate) {
-    ASSERT(Thread::Current()->IsMutatorThread());
-    isolate->background_compiler()->Stop();
+  static void Stop(IsolateGroup* isolate_group) {
+    isolate_group->background_compiler()->Stop();
   }
 
   // Enqueues a function to be compiled in the background.
@@ -148,7 +147,7 @@ class BackgroundCompiler {
   void Disable();
   bool IsRunning() { return !done_; }
 
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
 
   Monitor queue_monitor_;  // Controls access to the queue.
   BackgroundCompilationQueue* function_queue_;
@@ -165,13 +164,15 @@ class BackgroundCompiler {
 class NoBackgroundCompilerScope : public StackResource {
  public:
   explicit NoBackgroundCompilerScope(Thread* thread)
-      : StackResource(thread), isolate_(thread->isolate()) {
-    isolate_->background_compiler()->Disable();
+      : StackResource(thread), isolate_group_(thread->isolate_group()) {
+    isolate_group_->background_compiler()->Disable();
   }
-  ~NoBackgroundCompilerScope() { isolate_->background_compiler()->Enable(); }
+  ~NoBackgroundCompilerScope() {
+    isolate_group_->background_compiler()->Enable();
+  }
 
  private:
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
 };
 
 }  // namespace dart
