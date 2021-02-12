@@ -2193,9 +2193,9 @@ void Assembler::LoadClassId(Register result, Register object) {
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
   const intptr_t table_offset =
-      target::Isolate::cached_class_table_table_offset();
+      target::IsolateGroup::cached_class_table_table_offset();
 
-  LoadIsolate(result);
+  LoadIsolateGroup(result);
   movq(result, Address(result, table_offset));
   movq(result, Address(result, class_id, TIMES_8, 0));
 }

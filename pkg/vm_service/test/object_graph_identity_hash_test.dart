@@ -151,9 +151,10 @@ final tests = <IsolateTest>[
   },
 ];
 
-main(args) => runIsolateTests(
+main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
+      'object_graph_identity_hash_test.dart',
       testeeBefore: script,
       pause_on_exit: true,
     );

@@ -32,4 +32,8 @@ var tests = <VMTest>[
   },
 ];
 
-main(args) async => runVMTests(args, tests);
+main(args) async => runVMTests(
+      args,
+      tests,
+      'get_isolate_group_memory_usage.dart',
+    );

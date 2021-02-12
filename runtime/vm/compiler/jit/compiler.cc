@@ -631,7 +631,11 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
 #if !defined(PRODUCT)
         if (!function.HasOptimizedCode()) {
-          isolate()->debugger()->NotifyCompilation(function);
+          // TODO(dartbug.com/36097): We might need to adjust this once we start
+          // adding debugging support to --enable-isolate-groups.
+          thread()->isolate_group()->ForEachIsolate([&](Isolate* isolate) {
+            isolate->debugger()->NotifyCompilation(function);
+          });
         }
 #endif
         if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {

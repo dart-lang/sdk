@@ -62,5 +62,9 @@ final tests = <IsolateTest>[
   }
 ];
 
-main([args = const <String>[]]) =>
-    runIsolateTests(args, tests, testeeBefore: testeeMain);
+main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'evaluate_with_scope_test.dart',
+      testeeBefore: testeeMain,
+    );

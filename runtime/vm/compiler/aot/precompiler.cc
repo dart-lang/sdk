@@ -57,7 +57,6 @@
 namespace dart {
 
 #define T (thread())
-#define I (isolate())
 #define IG (isolate_group())
 #define Z (zone())
 
@@ -1004,7 +1003,8 @@ void Precompiler::AddField(const Field& field) {
   fields_to_retain_.Insert(&Field::ZoneHandle(Z, field.ptr()));
 
   if (field.is_static()) {
-    const Object& value = Object::Handle(Z, field.StaticValue());
+    const Object& value =
+        Object::Handle(Z, IG->initial_field_table()->At(field.field_id()));
     // Should not be in the middle of initialization while precompiling.
     ASSERT(value.ptr() != Object::transition_sentinel().ptr());
 
@@ -2878,6 +2878,8 @@ ErrorPtr Precompiler::CompileFunction(Precompiler* precompiler,
                                       Thread* thread,
                                       Zone* zone,
                                       const Function& function) {
+  NoActiveIsolateScope no_isolate_scope;
+
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "CompileFunction", function);
 

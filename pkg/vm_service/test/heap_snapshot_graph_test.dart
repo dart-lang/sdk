@@ -105,5 +105,9 @@ var tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) async =>
-    runIsolateTests(args, tests, testeeBefore: script);
+main([args = const <String>[]]) async => runIsolateTests(
+      args,
+      tests,
+      'heap_snapshot_graph_test.dart',
+      testeeBefore: script,
+    );

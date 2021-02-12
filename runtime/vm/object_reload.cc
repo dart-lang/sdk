@@ -219,13 +219,7 @@ void Class::CopyStaticFieldValues(ProgramReloadContext* reload_context,
           if (update_values && !field.is_const()) {
             // Make new field point to the old field value so that both
             // old and new code see and update same value.
-            //
-            // TODO(https://dartbug.com/36097): Once we look into enabling
-            // hot-reload with --enable-isolate-groups we have to do this
-            // for all isolates.
-            reload_context->isolate()->group()->initial_field_table()->Free(
-                field.field_id());
-            reload_context->isolate()->field_table()->Free(field.field_id());
+            reload_context->isolate_group()->FreeStaticField(field);
             field.set_field_id_unsafe(old_field.field_id());
           }
           reload_context->AddStaticFieldMapping(old_field, field);

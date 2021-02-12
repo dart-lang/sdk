@@ -130,5 +130,9 @@ var tests = <IsolateTest>[
   // TODO(bkonyi): fully port observatory test for socket profiling.
 ];
 
-main([args = const <String>[]]) async =>
-    runIsolateTests(args, tests, testeeBefore: setup);
+main([args = const <String>[]]) async => runIsolateTests(
+      args,
+      tests,
+      'network_profiling_test.dart',
+      testeeBefore: setup,
+    );

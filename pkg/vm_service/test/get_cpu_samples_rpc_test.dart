@@ -56,5 +56,10 @@ var vmArgs = [
   '--profile-vm=false', // So this also works with KBC.
 ];
 
-main([args = const <String>[]]) async =>
-    runIsolateTests(args, tests, testeeBefore: testeeDo, extraArgs: vmArgs);
+main([args = const <String>[]]) async => runIsolateTests(
+      args,
+      tests,
+      'get_cpu_samples_rpc_test.dart',
+      testeeBefore: testeeDo,
+      extraArgs: vmArgs,
+    );

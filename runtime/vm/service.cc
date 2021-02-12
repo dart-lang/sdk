@@ -3322,7 +3322,7 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
     js->PrintError(kIsolateIsReloading, "This isolate is being reloaded.");
     return true;
   }
-  if (!isolate->CanReload()) {
+  if (!isolate_group->CanReload()) {
     js->PrintError(kFeatureDisabled,
                    "This isolate cannot reload sources right now.");
     return true;

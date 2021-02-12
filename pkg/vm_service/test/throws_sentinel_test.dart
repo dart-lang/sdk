@@ -20,4 +20,8 @@ var tests = <VMTest>[
   },
 ];
 
-main([args = const <String>[]]) async => await runVMTests(args, tests);
+main([args = const <String>[]]) async => await runVMTests(
+      args,
+      tests,
+      'throws_sentinel_test.dart',
+    );

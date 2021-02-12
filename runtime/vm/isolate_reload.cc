@@ -457,10 +457,10 @@ IsolateGroupReloadContext::~IsolateGroupReloadContext() {}
 
 ProgramReloadContext::ProgramReloadContext(
     std::shared_ptr<IsolateGroupReloadContext> group_reload_context,
-    Isolate* isolate)
+    IsolateGroup* isolate_group)
     : zone_(Thread::Current()->zone()),
       group_reload_context_(group_reload_context),
-      isolate_(isolate),
+      isolate_group_(isolate_group),
       saved_class_table_(nullptr),
       saved_tlc_class_table_(nullptr),
       old_classes_set_storage_(Array::null()),
@@ -562,12 +562,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
   Thread* thread = Thread::Current();
 
-  // All isolates within an isolate group need to share one heap.
-  // TODO(dartbug.com/36097): Remove this assert once the shared heap CL has
-  // landed.
-  RELEASE_ASSERT(!IsolateGroup::AreIsolateGroupsEnabled());
   Heap* heap = IG->heap();
-
   num_old_libs_ =
       GrowableObjectArray::Handle(Z, IG->object_store()->libraries()).Length();
 
@@ -628,8 +623,8 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
     modified_libs_ = new (Z) BitVector(Z, num_old_libs_);
     kernel::KernelLoader::FindModifiedLibraries(
-        kernel_program.get(), isolate_group_, modified_libs_, force_reload,
-        &skip_reload, p_num_received_classes, p_num_received_procedures);
+        kernel_program.get(), IG, modified_libs_, force_reload, &skip_reload,
+        p_num_received_classes, p_num_received_procedures);
     modified_libs_transitive_ = new (Z) BitVector(Z, num_old_libs_);
     BuildModifiedLibrariesClosure(modified_libs_);
 
@@ -682,12 +677,10 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   // assumptions from field guards or CHA or deferred library prefixes.
   // TODO(johnmccutchan): Deoptimizing dependent code here (before the reload)
   // is paranoid. This likely can be moved to the commit phase.
-  ForEachIsolate([&](Isolate* isolate) {
-    isolate->program_reload_context()->EnsuredUnoptimizedCodeForStack();
-    isolate->program_reload_context()->DeoptimizeDependentCode();
-    isolate->program_reload_context()
-        ->ReloadPhase1AllocateStorageMapsAndCheckpoint();
-  });
+  IG->program_reload_context()->EnsuredUnoptimizedCodeForStack();
+  IG->program_reload_context()->DeoptimizeDependentCode();
+  IG->program_reload_context()->ReloadPhase1AllocateStorageMapsAndCheckpoint();
+
   // Renumbering the libraries has invalidated this.
   modified_libs_ = nullptr;
   modified_libs_transitive_ = nullptr;
@@ -703,9 +696,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   {
     TIMELINE_SCOPE(CheckpointClasses);
     CheckpointSharedClassTable();
-    ForEachIsolate([&](Isolate* isolate) {
-      isolate->program_reload_context()->CheckpointClasses();
-    });
+    IG->program_reload_context()->CheckpointClasses();
   }
 
   if (FLAG_gc_during_reload) {
@@ -720,41 +711,24 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   //
   // If loading the hot-reload diff succeeded we'll finalize the loading, which
   // will either commit or reject the reload request.
-  const auto& results = Array::Handle(Z, Array::New(number_of_isolates));
-  intptr_t isolateIndex = 0;
-  intptr_t load_errors = 0;
+  const auto& result =
+      Object::Handle(Z, IG->program_reload_context()->ReloadPhase2LoadKernel(
+                            kernel_program.get(), root_lib_url_));
 
-  auto& tmp = Object::Handle(Z);
-  ForEachIsolate([&](Isolate* isolate) {
-    tmp = isolate->program_reload_context()->ReloadPhase2LoadKernel(
-        kernel_program.get(), root_lib_url_);
-    if (tmp.IsError()) {
-      results.SetAt(isolateIndex, tmp);
-      load_errors++;
-    }
-    isolateIndex++;
-  });
-
-  const auto& result = Object::Handle(results.At(0));
-
-  if (load_errors > 0) {
+  if (result.IsError()) {
     TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");
 
     const auto& error = Error::Cast(result);
     AddReasonForCancelling(new Aborted(Z, error));
 
     DiscardSavedClassTable(/*is_rollback=*/true);
-    ForEachIsolate([&](Isolate* isolate) {
-      isolate->program_reload_context()->ReloadPhase4Rollback();
-    });
+    IG->program_reload_context()->ReloadPhase4Rollback();
     CommonFinalizeTail(num_old_libs_);
   } else {
     ASSERT(!reload_skipped_ && !reload_finalized_);
     TIR_Print("---- LOAD SUCCEEDED\n");
 
-    ForEachIsolate([&](Isolate* isolate) {
-      isolate->program_reload_context()->ReloadPhase3FinalizeLoading();
-    });
+    IG->program_reload_context()->ReloadPhase3FinalizeLoading();
 
     if (FLAG_gc_during_reload) {
       // We use kLowMemory to force the GC to compact, which is more likely to
@@ -765,9 +739,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
     if (!FLAG_reload_force_rollback && !HasReasonsForCancelling()) {
       TIR_Print("---- COMMITTING RELOAD\n");
-      ForEachIsolate([&](Isolate* isolate) {
-        isolate->program_reload_context()->ReloadPhase4CommitPrepare();
-      });
+      isolate_group_->program_reload_context()->ReloadPhase4CommitPrepare();
       bool discard_class_tables = true;
       if (HasInstanceMorphers()) {
         // Find all objects that need to be morphed (reallocated to a new size).
@@ -814,10 +786,8 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
             // We accepted the hot-reload and morphed instances. So now we can
             // commit to the changed class table and deleted the saved one.
             DiscardSavedClassTable(/*is_rollback=*/false);
-            ForEachIsolate([&](Isolate* isolate) {
-              isolate->program_reload_context()->DiscardSavedClassTable(
-                  /*is_rollback=*/false);
-            });
+            IG->program_reload_context()->DiscardSavedClassTable(
+                /*is_rollback=*/false);
           }
           MorphInstancesPhase2Become(before, after);
 
@@ -833,22 +803,16 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       }
       if (discard_class_tables) {
         DiscardSavedClassTable(/*is_rollback=*/false);
-        ForEachIsolate([&](Isolate* isolate) {
-          isolate->program_reload_context()->DiscardSavedClassTable(
-              /*is_rollback=*/false);
-        });
+        IG->program_reload_context()->DiscardSavedClassTable(
+            /*is_rollback=*/false);
       }
-      ForEachIsolate([&](Isolate* isolate) {
-        isolate->program_reload_context()->ReloadPhase4CommitFinish();
-      });
+      isolate_group_->program_reload_context()->ReloadPhase4CommitFinish();
       TIR_Print("---- DONE COMMIT\n");
       isolate_group_->set_last_reload_timestamp(reload_timestamp_);
     } else {
       TIR_Print("---- ROLLING BACK");
       DiscardSavedClassTable(/*is_rollback=*/true);
-      ForEachIsolate([&](Isolate* isolate) {
-        isolate->program_reload_context()->ReloadPhase4Rollback();
-      });
+      isolate_group_->program_reload_context()->ReloadPhase4Rollback();
     }
 
     // ValidateReload mutates the direct subclass information and does
@@ -856,9 +820,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     // information from scratch.
     {
       SafepointWriteRwLocker ml(thread, IG->program_lock());
-      ForEachIsolate([&](Isolate* isolate) {
-        isolate->program_reload_context()->RebuildDirectSubclasses();
-      });
+      IG->program_reload_context()->RebuildDirectSubclasses();
     }
     const intptr_t final_library_count =
         GrowableObjectArray::Handle(Z, IG->object_store()->libraries())
@@ -879,7 +841,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   }
 
   bool success;
-  if (load_errors == 0 || HasReasonsForCancelling()) {
+  if (!result.IsError() || HasReasonsForCancelling()) {
     ReportSuccess();
     success = true;
   } else {
@@ -889,16 +851,14 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
   // Re-queue any shutdown requests so they can inform each isolate's own thread
   // to shut down.
-  isolateIndex = 0;
-  ForEachIsolate([&](Isolate* isolate) {
-    tmp = results.At(isolateIndex);
-    if (tmp.IsUnwindError()) {
-      Isolate::KillIfExists(isolate, UnwindError::Cast(tmp).is_user_initiated()
+  if (result.IsUnwindError()) {
+    const auto& error = UnwindError::Cast(result);
+    ForEachIsolate([&](Isolate* isolate) {
+      Isolate::KillIfExists(isolate, error.is_user_initiated()
                                          ? Isolate::kKillMsg
                                          : Isolate::kInternalKillMsg);
-    }
-    isolateIndex++;
-  });
+    });
+  }
 
   return success;
 }
@@ -1104,7 +1064,7 @@ ObjectPtr ProgramReloadContext::ReloadPhase2LoadKernel(
     if (lib.IsNull()) {
       lib = Library::LookupLibrary(thread, root_lib_url);
     }
-    isolate_->group()->object_store()->set_root_library(lib);
+    IG->object_store()->set_root_library(lib);
     return Object::null();
   } else {
     return thread->StealStickyError();
@@ -1210,23 +1170,26 @@ void IsolateGroupReloadContext::ReportOnJSON(JSONStream* stream,
 
 void ProgramReloadContext::EnsuredUnoptimizedCodeForStack() {
   TIMELINE_SCOPE(EnsuredUnoptimizedCodeForStack);
-  StackFrameIterator it(ValidationPolicy::kDontValidateFrames,
-                        Thread::Current(),
-                        StackFrameIterator::kNoCrossThreadIteration);
 
-  Function& func = Function::Handle();
-  while (it.HasNextFrame()) {
-    StackFrame* frame = it.NextFrame();
-    if (frame->IsDartFrame()) {
-      func = frame->LookupDartFunction();
-      ASSERT(!func.IsNull());
-      // Force-optimized functions don't need unoptimized code because their
-      // optimized code cannot deopt.
-      if (!func.ForceOptimize()) {
-        func.EnsureHasCompiledUnoptimizedCode();
+  IG->ForEachIsolate([](Isolate* isolate) {
+    StackFrameIterator it(ValidationPolicy::kDontValidateFrames,
+                          isolate->mutator_thread(),
+                          StackFrameIterator::kAllowCrossThreadIteration);
+
+    Function& func = Function::Handle();
+    while (it.HasNextFrame()) {
+      StackFrame* frame = it.NextFrame();
+      if (frame->IsDartFrame()) {
+        func = frame->LookupDartFunction();
+        ASSERT(!func.IsNull());
+        // Force-optimized functions don't need unoptimized code because their
+        // optimized code cannot deopt.
+        if (!func.ForceOptimize()) {
+          func.EnsureHasCompiledUnoptimizedCode();
+        }
       }
     }
-  }
+  });
 }
 
 void ProgramReloadContext::DeoptimizeDependentCode() {
@@ -1934,7 +1897,7 @@ void ProgramReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 ObjectStore* ProgramReloadContext::object_store() {
-  return isolate_->group()->object_store();
+  return IG->object_store();
 }
 
 void ProgramReloadContext::ResetUnoptimizedICsOnStack() {

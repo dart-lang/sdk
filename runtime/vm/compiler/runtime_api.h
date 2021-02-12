@@ -1151,7 +1151,6 @@ class Isolate : public AllStatic {
   static word default_tag_offset();
   static word current_tag_offset();
   static word user_tag_offset();
-  static word cached_class_table_table_offset();
   static word ic_miss_code_offset();
 #if !defined(PRODUCT)
   static word single_step_offset();
@@ -1161,6 +1160,7 @@ class Isolate : public AllStatic {
 class IsolateGroup : public AllStatic {
  public:
   static word shared_class_table_offset();
+  static word cached_class_table_table_offset();
 };
 
 class SharedClassTable : public AllStatic {

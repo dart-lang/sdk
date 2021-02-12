@@ -130,8 +130,10 @@ vars = {
   "package_config_rev": "249af482de9ebabfc781bf10d6152c938e5ce45e",
   "path_rev": "407ab76187fade41c31e39c745b39661b710106c",
   "pedantic_rev": "df177f6ae531426aaf7bbf0121c90dc89d9c57bf",
+  "platform_rev": "c20e6fa315e9f8820e51c0ae721f63aff33b8e17",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
+  "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
   "protobuf_rev": "0d03fd588df69e9863e2a2efc0059dee8f18d5b2",
   "pub_rev": "0e657414a472e74ca5dd76ae0db50cc060251dec",
   "pub_semver_rev": "f50d80ef10c4b2fa5f4c8878036a4d9342c0cc82",
@@ -387,10 +389,14 @@ deps = {
       Var("dart_git") + "path.git" + "@" + Var("path_rev"),
   Var("dart_root") + "/third_party/pkg/pedantic":
       Var("dart_git") + "pedantic.git" + "@" + Var("pedantic_rev"),
+  Var("dart_root") + "/third_party/pkg/platform":
+       Var("dart_git") + "platform.dart.git" + "@" + Var("platform_rev"),
   Var("dart_root") + "/third_party/pkg/pool":
       Var("dart_git") + "pool.git" + "@" + Var("pool_rev"),
   Var("dart_root") + "/third_party/pkg/protobuf":
        Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_rev"),
+  Var("dart_root") + "/third_party/pkg/process":
+       Var("dart_git") + "process.dart.git" + "@" + Var("process_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
       Var("dart_git") + "pub_semver.git" + "@" + Var("pub_semver_rev"),
   Var("dart_root") + "/third_party/pkg/pub":

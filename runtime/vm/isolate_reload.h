@@ -305,7 +305,7 @@ class ProgramReloadContext {
  public:
   ProgramReloadContext(
       std::shared_ptr<IsolateGroupReloadContext> group_reload_context,
-      Isolate* isolate);
+      IsolateGroup* isolate_group);
   ~ProgramReloadContext();
 
   // All zone allocated objects must be allocated from this zone.
@@ -333,8 +333,7 @@ class ProgramReloadContext {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  Isolate* isolate() { return isolate_; }
-  IsolateGroup* isolate_group() { return isolate_->group(); }
+  IsolateGroup* isolate_group() { return isolate_group_; }
   ObjectStore* object_store();
 
   void EnsuredUnoptimizedCodeForStack();
@@ -382,7 +381,7 @@ class ProgramReloadContext {
   // The zone used for all reload related allocations.
   Zone* zone_;
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context_;
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   intptr_t saved_num_cids_ = -1;
   intptr_t saved_num_tlc_cids_ = -1;
   std::atomic<ClassPtr*> saved_class_table_;
@@ -420,6 +419,7 @@ class ProgramReloadContext {
   ObjectPtr* to() { return reinterpret_cast<ObjectPtr*>(&saved_libraries_); }
 
   friend class Isolate;
+  friend class IsolateGroup;
   friend class Class;  // AddStaticFieldMapping, AddEnumBecomeMapping.
   friend class Library;
   friend class ObjectLocator;

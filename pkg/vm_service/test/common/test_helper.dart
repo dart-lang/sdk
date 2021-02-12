@@ -7,6 +7,7 @@ library test_helper;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
+import 'package:process/process.dart';
 import 'package:vm_service/vm_service_io.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
@@ -27,19 +28,15 @@ bool _isTestee() {
   return io.Platform.environment.containsKey(_TESTEE_ENV_KEY);
 }
 
-Uri _getTestUri() {
+Uri _getTestUri(String script) {
   if (io.Platform.script.scheme == 'data') {
-    // If we're using pub to run these tests this value isn't a file URI.
-    // We'll need to parse the actual URI out...
-    final fileRegExp = RegExp(r'file:\/\/\/.*\.dart');
-    final path =
-        fileRegExp.stringMatch(io.Platform.script.data!.contentAsString());
-    if (path == null) {
-      throw 'Unable to determine file path for script!';
-    }
-    return Uri.parse(path);
+    // If running from pub we can assume that we're in the root of the package
+    // directory.
+    return Uri.parse('test/$script');
   } else {
-    return io.Platform.script;
+    // Resolve the script to ensure that test will fail if the provided script
+    // name doesn't match the actual script.
+    return io.Platform.script.resolve(script);
   }
 }
 
@@ -97,7 +94,8 @@ class _ServiceTesteeLauncher {
   List<String> args;
   bool killedByTester = false;
 
-  _ServiceTesteeLauncher() : args = [_getTestUri().toFilePath()];
+  _ServiceTesteeLauncher(String script)
+      : args = [_getTestUri(script).toFilePath()];
 
   // Spawn the testee process.
   Future<io.Process> _spawnProcess(
@@ -164,7 +162,13 @@ class _ServiceTesteeLauncher {
       arguments.insert(0, '-D$k=$v');
     });
     print('** Launching $bashEnvironment$executable ${arguments.join(' ')}');
-    return io.Process.start(executable, arguments, environment: environment);
+    return LocalProcessManager().start(
+      [
+        executable,
+        ...arguments,
+      ],
+      environment: environment,
+    );
   }
 
   Future<Uri> launch(
@@ -214,10 +218,10 @@ class _ServiceTesteeLauncher {
         io.stdout.write('>testee>err> ${line}\n');
       });
       process!.exitCode.then((exitCode) {
-        if ((io.exitCode != 0) && !killedByTester) {
+        if ((exitCode != 0) && !killedByTester) {
           throw "Testee exited with $exitCode";
         }
-        print("** Process exited");
+        print("** Process exited: $exitCode");
       });
       return completer.future;
     });
@@ -245,13 +249,14 @@ class _ServiceTesterRunner {
       List<String>? extraArgs,
       List<VMTest>? vmTests,
       List<IsolateTest>? isolateTests,
+      required String scriptName,
       bool pause_on_start = false,
       bool pause_on_exit = false,
       bool verbose_vm = false,
       bool pause_on_unhandled_exceptions = false,
       bool testeeControlsServer = false,
       bool useAuthToken = false}) async {
-    var process = _ServiceTesteeLauncher();
+    var process = _ServiceTesteeLauncher(scriptName);
     late VmService vm;
     late IsolateRef isolate;
     setUp(() async {
@@ -272,7 +277,7 @@ class _ServiceTesterRunner {
       });
     });
 
-    final name = _getTestUri().pathSegments.last;
+    final name = _getTestUri(scriptName).pathSegments.last;
 
     test(
       name,
@@ -348,7 +353,8 @@ class _ServiceTesterRunner {
 /// to run tests or testee in this invocation of the script.
 Future<void> runIsolateTests(
   List<String> mainArgs,
-  List<IsolateTest> tests, {
+  List<IsolateTest> tests,
+  String scriptName, {
   testeeBefore()?,
   testeeConcurrent()?,
   bool pause_on_start = false,
@@ -369,6 +375,7 @@ Future<void> runIsolateTests(
   } else {
     await _ServiceTesterRunner().run(
         mainArgs: mainArgs,
+        scriptName: scriptName,
         extraArgs: extraArgs,
         isolateTests: tests,
         pause_on_start: pause_on_start,
@@ -391,7 +398,8 @@ Future<void> runIsolateTests(
 /// functions).
 void runIsolateTestsSynchronous(
   List<String> mainArgs,
-  List<IsolateTest> tests, {
+  List<IsolateTest> tests,
+  String scriptName, {
   void testeeBefore()?,
   void testeeConcurrent()?,
   bool pause_on_start = false,
@@ -410,6 +418,7 @@ void runIsolateTestsSynchronous(
   } else {
     _ServiceTesterRunner().run(
         mainArgs: mainArgs,
+        scriptName: scriptName,
         extraArgs: extraArgs,
         isolateTests: tests,
         pause_on_start: pause_on_start,
@@ -425,7 +434,8 @@ void runIsolateTestsSynchronous(
 /// to run tests or testee in this invocation of the script.
 Future<void> runVMTests(
   List<String> mainArgs,
-  List<VMTest> tests, {
+  List<VMTest> tests,
+  String scriptName, {
   testeeBefore()?,
   testeeConcurrent()?,
   bool pause_on_start = false,
@@ -443,6 +453,7 @@ Future<void> runVMTests(
   } else {
     await _ServiceTesterRunner().run(
         mainArgs: mainArgs,
+        scriptName: scriptName,
         extraArgs: extraArgs,
         vmTests: tests,
         pause_on_start: pause_on_start,
