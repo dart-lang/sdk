@@ -111,7 +111,9 @@ void allEventsHaveIsolateNumber(List events) {
     Map arguments = event['args'];
     expect(arguments, isA<Map>());
     expect(arguments['isolateGroupId'], isA<String>());
-    if (!const ['GC', 'Compiler', 'CompilerVerbose'].contains(event['cat'])) {
+    if (!const ['GC', 'Compiler', 'CompilerVerbose'].contains(event['cat']) &&
+        !const ['FinishTopLevelClassLoading', 'FinishClassLoading']
+            .contains(event['name'])) {
       expect(arguments['isolateId'], isA<String>());
     }
   }

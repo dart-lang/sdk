@@ -187,11 +187,11 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
     FLAG_use_field_guards)                                                     \
+  V(PRODUCT, should_load_vmservice_library, ShouldLoadVmService,               \
+    load_vmservice_library, false)                                             \
   V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)
 
 #define BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                               \
-  V(PRODUCT, should_load_vmservice_library, ShouldLoadVmService,               \
-    load_vmservice_library, false)                                             \
   V(PRODUCT, copy_parent_code, CopyParentCode, copy_parent_code, false)        \
   V(PRODUCT, is_system_isolate, IsSystemIsolate, is_system_isolate, false)
 
@@ -512,6 +512,14 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return null_safety() || FLAG_strict_null_safety_checks;
   }
 
+  bool should_load_vmservice() const {
+    return ShouldLoadVmServiceBit::decode(isolate_group_flags_);
+  }
+  void set_should_load_vmservice(bool value) {
+    isolate_group_flags_ =
+        ShouldLoadVmServiceBit::update(value, isolate_group_flags_);
+  }
+
 #if !defined(PRODUCT)
 #if !defined(DART_PRECOMPILED_RUNTIME)
   bool HasAttemptedReload() const {
@@ -820,6 +828,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   V(HasAttemptedReload)                                                        \
   V(NullSafety)                                                                \
   V(RemappingCids)                                                             \
+  V(ShouldLoadVmService)                                                       \
   V(NullSafetySet)                                                             \
   V(Obfuscate)                                                                 \
   V(UseFieldGuards)                                                            \
@@ -1360,13 +1369,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
            FLAG_randomize_optimization_counter;
   }
 
-  bool should_load_vmservice() const {
-    return ShouldLoadVmServiceBit::decode(isolate_flags_);
-  }
-  void set_should_load_vmservice(bool value) {
-    isolate_flags_ = ShouldLoadVmServiceBit::update(value, isolate_flags_);
-  }
-
   const DispatchTable* dispatch_table() const {
     return group()->dispatch_table();
   }
@@ -1556,7 +1558,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(HasAttemptedStepping)                                                      \
   V(ShouldPausePostServiceRequest)                                             \
   V(CopyParentCode)                                                            \
-  V(ShouldLoadVmService)                                                       \
   V(IsSystemIsolate)
 
   // Isolate specific flags.
@@ -1764,9 +1765,11 @@ class EnterIsolateGroupScope {
 //
 // This can be used in code (e.g. GC, Kernel Loader) that should not operate on
 // an individual isolate.
-class NoActiveIsolateScope {
+class NoActiveIsolateScope : public StackResource {
  public:
-  NoActiveIsolateScope() : thread_(Thread::Current()) {
+  NoActiveIsolateScope()
+      : StackResource(Thread::Current()),
+        thread_(static_cast<Thread*>(thread())) {
     saved_isolate_ = thread_->isolate_;
     thread_->isolate_ = nullptr;
   }

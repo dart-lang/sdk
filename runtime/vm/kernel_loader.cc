@@ -238,6 +238,7 @@ void KernelLoader::ReadLoadingUnits() {
 Object& KernelLoader::LoadEntireProgram(Program* program,
                                         bool process_pending_classes) {
   Thread* thread = Thread::Current();
+
   TIMELINE_DURATION(thread, Isolate, "LoadKernel");
 
   if (program->is_single_program()) {
@@ -772,6 +773,8 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
 }
 
 void KernelLoader::LoadLibrary(const Library& library) {
+  NoActiveIsolateScope no_active_isolate_scope;
+
   // This will be invoked by VM bootstrapping code.
   SafepointWriteRwLocker ml(thread_, thread_->isolate_group()->program_lock());
 
@@ -986,6 +989,8 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
         "not allowed");
   }
 
+  NoActiveIsolateScope no_active_isolate_scope;
+
   // Read library index.
   library_kernel_offset_ = library_offset(index);
   correction_offset_ = library_kernel_offset_;
@@ -1001,7 +1006,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
 
   LibraryHelper library_helper(&helper_, kernel_binary_version_);
   library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
-  if (!FLAG_precompiled_mode && !I->should_load_vmservice()) {
+  if (!FLAG_precompiled_mode && !IG->should_load_vmservice()) {
     StringIndex lib_name_index =
         H.CanonicalNameString(library_helper.canonical_name_);
     if (H.StringEquals(lib_name_index, kVMServiceIOLibraryUri)) {
@@ -1791,6 +1796,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
 }
 
 void KernelLoader::FinishLoading(const Class& klass) {
+  NoActiveIsolateScope no_active_isolate_scope;
+
   ASSERT(klass.IsTopLevel() || (klass.kernel_offset() > 0));
 
   Zone* zone = Thread::Current()->zone();
