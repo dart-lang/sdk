@@ -398,7 +398,8 @@ class FixProcessor extends BaseProcessor {
   static const Map<String, List<FixInfo>> lintProducerMap2 = {
     LintNames.always_declare_return_types: [
       FixInfo(
-        canBeAppliedToFile: true,
+        // todo (pq): enable when tested
+        canBeAppliedToFile: false,
         // not currently supported; TODO(pq): consider adding
         canBeBulkApplied: false,
         generators: [
@@ -417,7 +418,8 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.always_specify_types: [
       FixInfo(
-        canBeAppliedToFile: true,
+        // todo (pq): enable when tested
+        canBeAppliedToFile: false,
         // not currently supported; TODO(pq): consider adding
         canBeBulkApplied: false,
         generators: [
@@ -540,7 +542,8 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.avoid_unused_constructor_parameters: [
       FixInfo(
-        canBeAppliedToFile: true,
+        // todo (pq): enable when tested
+        canBeAppliedToFile: false,
         canBeBulkApplied: false,
         generators: [
           RemoveUnusedParameter.newInstance,
@@ -734,7 +737,8 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.prefer_expression_function_bodies: [
       FixInfo(
-        canBeAppliedToFile: true,
+        // todo (pq): enable when tested
+        canBeAppliedToFile: false,
         // not currently supported; TODO(pq): consider adding
         canBeBulkApplied: false,
         generators: [
@@ -844,7 +848,8 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.prefer_interpolation_to_compose_strings: [
       FixInfo(
-        canBeAppliedToFile: true,
+        // todo (pq): enable when tested
+        canBeAppliedToFile: false,
         // not currently supported; TODO(pq): consider adding
         canBeBulkApplied: false,
         generators: [
@@ -927,7 +932,8 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.type_annotate_public_apis: [
       FixInfo(
-        canBeAppliedToFile: true,
+        // todo (pq): enable when tested
+        canBeAppliedToFile: false,
         // not currently supported; TODO(pq): consider adding
         canBeBulkApplied: false,
         generators: [
@@ -1009,7 +1015,8 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_parenthesis: [
       FixInfo(
-        canBeAppliedToFile: true,
+        // todo (pq): enable when tested
+        canBeAppliedToFile: false,
         // not currently supported; TODO(pq): consider adding
         canBeBulkApplied: false,
         generators: [
@@ -1037,7 +1044,8 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.use_full_hex_values_for_flutter_colors: [
       FixInfo(
-        canBeAppliedToFile: true,
+        // todo (pq): enable when tested
+        canBeAppliedToFile: false,
         // not currently supported; TODO(pq): consider adding
         canBeBulkApplied: false,
         generators: [
