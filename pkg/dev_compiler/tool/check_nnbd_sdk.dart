@@ -117,15 +117,12 @@ main() {}
   var result = Process.runSync(dart.toFilePath(), [
     // The NNBD dart binaries / snapshots require this flag to be enabled at
     // VM level.
-    if (analyzerSnapshot.contains('NNBD')) '--enable-experiment=non-nullable',
     analyzerSnapshot,
     '--dart-sdk=${sdkDir}',
     '--format',
     'machine',
     '--sdk-warnings',
     '--no-hints',
-    '--enable-experiment',
-    'non-nullable',
     emptyProgramUri.toFilePath()
   ]);
 

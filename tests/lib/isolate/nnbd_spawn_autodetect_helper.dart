@@ -51,7 +51,6 @@ void generateOutput(String sourcePath, String outPath, String type) {
   var args = <String>[];
   args.add("--snapshot-kind=$type");
   args.add("--snapshot=$outPath");
-  args.add("--enable-experiment=non-nullable");
   args.add(sourcePath);
   var result = Process.runSync(exec, args);
   print('snapshot $type stdout: ${result.stdout}');
@@ -69,7 +68,6 @@ void generateAppJIT(String sourcePath, String outPath) {
 void testNullSafetyMode(String filePath, String expected) {
   var exec = Platform.resolvedExecutable;
   var args = <String>[];
-  args.add("--enable-experiment=non-nullable");
   args.add(filePath);
   var result = Process.runSync(exec, args);
   print('test stdout: ${result.stdout}');

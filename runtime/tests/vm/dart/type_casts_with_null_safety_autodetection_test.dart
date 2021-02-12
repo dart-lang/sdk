@@ -22,7 +22,6 @@ runTest(String script, String output, String temp) async {
   // Do not add Platform.executableArguments into arguments to avoid passing
   // --sound-null-safety / --no-sound-null-safety arguments.
   final result = await runBinary("RUN $script", Platform.executable, [
-    '--enable-experiment=non-nullable',
     '--deterministic',
     '--optimization-counter-threshold=10',
     '--packages=${Platform.packageConfig}',

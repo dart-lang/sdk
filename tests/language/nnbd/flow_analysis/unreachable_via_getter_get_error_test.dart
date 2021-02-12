@@ -5,7 +5,6 @@
 // This test verifies that if a read is performed on a getter whose type is
 // `Never?`, the resulting code block is considered reachable by flow analysis.
 
-// SharedOptions=--enable-experiment=non-nullable
 
 Never? get neverQuestionGetter => null;
 

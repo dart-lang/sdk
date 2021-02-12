@@ -7,7 +7,6 @@
 // variable, because promotion to `Never` causes the code to be considered
 // unreachable.
 
-// SharedOptions=--enable-experiment=non-nullable
 
 main() {
   late int i;

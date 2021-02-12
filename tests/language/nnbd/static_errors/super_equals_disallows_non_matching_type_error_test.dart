@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 import "package:expect/expect.dart";
 
-// SharedOptions=--enable-experiment=non-nullable
 
 // Test that `super == x` is properly type checked against the target
 // `operator==` method.  That is, the special allowance in the following spec

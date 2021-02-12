@@ -29,7 +29,6 @@ compileAndRunTest(String comment, String expectedOutput) async {
     await runGenKernelWithoutStandardOptions('BUILD DILL FILE', [
       "--platform",
       platformDill,
-      '--enable-experiment=non-nullable',
       '--output=$testDillPath',
       testScriptPath,
     ]);

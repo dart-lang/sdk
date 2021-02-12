@@ -8,7 +8,6 @@
 // expression `(x = null)`).  This test demonstrates the problem with `(x =
 // null)` and checks a few other cases.
 
-// SharedOptions=--enable-experiment=non-nullable
 
 void assignNullRhs(int? x) {
   if (x != (x = null)) {

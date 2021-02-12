@@ -219,7 +219,6 @@ class SourceToDillStep implements IOModularStep {
           .expand((m) => ['--input-linked', '${toUri(m, dillId)}'])),
       ...(sources.expand((String uri) => ['--source', uri])),
       ...(flags.expand((String flag) => ['--enable-experiment', flag])),
-      '--enable-experiment=non-nullable',
     ];
 
     var result =

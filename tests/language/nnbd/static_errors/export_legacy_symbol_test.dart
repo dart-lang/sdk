@@ -5,7 +5,6 @@
 // Can't run in strong mode since it contains a legacy library.
 // Requirements=nnbd-weak
 
-// SharedOptions=--enable-experiment=non-nullable
 
 import 'export_legacy_symbol_opted_out_library.dart';
 

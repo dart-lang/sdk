@@ -7,7 +7,6 @@
 // the assignment occurs somewhere in the switch, that there is no compile-time
 // error, because the assignment may happen prior to a branch to the label.
 
-// SharedOptions=--enable-experiment=non-nullable
 import 'package:expect/expect.dart';
 
 void switchOk(int one) {

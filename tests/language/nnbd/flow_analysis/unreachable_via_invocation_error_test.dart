@@ -5,7 +5,6 @@
 // This test verifies that if a method is invoked whose return type is `Never?`,
 // the resulting code block is considered reachable by flow analysis.
 
-// SharedOptions=--enable-experiment=non-nullable
 
 Never? neverQuestionFunction() => null;
 

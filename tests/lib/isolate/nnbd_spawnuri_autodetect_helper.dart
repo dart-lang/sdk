@@ -27,7 +27,6 @@ void generateOutput(String sourcePath, String outPath, String type) {
   var args = <String>[];
   args.add("--snapshot-kind=$type");
   args.add("--snapshot=$outPath");
-  args.add("--enable-experiment=non-nullable");
   args.add(sourcePath);
   var result = Process.runSync(exec, args);
 }
@@ -74,7 +73,6 @@ void testNullSafetyMode(
   ''');
   var exec = Platform.resolvedExecutable;
   var args = <String>[];
-  args.add("--enable-experiment=non-nullable");
   args.add(mainIsolate.path);
   var result = Process.runSync(exec, args);
   expect(result.stdout.contains('$expected'), true);

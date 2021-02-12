@@ -5,7 +5,6 @@
 // This test verifies that if a read is performed on a variable whose type is
 // `Never?`, the resulting code block is considered reachable by flow analysis.
 
-// SharedOptions=--enable-experiment=non-nullable
 
 void explicitNeverQuestionType(Object x, bool b) {
   Never? y = null;

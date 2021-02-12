@@ -8,7 +8,6 @@
 // compile-time error, because the variable is unassigned on all possible
 // control flow paths to the read.
 
-// SharedOptions=--enable-experiment=non-nullable
 import 'package:expect/expect.dart';
 
 void switchBad(int value) {
