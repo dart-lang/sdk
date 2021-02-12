@@ -13231,7 +13231,7 @@ void Library::AllocatePrivateKey() const {
     // When reloading, we need to make sure we use the original private key
     // if this library previously existed.
     ProgramReloadContext* program_reload_context =
-        thread->isolate()->program_reload_context();
+        isolate_group->program_reload_context();
     const String& original_key =
         String::Handle(program_reload_context->FindLibraryPrivateKey(*this));
     if (!original_key.IsNull()) {

@@ -2499,7 +2499,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
         do_gc = true;
       }
       if ((isolate_reload_every > 0) && (count % isolate_reload_every) == 0) {
-        do_reload = isolate->CanReload();
+        do_reload = isolate->group()->CanReload();
       }
     }
   }

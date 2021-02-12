@@ -677,8 +677,14 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   IsolateGroupReloadContext* reload_context() {
     return group_reload_context_.get();
   }
+  ProgramReloadContext* program_reload_context() {
+    return program_reload_context_;
+  }
 
   void DeleteReloadContext();
+  bool CanReload();
+#else
+  bool CanReload() { return false; }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   bool IsReloading() const {
@@ -764,6 +770,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   MutatorThreadPool* thread_pool() { return thread_pool_.get(); }
 
   void RegisterStaticField(const Field& field, const Instance& initial_value);
+  void FreeStaticField(const Field& field);
 
   static bool AreIsolateGroupsEnabled() {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -848,6 +855,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
       0;  // we can only reload when this is 0.
   // Per-isolate-group copy of FLAG_reload_every.
   RelaxedAtomic<intptr_t> reload_every_n_stack_overflow_checks_;
+  ProgramReloadContext* program_reload_context_ = nullptr;
 #endif
 
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
@@ -1263,20 +1271,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
 #if !defined(PRODUCT)
   VMTagCounters* vm_tag_counters() { return &vm_tag_counters_; }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  ProgramReloadContext* program_reload_context() {
-    return program_reload_context_;
-  }
-
-  void DeleteReloadContext();
-
-  bool CanReload() const;
-#else
-  bool IsReloading() const { return false; }
-  bool HasAttemptedReload() const { return false; }
-  bool CanReload() const { return false; }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // !defined(PRODUCT)
 
   bool IsPaused() const;
@@ -1617,7 +1611,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
-  ProgramReloadContext* program_reload_context_ = nullptr;
   // Ring buffer of objects assigned an id.
   ObjectIdRing* object_id_ring_ = nullptr;
 #endif  // !defined(PRODUCT)
@@ -1713,7 +1706,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   friend class ServiceIsolate;
   friend class Thread;
   friend class Timeline;
-  friend class NoReloadScope;  // reload_block
   friend class IsolateGroup;   // reload_context_
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);

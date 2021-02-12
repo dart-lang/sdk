@@ -401,7 +401,7 @@ class TestCase : TestCaseBase {
 
  private:
   static Dart_Handle TriggerReload(
-      std::function<bool(Isolate*, JSONStream*)> do_reload);
+      std::function<bool(IsolateGroup*, JSONStream*)> do_reload);
 
   // |data_buffer| can either be snapshot data, or kernel binary data.
   // If |data_buffer| is snapshot data, then |len| should be zero as snapshot
