@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -91,7 +92,8 @@ dev_dependencies:
           ...arguments,
         ],
         workingDirectory: workingDir ?? dir.path,
-        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'});
+        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'},
+        stdoutEncoding: utf8);
   }
 
   Future<Process> start(
