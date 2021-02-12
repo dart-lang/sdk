@@ -16,7 +16,9 @@ main() {
 
 @reflectiveTest
 class ForInOfInvalidTypeTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with ForInOfInvalidTypeTestCases, WithoutNullSafetyMixin {}
+
+mixin ForInOfInvalidTypeTestCases on PubPackageResolutionTest {
   test_awaitForIn_dynamic() async {
     await assertNoErrorsInCode('''
 f(dynamic e) async {
@@ -49,6 +51,16 @@ f(dynamic e) {
 ''');
   }
 
+  test_forIn_interfaceType_iterable() async {
+    await assertNoErrorsInCode('''
+f(Iterable e) {
+  for (var id in e) {
+    id;
+  }
+}
+''');
+  }
+
   test_forIn_interfaceType_notIterable() async {
     await assertErrorsInCode('''
 f(bool e) {
@@ -63,8 +75,8 @@ f(bool e) {
 }
 
 @reflectiveTest
-class ForInOfInvalidTypeWithNullSafetyTest extends ForInOfInvalidTypeTest
-    with WithNullSafetyMixin {
+class ForInOfInvalidTypeWithNullSafetyTest extends PubPackageResolutionTest
+    with ForInOfInvalidTypeTestCases {
   test_awaitForIn_never() async {
     await assertErrorsInCode('''
 f(Never e) async {
@@ -77,6 +89,17 @@ f(Never e) async {
     ]);
     // TODO(scheglov) extract for-in resolution and implement
 //    assertType(findNode.simple('id;'), 'Never');
+  }
+
+  test_forIn_interfaceTypeTypedef_iterable() async {
+    await assertNoErrorsInCode('''
+typedef L = List<String>;
+f(L e) {
+  for (var id in e) {
+    id;
+  }
+}
+''');
   }
 
   test_forIn_never() async {
