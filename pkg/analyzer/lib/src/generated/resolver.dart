@@ -2100,7 +2100,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (type.isDartAsyncFutureOr) {
       return type;
     }
-    return typeProvider.futureOrType2(type);
+    return typeProvider.futureOrType(type);
   }
 
   /// Return `true` if the given [parameter] element of the AST being resolved

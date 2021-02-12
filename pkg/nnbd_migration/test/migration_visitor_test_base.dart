@@ -80,13 +80,13 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
 
   DecoratedType future(DecoratedType parameter, {NullabilityNode node}) {
     return DecoratedType(
-        typeProvider.futureType2(parameter.type), node ?? newNode(),
+        typeProvider.futureType(parameter.type), node ?? newNode(),
         typeArguments: [parameter]);
   }
 
   DecoratedType futureOr(DecoratedType parameter, {NullabilityNode node}) {
     return DecoratedType(
-        typeProvider.futureOrType2(parameter.type), node ?? newNode(),
+        typeProvider.futureOrType(parameter.type), node ?? newNode(),
         typeArguments: [parameter]);
   }
 
@@ -95,11 +95,11 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
 
   DecoratedType iterable(DecoratedType elementType, {NullabilityNode node}) =>
       DecoratedType(
-          typeProvider.iterableType2(elementType.type), node ?? newNode(),
+          typeProvider.iterableType(elementType.type), node ?? newNode(),
           typeArguments: [elementType]);
 
   DecoratedType list(DecoratedType elementType, {NullabilityNode node}) =>
-      DecoratedType(typeProvider.listType2(elementType.type), node ?? newNode(),
+      DecoratedType(typeProvider.listType(elementType.type), node ?? newNode(),
           typeArguments: [elementType]);
 
   NullabilityNode newNode() => NullabilityNode.forTypeAnnotation(

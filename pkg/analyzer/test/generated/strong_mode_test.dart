@@ -2810,7 +2810,7 @@ main() {
     assertType(ft, 'List<int> Function(String)');
 
     var x = findElement.localVar('x');
-    expect(x.type, typeProvider.listType2(typeProvider.intType));
+    expect(x.type, typeProvider.listType(typeProvider.intType));
   }
 
   test_genericMethod_functionExpressionInvocation_explicit() async {

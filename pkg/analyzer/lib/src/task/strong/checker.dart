@@ -155,7 +155,7 @@ class CodeChecker extends RecursiveAstVisitor {
     } else if (element is SpreadElement) {
       // Spread expression may be dynamic in which case it's implicitly downcast
       // to Map<dynamic, dynamic>
-      DartType expressionCastType = typeProvider.mapType2(
+      DartType expressionCastType = typeProvider.mapType(
           DynamicTypeImpl.instance, DynamicTypeImpl.instance);
       checkAssignment(element.expression, expressionCastType);
 
@@ -727,7 +727,7 @@ class CodeChecker extends RecursiveAstVisitor {
         var typeArg = (type.element == typeProvider.futureElement)
             ? (type as InterfaceType).typeArguments[0]
             : typeProvider.dynamicType;
-        return typeProvider.futureOrType2(typeArg);
+        return typeProvider.futureOrType(typeArg);
       }
     } else {
       if (body.isGenerator) {
@@ -815,7 +815,7 @@ class CodeChecker extends RecursiveAstVisitor {
     // In this case, we're more permissive than assignability.
     if (to.isDartAsyncFutureOr) {
       var to1 = (to as InterfaceType).typeArguments[0];
-      var to2 = typeProvider.futureType2(to1);
+      var to2 = typeProvider.futureType(to1);
       return _needsImplicitCast(expr, to: to1, from: from) == true ||
           _needsImplicitCast(expr, to: to2, from: from) == true;
     }

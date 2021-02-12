@@ -79,9 +79,9 @@ class YieldStatementResolver {
     if (isYieldEach) {
       impliedReturnType = expressionType;
     } else if (_enclosingFunction.isSynchronous) {
-      impliedReturnType = _typeProvider.iterableType2(expressionType);
+      impliedReturnType = _typeProvider.iterableType(expressionType);
     } else {
-      impliedReturnType = _typeProvider.streamType2(expressionType);
+      impliedReturnType = _typeProvider.streamType(expressionType);
     }
 
     if (!_typeSystem.isAssignableTo(impliedReturnType, declaredReturnType)) {
@@ -120,8 +120,8 @@ class YieldStatementResolver {
       var contextType = elementType;
       if (node.star != null) {
         contextType = _enclosingFunction.isSynchronous
-            ? _typeProvider.iterableType2(elementType)
-            : _typeProvider.streamType2(elementType);
+            ? _typeProvider.iterableType(elementType)
+            : _typeProvider.streamType(elementType);
       }
       InferenceContext.setType(node.expression, contextType);
     }

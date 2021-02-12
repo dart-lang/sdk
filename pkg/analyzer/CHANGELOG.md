@@ -1,3 +1,7 @@
+## 1.1.0-dev
+* Deprecated `TypeProvider.futureType2()`, `iterableType2()`, etc.
+  Use corresponding `TypeProvider.futureType()`, `iterableType()`, etc.
+
 ## 1.0.0
 * Stable null safety release.
 * Updated dependencies to null safe releases.

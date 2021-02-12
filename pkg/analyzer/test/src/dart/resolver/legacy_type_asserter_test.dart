@@ -67,7 +67,7 @@ class LegacyTypeAsserterTest {
   test_nullableUnit_expressionStaticType_nonNullTypeArgument() async {
     var identifier = AstTestFactory.identifier3('foo');
     var unit = _wrapExpression(identifier);
-    identifier.staticType = typeProvider.listType2(
+    identifier.staticType = typeProvider.listType(
         (typeProvider.intType as TypeImpl)
             .withNullability(NullabilitySuffix.question));
 

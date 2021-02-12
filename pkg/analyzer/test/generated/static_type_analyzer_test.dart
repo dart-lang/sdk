@@ -163,12 +163,12 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     InterfaceType numType = _typeProvider.numType;
     // class A extends Future<int> implements Future<num> { ... }
     ClassElementImpl classA =
-        ElementFactory.classElement('A', _typeProvider.futureType2(intType));
-    classA.interfaces = <InterfaceType>[_typeProvider.futureType2(numType)];
+        ElementFactory.classElement('A', _typeProvider.futureType(intType));
+    classA.interfaces = <InterfaceType>[_typeProvider.futureType(numType)];
     // class B extends Future<num> implements Future<int> { ... }
     ClassElementImpl classB =
-        ElementFactory.classElement('B', _typeProvider.futureType2(numType));
-    classB.interfaces = <InterfaceType>[_typeProvider.futureType2(intType)];
+        ElementFactory.classElement('B', _typeProvider.futureType(numType));
+    classB.interfaces = <InterfaceType>[_typeProvider.futureType(intType)];
     // flatten(A) = flatten(B) = int, since int is more specific than num.
     expect(_flatten(interfaceTypeStar(classA)), intType);
     expect(_flatten(interfaceTypeStar(classB)), intType);
@@ -178,11 +178,10 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     InterfaceType intType = _typeProvider.intType;
     DartType dynamicType = _typeProvider.dynamicType;
     InterfaceType futureDynamicType = _typeProvider.futureDynamicType;
-    InterfaceType futureIntType = _typeProvider.futureType2(intType);
+    InterfaceType futureIntType = _typeProvider.futureType(intType);
     InterfaceType futureFutureDynamicType =
-        _typeProvider.futureType2(futureDynamicType);
-    InterfaceType futureFutureIntType =
-        _typeProvider.futureType2(futureIntType);
+        _typeProvider.futureType(futureDynamicType);
+    InterfaceType futureFutureIntType = _typeProvider.futureType(futureIntType);
     // flatten(int) = int
     expect(_flatten(intType), intType);
     // flatten(dynamic) = dynamic
@@ -203,12 +202,12 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     InterfaceType stringType = _typeProvider.stringType;
     // class A extends Future<int> implements Future<String> { ... }
     ClassElementImpl classA =
-        ElementFactory.classElement('A', _typeProvider.futureType2(intType));
-    classA.interfaces = <InterfaceType>[_typeProvider.futureType2(stringType)];
+        ElementFactory.classElement('A', _typeProvider.futureType(intType));
+    classA.interfaces = <InterfaceType>[_typeProvider.futureType(stringType)];
     // class B extends Future<String> implements Future<int> { ... }
     ClassElementImpl classB =
-        ElementFactory.classElement('B', _typeProvider.futureType2(stringType));
-    classB.interfaces = <InterfaceType>[_typeProvider.futureType2(intType)];
+        ElementFactory.classElement('B', _typeProvider.futureType(stringType));
+    classB.interfaces = <InterfaceType>[_typeProvider.futureType(intType)];
     // flatten(A) = A and flatten(B) = B, since neither string nor int is more
     // specific than the other.
     expect(_flatten(interfaceTypeStar(classA)), interfaceTypeStar(classA));
@@ -238,9 +237,8 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   void test_visitAwaitExpression_flattened() {
     // await e, where e has type Future<Future<int>>
     InterfaceType intType = _typeProvider.intType;
-    InterfaceType futureIntType = _typeProvider.futureType2(intType);
-    InterfaceType futureFutureIntType =
-        _typeProvider.futureType2(futureIntType);
+    InterfaceType futureIntType = _typeProvider.futureType(intType);
+    InterfaceType futureFutureIntType = _typeProvider.futureType(futureIntType);
     Expression node = AstTestFactory.awaitExpression(
         _resolvedVariable(futureFutureIntType, 'e'));
     expect(_analyze(node), same(futureIntType));
@@ -250,7 +248,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   void test_visitAwaitExpression_simple() {
     // await e, where e has type Future<int>
     InterfaceType intType = _typeProvider.intType;
-    InterfaceType futureIntType = _typeProvider.futureType2(intType);
+    InterfaceType futureIntType = _typeProvider.futureType(intType);
     Expression node =
         AstTestFactory.awaitExpression(_resolvedVariable(futureIntType, 'e'));
     expect(_analyze(node), same(intType));

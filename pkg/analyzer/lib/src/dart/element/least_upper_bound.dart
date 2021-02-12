@@ -853,31 +853,31 @@ class LeastUpperBoundHelper {
     // UP(FutureOr<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
     if (T1_futureOr != null && T2_futureOr != null) {
       var T3 = getLeastUpperBound(T1_futureOr, T2_futureOr);
-      return _typeSystem.typeProvider.futureOrType2(T3);
+      return _typeSystem.typeProvider.futureOrType(T3);
     }
 
     // UP(Future<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
     if (T1_future != null && T2_futureOr != null) {
       var T3 = getLeastUpperBound(T1_future, T2_futureOr);
-      return _typeSystem.typeProvider.futureOrType2(T3);
+      return _typeSystem.typeProvider.futureOrType(T3);
     }
 
     // UP(FutureOr<T1>, Future<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
     if (T1_futureOr != null && T2_future != null) {
       var T3 = getLeastUpperBound(T1_futureOr, T2_future);
-      return _typeSystem.typeProvider.futureOrType2(T3);
+      return _typeSystem.typeProvider.futureOrType(T3);
     }
 
     // UP(T1, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
     if (T2_futureOr != null) {
       var T3 = getLeastUpperBound(T1, T2_futureOr);
-      return _typeSystem.typeProvider.futureOrType2(T3);
+      return _typeSystem.typeProvider.futureOrType(T3);
     }
 
     // UP(FutureOr<T1>, T2) = FutureOr<T3> where T3 = UP(T1, T2)
     if (T1_futureOr != null) {
       var T3 = getLeastUpperBound(T1_futureOr, T2);
-      return _typeSystem.typeProvider.futureOrType2(T3);
+      return _typeSystem.typeProvider.futureOrType(T3);
     }
 
     return null;

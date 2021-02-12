@@ -1781,7 +1781,7 @@ class ConstFieldElementImpl_EnumValues extends ConstFieldElementImpl_ofEnum {
   @override
   InterfaceType get typeInternal {
     if (_type == null) {
-      return _type = library.typeProvider.listType2(_enum.thisType);
+      return _type = library.typeProvider.listType(_enum.thisType);
     }
     return _type as InterfaceType;
   }

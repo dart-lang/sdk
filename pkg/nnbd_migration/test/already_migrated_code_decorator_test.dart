@@ -418,7 +418,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
     var class_ = element = ElementFactory.classElement3(
       name: 'C',
       typeParameters: [t],
-      supertype: typeProvider.iterableType2(
+      supertype: typeProvider.iterableType(
         t.instantiate(nullabilitySuffix: suffix),
       ),
     );

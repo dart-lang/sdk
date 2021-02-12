@@ -762,7 +762,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     } else if (_returnType == null) {
       variableType = null;
       if (_hasAwait) {
-        var futureVoid = typeProvider.futureType2(typeProvider.voidType);
+        var futureVoid = typeProvider.futureType(typeProvider.voidType);
         returnType = _getTypeCode(futureVoid);
       } else {
         returnType = 'void';
@@ -778,7 +778,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       variableType = _getTypeCode(_returnType);
       if (_hasAwait) {
         if (_returnType.element != typeProvider.futureElement) {
-          returnType = _getTypeCode(typeProvider.futureType2(_returnType));
+          returnType = _getTypeCode(typeProvider.futureType(_returnType));
         }
       } else {
         returnType = variableType;
