@@ -1309,7 +1309,6 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
 void ClassFinalizer::SortClasses() {
   auto T = Thread::Current();
   auto Z = T->zone();
-  auto I = T->isolate();
   auto IG = T->isolate_group();
 
   // Prevent background compiler from adding deferred classes or canonicalizing
@@ -1384,11 +1383,11 @@ void ClassFinalizer::SortClasses() {
   ASSERT(next_new_cid == num_cids);
   RemapClassIds(old_to_new_cid.get());
   RehashTypes();         // Types use cid's as part of their hashes.
-  I->RehashConstants();  // Const objects use cid's as part of their hashes.
+  IG->RehashConstants();  // Const objects use cid's as part of their hashes.
 
   // Ensure any newly spawned isolate will apply this permutation map right
   // after kernel loading.
-  I->group()->source()->cid_permutation_map = std::move(old_to_new_cid);
+  IG->source()->cid_permutation_map = std::move(old_to_new_cid);
 }
 
 class CidRewriteVisitor : public ObjectVisitor {
@@ -1551,7 +1550,6 @@ class ClearTypeHashVisitor : public ObjectVisitor {
 void ClassFinalizer::RehashTypes() {
   auto T = Thread::Current();
   auto Z = T->zone();
-  auto I = T->isolate();
   auto IG = T->isolate_group();
 
   // Clear all cached hash values.
@@ -1635,7 +1633,7 @@ void ClassFinalizer::RehashTypes() {
 
   // The canonical constant tables use canonical hashcodes which can change
   // due to cid-renumbering.
-  I->RehashConstants();
+  IG->RehashConstants();
 
   dict_size = Utils::RoundUpToPowerOfTwo(typeargs.Length() * 4 / 3);
   CanonicalTypeArgumentsSet typeargs_table(

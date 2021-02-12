@@ -1210,13 +1210,14 @@ WritableVMIsolateScope::~WritableVMIsolateScope() {
   }
 }
 
-WritableCodePages::WritableCodePages(Thread* thread, Isolate* isolate)
-    : StackResource(thread), isolate_(isolate) {
-  isolate_->group()->heap()->WriteProtectCode(false);
+WritableCodePages::WritableCodePages(Thread* thread,
+                                     IsolateGroup* isolate_group)
+    : StackResource(thread), isolate_group_(isolate_group) {
+  isolate_group_->heap()->WriteProtectCode(false);
 }
 
 WritableCodePages::~WritableCodePages() {
-  isolate_->group()->heap()->WriteProtectCode(true);
+  isolate_group_->heap()->WriteProtectCode(true);
 }
 
 }  // namespace dart

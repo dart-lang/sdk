@@ -710,7 +710,8 @@ Object* SnapshotReader::GetBackRef(intptr_t id) {
   return NULL;
 }
 
-ApiErrorPtr SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
+ApiErrorPtr SnapshotReader::VerifyVersionAndFeatures(
+    IsolateGroup* isolate_group) {
   // If the version string doesn't match, return an error.
   // Note: New things are allocated only if we're going to return an error.
 
@@ -747,7 +748,8 @@ ApiErrorPtr SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   }
   Advance(version_len);
 
-  const char* expected_features = Dart::FeaturesString(isolate, false, kind_);
+  const char* expected_features =
+      Dart::FeaturesString(isolate_group, false, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t expected_len = strlen(expected_features);
 
@@ -1566,7 +1568,7 @@ void SnapshotWriter::WriteVersionAndFeatures() {
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
   const char* expected_features =
-      Dart::FeaturesString(Isolate::Current(), false, kind_);
+      Dart::FeaturesString(IsolateGroup::Current(), false, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),

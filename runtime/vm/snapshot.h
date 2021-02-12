@@ -289,7 +289,7 @@ class SnapshotReader : public BaseReader {
   Object* GetBackRef(intptr_t id);
 
   // Read version number of snapshot and verify.
-  ApiErrorPtr VerifyVersionAndFeatures(Isolate* isolate);
+  ApiErrorPtr VerifyVersionAndFeatures(IsolateGroup* isolate_group);
 
   ObjectPtr NewInteger(int64_t value);
 

@@ -341,6 +341,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
                Dart_IsolateFlags api_flags);
   ~IsolateGroup();
 
+  void RehashConstants();
+#if defined(DEBUG)
+  void ValidateConstants();
+  void ValidateClassTable();
+#endif
+
   IsolateGroupSource* source() const { return source_.get(); }
   std::shared_ptr<IsolateGroupSource> shareable_source() const {
     return source_;
@@ -351,6 +357,14 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void set_initial_spawn_successful() { initial_spawn_successful_ = true; }
 
   Heap* heap() const { return heap_.get(); }
+
+  BackgroundCompiler* background_compiler() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return nullptr;
+#else
+    return background_compiler_.get();
+#endif
+  }
 
   IdleTimeHandler* idle_time_handler() { return &idle_time_handler_; }
 
@@ -371,6 +385,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   SafepointHandler* safepoint_handler() { return safepoint_handler_.get(); }
 
   void CreateHeap(bool is_vm_isolate, bool is_service_or_kernel_isolate);
+  void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
   void Shutdown();
 
 #define ISOLATE_METRIC_ACCESSOR(type, variable, name, unit)                    \
@@ -487,6 +502,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void SetHasAttemptedReload(bool value) {
     isolate_group_flags_ =
         HasAttemptedReloadBit::update(value, isolate_group_flags_);
+  }
+  void MaybeIncreaseReloadEveryNStackOverflowChecks();
+  intptr_t reload_every_n_stack_overflow_checks() const {
+    return reload_every_n_stack_overflow_checks_;
   }
 #else
   bool HasAttemptedReload() const { return false; }
@@ -827,6 +846,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context_;
   RelaxedAtomic<intptr_t> no_reload_scope_depth_ =
       0;  // we can only reload when this is 0.
+  // Per-isolate-group copy of FLAG_reload_every.
+  RelaxedAtomic<intptr_t> reload_every_n_stack_overflow_checks_;
 #endif
 
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
@@ -864,6 +885,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   ArrayPtr saved_unlinked_calls_;
   std::shared_ptr<FieldTable> initial_field_table_;
   uint32_t isolate_group_flags_ = 0;
+
+  NOT_IN_PRECOMPILED(std::unique_ptr<BackgroundCompiler> background_compiler_);
 
   std::unique_ptr<SafepointRwLock> symbols_lock_;
   Mutex type_canonicalization_mutex_;
@@ -958,14 +981,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   // Register a newly introduced class.
   void RegisterClass(const Class& cls);
-#if defined(DEBUG)
-  void ValidateClassTable();
-#endif
-
-  void RehashConstants();
-#if defined(DEBUG)
-  void ValidateConstants();
-#endif
 
   ThreadRegistry* thread_registry() const { return group()->thread_registry(); }
 
@@ -1083,8 +1098,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return group()->deferred_load_handler() != nullptr;
   }
   ObjectPtr CallDeferredLoadHandler(intptr_t id);
-
-  void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
 
   void ScheduleInterrupts(uword interrupt_bits);
 
@@ -1223,10 +1236,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void set_deopt_context(DeoptContext* value) {
     ASSERT(value == nullptr || deopt_context_ == nullptr);
     deopt_context_ = value;
-  }
-
-  BackgroundCompiler* background_compiler() const {
-    return background_compiler_;
   }
 
   intptr_t BlockClassFinalization() {
@@ -1425,19 +1434,11 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return IsolateGroup::IsSystemIsolateGroup(isolate->group());
   }
 
-#if !defined(PRODUCT)
-  intptr_t reload_every_n_stack_overflow_checks() const {
-    return reload_every_n_stack_overflow_checks_;
-  }
-#endif  // !defined(PRODUCT)
-
   HandlerInfoCache* handler_info_cache() { return &handler_info_cache_; }
 
   CatchEntryMovesCache* catch_entry_moves_cache() {
     return &catch_entry_moves_cache_;
   }
-
-  void MaybeIncreaseReloadEveryNStackOverflowChecks();
 
   // The weak table used in the snapshot writer for the purpose of fast message
   // sending.
@@ -1589,8 +1590,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   uint32_t isolate_flags_ = 0;
 
-  BackgroundCompiler* background_compiler_ = nullptr;
-
 // Fields that aren't needed in a product build go here with boolean flags at
 // the top.
 #if !defined(PRODUCT)
@@ -1618,8 +1617,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
-  // Per-isolate copy of FLAG_reload_every.
-  intptr_t reload_every_n_stack_overflow_checks_;
   ProgramReloadContext* program_reload_context_ = nullptr;
   // Ring buffer of objects assigned an id.
   ObjectIdRing* object_id_ring_ = nullptr;

@@ -323,6 +323,7 @@ class CompileParsedFunctionHelper : public ValueObject {
   intptr_t osr_id() const { return osr_id_; }
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread_->isolate(); }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   CodePtr FinalizeCompilation(compiler::Assembler* assembler,
                               FlowGraphCompiler* graph_compiler,
                               FlowGraph* flow_graph);
@@ -1110,8 +1111,8 @@ class BackgroundCompilerTask : public ThreadPool::Task {
   DISALLOW_COPY_AND_ASSIGN(BackgroundCompilerTask);
 };
 
-BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
-    : isolate_(isolate),
+BackgroundCompiler::BackgroundCompiler(IsolateGroup* isolate_group)
+    : isolate_group_(isolate_group),
       queue_monitor_(),
       function_queue_(new BackgroundCompilationQueue()),
       done_monitor_(),
@@ -1125,10 +1126,11 @@ BackgroundCompiler::~BackgroundCompiler() {
 }
 
 void BackgroundCompiler::Run() {
-  while (running_) {
+  while (true) {
     // Maybe something is already in the queue, check first before waiting
     // to be notified.
-    bool result = Thread::EnterIsolateAsHelper(isolate_, Thread::kCompilerTask);
+    bool result = Thread::EnterIsolateGroupAsHelper(
+        isolate_group_, Thread::kCompilerTask, /*bypass_safepoint=*/false);
     ASSERT(result);
     {
       Thread* thread = Thread::Current();
@@ -1173,12 +1175,15 @@ void BackgroundCompiler::Run() {
         }
       }
     }
-    Thread::ExitIsolateAsHelper();
+    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
     {
       // Wait to be notified when the work queue is not empty.
       MonitorLocker ml(&queue_monitor_);
       while (function_queue()->IsEmpty() && running_) {
         ml.Wait();
+      }
+      if (!running_) {
+        break;
       }
     }
   }  // while running
@@ -1187,7 +1192,7 @@ void BackgroundCompiler::Run() {
     // Notify that the thread is done.
     MonitorLocker ml_done(&done_monitor_);
     done_ = true;
-    ml_done.Notify();
+    ml_done.NotifyAll();
   }
 }
 
@@ -1229,7 +1234,7 @@ void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
 
 void BackgroundCompiler::Stop() {
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->isolate() == nullptr || thread->IsMutatorThread());
   ASSERT(!thread->IsAtSafepoint());
 
   SafepointMonitorLocker ml_done(&done_monitor_);

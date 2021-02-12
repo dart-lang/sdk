@@ -73,7 +73,6 @@ class InlineExitCollector : public ZoneAllocated {
                           Instruction** last_instruction,
                           intptr_t try_index);
 
-  Isolate* isolate() const { return caller_graph_->isolate(); }
   Zone* zone() const { return caller_graph_->zone(); }
 
   FlowGraph* caller_graph_;

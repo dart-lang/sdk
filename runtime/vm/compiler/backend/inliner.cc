@@ -83,7 +83,6 @@ DECLARE_FLAG(bool, print_flow_graph_optimized);
 
 // Quick access to the current zone.
 #define Z (zone())
-#define I (isolate())
 
 #define TRACE_INLINING(statement)                                              \
   do {                                                                         \
@@ -608,7 +607,7 @@ class PolymorphicInliner : public ValueObject {
 
   TargetEntryInstr* BuildDecisionGraph();
 
-  Isolate* isolate() const;
+  IsolateGroup* isolate_group() const;
   Zone* zone() const;
   intptr_t AllocateBlockId() const;
   inline bool trace_inlining() const;
@@ -762,7 +761,6 @@ class CallSiteInliner : public ValueObject {
   FlowGraph* caller_graph() const { return caller_graph_; }
 
   Thread* thread() const { return caller_graph_->thread(); }
-  Isolate* isolate() const { return caller_graph_->isolate(); }
   Zone* zone() const { return caller_graph_->zone(); }
 
   bool trace_inlining() const { return inliner_->trace_inlining(); }
@@ -1663,8 +1661,8 @@ PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
       exit_collector_(new (Z) InlineExitCollector(owner->caller_graph(), call)),
       caller_function_(caller_function) {}
 
-Isolate* PolymorphicInliner::isolate() const {
-  return owner_->caller_graph()->isolate();
+IsolateGroup* PolymorphicInliner::isolate_group() const {
+  return owner_->caller_graph()->isolate_group();
 }
 
 Zone* PolymorphicInliner::zone() const {

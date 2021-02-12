@@ -2614,7 +2614,7 @@ ObjectPtr Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
 class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
  public:
   explicit WriteBarrierUpdateVisitor(Thread* thread, ObjectPtr obj)
-      : ObjectPointerVisitor(thread->isolate()->group()),
+      : ObjectPointerVisitor(thread->isolate_group()),
         thread_(thread),
         old_obj_(obj) {
     ASSERT(old_obj_->IsOldObject());
@@ -6695,8 +6695,19 @@ bool Function::HasBreakpoint() const {
 #if defined(PRODUCT)
   return false;
 #else
-  Thread* thread = Thread::Current();
-  return thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone());
+  // TODO(dartbug.com/36097): We might need to adjust this once we start adding
+  // debugging support to --enable-isolate-groups.
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  auto isolate_group = thread->isolate_group();
+
+  bool has_breakpoint = false;
+  isolate_group->ForEachIsolate([&](Isolate* isolate) {
+    if (isolate->debugger()->HasBreakpoint(*this, zone)) {
+      has_breakpoint = true;
+    }
+  });
+  return has_breakpoint;
 #endif
 }
 
@@ -7742,12 +7753,9 @@ bool Function::CanBeInlined() const {
     return CompilerState::Current().is_aot();
   }
 
-#if !defined(PRODUCT)
-  Thread* thread = Thread::Current();
-  if (thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone())) {
+  if (HasBreakpoint()) {
     return false;
   }
-#endif  // !defined(PRODUCT)
 
   return is_inlinable() && !is_external() && !is_generated_body();
 }
@@ -10312,8 +10320,7 @@ void Field::InitializeNew(const Field& result,
   result.set_has_pragma(false);
   result.set_static_type_exactness_state(
       StaticTypeExactnessState::NotTracking());
-  auto isolate = Isolate::Current();
-  auto isolate_group = isolate->group();
+  auto isolate_group = IsolateGroup::Current();
 
 // Use field guards if they are enabled and the isolate has never reloaded.
 // TODO(johnmccutchan): The reload case assumes the worst case (everything is
@@ -16255,7 +16262,17 @@ bool Code::HasBreakpoint() const {
 #if defined(PRODUCT)
   return false;
 #else
-  return Isolate::Current()->debugger()->HasBreakpoint(*this);
+  // TODO(dartbug.com/36097): We might need to adjust this once we start adding
+  // debugging support to --enable-isolate-groups.
+  auto isolate_group = Thread::Current()->isolate_group();
+
+  bool has_breakpoint = false;
+  isolate_group->ForEachIsolate([&](Isolate* isolate) {
+    if (isolate->debugger()->HasBreakpoint(*this)) {
+      has_breakpoint = true;
+    }
+  });
+  return has_breakpoint;
 #endif
 }
 

@@ -1435,7 +1435,7 @@ Dart_CreateIsolateInGroup(Dart_Isolate group_member,
 
 DART_EXPORT void Dart_ShutdownIsolate() {
   Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
+  auto I = T->isolate();
   CHECK_ISOLATE(I);
 
   // The Thread structure is disassociated from the isolate, we do the
@@ -1461,7 +1461,7 @@ DART_EXPORT void Dart_ShutdownIsolate() {
     StackZone zone(T);
     HandleScope handle_scope(T);
 #if defined(DEBUG)
-    I->ValidateConstants();
+    T->isolate_group()->ValidateConstants();
 #endif
     Dart::RunShutdownCallback();
   }

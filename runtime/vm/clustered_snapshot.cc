@@ -59,9 +59,10 @@ static void RelocateCodeObjects(
     GrowableArray<CodePtr>* code_objects,
     GrowableArray<ImageWriterCommand>* image_writer_commands) {
   auto thread = Thread::Current();
-  auto isolate = is_vm ? Dart::vm_isolate() : thread->isolate();
+  auto isolate_group =
+      is_vm ? Dart::vm_isolate()->group() : thread->isolate_group();
 
-  WritableCodePages writable_code_pages(thread, isolate);
+  WritableCodePages writable_code_pages(thread, isolate_group);
   CodeRelocator::Relocate(thread, code_objects, image_writer_commands, is_vm);
 }
 
@@ -146,8 +147,7 @@ static UnboxedFieldBitmap CalculateTargetUnboxedFieldsBitmap(
     Serializer* s,
     intptr_t class_id) {
   const auto unboxed_fields_bitmap_host =
-      s->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
-          class_id);
+      s->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
 
   UnboxedFieldBitmap unboxed_fields_bitmap;
   if (unboxed_fields_bitmap_host.IsEmpty() ||
@@ -358,7 +358,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       }
     }
 
-    auto shared_class_table = d->isolate()->group()->shared_class_table();
+    auto shared_class_table = d->isolate_group()->shared_class_table();
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       ClassPtr cls = static_cast<ClassPtr>(d->Ref(id));
       Deserializer::InitializeHeader(cls, kClassCid, Class::InstanceSize());
@@ -498,7 +498,7 @@ class TypeArgumentsDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
-    if (is_canonical && (d->isolate() != Dart::vm_isolate())) {
+    if (is_canonical && (d->isolate_group() != Dart::vm_isolate()->group())) {
       CanonicalTypeArgumentsSet table(
           d->zone(),
           d->isolate_group()->object_store()->canonical_type_arguments());
@@ -2367,7 +2367,7 @@ class RODataDeserializationCluster : public DeserializationCluster {
 
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
     if (is_canonical && IsStringClassId(cid_) &&
-        (d->isolate() != Dart::vm_isolate())) {
+        (d->isolate_group() != Dart::vm_isolate()->group())) {
       CanonicalStringSet table(
           d->zone(), d->isolate_group()->object_store()->symbol_table());
       String& str = String::Handle(d->zone());
@@ -3165,8 +3165,7 @@ class InstanceSerializationCluster : public SerializationCluster {
     const intptr_t next_field_offset = host_next_field_offset_in_words_
                                        << kWordSizeLog2;
     const auto unboxed_fields_bitmap =
-        s->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
-            cid_);
+        s->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(cid_);
     intptr_t offset = Instance::NextFieldOffset();
     while (offset < next_field_offset) {
       // Skips unboxed fields
@@ -3203,8 +3202,7 @@ class InstanceSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned64(CalculateTargetUnboxedFieldsBitmap(s, cid_).Value());
     const auto unboxed_fields_bitmap =
-        s->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
-            cid_);
+        s->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(cid_);
 
     for (intptr_t i = 0; i < count; i++) {
       InstancePtr instance = objects_[i];
@@ -3458,7 +3456,7 @@ class TypeDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
-    if (is_canonical && (d->isolate() != Dart::vm_isolate())) {
+    if (is_canonical && (d->isolate_group() != Dart::vm_isolate()->group())) {
       CanonicalTypeSet table(
           d->zone(), d->isolate_group()->object_store()->canonical_types());
       Type& type = Type::Handle(d->zone());
@@ -3578,7 +3576,7 @@ class FunctionTypeDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
-    if (is_canonical && (d->isolate() != Dart::vm_isolate())) {
+    if (is_canonical && (d->isolate_group() != Dart::vm_isolate()->group())) {
       CanonicalFunctionTypeSet table(
           d->zone(),
           d->isolate_group()->object_store()->canonical_function_types());
@@ -3785,7 +3783,7 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
-    if (is_canonical && (d->isolate() != Dart::vm_isolate())) {
+    if (is_canonical && (d->isolate_group() != Dart::vm_isolate()->group())) {
       CanonicalTypeParameterSet table(
           d->zone(),
           d->isolate_group()->object_store()->canonical_type_parameters());
@@ -3955,7 +3953,7 @@ class MintDeserializationCluster : public DeserializationCluster {
   void ReadFill(Deserializer* d, bool is_canonical) {}
 
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
-    if (is_canonical && (d->isolate() != Dart::vm_isolate())) {
+    if (is_canonical && (d->isolate_group() != Dart::vm_isolate()->group())) {
       const Class& mint_cls = Class::Handle(
           d->zone(), IsolateGroup::Current()->object_store()->mint_class());
       mint_cls.set_constants(Object::null_array());
@@ -4843,7 +4841,7 @@ class OneByteStringDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
-    if (is_canonical && (d->isolate() != Dart::vm_isolate())) {
+    if (is_canonical && (d->isolate_group() != Dart::vm_isolate()->group())) {
       CanonicalStringSet table(
           d->zone(), d->isolate_group()->object_store()->symbol_table());
       String& str = String::Handle(d->zone());
@@ -4940,7 +4938,7 @@ class TwoByteStringDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
-    if (is_canonical && (d->isolate() != Dart::vm_isolate())) {
+    if (is_canonical && (d->isolate_group() != Dart::vm_isolate()->group())) {
       CanonicalStringSet table(
           d->zone(), d->isolate_group()->object_store()->symbol_table());
       String& str = String::Handle(d->zone());
@@ -5274,7 +5272,6 @@ class ProgramDeserializationRoots : public DeserializationRoots {
   }
 
   void PostLoad(Deserializer* d, const Array& refs) {
-    auto isolate = d->thread()->isolate();
     auto isolate_group = d->thread()->isolate_group();
     isolate_group->class_table()->CopySizesFromClassObjects();
     d->heap()->old_space()->EvaluateAfterLoading();
@@ -5286,7 +5283,6 @@ class ProgramDeserializationRoots : public DeserializationRoots {
       unit ^= units.At(LoadingUnit::kRootId);
       unit.set_base_objects(refs);
     }
-    isolate->isolate_object_store()->PreallocateObjects();
 
     // Setup native resolver for bootstrap impl.
     Bootstrap::SetupNativeResolver();
@@ -5392,7 +5388,7 @@ class UnitDeserializationRoots : public DeserializationRoots {
 
     // Reinitialize the dispatch table by rereading the table's serialization
     // in the root snapshot.
-    IsolateGroup* group = d->thread()->isolate()->group();
+    IsolateGroup* group = d->thread()->isolate_group();
     if (group->dispatch_table_snapshot() != nullptr) {
       ReadStream stream(group->dispatch_table_snapshot(),
                         group->dispatch_table_snapshot_size());
@@ -6005,7 +6001,7 @@ void Serializer::WriteVersionAndFeatures(bool is_vm_snapshot) {
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
   const char* expected_features =
-      Dart::FeaturesString(Isolate::Current(), is_vm_snapshot, kind_);
+      Dart::FeaturesString(IsolateGroup::Current(), is_vm_snapshot, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
@@ -6522,7 +6518,6 @@ void Deserializer::ReadDispatchTable(ReadStream* stream) {
   // object, from which we can get the reference ID for any code object.
   const intptr_t first_code_id = stream->ReadUnsigned();
 
-  auto const I = isolate();
   auto const IG = isolate_group();
   auto code = IG->object_store()->dispatch_table_null_error_stub();
   ASSERT(code != Code::null());
@@ -6560,11 +6555,11 @@ void Deserializer::ReadDispatchTable(ReadStream* stream) {
   }
   ASSERT(repeat_count == 0);
 
-  I->group()->set_dispatch_table(table);
+  IG->set_dispatch_table(table);
   intptr_t table_snapshot_size =
       stream->AddressOfCurrentPosition() - table_snapshot_start;
-  I->group()->set_dispatch_table_snapshot(table_snapshot_start);
-  I->group()->set_dispatch_table_snapshot_size(table_snapshot_size);
+  IG->set_dispatch_table_snapshot(table_snapshot_start);
+  IG->set_dispatch_table_snapshot_size(table_snapshot_size);
 #endif
 }
 
@@ -6575,11 +6570,12 @@ ApiErrorPtr Deserializer::VerifyImageAlignment() {
   return ApiError::null();
 }
 
-char* SnapshotHeaderReader::VerifyVersionAndFeatures(Isolate* isolate,
-                                                     intptr_t* offset) {
+char* SnapshotHeaderReader::VerifyVersionAndFeatures(
+    IsolateGroup* isolate_group,
+    intptr_t* offset) {
   char* error = VerifyVersion();
   if (error == nullptr) {
-    error = VerifyFeatures(isolate);
+    error = VerifyFeatures(isolate_group);
   }
   if (error == nullptr) {
     *offset = stream_.Position();
@@ -6622,9 +6618,9 @@ char* SnapshotHeaderReader::VerifyVersion() {
   return nullptr;
 }
 
-char* SnapshotHeaderReader::VerifyFeatures(Isolate* isolate) {
+char* SnapshotHeaderReader::VerifyFeatures(IsolateGroup* isolate_group) {
   const char* expected_features =
-      Dart::FeaturesString(isolate, (isolate == NULL), kind_);
+      Dart::FeaturesString(isolate_group, (isolate_group == NULL), kind_);
   ASSERT(expected_features != NULL);
   const intptr_t expected_len = strlen(expected_features);
 
@@ -6912,10 +6908,10 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
   roots->PostLoad(this, refs);
 
 #if defined(DEBUG)
-  Isolate* isolate = thread()->isolate();
-  isolate->ValidateClassTable();
-  if (isolate != Dart::vm_isolate()) {
-    isolate->group()->heap()->Verify();
+  auto isolate_group = thread()->isolate_group();
+  isolate_group->ValidateClassTable();
+  if (isolate_group != Dart::vm_isolate()->group()) {
+    isolate_group->heap()->Verify();
   }
 #endif
 
@@ -6956,14 +6952,14 @@ FullSnapshotWriter::FullSnapshotWriter(
       clustered_isolate_size_(0),
       mapped_data_size_(0),
       mapped_text_size_(0) {
-  ASSERT(isolate() != NULL);
+  ASSERT(isolate_group() != NULL);
   ASSERT(heap() != NULL);
   ObjectStore* object_store = isolate_group()->object_store();
   ASSERT(object_store != NULL);
 
 #if defined(DEBUG)
-  isolate()->ValidateClassTable();
-  isolate()->ValidateConstants();
+  isolate_group()->ValidateClassTable();
+  isolate_group()->ValidateConstants();
 #endif  // DEBUG
 
 #if defined(DART_PRECOMPILER)
@@ -7289,8 +7285,8 @@ ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
   SnapshotHeaderReader header_reader(kind_, buffer_, size_);
 
   intptr_t offset = 0;
-  char* error =
-      header_reader.VerifyVersionAndFeatures(/*isolate=*/NULL, &offset);
+  char* error = header_reader.VerifyVersionAndFeatures(
+      /*isolate_group=*/nullptr, &offset);
   if (error != nullptr) {
     return ConvertToApiError(error);
   }
@@ -7305,11 +7301,11 @@ ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
 
   if (Snapshot::IncludesCode(kind_)) {
     ASSERT(data_image_ != NULL);
-    thread_->isolate()->SetupImagePage(data_image_,
-                                       /* is_executable */ false);
+    thread_->isolate_group()->SetupImagePage(data_image_,
+                                             /* is_executable */ false);
     ASSERT(instructions_image_ != NULL);
-    thread_->isolate()->SetupImagePage(instructions_image_,
-                                       /* is_executable */ true);
+    thread_->isolate_group()->SetupImagePage(instructions_image_,
+                                             /* is_executable */ true);
   }
 
   VMDeserializationRoots roots;
@@ -7331,7 +7327,7 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
   SnapshotHeaderReader header_reader(kind_, buffer_, size_);
   intptr_t offset = 0;
   char* error =
-      header_reader.VerifyVersionAndFeatures(thread_->isolate(), &offset);
+      header_reader.VerifyVersionAndFeatures(thread_->isolate_group(), &offset);
   if (error != nullptr) {
     return ConvertToApiError(error);
   }
@@ -7346,11 +7342,11 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
 
   if (Snapshot::IncludesCode(kind_)) {
     ASSERT(data_image_ != NULL);
-    thread_->isolate()->SetupImagePage(data_image_,
-                                       /* is_executable */ false);
+    thread_->isolate_group()->SetupImagePage(data_image_,
+                                             /* is_executable */ false);
     ASSERT(instructions_image_ != NULL);
-    thread_->isolate()->SetupImagePage(instructions_image_,
-                                       /* is_executable */ true);
+    thread_->isolate_group()->SetupImagePage(instructions_image_,
+                                             /* is_executable */ true);
   }
 
   ProgramDeserializationRoots roots(thread_->isolate_group()->object_store());
@@ -7366,7 +7362,7 @@ ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
   SnapshotHeaderReader header_reader(kind_, buffer_, size_);
   intptr_t offset = 0;
   char* error =
-      header_reader.VerifyVersionAndFeatures(thread_->isolate(), &offset);
+      header_reader.VerifyVersionAndFeatures(thread_->isolate_group(), &offset);
   if (error != nullptr) {
     return ConvertToApiError(error);
   }
@@ -7392,11 +7388,11 @@ ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
 
   if (Snapshot::IncludesCode(kind_)) {
     ASSERT(data_image_ != NULL);
-    thread_->isolate()->SetupImagePage(data_image_,
-                                       /* is_executable */ false);
+    thread_->isolate_group()->SetupImagePage(data_image_,
+                                             /* is_executable */ false);
     ASSERT(instructions_image_ != NULL);
-    thread_->isolate()->SetupImagePage(instructions_image_,
-                                       /* is_executable */ true);
+    thread_->isolate_group()->SetupImagePage(instructions_image_,
+                                             /* is_executable */ true);
   }
 
   UnitDeserializationRoots roots(unit);

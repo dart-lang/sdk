@@ -88,8 +88,6 @@ class ConstantPropagator : public FlowGraphVisitor {
   // thus should not be stored anywhere.
   PhiInfo* GetPhiInfo(PhiInstr* phi);
 
-  Isolate* isolate() const { return graph_->isolate(); }
-
   FlowGraph* graph_;
 
   // Sentinels for unknown constant and non-constant values.

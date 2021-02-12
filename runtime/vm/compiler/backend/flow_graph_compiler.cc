@@ -300,9 +300,9 @@ void FlowGraphCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
 
 bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
 #if !defined(PRODUCT)
-  if ((FLAG_stacktrace_every > 0) || (FLAG_deoptimize_every > 0) ||
-      (FLAG_gc_every > 0) ||
-      (isolate()->reload_every_n_stack_overflow_checks() > 0)) {
+  if (FLAG_stacktrace_every > 0 || FLAG_deoptimize_every > 0 ||
+      FLAG_gc_every > 0 ||
+      (isolate_group()->reload_every_n_stack_overflow_checks() > 0)) {
     if (!IsolateGroup::IsSystemIsolateGroup(isolate_group())) {
       return true;
     }
