@@ -1499,6 +1499,10 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return _buildClassHierarchy(classes);
   }
 
+  Future<ServiceObject> getAllocationTraces() {
+    return invokeRpc('getAllocationTraces', {});
+  }
+
   Future<ServiceObject> getPorts() {
     return invokeRpc('_getPorts', {});
   }
@@ -2649,7 +2653,7 @@ class Class extends HeapObject implements M.Class {
     error = map['error'];
 
     traceAllocations =
-        (map['_traceAllocations'] != null) ? map['_traceAllocations'] : false;
+        (map['traceAllocations'] != null) ? map['traceAllocations'] : false;
   }
 
   void _addSubclass(Class subclass) {
@@ -2667,17 +2671,17 @@ class Class extends HeapObject implements M.Class {
   }
 
   Future<ServiceObject> setTraceAllocations(bool enable) {
-    return isolate!.invokeRpc('_setTraceClassAllocation', {
+    return isolate!.invokeRpc('setTraceClassAllocation', {
       'enable': enable,
       'classId': id,
     });
   }
 
-  Future<ServiceObject> getAllocationSamples() {
+  Future<ServiceObject> getAllocationTraces() {
     var params = {
       'classId': id,
     };
-    return isolate!.invokeRpc('_getAllocationSamples', params);
+    return isolate!.invokeRpc('getAllocationTraces', params);
   }
 
   String toString() => 'Class($vmName)';

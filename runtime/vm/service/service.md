@@ -39,6 +39,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [evaluate](#evaluate)
   - [evaluateInFrame](#evaluateinframe)
   - [getAllocationProfile](#getallocationprofile)
+  - [getAllocationTraces](#getallocationtraces)
   - [getCpuSamples](#getcpusamples)
   - [getFlagList](#getflaglist)
   - [getInstances](#getinstances)
@@ -70,6 +71,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [setFlag](#setflag)
   - [setLibraryDebuggable](#setlibrarydebuggable)
   - [setName](#setname)
+  - [setTraceClassAllocation](#settraceclassallocation)
   - [setVMName](#setvmname)
   - [setVMTimelineFlags](#setvmtimelineflags)
   - [streamCancel](#streamcancel)
@@ -728,6 +730,26 @@ collection will be actually be performed.
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
 
+### getAllocationTraces
+
+The _getAllocationTraces_ RPC allows for the retrieval of allocation traces for objects of a
+specific set of types (see [setTraceClassAllocation](#setTraceClassAllocation)). Only samples
+collected in the time range `[timeOriginMicros, timeOriginMicros + timeExtentMicros]` will be
+reported.
+
+If `classId` is provided, only traces for allocations with the matching `classId` will be
+reported.
+
+If the profiler is disabled, an RPC error response will be returned.
+
+If isolateId refers to an isolate which has exited, then the Collected Sentinel is returned.
+
+```
+CpuSamples getAllocationTraces(string isolateId, int timeOriginMicros [optional], int timeExtentMicros [optional], string classId [optional])
+```
+
+See [CpuSamples](#cpusamples).
+
 ### getClassList
 
 ```
@@ -1361,6 +1383,20 @@ _Collected_ [Sentinel](#sentinel) is returned.
 
 See [Success](#success).
 
+### setTraceClassAllocation
+
+The _setTraceClassAllocation_ RPC allows for enabling or disabling allocation tracing for a specific type of object. Allocation traces can be retrieved with the _getAllocationTraces_ RPC.
+
+If `enable` is true, allocations of objects of the class represented by `classId` will be traced.
+
+If `isolateId` refers to an isolate which has exited, then the _Collected_ [Sentinel](#sentinel) is returned.
+
+```
+Success|Sentinel setTraceClassAllocation(string isolateId, string classId, bool enable)
+```
+
+See [Success](#success).
+
 ### setVMName
 
 ```
@@ -1648,6 +1684,9 @@ class Class extends Object {
   // Is this a const class?
   bool const;
 
+  // Are allocations of this class being traced?
+  bool traceAllocations;
+
   // The library which contains this class.
   @Library library;
 
@@ -1861,6 +1900,15 @@ class CpuSample {
   // `functions[stack[1]] = @Function(foo())`
   // `functions[stack[2]] = @Function(main())`
   int[] stack;
+
+  // The identityHashCode assigned to the allocated object. This hash
+  // code is the same as the hash code provided in HeapSnapshot. Provided for
+  // CpuSample instances returned from a getAllocationTraces().
+  int identityHashCode [optional];
+
+  // Matches the index of a class in HeapSnapshot.classes. Provided for
+  // CpuSample instances returned from a getAllocationTraces().
+  int classId [optional];
 }
 ```
 
@@ -3948,6 +3996,8 @@ version | comments
 3.40 | Added `IsolateFlag` object and `isolateFlags` property to `Isolate`.
 3.41 | Added `PortList` object, `ReceivePort` `InstanceKind`, and `getPorts` RPC.
 3.42 | Added `limit` optional parameter to `getStack` RPC.
-3.43 | Updated heap snapshot format to include identity hash codes.
+3.43 | Updated heap snapshot format to include identity hash codes. Added `getAllocationTraces`
+and `setTraceClassAllocation` RPCs, updated `CpuSample` to include `identityHashCode` and
+`classId` properties, updated `Class` to include `traceAllocations` property.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

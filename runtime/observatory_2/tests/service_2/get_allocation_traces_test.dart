@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,17 +12,30 @@ import 'test_helper.dart';
 
 class Foo {
   Foo() {
-    print('new Foo');
+    print('Foo');
+  }
+}
+
+class Bar {
+  Bar() {
+    print('Bar');
   }
 }
 
 void test() {
   debugger();
-  // Toggled on.
+  // Toggled on for Foo.
   debugger();
   debugger();
-  // Allocation.
-  new Foo();
+  // Traced allocation.
+  Foo();
+  // Untraced allocation.
+  Bar();
+  // Toggled on for Bar.
+  debugger();
+  debugger();
+  // Traced allocation.
+  Bar();
   debugger();
 }
 
@@ -32,14 +45,14 @@ var tests = <IsolateTest>[
   // Initial.
   (Isolate isolate) async {
     // Verify initial state of 'Foo'.
-    var fooClass = await getClassFromRootLib(isolate, 'Foo');
+    final fooClass = await getClassFromRootLib(isolate, 'Foo');
     expect(fooClass, isNotNull);
     expect(fooClass.name, equals('Foo'));
     print(fooClass.id);
     expect(fooClass.traceAllocations, isFalse);
     await fooClass.setTraceAllocations(true);
     await fooClass.reload();
-    expect(fooClass.traceAllocations, isTrue);
+    expect(fooClass.traceAllocations, true);
   },
 
   resumeIsolate,
@@ -51,22 +64,28 @@ var tests = <IsolateTest>[
 
   // Allocation profile.
   (Isolate isolate) async {
-    var fooClass = await getClassFromRootLib(isolate, 'Foo');
+    final fooClass = await getClassFromRootLib(isolate, 'Foo');
     await fooClass.reload();
-    expect(fooClass.traceAllocations, isTrue);
-    dynamic profileResponse = await fooClass.getAllocationTraces();
+    expect(fooClass.traceAllocations, true);
+
+    final profileResponse = (await isolate.getAllocationTraces()) as ServiceMap;
     expect(profileResponse, isNotNull);
-    expect(profileResponse['type'], equals('CpuSamples'));
+    expect(profileResponse['type'], 'CpuSamples');
+    expect(profileResponse['samples'].length, 1);
+    expect(profileResponse['samples'][0]['identityHashCode'], isNotNull);
+    expect(profileResponse['samples'][0]['identityHashCode'] != 0, true);
     await fooClass.setTraceAllocations(false);
     await fooClass.reload();
     expect(fooClass.traceAllocations, isFalse);
-    SampleProfile cpuProfile = new SampleProfile();
+
+    // Verify the allocation trace for the `Foo()` allocation.
+    final cpuProfile = SampleProfile();
     await cpuProfile.load(isolate, profileResponse);
     cpuProfile.buildCodeCallerAndCallees();
     cpuProfile.buildFunctionCallerAndCallees();
-    var tree = cpuProfile.loadCodeTree(M.ProfileTreeDirection.exclusive);
+    final tree = cpuProfile.loadCodeTree(M.ProfileTreeDirection.exclusive);
     var node = tree.root;
-    var expected = [
+    final expected = [
       'Root',
       '[Unoptimized] test',
       '[Unoptimized] test',
@@ -85,6 +104,29 @@ var tests = <IsolateTest>[
     }
   },
   resumeIsolate,
+  hasStoppedAtBreakpoint,
+  (Isolate isolate) async {
+    // Trace Bar.
+    final barClass = await getClassFromRootLib(isolate, 'Bar');
+    await barClass.reload();
+    expect(barClass.traceAllocations, false);
+    await barClass.setTraceAllocations(true);
+    await barClass.reload();
+    expect(barClass.traceAllocations, true);
+  },
+
+  resumeIsolate,
+  hasStoppedAtBreakpoint,
+  // Extra debugger stop, continue to allow the allocation stubs to be switched
+  // over. This is a bug but low priority.
+  resumeIsolate,
+  hasStoppedAtBreakpoint,
+
+  (Isolate isolate) async {
+    // Ensure the allocation of `Bar()` was recorded.
+    final profileResponse = (await isolate.getAllocationTraces()) as ServiceMap;
+    expect(profileResponse['samples'].length, 2);
+  },
 ];
 
 main(args) async => runIsolateTests(args, tests, testeeConcurrent: test);

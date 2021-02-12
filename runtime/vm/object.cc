@@ -46,6 +46,7 @@
 #include "vm/kernel_isolate.h"
 #include "vm/kernel_loader.h"
 #include "vm/native_symbol.h"
+#include "vm/object_graph.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/profiler.h"
@@ -2586,28 +2587,31 @@ ObjectPtr Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
       OUT_OF_MEMORY();
     }
   }
-#ifndef PRODUCT
-  auto class_table = thread->isolate_group()->shared_class_table();
-  if (class_table->TraceAllocationFor(cls_id)) {
-    Profiler::SampleAllocation(thread, cls_id);
-  }
-#endif  // !PRODUCT
   NoSafepointScope no_safepoint;
+  ObjectPtr raw_obj;
   InitializeObject(address, cls_id, size);
-  ObjectPtr raw_obj = static_cast<ObjectPtr>(address + kHeapObjectTag);
+  raw_obj = static_cast<ObjectPtr>(address + kHeapObjectTag);
   ASSERT(cls_id == UntaggedObject::ClassIdTag::decode(raw_obj->untag()->tags_));
   if (raw_obj->IsOldObject() && UNLIKELY(thread->is_marking())) {
-    // Black allocation. Prevents a data race between the mutator and concurrent
-    // marker on ARM and ARM64 (the marker may observe a publishing store of
-    // this object before the stores that initialize its slots), and helps the
-    // collection to finish sooner.
+    // Black allocation. Prevents a data race between the mutator and
+    // concurrent marker on ARM and ARM64 (the marker may observe a
+    // publishing store of this object before the stores that initialize its
+    // slots), and helps the collection to finish sooner.
     raw_obj->untag()->SetMarkBitUnsynchronized();
-    // Setting the mark bit must not be ordered after a publishing store of this
-    // object. Adding a barrier here is cheaper than making every store into the
-    // heap a store-release. Compare Scavenger::ScavengePointer.
+    // Setting the mark bit must not be ordered after a publishing store of
+    // this object. Adding a barrier here is cheaper than making every store
+    // into the heap a store-release. Compare Scavenger::ScavengePointer.
     std::atomic_thread_fence(std::memory_order_release);
     heap->old_space()->AllocateBlack(size);
   }
+#ifndef PRODUCT
+  auto class_table = thread->isolate_group()->shared_class_table();
+  if (class_table->TraceAllocationFor(cls_id)) {
+    uint32_t hash =
+        HeapSnapshotWriter::GetHeapSnapshotIdentityHash(thread, raw_obj);
+    Profiler::SampleAllocation(thread, cls_id, hash);
+  }
+#endif  // !PRODUCT
   return raw_obj;
 }
 

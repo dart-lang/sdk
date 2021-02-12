@@ -887,7 +887,7 @@ class Thread : public ThreadState {
 
   void InitVMConstants();
 
-  uint64_t GetRandomUInt64() { return thread_random_.NextUInt64(); }
+  Random* random() { return &thread_random_; }
 
   uint64_t* GetFfiMarshalledArguments(intptr_t size) {
     if (ffi_marshalled_arguments_size_ < size) {

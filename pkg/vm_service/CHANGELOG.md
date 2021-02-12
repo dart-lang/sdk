@@ -1,6 +1,9 @@
 # Changelog
 
 ## 6.1.0
+- *bug fix* Fixed issue where the root object was omitted from
+  `HeapSnapshot.classes` and the sentinel `HeapSnapshotObject` was omitted from
+  `HeapSnapshot.objects`
 - Added `identityHashCode` property to `HeapSnapshotObject`, which can be used to compare
   objects across heap snapshots.
 - Added `successors` iterable to `HeapSnapshotObject`, which provides a convenient way to

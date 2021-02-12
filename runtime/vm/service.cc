@@ -4015,7 +4015,7 @@ static bool GetCpuSamples(Thread* thread, JSONStream* js) {
   return true;
 }
 
-static const MethodParameter* get_allocation_samples_params[] = {
+static const MethodParameter* get_allocation_traces_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new IdParameter("classId", false),
     new Int64Parameter("timeOriginMicros", false),
@@ -4023,24 +4023,35 @@ static const MethodParameter* get_allocation_samples_params[] = {
     NULL,
 };
 
-static bool GetAllocationSamples(Thread* thread, JSONStream* js) {
+static bool GetAllocationTraces(Thread* thread, JSONStream* js) {
   int64_t time_origin_micros =
       Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
   int64_t time_extent_micros =
       Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
-  const char* class_id = js->LookupParam("classId");
-  intptr_t cid = -1;
-  GetPrefixedIntegerId(class_id, "classes/", &cid);
   Isolate* isolate = thread->isolate();
-  if (IsValidClassId(isolate, cid)) {
+
+  // Return only allocations for objects with classId.
+  if (js->HasParam("classId")) {
+    const char* class_id = js->LookupParam("classId");
+    intptr_t cid = -1;
+    GetPrefixedIntegerId(class_id, "classes/", &cid);
+    if (IsValidClassId(isolate, cid)) {
+      if (CheckProfilerDisabled(thread, js)) {
+        return true;
+      }
+      const Class& cls = Class::Handle(GetClassForId(isolate, cid));
+      ProfilerService::PrintAllocationJSON(js, cls, time_origin_micros,
+                                           time_extent_micros);
+    } else {
+      PrintInvalidParamError(js, "classId");
+    }
+  } else {
+    // Otherwise, return allocations for all traced class IDs.
     if (CheckProfilerDisabled(thread, js)) {
       return true;
     }
-    const Class& cls = Class::Handle(GetClassForId(isolate, cid));
-    ProfilerService::PrintAllocationJSON(js, cls, time_origin_micros,
+    ProfilerService::PrintAllocationJSON(js, time_origin_micros,
                                          time_extent_micros);
-  } else {
-    PrintInvalidParamError(js, "classId");
   }
   return true;
 }
@@ -5092,8 +5103,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_allocation_profile_params },
   { "getAllocationProfile", GetAllocationProfilePublic,
     get_allocation_profile_params },
-  { "_getAllocationSamples", GetAllocationSamples,
-      get_allocation_samples_params },
+  { "getAllocationTraces", GetAllocationTraces,
+      get_allocation_traces_params },
   { "_getNativeAllocationSamples", GetNativeAllocationSamples,
       get_native_allocation_samples_params },
   { "getClassList", GetClassList,
@@ -5188,7 +5199,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_library_debuggable_params },
   { "setName", SetName,
     set_name_params },
-  { "_setTraceClassAllocation", SetTraceClassAllocation,
+  { "setTraceClassAllocation", SetTraceClassAllocation,
     set_trace_class_allocation_params },
   { "setVMName", SetVMName,
     set_vm_name_params },
