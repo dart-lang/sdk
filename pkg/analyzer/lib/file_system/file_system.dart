@@ -75,6 +75,9 @@ abstract class Folder implements Resource {
   /// folders, including folders reachable via links).
   Stream<WatchEvent> get changes;
 
+  /// Return `true` if this folder is a file system root.
+  bool get isRoot;
+
   /// If the path [path] is a relative path, convert it to an absolute path
   /// by interpreting it relative to this folder.  If it is already an absolute
   /// path, then don't change it.
@@ -124,7 +127,12 @@ abstract class Resource {
 
   /// Return the [Folder] that contains this resource, or `null` if this
   /// resource is a root folder.
+  @Deprecated('Use parent2 instead')
   Folder? get parent;
+
+  /// Return the [Folder] that contains this resource, possibly itself if this
+  /// resource is a root folder.
+  Folder get parent2;
 
   /// Return the full path to this resource.
   String get path;
@@ -204,4 +212,18 @@ abstract class ResourceProvider {
   /// assuming that the plugin ids are unique. The plugin ids must be valid
   /// folder names.
   Folder? getStateLocation(String pluginId);
+}
+
+extension FolderExtension on Folder {
+  /// Return this folder and all its ancestors.
+  Iterable<Folder> get withAncestors sync* {
+    var current = this;
+    while (true) {
+      yield current;
+      if (current.isRoot) {
+        break;
+      }
+      current = current.parent2;
+    }
+  }
 }

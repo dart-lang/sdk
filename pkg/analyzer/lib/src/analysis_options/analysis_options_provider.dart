@@ -40,17 +40,13 @@ class AnalysisOptionsProvider {
   /// The given [root] directory will be searched first. If no file is found ,
   /// then enclosing directories will be searched.
   File? getOptionsFile(Folder root) {
-    Resource? resource;
-    for (Folder? folder = root; folder != null; folder = folder.parent) {
-      resource = folder.getChild(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-      if (resource.exists) {
-        break;
+    for (var current in root.withAncestors) {
+      var name = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+      var file = current.getChildAssumingFile(name);
+      if (file.exists) {
+        return file;
       }
     }
-    if (resource is File && resource.exists) {
-      return resource;
-    }
-    return null;
   }
 
   /// Provide the options found in [file].

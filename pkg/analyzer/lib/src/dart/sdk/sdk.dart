@@ -200,7 +200,7 @@ class EmbedderSdk extends AbstractDartSdk {
     var coreSource = mapDartUri('dart:core');
     if (coreSource != null) {
       var coreFile = resourceProvider.getFile(coreSource.fullName);
-      var embeddedFolder = coreFile.parent!.parent!;
+      var embeddedFolder = coreFile.parent2.parent2;
       try {
         return embeddedFolder
             .getChildAssumingFolder('_internal')
@@ -509,7 +509,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     try {
       File file = libraryDirectory.getChildAssumingFile(library.path);
       if (relativePath.isNotEmpty) {
-        File relativeFile = file.parent!.getChildAssumingFile(relativePath);
+        File relativeFile = file.parent2.getChildAssumingFile(relativePath);
         if (relativeFile.path == file.path) {
           // The relative file is the library, so return a Source for the
           // library rather than the part format.

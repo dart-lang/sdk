@@ -486,16 +486,14 @@ class FileResolver {
     }
   }
 
-  File? _findOptionsFile(Folder? folder) {
-    while (folder != null) {
-      var packagesFile =
-          _getFile(folder, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-      if (packagesFile != null) {
-        return packagesFile;
+  File? _findOptionsFile(Folder folder) {
+    for (var current in folder.withAncestors) {
+      var name = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+      var file = _getFile(current, name);
+      if (file != null) {
+        return file;
       }
-      folder = folder.parent;
     }
-    return null;
   }
 
   /// Return the analysis options.
@@ -520,7 +518,7 @@ class FileResolver {
     File? optionsFile;
     if (!isThirdParty) {
       optionsFile = performance.run('findOptionsFile', (_) {
-        var folder = resourceProvider.getFile(path).parent;
+        var folder = resourceProvider.getFile(path).parent2;
         return _findOptionsFile(folder);
       });
     }
@@ -599,11 +597,8 @@ class FileResolver {
   }
 
   static File? _getFile(Folder directory, String name) {
-    Resource resource = directory.getChild(name);
-    if (resource is File && resource.exists) {
-      return resource;
-    }
-    return null;
+    var file = directory.getChildAssumingFile(name);
+    return file.exists ? file : null;
   }
 }
 

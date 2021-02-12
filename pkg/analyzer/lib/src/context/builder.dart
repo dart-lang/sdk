@@ -267,7 +267,7 @@ class ContextBuilder {
       );
       if (embedderYamlSource != null) {
         var embedderYamlPath = embedderYamlSource.fullName;
-        var libFolder = resourceProvider.getFile(embedderYamlPath).parent!;
+        var libFolder = resourceProvider.getFile(embedderYamlPath).parent2;
         EmbedderYamlLocator locator =
             EmbedderYamlLocator.forLibFolder(libFolder);
         Map<Folder, YamlMap> embedderMap = locator.embedderYamls;
@@ -381,31 +381,27 @@ class ContextBuilder {
         return resourceProvider.getFile(filePath);
       }
     }
-    Folder root = resourceProvider.getFolder(path);
-    for (Folder? folder = root; folder != null; folder = folder.parent) {
-      File file = folder
-          .getChildAssumingFile(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+
+    var folder = resourceProvider.getFolder(path);
+    for (var current in folder.withAncestors) {
+      var name = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+      var file = current.getChildAssumingFile(name);
       if (file.exists) {
         return file;
       }
     }
-    return null;
   }
 
   /// Return the `pubspec.yaml` file that should be used when analyzing code in
   /// the directory with the given [path], possibly `null`.
   File? _findPubspecFile(String path) {
-    Resource? resource = resourceProvider.getResource(path);
-    while (resource != null) {
-      if (resource is Folder) {
-        File pubspecFile = resource.getChildAssumingFile('pubspec.yaml');
-        if (pubspecFile.exists) {
-          return pubspecFile;
-        }
+    var folder = resourceProvider.getFolder(path);
+    for (var current in folder.withAncestors) {
+      var file = current.getChildAssumingFile('pubspec.yaml');
+      if (file.exists) {
+        return file;
       }
-      resource = resource.parent;
     }
-    return null;
   }
 
   /// Return [Packages] to analyze a resource with the [rootPath].
@@ -463,15 +459,10 @@ class ContextBuilder {
   /// directory contains a `.packages` file.
   static bool _hasPackageFileInPath(
       ResourceProvider resourceProvider, String rootPath) {
-    Folder? folder = resourceProvider.getFolder(rootPath);
-    while (folder != null) {
-      File file = folder.getChildAssumingFile('.packages');
-      if (file.exists) {
-        return true;
-      }
-      folder = folder.parent;
-    }
-    return false;
+    var folder = resourceProvider.getFolder(rootPath);
+    return folder.withAncestors.any((current) {
+      return current.getChildAssumingFile('.packages').exists;
+    });
   }
 }
 

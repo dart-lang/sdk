@@ -79,14 +79,9 @@ class GnWorkspace extends Workspace {
 
   @override
   WorkspacePackage? findPackageFor(String path) {
-    Folder folder = provider.getFolder(provider.pathContext.dirname(path));
-
-    while (true) {
-      var parent = folder.parent;
-      if (parent == null) {
-        return null;
-      }
-      if (parent.path.length < root.length) {
+    var startFolder = provider.getFolder(path);
+    for (var folder in startFolder.withAncestors) {
+      if (folder.path.length < root.length) {
         // We've walked up outside of [root], so [path] is definitely not
         // defined in any package in this workspace.
         return null;
@@ -95,9 +90,6 @@ class GnWorkspace extends Workspace {
       if (folder.getChildAssumingFile(_buildFileName).exists) {
         return GnWorkspacePackage(folder.path, this);
       }
-
-      // Go up a folder.
-      folder = parent;
     }
   }
 
@@ -109,15 +101,11 @@ class GnWorkspace extends Workspace {
   static GnWorkspace? find(ResourceProvider provider, String filePath) {
     Resource resource = provider.getResource(filePath);
     if (resource is File) {
-      filePath = resource.parent!.path;
+      filePath = resource.parent2.path;
     }
-    Folder folder = provider.getFolder(filePath);
-    while (true) {
-      var parent = folder.parent;
-      if (parent == null) {
-        return null;
-      }
 
+    var startFolder = provider.getFolder(filePath);
+    for (var folder in startFolder.withAncestors) {
       if (folder.getChildAssumingFolder(_jiriRootName).exists) {
         // Found the .jiri_root file, must be a non-git workspace.
         String root = folder.path;
@@ -137,9 +125,6 @@ class GnWorkspace extends Workspace {
 
         return GnWorkspace._(provider, root, packageMap);
       }
-
-      // Go up a folder.
-      folder = parent;
     }
   }
 

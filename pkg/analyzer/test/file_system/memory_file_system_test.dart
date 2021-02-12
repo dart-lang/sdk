@@ -304,6 +304,16 @@ class MemoryFileTest extends BaseTest with FileTestMixin {
 
 @reflectiveTest
 class MemoryFolderTest extends BaseTest with FolderTestMixin {
+  test_isRoot_false() {
+    var path = provider.convertPath('/foo');
+    expect(provider.getFolder(path).isRoot, isFalse);
+  }
+
+  test_isRoot_true() {
+    var path = provider.convertPath('/');
+    expect(provider.getFolder(path).isRoot, isTrue);
+  }
+
   test_resolveSymbolicLinksSync() {
     var lib = provider.convertPath('/test/lib');
     var foo = provider.convertPath('/test/lib/foo');

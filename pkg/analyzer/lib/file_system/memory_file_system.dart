@@ -513,6 +513,12 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   bool get exists => provider._pathToResource[path] is _MemoryFolder;
 
   @override
+  bool get isRoot {
+    var parentPath = provider.pathContext.dirname(path);
+    return parentPath == path;
+  }
+
+  @override
   String canonicalizePath(String relPath) {
     relPath = provider.pathContext.normalize(relPath);
     String childPath = provider.pathContext.join(path, relPath);
@@ -633,12 +639,19 @@ abstract class _MemoryResource implements Resource {
   @override
   int get hashCode => path.hashCode;
 
+  @Deprecated('Use parent2 instead')
   @override
   Folder? get parent {
     String parentPath = provider.pathContext.dirname(path);
     if (parentPath == path) {
       return null;
     }
+    return provider.getFolder(parentPath);
+  }
+
+  @override
+  Folder get parent2 {
+    String parentPath = provider.pathContext.dirname(path);
     return provider.getFolder(parentPath);
   }
 

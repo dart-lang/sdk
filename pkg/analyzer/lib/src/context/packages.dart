@@ -15,27 +15,26 @@ import 'package:pub_semver/pub_semver.dart';
 /// Looks for `.dart_tool/package_config.json` or `.packages` in the given
 /// and parent directories.
 Packages findPackagesFrom(ResourceProvider provider, Resource start) {
-  for (Resource? current = start; current != null; current = current.parent) {
-    if (current is Folder) {
-      try {
-        var jsonFile = current
-            .getChildAssumingFolder('.dart_tool')
-            .getChildAssumingFile('package_config.json');
-        if (jsonFile.exists) {
-          return parsePackageConfigJsonFile(provider, jsonFile);
-        }
-      } catch (e) {
-        return Packages.empty;
+  var startFolder = start is Folder ? start : start.parent2;
+  for (var current in startFolder.withAncestors) {
+    try {
+      var jsonFile = current
+          .getChildAssumingFolder('.dart_tool')
+          .getChildAssumingFile('package_config.json');
+      if (jsonFile.exists) {
+        return parsePackageConfigJsonFile(provider, jsonFile);
       }
+    } catch (e) {
+      return Packages.empty;
+    }
 
-      try {
-        var dotFile = current.getChildAssumingFile('.packages');
-        if (dotFile.exists) {
-          return parseDotPackagesFile(provider, dotFile);
-        }
-      } catch (e) {
-        return Packages.empty;
+    try {
+      var dotFile = current.getChildAssumingFile('.packages');
+      if (dotFile.exists) {
+        return parseDotPackagesFile(provider, dotFile);
       }
+    } catch (e) {
+      return Packages.empty;
     }
   }
   return Packages.empty;
@@ -129,7 +128,7 @@ Packages parsePackagesFile(ResourceProvider provider, File file) {
     if (isJson) {
       return parsePackageConfigJsonFile(provider, file);
     } else {
-      var relativePackageConfigFile = file.parent!
+      var relativePackageConfigFile = file.parent2
           .getChildAssumingFolder('.dart_tool')
           .getChildAssumingFile('package_config.json');
       if (relativePackageConfigFile.exists) {

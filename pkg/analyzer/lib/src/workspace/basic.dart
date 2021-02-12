@@ -47,7 +47,7 @@ class BasicWorkspace extends SimpleWorkspace {
   ) {
     Resource resource = provider.getResource(path);
     if (resource is File) {
-      path = resource.parent!.path;
+      path = resource.parent2.path;
     }
     return BasicWorkspace._(provider, packageMap, path);
   }

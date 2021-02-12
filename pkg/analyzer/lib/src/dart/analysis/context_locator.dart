@@ -106,7 +106,7 @@ class ContextLocatorImpl implements ContextLocator {
     }
     Map<Folder, ContextRoot> rootMap = <Folder, ContextRoot>{};
     for (File file in includedFiles) {
-      Folder parent = file.parent!;
+      Folder parent = file.parent2;
       ContextRoot root = rootMap.putIfAbsent(parent, () {
         ContextRootImpl root = ContextRootImpl(resourceProvider, parent);
         root.packagesFile = defaultPackagesFile ?? _findPackagesFile(parent);
@@ -232,29 +232,25 @@ class ContextLocatorImpl implements ContextLocator {
   /// Return the analysis options file to be used to analyze files in the given
   /// [folder], or `null` if there is no analysis options file in the given
   /// folder or any parent folder.
-  File? _findOptionsFile(Folder? folder) {
-    for (Folder? current = folder; current != null;) {
-      File? optionsFile = _getOptionsFile(current);
-      if (optionsFile != null) {
-        return optionsFile;
+  File? _findOptionsFile(Folder folder) {
+    for (var current in folder.withAncestors) {
+      var file = _getOptionsFile(current);
+      if (file != null) {
+        return file;
       }
-      current = current.parent;
     }
-    return null;
   }
 
   /// Return the packages file to be used to analyze files in the given
   /// [folder], or `null` if there is no packages file in the given folder or
   /// any parent folder.
   File? _findPackagesFile(Folder folder) {
-    for (Folder? current = folder; current != null;) {
-      File? packagesFile = _getPackagesFile(current);
-      if (packagesFile != null) {
-        return packagesFile;
+    for (var current in folder.withAncestors) {
+      var file = _getPackagesFile(current);
+      if (file != null) {
+        return file;
       }
-      current = current.parent;
     }
-    return null;
   }
 
   /// Return a list containing the glob patterns used to exclude files from the
@@ -281,7 +277,7 @@ class ContextLocatorImpl implements ContextLocator {
                   Context context = resourceProvider.pathContext;
                   if (context.isRelative(excludedPath)) {
                     excludedPath = posix.joinAll([
-                      ...context.split(optionsFile.parent!.path),
+                      ...context.split(optionsFile.parent2.path),
                       ...posix.split(excludedPath),
                     ]);
                   }
@@ -302,11 +298,8 @@ class ContextLocatorImpl implements ContextLocator {
   /// If the given [directory] contains a file with the given [name], then
   /// return the file. Otherwise, return `null`.
   File? _getFile(Folder directory, String name) {
-    Resource resource = directory.getChild(name);
-    if (resource is File && resource.exists) {
-      return resource;
-    }
-    return null;
+    var file = directory.getChildAssumingFile(name);
+    return file.exists ? file : null;
   }
 
   /// Return the analysis options file in the given [folder], or `null` if the

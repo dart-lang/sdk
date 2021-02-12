@@ -275,13 +275,8 @@ class PackageBuildWorkspace extends Workspace {
   /// Return `null` if the filePath is not in a package:build workspace.
   static PackageBuildWorkspace? find(ResourceProvider provider,
       Map<String, List<Folder>> packageMap, String filePath) {
-    Folder folder = provider.getFolder(filePath);
-    while (true) {
-      var parent = folder.parent;
-      if (parent == null) {
-        return null;
-      }
-
+    var startFolder = provider.getFolder(filePath);
+    for (var folder in startFolder.withAncestors) {
       final File pubspec = folder.getChildAssumingFile(_pubspecName);
       final Folder dartToolDir =
           folder.getChildAssumingFolder(_dartToolRootName);
@@ -311,9 +306,6 @@ class PackageBuildWorkspace extends Workspace {
       if (pubspec.exists) {
         return null;
       }
-
-      // Go up the folder.
-      folder = parent;
     }
   }
 }
