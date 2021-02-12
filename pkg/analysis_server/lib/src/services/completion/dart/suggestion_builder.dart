@@ -496,11 +496,21 @@ class SuggestionBuilder {
   /// Add a suggestion for a [keyword]. The [offset] is the offset from the
   /// beginning of the keyword where the cursor will be left.
   void suggestKeyword(String keyword, {int offset}) {
+    DartType elementType;
+    if (keyword == 'null') {
+      elementType = request.featureComputer.typeProvider.nullType;
+    } else if (keyword == 'false' || keyword == 'true') {
+      elementType = request.featureComputer.typeProvider.boolType;
+    }
+    var contextType = request.featureComputer
+        .contextTypeFeature(request.contextType, elementType);
     var keywordFeature = request.featureComputer
         .keywordFeature(keyword, request.opType.completionLocation);
-    // TODO(brianwilkerson) The default value should probably be a constant.
-    var relevance = toRelevance(keywordFeature);
-    listener?.computedFeatures(keyword: keywordFeature);
+    var score =
+        weightedAverage(contextType: contextType, keyword: keywordFeature);
+    var relevance = toRelevance(score);
+    listener?.computedFeatures(
+        contextType: contextType, keyword: keywordFeature);
     _add(CompletionSuggestion(CompletionSuggestionKind.KEYWORD, relevance,
         keyword, offset ?? keyword.length, 0, false, false));
   }
