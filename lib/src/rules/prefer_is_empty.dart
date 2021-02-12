@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/ast/ast.dart' show ExpressionImpl;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/ast.dart' show ExpressionImpl;
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
@@ -59,7 +59,7 @@ class PreferIsEmpty extends LintRule implements NodeLintRule {
     registry.addSimpleIdentifier(this, visitor);
   }
 
-  void reportLintWithDescription(AstNode node, String description) {
+  void reportLintWithDescription(AstNode? node, String description) {
     if (node != null) {
       reporter.reportErrorForNode(_LintCode(name, description), node, []);
     }
@@ -90,8 +90,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    AstNode lengthAccess;
-    InterfaceType type;
+    AstNode? lengthAccess;
+    InterfaceType? type;
 
     final parent = identifier.parent;
     if (parent is PropertyAccess && identifier == parent.propertyName) {
@@ -129,11 +129,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (search is! BinaryExpression) {
       return;
     }
-    final binaryExpression = search as BinaryExpression;
+    final binaryExpression = search;
 
     // Don't lint if we're in a const constructor initializer.
     final constructorInitializer =
-        search.parent.thisOrAncestorOfType<ConstructorInitializer>();
+        search.parent!.thisOrAncestorOfType<ConstructorInitializer>();
     if (constructorInitializer != null) {
       final constructorDecl =
           constructorInitializer.parent as ConstructorDeclaration;
@@ -233,14 +233,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// Returns the value of an [IntegerLiteral] or [PrefixExpression] with a
   /// minus and then an [IntegerLiteral]. For anything else, returns `null`.
-  int _getIntValue(Expression expressions) {
+  int? _getIntValue(Expression expressions) {
     if (expressions is IntegerLiteral) {
       return expressions.value;
     } else if (expressions is PrefixExpression) {
       var operand = expressions.operand;
       if (expressions.operator.type == TokenType.MINUS &&
           operand is IntegerLiteral) {
-        return -operand.value;
+        return -operand.value!;
       }
     }
     // ignore: avoid_returning_null

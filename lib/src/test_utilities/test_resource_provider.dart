@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-
 // ignore: implementation_imports
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:path/path.dart' as path;
@@ -16,19 +15,19 @@ import '../analyzer.dart';
 
 /// Builds the [DartLinter] with appropriate mock SDK, resource providers, and
 /// package config path.
-DartLinter buildDriver(LintRule rule, File file, {String analysisOptions}) {
+DartLinter buildDriver(LintRule? rule, File file, {String? analysisOptions}) {
   final memoryResourceProvider = MemoryResourceProvider(
       context: PhysicalResourceProvider.INSTANCE.pathContext);
   final resourceProvider = TestResourceProvider(memoryResourceProvider);
 
   final pathContext = memoryResourceProvider.pathContext;
-  var packageConfigPath = memoryResourceProvider.convertPath(pathContext.join(
-      pathContext.dirname(file.absolute.path), '.mock_packages'));
+  String? packageConfigPath = memoryResourceProvider.convertPath(pathContext
+      .join(pathContext.dirname(file.absolute.path), '.mock_packages'));
   if (!resourceProvider.getFile(packageConfigPath).exists) {
     packageConfigPath = null;
   }
 
-  final options = LinterOptions([rule], analysisOptions)
+  final options = LinterOptions([rule!], analysisOptions)
     ..mockSdk = MockSdk(resourceProvider: memoryResourceProvider)
     ..resourceProvider = resourceProvider
     ..packageConfigPath = packageConfigPath;
@@ -67,11 +66,11 @@ class TestResourceProvider extends file_system.ResourceProvider {
   }
 
   @override
-  Future<List<int>> getModificationTimes(List<Source> sources) =>
+  Future<List<int?>> getModificationTimes(List<Source> sources) =>
       physicalResourceProvider.getModificationTimes(sources);
 
   @override
-  file_system.Folder getStateLocation(String pluginId) =>
+  file_system.Folder? getStateLocation(String pluginId) =>
       physicalResourceProvider.getStateLocation(pluginId);
 
   @override

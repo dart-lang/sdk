@@ -53,7 +53,7 @@ bool _beginsWithAsOrTo(String name) {
   return regExp.matchAsPrefix(name) != null;
 }
 
-bool _isVoid(TypeAnnotation returnType) =>
+bool _isVoid(TypeAnnotation? returnType) =>
     returnType is TypeName && returnType.name.name == 'void';
 
 class UseToAndAsIfApplicable extends LintRule implements NodeLintRule {
@@ -80,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (!node.isGetter &&
-        node.parameters.parameters.isEmpty &&
+        node.parameters!.parameters.isEmpty &&
         !_isVoid(node.returnType) &&
         !_beginsWithAsOrTo(node.name.name) &&
         !DartTypeUtilities.hasInheritedMethod(node) &&
@@ -101,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     return false;
   }
 
-  bool _checkExpression(Expression rawExpression) {
+  bool _checkExpression(Expression? rawExpression) {
     final expression = rawExpression?.unParenthesized;
     return expression is InstanceCreationExpression &&
         expression.argumentList.arguments.length == 1 &&

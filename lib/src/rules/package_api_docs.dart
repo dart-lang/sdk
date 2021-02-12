@@ -60,7 +60,7 @@ Advice for writing good doc comments can be found in the
 ''';
 
 class PackageApiDocs extends LintRule implements ProjectVisitor, NodeLintRule {
-  DartProject project;
+  DartProject? project;
 
   PackageApiDocs()
       : super(
@@ -98,15 +98,16 @@ class _Visitor extends GeneralizingAstVisitor {
 
   _Visitor(this.rule);
 
-  DartProject get project => rule.project;
-
   void check(Declaration node) {
     // If no project info is set, bail early.
     // https://github.com/dart-lang/linter/issues/154
-    if (project == null) {
+    var currentProject = rule.project;
+    if (currentProject == null) {
       return;
     }
-    if (project.isApi(node.declaredElement)) {
+
+    var declaredElement = node.declaredElement;
+    if (declaredElement != null && currentProject.isApi(declaredElement)) {
       if (node.documentationComment == null) {
         rule.reportLint(getNodeToAnnotate(node));
       }

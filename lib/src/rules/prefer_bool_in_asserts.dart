@@ -70,16 +70,16 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAssertStatement(AssertStatement node) {
-    var conditionType = _unbound(node.condition.staticType);
+    var conditionType = _unbound(node.condition.staticType)!;
     if (!typeSystem.isAssignableTo(conditionType, boolType)) {
       rule.reportLint(node.condition);
     }
   }
 
-  DartType _unbound(DartType type) {
+  DartType? _unbound(DartType? type) {
     var t = type;
     while (t is TypeParameterType) {
-      t = (t as TypeParameterType).bound;
+      t = t.bound;
     }
     return t;
   }

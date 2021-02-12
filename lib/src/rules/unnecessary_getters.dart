@@ -84,8 +84,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     candidates.map((n) => getters[n]).forEach(_visitGetter);
   }
 
-  void _visitGetter(MethodDeclaration getter) {
-    if (isSimpleGetter(getter)) {
+  void _visitGetter(MethodDeclaration? getter) {
+    if (isSimpleGetter(getter!)) {
       rule.reportLint(getter.name);
     }
   }

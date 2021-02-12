@@ -84,7 +84,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitThisExpression(ThisExpression node) {
     final parent = node.parent;
 
-    Element element;
+    Element? element;
     if (parent is PropertyAccess && !parent.isNullAware) {
       element = getWriteOrReadElement(parent.propertyName);
     } else if (parent is MethodInvocation && !parent.isNullAware) {
@@ -98,7 +98,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  bool _canReferenceElementWithoutThisPrefix(Element element, AstNode node) {
+  bool _canReferenceElementWithoutThisPrefix(Element? element, AstNode node) {
     if (element == null) {
       return false;
     }
@@ -125,7 +125,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     //  - prevents us from going up to the library scope;
     //  - the requested element must be inherited, or from an extension.
     if (result.isDifferentName) {
-      var enclosing = result.element.enclosingElement;
+      var enclosing = result.element!.enclosingElement;
       return enclosing is ClassElement;
     }
 

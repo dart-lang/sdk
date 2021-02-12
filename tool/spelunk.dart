@@ -6,7 +6,7 @@ import 'package:args/args.dart';
 import 'package:linter/src/analyzer.dart';
 
 /// AST Spelunker
-void main([List<String> args]) {
+void main(List<String> args) {
   var parser = ArgParser();
 
   var options = parser.parse(args);

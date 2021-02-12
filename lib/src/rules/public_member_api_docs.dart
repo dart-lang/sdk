@@ -112,7 +112,7 @@ class _Visitor extends SimpleAstVisitor {
     return false;
   }
 
-  Element getOverriddenMember(Element member) {
+  Element? getOverriddenMember(Element? member) {
     if (member == null) {
       return null;
     }
@@ -124,7 +124,7 @@ class _Visitor extends SimpleAstVisitor {
     final libraryUri = classElement.library.source.uri;
     return context.inheritanceManager.getInherited(
       classElement.thisType,
-      Name(libraryUri, member.name),
+      Name(libraryUri, member.name!),
     );
   }
 
@@ -338,10 +338,10 @@ class _Visitor extends SimpleAstVisitor {
     for (var setter in setters) {
       final getter = getters[setter.name.name];
       if (getter == null) {
-        final libraryUri = node.declaredElement.library.source.uri;
+        final libraryUri = node.declaredElement!.library.source.uri;
         // Look for an inherited getter.
-        Element getter = context.inheritanceManager.getMember(
-          node.declaredElement.thisType,
+        Element? getter = context.inheritanceManager.getMember(
+          node.declaredElement!.thisType,
           Name(libraryUri, setter.name.name),
         );
         if (getter is PropertyAccessorElement) {

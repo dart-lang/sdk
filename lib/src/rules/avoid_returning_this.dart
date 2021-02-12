@@ -82,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      var returnType = node.declaredElement.returnType;
+      var returnType = node.declaredElement!.returnType;
       if (returnType is InterfaceType &&
           returnType.element == parent.declaredElement) {
       } else {

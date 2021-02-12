@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var classElement = node.declaredElement;
+    var classElement = node.declaredElement!;
     if (classElement.isPublic &&
         hasWidgetAsAscendant(classElement) &&
         classElement.constructors.where((e) => !e.isSynthetic).isEmpty) {
@@ -68,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var constructorElement = node.declaredElement;
+    var constructorElement = node.declaredElement!;
     var classElement = constructorElement.enclosingElement;
     if (constructorElement.isPublic &&
         !constructorElement.isFactory &&
@@ -77,10 +77,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         !isExactWidget(classElement) &&
         !node.initializers.any((initializer) =>
             initializer is SuperConstructorInvocation &&
-                (!_defineKeyParameter(initializer.staticElement) ||
+                (!_defineKeyParameter(initializer.staticElement!) ||
                     _defineKeyArgument(initializer.argumentList)) ||
             initializer is RedirectingConstructorInvocation &&
-                (!_defineKeyParameter(initializer.staticElement) ||
+                (!_defineKeyParameter(initializer.staticElement!) ||
                     _defineKeyArgument(initializer.argumentList)))) {
       rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
     }
@@ -90,8 +90,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _defineKeyParameter(ConstructorElement element) =>
       element.parameters.any((e) => e.name == 'key' && _isKeyType(e.type));
 
-  bool _defineKeyArgument(ArgumentList argumentList) =>
-      argumentList.arguments.any((a) => a.staticParameterElement.name == 'key');
+  bool _defineKeyArgument(ArgumentList argumentList) => argumentList.arguments
+      .any((a) => a.staticParameterElement!.name == 'key');
 
   bool _isKeyType(DartType type) =>
       DartTypeUtilities.implementsInterface(type, 'Key', '');

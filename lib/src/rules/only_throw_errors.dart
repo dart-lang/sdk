@@ -50,7 +50,7 @@ final LinkedHashSet<InterfaceTypeDefinition> _interfaceDefinitions =
   InterfaceTypeDefinition(_exceptionClassName, _library),
   InterfaceTypeDefinition(_errorClassName, _library)
 ]);
-bool _isThrowable(DartType type) =>
+bool _isThrowable(DartType? type) =>
     type == null ||
     type.isDynamic ||
     DartTypeUtilities.implementsAnyInterface(type, _interfaceDefinitions);

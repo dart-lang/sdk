@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -150,7 +151,7 @@ bool _isFixNumIntX(DartType type) {
   if (type is! InterfaceType) {
     return false;
   }
-  final element = type.element;
+  final Element element = type.element;
   return (element.name == 'Int32' || element.name == 'Int64') &&
       element.library?.name == 'fixnum';
 }

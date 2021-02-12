@@ -135,8 +135,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parameters != null) {
       // Getter do not have formal parameters.
       parameters.parameters.forEach((e) {
-        if (node.functionExpression.body
-            .isPotentiallyMutatedInScope(e.declaredElement)) {
+        if (node.functionExpression.body!
+            .isPotentiallyMutatedInScope(e.declaredElement!)) {
           _reportIfSimpleParameterOrWithDefaultValue(e, node);
         }
       });
@@ -145,11 +145,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    final parameterList = node?.parameters;
+    final parameterList = node.parameters;
     if (parameterList != null) {
       // Getters don't have parameters.
       parameterList.parameters.forEach((e) {
-        if (node.body.isPotentiallyMutatedInScope(e.declaredElement)) {
+        if (node.body.isPotentiallyMutatedInScope(e.declaredElement!)) {
           _reportIfSimpleParameterOrWithDefaultValue(e, node);
         }
       });

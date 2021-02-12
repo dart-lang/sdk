@@ -52,7 +52,7 @@ bool _checkStatement(Statement statement, Expression condition) {
   return false;
 }
 
-Expression _getExpressionCondition(Expression rawExpression) {
+Expression? _getExpressionCondition(Expression rawExpression) {
   final expression = rawExpression.unParenthesized;
   if (expression is BinaryExpression &&
       expression.operator.type == TokenType.EQ_EQ) {

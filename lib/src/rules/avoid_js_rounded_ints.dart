@@ -54,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  bool isRounded(int value) => value?.toDouble()?.toInt() != value;
+  bool isRounded(int? value) => value?.toDouble().toInt() != value;
   @override
   void visitIntegerLiteral(IntegerLiteral node) {
     if (isRounded(node.value)) {

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+
 import '../analyzer.dart';
 
 const _desc = r'Avoid method calls or property accesses on a "dynamic" target.';
@@ -124,7 +125,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  bool _lintIfDynamic(Expression node) {
+  bool _lintIfDynamic(Expression? node) {
     if (node?.staticType?.isDynamic == true) {
       rule.reportLint(node);
       return true;
@@ -133,8 +134,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _lintIfDynamicOrFunction(Expression node, {DartType staticType}) {
-    staticType ??= node?.staticType;
+  void _lintIfDynamicOrFunction(Expression node, {DartType? staticType}) {
+    staticType ??= node.staticType;
     if (staticType == null) {
       return;
     }
@@ -184,9 +185,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    if (node.function != null) {
-      _lintIfDynamicOrFunction(node.function);
-    }
+    _lintIfDynamicOrFunction(node.function);
   }
 
   @override
@@ -216,9 +215,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       // If the method is "call", and the receiver is a function, we assume then
       // we are really checking the static type of the receiver, not the static
       // type of the "call" method itself.
-      DartType staticType;
+      DartType? staticType;
       if (methodName == 'call' && node.target?.staticType is FunctionType) {
-        staticType = node.target.staticType;
+        staticType = node.target!.staticType;
       }
       _lintIfDynamicOrFunction(node.function, staticType: staticType);
     }

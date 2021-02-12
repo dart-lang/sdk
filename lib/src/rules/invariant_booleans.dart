@@ -98,7 +98,7 @@ void nestedOk5() {
 
 ''';
 
-Iterable<Element> _getElementsInExpression(Expression node) =>
+Iterable<Element?> _getElementsInExpression(Expression node) =>
     DartTypeUtilities.traverseNodesInDFS(node)
         .map(DartTypeUtilities.getCanonicalElementFromIdentifier)
         .where((e) => e != null);
@@ -139,14 +139,14 @@ class _InvariantBooleansVisitor extends ConditionScopeVisitor {
   _InvariantBooleansVisitor(this.rule);
 
   @override
-  void visitCondition(Expression node) {
+  void visitCondition(Expression? node) {
     // Right part discards reporting a subexpression already reported.
     if (node?.staticType?.isDartCoreBool != true) {
       return;
     }
 
-    final testedNodes = _findPreviousTestedExpressions(node);
-    testedNodes.evaluateInvariant().forEach((ContradictoryComparisons e) {
+    final testedNodes = _findPreviousTestedExpressions(node!);
+    testedNodes.evaluateInvariant()!.forEach((ContradictoryComparisons e) {
       final reportRule = _ContradictionReportRule(e);
       reportRule
         ..reporter = rule.reporter

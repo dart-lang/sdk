@@ -67,13 +67,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  bool _isAsync(ExecutableElement element) {
+  bool _isAsync(ExecutableElement? element) {
     if (element == null) {
       return false;
     }
     return element.isAsynchronous || element.isGenerator;
   }
 
-  bool _isVoid(TypeAnnotation typeAnnotation) =>
+  bool _isVoid(TypeAnnotation? typeAnnotation) =>
       typeAnnotation?.type?.isVoid ?? false;
 }

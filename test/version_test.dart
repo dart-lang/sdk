@@ -17,12 +17,12 @@ void main() {
   });
 }
 
-String readPackageVersion() {
+String? readPackageVersion() {
   var pubspec = File('pubspec.yaml');
   var yamlDoc = yaml.loadYaml(pubspec.readAsStringSync());
   if (yamlDoc == null) {
     fail('Cannot find pubspec.yaml in ${Directory.current}');
   }
   var version = yamlDoc['version'];
-  return version as String;
+  return version as String?;
 }

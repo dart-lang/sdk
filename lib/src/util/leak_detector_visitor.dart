@@ -33,17 +33,17 @@ _PredicateBuilder _hasReturn = (VariableDeclaration v) => (AstNode n) =>
 /// from building (predicates) with the provided [predicateBuilders] evaluated
 /// in the variable.
 _VisitVariableDeclaration _buildVariableReporter(
-        AstNode container,
+        AstNode? container,
         Iterable<_PredicateBuilder> predicateBuilders,
         LintRule rule,
         Map<DartTypePredicate, String> predicates) =>
     (VariableDeclaration variable) {
       if (!predicates.keys
-          .any((DartTypePredicate p) => p(variable.declaredElement.type))) {
+          .any((DartTypePredicate p) => p(variable.declaredElement!.type))) {
         return;
       }
 
-      final containerNodes = DartTypeUtilities.traverseNodesInDFS(container);
+      final containerNodes = DartTypeUtilities.traverseNodesInDFS(container!);
 
       final validators = <Iterable<AstNode>>[];
       predicateBuilders.forEach((f) {
@@ -74,7 +74,7 @@ Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
   final prefixedIdentifiers = containerNodes.whereType<PrefixedIdentifier>();
   return prefixedIdentifiers.where((n) =>
       n.prefix.staticElement == variable.name.staticElement &&
-      _hasMatch(predicates, variable.declaredElement.type,
+      _hasMatch(predicates, variable.declaredElement!.type,
           n.identifier.token.lexeme));
 }
 
@@ -93,7 +93,7 @@ Iterable<AstNode> _findNodesInvokingMethodOnVariable(
         Map<DartTypePredicate, String> predicates) =>
     classNodes.where((AstNode n) =>
         n is MethodInvocation &&
-        ((_hasMatch(predicates, variable.declaredElement.type,
+        ((_hasMatch(predicates, variable.declaredElement!.type,
                     n.methodName.name) &&
                 (_isSimpleIdentifierElementEqualToVariable(
                         n.realTarget, variable) ||
@@ -130,7 +130,7 @@ bool _hasMatch(Map<DartTypePredicate, String> predicates, DartType type,
             previous || p(type) && predicates[p] == methodName);
 
 bool _isElementEqualToVariable(
-    Element propertyElement, VariableDeclaration variable) {
+    Element? propertyElement, VariableDeclaration variable) {
   var variableElement = variable.declaredElement;
   return propertyElement == variableElement ||
       propertyElement is PropertyAccessorElement &&
@@ -153,23 +153,23 @@ bool _isInvocationThroughCascadeExpression(
   return false;
 }
 
-bool _isPropertyAccessThroughThis(Expression n, VariableDeclaration variable) {
+bool _isPropertyAccessThroughThis(Expression? n, VariableDeclaration variable) {
   if (n is! PropertyAccess) {
     return false;
   }
 
-  var target = (n as PropertyAccess).realTarget;
+  var target = n.realTarget;
   if (target is! ThisExpression) {
     return false;
   }
 
-  var property = (n as PropertyAccess).propertyName;
+  var property = n.propertyName;
   var propertyElement = property.staticElement;
   return _isElementEqualToVariable(propertyElement, variable);
 }
 
 bool _isSimpleIdentifierElementEqualToVariable(
-        AstNode n, VariableDeclaration variable) =>
+        AstNode? n, VariableDeclaration variable) =>
     n is SimpleIdentifier &&
     _isElementEqualToVariable(n.staticElement, variable);
 

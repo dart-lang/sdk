@@ -13,7 +13,7 @@ import 'doc.dart';
 
 /// Generates a list of lint rules in machine format suitable for consumption by
 /// other tools.
-void main([List<String> args]) {
+void main(List<String> args) {
   var parser = ArgParser()
     ..addFlag('pretty',
         abbr: 'p', help: 'Pretty-print output.', defaultsTo: true);

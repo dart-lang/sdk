@@ -48,12 +48,12 @@ class Visitor extends PubspecVisitor<void> {
 
   void _visitDeps(PSDependencyList dependencies) {
     final depsByLocation = dependencies.toList()
-      ..sort((d1, d2) => d1.name.span.start.compareTo(d2.name.span.start));
+      ..sort((d1, d2) => d1.name!.span.start.compareTo(d2.name!.span.start));
     var previousName = '';
     for (final dep in depsByLocation) {
-      final name = dep.name.text;
+      final name = dep.name!.text!;
       if (name.compareTo(previousName) < 0) {
-        rule.reportPubLint(dep.name);
+        rule.reportPubLint(dep.name!);
         return;
       }
       previousName = name;

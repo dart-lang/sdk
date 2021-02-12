@@ -53,7 +53,7 @@ someReference
 
 ''';
 
-Element _getElementFromVariableDeclarationStatement(
+Element? _getElementFromVariableDeclarationStatement(
     VariableDeclarationStatement statement) {
   final variables = statement.variables.variables;
   if (variables.length == 1) {
@@ -71,7 +71,7 @@ Element _getElementFromVariableDeclarationStatement(
   return null;
 }
 
-ExecutableElement _getExecutableElementFromMethodInvocation(
+ExecutableElement? _getExecutableElementFromMethodInvocation(
     MethodInvocation node) {
   if (_isInvokedWithoutNullAwareOperator(node.operator)) {
     final executableElement =
@@ -83,7 +83,7 @@ ExecutableElement _getExecutableElementFromMethodInvocation(
   return null;
 }
 
-Element _getPrefixElementFromExpression(Expression rawExpression) {
+Element? _getPrefixElementFromExpression(Expression rawExpression) {
   final expression = rawExpression.unParenthesized;
   if (expression is PrefixedIdentifier) {
     return DartTypeUtilities.getCanonicalElementFromIdentifier(
@@ -97,13 +97,13 @@ Element _getPrefixElementFromExpression(Expression rawExpression) {
   return null;
 }
 
-Element _getTargetElementFromCascadeExpression(CascadeExpression node) =>
+Element? _getTargetElementFromCascadeExpression(CascadeExpression node) =>
     DartTypeUtilities.getCanonicalElementFromIdentifier(node.target);
 
-Element _getTargetElementFromMethodInvocation(MethodInvocation node) =>
+Element? _getTargetElementFromMethodInvocation(MethodInvocation node) =>
     DartTypeUtilities.getCanonicalElementFromIdentifier(node.target);
 
-bool _isInvokedWithoutNullAwareOperator(Token token) =>
+bool _isInvokedWithoutNullAwareOperator(Token? token) =>
     token?.type == TokenType.PERIOD;
 
 /// Rule to lint consecutive invocations of methods or getters on the same
@@ -134,21 +134,21 @@ class _CascadableExpression {
 
   /// Whether this expression can be joined with a previous expression via a
   /// cascade operation.
-  final bool canJoin;
+  final bool? canJoin;
 
   /// Whether this expression can receive an additional expression with a
   /// cascade operation.
   ///
   /// For example, `a.b = 1` can receive, but `a = 1` cannot receive.
-  final bool canReceive;
-  final bool canBeCascaded;
+  final bool? canReceive;
+  final bool? canBeCascaded;
 
   /// This is necessary when you have a variable declaration so that element
   /// is critical and it can't be used as a parameter of a method invocation or
   /// in the right part of an assignment in a following expression that we would
   /// like to join to this.
   final bool isCritical;
-  final Element element;
+  final Element? element;
   final List<AstNode> criticalNodes;
 
   factory _CascadableExpression.fromExpressionStatement(
@@ -272,9 +272,9 @@ class _CascadableExpression {
   /// cascade operation.
   bool compatibleWith(_CascadableExpression expressionBox) =>
       element != null &&
-      expressionBox.canReceive &&
-      canJoin &&
-      (canBeCascaded || expressionBox.canBeCascaded) &&
+      expressionBox.canReceive! &&
+      canJoin! &&
+      (canBeCascaded! || expressionBox.canBeCascaded!) &&
       element == expressionBox.element &&
       !_hasCriticalDependencies(expressionBox);
 

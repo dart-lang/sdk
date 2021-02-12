@@ -83,7 +83,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     final type = node.writeType;
-    _check(type, node.rightHandSide?.staticType, node,
+    _check(type, node.rightHandSide.staticType, node,
         checkedNode: node.rightHandSide);
   }
 
@@ -120,17 +120,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     } else if (parent is MethodDeclaration) {
       _check(
-          parent.declaredElement.returnType, node.expression?.staticType, node,
+          parent.declaredElement!.returnType, node.expression?.staticType, node,
           checkedNode: node.expression);
     } else if (parent is FunctionDeclaration) {
       _check(
-          parent.declaredElement.returnType, node.expression?.staticType, node,
+          parent.declaredElement!.returnType, node.expression?.staticType, node,
           checkedNode: node.expression);
     }
   }
 
-  void _check(DartType expectedType, DartType type, AstNode node,
-      {AstNode checkedNode}) {
+  void _check(DartType? expectedType, DartType? type, AstNode node,
+      {AstNode? checkedNode}) {
     checkedNode ??= node;
     if (expectedType == null || type == null) {
       return;
@@ -157,7 +157,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parameterElement != null) {
         final type = parameterElement.type;
         final expression = arg is NamedExpression ? arg.expression : arg;
-        _check(type, expression?.staticType, expression);
+        _check(type, expression.staticType, expression);
       }
     }
   }

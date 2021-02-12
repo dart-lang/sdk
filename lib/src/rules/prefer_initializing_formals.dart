@@ -89,13 +89,13 @@ Iterable<ConstructorFieldInitializer>
             ConstructorDeclaration node) =>
         node.initializers.whereType<ConstructorFieldInitializer>();
 
-Element _getLeftElement(AssignmentExpression assignment) =>
+Element? _getLeftElement(AssignmentExpression assignment) =>
     DartTypeUtilities.getCanonicalElement(assignment.writeElement);
 
-Iterable<Element> _getParameters(ConstructorDeclaration node) =>
-    node.parameters.parameters.map((e) => e.identifier.staticElement);
+Iterable<Element?> _getParameters(ConstructorDeclaration node) =>
+    node.parameters.parameters.map((e) => e.identifier!.staticElement);
 
-Element _getRightElement(AssignmentExpression assignment) =>
+Element? _getRightElement(AssignmentExpression assignment) =>
     DartTypeUtilities.getCanonicalElementFromIdentifier(
         assignment.rightHandSide);
 
@@ -123,8 +123,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     final parameters = _getParameters(node);
-    final parametersUsedOnce = <Element>{};
-    final parametersUsedMoreThanOnce = <Element>{};
+    final parametersUsedOnce = <Element?>{};
+    final parametersUsedMoreThanOnce = <Element?>{};
 
     bool isAssignmentExpressionToLint(AssignmentExpression assignment) {
       final leftElement = _getLeftElement(assignment);
@@ -135,7 +135,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           leftElement is FieldElement &&
           !leftElement.isSynthetic &&
           leftElement.enclosingElement ==
-              node.declaredElement.enclosingElement &&
+              node.declaredElement!.enclosingElement &&
           parameters.contains(rightElement) &&
           (!parametersUsedMoreThanOnce.contains(rightElement) &&
                   !(rightElement as ParameterElement).isNamed ||
@@ -152,17 +152,17 @@ class _Visitor extends SimpleAstVisitor<void> {
           (!parametersUsedMoreThanOnce.contains(expression.staticElement) &&
                   !(expression.staticElement as ParameterElement).isNamed ||
               (constructorFieldInitializer.fieldName.staticElement?.name ==
-                  expression.staticElement.name));
+                  expression.staticElement!.name));
     }
 
-    void processElement(Element element) {
+    void processElement(Element? element) {
       if (!parametersUsedOnce.add(element)) {
         parametersUsedMoreThanOnce.add(element);
       }
     }
 
     node.parameters.parameterElements
-        .where((p) => p.isInitializingFormal)
+        .where((p) => p!.isInitializingFormal)
         .forEach(processElement);
 
     _getAssignmentExpressionsInConstructorBody(node)

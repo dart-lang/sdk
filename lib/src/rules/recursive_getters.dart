@@ -61,7 +61,7 @@ class _RecursiveGetterParentVisitor extends SimpleAstVisitor<bool> {
       node.target is ThisExpression;
 
   @override
-  bool visitSimpleIdentifier(SimpleIdentifier node) {
+  bool? visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.parent is ArgumentList ||
         node.parent is ConditionalExpression ||
         node.parent is ExpressionFunctionBody ||
@@ -70,7 +70,7 @@ class _RecursiveGetterParentVisitor extends SimpleAstVisitor<bool> {
     }
 
     if (node.parent is PropertyAccess) {
-      return node.parent.accept(this);
+      return node.parent!.accept(this);
     }
 
     return false;
@@ -106,13 +106,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     _verifyElement(node.body, element);
   }
 
-  void _verifyElement(AstNode node, ExecutableElement element) {
+  void _verifyElement(AstNode node, ExecutableElement? element) {
     final nodes = DartTypeUtilities.traverseNodesInDFS(node);
     nodes
         .where((n) =>
             n is SimpleIdentifier &&
             element == n.staticElement &&
-            n.accept(visitor))
+            n.accept(visitor)!)
         .forEach(rule.reportLint);
   }
 }

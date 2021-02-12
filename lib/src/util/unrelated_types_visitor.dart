@@ -5,6 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:collection/collection.dart' show IterableExtension;
+
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
 
@@ -40,8 +42,8 @@ List<InterfaceType> _findImplementedInterfaces(InterfaceType type,
 /// [definition]. For example, given the definition `Set<E>` and the type `A`
 /// where `A implements B<List, String>` and `B<E, F> implements Set<F>, C<E>`,
 /// this function returns the DartType for `String`.
-DartType _findIterableTypeArgument(
-    InterfaceTypeDefinition definition, InterfaceType type,
+DartType? _findIterableTypeArgument(
+    InterfaceTypeDefinition definition, InterfaceType? type,
     {List<InterfaceType> accumulator = const []}) {
   if (type == null ||
       type.isDartCoreObject ||
@@ -56,8 +58,7 @@ DartType _findIterableTypeArgument(
   }
 
   final implementedInterfaces = _findImplementedInterfaces(type);
-  final interface =
-      implementedInterfaces.firstWhere(predicate, orElse: () => null);
+  final interface = implementedInterfaces.firstWhereOrNull(predicate);
   if (interface != null && interface.typeArguments.isNotEmpty) {
     return interface.typeArguments.first;
   }
@@ -104,9 +105,9 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
     // arduous task of determining whether the method target implements
     // [definition].
 
-    DartType targetType;
+    DartType? targetType;
     if (node.target != null) {
-      targetType = node.target.staticType;
+      targetType = node.target!.staticType;
     } else {
       final classDeclaration =
           node.thisOrAncestorOfType<ClassOrMixinDeclaration>();

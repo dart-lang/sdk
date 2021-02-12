@@ -5,7 +5,7 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 
-Annotation extractAnnotation(int lineNumber, String line) {
+Annotation? extractAnnotation(int lineNumber, String line) {
   final regexp =
       RegExp(r'(//|#) ?LINT( \[([\-+]\d+)?(,?(\d+):(\d+))?\])?( (.*))?$');
   final match = regexp.firstMatch(line);
@@ -13,7 +13,7 @@ Annotation extractAnnotation(int lineNumber, String line) {
 
   // ignore lints on commented out lines
   final index = match.start;
-  final comment = match[1];
+  final comment = match[1]!;
   if (line.indexOf(comment) != index) return null;
 
   final relativeLine = match[3].toInt() ?? 0;
@@ -26,11 +26,11 @@ Annotation extractAnnotation(int lineNumber, String line) {
 
 /// Information about a 'LINT' annotation/comment.
 class Annotation implements Comparable<Annotation> {
-  final int column;
-  final int length;
-  final String message;
+  final int? column;
+  final int? length;
+  final String? message;
   final ErrorType type;
-  int lineNumber;
+  int? lineNumber;
 
   Annotation(this.message, this.type, this.lineNumber,
       {this.column, this.length});
@@ -41,17 +41,17 @@ class Annotation implements Comparable<Annotation> {
             column: lineInfo.getLocation(error.offset).columnNumber,
             length: error.length);
 
-  Annotation.forLint([String message, int column, int length])
+  Annotation.forLint([String? message, int? column, int? length])
       : this(message, ErrorType.LINT, null, column: column, length: length);
 
   @override
   int compareTo(Annotation other) {
     if (lineNumber != other.lineNumber) {
-      return lineNumber - other.lineNumber;
+      return lineNumber! - other.lineNumber!;
     } else if (column != other.column) {
-      return column - other.column;
+      return column! - other.column!;
     }
-    return message.compareTo(other.message);
+    return message!.compareTo(other.message!);
   }
 
   @override
@@ -59,7 +59,8 @@ class Annotation implements Comparable<Annotation> {
       '[$type]: "$message" (line: $lineNumber) - [$column:$length]';
 }
 
-extension on String {
-  int toInt() => this == null ? null : int.parse(this);
-  String toNullIfBlank() => this == null || trim().isEmpty ? null : this;
+extension on String? {
+  int? toInt() => this == null ? null : int.parse(this!);
+  String? toNullIfBlank() =>
+      this == null || this!.trim().isEmpty == true ? null : this;
 }

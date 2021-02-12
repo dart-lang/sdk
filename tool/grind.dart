@@ -40,7 +40,7 @@ void format() {
 @Task('Generate a lint rule stub.')
 void rule() {
   final args = context.invocation.arguments;
-  final name = args.getOption('name');
+  final name = args.getOption('name')!;
   generateRule(name, outDir: Directory.current.path);
 }
 

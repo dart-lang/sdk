@@ -55,7 +55,7 @@ class AvoidFieldInitializersInConstClasses extends LintRule
 }
 
 class HasParameterReferenceVisitor extends RecursiveAstVisitor {
-  Iterable<ParameterElement> parameters;
+  Iterable<ParameterElement?> parameters;
 
   bool useParameter = false;
 
@@ -82,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (constructor.constKeyword == null) return;
     // no lint if several constructors
     final constructorCount = constructor
-        .thisOrAncestorOfType<ClassDeclaration>()
+        .thisOrAncestorOfType<ClassDeclaration>()!
         .members
         .whereType<ConstructorDeclaration>()
         .length;
@@ -103,7 +103,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // only const class
     final parent = node.parent;
     if (parent is ClassDeclaration) {
-      if (parent.declaredElement.constructors.every((e) => !e.isConst)) {
+      if (parent.declaredElement!.constructors.every((e) => !e.isConst)) {
         return;
       }
       for (final variable in node.fields.variables) {

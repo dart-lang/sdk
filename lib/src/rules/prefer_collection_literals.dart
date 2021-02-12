@@ -135,13 +135,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _isMap(Expression expression) => _isTypeMap(expression.staticType);
   bool _isHashMap(Expression expression) =>
       _isTypeHashMap(expression.staticType);
-  bool _isTypeSet(DartType type) =>
+  bool _isTypeSet(DartType? type) =>
       DartTypeUtilities.isClass(type, 'Set', 'dart.core');
-  bool _isTypeHashSet(DartType type) =>
+  bool _isTypeHashSet(DartType? type) =>
       DartTypeUtilities.isClass(type, 'LinkedHashSet', 'dart.collection');
-  bool _isTypeMap(DartType type) =>
+  bool _isTypeMap(DartType? type) =>
       DartTypeUtilities.isClass(type, 'Map', 'dart.core');
-  bool _isTypeHashMap(DartType type) =>
+  bool _isTypeHashMap(DartType? type) =>
       DartTypeUtilities.isClass(type, 'LinkedHashMap', 'dart.collection');
 
   bool _shouldSkipLinkedHashLint(

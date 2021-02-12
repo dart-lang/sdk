@@ -59,7 +59,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
   void visitAdjacentStrings(AdjacentStrings node) {
     // skip regexp
     if (node.parent is ArgumentList) {
-      final parentParent = node.parent.parent;
+      final parentParent = node.parent!.parent;
       if (_isRegExpInstanceCreation(parentParent) ||
           parentParent is MethodInvocation &&
               parentParent.realTarget == null &&
@@ -102,7 +102,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
   bool _startsWithWhitespace(String value) =>
       _whitespaces.any(value.startsWith);
 
-  static bool _isRegExpInstanceCreation(AstNode node) {
+  static bool _isRegExpInstanceCreation(AstNode? node) {
     if (node is InstanceCreationExpression) {
       var constructorElement = node.constructorName.staticElement;
       return constructorElement != null &&

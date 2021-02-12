@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var token = node.beginToken;
+    Token? token = node.beginToken;
     while (token != null) {
       _getPrecedingComments(token).forEach(_visitComment);
       if (token == token.next) break;
@@ -64,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   Iterable<Token> _getPrecedingComments(Token token) sync* {
-    Token comment = token.precedingComments;
+    Token? comment = token.precedingComments;
     while (comment != null) {
       yield comment;
       comment = comment.next;

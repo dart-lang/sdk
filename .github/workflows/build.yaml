@@ -28,6 +28,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v0.3
+        with:
+          sdk: dev
 
       - name: pub get
         run: dart pub get

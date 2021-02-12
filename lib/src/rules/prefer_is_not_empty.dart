@@ -64,8 +64,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    AstNode isEmptyAccess;
-    SimpleIdentifier isEmptyIdentifier;
+    late AstNode isEmptyAccess;
+    SimpleIdentifier? isEmptyIdentifier;
 
     final parent = node.parent;
     if (parent is PropertyAccess) {

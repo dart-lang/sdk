@@ -39,7 +39,7 @@ class Visitor extends PubspecVisitor {
 
   @override
   void visitPackageName(PSEntry name) {
-    if (!isValidPackageName(name.value.text)) {
+    if (!isValidPackageName(name.value.text!)) {
       rule.reportPubLint(name.value);
     }
   }

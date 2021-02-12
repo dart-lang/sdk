@@ -109,7 +109,7 @@ class ControlFlowInFinally extends LintRule implements NodeLintRule {
 abstract class ControlFlowInFinallyBlockReporterMixin {
   LintRule get rule;
 
-  void reportIfFinallyAncestorExists(AstNode node, {AstNode ancestor}) {
+  void reportIfFinallyAncestorExists(AstNode node, {AstNode? ancestor}) {
     final tryStatement = node.thisOrAncestorOfType<TryStatement>();
     final finallyBlock = tryStatement?.finallyBlock;
     bool finallyBlockAncestorPredicate(AstNode n) => n == finallyBlock;
@@ -126,12 +126,12 @@ abstract class ControlFlowInFinallyBlockReporterMixin {
     }
   }
 
-  AstNode _findEnablerNode(
-      AstNode ancestor,
+  AstNode? _findEnablerNode(
+      AstNode? ancestor,
       bool Function(AstNode n) finallyBlockAncestorPredicate,
       AstNode node,
       TryStatement tryStatement) {
-    AstNode enablerNode;
+    AstNode? enablerNode;
     if (ancestor == null) {
       bool functionBlockPredicate(n) =>
           n is FunctionBody &&

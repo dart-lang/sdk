@@ -77,8 +77,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    MethodDeclaration eq;
-    ClassMember hash;
+    MethodDeclaration? eq;
+    ClassMember? hash;
     for (var member in node.members) {
       if (isEquals(member)) {
         eq = member as MethodDeclaration;

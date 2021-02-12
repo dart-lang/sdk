@@ -29,23 +29,23 @@ class CollectingSink extends MockIOSink {
   }
 
   @override
-  void writeln([Object obj = '']) {
+  void writeln([Object? obj = '']) {
     buffer.writeln(obj);
   }
 }
 
 class MockErrorType implements ErrorType {
   @override
-  String displayName;
+  late String displayName;
 
   @override
-  String name;
+  late String name;
 
   @override
-  int ordinal;
+  late int ordinal;
 
   @override
-  ErrorSeverity severity;
+  late ErrorSeverity severity;
 
   @override
   int compareTo(ErrorType other) => 0;
@@ -56,7 +56,7 @@ class MockErrorType implements ErrorType {
 
 class MockIOSink implements IOSink {
   @override
-  Encoding encoding;
+  late Encoding encoding;
 
   @override
   Future get done => Future.value();
@@ -65,7 +65,7 @@ class MockIOSink implements IOSink {
   void add(List<int> data) {}
 
   @override
-  void addError(Object error, [StackTrace stackTrace]) {}
+  void addError(Object error, [StackTrace? stackTrace]) {}
 
   @override
   Future addStream(Stream<List<int>> stream) => Future.value();
@@ -77,7 +77,7 @@ class MockIOSink implements IOSink {
   Future flush() => Future.value();
 
   @override
-  void write(Object obj) {}
+  void write(Object? obj) {}
 
   @override
   void writeAll(Iterable objects, [String separator = '']) {}
@@ -86,7 +86,7 @@ class MockIOSink implements IOSink {
   void writeCharCode(int charCode) {}
 
   @override
-  void writeln([Object obj = '']) {}
+  void writeln([Object? obj = '']) {}
 }
 
 class MockPubVisitor implements PubspecVisitor {
@@ -176,42 +176,42 @@ class MockReporter implements Reporter {
 
 class MockRule implements LintRule {
   @override
-  ErrorReporter reporter;
+  late ErrorReporter reporter;
 
   @override
-  String description;
+  late String description;
 
   @override
-  String details;
+  late String details;
 
-  ProjectVisitor projectVisitor;
+  ProjectVisitor? projectVisitor;
 
-  PubspecVisitor pubspecVisitor;
-  AstVisitor visitor;
-
-  @override
-  Group group;
+  PubspecVisitor? pubspecVisitor;
+  AstVisitor? visitor;
 
   @override
-  LintCode lintCode;
+  late Group group;
 
   @override
-  Maturity maturity;
+  late LintCode lintCode;
 
   @override
-  String name;
+  late Maturity maturity;
+
+  @override
+  late String name;
 
   @override
   int compareTo(LintRule other) => 0;
 
   @override
-  ProjectVisitor getProjectVisitor() => projectVisitor;
+  ProjectVisitor? getProjectVisitor() => projectVisitor;
 
   @override
-  PubspecVisitor getPubspecVisitor() => pubspecVisitor;
+  PubspecVisitor? getPubspecVisitor() => pubspecVisitor;
 
   @override
-  AstVisitor getVisitor() => visitor;
+  AstVisitor? getVisitor() => visitor;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -222,49 +222,48 @@ class MockRule implements LintRule {
 
 class MockSource implements Source {
   @override
-  TimestampedData<String> contents;
+  late TimestampedData<String> contents;
 
   @override
-  String encoding;
+  late String encoding;
 
   @override
-  String fullName;
+  late String fullName;
 
   @override
-  bool isInSystemLibrary;
+  late bool isInSystemLibrary;
 
   @override
-  Source librarySource;
+  late Source librarySource;
 
   @override
-  int modificationStamp;
+  late int modificationStamp;
 
   @override
-  String shortName;
+  late String shortName;
 
   @override
-  Source source;
+  late Source source;
 
   @override
-  Uri uri;
+  late Uri uri;
 
   @override
-  UriKind uriKind;
+  late UriKind uriKind;
 
   @override
-  // ignore: avoid_returning_null
-  bool exists() => null;
+  bool exists() => false;
 }
 
 class TestErrorCode extends ErrorCode {
   @override
-  ErrorSeverity errorSeverity;
+  late ErrorSeverity errorSeverity;
 
   @override
-  ErrorType type;
+  late ErrorType type;
 
   TestErrorCode(String name, String message)
-      : super.temporary2(
+      : super(
           message: message,
           name: name,
           uniqueName: 'TestErrorCode.$name',

@@ -63,7 +63,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.body is BlockFunctionBody) {
       final block = (node.body as BlockFunctionBody).block;
       if (block.statements.isEmpty) {
-        if (block.endToken?.precedingComments == null) {
+        if (block.endToken.precedingComments == null) {
           rule.reportLint(block);
         }
       }

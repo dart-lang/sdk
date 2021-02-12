@@ -121,10 +121,10 @@ String _dartDirectiveGoFirst(String type) =>
     "Place 'dart:' ${type}s before other ${type}s.";
 
 bool _isAbsoluteDirective(NamespaceDirective node) =>
-    node.uriContent.contains(':');
+    node.uriContent!.contains(':');
 
 bool _isDartDirective(NamespaceDirective node) =>
-    node.uriContent.startsWith('dart:');
+    node.uriContent!.startsWith('dart:');
 
 bool _isExportDirective(Directive node) => node is ExportDirective;
 
@@ -133,7 +133,7 @@ bool _isImportDirective(Directive node) => node is ImportDirective;
 bool _isNotDartDirective(NamespaceDirective node) => !_isDartDirective(node);
 
 bool _isPackageDirective(NamespaceDirective node) =>
-    node.uriContent.startsWith('package:');
+    node.uriContent!.startsWith('package:');
 
 bool _isPartDirective(Directive node) => node is PartDirective;
 
@@ -145,7 +145,7 @@ String _packageDirectiveBeforeRelative(String type) =>
 
 class DirectivesOrdering extends LintRule
     implements ProjectVisitor, NodeLintRule {
-  DartProject project;
+  DartProject? project;
 
   DirectivesOrdering()
       : super(
@@ -201,7 +201,7 @@ class _PackageBox {
       _isPackageDirective(node) && !_isOwnPackageDirective(node);
 
   bool _isOwnPackageDirective(NamespaceDirective node) =>
-      node.uriContent.startsWith('package:$_packageName/');
+      node.uriContent!.startsWith('package:$_packageName/');
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
@@ -209,7 +209,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  DartProject get project => rule.project;
+  DartProject? get project => rule.project;
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -263,7 +263,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     _checkSectionInOrder(lintedNodes, relativeExports);
 
     if (project != null) {
-      final packageBox = _PackageBox(project.name);
+      final packageBox = _PackageBox(project!.name);
 
       final thirdPartyPackageImports =
           importDirectives.where(packageBox._isNotOwnPackageDirective);
@@ -336,10 +336,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    NamespaceDirective previousDirective;
+    NamespaceDirective? previousDirective;
     for (var directive in nodes) {
       if (previousDirective != null &&
-          previousDirective.uriContent.compareTo(directive.uriContent) > 0) {
+          previousDirective.uriContent!.compareTo(directive.uriContent!) > 0) {
         reportDirective(directive);
       }
       previousDirective = directive;

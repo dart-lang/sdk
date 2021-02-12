@@ -65,10 +65,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (!node.declaredElement.isPrivate) {
+    if (!node.declaredElement!.isPrivate) {
       final parametersToLint =
-          node.parameters?.parameters?.where(_isFormalParameterToLint);
-      if (parametersToLint?.isNotEmpty == true) {
+          node.parameters.parameters.where(_isFormalParameterToLint);
+      if (parametersToLint.isNotEmpty == true) {
         rule.reportLint(parametersToLint.first);
       }
     }
@@ -76,11 +76,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (!node.declaredElement.isPrivate) {
+    if (!node.declaredElement!.isPrivate) {
       final parametersToLint = node.functionExpression.parameters?.parameters
-          ?.where(_isFormalParameterToLint);
+          .where(_isFormalParameterToLint);
       if (parametersToLint?.isNotEmpty == true) {
-        rule.reportLint(parametersToLint.first);
+        rule.reportLint(parametersToLint!.first);
       }
     }
   }
@@ -88,23 +88,24 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (!node.isSetter &&
-        !node.declaredElement.isPrivate &&
+        !node.declaredElement!.isPrivate &&
         !node.isOperator &&
         !DartTypeUtilities.hasInheritedMethod(node) &&
         !_isOverridingMember(node.declaredElement)) {
       final parametersToLint =
-          node.parameters?.parameters?.where(_isFormalParameterToLint);
+          node.parameters?.parameters.where(_isFormalParameterToLint);
       if (parametersToLint?.isNotEmpty == true) {
-        rule.reportLint(parametersToLint.first);
+        rule.reportLint(parametersToLint!.first);
       }
     }
   }
 
   bool _isFormalParameterToLint(FormalParameter node) =>
       !node.isNamed &&
-      DartTypeUtilities.isClass(node.declaredElement.type, 'bool', 'dart.core');
+      DartTypeUtilities.isClass(
+          node.declaredElement!.type, 'bool', 'dart.core');
 
-  bool _isOverridingMember(Element member) {
+  bool _isOverridingMember(Element? member) {
     if (member == null) {
       return false;
     }
@@ -115,7 +116,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     final libraryUri = classElement.library.source.uri;
     return context.inheritanceManager.getInherited(
-            classElement.thisType, Name(libraryUri, member.name)) !=
+            classElement.thisType, Name(libraryUri, member.name!)) !=
         null;
   }
 }

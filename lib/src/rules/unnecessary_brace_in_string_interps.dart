@@ -31,7 +31,7 @@ print("Hi, ${name}!");
 
 final RegExp identifierPart = RegExp(r'^[a-zA-Z0-9_]');
 
-bool isIdentifierPart(Token token) =>
+bool isIdentifierPart(Token? token) =>
     token is StringToken && token.lexeme.startsWith(identifierPart);
 
 class UnnecessaryBraceInStringInterps extends LintRule implements NodeLintRule {

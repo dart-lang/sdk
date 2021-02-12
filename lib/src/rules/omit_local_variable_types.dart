@@ -100,7 +100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _visitVariableDeclarationList(VariableDeclarationList node) {
-    final staticType = node?.type?.type;
+    final staticType = node.type?.type;
     if (staticType == null || staticType.isDynamic) {
       return;
     }

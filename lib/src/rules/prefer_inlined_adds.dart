@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    final cascade = invocation.thisOrAncestorOfType<CascadeExpression>();
+    final cascade = invocation.thisOrAncestorOfType<CascadeExpression>()!;
     final sections = cascade.cascadeSections;
     final target = cascade.target;
     if (target is! ListLiteral || sections[0] != invocation) {

@@ -34,7 +34,7 @@ var script = ScriptElement()..src = 'foo.js';
 ```
 ''';
 
-extension on DartType {
+extension on DartType? {
   /// Returns whether this type extends [className] from the dart:html library.
   bool extendsDartHtmlClass(String className) =>
       DartTypeUtilities.extendsClass(this, className, 'dart.dom.html');
@@ -71,14 +71,17 @@ class _Visitor extends SimpleAstVisitor<void> {
   // single-quotes to match the convention in the analyzer and linter packages.
   // This requires some coordination within Google, as various allow-lists are
   // keyed on the exact text of the LintCode message.
+  // ignore: deprecated_member_use
   static const unsafeAttributeCode = SecurityLintCodeWithUniqueName(
       'unsafe_html',
       'LintCode.unsafe_html_attribute',
       '$_descPrefix (assigning "{0}" attribute).');
+  // ignore: deprecated_member_use
   static const unsafeMethodCode = SecurityLintCodeWithUniqueName(
       'unsafe_html',
       'LintCode.unsafe_html_method',
       "$_descPrefix (calling the '{0}' method of {1}).");
+  // ignore: deprecated_member_use
   static const unsafeConstructorCode = SecurityLintCodeWithUniqueName(
       'unsafe_html',
       'LintCode.unsafe_html_constructor',
@@ -100,15 +103,15 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     } else if (leftPart is PropertyAccess) {
       _checkAssignment(
-          leftPart.realTarget?.staticType, leftPart.propertyName, node);
+          leftPart.realTarget.staticType, leftPart.propertyName, node);
     } else if (leftPart is PrefixedIdentifier) {
-      _checkAssignment(leftPart.prefix?.staticType, leftPart.identifier, node);
+      _checkAssignment(leftPart.prefix.staticType, leftPart.identifier, node);
     }
   }
 
-  void _checkAssignment(DartType type, SimpleIdentifier property,
+  void _checkAssignment(DartType? type, SimpleIdentifier property,
       AssignmentExpression assignment) {
-    if (property == null || type == null) return;
+    if (type == null) return;
 
     // It is more efficient to check the setter's name before checking whether
     // the target is an interesting type.
@@ -140,7 +143,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (type == null) return;
 
     var constructorName = node.constructorName;
-    if (constructorName?.name?.name == 'html') {
+    if (constructorName.name?.name == 'html') {
       if (type.extendsDartHtmlClass('DocumentFragment')) {
         rule.reportLint(node,
             arguments: ['html', 'DocumentFragment'],
@@ -154,11 +157,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    var methodName = node.methodName?.name;
-    if (methodName == null) return;
+    var methodName = node.methodName.name;
 
     // The static type of the target.
-    DartType type;
+    DartType? type;
     if (node.realTarget == null) {
       // Implicit `this` target.
       var methodElement = node.methodName.staticElement;
@@ -170,7 +172,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
     } else {
-      type = node.realTarget.staticType;
+      type = node.realTarget!.staticType;
       if (type == null) return;
     }
 

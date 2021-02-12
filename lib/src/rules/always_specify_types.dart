@@ -67,18 +67,14 @@ String _metaLibName = 'meta';
 String _optionalTypeArgsVarName = 'optionalTypeArgs';
 
 bool _isOptionallyParameterized(InterfaceType type) {
-  final metadata = type.element?.metadata;
-  if (metadata != null) {
-    return metadata
-        .any((ElementAnnotation a) => _isOptionalTypeArgs(a.element));
-  }
-  return false;
+  final metadata = type.element.metadata;
+  return metadata.any((ElementAnnotation a) => _isOptionalTypeArgs(a.element));
 }
 
-bool _isOptionalTypeArgs(Element element) =>
+bool _isOptionalTypeArgs(Element? element) =>
     element is PropertyAccessorElement &&
     element.name == _optionalTypeArgsVarName &&
-    element.library?.name == _metaLibName;
+    element.library.name == _metaLibName;
 
 class AlwaysSpecifyTypes extends LintRule implements NodeLintRule {
   AlwaysSpecifyTypes()
@@ -149,7 +145,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitSimpleFormalParameter(SimpleFormalParameter param) {
     if (param.type == null &&
         param.identifier != null &&
-        !isJustUnderscores(param.identifier.name)) {
+        !isJustUnderscores(param.identifier!.name)) {
       if (param.keyword != null) {
         rule.reportLintForToken(param.keyword);
       } else {

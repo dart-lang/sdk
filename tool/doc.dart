@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
@@ -16,7 +18,7 @@ import 'machine.dart';
 import 'since.dart';
 
 /// Generates lint rule docs for publishing to https://dart-lang.github.io/
-void main([List<String> args]) async {
+void main(List<String> args) async {
   var parser = ArgParser()
     ..addOption('out', abbr: 'o', help: 'Specifies output directory.');
 
@@ -28,7 +30,7 @@ void main([List<String> args]) async {
     return;
   }
 
-  var outDir = options['out'] as String;
+  var outDir = options['out'] as String?;
   await generateDocs(outDir);
 }
 
@@ -62,15 +64,15 @@ These rules are under active development.  Feedback is
 
 const ruleLeadMatter = 'Rules are organized into familiar rule groups.';
 
-final effectiveDartRules = <String>[];
-final flutterRules = <String>[];
-final pedanticRules = <String>[];
+final effectiveDartRules = <String?>[];
+final flutterRules = <String?>[];
+final pedanticRules = <String?>[];
 
 /// Sorted list of contributed lint rules.
 final List<LintRule> rules =
     List<LintRule>.from(Registry.ruleRegistry, growable: false)..sort();
 
-Map<String, SinceInfo> sinceInfo;
+late Map<String, SinceInfo> sinceInfo;
 
 Future<String> get effectiveDartLatestVersion async {
   var url =
@@ -119,26 +121,29 @@ Future<void> fetchBadgeInfo() async {
   var latestPedantic = await pedanticLatestVersion;
   var latestEffectiveDart = await effectiveDartLatestVersion;
 
-  var pedantic = await fetchConfig(
-      'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.$latestPedantic.yaml');
+  var pedantic = await (fetchConfig(
+          'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.$latestPedantic.yaml')
+      as FutureOr<LintConfig>);
   for (var ruleConfig in pedantic.ruleConfigs) {
     pedanticRules.add(ruleConfig.name);
   }
 
-  var effectiveDart = await fetchConfig(
-      'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib/analysis_options.$latestEffectiveDart.yaml');
+  var effectiveDart = await (fetchConfig(
+          'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib/analysis_options.$latestEffectiveDart.yaml')
+      as FutureOr<LintConfig>);
   for (var ruleConfig in effectiveDart.ruleConfigs) {
     effectiveDartRules.add(ruleConfig.name);
   }
 
-  var flutter = await fetchConfig(
-      'https://raw.githubusercontent.com/flutter/flutter/master/packages/flutter/lib/analysis_options_user.yaml');
+  var flutter = await (fetchConfig(
+          'https://raw.githubusercontent.com/flutter/flutter/master/packages/flutter/lib/analysis_options_user.yaml')
+      as FutureOr<LintConfig>);
   for (var ruleConfig in flutter.ruleConfigs) {
     flutterRules.add(ruleConfig.name);
   }
 }
 
-Future<LintConfig> fetchConfig(String url) async {
+Future<LintConfig?> fetchConfig(String url) async {
   var client = http.Client();
   print('loading $url...');
   var req = await client.get(url);
@@ -149,7 +154,7 @@ Future<void> fetchSinceInfo() async {
   sinceInfo = await sinceMap;
 }
 
-Future<void> generateDocs(String dir) async {
+Future<void> generateDocs(String? dir) async {
   var outDir = dir;
   if (outDir != null) {
     final d = Directory(outDir);
@@ -213,7 +218,7 @@ String getBadges(String rule) {
   return sb.toString();
 }
 
-void printUsage(ArgParser parser, [String error]) {
+void printUsage(ArgParser parser, [String? error]) {
   var message = 'Generates lint docs.';
   if (error != null) {
     message = error;
@@ -235,7 +240,7 @@ class CountBadger {
 
   CountBadger(this.rules);
 
-  Future<void> generate(String dirPath) async {
+  Future<void> generate(String? dirPath) async {
     var lintCount = rules.length;
 
     var client = http.Client();
@@ -251,7 +256,7 @@ class HtmlIndexer {
 
   HtmlIndexer(this.rules);
 
-  void generate(String filePath) {
+  void generate(String? filePath) {
     var generated = _generate();
     if (filePath != null) {
       var outPath = '$filePath/index.html';
@@ -326,7 +331,7 @@ class MachineSummaryGenerator {
 
   MachineSummaryGenerator(this.rules);
 
-  void generate(String filePath) {
+  void generate(String? filePath) {
     var generated = getMachineListing(rules);
     if (filePath != null) {
       var outPath = '$filePath/machine/rules.json';
@@ -343,7 +348,7 @@ class MarkdownIndexer {
 
   MarkdownIndexer(this.rules);
 
-  void generate({String filePath}) {
+  void generate({String? filePath}) {
     final buffer = StringBuffer();
 
     buffer.writeln('# Linter for Dart');
@@ -421,7 +426,7 @@ class OptionsSample {
 
   OptionsSample(this.rules);
 
-  void generate(String filePath) {
+  void generate(String? filePath) {
     var generated = _generate();
     if (filePath != null) {
       var outPath = '$filePath/options/options.html';
@@ -506,7 +511,7 @@ class RuleHtmlGenerator {
 
   RuleHtmlGenerator(this.rule);
 
-  String get details => rule.details ?? '';
+  String get details => rule.details;
 
   String get group => rule.group.name;
 
@@ -547,14 +552,14 @@ class RuleHtmlGenerator {
   String get name => rule.name;
 
   String get since {
-    var info = sinceInfo[name];
+    var info = sinceInfo[name]!;
     var version = info.sinceDartSdk != null
         ? '>= ${info.sinceDartSdk}'
         : '<strong>unreleased</strong>';
     return 'Dart SDK: $version • <small>(Linter v${info.sinceLinter})</small>';
   }
 
-  void generate([String filePath]) {
+  void generate([String? filePath]) {
     var generated = _generate();
     if (filePath != null) {
       var outPath = '$filePath/$name.html';
@@ -615,7 +620,7 @@ class RuleMarkdownGenerator {
 
   RuleMarkdownGenerator(this.rule);
 
-  String get details => rule.details ?? '';
+  String get details => rule.details;
 
   String get group => rule.group.name;
 
@@ -624,14 +629,14 @@ class RuleMarkdownGenerator {
   String get name => rule.name;
 
   String get since {
-    var info = sinceInfo[name];
+    var info = sinceInfo[name]!;
     var version = info.sinceDartSdk != null
         ? '>= ${info.sinceDartSdk}'
         : '**unreleased**';
     return 'Dart SDK: $version • (Linter v${info.sinceLinter})';
   }
 
-  void generate({String filePath}) {
+  void generate({String? filePath}) {
     final buffer = StringBuffer();
 
     buffer.writeln('# Rule $name');

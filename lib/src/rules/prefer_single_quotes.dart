@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:meta/meta.dart';
 
 import '../analyzer.dart';
 
@@ -70,13 +69,13 @@ class QuoteVisitor extends SimpleAstVisitor<void> {
 
   QuoteVisitor(
     this.rule, {
-    @required this.useSingle,
-  }) : assert(useSingle != null);
+    required this.useSingle,
+  });
 
   /// Strings interpolations can contain other string nodes. Check like this.
   bool containsString(StringInterpolation string) {
     final checkHasString = _IsOrContainsStringVisitor();
-    return string.elements.any((child) => child.accept(checkHasString));
+    return string.elements.any((child) => child.accept(checkHasString)!);
   }
 
   /// Strings can be within interpolations (ie, nested). Check like this.
@@ -142,14 +141,14 @@ class _ImmediateChildrenVisitor extends UnifyingAstVisitor {
 /// its children.
 class _IsOrContainsStringVisitor extends UnifyingAstVisitor<bool> {
   /// Different way to express `accept` in a way that's clearer in this visitor.
-  bool isOrContainsString(AstNode node) => node.accept(this);
+  bool? isOrContainsString(AstNode node) => node.accept(this);
 
   /// Scan as little of the tree as possible, by bailing out on first match. For
   /// all leaf nodes, they will either have a method defined here and return
   /// true, or they will return false because leaves have no children.
   @override
-  bool visitNode(AstNode node) =>
-      _ImmediateChildrenVisitor.childrenOf(node).any(isOrContainsString);
+  bool visitNode(AstNode node) => _ImmediateChildrenVisitor.childrenOf(node)
+      .any(isOrContainsString as bool Function(AstNode));
 
   @override
   bool visitSimpleStringLiteral(SimpleStringLiteral string) => true;

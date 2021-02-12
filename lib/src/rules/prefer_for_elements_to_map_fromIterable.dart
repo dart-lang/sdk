@@ -59,7 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression creation) {
     final element = creation.constructorName.staticElement;
     if (element?.name != 'fromIterable' ||
-        element.enclosingElement != context.typeProvider.mapElement) {
+        element!.enclosingElement != context.typeProvider.mapElement) {
       return;
     }
 
@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     final secondArg = arguments[1];
     final thirdArg = arguments[2];
 
-    Expression extractBody(FunctionExpression expression) {
+    Expression? extractBody(FunctionExpression expression) {
       final body = expression.body;
       if (body is ExpressionFunctionBody) {
         return body.expression;
@@ -90,11 +90,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       return null;
     }
 
-    FunctionExpression extractClosure(String name, Expression argument) {
+    FunctionExpression? extractClosure(String name, Expression argument) {
       if (argument is NamedExpression && argument.name.label.name == name) {
         final expression = argument.expression.unParenthesized;
         if (expression is FunctionExpression) {
-          final parameters = expression.parameters.parameters;
+          final parameters = expression.parameters!.parameters;
           if (parameters.length == 1 && parameters[0].isRequired) {
             if (extractBody(expression) != null) {
               return expression;

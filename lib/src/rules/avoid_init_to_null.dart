@@ -83,12 +83,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       : nnbdEnabled = context.isEnabled(Feature.non_nullable);
 
   bool isNullable(DartType type) =>
-      !nnbdEnabled || (type != null && context.typeSystem.isNullable(type));
+      !nnbdEnabled || (context.typeSystem.isNullable(type));
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     if (DartTypeUtilities.isNullLiteral(node.defaultValue) &&
-        isNullable(node.declaredElement.type)) {
+        isNullable(node.declaredElement!.type)) {
       rule.reportLint(node);
     }
   }
@@ -98,7 +98,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!node.isConst &&
         !node.isFinal &&
         DartTypeUtilities.isNullLiteral(node.initializer) &&
-        isNullable(node.declaredElement.type)) {
+        isNullable(node.declaredElement!.type)) {
       rule.reportLint(node);
     }
   }

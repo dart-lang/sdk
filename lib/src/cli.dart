@@ -18,13 +18,13 @@ import 'rules.dart';
 const processFileFailedExitCode = 65;
 
 const unableToProcessExitCode = 64;
-String getRoot(List<String> paths) =>
+String? getRoot(List<String> paths) =>
     paths.length == 1 && Directory(paths[0]).existsSync() ? paths[0] : null;
 
 bool isLinterErrorCode(int code) =>
     code == unableToProcessExitCode || code == processFileFailedExitCode;
 
-void printUsage(ArgParser parser, IOSink out, [String error]) {
+void printUsage(ArgParser parser, IOSink out, [String? error]) {
   var message = 'Lints Dart source files and pubspecs.';
   if (error != null) {
     message = error;
@@ -100,7 +100,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
 
   var lints = options['rules'];
   if (lints is Iterable<String> && lints.isNotEmpty) {
-    var rules = <LintRule>[];
+    var rules = <LintRule?>[];
     for (var lint in lints) {
       var rule = Registry.ruleRegistry[lint];
       if (rule == null) {
@@ -110,7 +110,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
       rules.add(rule);
     }
 
-    lintOptions.enabledLints = rules;
+    lintOptions.enabledLints = rules as Iterable<LintRule>;
   }
 
   var customSdk = options['dart-sdk'];
@@ -118,7 +118,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     lintOptions.dartSdkPath = customSdk;
   }
 
-  var packageConfigFile = options['packages'] as String;
+  var packageConfigFile = options['packages'] as String?;
 
   var stats = options['stats'] as bool;
   var benchmark = options['benchmark'] as bool;
@@ -153,8 +153,8 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
         fileCount: linter.numSourcesAnalyzed,
         fileRoot: commonRoot,
         showStatistics: stats,
-        machineOutput: options['machine'] as bool,
-        quiet: options['quiet'] as bool)
+        machineOutput: options['machine'] as bool?,
+        quiet: options['quiet'] as bool?)
       ..write();
     // ignore: avoid_catches_without_on_clauses
   } catch (err, stack) {

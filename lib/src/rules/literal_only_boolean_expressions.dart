@@ -81,7 +81,7 @@ void bad() {
 
 ''';
 
-bool _onlyLiterals(Expression rawExpression) {
+bool _onlyLiterals(Expression? rawExpression) {
   final expression = rawExpression?.unParenthesized;
   if (expression is Literal) {
     return true;

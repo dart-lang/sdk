@@ -78,10 +78,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitExpressionStatement(ExpressionStatement node) {
-    var expr = node?.expression;
+    var expr = node.expression;
     if (expr is AssignmentExpression) return;
 
-    var type = expr?.staticType;
+    var type = expr.staticType;
     if (type == null) {
       return;
     }
@@ -110,11 +110,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _isFutureDelayedInstanceCreationWithComputation(Expression expr) =>
       expr is InstanceCreationExpression &&
       expr.staticType?.isDartAsyncFuture == true &&
-      expr.constructorName?.name?.name == 'delayed' &&
+      expr.constructorName.name?.name == 'delayed' &&
       expr.argumentList.arguments.length == 2;
 
-  bool _isMapClass(Element e) =>
-      e is ClassElement && e.name == 'Map' && e.library?.name == 'dart.core';
+  bool _isMapClass(Element? e) =>
+      e is ClassElement && e.name == 'Map' && e.library.name == 'dart.core';
 
   /// Detects Map.putIfAbsent invocations.
   bool _isMapPutIfAbsentInvocation(Expression expr) =>

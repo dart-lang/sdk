@@ -63,11 +63,11 @@ class _Visitor extends UnifyingAstVisitor<void> {
   final LintRule rule;
   final LinterContext context;
 
-  CompilationUnitElement currentUnit;
+  CompilationUnitElement? currentUnit;
 
   static final lateables =
-      <CompilationUnitElement, List<VariableDeclaration>>{};
-  static final nullableAccess = <CompilationUnitElement, Set<Element>>{};
+      <CompilationUnitElement?, List<VariableDeclaration>>{};
+  static final nullableAccess = <CompilationUnitElement?, Set<Element>>{};
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -80,7 +80,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
 
       final unitsInContext =
           context.allUnits.map((e) => e.unit.declaredElement).toSet();
-      final libraryUnitsInContext = node.declaredElement.library.units
+      final libraryUnitsInContext = node.declaredElement!.library.units
           .where(unitsInContext.contains)
           .toSet();
       final areAllLibraryUnitsVisited =
@@ -101,7 +101,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
   void visitNode(AstNode node) {
     var parent = node.parent;
 
-    Element element;
+    Element? element;
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
       element = DartTypeUtilities.getCanonicalElement(parent.writeElement);
     } else {
@@ -110,7 +110,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
 
     if (element != null) {
       if (parent is Expression) {
-        parent = (parent as Expression).unParenthesized;
+        parent = parent.unParenthesized;
       }
       if (node is SimpleIdentifier && node.inDeclarationContext()) {
         // ok
@@ -120,10 +120,10 @@ class _Visitor extends UnifyingAstVisitor<void> {
         // ok non-null access
       } else if (parent is AssignmentExpression &&
           parent.operator.type == TokenType.EQ &&
-          context.typeSystem.isNonNullable(parent.rightHandSide.staticType)) {
+          context.typeSystem.isNonNullable(parent.rightHandSide.staticType!)) {
         // ok non-null access
       } else {
-        nullableAccess[currentUnit].add(element);
+        nullableAccess[currentUnit]!.add(element);
       }
     }
     super.visitNode(node);
@@ -163,17 +163,17 @@ class _Visitor extends UnifyingAstVisitor<void> {
     if (variable.isSynthetic) {
       return;
     }
-    if (context.typeSystem.isNonNullable(variable.declaredElement.type)) {
+    if (context.typeSystem.isNonNullable(variable.declaredElement!.type)) {
       return;
     }
-    lateables[currentUnit].add(variable);
+    lateables[currentUnit]!.add(variable);
   }
 
   void _checkAccess(Iterable<CompilationUnitElement> units) {
     final allNullableAccess =
-        units.expand((unit) => nullableAccess[unit]).toSet();
+        units.expand((unit) => nullableAccess[unit]!).toSet();
     for (final unit in units) {
-      for (var variable in lateables[unit]) {
+      for (var variable in lateables[unit]!) {
         if (!allNullableAccess.contains(variable.declaredElement)) {
           rule.reporter.reportError(AnalysisError(
               unit.source, variable.offset, variable.length, rule.lintCode));
@@ -183,6 +183,6 @@ class _Visitor extends UnifyingAstVisitor<void> {
   }
 }
 
-bool _isPrivateExtension(AstNode parent) =>
+bool _isPrivateExtension(AstNode? parent) =>
     parent is ExtensionDeclaration &&
-    (parent.name == null || Identifier.isPrivateName(parent.name.name));
+    (parent.name == null || Identifier.isPrivateName(parent.name!.name));

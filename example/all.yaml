@@ -10,7 +10,6 @@ linter:
     - always_use_package_imports
     - annotate_overrides
     - avoid_annotating_with_dynamic
-    - avoid_as
     - avoid_bool_literals_in_conditional_expressions
     - avoid_catches_without_on_clauses
     - avoid_catching_errors

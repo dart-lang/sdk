@@ -185,9 +185,9 @@ List<NonNullableFunction> _staticFunctionsWithNonNullableArguments =
 
 /// Function with closure parameters that cannot accept null arguments.
 class NonNullableFunction {
-  final String library;
-  final String type;
-  final String name;
+  final String? library;
+  final String? type;
+  final String? name;
   final List<int> positional;
   final List<String> named;
 
@@ -233,7 +233,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var constructorName = node.constructorName;
     var type = node.staticType;
     for (var constructor in _constructorsWithNonNullableArguments) {
-      if (constructorName?.name?.name == constructor.name) {
+      if (constructorName.name?.name == constructor.name) {
         if (DartTypeUtilities.extendsClass(
             type, constructor.type, constructor.library)) {
           _checkNullArgForClosure(
@@ -246,8 +246,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     final target = node.target;
-    final methodName = node.methodName?.name;
-    final element = target is Identifier ? target?.staticElement : null;
+    final methodName = node.methodName.name;
+    final element = target is Identifier ? target.staticElement : null;
     if (element is ClassElement) {
       // Static function called, "target" is the class.
       for (var function in _staticFunctionsWithNonNullableArguments) {
@@ -289,7 +289,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  NonNullableFunction _getInstanceMethod(DartType type, String methodName) {
+  NonNullableFunction? _getInstanceMethod(DartType? type, String methodName) {
     var possibleMethods = _instanceMethodsWithNonNullableArguments[methodName];
     if (possibleMethods == null) {
       return null;
@@ -299,7 +299,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return null;
     }
 
-    NonNullableFunction getMethod(String library, String className) =>
+    NonNullableFunction? getMethod(String? library, String? className) =>
         possibleMethods
             .lookup(NonNullableFunction(library, className, methodName));
 
@@ -308,7 +308,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return method;
     }
 
-    final element = type.element as ClassElement;
+    final element = type.element;
     if (element.isSynthetic) {
       return null;
     }

@@ -54,7 +54,7 @@ class PreferContainsOverIndexOf extends LintRule implements NodeLintRule {
     registry.addSimpleIdentifier(this, visitor);
   }
 
-  void reportLintWithDescription(AstNode node, String description) {
+  void reportLintWithDescription(AstNode? node, String description) {
     if (node != null) {
       reporter.reportErrorForNode(_LintCode(name, description), node, []);
     }
@@ -96,7 +96,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parentType is! InterfaceType) {
         return;
       }
-      type = parentType as InterfaceType;
+      type = parentType;
     } else {
       return;
     }
@@ -118,7 +118,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Going up in AST structure to find binary comparison operator for this
     // `indexOf` access. Most of the time it will be a parent, but sometimes
     // it can be wrapped in parentheses or `as` operator.
-    AstNode search = indexOfAccess;
+    AstNode? search = indexOfAccess;
     while (
         search != null && search is Expression && search is! BinaryExpression) {
       search = search.parent;
@@ -128,7 +128,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final binaryExpression = search as BinaryExpression;
+    final binaryExpression = search;
     final operator = binaryExpression.operator;
 
     // Comparing constants with result of indexOf.
@@ -138,7 +138,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (rightValue?.type?.isDartCoreInt == true) {
       // Constant is on right side of comparison operator
-      _checkConstant(binaryExpression, rightValue.toIntValue(), operator.type);
+      _checkConstant(binaryExpression, rightValue!.toIntValue(), operator.type);
       return;
     }
 
@@ -146,12 +146,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     final leftValue = context.evaluateConstant(leftOperand).value;
     if (leftValue?.type?.isDartCoreInt == true) {
       // Constants is on left side of comparison operator
-      _checkConstant(binaryExpression, leftValue.toIntValue(),
+      _checkConstant(binaryExpression, leftValue!.toIntValue(),
           _invertedTokenType(operator.type));
     }
   }
 
-  void _checkConstant(Expression expression, int value, TokenType type) {
+  void _checkConstant(Expression expression, int? value, TokenType type) {
     if (value == -1) {
       if (type == TokenType.EQ_EQ ||
           type == TokenType.BANG_EQ ||
@@ -171,7 +171,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (type == TokenType.GT_EQ || type == TokenType.LT) {
         rule.reportLintWithDescription(expression, useContains);
       }
-    } else if (value < -1) {
+    } else if (value! < -1) {
       // 'indexOf' is always >= -1, so comparing with lesser values makes
       // no sense.
       if (type == TokenType.EQ_EQ ||

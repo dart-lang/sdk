@@ -82,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final classElement = parentElement as ClassElement;
+    final classElement = parentElement;
 
     if (classElement.isPrivate) return;
 
@@ -92,13 +92,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parentMethod == null) return;
 
     final parameters =
-        node.parameters.parameters.where((p) => !p.isNamed).toList();
+        node.parameters!.parameters.where((p) => !p.isNamed).toList();
     final parentParameters =
         parentMethod.parameters.where((p) => !p.isNamed).toList();
     final count = math.min(parameters.length, parentParameters.length);
     for (var i = 0; i < count; i++) {
       if (parentParameters.length <= i) break;
-      if (parameters[i].identifier.name != parentParameters[i].name) {
+      if (parameters[i].identifier!.name != parentParameters[i].name) {
         rule.reportLint(parameters[i].identifier);
       }
     }

@@ -87,11 +87,11 @@ class _Visitor extends SimpleAstVisitor {
 
     final parent = node.parent;
     if (parent is! ClassDeclaration ||
-        !isStatefulWidget((parent as ClassDeclaration).declaredElement)) {
+        !isStatefulWidget(parent.declaredElement)) {
       return;
     }
     final body = node.body;
-    Expression expressionToTest;
+    Expression? expressionToTest;
     if (body is BlockFunctionBody) {
       final statements = body.block.statements;
       if (statements.length == 1) {

@@ -15,7 +15,7 @@ import 'analyzer.dart';
 import 'utils.dart';
 
 /// Returns direct children of [parent].
-List<Element> getChildren(Element parent, [String name]) {
+List<Element> getChildren(Element parent, [String? name]) {
   final children = <Element>[];
   visitChildren(parent, (Element element) {
     if (name == null || element.displayName == name) {
@@ -27,14 +27,14 @@ List<Element> getChildren(Element parent, [String name]) {
 }
 
 /// Return the compilation unit of a node
-CompilationUnit getCompilationUnit(AstNode node) =>
+CompilationUnit? getCompilationUnit(AstNode node) =>
     node.thisOrAncestorOfType<CompilationUnit>();
 
 /// Returns a field identifier with the given [name] in the given [decl]'s
 /// variable declaration list or `null` if none is found.
-SimpleIdentifier getFieldIdentifier(FieldDeclaration decl, String name) {
+SimpleIdentifier? getFieldIdentifier(FieldDeclaration decl, String name) {
   for (var v in decl.fields.variables) {
-    if (v.name?.name == name) {
+    if (v.name.name == name) {
       return v.name;
     }
   }
@@ -50,7 +50,7 @@ AstNode getNodeToAnnotate(Declaration node) {
 /// If the [node] is the finishing identifier of an assignment, return its
 /// "writeElement", otherwise return its "staticElement", which might be
 /// thought as the "readElement".
-Element getWriteOrReadElement(SimpleIdentifier node) {
+Element? getWriteOrReadElement(SimpleIdentifier node) {
   var writeElement = _getWriteElement(node);
   if (writeElement != null) {
     return writeElement;
@@ -100,11 +100,11 @@ bool inPrivateMember(AstNode node) {
 
 /// Returns `true` if the given [declaration] is annotated `@deprecated`.
 bool isDeprecated(Declaration declaration) =>
-    declaration.declaredElement.hasDeprecated;
+    declaration.declaredElement!.hasDeprecated;
 
 /// Returns `true` if this element is the `==` method declaration.
 bool isEquals(ClassMember element) =>
-    element is MethodDeclaration && element.name?.name == '==';
+    element is MethodDeclaration && element.name.name == '==';
 
 /// Returns `true` if the keyword associated with this token is `final` or
 /// `const`.
@@ -113,16 +113,15 @@ bool isFinalOrConst(Token token) =>
 
 /// Returns `true` if this element is a `hashCode` method or field declaration.
 bool isHashCode(ClassMember element) =>
-    (element is MethodDeclaration && element.name?.name == 'hashCode') ||
+    (element is MethodDeclaration && element.name.name == 'hashCode') ||
     (element is FieldDeclaration &&
         getFieldIdentifier(element, 'hashCode') != null);
 
 /// Return true if this compilation unit [node] is declared within the given
 /// [package]'s `lib/` directory tree.
-bool isInLibDir(CompilationUnit node, WorkspacePackage package) {
+bool isInLibDir(CompilationUnit node, WorkspacePackage? package) {
   if (package == null) return false;
-  final cuPath = node.declaredElement.library?.source?.fullName;
-  if (cuPath == null) return false;
+  final cuPath = node.declaredElement!.library.source.fullName;
   final libDir = path.join(package.root, 'lib');
   return path.isWithin(libDir, cuPath);
 }
@@ -139,7 +138,7 @@ bool isKeyWord(String id) => Keyword.keywords.keys.contains(id);
 bool isMethod(ClassMember m) => m is MethodDeclaration;
 
 /// Check if the given identifier has a private name.
-bool isPrivate(SimpleIdentifier identifier) =>
+bool isPrivate(SimpleIdentifier? identifier) =>
     identifier != null ? Identifier.isPrivateName(identifier.name) : false;
 
 /// Returns `true` if the given [declaration] is annotated `@protected`.
@@ -147,7 +146,8 @@ bool isProtected(Declaration declaration) =>
     declaration.metadata.any((Annotation a) => a.name.name == 'protected');
 
 /// Returns `true` if the given [ClassMember] is a public method.
-bool isPublicMethod(ClassMember m) => isMethod(m) && m.declaredElement.isPublic;
+bool isPublicMethod(ClassMember m) =>
+    isMethod(m) && m.declaredElement!.isPublic;
 
 /// Returns `true` if the given method [declaration] is a "simple getter".
 ///
@@ -215,14 +215,14 @@ bool isValidDartIdentifier(String id) => !isKeyWord(id) && isIdentifier(id);
 bool isVar(Token token) => isKeyword(token, Keyword.VAR);
 
 /// Return the nearest enclosing pubspec file.
-File locatePubspecFile(CompilationUnit compilationUnit) {
-  final fullName = compilationUnit?.declaredElement?.source?.fullName;
+File? locatePubspecFile(CompilationUnit compilationUnit) {
+  final fullName = compilationUnit.declaredElement?.source.fullName;
   if (fullName == null) {
     return null;
   }
 
   final resourceProvider =
-      compilationUnit?.declaredElement?.session?.resourceProvider;
+      compilationUnit.declaredElement?.session.resourceProvider;
   if (resourceProvider == null) {
     return null;
   }
@@ -248,15 +248,14 @@ void visitChildren(Element element, ElementProcessor processor) {
   element.visitChildren(_ElementVisitorAdapter(processor));
 }
 
-bool _checkForSimpleGetter(MethodDeclaration getter, Expression expression) {
+bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
   if (expression is SimpleIdentifier) {
     var staticElement = expression.staticElement;
     if (staticElement is PropertyAccessorElement) {
-      Element getterElement = getter.declaredElement;
+      Element? getterElement = getter.declaredElement;
       // Skipping library level getters, test that the enclosing element is
       // the same
-      if (staticElement.enclosingElement != null &&
-          (staticElement.enclosingElement == getterElement.enclosingElement)) {
+      if (staticElement.enclosingElement == getterElement!.enclosingElement) {
         return staticElement.isSynthetic && staticElement.variable.isPrivate;
       }
     }
@@ -268,7 +267,7 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   if (expression is! AssignmentExpression) {
     return false;
   }
-  final assignment = expression as AssignmentExpression;
+  final assignment = expression;
 
   var leftHandSide = assignment.leftHandSide;
   var rightHandSide = assignment.rightHandSide;
@@ -288,7 +287,7 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
       return false;
     }
 
-    var parameters = setter.parameters.parameters;
+    var parameters = setter.parameters!.parameters;
     if (parameters.length == 1) {
       return rightElement == parameters[0].declaredElement;
     }
@@ -297,7 +296,7 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   return false;
 }
 
-AstNode _getNodeToAnnotate(Declaration node) {
+AstNode? _getNodeToAnnotate(Declaration node) {
   if (node is MethodDeclaration) {
     return node.name;
   }
@@ -341,7 +340,7 @@ AstNode _getNodeToAnnotate(Declaration node) {
 /// return the corresponding "writeElement", which is the local variable,
 /// the setter referenced with a [SimpleIdentifier] or a [PropertyAccess],
 /// or the `[]=` operator.
-Element _getWriteElement(AstNode node) {
+Element? _getWriteElement(AstNode node) {
   var parent = node.parent;
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
     return parent.writeElement;

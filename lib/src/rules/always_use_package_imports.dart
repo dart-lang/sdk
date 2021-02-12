@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool isRelativeImport(ImportDirective node) {
     try {
-      final uri = Uri.parse(node.uriContent);
+      final uri = Uri.parse(node.uriContent!);
       return uri.scheme.isEmpty;
       // ignore: avoid_catches_without_on_clauses
     } catch (e) {

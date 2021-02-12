@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       final interpolation = node.elements[1] as InterpolationExpression;
       final end = node.elements[2] as InterpolationString;
       if (start.value.isEmpty && end.value.isEmpty) {
-        if (interpolation.expression.staticType.isDartCoreString) {
+        if (interpolation.expression.staticType!.isDartCoreString) {
           rule.reportLint(node);
         }
       }

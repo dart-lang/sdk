@@ -35,13 +35,13 @@ class A {
 
 ''';
 
-Expression _getExpressionFromAssignmentStatement(Statement node) {
+Expression? _getExpressionFromAssignmentStatement(Statement node) {
   final visitor = _AssignmentStatementVisitor();
   node.accept(visitor);
   return visitor.expression;
 }
 
-Expression _getExpressionFromReturnStatement(Statement node) =>
+Expression? _getExpressionFromReturnStatement(Statement node) =>
     node is ReturnStatement ? node.expression : null;
 
 class JoinReturnWithAssignment extends LintRule implements NodeLintRule {
@@ -61,7 +61,7 @@ class JoinReturnWithAssignment extends LintRule implements NodeLintRule {
 }
 
 class _AssignmentStatementVisitor extends SimpleAstVisitor {
-  Expression expression;
+  Expression? expression;
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     expression = node.leftHandSide;
@@ -112,7 +112,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    Expression thirdLastExpression;
+    Expression? thirdLastExpression;
     if (length >= 3) {
       final thirdLastStatement = statements[length - 3];
       thirdLastExpression =

@@ -67,12 +67,12 @@ Future<Iterable<AnalysisErrorInfo>> lintFiles(
 }
 
 Iterable<AnalysisError> _filtered(
-        List<AnalysisError> errors, LintFilter filter) =>
+        List<AnalysisError> errors, LintFilter? filter) =>
     (filter == null)
         ? errors
         : errors.where((AnalysisError e) => !filter.filter(e));
 
-int _maxSeverity(List<AnalysisErrorInfo> errors, LintFilter filter) {
+int _maxSeverity(List<AnalysisErrorInfo> errors, LintFilter? filter) {
   var max = 0;
   for (final info in errors) {
     _filtered(info.errors, filter).forEach((AnalysisError e) {
@@ -98,7 +98,9 @@ class Analyzer {
   /// Create a library name prefix based on [libraryPath], [projectRoot] and
   /// current [packageName].
   String createLibraryNamePrefix(
-          {String libraryPath, String projectRoot, String packageName}) =>
+          {required String libraryPath,
+          String? projectRoot,
+          String? packageName}) =>
       util.createLibraryNamePrefix(
           libraryPath: libraryPath,
           projectRoot: projectRoot,
@@ -134,7 +136,7 @@ class ErrorWatchingSink implements IOSink {
   }
 
   @override
-  void addError(Object error, [StackTrace stackTrace]) {
+  void addError(Object error, [StackTrace? stackTrace]) {
     encounteredError = true;
     delegate.addError(error, stackTrace);
   }
@@ -149,7 +151,7 @@ class ErrorWatchingSink implements IOSink {
   Future flush() => delegate.flush();
 
   @override
-  void write(Object obj) {
+  void write(Object? obj) {
     delegate.write(obj);
   }
 
@@ -164,7 +166,7 @@ class ErrorWatchingSink implements IOSink {
   }
 
   @override
-  void writeln([Object obj = '']) {
+  void writeln([Object? obj = '']) {
     // 'Exception while using a Visitor to visit ...' (
     if (obj.toString().startsWith('Exception')) {
       encounteredError = true;

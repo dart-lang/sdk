@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var constructorElement = node.declaredElement;
+    var constructorElement = node.declaredElement!;
     if (constructorElement.enclosingElement.hasDeprecated &&
         !constructorElement.hasDeprecated) {
       rule.reportLint(node);

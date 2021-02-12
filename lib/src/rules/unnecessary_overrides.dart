@@ -68,12 +68,12 @@ class UnnecessaryOverrides extends LintRule implements NodeLintRule {
 abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
   final LintRule rule;
 
-  ExecutableElement inheritedMethod;
-  MethodDeclaration declaration;
+  ExecutableElement? inheritedMethod;
+  late MethodDeclaration declaration;
 
   _AbstractUnnecessaryOverrideVisitor(this.rule);
 
-  ExecutableElement getInheritedElement(MethodDeclaration node);
+  ExecutableElement? getInheritedElement(MethodDeclaration node);
 
   @override
   void visitBlock(Block node) {
@@ -128,7 +128,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
   }
 
   bool _addsMetadata() {
-    for (var annotation in declaration.declaredElement.metadata) {
+    for (var annotation in declaration.declaredElement!.metadata) {
       if (!annotation.isOverride) {
         return true;
       }
@@ -137,16 +137,17 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
   }
 
   bool _haveSameDeclaration() {
-    if (declaration.declaredElement.returnType != inheritedMethod.returnType) {
+    if (declaration.declaredElement!.returnType !=
+        inheritedMethod!.returnType) {
       return false;
     }
-    if (declaration.declaredElement.parameters.length !=
-        inheritedMethod.parameters.length) {
+    if (declaration.declaredElement!.parameters.length !=
+        inheritedMethod!.parameters.length) {
       return false;
     }
-    for (var i = 0; i < inheritedMethod.parameters.length; i++) {
-      final superParam = inheritedMethod.parameters[i];
-      final param = declaration.declaredElement.parameters[i];
+    for (var i = 0; i < inheritedMethod!.parameters.length; i++) {
+      final superParam = inheritedMethod!.parameters[i];
+      final param = declaration.declaredElement!.parameters[i];
       if (param.type != superParam.type) return false;
       if (param.name != superParam.name) return false;
       if (param.isCovariant != superParam.isCovariant) return false;
@@ -173,7 +174,7 @@ class _UnnecessaryGetterOverrideVisitor
   _UnnecessaryGetterOverrideVisitor(LintRule rule) : super(rule);
 
   @override
-  ExecutableElement getInheritedElement(MethodDeclaration node) =>
+  ExecutableElement? getInheritedElement(MethodDeclaration node) =>
       DartTypeUtilities.lookUpInheritedConcreteGetter(node);
 
   @override
@@ -189,14 +190,14 @@ class _UnnecessaryMethodOverrideVisitor
   _UnnecessaryMethodOverrideVisitor(LintRule rule) : super(rule);
 
   @override
-  ExecutableElement getInheritedElement(node) =>
+  ExecutableElement? getInheritedElement(node) =>
       DartTypeUtilities.lookUpInheritedMethod(node);
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.methodName.staticElement == inheritedMethod &&
         DartTypeUtilities.matchesArgumentsWithParameters(
-            node.argumentList.arguments, declaration.parameters.parameters)) {
+            node.argumentList.arguments, declaration.parameters!.parameters)) {
       node.target?.accept(this);
     }
   }
@@ -207,15 +208,15 @@ class _UnnecessaryOperatorOverrideVisitor
   _UnnecessaryOperatorOverrideVisitor(LintRule rule) : super(rule);
 
   @override
-  ExecutableElement getInheritedElement(node) =>
+  ExecutableElement? getInheritedElement(node) =>
       DartTypeUtilities.lookUpInheritedConcreteMethod(node);
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    final parameters = declaration.parameters.parameters;
+    final parameters = declaration.parameters!.parameters;
     if (node.operator.type == declaration.name.token.type &&
         parameters.length == 1 &&
-        parameters.first.identifier.staticElement ==
+        parameters.first.identifier!.staticElement ==
             DartTypeUtilities.getCanonicalElementFromIdentifier(
                 node.rightOperand)) {
       final leftPart = node.leftOperand.unParenthesized;
@@ -227,7 +228,7 @@ class _UnnecessaryOperatorOverrideVisitor
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    final parameters = declaration.parameters.parameters;
+    final parameters = declaration.parameters!.parameters;
     if (node.operator.type == declaration.name.token.type &&
         parameters.isEmpty) {
       final operand = node.operand.unParenthesized;
@@ -243,14 +244,14 @@ class _UnnecessarySetterOverrideVisitor
   _UnnecessarySetterOverrideVisitor(LintRule rule) : super(rule);
 
   @override
-  ExecutableElement getInheritedElement(node) =>
+  ExecutableElement? getInheritedElement(node) =>
       DartTypeUtilities.lookUpInheritedConcreteSetter(node);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    final parameters = declaration.parameters.parameters;
+    final parameters = declaration.parameters!.parameters;
     if (parameters.length == 1 &&
-        parameters.first.identifier.staticElement ==
+        parameters.first.identifier!.staticElement ==
             DartTypeUtilities.getCanonicalElementFromIdentifier(
                 node.rightHandSide)) {
       final leftPart = node.leftHandSide.unParenthesized;

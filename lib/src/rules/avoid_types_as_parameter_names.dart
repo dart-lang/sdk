@@ -62,8 +62,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.parent is GenericFunctionType) return;
 
     for (final parameter in node.parameters) {
-      if (parameter.declaredElement.hasImplicitType &&
-          _isTypeName(node, parameter.identifier)) {
+      if (parameter.declaredElement!.hasImplicitType &&
+          _isTypeName(node, parameter.identifier!)) {
         rule.reportLint(parameter.identifier);
       }
     }
