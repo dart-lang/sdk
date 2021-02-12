@@ -209,22 +209,25 @@ class _BuilderGenerator extends _BaseGenerator {
   void _generateCollectApiSignature() {
     out();
     out('/// Accumulate non-[informative] data into [signature].');
-    out('void collectApiSignature(api_sig.ApiSignature signature) {');
+    out('void collectApiSignature(api_sig.ApiSignature signatureSink) {');
 
-    void writeField(String name, idl_model.FieldType type, bool isInformative) {
-      if (isInformative) {
+    void writeField(idl_model.FieldDeclaration field) {
+      if (field.isInformative) {
         return;
       }
-      String ref = 'this.$name';
+      var type = field.type;
+      var name = field.name;
       if (type.isList) {
-        out('if ($ref == null) {');
+        var localName = name;
+        out('var $name = this._$name;');
+        out('if ($localName == null) {');
         indent(() {
-          out('signature.addInt(0);');
+          out('signatureSink.addInt(0);');
         });
         out('} else {');
         indent(() {
-          out('signature.addInt($ref!.length);');
-          out('for (var x in $ref!) {');
+          out('signatureSink.addInt($localName.length);');
+          out('for (var x in $localName) {');
           indent(() {
             _generateSignatureCall(type.typeName, 'x', false);
           });
@@ -232,7 +235,7 @@ class _BuilderGenerator extends _BaseGenerator {
         });
         out('}');
       } else {
-        _generateSignatureCall(type.typeName, ref, true);
+        _generateSignatureCall(type.typeName, 'this._$name', true);
       }
     }
 
@@ -241,7 +244,7 @@ class _BuilderGenerator extends _BaseGenerator {
         ..sort((idl_model.FieldDeclaration a, idl_model.FieldDeclaration b) =>
             a.id.compareTo(b.id));
       for (idl_model.FieldDeclaration field in sortedFields) {
-        writeField('_${field.name}', field.type, field.isInformative);
+        writeField(field);
       }
     });
     out('}');
@@ -285,39 +288,39 @@ class _BuilderGenerator extends _BaseGenerator {
 
       for (idl_model.FieldDeclaration field in cls.fields) {
         idl_model.FieldType fieldType = field.type;
-        String valueName = '_' + field.name;
+        String valueName = field.name;
         String offsetName = 'offset_' + field.name;
         String? condition;
         String? writeCode;
         if (fieldType.isList) {
-          condition = ' || $valueName!.isEmpty';
+          condition = ' || $valueName.isEmpty';
           if (_idl.classes.containsKey(fieldType.typeName)) {
             String itemCode = 'b.finish(fbBuilder)';
-            String listCode = '$valueName!.map((b) => $itemCode).toList()';
+            String listCode = '$valueName.map((b) => $itemCode).toList()';
             writeCode = '$offsetName = fbBuilder.writeList($listCode);';
           } else if (_idl.enums.containsKey(fieldType.typeName)) {
             String itemCode = 'b.index';
-            String listCode = '$valueName!.map((b) => $itemCode).toList()';
+            String listCode = '$valueName.map((b) => $itemCode).toList()';
             writeCode = '$offsetName = fbBuilder.writeListUint8($listCode);';
           } else if (fieldType.typeName == 'bool') {
-            writeCode = '$offsetName = fbBuilder.writeListBool($valueName!);';
+            writeCode = '$offsetName = fbBuilder.writeListBool($valueName);';
           } else if (fieldType.typeName == 'int') {
-            writeCode = '$offsetName = fbBuilder.writeListUint32($valueName!);';
+            writeCode = '$offsetName = fbBuilder.writeListUint32($valueName);';
           } else if (fieldType.typeName == 'double') {
-            writeCode =
-                '$offsetName = fbBuilder.writeListFloat64($valueName!);';
+            writeCode = '$offsetName = fbBuilder.writeListFloat64($valueName);';
           } else {
             assert(fieldType.typeName == 'String');
             String itemCode = 'fbBuilder.writeString(b)';
-            String listCode = '$valueName!.map((b) => $itemCode).toList()';
+            String listCode = '$valueName.map((b) => $itemCode).toList()';
             writeCode = '$offsetName = fbBuilder.writeList($listCode);';
           }
         } else if (fieldType.typeName == 'String') {
-          writeCode = '$offsetName = fbBuilder.writeString($valueName!);';
+          writeCode = '$offsetName = fbBuilder.writeString($valueName);';
         } else if (_idl.classes.containsKey(fieldType.typeName)) {
-          writeCode = '$offsetName = $valueName!.finish(fbBuilder);';
+          writeCode = '$offsetName = $valueName.finish(fbBuilder);';
         }
         if (writeCode != null) {
+          out('var $valueName = _${field.name};');
           if (condition == null) {
             out('if ($valueName != null) {');
           } else {
@@ -334,33 +337,27 @@ class _BuilderGenerator extends _BaseGenerator {
         int index = field.id;
         idl_model.FieldType fieldType = field.type;
         String valueName = '_' + field.name;
-        String condition = '$valueName != null';
-        String? writeCode;
         if (fieldType.isList ||
             fieldType.typeName == 'String' ||
             _idl.classes.containsKey(fieldType.typeName)) {
           String offsetName = 'offset_' + field.name;
-          condition = '$offsetName != null';
-          writeCode = 'fbBuilder.addOffset($index, $offsetName);';
+          out('if ($offsetName != null) {');
+          outWithIndent('fbBuilder.addOffset($index, $offsetName);');
+          out('}');
         } else if (fieldType.typeName == 'bool') {
-          condition = '$valueName == true';
-          writeCode = 'fbBuilder.addBool($index, true);';
+          out('fbBuilder.addBool($index, $valueName == true);');
         } else if (fieldType.typeName == 'double') {
-          condition += ' && $valueName != ${defaultValue(fieldType, true)}';
-          writeCode = 'fbBuilder.addFloat64($index, $valueName);';
+          var defValue = defaultValue(fieldType, true);
+          out('fbBuilder.addFloat64($index, $valueName, $defValue);');
         } else if (fieldType.typeName == 'int') {
-          condition += ' && $valueName != ${defaultValue(fieldType, true)}';
-          writeCode = 'fbBuilder.addUint32($index, $valueName);';
+          var defValue = defaultValue(fieldType, true);
+          out('fbBuilder.addUint32($index, $valueName, $defValue);');
         } else if (_idl.enums.containsKey(fieldType.typeName)) {
-          condition += ' && $valueName != ${defaultValue(fieldType, true)}';
-          writeCode = 'fbBuilder.addUint8($index, $valueName!.index);';
-        }
-        if (writeCode == null) {
+          var defValue = '${defaultValue(fieldType, true)}.index';
+          out('fbBuilder.addUint8($index, $valueName?.index, $defValue);');
+        } else {
           throw UnimplementedError('Writing type ${fieldType.typeName}');
         }
-        out('if ($condition) {');
-        outWithIndent(writeCode);
-        out('}');
       }
       out('return fbBuilder.endTable();');
     });
@@ -441,16 +438,16 @@ class _BuilderGenerator extends _BaseGenerator {
   void _generateSignatureCall(String typeName, String ref, bool couldBeNull) {
     if (_idl.enums.containsKey(typeName)) {
       if (couldBeNull) {
-        out('signature.addInt($ref == null ? 0 : $ref!.index);');
+        out('signatureSink.addInt($ref?.index ?? 0);');
       } else {
-        out('signature.addInt($ref.index);');
+        out('signatureSink.addInt($ref.index);');
       }
     } else if (_idl.classes.containsKey(typeName)) {
       if (couldBeNull) {
-        out('signature.addBool($ref != null);');
-        out('$ref?.collectApiSignature(signature);');
+        out('signatureSink.addBool($ref != null);');
+        out('$ref?.collectApiSignature(signatureSink);');
       } else {
-        out('$ref.collectApiSignature(signature);');
+        out('$ref.collectApiSignature(signatureSink);');
       }
     } else {
       switch (typeName) {
@@ -458,25 +455,25 @@ class _BuilderGenerator extends _BaseGenerator {
           if (couldBeNull) {
             ref += " ?? ''";
           }
-          out("signature.addString($ref);");
+          out("signatureSink.addString($ref);");
           break;
         case 'int':
           if (couldBeNull) {
             ref += ' ?? 0';
           }
-          out('signature.addInt($ref);');
+          out('signatureSink.addInt($ref);');
           break;
         case 'bool':
           if (couldBeNull) {
             ref += ' == true';
           }
-          out('signature.addBool($ref);');
+          out('signatureSink.addBool($ref);');
           break;
         case 'double':
           if (couldBeNull) {
             ref += ' ?? 0.0';
           }
-          out('signature.addDouble($ref);');
+          out('signatureSink.addDouble($ref);');
           break;
         default:
           throw "Don't know how to generate signature call for $typeName";

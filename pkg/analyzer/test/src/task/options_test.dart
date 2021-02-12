@@ -464,13 +464,13 @@ linter:
         ]));
   }
 
-  YamlMap _getOptions(String posixPath, {bool crawlUp = false}) {
+  YamlMap _getOptions(String posixPath) {
     var resource = pathTranslator.getResource(posixPath) as Folder;
-    return provider.getOptions(resource, crawlUp: crawlUp);
+    return provider.getOptions(resource);
   }
 
-  AnalysisOptions _getOptionsObject(String posixPath, {bool crawlUp = false}) {
-    final map = _getOptions(posixPath, crawlUp: crawlUp);
+  AnalysisOptions _getOptionsObject(String posixPath) {
+    final map = _getOptions(posixPath);
     final options = AnalysisOptionsImpl();
     applyToAnalysisOptions(options, map);
     return options;

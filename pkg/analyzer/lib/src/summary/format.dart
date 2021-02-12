@@ -123,16 +123,17 @@ class AnalysisDriverExceptionContextBuilder extends Object
   }
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addString(this._path ?? '');
-    signature.addString(this._exception ?? '');
-    signature.addString(this._stackTrace ?? '');
-    if (this._files == null) {
-      signature.addInt(0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    signatureSink.addString(this._path ?? '');
+    signatureSink.addString(this._exception ?? '');
+    signatureSink.addString(this._stackTrace ?? '');
+    var files = this._files;
+    if (files == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._files!.length);
-      for (var x in this._files!) {
-        x.collectApiSignature(signature);
+      signatureSink.addInt(files.length);
+      for (var x in files) {
+        x.collectApiSignature(signatureSink);
       }
     }
   }
@@ -147,18 +148,22 @@ class AnalysisDriverExceptionContextBuilder extends Object
     fb.Offset? offset_files;
     fb.Offset? offset_path;
     fb.Offset? offset_stackTrace;
-    if (_exception != null) {
-      offset_exception = fbBuilder.writeString(_exception!);
+    var exception = _exception;
+    if (exception != null) {
+      offset_exception = fbBuilder.writeString(exception);
     }
-    if (!(_files == null || _files!.isEmpty)) {
+    var files = _files;
+    if (!(files == null || files.isEmpty)) {
       offset_files =
-          fbBuilder.writeList(_files!.map((b) => b.finish(fbBuilder)).toList());
+          fbBuilder.writeList(files.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (_path != null) {
-      offset_path = fbBuilder.writeString(_path!);
+    var path = _path;
+    if (path != null) {
+      offset_path = fbBuilder.writeString(path);
     }
-    if (_stackTrace != null) {
-      offset_stackTrace = fbBuilder.writeString(_stackTrace!);
+    var stackTrace = _stackTrace;
+    if (stackTrace != null) {
+      offset_stackTrace = fbBuilder.writeString(stackTrace);
     }
     fbBuilder.startTable();
     if (offset_exception != null) {
@@ -298,19 +303,21 @@ class AnalysisDriverExceptionFileBuilder extends Object
   void flushInformative() {}
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addString(this._path ?? '');
-    signature.addString(this._content ?? '');
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    signatureSink.addString(this._path ?? '');
+    signatureSink.addString(this._content ?? '');
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset? offset_content;
     fb.Offset? offset_path;
-    if (_content != null) {
-      offset_content = fbBuilder.writeString(_content!);
+    var content = _content;
+    if (content != null) {
+      offset_content = fbBuilder.writeString(content);
     }
-    if (_path != null) {
-      offset_path = fbBuilder.writeString(_path!);
+    var path = _path;
+    if (path != null) {
+      offset_path = fbBuilder.writeString(path);
     }
     fbBuilder.startTable();
     if (offset_content != null) {
@@ -418,17 +425,18 @@ class AnalysisDriverResolvedUnitBuilder extends Object
   }
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    if (this._errors == null) {
-      signature.addInt(0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    var errors = this._errors;
+    if (errors == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._errors!.length);
-      for (var x in this._errors!) {
-        x.collectApiSignature(signature);
+      signatureSink.addInt(errors.length);
+      for (var x in errors) {
+        x.collectApiSignature(signatureSink);
       }
     }
-    signature.addBool(this._index != null);
-    this._index?.collectApiSignature(signature);
+    signatureSink.addBool(this._index != null);
+    this._index?.collectApiSignature(signatureSink);
   }
 
   List<int> toBuffer() {
@@ -439,12 +447,14 @@ class AnalysisDriverResolvedUnitBuilder extends Object
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset? offset_errors;
     fb.Offset? offset_index;
-    if (!(_errors == null || _errors!.isEmpty)) {
-      offset_errors = fbBuilder
-          .writeList(_errors!.map((b) => b.finish(fbBuilder)).toList());
+    var errors = _errors;
+    if (!(errors == null || errors.isEmpty)) {
+      offset_errors =
+          fbBuilder.writeList(errors.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (_index != null) {
-      offset_index = _index!.finish(fbBuilder);
+    var index = _index;
+    if (index != null) {
+      offset_index = index.finish(fbBuilder);
     }
     fbBuilder.startTable();
     if (offset_errors != null) {
@@ -560,30 +570,30 @@ class AnalysisDriverSubtypeBuilder extends Object
   void flushInformative() {}
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addInt(this._name ?? 0);
-    if (this._members == null) {
-      signature.addInt(0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    signatureSink.addInt(this._name ?? 0);
+    var members = this._members;
+    if (members == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._members!.length);
-      for (var x in this._members!) {
-        signature.addInt(x);
+      signatureSink.addInt(members.length);
+      for (var x in members) {
+        signatureSink.addInt(x);
       }
     }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset? offset_members;
-    if (!(_members == null || _members!.isEmpty)) {
-      offset_members = fbBuilder.writeListUint32(_members!);
+    var members = _members;
+    if (!(members == null || members.isEmpty)) {
+      offset_members = fbBuilder.writeListUint32(members);
     }
     fbBuilder.startTable();
     if (offset_members != null) {
       fbBuilder.addOffset(1, offset_members);
     }
-    if (_name != null && _name != 0) {
-      fbBuilder.addUint32(0, _name);
-    }
+    fbBuilder.addUint32(0, _name, 0);
     return fbBuilder.endTable();
   }
 }
@@ -727,18 +737,19 @@ class AnalysisDriverUnitErrorBuilder extends Object
   }
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addInt(this._offset ?? 0);
-    signature.addInt(this._length ?? 0);
-    signature.addString(this._uniqueName ?? '');
-    signature.addString(this._message ?? '');
-    signature.addString(this._correction ?? '');
-    if (this._contextMessages == null) {
-      signature.addInt(0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    signatureSink.addInt(this._offset ?? 0);
+    signatureSink.addInt(this._length ?? 0);
+    signatureSink.addString(this._uniqueName ?? '');
+    signatureSink.addString(this._message ?? '');
+    signatureSink.addString(this._correction ?? '');
+    var contextMessages = this._contextMessages;
+    if (contextMessages == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._contextMessages!.length);
-      for (var x in this._contextMessages!) {
-        x.collectApiSignature(signature);
+      signatureSink.addInt(contextMessages.length);
+      for (var x in contextMessages) {
+        x.collectApiSignature(signatureSink);
       }
     }
   }
@@ -748,18 +759,22 @@ class AnalysisDriverUnitErrorBuilder extends Object
     fb.Offset? offset_correction;
     fb.Offset? offset_message;
     fb.Offset? offset_uniqueName;
-    if (!(_contextMessages == null || _contextMessages!.isEmpty)) {
-      offset_contextMessages = fbBuilder.writeList(
-          _contextMessages!.map((b) => b.finish(fbBuilder)).toList());
+    var contextMessages = _contextMessages;
+    if (!(contextMessages == null || contextMessages.isEmpty)) {
+      offset_contextMessages = fbBuilder
+          .writeList(contextMessages.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (_correction != null) {
-      offset_correction = fbBuilder.writeString(_correction!);
+    var correction = _correction;
+    if (correction != null) {
+      offset_correction = fbBuilder.writeString(correction);
     }
-    if (_message != null) {
-      offset_message = fbBuilder.writeString(_message!);
+    var message = _message;
+    if (message != null) {
+      offset_message = fbBuilder.writeString(message);
     }
-    if (_uniqueName != null) {
-      offset_uniqueName = fbBuilder.writeString(_uniqueName!);
+    var uniqueName = _uniqueName;
+    if (uniqueName != null) {
+      offset_uniqueName = fbBuilder.writeString(uniqueName);
     }
     fbBuilder.startTable();
     if (offset_contextMessages != null) {
@@ -768,15 +783,11 @@ class AnalysisDriverUnitErrorBuilder extends Object
     if (offset_correction != null) {
       fbBuilder.addOffset(4, offset_correction);
     }
-    if (_length != null && _length != 0) {
-      fbBuilder.addUint32(1, _length);
-    }
+    fbBuilder.addUint32(1, _length, 0);
     if (offset_message != null) {
       fbBuilder.addOffset(3, offset_message);
     }
-    if (_offset != null && _offset != 0) {
-      fbBuilder.addUint32(0, _offset);
-    }
+    fbBuilder.addUint32(0, _offset, 0);
     if (offset_uniqueName != null) {
       fbBuilder.addOffset(2, offset_uniqueName);
     }
@@ -1175,158 +1186,177 @@ class AnalysisDriverUnitIndexBuilder extends Object
   }
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    if (this._strings == null) {
-      signature.addInt(0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    var strings = this._strings;
+    if (strings == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._strings!.length);
-      for (var x in this._strings!) {
-        signature.addString(x);
+      signatureSink.addInt(strings.length);
+      for (var x in strings) {
+        signatureSink.addString(x);
       }
     }
-    signature.addInt(this._nullStringId ?? 0);
-    if (this._unitLibraryUris == null) {
-      signature.addInt(0);
+    signatureSink.addInt(this._nullStringId ?? 0);
+    var unitLibraryUris = this._unitLibraryUris;
+    if (unitLibraryUris == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._unitLibraryUris!.length);
-      for (var x in this._unitLibraryUris!) {
-        signature.addInt(x);
+      signatureSink.addInt(unitLibraryUris.length);
+      for (var x in unitLibraryUris) {
+        signatureSink.addInt(x);
       }
     }
-    if (this._unitUnitUris == null) {
-      signature.addInt(0);
+    var unitUnitUris = this._unitUnitUris;
+    if (unitUnitUris == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._unitUnitUris!.length);
-      for (var x in this._unitUnitUris!) {
-        signature.addInt(x);
+      signatureSink.addInt(unitUnitUris.length);
+      for (var x in unitUnitUris) {
+        signatureSink.addInt(x);
       }
     }
-    if (this._elementKinds == null) {
-      signature.addInt(0);
+    var elementKinds = this._elementKinds;
+    if (elementKinds == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._elementKinds!.length);
-      for (var x in this._elementKinds!) {
-        signature.addInt(x.index);
+      signatureSink.addInt(elementKinds.length);
+      for (var x in elementKinds) {
+        signatureSink.addInt(x.index);
       }
     }
-    if (this._elementUnits == null) {
-      signature.addInt(0);
+    var elementUnits = this._elementUnits;
+    if (elementUnits == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._elementUnits!.length);
-      for (var x in this._elementUnits!) {
-        signature.addInt(x);
+      signatureSink.addInt(elementUnits.length);
+      for (var x in elementUnits) {
+        signatureSink.addInt(x);
       }
     }
-    if (this._elementNameUnitMemberIds == null) {
-      signature.addInt(0);
+    var elementNameUnitMemberIds = this._elementNameUnitMemberIds;
+    if (elementNameUnitMemberIds == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._elementNameUnitMemberIds!.length);
-      for (var x in this._elementNameUnitMemberIds!) {
-        signature.addInt(x);
+      signatureSink.addInt(elementNameUnitMemberIds.length);
+      for (var x in elementNameUnitMemberIds) {
+        signatureSink.addInt(x);
       }
     }
-    if (this._elementNameClassMemberIds == null) {
-      signature.addInt(0);
+    var elementNameClassMemberIds = this._elementNameClassMemberIds;
+    if (elementNameClassMemberIds == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._elementNameClassMemberIds!.length);
-      for (var x in this._elementNameClassMemberIds!) {
-        signature.addInt(x);
+      signatureSink.addInt(elementNameClassMemberIds.length);
+      for (var x in elementNameClassMemberIds) {
+        signatureSink.addInt(x);
       }
     }
-    if (this._elementNameParameterIds == null) {
-      signature.addInt(0);
+    var elementNameParameterIds = this._elementNameParameterIds;
+    if (elementNameParameterIds == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._elementNameParameterIds!.length);
-      for (var x in this._elementNameParameterIds!) {
-        signature.addInt(x);
+      signatureSink.addInt(elementNameParameterIds.length);
+      for (var x in elementNameParameterIds) {
+        signatureSink.addInt(x);
       }
     }
-    if (this._usedElements == null) {
-      signature.addInt(0);
+    var usedElements = this._usedElements;
+    if (usedElements == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._usedElements!.length);
-      for (var x in this._usedElements!) {
-        signature.addInt(x);
+      signatureSink.addInt(usedElements.length);
+      for (var x in usedElements) {
+        signatureSink.addInt(x);
       }
     }
-    if (this._usedElementKinds == null) {
-      signature.addInt(0);
+    var usedElementKinds = this._usedElementKinds;
+    if (usedElementKinds == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._usedElementKinds!.length);
-      for (var x in this._usedElementKinds!) {
-        signature.addInt(x.index);
+      signatureSink.addInt(usedElementKinds.length);
+      for (var x in usedElementKinds) {
+        signatureSink.addInt(x.index);
       }
     }
-    if (this._usedElementOffsets == null) {
-      signature.addInt(0);
+    var usedElementOffsets = this._usedElementOffsets;
+    if (usedElementOffsets == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._usedElementOffsets!.length);
-      for (var x in this._usedElementOffsets!) {
-        signature.addInt(x);
+      signatureSink.addInt(usedElementOffsets.length);
+      for (var x in usedElementOffsets) {
+        signatureSink.addInt(x);
       }
     }
-    if (this._usedElementLengths == null) {
-      signature.addInt(0);
+    var usedElementLengths = this._usedElementLengths;
+    if (usedElementLengths == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._usedElementLengths!.length);
-      for (var x in this._usedElementLengths!) {
-        signature.addInt(x);
+      signatureSink.addInt(usedElementLengths.length);
+      for (var x in usedElementLengths) {
+        signatureSink.addInt(x);
       }
     }
-    if (this._usedElementIsQualifiedFlags == null) {
-      signature.addInt(0);
+    var usedElementIsQualifiedFlags = this._usedElementIsQualifiedFlags;
+    if (usedElementIsQualifiedFlags == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._usedElementIsQualifiedFlags!.length);
-      for (var x in this._usedElementIsQualifiedFlags!) {
-        signature.addBool(x);
+      signatureSink.addInt(usedElementIsQualifiedFlags.length);
+      for (var x in usedElementIsQualifiedFlags) {
+        signatureSink.addBool(x);
       }
     }
-    if (this._usedNames == null) {
-      signature.addInt(0);
+    var usedNames = this._usedNames;
+    if (usedNames == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._usedNames!.length);
-      for (var x in this._usedNames!) {
-        signature.addInt(x);
+      signatureSink.addInt(usedNames.length);
+      for (var x in usedNames) {
+        signatureSink.addInt(x);
       }
     }
-    if (this._usedNameKinds == null) {
-      signature.addInt(0);
+    var usedNameKinds = this._usedNameKinds;
+    if (usedNameKinds == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._usedNameKinds!.length);
-      for (var x in this._usedNameKinds!) {
-        signature.addInt(x.index);
+      signatureSink.addInt(usedNameKinds.length);
+      for (var x in usedNameKinds) {
+        signatureSink.addInt(x.index);
       }
     }
-    if (this._usedNameOffsets == null) {
-      signature.addInt(0);
+    var usedNameOffsets = this._usedNameOffsets;
+    if (usedNameOffsets == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._usedNameOffsets!.length);
-      for (var x in this._usedNameOffsets!) {
-        signature.addInt(x);
+      signatureSink.addInt(usedNameOffsets.length);
+      for (var x in usedNameOffsets) {
+        signatureSink.addInt(x);
       }
     }
-    if (this._usedNameIsQualifiedFlags == null) {
-      signature.addInt(0);
+    var usedNameIsQualifiedFlags = this._usedNameIsQualifiedFlags;
+    if (usedNameIsQualifiedFlags == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._usedNameIsQualifiedFlags!.length);
-      for (var x in this._usedNameIsQualifiedFlags!) {
-        signature.addBool(x);
+      signatureSink.addInt(usedNameIsQualifiedFlags.length);
+      for (var x in usedNameIsQualifiedFlags) {
+        signatureSink.addBool(x);
       }
     }
-    if (this._supertypes == null) {
-      signature.addInt(0);
+    var supertypes = this._supertypes;
+    if (supertypes == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._supertypes!.length);
-      for (var x in this._supertypes!) {
-        signature.addInt(x);
+      signatureSink.addInt(supertypes.length);
+      for (var x in supertypes) {
+        signatureSink.addInt(x);
       }
     }
-    if (this._subtypes == null) {
-      signature.addInt(0);
+    var subtypes = this._subtypes;
+    if (subtypes == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._subtypes!.length);
-      for (var x in this._subtypes!) {
-        x.collectApiSignature(signature);
+      signatureSink.addInt(subtypes.length);
+      for (var x in subtypes) {
+        x.collectApiSignature(signatureSink);
       }
     }
   }
@@ -1356,79 +1386,95 @@ class AnalysisDriverUnitIndexBuilder extends Object
     fb.Offset? offset_usedNameKinds;
     fb.Offset? offset_usedNameOffsets;
     fb.Offset? offset_usedNames;
-    if (!(_elementKinds == null || _elementKinds!.isEmpty)) {
+    var elementKinds = _elementKinds;
+    if (!(elementKinds == null || elementKinds.isEmpty)) {
       offset_elementKinds =
-          fbBuilder.writeListUint8(_elementKinds!.map((b) => b.index).toList());
+          fbBuilder.writeListUint8(elementKinds.map((b) => b.index).toList());
     }
-    if (!(_elementNameClassMemberIds == null ||
-        _elementNameClassMemberIds!.isEmpty)) {
+    var elementNameClassMemberIds = _elementNameClassMemberIds;
+    if (!(elementNameClassMemberIds == null ||
+        elementNameClassMemberIds.isEmpty)) {
       offset_elementNameClassMemberIds =
-          fbBuilder.writeListUint32(_elementNameClassMemberIds!);
+          fbBuilder.writeListUint32(elementNameClassMemberIds);
     }
-    if (!(_elementNameParameterIds == null ||
-        _elementNameParameterIds!.isEmpty)) {
+    var elementNameParameterIds = _elementNameParameterIds;
+    if (!(elementNameParameterIds == null || elementNameParameterIds.isEmpty)) {
       offset_elementNameParameterIds =
-          fbBuilder.writeListUint32(_elementNameParameterIds!);
+          fbBuilder.writeListUint32(elementNameParameterIds);
     }
-    if (!(_elementNameUnitMemberIds == null ||
-        _elementNameUnitMemberIds!.isEmpty)) {
+    var elementNameUnitMemberIds = _elementNameUnitMemberIds;
+    if (!(elementNameUnitMemberIds == null ||
+        elementNameUnitMemberIds.isEmpty)) {
       offset_elementNameUnitMemberIds =
-          fbBuilder.writeListUint32(_elementNameUnitMemberIds!);
+          fbBuilder.writeListUint32(elementNameUnitMemberIds);
     }
-    if (!(_elementUnits == null || _elementUnits!.isEmpty)) {
-      offset_elementUnits = fbBuilder.writeListUint32(_elementUnits!);
+    var elementUnits = _elementUnits;
+    if (!(elementUnits == null || elementUnits.isEmpty)) {
+      offset_elementUnits = fbBuilder.writeListUint32(elementUnits);
     }
-    if (!(_strings == null || _strings!.isEmpty)) {
+    var strings = _strings;
+    if (!(strings == null || strings.isEmpty)) {
       offset_strings = fbBuilder
-          .writeList(_strings!.map((b) => fbBuilder.writeString(b)).toList());
+          .writeList(strings.map((b) => fbBuilder.writeString(b)).toList());
     }
-    if (!(_subtypes == null || _subtypes!.isEmpty)) {
+    var subtypes = _subtypes;
+    if (!(subtypes == null || subtypes.isEmpty)) {
       offset_subtypes = fbBuilder
-          .writeList(_subtypes!.map((b) => b.finish(fbBuilder)).toList());
+          .writeList(subtypes.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (!(_supertypes == null || _supertypes!.isEmpty)) {
-      offset_supertypes = fbBuilder.writeListUint32(_supertypes!);
+    var supertypes = _supertypes;
+    if (!(supertypes == null || supertypes.isEmpty)) {
+      offset_supertypes = fbBuilder.writeListUint32(supertypes);
     }
-    if (!(_unitLibraryUris == null || _unitLibraryUris!.isEmpty)) {
-      offset_unitLibraryUris = fbBuilder.writeListUint32(_unitLibraryUris!);
+    var unitLibraryUris = _unitLibraryUris;
+    if (!(unitLibraryUris == null || unitLibraryUris.isEmpty)) {
+      offset_unitLibraryUris = fbBuilder.writeListUint32(unitLibraryUris);
     }
-    if (!(_unitUnitUris == null || _unitUnitUris!.isEmpty)) {
-      offset_unitUnitUris = fbBuilder.writeListUint32(_unitUnitUris!);
+    var unitUnitUris = _unitUnitUris;
+    if (!(unitUnitUris == null || unitUnitUris.isEmpty)) {
+      offset_unitUnitUris = fbBuilder.writeListUint32(unitUnitUris);
     }
-    if (!(_usedElementIsQualifiedFlags == null ||
-        _usedElementIsQualifiedFlags!.isEmpty)) {
+    var usedElementIsQualifiedFlags = _usedElementIsQualifiedFlags;
+    if (!(usedElementIsQualifiedFlags == null ||
+        usedElementIsQualifiedFlags.isEmpty)) {
       offset_usedElementIsQualifiedFlags =
-          fbBuilder.writeListBool(_usedElementIsQualifiedFlags!);
+          fbBuilder.writeListBool(usedElementIsQualifiedFlags);
     }
-    if (!(_usedElementKinds == null || _usedElementKinds!.isEmpty)) {
+    var usedElementKinds = _usedElementKinds;
+    if (!(usedElementKinds == null || usedElementKinds.isEmpty)) {
       offset_usedElementKinds = fbBuilder
-          .writeListUint8(_usedElementKinds!.map((b) => b.index).toList());
+          .writeListUint8(usedElementKinds.map((b) => b.index).toList());
     }
-    if (!(_usedElementLengths == null || _usedElementLengths!.isEmpty)) {
-      offset_usedElementLengths =
-          fbBuilder.writeListUint32(_usedElementLengths!);
+    var usedElementLengths = _usedElementLengths;
+    if (!(usedElementLengths == null || usedElementLengths.isEmpty)) {
+      offset_usedElementLengths = fbBuilder.writeListUint32(usedElementLengths);
     }
-    if (!(_usedElementOffsets == null || _usedElementOffsets!.isEmpty)) {
-      offset_usedElementOffsets =
-          fbBuilder.writeListUint32(_usedElementOffsets!);
+    var usedElementOffsets = _usedElementOffsets;
+    if (!(usedElementOffsets == null || usedElementOffsets.isEmpty)) {
+      offset_usedElementOffsets = fbBuilder.writeListUint32(usedElementOffsets);
     }
-    if (!(_usedElements == null || _usedElements!.isEmpty)) {
-      offset_usedElements = fbBuilder.writeListUint32(_usedElements!);
+    var usedElements = _usedElements;
+    if (!(usedElements == null || usedElements.isEmpty)) {
+      offset_usedElements = fbBuilder.writeListUint32(usedElements);
     }
-    if (!(_usedNameIsQualifiedFlags == null ||
-        _usedNameIsQualifiedFlags!.isEmpty)) {
+    var usedNameIsQualifiedFlags = _usedNameIsQualifiedFlags;
+    if (!(usedNameIsQualifiedFlags == null ||
+        usedNameIsQualifiedFlags.isEmpty)) {
       offset_usedNameIsQualifiedFlags =
-          fbBuilder.writeListBool(_usedNameIsQualifiedFlags!);
+          fbBuilder.writeListBool(usedNameIsQualifiedFlags);
     }
-    if (!(_usedNameKinds == null || _usedNameKinds!.isEmpty)) {
-      offset_usedNameKinds = fbBuilder
-          .writeListUint8(_usedNameKinds!.map((b) => b.index).toList());
+    var usedNameKinds = _usedNameKinds;
+    if (!(usedNameKinds == null || usedNameKinds.isEmpty)) {
+      offset_usedNameKinds =
+          fbBuilder.writeListUint8(usedNameKinds.map((b) => b.index).toList());
     }
-    if (!(_usedNameOffsets == null || _usedNameOffsets!.isEmpty)) {
-      offset_usedNameOffsets = fbBuilder.writeListUint32(_usedNameOffsets!);
+    var usedNameOffsets = _usedNameOffsets;
+    if (!(usedNameOffsets == null || usedNameOffsets.isEmpty)) {
+      offset_usedNameOffsets = fbBuilder.writeListUint32(usedNameOffsets);
     }
-    if (!(_usedNames == null || _usedNames!.isEmpty)) {
-      offset_usedNames = fbBuilder.writeListUint32(_usedNames!);
+    var usedNames = _usedNames;
+    if (!(usedNames == null || usedNames.isEmpty)) {
+      offset_usedNames = fbBuilder.writeListUint32(usedNames);
     }
     fbBuilder.startTable();
     if (offset_elementKinds != null) {
@@ -1446,9 +1492,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
     if (offset_elementUnits != null) {
       fbBuilder.addOffset(5, offset_elementUnits);
     }
-    if (_nullStringId != null && _nullStringId != 0) {
-      fbBuilder.addUint32(1, _nullStringId);
-    }
+    fbBuilder.addUint32(1, _nullStringId, 0);
     if (offset_strings != null) {
       fbBuilder.addOffset(0, offset_strings);
     }
@@ -1856,41 +1900,45 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
   }
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    if (this._referencedNames == null) {
-      signature.addInt(0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    var referencedNames = this._referencedNames;
+    if (referencedNames == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._referencedNames!.length);
-      for (var x in this._referencedNames!) {
-        signature.addString(x);
+      signatureSink.addInt(referencedNames.length);
+      for (var x in referencedNames) {
+        signatureSink.addString(x);
       }
     }
-    if (this._definedTopLevelNames == null) {
-      signature.addInt(0);
+    var definedTopLevelNames = this._definedTopLevelNames;
+    if (definedTopLevelNames == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._definedTopLevelNames!.length);
-      for (var x in this._definedTopLevelNames!) {
-        signature.addString(x);
+      signatureSink.addInt(definedTopLevelNames.length);
+      for (var x in definedTopLevelNames) {
+        signatureSink.addString(x);
       }
     }
-    if (this._definedClassMemberNames == null) {
-      signature.addInt(0);
+    var definedClassMemberNames = this._definedClassMemberNames;
+    if (definedClassMemberNames == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._definedClassMemberNames!.length);
-      for (var x in this._definedClassMemberNames!) {
-        signature.addString(x);
+      signatureSink.addInt(definedClassMemberNames.length);
+      for (var x in definedClassMemberNames) {
+        signatureSink.addString(x);
       }
     }
-    if (this._subtypedNames == null) {
-      signature.addInt(0);
+    var subtypedNames = this._subtypedNames;
+    if (subtypedNames == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._subtypedNames!.length);
-      for (var x in this._subtypedNames!) {
-        signature.addString(x);
+      signatureSink.addInt(subtypedNames.length);
+      for (var x in subtypedNames) {
+        signatureSink.addString(x);
       }
     }
-    signature.addBool(this._unit2 != null);
-    this._unit2?.collectApiSignature(signature);
+    signatureSink.addBool(this._unit2 != null);
+    this._unit2?.collectApiSignature(signatureSink);
   }
 
   List<int> toBuffer() {
@@ -1904,27 +1952,31 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
     fb.Offset? offset_referencedNames;
     fb.Offset? offset_subtypedNames;
     fb.Offset? offset_unit2;
-    if (!(_definedClassMemberNames == null ||
-        _definedClassMemberNames!.isEmpty)) {
+    var definedClassMemberNames = _definedClassMemberNames;
+    if (!(definedClassMemberNames == null || definedClassMemberNames.isEmpty)) {
       offset_definedClassMemberNames = fbBuilder.writeList(
-          _definedClassMemberNames!
+          definedClassMemberNames
               .map((b) => fbBuilder.writeString(b))
               .toList());
     }
-    if (!(_definedTopLevelNames == null || _definedTopLevelNames!.isEmpty)) {
+    var definedTopLevelNames = _definedTopLevelNames;
+    if (!(definedTopLevelNames == null || definedTopLevelNames.isEmpty)) {
       offset_definedTopLevelNames = fbBuilder.writeList(
-          _definedTopLevelNames!.map((b) => fbBuilder.writeString(b)).toList());
+          definedTopLevelNames.map((b) => fbBuilder.writeString(b)).toList());
     }
-    if (!(_referencedNames == null || _referencedNames!.isEmpty)) {
+    var referencedNames = _referencedNames;
+    if (!(referencedNames == null || referencedNames.isEmpty)) {
       offset_referencedNames = fbBuilder.writeList(
-          _referencedNames!.map((b) => fbBuilder.writeString(b)).toList());
+          referencedNames.map((b) => fbBuilder.writeString(b)).toList());
     }
-    if (!(_subtypedNames == null || _subtypedNames!.isEmpty)) {
+    var subtypedNames = _subtypedNames;
+    if (!(subtypedNames == null || subtypedNames.isEmpty)) {
       offset_subtypedNames = fbBuilder.writeList(
-          _subtypedNames!.map((b) => fbBuilder.writeString(b)).toList());
+          subtypedNames.map((b) => fbBuilder.writeString(b)).toList());
     }
-    if (_unit2 != null) {
-      offset_unit2 = _unit2!.finish(fbBuilder);
+    var unit2 = _unit2;
+    if (unit2 != null) {
+      offset_unit2 = unit2.finish(fbBuilder);
     }
     fbBuilder.startTable();
     if (offset_definedClassMemberNames != null) {
@@ -2330,67 +2382,72 @@ class AvailableDeclarationBuilder extends Object
   }
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    if (this._children == null) {
-      signature.addInt(0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    var children = this._children;
+    if (children == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._children!.length);
-      for (var x in this._children!) {
-        x.collectApiSignature(signature);
+      signatureSink.addInt(children.length);
+      for (var x in children) {
+        x.collectApiSignature(signatureSink);
       }
     }
-    signature.addInt(this._codeLength ?? 0);
-    signature.addInt(this._codeOffset ?? 0);
-    signature.addString(this._defaultArgumentListString ?? '');
-    if (this._defaultArgumentListTextRanges == null) {
-      signature.addInt(0);
+    signatureSink.addInt(this._codeLength ?? 0);
+    signatureSink.addInt(this._codeOffset ?? 0);
+    signatureSink.addString(this._defaultArgumentListString ?? '');
+    var defaultArgumentListTextRanges = this._defaultArgumentListTextRanges;
+    if (defaultArgumentListTextRanges == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._defaultArgumentListTextRanges!.length);
-      for (var x in this._defaultArgumentListTextRanges!) {
-        signature.addInt(x);
+      signatureSink.addInt(defaultArgumentListTextRanges.length);
+      for (var x in defaultArgumentListTextRanges) {
+        signatureSink.addInt(x);
       }
     }
-    signature.addString(this._docComplete ?? '');
-    signature.addString(this._docSummary ?? '');
-    signature.addInt(this._fieldMask ?? 0);
-    signature.addBool(this._isAbstract == true);
-    signature.addBool(this._isConst == true);
-    signature.addBool(this._isDeprecated == true);
-    signature.addBool(this._isFinal == true);
-    signature.addBool(this._isStatic == true);
-    signature.addInt(this._kind == null ? 0 : this._kind!.index);
-    signature.addInt(this._locationOffset ?? 0);
-    signature.addInt(this._locationStartColumn ?? 0);
-    signature.addInt(this._locationStartLine ?? 0);
-    signature.addString(this._name ?? '');
-    if (this._parameterNames == null) {
-      signature.addInt(0);
+    signatureSink.addString(this._docComplete ?? '');
+    signatureSink.addString(this._docSummary ?? '');
+    signatureSink.addInt(this._fieldMask ?? 0);
+    signatureSink.addBool(this._isAbstract == true);
+    signatureSink.addBool(this._isConst == true);
+    signatureSink.addBool(this._isDeprecated == true);
+    signatureSink.addBool(this._isFinal == true);
+    signatureSink.addBool(this._isStatic == true);
+    signatureSink.addInt(this._kind?.index ?? 0);
+    signatureSink.addInt(this._locationOffset ?? 0);
+    signatureSink.addInt(this._locationStartColumn ?? 0);
+    signatureSink.addInt(this._locationStartLine ?? 0);
+    signatureSink.addString(this._name ?? '');
+    var parameterNames = this._parameterNames;
+    if (parameterNames == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._parameterNames!.length);
-      for (var x in this._parameterNames!) {
-        signature.addString(x);
+      signatureSink.addInt(parameterNames.length);
+      for (var x in parameterNames) {
+        signatureSink.addString(x);
       }
     }
-    signature.addString(this._parameters ?? '');
-    if (this._parameterTypes == null) {
-      signature.addInt(0);
+    signatureSink.addString(this._parameters ?? '');
+    var parameterTypes = this._parameterTypes;
+    if (parameterTypes == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._parameterTypes!.length);
-      for (var x in this._parameterTypes!) {
-        signature.addString(x);
+      signatureSink.addInt(parameterTypes.length);
+      for (var x in parameterTypes) {
+        signatureSink.addString(x);
       }
     }
-    if (this._relevanceTags == null) {
-      signature.addInt(0);
+    var relevanceTags = this._relevanceTags;
+    if (relevanceTags == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._relevanceTags!.length);
-      for (var x in this._relevanceTags!) {
-        signature.addString(x);
+      signatureSink.addInt(relevanceTags.length);
+      for (var x in relevanceTags) {
+        signatureSink.addString(x);
       }
     }
-    signature.addInt(this._requiredParameterCount ?? 0);
-    signature.addString(this._returnType ?? '');
-    signature.addString(this._typeParameters ?? '');
+    signatureSink.addInt(this._requiredParameterCount ?? 0);
+    signatureSink.addString(this._returnType ?? '');
+    signatureSink.addString(this._typeParameters ?? '');
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -2406,59 +2463,67 @@ class AvailableDeclarationBuilder extends Object
     fb.Offset? offset_relevanceTags;
     fb.Offset? offset_returnType;
     fb.Offset? offset_typeParameters;
-    if (!(_children == null || _children!.isEmpty)) {
+    var children = _children;
+    if (!(children == null || children.isEmpty)) {
       offset_children = fbBuilder
-          .writeList(_children!.map((b) => b.finish(fbBuilder)).toList());
+          .writeList(children.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (_defaultArgumentListString != null) {
+    var defaultArgumentListString = _defaultArgumentListString;
+    if (defaultArgumentListString != null) {
       offset_defaultArgumentListString =
-          fbBuilder.writeString(_defaultArgumentListString!);
+          fbBuilder.writeString(defaultArgumentListString);
     }
-    if (!(_defaultArgumentListTextRanges == null ||
-        _defaultArgumentListTextRanges!.isEmpty)) {
+    var defaultArgumentListTextRanges = _defaultArgumentListTextRanges;
+    if (!(defaultArgumentListTextRanges == null ||
+        defaultArgumentListTextRanges.isEmpty)) {
       offset_defaultArgumentListTextRanges =
-          fbBuilder.writeListUint32(_defaultArgumentListTextRanges!);
+          fbBuilder.writeListUint32(defaultArgumentListTextRanges);
     }
-    if (_docComplete != null) {
-      offset_docComplete = fbBuilder.writeString(_docComplete!);
+    var docComplete = _docComplete;
+    if (docComplete != null) {
+      offset_docComplete = fbBuilder.writeString(docComplete);
     }
-    if (_docSummary != null) {
-      offset_docSummary = fbBuilder.writeString(_docSummary!);
+    var docSummary = _docSummary;
+    if (docSummary != null) {
+      offset_docSummary = fbBuilder.writeString(docSummary);
     }
-    if (_name != null) {
-      offset_name = fbBuilder.writeString(_name!);
+    var name = _name;
+    if (name != null) {
+      offset_name = fbBuilder.writeString(name);
     }
-    if (!(_parameterNames == null || _parameterNames!.isEmpty)) {
+    var parameterNames = _parameterNames;
+    if (!(parameterNames == null || parameterNames.isEmpty)) {
       offset_parameterNames = fbBuilder.writeList(
-          _parameterNames!.map((b) => fbBuilder.writeString(b)).toList());
+          parameterNames.map((b) => fbBuilder.writeString(b)).toList());
     }
-    if (_parameters != null) {
-      offset_parameters = fbBuilder.writeString(_parameters!);
+    var parameters = _parameters;
+    if (parameters != null) {
+      offset_parameters = fbBuilder.writeString(parameters);
     }
-    if (!(_parameterTypes == null || _parameterTypes!.isEmpty)) {
+    var parameterTypes = _parameterTypes;
+    if (!(parameterTypes == null || parameterTypes.isEmpty)) {
       offset_parameterTypes = fbBuilder.writeList(
-          _parameterTypes!.map((b) => fbBuilder.writeString(b)).toList());
+          parameterTypes.map((b) => fbBuilder.writeString(b)).toList());
     }
-    if (!(_relevanceTags == null || _relevanceTags!.isEmpty)) {
+    var relevanceTags = _relevanceTags;
+    if (!(relevanceTags == null || relevanceTags.isEmpty)) {
       offset_relevanceTags = fbBuilder.writeList(
-          _relevanceTags!.map((b) => fbBuilder.writeString(b)).toList());
+          relevanceTags.map((b) => fbBuilder.writeString(b)).toList());
     }
-    if (_returnType != null) {
-      offset_returnType = fbBuilder.writeString(_returnType!);
+    var returnType = _returnType;
+    if (returnType != null) {
+      offset_returnType = fbBuilder.writeString(returnType);
     }
-    if (_typeParameters != null) {
-      offset_typeParameters = fbBuilder.writeString(_typeParameters!);
+    var typeParameters = _typeParameters;
+    if (typeParameters != null) {
+      offset_typeParameters = fbBuilder.writeString(typeParameters);
     }
     fbBuilder.startTable();
     if (offset_children != null) {
       fbBuilder.addOffset(0, offset_children);
     }
-    if (_codeLength != null && _codeLength != 0) {
-      fbBuilder.addUint32(1, _codeLength);
-    }
-    if (_codeOffset != null && _codeOffset != 0) {
-      fbBuilder.addUint32(2, _codeOffset);
-    }
+    fbBuilder.addUint32(1, _codeLength, 0);
+    fbBuilder.addUint32(2, _codeOffset, 0);
     if (offset_defaultArgumentListString != null) {
       fbBuilder.addOffset(3, offset_defaultArgumentListString);
     }
@@ -2471,36 +2536,17 @@ class AvailableDeclarationBuilder extends Object
     if (offset_docSummary != null) {
       fbBuilder.addOffset(6, offset_docSummary);
     }
-    if (_fieldMask != null && _fieldMask != 0) {
-      fbBuilder.addUint32(7, _fieldMask);
-    }
-    if (_isAbstract == true) {
-      fbBuilder.addBool(8, true);
-    }
-    if (_isConst == true) {
-      fbBuilder.addBool(9, true);
-    }
-    if (_isDeprecated == true) {
-      fbBuilder.addBool(10, true);
-    }
-    if (_isFinal == true) {
-      fbBuilder.addBool(11, true);
-    }
-    if (_isStatic == true) {
-      fbBuilder.addBool(12, true);
-    }
-    if (_kind != null && _kind != idl.AvailableDeclarationKind.CLASS) {
-      fbBuilder.addUint8(13, _kind!.index);
-    }
-    if (_locationOffset != null && _locationOffset != 0) {
-      fbBuilder.addUint32(14, _locationOffset);
-    }
-    if (_locationStartColumn != null && _locationStartColumn != 0) {
-      fbBuilder.addUint32(15, _locationStartColumn);
-    }
-    if (_locationStartLine != null && _locationStartLine != 0) {
-      fbBuilder.addUint32(16, _locationStartLine);
-    }
+    fbBuilder.addUint32(7, _fieldMask, 0);
+    fbBuilder.addBool(8, _isAbstract == true);
+    fbBuilder.addBool(9, _isConst == true);
+    fbBuilder.addBool(10, _isDeprecated == true);
+    fbBuilder.addBool(11, _isFinal == true);
+    fbBuilder.addBool(12, _isStatic == true);
+    fbBuilder.addUint8(
+        13, _kind?.index, idl.AvailableDeclarationKind.CLASS.index);
+    fbBuilder.addUint32(14, _locationOffset, 0);
+    fbBuilder.addUint32(15, _locationStartColumn, 0);
+    fbBuilder.addUint32(16, _locationStartLine, 0);
     if (offset_name != null) {
       fbBuilder.addOffset(17, offset_name);
     }
@@ -2516,9 +2562,7 @@ class AvailableDeclarationBuilder extends Object
     if (offset_relevanceTags != null) {
       fbBuilder.addOffset(21, offset_relevanceTags);
     }
-    if (_requiredParameterCount != null && _requiredParameterCount != 0) {
-      fbBuilder.addUint32(22, _requiredParameterCount);
-    }
+    fbBuilder.addUint32(22, _requiredParameterCount, 0);
     if (offset_returnType != null) {
       fbBuilder.addOffset(23, offset_returnType);
     }
@@ -2960,33 +3004,36 @@ class AvailableFileBuilder extends Object
   }
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    if (this._declarations == null) {
-      signature.addInt(0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    var declarations = this._declarations;
+    if (declarations == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._declarations!.length);
-      for (var x in this._declarations!) {
-        x.collectApiSignature(signature);
+      signatureSink.addInt(declarations.length);
+      for (var x in declarations) {
+        x.collectApiSignature(signatureSink);
       }
     }
-    signature.addBool(this._directiveInfo != null);
-    this._directiveInfo?.collectApiSignature(signature);
-    if (this._exports == null) {
-      signature.addInt(0);
+    signatureSink.addBool(this._directiveInfo != null);
+    this._directiveInfo?.collectApiSignature(signatureSink);
+    var exports = this._exports;
+    if (exports == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._exports!.length);
-      for (var x in this._exports!) {
-        x.collectApiSignature(signature);
+      signatureSink.addInt(exports.length);
+      for (var x in exports) {
+        x.collectApiSignature(signatureSink);
       }
     }
-    signature.addBool(this._isLibrary == true);
-    signature.addBool(this._isLibraryDeprecated == true);
-    if (this._parts == null) {
-      signature.addInt(0);
+    signatureSink.addBool(this._isLibrary == true);
+    signatureSink.addBool(this._isLibraryDeprecated == true);
+    var parts = this._parts;
+    if (parts == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._parts!.length);
-      for (var x in this._parts!) {
-        signature.addString(x);
+      signatureSink.addInt(parts.length);
+      for (var x in parts) {
+        signatureSink.addString(x);
       }
     }
   }
@@ -3002,23 +3049,28 @@ class AvailableFileBuilder extends Object
     fb.Offset? offset_exports;
     fb.Offset? offset_lineStarts;
     fb.Offset? offset_parts;
-    if (!(_declarations == null || _declarations!.isEmpty)) {
+    var declarations = _declarations;
+    if (!(declarations == null || declarations.isEmpty)) {
       offset_declarations = fbBuilder
-          .writeList(_declarations!.map((b) => b.finish(fbBuilder)).toList());
+          .writeList(declarations.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (_directiveInfo != null) {
-      offset_directiveInfo = _directiveInfo!.finish(fbBuilder);
+    var directiveInfo = _directiveInfo;
+    if (directiveInfo != null) {
+      offset_directiveInfo = directiveInfo.finish(fbBuilder);
     }
-    if (!(_exports == null || _exports!.isEmpty)) {
-      offset_exports = fbBuilder
-          .writeList(_exports!.map((b) => b.finish(fbBuilder)).toList());
+    var exports = _exports;
+    if (!(exports == null || exports.isEmpty)) {
+      offset_exports =
+          fbBuilder.writeList(exports.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (!(_lineStarts == null || _lineStarts!.isEmpty)) {
-      offset_lineStarts = fbBuilder.writeListUint32(_lineStarts!);
+    var lineStarts = _lineStarts;
+    if (!(lineStarts == null || lineStarts.isEmpty)) {
+      offset_lineStarts = fbBuilder.writeListUint32(lineStarts);
     }
-    if (!(_parts == null || _parts!.isEmpty)) {
+    var parts = _parts;
+    if (!(parts == null || parts.isEmpty)) {
       offset_parts = fbBuilder
-          .writeList(_parts!.map((b) => fbBuilder.writeString(b)).toList());
+          .writeList(parts.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
     if (offset_declarations != null) {
@@ -3030,12 +3082,8 @@ class AvailableFileBuilder extends Object
     if (offset_exports != null) {
       fbBuilder.addOffset(2, offset_exports);
     }
-    if (_isLibrary == true) {
-      fbBuilder.addBool(3, true);
-    }
-    if (_isLibraryDeprecated == true) {
-      fbBuilder.addBool(4, true);
-    }
+    fbBuilder.addBool(3, _isLibrary == true);
+    fbBuilder.addBool(4, _isLibraryDeprecated == true);
     if (offset_lineStarts != null) {
       fbBuilder.addOffset(5, offset_lineStarts);
     }
@@ -3206,14 +3254,15 @@ class AvailableFileExportBuilder extends Object
   }
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addString(this._uri ?? '');
-    if (this._combinators == null) {
-      signature.addInt(0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    signatureSink.addString(this._uri ?? '');
+    var combinators = this._combinators;
+    if (combinators == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._combinators!.length);
-      for (var x in this._combinators!) {
-        x.collectApiSignature(signature);
+      signatureSink.addInt(combinators.length);
+      for (var x in combinators) {
+        x.collectApiSignature(signatureSink);
       }
     }
   }
@@ -3221,12 +3270,14 @@ class AvailableFileExportBuilder extends Object
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset? offset_combinators;
     fb.Offset? offset_uri;
-    if (!(_combinators == null || _combinators!.isEmpty)) {
+    var combinators = _combinators;
+    if (!(combinators == null || combinators.isEmpty)) {
       offset_combinators = fbBuilder
-          .writeList(_combinators!.map((b) => b.finish(fbBuilder)).toList());
+          .writeList(combinators.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (_uri != null) {
-      offset_uri = fbBuilder.writeString(_uri!);
+    var uri = _uri;
+    if (uri != null) {
+      offset_uri = fbBuilder.writeString(uri);
     }
     fbBuilder.startTable();
     if (offset_combinators != null) {
@@ -3331,21 +3382,23 @@ class AvailableFileExportCombinatorBuilder extends Object
   void flushInformative() {}
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    if (this._shows == null) {
-      signature.addInt(0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    var shows = this._shows;
+    if (shows == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._shows!.length);
-      for (var x in this._shows!) {
-        signature.addString(x);
+      signatureSink.addInt(shows.length);
+      for (var x in shows) {
+        signatureSink.addString(x);
       }
     }
-    if (this._hides == null) {
-      signature.addInt(0);
+    var hides = this._hides;
+    if (hides == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._hides!.length);
-      for (var x in this._hides!) {
-        signature.addString(x);
+      signatureSink.addInt(hides.length);
+      for (var x in hides) {
+        signatureSink.addString(x);
       }
     }
   }
@@ -3353,13 +3406,15 @@ class AvailableFileExportCombinatorBuilder extends Object
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset? offset_hides;
     fb.Offset? offset_shows;
-    if (!(_hides == null || _hides!.isEmpty)) {
+    var hides = _hides;
+    if (!(hides == null || hides.isEmpty)) {
       offset_hides = fbBuilder
-          .writeList(_hides!.map((b) => fbBuilder.writeString(b)).toList());
+          .writeList(hides.map((b) => fbBuilder.writeString(b)).toList());
     }
-    if (!(_shows == null || _shows!.isEmpty)) {
+    var shows = _shows;
+    if (!(shows == null || shows.isEmpty)) {
       offset_shows = fbBuilder
-          .writeList(_shows!.map((b) => fbBuilder.writeString(b)).toList());
+          .writeList(shows.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
     if (offset_hides != null) {
@@ -3466,21 +3521,23 @@ class CiderUnitErrorsBuilder extends Object
   }
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    if (this._signature == null) {
-      signature.addInt(0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    var signature = this._signature;
+    if (signature == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._signature!.length);
-      for (var x in this._signature!) {
-        signature.addInt(x);
+      signatureSink.addInt(signature.length);
+      for (var x in signature) {
+        signatureSink.addInt(x);
       }
     }
-    if (this._errors == null) {
-      signature.addInt(0);
+    var errors = this._errors;
+    if (errors == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._errors!.length);
-      for (var x in this._errors!) {
-        x.collectApiSignature(signature);
+      signatureSink.addInt(errors.length);
+      for (var x in errors) {
+        x.collectApiSignature(signatureSink);
       }
     }
   }
@@ -3493,12 +3550,14 @@ class CiderUnitErrorsBuilder extends Object
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset? offset_errors;
     fb.Offset? offset_signature;
-    if (!(_errors == null || _errors!.isEmpty)) {
-      offset_errors = fbBuilder
-          .writeList(_errors!.map((b) => b.finish(fbBuilder)).toList());
+    var errors = _errors;
+    if (!(errors == null || errors.isEmpty)) {
+      offset_errors =
+          fbBuilder.writeList(errors.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (!(_signature == null || _signature!.isEmpty)) {
-      offset_signature = fbBuilder.writeListUint32(_signature!);
+    var signature = _signature;
+    if (!(signature == null || signature.isEmpty)) {
+      offset_signature = fbBuilder.writeListUint32(signature);
     }
     fbBuilder.startTable();
     if (offset_errors != null) {
@@ -3609,17 +3668,18 @@ class CiderUnlinkedUnitBuilder extends Object
   }
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    if (this._contentDigest == null) {
-      signature.addInt(0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    var contentDigest = this._contentDigest;
+    if (contentDigest == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._contentDigest!.length);
-      for (var x in this._contentDigest!) {
-        signature.addInt(x);
+      signatureSink.addInt(contentDigest.length);
+      for (var x in contentDigest) {
+        signatureSink.addInt(x);
       }
     }
-    signature.addBool(this._unlinkedUnit != null);
-    this._unlinkedUnit?.collectApiSignature(signature);
+    signatureSink.addBool(this._unlinkedUnit != null);
+    this._unlinkedUnit?.collectApiSignature(signatureSink);
   }
 
   List<int> toBuffer() {
@@ -3630,11 +3690,13 @@ class CiderUnlinkedUnitBuilder extends Object
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset? offset_contentDigest;
     fb.Offset? offset_unlinkedUnit;
-    if (!(_contentDigest == null || _contentDigest!.isEmpty)) {
-      offset_contentDigest = fbBuilder.writeListUint32(_contentDigest!);
+    var contentDigest = _contentDigest;
+    if (!(contentDigest == null || contentDigest.isEmpty)) {
+      offset_contentDigest = fbBuilder.writeListUint32(contentDigest);
     }
-    if (_unlinkedUnit != null) {
-      offset_unlinkedUnit = _unlinkedUnit!.finish(fbBuilder);
+    var unlinkedUnit = _unlinkedUnit;
+    if (unlinkedUnit != null) {
+      offset_unlinkedUnit = unlinkedUnit.finish(fbBuilder);
     }
     fbBuilder.startTable();
     if (offset_contentDigest != null) {
@@ -3763,35 +3825,33 @@ class DiagnosticMessageBuilder extends Object
   void flushInformative() {}
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addString(this._filePath ?? '');
-    signature.addInt(this._length ?? 0);
-    signature.addString(this._message ?? '');
-    signature.addInt(this._offset ?? 0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    signatureSink.addString(this._filePath ?? '');
+    signatureSink.addInt(this._length ?? 0);
+    signatureSink.addString(this._message ?? '');
+    signatureSink.addInt(this._offset ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset? offset_filePath;
     fb.Offset? offset_message;
-    if (_filePath != null) {
-      offset_filePath = fbBuilder.writeString(_filePath!);
+    var filePath = _filePath;
+    if (filePath != null) {
+      offset_filePath = fbBuilder.writeString(filePath);
     }
-    if (_message != null) {
-      offset_message = fbBuilder.writeString(_message!);
+    var message = _message;
+    if (message != null) {
+      offset_message = fbBuilder.writeString(message);
     }
     fbBuilder.startTable();
     if (offset_filePath != null) {
       fbBuilder.addOffset(0, offset_filePath);
     }
-    if (_length != null && _length != 0) {
-      fbBuilder.addUint32(1, _length);
-    }
+    fbBuilder.addUint32(1, _length, 0);
     if (offset_message != null) {
       fbBuilder.addOffset(2, offset_message);
     }
-    if (_offset != null && _offset != 0) {
-      fbBuilder.addUint32(3, _offset);
-    }
+    fbBuilder.addUint32(3, _offset, 0);
     return fbBuilder.endTable();
   }
 }
@@ -3906,21 +3966,23 @@ class DirectiveInfoBuilder extends Object
   void flushInformative() {}
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    if (this._templateNames == null) {
-      signature.addInt(0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    var templateNames = this._templateNames;
+    if (templateNames == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._templateNames!.length);
-      for (var x in this._templateNames!) {
-        signature.addString(x);
+      signatureSink.addInt(templateNames.length);
+      for (var x in templateNames) {
+        signatureSink.addString(x);
       }
     }
-    if (this._templateValues == null) {
-      signature.addInt(0);
+    var templateValues = this._templateValues;
+    if (templateValues == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._templateValues!.length);
-      for (var x in this._templateValues!) {
-        signature.addString(x);
+      signatureSink.addInt(templateValues.length);
+      for (var x in templateValues) {
+        signatureSink.addString(x);
       }
     }
   }
@@ -3928,13 +3990,15 @@ class DirectiveInfoBuilder extends Object
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset? offset_templateNames;
     fb.Offset? offset_templateValues;
-    if (!(_templateNames == null || _templateNames!.isEmpty)) {
+    var templateNames = _templateNames;
+    if (!(templateNames == null || templateNames.isEmpty)) {
       offset_templateNames = fbBuilder.writeList(
-          _templateNames!.map((b) => fbBuilder.writeString(b)).toList());
+          templateNames.map((b) => fbBuilder.writeString(b)).toList());
     }
-    if (!(_templateValues == null || _templateValues!.isEmpty)) {
+    var templateValues = _templateValues;
+    if (!(templateValues == null || templateValues.isEmpty)) {
       offset_templateValues = fbBuilder.writeList(
-          _templateValues!.map((b) => fbBuilder.writeString(b)).toList());
+          templateValues.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
     if (offset_templateNames != null) {
@@ -4024,8 +4088,8 @@ class PackageBundleBuilder extends Object
   void flushInformative() {}
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addInt(this._fake ?? 0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    signatureSink.addInt(this._fake ?? 0);
   }
 
   List<int> toBuffer() {
@@ -4035,9 +4099,7 @@ class PackageBundleBuilder extends Object
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fbBuilder.startTable();
-    if (_fake != null && _fake != 0) {
-      fbBuilder.addUint32(0, _fake);
-    }
+    fbBuilder.addUint32(0, _fake, 0);
     return fbBuilder.endTable();
   }
 }
@@ -4128,27 +4190,30 @@ class UnlinkedNamespaceDirectiveBuilder extends Object
   }
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    if (this._configurations == null) {
-      signature.addInt(0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    var configurations = this._configurations;
+    if (configurations == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._configurations!.length);
-      for (var x in this._configurations!) {
-        x.collectApiSignature(signature);
+      signatureSink.addInt(configurations.length);
+      for (var x in configurations) {
+        x.collectApiSignature(signatureSink);
       }
     }
-    signature.addString(this._uri ?? '');
+    signatureSink.addString(this._uri ?? '');
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset? offset_configurations;
     fb.Offset? offset_uri;
-    if (!(_configurations == null || _configurations!.isEmpty)) {
+    var configurations = _configurations;
+    if (!(configurations == null || configurations.isEmpty)) {
       offset_configurations = fbBuilder
-          .writeList(_configurations!.map((b) => b.finish(fbBuilder)).toList());
+          .writeList(configurations.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (_uri != null) {
-      offset_uri = fbBuilder.writeString(_uri!);
+    var uri = _uri;
+    if (uri != null) {
+      offset_uri = fbBuilder.writeString(uri);
     }
     fbBuilder.startTable();
     if (offset_configurations != null) {
@@ -4266,24 +4331,27 @@ class UnlinkedNamespaceDirectiveConfigurationBuilder extends Object
   void flushInformative() {}
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addString(this._name ?? '');
-    signature.addString(this._value ?? '');
-    signature.addString(this._uri ?? '');
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    signatureSink.addString(this._name ?? '');
+    signatureSink.addString(this._value ?? '');
+    signatureSink.addString(this._uri ?? '');
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset? offset_name;
     fb.Offset? offset_uri;
     fb.Offset? offset_value;
-    if (_name != null) {
-      offset_name = fbBuilder.writeString(_name!);
+    var name = _name;
+    if (name != null) {
+      offset_name = fbBuilder.writeString(name);
     }
-    if (_uri != null) {
-      offset_uri = fbBuilder.writeString(_uri!);
+    var uri = _uri;
+    if (uri != null) {
+      offset_uri = fbBuilder.writeString(uri);
     }
-    if (_value != null) {
-      offset_value = fbBuilder.writeString(_value!);
+    var value = _value;
+    if (value != null) {
+      offset_value = fbBuilder.writeString(value);
     }
     fbBuilder.startTable();
     if (offset_name != null) {
@@ -4475,42 +4543,46 @@ class UnlinkedUnit2Builder extends Object
   }
 
   /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    if (this._apiSignature == null) {
-      signature.addInt(0);
+  void collectApiSignature(api_sig.ApiSignature signatureSink) {
+    var apiSignature = this._apiSignature;
+    if (apiSignature == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._apiSignature!.length);
-      for (var x in this._apiSignature!) {
-        signature.addInt(x);
+      signatureSink.addInt(apiSignature.length);
+      for (var x in apiSignature) {
+        signatureSink.addInt(x);
       }
     }
-    if (this._exports == null) {
-      signature.addInt(0);
+    var exports = this._exports;
+    if (exports == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._exports!.length);
-      for (var x in this._exports!) {
-        x.collectApiSignature(signature);
+      signatureSink.addInt(exports.length);
+      for (var x in exports) {
+        x.collectApiSignature(signatureSink);
       }
     }
-    if (this._imports == null) {
-      signature.addInt(0);
+    var imports = this._imports;
+    if (imports == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._imports!.length);
-      for (var x in this._imports!) {
-        x.collectApiSignature(signature);
+      signatureSink.addInt(imports.length);
+      for (var x in imports) {
+        x.collectApiSignature(signatureSink);
       }
     }
-    signature.addBool(this._hasPartOfDirective == true);
-    if (this._parts == null) {
-      signature.addInt(0);
+    signatureSink.addBool(this._hasPartOfDirective == true);
+    var parts = this._parts;
+    if (parts == null) {
+      signatureSink.addInt(0);
     } else {
-      signature.addInt(this._parts!.length);
-      for (var x in this._parts!) {
-        signature.addString(x);
+      signatureSink.addInt(parts.length);
+      for (var x in parts) {
+        signatureSink.addString(x);
       }
     }
-    signature.addBool(this._hasLibraryDirective == true);
-    signature.addString(this._partOfUri ?? '');
+    signatureSink.addBool(this._hasLibraryDirective == true);
+    signatureSink.addString(this._partOfUri ?? '');
   }
 
   List<int> toBuffer() {
@@ -4525,26 +4597,32 @@ class UnlinkedUnit2Builder extends Object
     fb.Offset? offset_lineStarts;
     fb.Offset? offset_partOfUri;
     fb.Offset? offset_parts;
-    if (!(_apiSignature == null || _apiSignature!.isEmpty)) {
-      offset_apiSignature = fbBuilder.writeListUint32(_apiSignature!);
+    var apiSignature = _apiSignature;
+    if (!(apiSignature == null || apiSignature.isEmpty)) {
+      offset_apiSignature = fbBuilder.writeListUint32(apiSignature);
     }
-    if (!(_exports == null || _exports!.isEmpty)) {
-      offset_exports = fbBuilder
-          .writeList(_exports!.map((b) => b.finish(fbBuilder)).toList());
+    var exports = _exports;
+    if (!(exports == null || exports.isEmpty)) {
+      offset_exports =
+          fbBuilder.writeList(exports.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (!(_imports == null || _imports!.isEmpty)) {
-      offset_imports = fbBuilder
-          .writeList(_imports!.map((b) => b.finish(fbBuilder)).toList());
+    var imports = _imports;
+    if (!(imports == null || imports.isEmpty)) {
+      offset_imports =
+          fbBuilder.writeList(imports.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (!(_lineStarts == null || _lineStarts!.isEmpty)) {
-      offset_lineStarts = fbBuilder.writeListUint32(_lineStarts!);
+    var lineStarts = _lineStarts;
+    if (!(lineStarts == null || lineStarts.isEmpty)) {
+      offset_lineStarts = fbBuilder.writeListUint32(lineStarts);
     }
-    if (_partOfUri != null) {
-      offset_partOfUri = fbBuilder.writeString(_partOfUri!);
+    var partOfUri = _partOfUri;
+    if (partOfUri != null) {
+      offset_partOfUri = fbBuilder.writeString(partOfUri);
     }
-    if (!(_parts == null || _parts!.isEmpty)) {
+    var parts = _parts;
+    if (!(parts == null || parts.isEmpty)) {
       offset_parts = fbBuilder
-          .writeList(_parts!.map((b) => fbBuilder.writeString(b)).toList());
+          .writeList(parts.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
     if (offset_apiSignature != null) {
@@ -4553,12 +4631,8 @@ class UnlinkedUnit2Builder extends Object
     if (offset_exports != null) {
       fbBuilder.addOffset(1, offset_exports);
     }
-    if (_hasLibraryDirective == true) {
-      fbBuilder.addBool(6, true);
-    }
-    if (_hasPartOfDirective == true) {
-      fbBuilder.addBool(3, true);
-    }
+    fbBuilder.addBool(6, _hasLibraryDirective == true);
+    fbBuilder.addBool(3, _hasPartOfDirective == true);
     if (offset_imports != null) {
       fbBuilder.addOffset(2, offset_imports);
     }
