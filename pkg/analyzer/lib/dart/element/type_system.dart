@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:meta/meta.dart';
 
 /// A representation of the operations defined for the type system.
 ///
@@ -77,7 +76,6 @@ abstract class TypeSystem {
   ///
   /// The result of this method is undefined when the experiment 'non-nullable'
   /// is not enabled.
-  @experimental
   bool isNonNullable(DartType type);
 
   /// Return `true` if the [type] is a nullable type.
@@ -92,7 +90,6 @@ abstract class TypeSystem {
   ///
   /// The result of this method is undefined when the experiment 'non-nullable'
   /// is not enabled.
-  @experimental
   bool isNullable(DartType type);
 
   /// Return `true` if the [type] is a potentially non-nullable type.
@@ -104,7 +101,6 @@ abstract class TypeSystem {
   ///
   /// The result of this method is undefined when the experiment 'non-nullable'
   /// is not enabled.
-  @experimental
   bool isPotentiallyNonNullable(DartType type);
 
   /// Return `true` if the [type] is a potentially nullable type.
@@ -116,7 +112,6 @@ abstract class TypeSystem {
   ///
   /// The result of this method is undefined when the experiment 'non-nullable'
   /// is not enabled.
-  @experimental
   bool isPotentiallyNullable(DartType type);
 
   /// Return `true` if the [type] is a strictly non-nullable type.
@@ -133,7 +128,6 @@ abstract class TypeSystem {
   ///
   /// The result of this method is undefined when the experiment 'non-nullable'
   /// is not enabled.
-  @experimental
   bool isStrictlyNonNullable(DartType type);
 
   /// Return `true` if the [leftType] is a subtype of the [rightType].

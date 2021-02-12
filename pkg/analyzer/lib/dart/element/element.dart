@@ -50,7 +50,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// An element that represents a class or a mixin. The class can be defined by
@@ -1857,7 +1856,6 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   ///
   /// This will always return `false` unless the experiment 'non-nullable' is
   /// enabled.
-  @experimental
   bool get isLate;
 
   /// Return `true` if this element is a static variable, as per section 8 of

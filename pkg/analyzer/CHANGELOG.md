@@ -1,6 +1,7 @@
 ## 1.1.0-dev
 * Deprecated `TypeProvider.futureType2()`, `iterableType2()`, etc.
   Use corresponding `TypeProvider.futureType()`, `iterableType()`, etc.
+* Remove experimental markers from Null Safety APIs.
 
 ## 1.0.0
 * Stable null safety release.
