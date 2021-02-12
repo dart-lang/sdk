@@ -333,6 +333,8 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            ObjectStore* object_store,
                            Dart_IsolateFlags api_flags)
     : shared_class_table_(new SharedClassTable()),
+      class_table_(new ClassTable(shared_class_table_.get())),
+      cached_class_table_table_(class_table_->table()),
       embedder_data_(embedder_data),
       thread_pool_(),
       isolates_lock_(new SafepointRwLock()),
@@ -349,7 +351,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       thread_registry_(new ThreadRegistry()),
       safepoint_handler_(new SafepointHandler(this)),
       object_store_(object_store),
-      class_table_(new ClassTable(shared_class_table_.get())),
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
@@ -890,17 +891,17 @@ Bequest::~Bequest() {
   state->FreePersistentHandle(handle_);
 }
 
-void Isolate::RegisterClass(const Class& cls) {
+void IsolateGroup::RegisterClass(const Class& cls) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (group()->IsReloading()) {
-    group()->program_reload_context()->RegisterClass(cls);
+  if (IsReloading()) {
+    program_reload_context()->RegisterClass(cls);
     return;
   }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (cls.IsTopLevel()) {
-    group()->class_table()->RegisterTopLevel(cls);
+    class_table()->RegisterTopLevel(cls);
   } else {
-    group()->class_table()->Register(cls);
+    class_table()->Register(cls);
   }
 }
 
@@ -1712,7 +1713,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       isolate_object_store_(
           new IsolateObjectStore(isolate_group->object_store())),
       object_store_shared_ptr_(isolate_group->object_store_shared_ptr()),
-      class_table_(isolate_group->class_table_shared_ptr()),
 #if !defined(DART_PRECOMPILED_RUNTIME)
       native_callback_trampolines_(),
 #endif
@@ -1739,7 +1739,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       catch_entry_moves_cache_(),
       loaded_prefixes_set_storage_(nullptr) {
   cached_object_store_ = object_store_shared_ptr_.get();
-  cached_class_table_table_ = group()->class_table_->table();
   FlagsCopyFrom(api_flags);
   SetErrorsFatal(true);
   // TODO(asiva): A Thread is not available here, need to figure out

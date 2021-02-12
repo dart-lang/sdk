@@ -438,6 +438,18 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return OFFSET_OF(IsolateGroup, shared_class_table_);
   }
 
+  ClassPtr* cached_class_table_table() {
+    return cached_class_table_table_.load();
+  }
+  void set_cached_class_table_table(ClassPtr* cached_class_table_table) {
+    cached_class_table_table_.store(cached_class_table_table);
+  }
+  static intptr_t cached_class_table_table_offset() {
+    COMPILE_ASSERT(sizeof(IsolateGroup::cached_class_table_table_) ==
+                   kWordSize);
+    return OFFSET_OF(IsolateGroup, cached_class_table_table_);
+  }
+
   void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
   const char** obfuscation_map() const { return obfuscation_map_; }
 
@@ -769,6 +781,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   MutatorThreadPool* thread_pool() { return thread_pool_.get(); }
 
+  void RegisterClass(const Class& cls);
   void RegisterStaticField(const Field& field, const Instance& initial_value);
   void FreeStaticField(const Field& field);
 
@@ -820,15 +833,14 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   void set_heap(std::unique_ptr<Heap> value);
 
-  const std::shared_ptr<ClassTable>& class_table_shared_ptr() const {
-    return class_table_;
-  }
   const std::shared_ptr<ObjectStore>& object_store_shared_ptr() const {
     return object_store_;
   }
 
   // Accessed from generated code.
   std::unique_ptr<SharedClassTable> shared_class_table_;
+  std::unique_ptr<ClassTable> class_table_;
+  AcqRelAtomic<ClassPtr*> cached_class_table_table_;
   // End accessed from generated code.
 
   const char** obfuscation_map_ = nullptr;
@@ -884,7 +896,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   uint64_t id_ = 0;
 
   std::shared_ptr<ObjectStore> object_store_;
-  std::shared_ptr<ClassTable> class_table_;
   std::unique_ptr<StoreBuffer> store_buffer_;
   std::unique_ptr<Heap> heap_;
   std::unique_ptr<DispatchTable> dispatch_table_;
@@ -987,21 +998,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   bool IsScheduled() { return scheduled_mutator_thread() != nullptr; }
   Thread* scheduled_mutator_thread() const { return scheduled_mutator_thread_; }
 
-  // Register a newly introduced class.
-  void RegisterClass(const Class& cls);
-
   ThreadRegistry* thread_registry() const { return group()->thread_registry(); }
 
   SafepointHandler* safepoint_handler() const {
     return group()->safepoint_handler();
-  }
-
-  ClassPtr* cached_class_table_table() { return cached_class_table_table_; }
-  void set_cached_class_table_table(ClassPtr* cached_class_table_table) {
-    cached_class_table_table_ = cached_class_table_table;
-  }
-  static intptr_t cached_class_table_table_offset() {
-    return OFFSET_OF(Isolate, cached_class_table_table_);
   }
 
   void set_object_store(ObjectStore* object_store);
@@ -1539,8 +1539,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   CodePtr ic_miss_code_;
   // Cached value of object_store_shared_ptr_, here for generated code access
   ObjectStore* cached_object_store_ = nullptr;
-  // Cached value of class_table_->table_, here for generated code access
-  ClassPtr* cached_class_table_table_ = nullptr;
   FieldTable* field_table_ = nullptr;
   bool single_step_ = false;
   bool is_system_isolate_ = false;
@@ -1551,8 +1549,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   std::unique_ptr<IsolateObjectStore> isolate_object_store_;
   // shared in AOT(same pointer as on IsolateGroup), not shared in JIT
   std::shared_ptr<ObjectStore> object_store_shared_ptr_;
-  // shared in AOT(same pointer as on IsolateGroup), not shared in JIT
-  std::shared_ptr<ClassTable> class_table_;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   NativeCallbackTrampolines native_callback_trampolines_;

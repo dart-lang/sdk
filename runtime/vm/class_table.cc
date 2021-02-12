@@ -72,10 +72,11 @@ SharedClassTable::~SharedClassTable() {
 }
 
 void ClassTable::set_table(ClassPtr* table) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != nullptr);
+  // We don't have to stop mutators, since the old table is the prefix of the
+  // new table. But we should ensure that all writes to the current table are
+  // visible once the new table is visible.
   table_.store(table);
-  isolate->set_cached_class_table_table(table);
+  IsolateGroup::Current()->set_cached_class_table_table(table);
 }
 
 ClassTable::ClassTable(SharedClassTable* shared_class_table)

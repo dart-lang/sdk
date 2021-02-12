@@ -127,12 +127,12 @@
   FIELD(ICData, owner_offset)                                                  \
   FIELD(ICData, state_bits_offset)                                             \
   FIELD(Int32x4, value_offset)                                                 \
-  FIELD(Isolate, cached_class_table_table_offset)                              \
   FIELD(Isolate, current_tag_offset)                                           \
   FIELD(Isolate, default_tag_offset)                                           \
   FIELD(Isolate, ic_miss_code_offset)                                          \
   FIELD(Isolate, cached_object_store_offset)                                   \
   FIELD(IsolateGroup, shared_class_table_offset)                               \
+  FIELD(IsolateGroup, cached_class_table_table_offset)                         \
   NOT_IN_PRODUCT(FIELD(Isolate, single_step_offset))                           \
   FIELD(Isolate, user_tag_offset)                                              \
   FIELD(LinkedHashMap, data_offset)                                            \

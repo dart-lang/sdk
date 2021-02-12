@@ -4509,7 +4509,7 @@ ClassPtr Class::New(const Library& lib,
   result.set_instance_size_in_words(0, 0);
 
   if (register_class) {
-    Isolate::Current()->RegisterClass(result);
+    IsolateGroup::Current()->RegisterClass(result);
   }
   return result.ptr();
 }
