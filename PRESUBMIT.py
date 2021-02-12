@@ -236,7 +236,8 @@ def _CheckPackageConfigUpToDate(input_api, output_api):
             output_api.PresubmitError(
                 'File .dart_tool/package_config.json is out of date.\n'
                 'Fix these issues with:\n'
-                '%s tools/generate_package_config.dart' % (dart))
+                'gclient sync -D && %s tools/generate_package_config.dart' %
+                (dart))
         ]
     return []
 
