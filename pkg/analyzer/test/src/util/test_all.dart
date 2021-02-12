@@ -5,6 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'asserts_test.dart' as asserts_test;
+import 'either_test.dart' as either_test;
 import 'glob_test.dart' as glob_test;
 import 'lru_map_test.dart' as lru_map_test;
 import 'yaml_test.dart' as yaml_test;
@@ -13,6 +14,7 @@ import 'yaml_test.dart' as yaml_test;
 main() {
   defineReflectiveSuite(() {
     asserts_test.main();
+    either_test.main();
     glob_test.main();
     lru_map_test.main();
     yaml_test.main();
