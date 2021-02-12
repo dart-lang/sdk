@@ -34,8 +34,11 @@ extension Utf8Helpers on Pointer<Utf8> {
   /// characters before the first null byte.
   int get strlen {
     final Pointer<Uint8> array = this.cast<Uint8>();
-    final Uint8List nativeString = array.asTypedList(_maxSize);
-    return nativeString.indexWhere((char) => char == 0);
+    int length = 0;
+    while (array[length] != 0) {
+      length++;
+    }
+    return length;
   }
 
   /// Creates a [String] containing the characters UTF-8 encoded in [this].
@@ -51,7 +54,3 @@ extension Utf8Helpers on Pointer<Utf8> {
         this.cast<Uint8>().asTypedList(length).buffer, 0, length));
   }
 }
-
-const int _kMaxSmi64 = (1 << 62) - 1;
-const int _kMaxSmi32 = (1 << 30) - 1;
-final int _maxSize = sizeOf<IntPtr>() == 8 ? _kMaxSmi64 : _kMaxSmi32;
