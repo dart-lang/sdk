@@ -112,6 +112,7 @@ abstract class AbstractAnalysisServer {
   final List<String> analyzableFilePatterns = <String>[
     '**/*.${AnalysisEngine.SUFFIX_DART}',
     '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}',
+    '**/${AnalysisEngine.FIX_DATA_FILE}',
     '**/${AnalysisEngine.PUBSPEC_YAML_FILE}',
     '**/${AnalysisEngine.ANDROID_MANIFEST_FILE}'
   ];
