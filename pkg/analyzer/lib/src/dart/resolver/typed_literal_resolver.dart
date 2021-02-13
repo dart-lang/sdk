@@ -78,7 +78,7 @@ class TypedLiteralResolver {
       if (typeArguments.length == 1) {
         DartType elementType = typeArguments[0].type!;
         if (!elementType.isDynamic) {
-          listType = _typeProvider.listType2(elementType);
+          listType = _typeProvider.listType(elementType);
         }
       }
     } else {
@@ -86,7 +86,7 @@ class TypedLiteralResolver {
     }
     if (listType != null) {
       DartType elementType = listType.typeArguments[0];
-      DartType iterableType = _typeProvider.iterableType2(elementType);
+      DartType iterableType = _typeProvider.iterableType(elementType);
       _pushCollectionTypesDownToAll(_getListElements(node),
           elementType: elementType, iterableType: iterableType);
       InferenceContext.setType(node, listType);
@@ -107,7 +107,7 @@ class TypedLiteralResolver {
     if (literalResolution.kind == _LiteralResolutionKind.set) {
       if (typeArguments != null && typeArguments.length == 1) {
         var elementType = typeArguments[0].type!;
-        literalType = _typeProvider.setType2(elementType);
+        literalType = _typeProvider.setType(elementType);
       } else {
         literalType =
             _inferSetTypeDownwards(node, literalResolution.contextType);
@@ -116,7 +116,7 @@ class TypedLiteralResolver {
       if (typeArguments != null && typeArguments.length == 2) {
         var keyType = typeArguments[0].type!;
         var valueType = typeArguments[1].type!;
-        literalType = _typeProvider.mapType2(keyType, valueType);
+        literalType = _typeProvider.mapType(keyType, valueType);
       } else {
         literalType =
             _inferMapTypeDownwards(node, literalResolution.contextType);
@@ -129,7 +129,7 @@ class TypedLiteralResolver {
       List<DartType> typeArguments = literalType.typeArguments;
       if (typeArguments.length == 1) {
         DartType elementType = literalType.typeArguments[0];
-        DartType iterableType = _typeProvider.iterableType2(elementType);
+        DartType iterableType = _typeProvider.iterableType(elementType);
         _pushCollectionTypesDownToAll(_getSetOrMapElements(node),
             elementType: elementType, iterableType: iterableType);
         if (!_uiAsCodeEnabled &&
@@ -261,7 +261,7 @@ class TypedLiteralResolver {
       return unambiguousResolutions[0];
     } else if (_getSetOrMapElements(literal).isEmpty) {
       return _LiteralResolution(_LiteralResolutionKind.map,
-          _typeProvider.mapType2(_dynamicType, _dynamicType));
+          _typeProvider.mapType(_dynamicType, _dynamicType));
     }
     return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
   }
@@ -310,10 +310,10 @@ class TypedLiteralResolver {
     if (arguments != null) {
       if (arguments.length == 1) {
         return _LiteralResolution(_LiteralResolutionKind.set,
-            _typeProvider.setType2(arguments[0].type!));
+            _typeProvider.setType(arguments[0].type!));
       } else if (arguments.length == 2) {
         return _LiteralResolution(_LiteralResolutionKind.map,
-            _typeProvider.mapType2(arguments[0].type!, arguments[1].type!));
+            _typeProvider.mapType(arguments[0].type!, arguments[1].type!));
       }
     }
     return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
@@ -545,7 +545,7 @@ class TypedLiteralResolver {
 
     // When `e` is of the form `{}` and `S` is undefined, `e` is a map literal.
     if (elements.isEmpty && contextType == null) {
-      return _typeProvider.mapType2(
+      return _typeProvider.mapType(
         DynamicTypeImpl.instance,
         DynamicTypeImpl.instance,
       );
@@ -675,7 +675,7 @@ class TypedLiteralResolver {
       return;
     }
 
-    DartType listDynamicType = _typeProvider.listType2(_dynamicType);
+    DartType listDynamicType = _typeProvider.listType(_dynamicType);
 
     // If there are no type arguments, try to infer some arguments.
     var inferred = _inferListType(node);

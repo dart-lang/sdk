@@ -67,8 +67,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (className == _structClassName) {
           inStruct = true;
           if (node.declaredElement!.isEmptyStruct) {
-            _errorReporter.reportErrorForNode(
-                FfiCode.EMPTY_STRUCT_WARNING, node, [node.name]);
+            _errorReporter
+                .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [node.name]);
           }
         } else if (className != _allocatorClassName &&
             className != _opaqueClassName) {

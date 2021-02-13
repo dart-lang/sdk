@@ -1274,7 +1274,7 @@ sky_engine:lib/''');
     var filePath = join(projPath, 'foo.dart');
     // add root with a file
     var file = newFile(filePath, content: 'contents');
-    var projFolder = file.parent;
+    var projFolder = file.parent2;
     manager.setRoots(<String>[projPath], <String>[]);
     // the file was added
     var filePaths = callbacks.currentFilePaths;
@@ -1295,7 +1295,7 @@ sky_engine:lib/''');
     var filePath = join(projPath, 'foo.dart');
     // add root with a file
     var file = newFile(filePath, content: 'contents');
-    var projFolder = file.parent;
+    var projFolder = file.parent2;
     manager.setRoots(<String>[projPath], <String>[]);
     // the file was added
     var filePaths = callbacks.currentFilePaths;

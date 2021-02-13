@@ -33,7 +33,7 @@ mixin ConstantVisitorTestCases on ConstantVisitorTestSupport {
 const c = [1, if (1 < 0) 2 else 3, 4];
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.listType2(typeProvider.intType));
+    expect(result.type, typeProvider.listType(typeProvider.intType));
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 3, 4]);
   }
 
@@ -42,7 +42,7 @@ const c = [1, if (1 < 0) 2 else 3, 4];
 const c = [1, if (1 < 0) 2, 3];
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.listType2(typeProvider.intType));
+    expect(result.type, typeProvider.listType(typeProvider.intType));
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 3]);
   }
 
@@ -51,7 +51,7 @@ const c = [1, if (1 < 0) 2, 3];
 const c = [1, if (1 > 0) 2 else 3, 4];
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.listType2(typeProvider.intType));
+    expect(result.type, typeProvider.listType(typeProvider.intType));
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 4]);
   }
 
@@ -60,7 +60,7 @@ const c = [1, if (1 > 0) 2 else 3, 4];
 const c = [1, if (1 > 0) 2, 3];
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.listType2(typeProvider.intType));
+    expect(result.type, typeProvider.listType(typeProvider.intType));
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
@@ -71,7 +71,7 @@ const c = [1, if (1 > 0) if (2 > 1) 2, 3];
     DartObjectImpl result = _evaluateConstant('c');
     // The expected type ought to be `List<int>`, but type inference isn't yet
     // implemented.
-    expect(result.type, typeProvider.listType2(typeProvider.intType));
+    expect(result.type, typeProvider.listType(typeProvider.intType));
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
@@ -80,7 +80,7 @@ const c = [1, if (1 > 0) if (2 > 1) 2, 3];
 const c = [1, ...[2, 3], 4];
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.listType2(typeProvider.intType));
+    expect(result.type, typeProvider.listType(typeProvider.intType));
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 3, 4]);
   }
 
@@ -90,7 +90,7 @@ const c = {'a' : 1, if (1 < 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type,
-        typeProvider.mapType2(typeProvider.stringType, typeProvider.intType));
+        typeProvider.mapType(typeProvider.stringType, typeProvider.intType));
     Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(value.keys.map((e) => e.toStringValue()),
         unorderedEquals(['a', 'c', 'd']));
@@ -103,7 +103,7 @@ const c = {'a' : 1, if (1 < 0) 'b' : 2, 'c' : 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type,
-        typeProvider.mapType2(typeProvider.stringType, typeProvider.intType));
+        typeProvider.mapType(typeProvider.stringType, typeProvider.intType));
     Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(
         value.keys.map((e) => e.toStringValue()), unorderedEquals(['a', 'c']));
@@ -116,7 +116,7 @@ const c = {'a' : 1, if (1 > 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type,
-        typeProvider.mapType2(typeProvider.stringType, typeProvider.intType));
+        typeProvider.mapType(typeProvider.stringType, typeProvider.intType));
     Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(value.keys.map((e) => e.toStringValue()),
         unorderedEquals(['a', 'b', 'd']));
@@ -129,7 +129,7 @@ const c = {'a' : 1, if (1 > 0) 'b' : 2, 'c' : 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type,
-        typeProvider.mapType2(typeProvider.stringType, typeProvider.intType));
+        typeProvider.mapType(typeProvider.stringType, typeProvider.intType));
     Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(value.keys.map((e) => e.toStringValue()),
         unorderedEquals(['a', 'b', 'c']));
@@ -144,7 +144,7 @@ const c = {'a' : 1, if (1 > 0) if (2 > 1) {'b' : 2}, 'c' : 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type,
-        typeProvider.mapType2(typeProvider.intType, typeProvider.intType));
+        typeProvider.mapType(typeProvider.intType, typeProvider.intType));
     Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(value.keys.map((e) => e.toStringValue()),
         unorderedEquals(['a', 'b', 'c']));
@@ -157,7 +157,7 @@ const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type,
-        typeProvider.mapType2(typeProvider.stringType, typeProvider.intType));
+        typeProvider.mapType(typeProvider.stringType, typeProvider.intType));
     Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(value.keys.map((e) => e.toStringValue()),
         unorderedEquals(['a', 'b', 'c', 'd']));
@@ -170,7 +170,7 @@ const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
 const c = {1, if (1 < 0) 2 else 3, 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.setType2(typeProvider.intType));
+    expect(result.type, typeProvider.setType(typeProvider.intType));
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 3, 4]);
   }
 
@@ -179,7 +179,7 @@ const c = {1, if (1 < 0) 2 else 3, 4};
 const c = {1, if (1 < 0) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.setType2(typeProvider.intType));
+    expect(result.type, typeProvider.setType(typeProvider.intType));
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 3]);
   }
 
@@ -188,7 +188,7 @@ const c = {1, if (1 < 0) 2, 3};
 const c = {1, if (1 > 0) 2 else 3, 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.setType2(typeProvider.intType));
+    expect(result.type, typeProvider.setType(typeProvider.intType));
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 4]);
   }
 
@@ -197,7 +197,7 @@ const c = {1, if (1 > 0) 2 else 3, 4};
 const c = {1, if (1 > 0) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.setType2(typeProvider.intType));
+    expect(result.type, typeProvider.setType(typeProvider.intType));
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
@@ -206,7 +206,7 @@ const c = {1, if (1 > 0) 2, 3};
 const c = {1, if (1 > 0) if (2 > 1) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.setType2(typeProvider.intType));
+    expect(result.type, typeProvider.setType(typeProvider.intType));
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
@@ -215,7 +215,7 @@ const c = {1, if (1 > 0) if (2 > 1) 2, 3};
 const c = {1, ...{2, 3}, 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.setType2(typeProvider.intType));
+    expect(result.type, typeProvider.setType(typeProvider.intType));
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3, 4]);
   }
 

@@ -930,7 +930,7 @@ class DartObjectImplTest {
 
     _assertIdentical(
       _boolValue(true),
-      _typeValue(_typeProvider.futureOrType2(_typeProvider.objectType)),
+      _typeValue(_typeProvider.futureOrType(_typeProvider.objectType)),
       _typeValue(_typeProvider.objectType),
     );
   }
@@ -2193,7 +2193,7 @@ class DartObjectImplTest {
   ) {
     return DartObjectImpl(
       _typeSystem,
-      _typeProvider.listType2(elementType),
+      _typeProvider.listType(elementType),
       ListState(elements),
     );
   }
@@ -2208,7 +2208,7 @@ class DartObjectImplTest {
     }
     return DartObjectImpl(
       _typeSystem,
-      _typeProvider.mapType2(keyType, valueType),
+      _typeProvider.mapType(keyType, valueType),
       MapState(map),
     );
   }

@@ -1252,7 +1252,7 @@ test() {
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'String' for 'T' which doesn't work:
-  Type parameter 'T' declared to extend 'num'.
+  Type parameter 'T' is declared to extend 'num' producing 'num'.
 The type 'String' was inferred from:
   Return type declared as 'T Function(T)'
               used where  'String Function(String)' is required.
@@ -2810,7 +2810,7 @@ main() {
     assertType(ft, 'List<int> Function(String)');
 
     var x = findElement.localVar('x');
-    expect(x.type, typeProvider.listType2(typeProvider.intType));
+    expect(x.type, typeProvider.listType(typeProvider.intType));
   }
 
   test_genericMethod_functionExpressionInvocation_explicit() async {

@@ -71,26 +71,6 @@ void pub() {
     expect(result.stderr, result2.stderr);
   });
 
-  test('run --enable-experiment', () {
-    p = project();
-    p.file('bin/main.dart',
-        "void main() { int? a; a = null; print('a is \$a.'); }");
-
-    // run 'pub get'
-    p.runSync(['pub', 'get']);
-
-    var result = p.runSync(
-        ['pub', 'run', '--enable-experiment=no-non-nullable', 'main.dart']);
-
-    expect(result.exitCode, 254);
-    expect(result.stdout, isEmpty);
-    expect(
-        result.stderr,
-        contains('bin/main.dart:1:18: Error: This requires the null safety '
-            'language feature, which requires language version of 2.12 or '
-            'higher.\n'));
-  });
-
   test('failure', () {
     p = project(mainSrc: 'int get foo => 1;\n');
     var result = p.runSync(['pub', 'deps']);

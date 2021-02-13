@@ -6,7 +6,6 @@
 // via an explicit `is` check or a comparison to `null`), the resulting code
 // block is considered unreachable by flow analysis.
 
-// SharedOptions=--enable-experiment=non-nullable
 import 'package:expect/expect.dart';
 
 void promoteViaIsCheck(Object x, Object? y) {

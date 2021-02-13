@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,6 +13,8 @@ void main() {
     // defineReflectiveTests(MultiFixInFileTest);
     defineReflectiveTests(SingleFixInFileTest);
   });
+
+  VerificationTests.defineTests();
 }
 
 //// todo (pq): update w/ a FixKind that we're sure we want to support as a file fix
@@ -79,6 +82,69 @@ bool f(p, q) {
 
     var fixes = await getFixes();
     expect(fixes, isEmpty);
+  }
+}
+
+@reflectiveTest
+class VerificationTest extends FixInFileProcessorTest {
+  Future<void> test_fixInFileTestsHaveApplyTogetherMessages() async {
+    for (var fixInfos in FixProcessor.lintProducerMap2.values) {
+      for (var fixInfo in fixInfos) {
+        if (fixInfo.canBeBulkApplied) {
+          for (var generator in fixInfo.generators) {
+            test('', () {
+              expect(generator().fixKind.canBeAppliedTogether(), isTrue);
+            });
+          }
+        }
+      }
+    }
+  }
+}
+
+class VerificationTests {
+  static void defineTests() {
+    verify_fixInFileFixesHaveBulkFixTests();
+    verify_fixInFileFixKindsHaveApplyTogetherMessages();
+  }
+
+  static void verify_fixInFileFixesHaveBulkFixTests() {
+    group('VerificationTests | fixInFileFixesHaveBulkFixTests |', () {
+      for (var fixEntry in FixProcessor.lintProducerMap2.entries) {
+        var errorCode = fixEntry.key;
+        for (var fixInfo in fixEntry.value) {
+          if (fixInfo.canBeAppliedToFile) {
+            test(errorCode, () {
+              expect(fixInfo.canBeBulkApplied, isTrue);
+            });
+          }
+        }
+      }
+    });
+  }
+
+  static void verify_fixInFileFixKindsHaveApplyTogetherMessages() {
+    group('VerificationTests | fixInFileFixKindsHaveApplyTogetherMessages |',
+        () {
+      for (var fixEntry in FixProcessor.lintProducerMap2.entries) {
+        var errorCode = fixEntry.key;
+        for (var fixInfo in fixEntry.value) {
+          if (fixInfo.canBeAppliedToFile) {
+            var generators = fixInfo.generators;
+            for (var i = 0; i < generators.length; ++i) {
+              var generator = generators[i];
+              var fixKind = generator().fixKind;
+              // Cases where fix kinds are determined by context are not verified here.
+              if (fixKind != null) {
+                test('$errorCode | generator ($i) | ${fixKind.id}', () {
+                  expect(fixKind.canBeAppliedTogether(), isTrue);
+                });
+              }
+            }
+          }
+        }
+      }
+    });
   }
 }
 

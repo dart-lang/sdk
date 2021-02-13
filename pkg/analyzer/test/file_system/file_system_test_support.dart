@@ -72,7 +72,7 @@ mixin FileTestMixin implements FileSystemTestSupport {
     Folder destination = provider.getFolder(join(tempPath, 'destination'));
 
     File copy = file.copyTo(destination);
-    expect(copy.parent, destination);
+    expect(copy.parent2, destination);
     expect(copy.shortName, file.shortName);
     expect(copy.exists, isTrue);
     expect(copy.readAsStringSync(), 'contents');
@@ -185,10 +185,19 @@ mixin FileTestMixin implements FileSystemTestSupport {
     expect(() => file.modificationStamp, throwsA(isFileSystemException));
   }
 
+  @deprecated
   test_parent() {
     File file = getFile(exists: true);
 
     var parent = file.parent!;
+    expect(parent.exists, isTrue);
+    expect(parent.path, defaultFolderPath);
+  }
+
+  test_parent2() {
+    File file = getFile(exists: true);
+
+    var parent = file.parent2;
     expect(parent.exists, isTrue);
     expect(parent.path, defaultFolderPath);
   }
@@ -409,7 +418,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
         getFolder(exists: true, folderPath: join(tempPath, 'destination'));
 
     Folder copy = source.copyTo(destination);
-    expect(copy.parent, destination);
+    expect(copy.parent2, destination);
     _verifyStructure(copy, source);
   }
 
@@ -424,7 +433,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   test_delete() {
     File file =
         getFile(exists: true, filePath: join(defaultFolderPath, 'myFile'));
-    var folder = file.parent!;
+    var folder = file.parent2;
     expect(folder.exists, isTrue);
     expect(file.exists, isTrue);
 
@@ -594,7 +603,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   test_parent() {
     Folder folder = getFolder(exists: true);
 
-    var parent = folder.parent!;
+    var parent = folder.parent2;
     expect(parent.path, equals(tempPath));
     //
     // Since the OS is in control of where tempPath is, we don't know how far it
@@ -602,8 +611,8 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     // in a folder with a shorter path, and that we reach the root eventually.
     //
     while (true) {
-      var grandParent = parent.parent;
-      if (grandParent == null) {
+      var grandParent = parent.parent2;
+      if (grandParent.isRoot) {
         break;
       }
       expect(grandParent.path.length, lessThan(parent.path.length));

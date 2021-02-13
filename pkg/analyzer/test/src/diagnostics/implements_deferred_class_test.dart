@@ -29,6 +29,21 @@ class B implements a.A {}
     ]);
   }
 
+  test_implements_interfaceTypeTypedef() async {
+    newFile('$testPackageLibPath/lib1.dart', content: '''
+library lib1;
+class A {}
+typedef B = A;
+''');
+    await assertErrorsInCode('''
+library root;
+import 'lib1.dart' deferred as a;
+class C implements a.B {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3),
+    ]);
+  }
+
   test_mixinApplication() async {
     newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;

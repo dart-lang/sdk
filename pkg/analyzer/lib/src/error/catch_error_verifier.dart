@@ -50,7 +50,7 @@ class CatchErrorVerifier {
     }
     var targetType = target.staticType as InterfaceType;
     var targetFutureType = targetType.typeArguments.first;
-    var expectedReturnType = _typeProvider.futureOrType2(targetFutureType);
+    var expectedReturnType = _typeProvider.futureOrType(targetFutureType);
     if (callback is FunctionExpression) {
       // TODO(migration): should be FunctionType, not nullable
       var callbackType = callback.staticType as FunctionType;

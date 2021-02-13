@@ -147,13 +147,12 @@ class EditDartFix
     ).toResponse(request.id);
   }
 
-  Folder findPkgFolder(Folder folder) {
-    while (folder != null) {
+  Folder findPkgFolder(Folder start) {
+    for (var folder in start.withAncestors) {
       if (folder.getChild('analysis_options.yaml').exists ||
           folder.getChild('pubspec.yaml').exists) {
         return folder;
       }
-      folder = folder.parent;
     }
     return null;
   }

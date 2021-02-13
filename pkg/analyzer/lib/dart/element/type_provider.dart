@@ -127,40 +127,76 @@ abstract class TypeProvider {
 
   /// Return the instantiation of the built-in class `FutureOr` with the
   /// given [valueType]. The type has the nullability suffix of this provider.
+  InterfaceType futureOrType(DartType valueType);
+
+  /// Return the instantiation of the built-in class `FutureOr` with the
+  /// given [valueType]. The type has the nullability suffix of this provider.
+  @Deprecated('Use futureOrType instead')
   InterfaceType futureOrType2(DartType valueType);
 
   /// Return the instantiation of the built-in class `Future` with the
   /// given [valueType]. The type has the nullability suffix of this provider.
+  InterfaceType futureType(DartType valueType);
+
+  /// Return the instantiation of the built-in class `Future` with the
+  /// given [valueType]. The type has the nullability suffix of this provider.
+  @Deprecated('Use futureType instead')
   InterfaceType futureType2(DartType valueType);
 
-  /// Return 'true' if [id] is the name of a getter on the Object type.
+  /// Return 'true' if [id] is the name of a getter on the `Object` type.
   bool isObjectGetter(String id);
 
-  /// Return 'true' if [id] is the name of a method or getter on the Object
+  /// Return 'true' if [id] is the name of a method or getter on the `Object`
   /// type.
   bool isObjectMember(String id);
 
-  /// Return 'true' if [id] is the name of a method on the Object type.
+  /// Return 'true' if [id] is the name of a method on the `Object` type.
   bool isObjectMethod(String id);
 
   /// Return the instantiation of the built-in class `Iterable` with the
   /// given [elementType]. The type has the nullability suffix of this provider.
+  InterfaceType iterableType(DartType elementType);
+
+  /// Return the instantiation of the built-in class `Iterable` with the
+  /// given [elementType]. The type has the nullability suffix of this provider.
+  @Deprecated('Use iterableType instead')
   InterfaceType iterableType2(DartType elementType);
 
   /// Return the instantiation of the built-in class `List` with the
   /// given [elementType]. The type has the nullability suffix of this provider.
+  InterfaceType listType(DartType elementType);
+
+  /// Return the instantiation of the built-in class `List` with the
+  /// given [elementType]. The type has the nullability suffix of this provider.
+  @Deprecated('Use listType instead')
   InterfaceType listType2(DartType elementType);
 
   /// Return the instantiation of the built-in class `List` with the
   /// given [keyType] and [valueType]. The type has the nullability suffix of
   /// this provider.
+  InterfaceType mapType(DartType keyType, DartType valueType);
+
+  /// Return the instantiation of the built-in class `List` with the
+  /// given [keyType] and [valueType]. The type has the nullability suffix of
+  /// this provider.
+  @Deprecated('Use mapType instead')
   InterfaceType mapType2(DartType keyType, DartType valueType);
 
   /// Return the instantiation of the built-in class `Set` with the
   /// given [elementType]. The type has the nullability suffix of this provider.
+  InterfaceType setType(DartType elementType);
+
+  /// Return the instantiation of the built-in class `Set` with the
+  /// given [elementType]. The type has the nullability suffix of this provider.
+  @Deprecated('Use setType instead')
   InterfaceType setType2(DartType elementType);
 
   /// Return the instantiation of the built-in class `Stream` with the
   /// given [elementType]. The type has the nullability suffix of this provider.
+  InterfaceType streamType(DartType elementType);
+
+  /// Return the instantiation of the built-in class `Stream` with the
+  /// given [elementType]. The type has the nullability suffix of this provider.
+  @Deprecated('Use streamType instead')
   InterfaceType streamType2(DartType elementType);
 }

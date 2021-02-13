@@ -1767,7 +1767,7 @@ class C<T> {
     VariableDeclaration fNode = fDeclaration.fields.variables[0];
     var fElement = fNode.declaredElement as FieldElement;
     expect(
-        fElement.type, typeProvider.listType2(typeParameterTypeStar(tElement)));
+        fElement.type, typeProvider.listType(typeParameterTypeStar(tElement)));
   }
 
   test_field_generic() async {
@@ -2044,7 +2044,7 @@ main() {
     await resolveTestFile();
 
     InterfaceType intType = typeProvider.intType;
-    InterfaceType listIntType = typeProvider.listType2(intType);
+    InterfaceType listIntType = typeProvider.listType(intType);
 
     List<Statement> mainStatements = _getMainStatements(result);
 
@@ -5075,16 +5075,14 @@ void main() {
       var statement = statements[0] as ExpressionStatement;
       var mapLiteral = statement.expression as SetOrMapLiteral;
       expect(mapLiteral.staticType,
-          typeProvider.mapType2(typeProvider.intType, typeProvider.doubleType));
+          typeProvider.mapType(typeProvider.intType, typeProvider.doubleType));
     }
 
     {
       var statement = statements[1] as ExpressionStatement;
       var mapLiteral = statement.expression as SetOrMapLiteral;
-      expect(
-          mapLiteral.staticType,
-          typeProvider.mapType2(
-              typeProvider.boolType, typeProvider.stringType));
+      expect(mapLiteral.staticType,
+          typeProvider.mapType(typeProvider.boolType, typeProvider.stringType));
     }
   }
 

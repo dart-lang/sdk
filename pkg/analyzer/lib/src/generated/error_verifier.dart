@@ -3123,7 +3123,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (positional.isNotEmpty) {
       var first = positional.first;
       var type = first.declaredElement!.type;
-      var listOfString = _typeProvider.listType2(_typeProvider.stringType);
+      var listOfString = _typeProvider.listType(_typeProvider.stringType);
       if (!_typeSystem.isSubtypeOf(listOfString, type)) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE,

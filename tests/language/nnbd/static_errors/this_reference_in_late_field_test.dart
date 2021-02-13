@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 import "package:expect/expect.dart";
 
-// SharedOptions=--enable-experiment=non-nullable
 void main() {
   final c = C();
   Expect.identical(c, c);

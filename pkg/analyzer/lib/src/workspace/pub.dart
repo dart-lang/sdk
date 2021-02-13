@@ -41,32 +41,19 @@ class PubWorkspace extends SimpleWorkspace {
     }
   }
 
-  /// Find the pub workspace that contains the given [path].
+  /// Find the pub workspace that contains the given [filePath].
   static PubWorkspace? find(
     ResourceProvider provider,
     Map<String, List<Folder>> packageMap,
     String filePath,
   ) {
-    Resource resource = provider.getResource(filePath);
-    if (resource is File) {
-      filePath = resource.parent!.path;
-    }
-    Folder folder = provider.getFolder(filePath);
-    while (true) {
-      var parent = folder.parent;
-      if (parent == null) {
-        return null;
-      }
-
-      var pubspec = folder.getChildAssumingFile(_pubspecName);
+    var start = provider.getFolder(filePath);
+    for (var current in start.withAncestors) {
+      var pubspec = current.getChildAssumingFile(_pubspecName);
       if (pubspec.exists) {
-        // Found the pubspec.yaml file; this is our root.
-        String root = folder.path;
+        var root = current.path;
         return PubWorkspace._(provider, packageMap, root, pubspec);
       }
-
-      // Go up a folder.
-      folder = parent;
     }
   }
 }

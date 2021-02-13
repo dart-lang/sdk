@@ -7,7 +7,6 @@
 // that there is no compile-time error, because the assignment may happen in an
 // earlier iteration than the read.
 
-// SharedOptions=--enable-experiment=non-nullable
 import 'package:expect/expect.dart';
 
 void forLoop() {

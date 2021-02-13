@@ -46,7 +46,7 @@ Uint8List buildSdkSummary({
     var map = loadYaml(content) as YamlMap;
     var embedderSdk = EmbedderSdk(
       resourceProvider,
-      {file.parent!: map},
+      {file.parent2: map},
       languageVersion: sdk.languageVersion,
     );
     for (var library in embedderSdk.sdkLibraries) {

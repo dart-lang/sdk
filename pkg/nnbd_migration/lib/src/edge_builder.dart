@@ -1639,7 +1639,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         NullabilityNodeTarget.text('spread element type').withCodeRef(node);
     if (_typeSystem.isSubtypeOf(spreadType, typeProvider.mapObjectObjectType)) {
       assert(_currentMapKeyType != null && _currentMapValueType != null);
-      final expectedType = typeProvider.mapType2(
+      final expectedType = typeProvider.mapType(
           _currentMapKeyType.type, _currentMapValueType.type);
       final expectedDecoratedType = DecoratedType.forImplicitType(
           typeProvider, expectedType, _graph, target,
@@ -1651,7 +1651,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         spreadType, typeProvider.iterableDynamicType)) {
       assert(_currentLiteralElementType != null);
       final expectedType =
-          typeProvider.iterableType2(_currentLiteralElementType.type);
+          typeProvider.iterableType(_currentLiteralElementType.type);
       final expectedDecoratedType = DecoratedType.forImplicitType(
           typeProvider, expectedType, _graph, target,
           typeArguments: [_currentLiteralElementType]);
@@ -2245,7 +2245,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType _futureOf(DecoratedType type, AstNode node) =>
       DecoratedType.forImplicitType(
           typeProvider,
-          typeProvider.futureType2(type.type),
+          typeProvider.futureType(type.type),
           _graph,
           NullabilityNodeTarget.text('implicit future').withCodeRef(node),
           typeArguments: [type]);
@@ -3434,7 +3434,7 @@ mixin _AssignmentChecker {
       // if T1 is FutureOr<S1> then T0 <: T1 iff any of the following hold:
       // - either T0 <: Future<S1>
       if (_typeSystem.isSubtypeOf(
-          sourceType, typeProvider.futureType2(s1.type))) {
+          sourceType, typeProvider.futureType(s1.type))) {
         // E.g. FutureOr<int> = (... as Future<int>)
         // This is handled by the InterfaceType logic below, since we treat
         // FutureOr as a supertype of Future.

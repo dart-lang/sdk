@@ -526,7 +526,7 @@ class TestStruct1002 extends Struct {
   Pointer notEmpty;
 }
 
-class EmptyStruct extends Struct {} //# 1099: ok
+class EmptyStruct extends Struct {} //# 1099: compile-time error
 
 class EmptyStruct extends Struct {} //# 1100: compile-time error
 

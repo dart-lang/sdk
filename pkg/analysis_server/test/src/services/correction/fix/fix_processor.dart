@@ -198,14 +198,16 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       int length,
       String target,
       int expectedNumberOfFixesForKind,
-      String matchFixMessage}) async {
+      String matchFixMessage,
+      bool allowFixAllFixes = false}) async {
     if (useLineEndingsForPlatform) {
       expected = normalizeNewlinesForPlatform(expected);
     }
     var error = await _findErrorToFix(errorFilter, length: length);
     var fix = await _assertHasFix(error,
         expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
-        matchFixMessage: matchFixMessage);
+        matchFixMessage: matchFixMessage,
+        allowFixAllFixes: allowFixAllFixes);
     change = fix.change;
 
     // apply to "file"
@@ -295,7 +297,9 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   /// Optionally, if a [matchFixMessage] is passed, then the kind as well as the fix message must
   /// match to be returned.
   Future<Fix> _assertHasFix(AnalysisError error,
-      {int expectedNumberOfFixesForKind, String matchFixMessage}) async {
+      {int expectedNumberOfFixesForKind,
+      String matchFixMessage,
+      bool allowFixAllFixes = false}) async {
     // Compute the fixes for this AnalysisError
     var fixes = await _computeFixes(error);
 
@@ -331,7 +335,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     // Assert that none of the fixes are a fix-all fix.
     Fix foundFix;
     for (var fix in fixes) {
-      if (fix.isFixAllFix()) {
+      if (!allowFixAllFixes && fix.isFixAllFix()) {
         fail('A fix-all fix was found for the error: $error '
             'in the computed set of fixes:\n${fixes.join('\n')}');
       } else if (fix.kind == kind) {

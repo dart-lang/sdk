@@ -45,9 +45,9 @@ class AddNullCheck extends CorrectionProducer {
       toType = parent.realTarget.staticType;
     } else if (parent is ForEachPartsWithDeclaration) {
       toType =
-          typeProvider.iterableType2(parent.loopVariable.declaredElement.type);
+          typeProvider.iterableType(parent.loopVariable.declaredElement.type);
     } else if (parent is ForEachPartsWithIdentifier) {
-      toType = typeProvider.iterableType2(parent.identifier.staticType);
+      toType = typeProvider.iterableType(parent.identifier.staticType);
     } else if (parent is SpreadElement) {
       var literal = parent.thisOrAncestorOfType<TypedLiteral>();
       if (literal is ListLiteral) {

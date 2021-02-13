@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:async';
 
-// SharedOptions=--enable-experiment=non-nullable
 
 // Test that Object.operator==(Object o) is the signature of ==, but that we can
 // still compare nullable values to Object.

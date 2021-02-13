@@ -120,7 +120,7 @@ class ContextLocatorImplTest with ResourceProviderMixin {
     expect(outer1Root.optionsFile, outer1OptionsFile);
     expect(outer1Root.packagesFile, outer1PackagesFile);
 
-    ContextRoot outer2Root = findRoot(roots, testFile.parent!);
+    ContextRoot outer2Root = findRoot(roots, testFile.parent2);
     expect(outer2Root.includedPaths, unorderedEquals([testFile.path]));
     expect(outer2Root.excludedPaths, isEmpty);
     expect(outer2Root.optionsFile, outer2OptionsFile);
@@ -369,7 +369,7 @@ class ContextLocatorImplTest with ResourceProviderMixin {
     expect(
       outerRoot.excludedPaths,
       unorderedEquals([
-        outerPackagesFile.parent!.path,
+        outerPackagesFile.parent2.path,
         innerRootFolder.path,
       ]),
     );
@@ -381,7 +381,7 @@ class ContextLocatorImplTest with ResourceProviderMixin {
     expect(
       innerRoot.excludedPaths,
       unorderedEquals([
-        innerPackagesFile.parent!.path,
+        innerPackagesFile.parent2.path,
       ]),
     );
     expect(innerRoot.optionsFile, outerOptionsFile);
@@ -471,7 +471,7 @@ class ContextLocatorImplTest with ResourceProviderMixin {
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
     expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
     expect(outerRoot.excludedPaths,
-        unorderedEquals([innerOptionsFile.parent!.path]));
+        unorderedEquals([innerOptionsFile.parent2.path]));
     expect(outerRoot.optionsFile, outerOptionsFile);
     expect(outerRoot.packagesFile, outerPackagesFile);
   }
@@ -577,7 +577,7 @@ analyzer:
     expect(
       contentRoot.excludedPaths,
       unorderedEquals(
-        [packageConfigJsonFile.parent!.path],
+        [packageConfigJsonFile.parent2.path],
       ),
     );
     expect(contentRoot.optionsFile, optionsFile);
@@ -593,7 +593,7 @@ analyzer:
         contextLocator.locateRoots(includedPaths: [testFile.path]);
     expect(roots, hasLength(1));
 
-    ContextRoot package1Root = findRoot(roots, testFile.parent!);
+    ContextRoot package1Root = findRoot(roots, testFile.parent2);
     expect(package1Root.includedPaths, unorderedEquals([testFile.path]));
     expect(package1Root.excludedPaths, isEmpty);
     expect(package1Root.optionsFile, optionsFile);

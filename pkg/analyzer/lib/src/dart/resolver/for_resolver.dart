@@ -105,8 +105,8 @@ class ForResolver {
     }
     if (valueType != null) {
       InterfaceType targetType = isAsync
-          ? _resolver.typeProvider.streamType2(valueType)
-          : _resolver.typeProvider.iterableType2(valueType);
+          ? _resolver.typeProvider.streamType(valueType)
+          : _resolver.typeProvider.iterableType(valueType);
       InferenceContext.setType(iterable, targetType);
     }
 

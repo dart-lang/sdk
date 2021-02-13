@@ -1075,7 +1075,7 @@ f(Object o) => o as a.Future<Null>;
     var previewInfo = run({
       expr: NodeChangeForExpression()
         ..introduceAs(
-            nnbdTypeProvider.mapType2(
+            nnbdTypeProvider.mapType(
                 nnbdTypeProvider.intType, nnbdTypeProvider.boolType),
             _MockInfo())
     });

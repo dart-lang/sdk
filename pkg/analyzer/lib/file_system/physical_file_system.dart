@@ -239,6 +239,12 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
               !error.message
                   .startsWith("Directory watcher closed unexpectedly"));
 
+  @override
+  bool get isRoot {
+    var parentPath = provider.pathContext.dirname(path);
+    return parentPath == path;
+  }
+
   /// Return the underlying file being represented by this wrapper.
   io.Directory get _directory => _entry as io.Directory;
 
@@ -349,12 +355,19 @@ abstract class _PhysicalResource implements Resource {
   @override
   int get hashCode => path.hashCode;
 
+  @Deprecated('Use parent2 instead')
   @override
   Folder? get parent {
     String parentPath = pathContext.dirname(path);
     if (parentPath == path) {
       return null;
     }
+    return _PhysicalFolder(io.Directory(parentPath));
+  }
+
+  @override
+  Folder get parent2 {
+    String parentPath = pathContext.dirname(path);
     return _PhysicalFolder(io.Directory(parentPath));
   }
 

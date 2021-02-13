@@ -84,7 +84,7 @@ class PubspecValidator {
       return true;
     }
     String fileName = assetFile.shortName;
-    Folder assetFolder = assetFile.parent!;
+    Folder assetFolder = assetFile.parent2;
     if (!assetFolder.exists) {
       return false;
     }

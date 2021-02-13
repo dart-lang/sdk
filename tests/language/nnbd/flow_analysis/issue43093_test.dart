@@ -6,7 +6,6 @@
 // expression would corrupt the state of flow analysis, causing a crash when
 // trying to finish analyzing an enclosing `if` statement.
 
-// SharedOptions=--enable-experiment=non-nullable
 import 'package:expect/expect.dart';
 
 class C {

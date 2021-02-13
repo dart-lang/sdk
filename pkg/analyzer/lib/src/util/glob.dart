@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/util/either.dart';
+
 /// A pattern that matches against filesystem path-like strings with wildcards.
 ///
 /// The pattern matches strings as follows:
@@ -22,18 +24,10 @@ class Glob {
   /// The pattern string.
   final String _pattern;
 
-  String? _suffix;
-  RegExp? _regex;
+  /// The parsed [_pattern].
+  final Either2<String, RegExp> _matcher;
 
-  Glob(this._separator, this._pattern) {
-    if (_hasJustPrefix(_pattern, '**/*')) {
-      _suffix = _pattern.substring(4).toLowerCase();
-    } else if (_hasJustPrefix(_pattern, '**')) {
-      _suffix = _pattern.substring(2).toLowerCase();
-    } else {
-      _regex = _regexpFromGlobPattern(_pattern);
-    }
-  }
+  Glob(this._separator, this._pattern) : _matcher = _parse(_pattern);
 
   @override
   int get hashCode => _pattern.hashCode;
@@ -45,10 +39,10 @@ class Glob {
   /// The given [path] must use the same [_separator] as the glob.
   bool matches(String path) {
     String posixPath = _toPosixPath(path);
-    if (_suffix != null) {
-      return posixPath.toLowerCase().endsWith(_suffix!);
-    }
-    return _regex!.matchAsPrefix(posixPath) != null;
+    return _matcher.map(
+      (suffix) => posixPath.toLowerCase().endsWith(suffix),
+      (regexp) => regexp.matchAsPrefix(posixPath) != null,
+    );
   }
 
   @override
@@ -71,6 +65,19 @@ class Glob {
           !pattern.contains('?', prefixLength);
     }
     return false;
+  }
+
+  static Either2<String, RegExp> _parse(String pattern) {
+    if (_hasJustPrefix(pattern, '**/*')) {
+      var suffix = pattern.substring(4).toLowerCase();
+      return Either2.t1(suffix);
+    } else if (_hasJustPrefix(pattern, '**')) {
+      var suffix = pattern.substring(2).toLowerCase();
+      return Either2.t1(suffix);
+    } else {
+      var regexp = _regexpFromGlobPattern(pattern);
+      return Either2.t2(regexp);
+    }
   }
 
   static RegExp _regexpFromGlobPattern(String pattern) {

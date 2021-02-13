@@ -244,7 +244,7 @@ class ReturnTypeVerifier {
       // It is a compile-time error if `flatten(S)` is not `void`,
       // and `Future<flatten(S)>` is not assignable to `T`.
       if (!flatten_S.isVoid) {
-        var future_flatten_S = _typeProvider.futureType2(flatten_S);
+        var future_flatten_S = _typeProvider.futureType(flatten_S);
         if (!_typeSystem.isAssignableTo(future_flatten_S, T)) {
           reportTypeError();
           return;

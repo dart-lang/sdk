@@ -53,13 +53,13 @@ DartType impliedDartTypeWithName(TypeProvider typeProvider, String name) {
   } else if (numNames.contains(name)) {
     return typeProvider.numType;
   } else if (listNames.contains(name)) {
-    return typeProvider.listType2(typeProvider.dynamicType);
+    return typeProvider.listType(typeProvider.dynamicType);
   } else if (stringNames.contains(name)) {
     return typeProvider.stringType;
   } else if (name == 'iterator') {
     return typeProvider.iterableDynamicType;
   } else if (name == 'map') {
-    return typeProvider.mapType2(
+    return typeProvider.mapType(
         typeProvider.dynamicType, typeProvider.dynamicType);
   }
   return null;
@@ -890,7 +890,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
           if (currentNode.isSet) {
             return typeProvider.iterableDynamicType;
           }
-          return typeProvider.mapType2(
+          return typeProvider.mapType(
               typeProvider.dynamicType, typeProvider.dynamicType);
         }
         currentNode = currentNode.parent;

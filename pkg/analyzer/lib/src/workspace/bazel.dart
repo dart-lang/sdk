@@ -473,8 +473,7 @@ class BazelWorkspace extends Workspace
       return cachedPackage;
     }
 
-    Folder folder = provider.getFolder(directoryPath);
-    if (!context.isWithin(root, folder.path)) {
+    if (!context.isWithin(root, directoryPath)) {
       return null;
     }
 
@@ -482,14 +481,14 @@ class BazelWorkspace extends Workspace
     // This does not typically happen during usual analysis, but it still could,
     // and it can come up in tests.
     for (var binPath in [genfiles, ...binPaths]) {
-      if (context.isWithin(binPath, folder.path)) {
+      if (context.isWithin(binPath, directoryPath)) {
         return findPackageFor(
             context.join(root, context.relative(filePath, from: binPath)));
       }
     }
 
-    // Return a Package rooted at [folder].
-    BazelWorkspacePackage? packageRootedHere() {
+    /// Return the package rooted at [folder].
+    BazelWorkspacePackage? packageRootedAt(Folder folder) {
       var uriParts = (packageUriResolver as BazelPackageUriResolver)
           ._restoreUriParts(root, '${folder.path}/lib/__fake__.dart');
       String? packageName;
@@ -506,12 +505,9 @@ class BazelWorkspace extends Workspace
       return package;
     }
 
-    while (true) {
-      var parent = folder.parent;
-      if (parent == null) {
-        return null;
-      }
-      if (parent.path.length < root.length) {
+    var startFolder = provider.getFolder(directoryPath);
+    for (var folder in startFolder.withAncestors) {
+      if (folder.path.length < root.length) {
         // We've walked up outside of [root], so [path] is definitely not
         // defined in any package in this workspace.
         return null;
@@ -519,15 +515,12 @@ class BazelWorkspace extends Workspace
 
       if (folder.getChildAssumingFile(_buildFileName).exists) {
         // Found the BUILD file, denoting a Dart package.
-        return packageRootedHere();
+        return packageRootedAt(folder);
       }
 
       if (_hasBuildFileSubstitute(folder)) {
-        return packageRootedHere();
+        return packageRootedAt(folder);
       }
-
-      // Go up a folder.
-      folder = parent;
     }
   }
 
@@ -612,17 +605,10 @@ class BazelWorkspace extends Workspace
     String filePath, {
     bool lookForBuildFileSubstitutes = true,
   }) {
-    Resource resource = provider.getResource(filePath);
-    if (resource is File && resource.parent != null) {
-      filePath = resource.parent!.path;
-    }
-    path.Context context = provider.pathContext;
-    Folder folder = provider.getFolder(filePath);
-    while (true) {
-      var parent = folder.parent;
-      if (parent == null) {
-        return null;
-      }
+    var context = provider.pathContext;
+    var startFolder = provider.getFolder(filePath);
+    for (var folder in startFolder.withAncestors) {
+      var parent = folder.parent2;
 
       // Found the READONLY folder, might be a git-based workspace.
       Folder readonlyFolder = parent.getChildAssumingFolder(_READONLY);
@@ -665,8 +651,8 @@ class BazelWorkspace extends Workspace
             lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
       }
 
-      // Go up the folder.
-      folder = parent;
+      // // Go up the folder.
+      // folder = parent;
     }
   }
 

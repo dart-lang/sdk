@@ -226,14 +226,14 @@ class GreatestLowerBoundHelper {
       if (T2 is InterfaceTypeImpl && T2.isDartAsyncFutureOr) {
         var S2 = T2.typeArguments[0];
         var S = getGreatestLowerBound(S1, S2);
-        return _typeProvider.futureOrType2(S);
+        return _typeProvider.futureOrType(S);
       }
       // DOWN(FutureOr<S1>, Future<S2>) = Future(S)
       //   S = DOWN(S1, S2)
       if (T2 is InterfaceTypeImpl && T2.isDartAsyncFuture) {
         var S2 = T2.typeArguments[0];
         var S = getGreatestLowerBound(S1, S2);
-        return _typeProvider.futureType2(S);
+        return _typeProvider.futureType(S);
       }
       // DOWN(FutureOr<S1>, T2) = DOWN(S1, T2)
       return getGreatestLowerBound(S1, T2);
@@ -247,7 +247,7 @@ class GreatestLowerBoundHelper {
       if (T1 is InterfaceTypeImpl && T1.isDartAsyncFuture) {
         var S1 = T1.typeArguments[0];
         var S = getGreatestLowerBound(S1, S2);
-        return _typeProvider.futureType2(S);
+        return _typeProvider.futureType(S);
       }
       // DOWN(T1, FutureOr<S2>) = DOWN(T1, S2)
       return getGreatestLowerBound(T1, S2);

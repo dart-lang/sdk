@@ -1,3 +1,11 @@
+## 1.1.0-dev
+* Deprecated `TypeProvider.futureType2()`, `iterableType2()`, etc.
+  Use corresponding `TypeProvider.futureType()`, `iterableType()`, etc.
+* Remove experimental markers from Null Safety APIs.
+* Added `Resource.parent2` and deprecated `Resource.parent`.
+* Added `Folder.isRoot`.
+* Added `FolderExtension` with `withAncestors`.
+
 ## 1.0.0
 * Stable null safety release.
 * Updated dependencies to null safe releases.

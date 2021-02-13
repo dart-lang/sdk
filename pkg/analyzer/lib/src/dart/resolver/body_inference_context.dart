@@ -95,13 +95,13 @@ class BodyInferenceContext {
 
     if (_isGenerator) {
       if (_isAsynchronous) {
-        return _typeProvider.streamType2(clampedReturnedType);
+        return _typeProvider.streamType(clampedReturnedType);
       } else {
-        return _typeProvider.iterableType2(clampedReturnedType);
+        return _typeProvider.iterableType(clampedReturnedType);
       }
     } else {
       if (_isAsynchronous) {
-        return _typeProvider.futureType2(
+        return _typeProvider.futureType(
           _typeSystem.flatten(clampedReturnedType),
         );
       } else {
@@ -210,7 +210,7 @@ class BodyInferenceContext {
 
     // Otherwise the context type is `FutureOr<futureValueTypeSchema(S)>`,
     // where `S` is the imposed return type.
-    return typeSystem.typeProvider.futureOrType2(
+    return typeSystem.typeProvider.futureOrType(
       typeSystem.futureValueType(imposedType),
     );
   }

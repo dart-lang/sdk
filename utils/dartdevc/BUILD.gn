@@ -223,8 +223,6 @@ template("dartdevc_kernel_compile") {
       args += invoker.args
     }
 
-    args += [ "--enable-experiment=non-nullable" ]
-
     if (invoker.sound_null_safety) {
       args += [ "--sound-null-safety" ]
     }
@@ -287,7 +285,6 @@ template("compile_dartdevc_platform") {
     args = [
       "--target=dartdevc",
       "dart:core",
-      "--enable-experiment=non-nullable",
     ]
 
     if (invoker.sound_null_safety) {
@@ -379,7 +376,6 @@ template("dartdevc_sdk_js") {
       "-o",
       rebase_path("$js_gen_dir/legacy/dart_sdk.js"),
       rebase_path("$platform_input"),
-      "--enable-experiment=non-nullable",
     ]
 
     if (invoker.sound_null_safety) {

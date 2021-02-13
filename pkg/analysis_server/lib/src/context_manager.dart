@@ -737,7 +737,7 @@ class ContextManagerImpl implements ContextManager {
     List<protocol.AnalysisError> convertedErrors;
     try {
       var file = resourceProvider.getFile(path);
-      var packageName = file.parent.parent.shortName;
+      var packageName = file.parent2.parent2.shortName;
       var content = _readFile(path);
       var errorListener = RecordingErrorListener();
       var errorReporter = ErrorReporter(errorListener, file.createSource());
@@ -1119,7 +1119,7 @@ class ContextManagerImpl implements ContextManager {
 
   /// Extract a new [packagespecFile]-based context from [oldInfo].
   void _extractContext(ContextInfo oldInfo, File packagespecFile) {
-    var newFolder = packagespecFile.parent;
+    var newFolder = packagespecFile.parent2;
     var newInfo =
         _createContext(oldInfo, newFolder, excludedPaths, packagespecFile);
     // prepare sources to extract

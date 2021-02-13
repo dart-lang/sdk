@@ -31,17 +31,6 @@ class FfiCode extends AnalyzerErrorCode {
       correction: "Try adding a field to '{0}' or use a different Struct.");
 
   /**
-   * Parameters:
-   * 0: the name of the struct class
-   */
-  static const FfiCode EMPTY_STRUCT_WARNING = FfiCode(
-      name: 'EMPTY_STRUCT_WARNING',
-      message:
-          "Struct '{0}' is empty. Support for empty structs is deprecated and will be removed in the next stable version of Dart. Use Opaque instead.",
-      correction: "Try adding a field to '{0}' or use a different Struct.",
-      type: ErrorType.HINT);
-
-  /**
    * No parameters.
    */
   static const FfiCode EXTRA_ANNOTATION_ON_STRUCT_FIELD = FfiCode(

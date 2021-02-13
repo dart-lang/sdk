@@ -1160,7 +1160,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
             ? nodeType.typeArguments[0]
             : _typeProvider.dynamicType;
-    InterfaceType listType = _typeProvider.listType2(elementType);
+    InterfaceType listType = _typeProvider.listType(elementType);
     return DartObjectImpl(typeSystem, listType, ListState(list));
   }
 
@@ -1301,7 +1301,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
           valueType = typeArguments[1];
         }
       }
-      InterfaceType mapType = _typeProvider.mapType2(keyType, valueType);
+      InterfaceType mapType = _typeProvider.mapType(keyType, valueType);
       return DartObjectImpl(typeSystem, mapType, MapState(map));
     } else {
       if (!node.isConst) {
@@ -1322,7 +1322,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
           nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
               ? nodeType.typeArguments[0]
               : _typeProvider.dynamicType;
-      InterfaceType setType = _typeProvider.setType2(elementType);
+      InterfaceType setType = _typeProvider.setType(elementType);
       return DartObjectImpl(typeSystem, setType, SetState(set));
     }
   }

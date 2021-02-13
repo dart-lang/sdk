@@ -99,20 +99,20 @@ class RecursiveTypeVisitorTest extends AbstractTypeTest {
   }
 
   void test_interfaceType_typeParameter() {
-    final type = typeProvider.listType2(intNone);
+    final type = typeProvider.listType(intNone);
     expect(type.accept(visitor), true);
     visitor.assertVisitedType(intNone);
   }
 
   void test_interfaceType_typeParameters() {
-    final type = typeProvider.mapType2(intNone, stringNone);
+    final type = typeProvider.mapType(intNone, stringNone);
     expect(type.accept(visitor), true);
     visitor.assertVisitedTypes([intNone, stringNone]);
   }
 
   void test_interfaceType_typeParameters_nested() {
-    final innerList = typeProvider.listType2(intNone);
-    final outerList = typeProvider.listType2(innerList);
+    final innerList = typeProvider.listType(intNone);
+    final outerList = typeProvider.listType(innerList);
     expect(outerList.accept(visitor), true);
     visitor.assertVisitedType(intNone);
   }
@@ -153,24 +153,24 @@ class RecursiveTypeVisitorTest extends AbstractTypeTest {
   }
 
   void test_stopVisiting_nested() {
-    final innerType = typeProvider.mapType2(intNone, stringNone);
-    final outerList = typeProvider.listType2(innerType);
+    final innerType = typeProvider.mapType(intNone, stringNone);
+    final outerList = typeProvider.listType(innerType);
     visitor.stopOnType = intNone;
     expect(outerList.accept(visitor), false);
     visitor.assertNotVisitedType(stringNone);
   }
 
   void test_stopVisiting_nested_parent() {
-    final innerTypeStop = typeProvider.listType2(intNone);
-    final innerTypeSkipped = typeProvider.listType2(stringNone);
-    final outerType = typeProvider.mapType2(innerTypeStop, innerTypeSkipped);
+    final innerTypeStop = typeProvider.listType(intNone);
+    final innerTypeSkipped = typeProvider.listType(stringNone);
+    final outerType = typeProvider.mapType(innerTypeStop, innerTypeSkipped);
     visitor.stopOnType = intNone;
     expect(outerType.accept(visitor), false);
     visitor.assertNotVisitedType(stringNone);
   }
 
   void test_stopVisiting_typeParameters() {
-    final type = typeProvider.mapType2(intNone, stringNone);
+    final type = typeProvider.mapType(intNone, stringNone);
     visitor.stopOnType = intNone;
     expect(type.accept(visitor), false);
     visitor.assertVisitedType(intNone);

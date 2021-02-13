@@ -236,23 +236,23 @@ class AbstractContextTest with ResourceProviderMixin {
 
     if (meta || flutter) {
       var libFolder = MockPackages.instance.addMeta(resourceProvider);
-      config.add(name: 'meta', rootPath: libFolder.parent.path);
+      config.add(name: 'meta', rootPath: libFolder.parent2.path);
     }
 
     if (flutter) {
       {
         var libFolder = MockPackages.instance.addUI(resourceProvider);
-        config.add(name: 'ui', rootPath: libFolder.parent.path);
+        config.add(name: 'ui', rootPath: libFolder.parent2.path);
       }
       {
         var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-        config.add(name: 'flutter', rootPath: libFolder.parent.path);
+        config.add(name: 'flutter', rootPath: libFolder.parent2.path);
       }
     }
 
     if (vector_math) {
       var libFolder = MockPackages.instance.addVectorMath(resourceProvider);
-      config.add(name: 'vector_math', rootPath: libFolder.parent.path);
+      config.add(name: 'vector_math', rootPath: libFolder.parent2.path);
     }
 
     var path = '$testPackageRootPath/.dart_tool/package_config.json';

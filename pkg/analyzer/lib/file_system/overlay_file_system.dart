@@ -249,6 +249,12 @@ class _OverlayFolder extends _OverlayResource implements Folder {
   @override
   bool get exists => provider._hasOverlayIn(path) || _resource.exists;
 
+  @override
+  bool get isRoot {
+    var parentPath = provider.pathContext.dirname(path);
+    return parentPath == path;
+  }
+
   /// Return the folder from the base resource provider that corresponds to this
   /// folder.
   Folder get _folder => _resource as Folder;
@@ -348,12 +354,19 @@ abstract class _OverlayResource implements Resource {
   @override
   int get hashCode => path.hashCode;
 
+  @Deprecated('Use parent2 instead')
   @override
   Folder? get parent {
     Folder? parent = _resource.parent;
     if (parent == null) {
       return null;
     }
+    return _OverlayFolder(provider, parent);
+  }
+
+  @override
+  Folder get parent2 {
+    var parent = _resource.parent2;
     return _OverlayFolder(provider, parent);
   }
 

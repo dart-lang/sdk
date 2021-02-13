@@ -202,7 +202,7 @@ class TypeSystemImpl implements TypeSystem {
     // * Else if T is FutureOr<R> and R <: S then factor(Future<R>, S)
     if (T is InterfaceType && T.isDartAsyncFutureOr) {
       var R = T.typeArguments[0];
-      var future_R = typeProvider.futureType2(R);
+      var future_R = typeProvider.futureType(R);
       if (isSubtypeOf(future_R, S)) {
         return factor(R, S);
       }

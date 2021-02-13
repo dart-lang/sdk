@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=non-nullable
 
 // Test that it is an error if an instance field with potentially non-nullable
 // type has no initializer expression and is not initialized in a constructor

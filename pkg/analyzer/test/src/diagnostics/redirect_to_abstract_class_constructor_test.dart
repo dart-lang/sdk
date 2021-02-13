@@ -49,4 +49,16 @@ class A {
 class B extends A {}
 ''');
   }
+
+  test_redirectsToSubclass_asTypedef() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  factory A.named() = C;
+  A();
+}
+
+class B extends A {}
+typedef C = B;
+''');
+  }
 }

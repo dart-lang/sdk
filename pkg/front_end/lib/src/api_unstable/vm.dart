@@ -55,7 +55,6 @@ export '../fasta/fasta_codes.dart'
         noLength,
         templateFfiDartTypeMismatch,
         templateFfiEmptyStruct,
-        templateFfiEmptyStructWarning,
         templateFfiExpectedExceptionalReturn,
         templateFfiExpectedNoExceptionalReturn,
         templateFfiExtendsOrImplementsSealedClass,
