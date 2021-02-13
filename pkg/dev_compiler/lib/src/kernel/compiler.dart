@@ -6062,7 +6062,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (type.nullability == Nullability.legacy) {
         type = type.withDeclaredNullability(Nullability.nonNullable);
       }
-      assert(!_isInForeignJS || type.nullability == Nullability.nonNullable);
+      assert(!_isInForeignJS ||
+          type.nullability == Nullability.nonNullable ||
+          // The types dynamic, void, and Null all instrinsicly have
+          // `Nullability.nullable` but are handled explicitly without emiting
+          // the nullable runtime wrapper. They are safe to allow through
+          // unchanged.
+          type == const DynamicType() ||
+          type == const NullType() ||
+          type == const VoidType());
       return _emitTypeLiteral(type);
     }
     if (isSdkInternalRuntime(_currentLibrary) || node is PrimitiveConstant) {

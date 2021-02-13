@@ -2039,7 +2039,7 @@ intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
   } else if (parsed_function_.function().IsIrregexpFunction()) {
     threshold = FLAG_regexp_optimization_counter_threshold;
   } else if (FLAG_randomize_optimization_counter) {
-    threshold = Thread::Current()->GetRandomUInt64() %
+    threshold = Thread::Current()->random()->NextUInt64() %
                 FLAG_optimization_counter_threshold;
   } else {
     const intptr_t basic_blocks = flow_graph().preorder().length();

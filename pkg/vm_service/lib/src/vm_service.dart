@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.42.0';
+const String vmServiceVersion = '3.43.0';
 
 /// @optional
 const String optional = 'optional';
@@ -199,6 +199,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'evaluate': const ['InstanceRef', 'ErrorRef'],
   'evaluateInFrame': const ['InstanceRef', 'ErrorRef'],
   'getAllocationProfile': const ['AllocationProfile'],
+  'getAllocationTraces': const ['CpuSamples'],
   'getClassList': const ['ClassList'],
   'getCpuSamples': const ['CpuSamples'],
   'getFlagList': const ['FlagList'],
@@ -232,6 +233,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'setFlag': const ['Success', 'Error'],
   'setLibraryDebuggable': const ['Success'],
   'setName': const ['Success'],
+  'setTraceClassAllocation': const ['Success'],
   'setVMName': const ['Success'],
   'setVMTimelineFlags': const ['Success'],
   'streamCancel': const ['Success'],
@@ -502,6 +504,14 @@ abstract class VmServiceInterface {
   /// returned.
   Future<AllocationProfile> getAllocationProfile(String isolateId,
       {bool? reset, bool? gc});
+
+  /// See [CpuSamples].
+  Future<CpuSamples> getAllocationTraces(
+    String isolateId, {
+    int? timeOriginMicros,
+    int? timeExtentMicros,
+    String? classId,
+  });
 
   /// The `getClassList` RPC is used to retrieve a `ClassList` containing all
   /// classes for an isolate based on the isolate's `isolateId`.
@@ -1051,6 +1061,13 @@ abstract class VmServiceInterface {
   /// returned.
   Future<Success> setName(String isolateId, String name);
 
+  /// See [Success].
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Success> setTraceClassAllocation(
+      String isolateId, String classId, bool enable);
+
   /// The `setVMName` RPC is used to change the debugging name for the vm.
   ///
   /// See [Success].
@@ -1271,6 +1288,14 @@ class VmServerConnection {
             gc: params['gc'],
           );
           break;
+        case 'getAllocationTraces':
+          response = await _serviceImplementation.getAllocationTraces(
+            params!['isolateId'],
+            timeOriginMicros: params['timeOriginMicros'],
+            timeExtentMicros: params['timeExtentMicros'],
+            classId: params['classId'],
+          );
+          break;
         case 'getClassList':
           response = await _serviceImplementation.getClassList(
             params!['isolateId'],
@@ -1445,6 +1470,13 @@ class VmServerConnection {
           response = await _serviceImplementation.setName(
             params!['isolateId'],
             params['name'],
+          );
+          break;
+        case 'setTraceClassAllocation':
+          response = await _serviceImplementation.setTraceClassAllocation(
+            params!['isolateId'],
+            params['classId'],
+            params['enable'],
           );
           break;
         case 'setVMName':
@@ -1728,6 +1760,20 @@ class VmService implements VmServiceInterface {
       });
 
   @override
+  Future<CpuSamples> getAllocationTraces(
+    String isolateId, {
+    int? timeOriginMicros,
+    int? timeExtentMicros,
+    String? classId,
+  }) =>
+      _call('getAllocationTraces', {
+        'isolateId': isolateId,
+        if (timeOriginMicros != null) 'timeOriginMicros': timeOriginMicros,
+        if (timeExtentMicros != null) 'timeExtentMicros': timeExtentMicros,
+        if (classId != null) 'classId': classId,
+      });
+
+  @override
   Future<ClassList> getClassList(String isolateId) =>
       _call('getClassList', {'isolateId': isolateId});
 
@@ -1919,6 +1965,12 @@ class VmService implements VmServiceInterface {
   @override
   Future<Success> setName(String isolateId, String name) =>
       _call('setName', {'isolateId': isolateId, 'name': name});
+
+  @override
+  Future<Success> setTraceClassAllocation(
+          String isolateId, String classId, bool enable) =>
+      _call('setTraceClassAllocation',
+          {'isolateId': isolateId, 'classId': classId, 'enable': enable});
 
   @override
   Future<Success> setVMName(String name) => _call('setVMName', {'name': name});
@@ -2837,6 +2889,9 @@ class Class extends Obj implements ClassRef {
   /// Is this a const class?
   bool? isConst;
 
+  /// Are allocations of this class being traced?
+  bool? traceAllocations;
+
   /// The library which contains this class.
   LibraryRef? library;
 
@@ -2879,6 +2934,7 @@ class Class extends Obj implements ClassRef {
     required this.name,
     required this.isAbstract,
     required this.isConst,
+    required this.traceAllocations,
     required this.library,
     required this.interfaces,
     required this.fields,
@@ -2899,6 +2955,7 @@ class Class extends Obj implements ClassRef {
     error = createServiceObject(json['error'], const ['ErrorRef']) as ErrorRef?;
     isAbstract = json['abstract'] ?? false;
     isConst = json['const'] ?? false;
+    traceAllocations = json['traceAllocations'] ?? false;
     library = createServiceObject(json['library']!, const ['LibraryRef'])
         as LibraryRef;
     location = createServiceObject(json['location'], const ['SourceLocation'])
@@ -2934,6 +2991,7 @@ class Class extends Obj implements ClassRef {
       'name': name,
       'abstract': isAbstract,
       'const': isConst,
+      'traceAllocations': traceAllocations,
       'library': library?.toJson(),
       'interfaces': interfaces?.map((f) => f.toJson()).toList(),
       'fields': fields?.map((f) => f.toJson()).toList(),
@@ -3386,6 +3444,17 @@ class CpuSample {
   /// @Function(foo())` `functions[stack[2]] = @Function(main())`
   List<int>? stack;
 
+  /// The identityHashCode assigned to the allocated object. This hash code is
+  /// the same as the hash code provided in HeapSnapshot. Provided for CpuSample
+  /// instances returned from a getAllocationTraces().
+  @optional
+  int? identityHashCode;
+
+  /// Matches the index of a class in HeapSnapshot.classes. Provided for
+  /// CpuSample instances returned from a getAllocationTraces().
+  @optional
+  int? classId;
+
   CpuSample({
     required this.tid,
     required this.timestamp,
@@ -3393,6 +3462,8 @@ class CpuSample {
     this.vmTag,
     this.userTag,
     this.truncated,
+    this.identityHashCode,
+    this.classId,
   });
 
   CpuSample._fromJson(Map<String, dynamic> json) {
@@ -3402,6 +3473,8 @@ class CpuSample {
     userTag = json['userTag'];
     truncated = json['truncated'];
     stack = List<int>.from(json['stack']);
+    identityHashCode = json['identityHashCode'];
+    classId = json['classId'];
   }
 
   Map<String, dynamic> toJson() {
@@ -3414,6 +3487,8 @@ class CpuSample {
     _setIfNotNull(json, 'vmTag', vmTag);
     _setIfNotNull(json, 'userTag', userTag);
     _setIfNotNull(json, 'truncated', truncated);
+    _setIfNotNull(json, 'identityHashCode', identityHashCode);
+    _setIfNotNull(json, 'classId', classId);
     return json;
   }
 

@@ -5,7 +5,6 @@
 @deprecated
 library analyzer.test.constant_test;
 
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:test/test.dart';
@@ -21,18 +20,6 @@ main() {
 
 @reflectiveTest
 class ConstantEvaluatorTest extends PubPackageResolutionTest {
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: [
-          EnableString.triple_shift,
-        ],
-      ),
-    );
-  }
-
   test_bitAnd_int_int() async {
     await _assertValueInt(74 & 42, "74 & 42");
   }

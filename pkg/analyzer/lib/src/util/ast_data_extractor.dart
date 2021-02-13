@@ -7,6 +7,30 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
+MemberId computeMemberId(Element element) {
+  var enclosingElement = element.enclosingElement;
+  if (enclosingElement is CompilationUnitElement) {
+    var memberName = element.name!;
+    if (element is PropertyAccessorElement && element.isSetter) {
+      memberName += '=';
+    }
+    return MemberId.internal(memberName);
+  } else if (enclosingElement is ClassElement) {
+    var memberName = element.name!;
+    var className = enclosingElement.name;
+    return MemberId.internal(memberName, className: className);
+  } else if (enclosingElement is ExtensionElement) {
+    var memberName = element.name!;
+    var extensionName = enclosingElement.name;
+    if (element is PropertyAccessorElement) {
+      memberName = '${element.isGetter ? 'get' : 'set'}#$memberName';
+    }
+    return MemberId.internal('$extensionName|$memberName');
+  }
+  throw UnimplementedError(
+      'TODO(paulberry): $element (${element.runtimeType})');
+}
+
 /// Abstract IR visitor for computing data corresponding to a node or element,
 /// and record it with a generic [Id]
 abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
@@ -74,27 +98,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
 
   Id createMemberId(Declaration node) {
     var element = node.declaredElement!;
-    var enclosingElement = element.enclosingElement;
-    if (enclosingElement is CompilationUnitElement) {
-      var memberName = element.name!;
-      if (element is PropertyAccessorElement && element.isSetter) {
-        memberName += '=';
-      }
-      return MemberId.internal(memberName);
-    } else if (enclosingElement is ClassElement) {
-      var memberName = element.name!;
-      var className = enclosingElement.name;
-      return MemberId.internal(memberName, className: className);
-    } else if (enclosingElement is ExtensionElement) {
-      var memberName = element.name!;
-      var extensionName = enclosingElement.name;
-      if (element is PropertyAccessorElement) {
-        memberName = '${element.isGetter ? 'get' : 'set'}#$memberName';
-      }
-      return MemberId.internal('$extensionName|$memberName');
-    }
-    throw UnimplementedError(
-        'TODO(paulberry): $element (${element.runtimeType})');
+    return computeMemberId(element);
   }
 
   NodeId createStatementId(Statement node) =>

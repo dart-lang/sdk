@@ -97,7 +97,7 @@ class _ReadStream {
 
 /// A representation of a field captured in a memory snapshot.
 class HeapSnapshotField {
-  /// A 0-origin index into [HeapSnapshotObject.references].
+  /// An index into [HeapSnapshotObject.references].
   int get index => _index;
 
   /// The name of the field.
@@ -194,7 +194,7 @@ class HeapSnapshotObject {
   /// Data associated with this object.
   dynamic get data => _data;
 
-  /// A list of 1-origin indicies into [HeapSnapshotGraph.objects].
+  /// A list of indicies into [HeapSnapshotGraph.objects].
   List<int> get references => _references;
 
   /// The identity hash code of this object.
@@ -218,7 +218,7 @@ class HeapSnapshotObject {
 
   final HeapSnapshotGraph _graph;
   final int _oid;
-  int _classId = -1;
+  int _classId = 0;
   int _shallowSize = -1;
   int _identityHashCode = 0;
   late final dynamic _data;
@@ -251,7 +251,7 @@ class HeapSnapshotObject {
 
 /// A representation of an external property captured in a memory snapshot.
 class HeapSnapshotExternalProperty {
-  /// A 1-origin index into [HeapSnapshotGraph.objects].
+  /// An index into [HeapSnapshotGraph.objects].
   final int object;
 
   /// The amount of external memory used.

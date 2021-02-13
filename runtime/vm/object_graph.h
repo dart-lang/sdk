@@ -186,7 +186,11 @@ class HeapSnapshotWriter : public ThreadStackResource {
 
   void Write();
 
+  static uint32_t GetHeapSnapshotIdentityHash(Thread* thread, ObjectPtr obj);
+
  private:
+  static uint32_t GetHashHelper(Thread* thread, ObjectPtr obj);
+
   static const intptr_t kMetadataReservation = 512;
   static const intptr_t kPreferredChunkSize = MB;
 

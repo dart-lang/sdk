@@ -1137,7 +1137,9 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   }
 }
 
-void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
+void Profiler::SampleAllocation(Thread* thread,
+                                intptr_t cid,
+                                uint32_t identity_hash) {
   ASSERT(thread != NULL);
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
@@ -1175,6 +1177,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
 
   Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
   sample->SetAllocationCid(cid);
+  sample->set_allocation_identity_hash(identity_hash);
 
   if (FLAG_profile_vm_allocation) {
     ProfilerNativeStackWalker native_stack_walker(
@@ -1561,6 +1564,8 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
   processed_sample->set_user_tag(sample->user_tag());
   if (sample->is_allocation_sample()) {
     processed_sample->set_allocation_cid(sample->allocation_cid());
+    processed_sample->set_allocation_identity_hash(
+        sample->allocation_identity_hash());
   }
   processed_sample->set_first_frame_executing(!sample->exit_frame_sample());
 
@@ -1612,6 +1617,7 @@ ProcessedSample::ProcessedSample()
       vm_tag_(0),
       user_tag_(0),
       allocation_cid_(-1),
+      allocation_identity_hash_(0),
       truncated_(false),
       timeline_code_trie_(nullptr),
       timeline_function_trie_(nullptr) {}

@@ -81,6 +81,7 @@ double weightedAverage(
     double inheritanceDistance = 0.0,
     double isConstant = 0.0,
     double isNoSuchMethod = 0.0,
+    double keyword = 0.0,
     double localVariableDistance = 0.0,
     double startsWithDollar = 0.0,
     double superMatches = 0.0}) {
@@ -89,6 +90,8 @@ double weightedAverage(
   assert(hasDeprecated.between(-1.0, 0.0));
   assert(inheritanceDistance.between(0.0, 1.0));
   assert(isConstant.between(0.0, 1.0));
+  assert(isNoSuchMethod.between(-1.0, 0.0));
+  assert(keyword.between(0.0, 1.0));
   assert(localVariableDistance.between(0.0, 1.0));
   assert(startsWithDollar.between(-1.0, 0.0));
   assert(superMatches.between(0.0, 1.0));
@@ -99,6 +102,7 @@ double weightedAverage(
     inheritanceDistance,
     isConstant,
     isNoSuchMethod,
+    keyword,
     localVariableDistance,
     startsWithDollar,
     superMatches,
@@ -109,6 +113,7 @@ double weightedAverage(
     1.00, // inheritanceDistance
     1.00, // isConstant
     1.00, // isNoSuchMethod
+    1.00, // keyword
     1.00, // localVariableDistance
     0.50, // startsWithDollar
     1.00, // superMatches

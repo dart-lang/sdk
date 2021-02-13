@@ -1704,6 +1704,11 @@ void Profile::PrintSamplesJSON(JSONObject* obj, bool code_samples) {
         PrintCodeFrameIndexJSON(&stack, sample, frame_index);
       }
     }
+    if (sample->IsAllocationSample()) {
+      sample_obj.AddProperty64("classId", sample->allocation_cid());
+      sample_obj.AddProperty64("identityHashCode",
+                               sample->allocation_identity_hash());
+    }
   }
 }
 
@@ -1787,6 +1792,30 @@ void ProfilerService::PrintJSON(JSONStream* stream,
                                   time_origin_micros, time_extent_micros);
   PrintJSONImpl(thread, stream, &filter, Profiler::sample_buffer(),
                 include_code_samples);
+}
+
+class AllocationSampleFilter : public SampleFilter {
+ public:
+  AllocationSampleFilter(Dart_Port port,
+                         intptr_t thread_task_mask,
+                         int64_t time_origin_micros,
+                         int64_t time_extent_micros)
+      : SampleFilter(port,
+                     thread_task_mask,
+                     time_origin_micros,
+                     time_extent_micros) {}
+
+  bool FilterSample(Sample* sample) { return sample->is_allocation_sample(); }
+};
+
+void ProfilerService::PrintAllocationJSON(JSONStream* stream,
+                                          int64_t time_origin_micros,
+                                          int64_t time_extent_micros) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  AllocationSampleFilter filter(isolate->main_port(), Thread::kMutatorTask,
+                                time_origin_micros, time_extent_micros);
+  PrintJSONImpl(thread, stream, &filter, Profiler::sample_buffer(), true);
 }
 
 class ClassAllocationSampleFilter : public SampleFilter {

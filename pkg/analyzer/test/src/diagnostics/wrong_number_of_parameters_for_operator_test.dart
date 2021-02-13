@@ -30,6 +30,7 @@ class WrongNumberOfParametersForOperatorTest extends PubPackageResolutionTest {
     await _checkTooFewAndTooMany('&');
     await _checkTooFewAndTooMany('<<');
     await _checkTooFewAndTooMany('>>');
+    await _checkTooFewAndTooMany('>>>');
     await _checkTooFewAndTooMany('[]');
   }
 
@@ -48,6 +49,7 @@ class WrongNumberOfParametersForOperatorTest extends PubPackageResolutionTest {
     await _checkCorrectSingle("&");
     await _checkCorrectSingle("<<");
     await _checkCorrectSingle(">>");
+    await _checkCorrectSingle(">>>");
     await _checkCorrectSingle("[]");
   }
 
