@@ -5,13 +5,9 @@
 // @dart = 2.9
 
 import 'dart:core' hide MapEntry;
-import 'dart:core' as core;
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
-import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:kernel/ast.dart'
     hide Reference; // Work around https://github.com/dart-lang/sdk/issues/44667
 import 'package:kernel/src/legacy_erasure.dart';
@@ -4739,36 +4735,13 @@ class InferenceVisitor
 
     readResult ??= new ExpressionInferenceResult(readType, read);
     if (!inferrer.isTopLevel && readTarget.isNullable) {
-      Map<DartType, NonPromotionReason> whyNotPromoted =
-          inferrer.flowAnalysis?.whyNotPromoted(receiver);
-      List<LocatedMessage> context;
-      if (whyNotPromoted != null && whyNotPromoted.isNotEmpty) {
-        _WhyNotPromotedVisitor whyNotPromotedVisitor =
-            new _WhyNotPromotedVisitor(inferrer, receiver);
-        for (core.MapEntry<DartType, NonPromotionReason> entry
-            in whyNotPromoted.entries) {
-          if (entry.key.isPotentiallyNullable) continue;
-          LocatedMessage message = entry.value.accept(whyNotPromotedVisitor);
-          if (inferrer.dataForTesting != null) {
-            String nonPromotionReasonText = entry.value.shortName;
-            if (whyNotPromotedVisitor.propertyReference != null) {
-              Id id = computeMemberId(whyNotPromotedVisitor.propertyReference);
-              nonPromotionReasonText += '($id)';
-            }
-            inferrer.dataForTesting.flowAnalysisResult
-                .nonPromotionReasons[read] = nonPromotionReasonText;
-          }
-          context = [message];
-          break;
-        }
-      }
       readResult = inferrer.wrapExpressionInferenceResultInProblem(
           readResult,
           templateNullablePropertyAccessError.withArguments(
               propertyName.text, receiverType, inferrer.isNonNullableByDefault),
           read.fileOffset,
           propertyName.text.length,
-          context: context);
+          context: inferrer.getWhyNotPromotedContext(receiver, read));
     }
     return readResult;
   }
@@ -6985,66 +6958,6 @@ class InferenceVisitor
       FunctionTearOff node, DartType arg) {
     // TODO: implement visitFunctionTearOff
     throw new UnimplementedError();
-  }
-}
-
-class _WhyNotPromotedVisitor
-    implements
-        NonPromotionReasonVisitor<LocatedMessage, Node, Expression,
-            VariableDeclaration> {
-  final TypeInferrerImpl inferrer;
-
-  final Expression receiver;
-
-  Member propertyReference;
-
-  _WhyNotPromotedVisitor(this.inferrer, this.receiver);
-
-  @override
-  LocatedMessage visitDemoteViaExplicitWrite(
-      DemoteViaExplicitWrite<VariableDeclaration, Expression> reason) {
-    if (inferrer.dataForTesting != null) {
-      inferrer.dataForTesting.flowAnalysisResult
-          .nonPromotionReasonTargets[reason.writeExpression] = reason.shortName;
-    }
-    int offset = reason.writeExpression.fileOffset;
-    return templateVariableCouldBeNullDueToWrite
-        .withArguments(reason.variable.name)
-        .withLocation(inferrer.helper.uri, offset, noLength);
-  }
-
-  @override
-  LocatedMessage visitDemoteViaForEachVariableWrite(
-      DemoteViaForEachVariableWrite<VariableDeclaration, Node> reason) {
-    int offset = (reason.node as TreeNode).fileOffset;
-    return templateVariableCouldBeNullDueToWrite
-        .withArguments(reason.variable.name)
-        .withLocation(inferrer.helper.uri, offset, noLength);
-  }
-
-  @override
-  LocatedMessage visitPropertyNotPromoted(PropertyNotPromoted reason) {
-    Member member;
-    Expression receiver = this.receiver;
-    if (receiver is InstanceGet) {
-      member = receiver.interfaceTarget;
-    } else if (receiver is SuperPropertyGet) {
-      member = receiver.interfaceTarget;
-    } else if (receiver is StaticInvocation) {
-      member = receiver.target;
-    } else if (receiver is PropertyGet) {
-      member = receiver.interfaceTarget;
-    } else {
-      assert(false, 'Unrecognized receiver: ${receiver.runtimeType}');
-    }
-    if (member != null) {
-      propertyReference = member;
-      return templateFieldNotPromoted
-          .withArguments(reason.propertyName)
-          .withLocation(member.fileUri, member.fileOffset, noLength);
-    } else {
-      return null;
-    }
   }
 }
 

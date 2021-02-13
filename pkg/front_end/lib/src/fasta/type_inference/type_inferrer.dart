@@ -5,14 +5,17 @@
 // @dart = 2.9
 
 import 'dart:core' hide MapEntry;
+import 'dart:core' as core;
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
     hide Reference; // Work around https://github.com/dart-lang/sdk/issues/44667
 
+import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 
 import 'package:front_end/src/fasta/kernel/internal_ast.dart';
 import 'package:front_end/src/fasta/type_inference/type_demotion.dart';
+import 'package:front_end/src/testing/id_extractor.dart';
 
 import 'package:kernel/ast.dart'
     hide Reference; // Work around https://github.com/dart-lang/sdk/issues/44667
@@ -299,6 +302,37 @@ class TypeInferrerImpl implements TypeInferrer {
             coreTypes.reachabilityErrorConstructor, arguments)
           ..fileOffset = fileOffset)
       ..fileOffset = fileOffset;
+  }
+
+  /// Computes a list of context messages explaining why [receiver] was not
+  /// promoted, to be used when reporting an error for a larger expression
+  /// containing [receiver].  [expression] is the containing expression.
+  List<LocatedMessage> getWhyNotPromotedContext(
+      Expression receiver, Expression expression) {
+    Map<DartType, NonPromotionReason> whyNotPromoted =
+        flowAnalysis?.whyNotPromoted(receiver);
+    List<LocatedMessage> context;
+    if (whyNotPromoted != null && whyNotPromoted.isNotEmpty) {
+      _WhyNotPromotedVisitor whyNotPromotedVisitor =
+          new _WhyNotPromotedVisitor(this, receiver);
+      for (core.MapEntry<DartType, NonPromotionReason> entry
+          in whyNotPromoted.entries) {
+        if (entry.key.isPotentiallyNullable) continue;
+        LocatedMessage message = entry.value.accept(whyNotPromotedVisitor);
+        if (dataForTesting != null) {
+          String nonPromotionReasonText = entry.value.shortName;
+          if (whyNotPromotedVisitor.propertyReference != null) {
+            Id id = computeMemberId(whyNotPromotedVisitor.propertyReference);
+            nonPromotionReasonText += '($id)';
+          }
+          dataForTesting.flowAnalysisResult.nonPromotionReasons[expression] =
+              nonPromotionReasonText;
+        }
+        context = [message];
+        break;
+      }
+    }
+    return context;
   }
 
   /// Returns `true` if exceptions should be thrown in paths reachable only due
@@ -2754,7 +2788,8 @@ class TypeInferrerImpl implements TypeInferrer {
               templateNullableMethodCallError.withArguments(
                   name.text, receiverType, isNonNullableByDefault),
               fileOffset,
-              name.text.length);
+              name.text.length,
+              context: getWhyNotPromotedContext(receiver, staticInvocation));
         }
       }
       return createNullAwareExpressionInferenceResult(
@@ -2831,7 +2866,8 @@ class TypeInferrerImpl implements TypeInferrer {
             templateNullableMethodCallError.withArguments(
                 callName.text, receiverType, isNonNullableByDefault),
             fileOffset,
-            callName.text.length);
+            callName.text.length,
+            context: getWhyNotPromotedContext(receiver, expression));
       }
     }
     // TODO(johnniwinther): Check that type arguments against the bounds.
@@ -2993,7 +3029,8 @@ class TypeInferrerImpl implements TypeInferrer {
             templateNullableMethodCallError.withArguments(
                 methodName.text, receiverType, isNonNullableByDefault),
             fileOffset,
-            methodName.text.length);
+            methodName.text.length,
+            context: getWhyNotPromotedContext(receiver, expression));
       }
     }
 
@@ -4835,4 +4872,64 @@ class InferredFunctionBody {
   final DartType futureValueType;
 
   InferredFunctionBody(this.body, this.futureValueType);
+}
+
+class _WhyNotPromotedVisitor
+    implements
+        NonPromotionReasonVisitor<LocatedMessage, Node, Expression,
+            VariableDeclaration> {
+  final TypeInferrerImpl inferrer;
+
+  final Expression receiver;
+
+  Member propertyReference;
+
+  _WhyNotPromotedVisitor(this.inferrer, this.receiver);
+
+  @override
+  LocatedMessage visitDemoteViaExplicitWrite(
+      DemoteViaExplicitWrite<VariableDeclaration, Expression> reason) {
+    if (inferrer.dataForTesting != null) {
+      inferrer.dataForTesting.flowAnalysisResult
+          .nonPromotionReasonTargets[reason.writeExpression] = reason.shortName;
+    }
+    int offset = reason.writeExpression.fileOffset;
+    return templateVariableCouldBeNullDueToWrite
+        .withArguments(reason.variable.name)
+        .withLocation(inferrer.helper.uri, offset, noLength);
+  }
+
+  @override
+  LocatedMessage visitDemoteViaForEachVariableWrite(
+      DemoteViaForEachVariableWrite<VariableDeclaration, Node> reason) {
+    int offset = (reason.node as TreeNode).fileOffset;
+    return templateVariableCouldBeNullDueToWrite
+        .withArguments(reason.variable.name)
+        .withLocation(inferrer.helper.uri, offset, noLength);
+  }
+
+  @override
+  LocatedMessage visitPropertyNotPromoted(PropertyNotPromoted reason) {
+    Member member;
+    Expression receiver = this.receiver;
+    if (receiver is InstanceGet) {
+      member = receiver.interfaceTarget;
+    } else if (receiver is SuperPropertyGet) {
+      member = receiver.interfaceTarget;
+    } else if (receiver is StaticInvocation) {
+      member = receiver.target;
+    } else if (receiver is PropertyGet) {
+      member = receiver.interfaceTarget;
+    } else {
+      assert(false, 'Unrecognized receiver: ${receiver.runtimeType}');
+    }
+    if (member != null) {
+      propertyReference = member;
+      return templateFieldNotPromoted
+          .withArguments(reason.propertyName)
+          .withLocation(member.fileUri, member.fileOffset, noLength);
+    } else {
+      return null;
+    }
+  }
 }

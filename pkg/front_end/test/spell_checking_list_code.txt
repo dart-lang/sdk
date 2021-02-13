@@ -390,6 +390,7 @@ existentially
 exp
 expando
 expense
+explaining
 exportable
 exportee
 exportees
