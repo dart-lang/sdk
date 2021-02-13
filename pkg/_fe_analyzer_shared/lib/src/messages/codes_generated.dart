@@ -9665,15 +9665,13 @@ const MessageCode messageVarReturnType = const MessageCode("VarReturnType",
         r"""Try removing the keyword 'var', or replacing it with the name of the return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            name)> templateVariableCouldBeNullDueToWrite = const Template<
-        Message Function(String name)>(
-    messageTemplate:
-        r"""Variable '#name' could be null due to a write occurring here.""",
-    tipTemplate: r"""Try null checking the variable after the write.""",
-    withArguments: _withArgumentsVariableCouldBeNullDueToWrite);
+const Template<Message Function(String name)>
+    templateVariableCouldBeNullDueToWrite =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Variable '#name' could be null due to an intervening write.""",
+        tipTemplate: r"""Try null checking the variable after the write.""",
+        withArguments: _withArgumentsVariableCouldBeNullDueToWrite);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeVariableCouldBeNullDueToWrite =
@@ -9687,7 +9685,7 @@ Message _withArgumentsVariableCouldBeNullDueToWrite(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeVariableCouldBeNullDueToWrite,
       message:
-          """Variable '${name}' could be null due to a write occurring here.""",
+          """Variable '${name}' could be null due to an intervening write.""",
       tip: """Try null checking the variable after the write.""",
       arguments: {'name': name});
 }

@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:meta/meta.dart';
@@ -18,9 +19,12 @@ class CiderErrorFixes {
   /// The fixes for the [error], might be empty.
   final List<Fix> fixes;
 
+  final LineInfo lineInfo;
+
   CiderErrorFixes({
     @required this.error,
     @required this.fixes,
+    @required this.lineInfo,
   });
 }
 
@@ -54,7 +58,7 @@ class CiderFixesComputer {
           fixes.sort(Fix.SORT_BY_RELEVANCE);
 
           result.add(
-            CiderErrorFixes(error: error, fixes: fixes),
+            CiderErrorFixes(error: error, fixes: fixes, lineInfo: lineInfo),
           );
         }
       }

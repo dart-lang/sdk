@@ -392,8 +392,8 @@ class _WhyNotPromotedVisitor
       String variableName, Expression writeExpression) {
     return DiagnosticMessageImpl(
         filePath: source.fullName,
-        message:
-            "Variable '$variableName' could be null due to a write occurring here.",
+        message: "Variable '$variableName' could be null due to an intervening "
+            "write.",
         offset: writeExpression.offset,
         length: writeExpression.length);
   }
