@@ -1,5 +1,5 @@
 # Auto-generated options enabling all lints.
-# Add these to your `analysis-options.yaml` file and tailor to fit!
+# Add these to your `analysis_options.yaml` file and tailor to fit!
 linter:
   rules:
     - always_declare_return_types
