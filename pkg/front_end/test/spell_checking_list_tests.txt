@@ -86,6 +86,8 @@ btw
 builddir
 bulk2
 bulkcompile
+busy
+busywait
 bye
 c's
 c59cdee365b94ce066344840f9e3412d642019b
@@ -99,6 +101,7 @@ cc
 ccc
 cell
 cf
+characteristics
 charset
 checkme
 checkout
@@ -127,6 +130,7 @@ columns
 commented
 commit
 companion
+comparative
 comparer
 compilations
 compiler's
@@ -362,6 +366,7 @@ illustrate
 image
 images
 implementor
+imprecision
 in1
 in2
 inclosure
@@ -375,7 +380,9 @@ initializer2
 inlinable
 inlineable
 inlines
+insights
 instance2
+instrument
 insufficient
 intdiv
 interactive
@@ -527,6 +534,7 @@ out1
 out2
 outbound
 outlined
+overhead
 overlay
 ox
 pack
@@ -566,6 +574,7 @@ property5a
 property5b
 property8a
 property8b
+proportional
 protected
 proved
 provider
@@ -627,6 +636,7 @@ row
 rows
 runtimes
 rv
+saves
 scans
 scheduler
 screen
@@ -750,6 +760,7 @@ unpacked
 unpatched
 unpaused
 unregistered
+unsurprisingly
 untransformed
 untrimmed
 unusual
