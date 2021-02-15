@@ -404,8 +404,7 @@ class InferenceVisitor
   ExpressionInferenceResult visitConstructorInvocation(
       ConstructorInvocation node, DartType typeContext) {
     inferrer.inferConstructorParameterTypes(node.target);
-    bool hasExplicitTypeArguments =
-        getExplicitTypeArguments(node.arguments) != null;
+    bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
     FunctionType functionType = replaceReturnType(
         node.target.function
             .computeThisFunctionType(inferrer.library.nonNullable),
@@ -415,7 +414,7 @@ class InferenceVisitor
         isConst: node.isConst, staticTarget: node.target);
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
-      if (!hasExplicitTypeArguments) {
+      if (!hadExplicitTypeArguments) {
         library.checkBoundsInConstructorInvocation(
             node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
             inferred: true);
@@ -692,8 +691,7 @@ class InferenceVisitor
 
   ExpressionInferenceResult visitFactoryConstructorInvocationJudgment(
       FactoryConstructorInvocationJudgment node, DartType typeContext) {
-    bool hadExplicitTypeArguments =
-        getExplicitTypeArguments(node.arguments) != null;
+    bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
 
     FunctionType functionType = replaceReturnType(
         node.target.function
@@ -740,7 +738,7 @@ class InferenceVisitor
       SourceLibraryBuilder library = inferrer.library;
       library.checkBoundsInType(result.inferredType,
           inferrer.typeSchemaEnvironment, inferrer.helper.uri, node.fileOffset,
-          inferred: true);
+          inferred: true, allowSuperBounded: false);
       if (inferrer.isNonNullableByDefault) {
         if (node.target == inferrer.coreTypes.listDefaultConstructor) {
           resultNode = inferrer.helper.wrapInProblem(node,
@@ -768,7 +766,7 @@ class InferenceVisitor
       SourceLibraryBuilder library = inferrer.library;
       library.checkBoundsInType(result.inferredType,
           inferrer.typeSchemaEnvironment, inferrer.helper.uri, node.fileOffset,
-          inferred: true);
+          inferred: true, allowSuperBounded: false);
       if (inferrer.isNonNullableByDefault) {
         if (node.target == inferrer.coreTypes.listDefaultConstructor) {
           resultNode = inferrer.helper.wrapInProblem(node,
