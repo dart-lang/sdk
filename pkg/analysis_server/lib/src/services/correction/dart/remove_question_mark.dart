@@ -15,17 +15,24 @@ class RemoveQuestionMark extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! TypeName) {
-      return;
+    var node = this.node;
+    if (node is VariableDeclaration) {
+      var parent = node.parent;
+      if (parent is VariableDeclarationList) {
+        node = parent.type;
+      } else {
+        return;
+      }
     }
-    var typeName = node as TypeName;
-    var questionMark = typeName.question;
-    if (questionMark == null) {
-      return;
+    if (node is TypeName) {
+      var questionMark = node.question;
+      if (questionMark == null) {
+        return;
+      }
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addDeletion(range.token(questionMark));
+      });
     }
-    await builder.addDartFileEdit(file, (builder) {
-      builder.addDeletion(range.token(questionMark));
-    });
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

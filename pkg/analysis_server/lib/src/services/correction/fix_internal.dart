@@ -1004,6 +1004,15 @@ class FixProcessor extends BaseProcessor {
         ],
       )
     ],
+    LintNames.unnecessary_nullable_for_final_variable_declarations: [
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: true,
+        generators: [
+          RemoveQuestionMark.newInstance,
+        ],
+      )
+    ],
     LintNames.unnecessary_overrides: [
       FixInfo(
         canBeAppliedToFile: true,
@@ -1277,6 +1286,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_null_in_if_null_operators: [
       RemoveIfNullOperator.newInstance,
+    ],
+    LintNames.unnecessary_nullable_for_final_variable_declarations: [
+      RemoveQuestionMark.newInstance,
     ],
     LintNames.unnecessary_overrides: [
       RemoveMethodDeclaration.newInstance,
