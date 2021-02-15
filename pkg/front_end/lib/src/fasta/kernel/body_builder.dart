@@ -1226,7 +1226,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         replacementNode = buildStaticInvocation(
             resolvedTarget,
             forest.createArguments(noLocation, arguments.positional,
-                types: arguments.types, named: arguments.named),
+                types: arguments.types,
+                named: arguments.named,
+                hasExplicitTypeArguments: hasExplicitTypeArguments(arguments)),
             constness:
                 isConst ? Constness.explicitConst : Constness.explicitNew,
             charOffset: fileOffset);
@@ -1298,7 +1300,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
       Arguments invocationArguments = forest.createArguments(
           noLocation, invocation.arguments.positional,
-          types: invocationTypeArguments, named: invocation.arguments.named);
+          types: invocationTypeArguments,
+          named: invocation.arguments.named,
+          hasExplicitTypeArguments:
+              hasExplicitTypeArguments(invocation.arguments));
       invocation.replaceWith(_resolveRedirectingFactoryTarget(invocation.target,
           invocationArguments, invocation.fileOffset, invocation.isConst));
     }
@@ -4162,7 +4167,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               isConst: isConst)
             ..fileOffset = charOffset;
           libraryBuilder.checkBoundsInFactoryInvocation(
-              node, typeEnvironment, uri);
+              node, typeEnvironment, uri,
+              inferred: !hasExplicitTypeArguments(arguments));
         } else {
           node = new TypeAliasedFactoryInvocationJudgment(
               typeAliasBuilder, target, arguments,

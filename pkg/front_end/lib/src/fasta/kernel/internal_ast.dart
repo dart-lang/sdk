@@ -183,6 +183,10 @@ List<DartType> getExplicitTypeArguments(Arguments arguments) {
   }
 }
 
+bool hasExplicitTypeArguments(Arguments arguments) {
+  return getExplicitTypeArguments(arguments) != null;
+}
+
 /// Information associated with a class during type inference.
 class ClassInferenceInfo {
   /// The builder associated with this class.

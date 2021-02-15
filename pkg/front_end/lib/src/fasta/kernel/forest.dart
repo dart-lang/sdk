@@ -30,9 +30,18 @@ class Forest {
   const Forest();
 
   Arguments createArguments(int fileOffset, List<Expression> positional,
-      {List<DartType> types, List<NamedExpression> named}) {
-    return new ArgumentsImpl(positional, types: types, named: named)
-      ..fileOffset = fileOffset ?? TreeNode.noOffset;
+      {List<DartType> types,
+      List<NamedExpression> named,
+      bool hasExplicitTypeArguments = true}) {
+    if (!hasExplicitTypeArguments) {
+      ArgumentsImpl arguments =
+          new ArgumentsImpl(positional, types: <DartType>[], named: named);
+      arguments.types.addAll(types);
+      return arguments;
+    } else {
+      return new ArgumentsImpl(positional, types: types, named: named)
+        ..fileOffset = fileOffset ?? TreeNode.noOffset;
+    }
   }
 
   Arguments createArgumentsForExtensionMethod(
