@@ -94,7 +94,7 @@ class PackageApiDocs extends LintRule implements ProjectVisitor, NodeLintRule {
 }
 
 class _Visitor extends GeneralizingAstVisitor {
-  PackageApiDocs rule;
+  final PackageApiDocs rule;
 
   _Visitor(this.rule);
 
