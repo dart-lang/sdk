@@ -272,8 +272,6 @@ class FixesCodeActionsWithNullSafetyTest extends AbstractCodeActionsTest {
   @override
   String get testPackageLanguageVersion => latestLanguageVersion;
 
-  /// todo (pq): prefer_is_empty newly produces fix-all-fixes; update this test appropriately
-  @failingTest
   Future<void> test_fixAll_notForAmbigiousProducers() async {
     // The ReplaceWithIsEmpty producer does not provide a FixKind up-front, as
     // it may produce `REPLACE_WITH_IS_EMPTY` or `REPLACE_WITH_IS_NOT_EMPTY`
