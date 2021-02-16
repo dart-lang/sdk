@@ -101,6 +101,7 @@ bb
 became
 beforehand
 behave
+believe
 bellow
 belonging
 beloning
@@ -631,6 +632,7 @@ layout
 lc
 ld
 leafp
+leeway
 len
 lets
 letting
@@ -1175,6 +1177,7 @@ tells
 temp
 temporaries
 temps
+tempting
 term
 termcap
 terminator
@@ -1323,6 +1326,7 @@ vector
 vegorov
 verbosity
 versa
+viable
 vice
 video
 violated
@@ -1355,6 +1359,7 @@ widgets
 wiki
 wikipedia
 wind
+wiser
 with1
 wn
 worthwhile
