@@ -38,10 +38,14 @@ class GCCompactor : public ValueObject,
   void SetupImagePageBoundaries();
   void ForwardStackPointers();
   void ForwardPointer(ObjectPtr* ptr);
+  void ForwardCompressedPointer(uword heap_base, CompressedObjectPtr* ptr);
   void VisitTypedDataViewPointers(TypedDataViewPtr view,
                                   ObjectPtr* first,
                                   ObjectPtr* last);
   void VisitPointers(ObjectPtr* first, ObjectPtr* last);
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last);
   void VisitHandle(uword addr);
 
   Heap* heap_;

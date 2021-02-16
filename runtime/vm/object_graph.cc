@@ -53,21 +53,32 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
   // Marks and pushes. Used to initialize this stack with roots.
   // We can use ObjectIdTable normally used by serializers because it
   // won't be in use while handling a service request (ObjectGraph's only use).
-  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
     for (ObjectPtr* current = first; current <= last; ++current) {
-      if ((*current)->IsHeapObject() &&
-          !(*current)->untag()->InVMIsolateHeap() &&
-          object_ids_->GetValueExclusive(*current) == 0) {  // not visited yet
-        if (!include_vm_objects_ && !IsUserClass((*current)->GetClassId())) {
-          continue;
-        }
-        object_ids_->SetValueExclusive(*current, 1);
-        Node node;
-        node.ptr = current;
-        node.obj = *current;
-        node.gc_root_type = gc_root_type();
-        data_.Add(node);
+      Visit(current, *current);
+    }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
+    for (CompressedObjectPtr* current = first; current <= last; ++current) {
+      Visit(current, current->Decompress(heap_base));
+    }
+  }
+
+  void Visit(void* ptr, ObjectPtr obj) {
+    if (obj->IsHeapObject() && !obj->untag()->InVMIsolateHeap() &&
+        object_ids_->GetValueExclusive(obj) == 0) {  // not visited yet
+      if (!include_vm_objects_ && !IsUserClass(obj->GetClassId())) {
+        return;
       }
+      object_ids_->SetValueExclusive(obj, 1);
+      Node node;
+      node.ptr = ptr;
+      node.obj = obj;
+      node.gc_root_type = gc_root_type();
+      data_.Add(node);
     }
   }
 
@@ -112,7 +123,7 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
 
  private:
   struct Node {
-    ObjectPtr* ptr;  // kSentinel for the sentinel node.
+    void* ptr;  // kSentinel for the sentinel node.
     ObjectPtr obj;
     const char* gc_root_type;
   };
@@ -165,7 +176,6 @@ intptr_t ObjectGraph::StackIterator::OffsetFromParentInWords() const {
   Stack::Node parent = stack_->data_[parent_index];
   uword parent_start = UntaggedObject::ToAddr(parent.obj);
   Stack::Node child = stack_->data_[index_];
-  ASSERT(child.obj == *child.ptr);
   uword child_ptr_addr = reinterpret_cast<uword>(child.ptr);
   intptr_t offset = child_ptr_addr - parent_start;
   if (offset > 0 && offset < parent.obj->untag()->HeapSize()) {
@@ -484,9 +494,43 @@ class InboundReferencesVisitor : public ObjectVisitor,
     raw_obj->untag()->VisitPointers(this);
   }
 
-  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
     for (ObjectPtr* current_ptr = first; current_ptr <= last; current_ptr++) {
       ObjectPtr current_obj = *current_ptr;
+      if (current_obj == target_) {
+        intptr_t obj_index = length_ * 2;
+        intptr_t offset_index = obj_index + 1;
+        if (!references_.IsNull() && offset_index < references_.Length()) {
+          *scratch_ = source_;
+          references_.SetAt(obj_index, *scratch_);
+
+          *scratch_ = Smi::New(0);
+          uword source_start = UntaggedObject::ToAddr(source_);
+          uword current_ptr_addr = reinterpret_cast<uword>(current_ptr);
+          intptr_t offset = current_ptr_addr - source_start;
+          if (offset > 0 && offset < source_->untag()->HeapSize()) {
+            ASSERT(Utils::IsAligned(offset, kWordSize));
+            *scratch_ = Smi::New(offset >> kWordSizeLog2);
+          } else {
+            // Some internal VM objects visit pointers not contained within the
+            // parent. For instance, UntaggedCode::VisitCodePointers visits
+            // pointers in instructions.
+            ASSERT(!source_->IsDartInstance());
+            *scratch_ = Smi::New(-1);
+          }
+          references_.SetAt(offset_index, *scratch_);
+        }
+        ++length_;
+      }
+    }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
+    for (CompressedObjectPtr* current_ptr = first; current_ptr <= last;
+         current_ptr++) {
+      ObjectPtr current_obj = current_ptr->Decompress(heap_base);
       if (current_obj == target_) {
         intptr_t obj_index = length_ * 2;
         intptr_t offset_index = obj_index + 1;
@@ -786,6 +830,14 @@ class Pass1Visitor : public ObjectVisitor,
     writer_->CountReferences(count);
   }
 
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* from,
+                               CompressedObjectPtr* to) {
+    intptr_t count = to - from + 1;
+    ASSERT(count >= 0);
+    writer_->CountReferences(count);
+  }
+
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* weak_persistent_handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
@@ -970,6 +1022,23 @@ class Pass2Visitor : public ObjectVisitor,
     if (writing_) {
       for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
         ObjectPtr target = *ptr;
+        written_++;
+        total_++;
+        writer_->WriteUnsigned(writer_->GetObjectId(target));
+      }
+    } else {
+      intptr_t count = to - from + 1;
+      ASSERT(count >= 0);
+      counted_ += count;
+    }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* from,
+                               CompressedObjectPtr* to) {
+    if (writing_) {
+      for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
+        ObjectPtr target = ptr->Decompress(heap_base);
         written_++;
         total_++;
         writer_->WriteUnsigned(writer_->GetObjectId(target));

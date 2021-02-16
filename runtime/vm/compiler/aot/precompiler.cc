@@ -962,9 +962,21 @@ void Precompiler::AddConstObject(const class Instance& instance) {
           precompiler_(precompiler),
           subinstance_(Object::Handle()) {}
 
-    virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+    void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
       for (ObjectPtr* current = first; current <= last; current++) {
         subinstance_ = *current;
+        if (subinstance_.IsInstance()) {
+          precompiler_->AddConstObject(Instance::Cast(subinstance_));
+        }
+      }
+      subinstance_ = Object::null();
+    }
+
+    void VisitCompressedPointers(uword heap_base,
+                                 CompressedObjectPtr* first,
+                                 CompressedObjectPtr* last) {
+      for (CompressedObjectPtr* current = first; current <= last; current++) {
+        subinstance_ = current->Decompress(heap_base);
         if (subinstance_.IsInstance()) {
           precompiler_->AddConstObject(Instance::Cast(subinstance_));
         }

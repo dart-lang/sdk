@@ -47,7 +47,10 @@ class VerifyPointersVisitor : public ObjectPointerVisitor {
                                  ObjectSet* allocated_set)
       : ObjectPointerVisitor(isolate_group), allocated_set_(allocated_set) {}
 
-  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last);
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last);
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last);
 
   static void VerifyPointers(MarkExpectation mark_expectation = kForbidMarked);
 

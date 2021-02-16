@@ -20,7 +20,10 @@ class FailingObjectVisitor : public ObjectVisitor {
 class FailingObjectPointerVisitor : public ObjectPointerVisitor {
  public:
   FailingObjectPointerVisitor() : ObjectPointerVisitor(NULL) {}
-  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) { EXPECT(false); }
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
     EXPECT(false);
   }
 };

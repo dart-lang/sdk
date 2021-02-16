@@ -64,6 +64,15 @@ class PrintObjectPointersVisitor : public ObjectPointerVisitor {
       OS::PrintErr("%p: %s\n", p, obj.ToCString());
     }
   }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
+    for (CompressedObjectPtr* p = first; p <= last; p++) {
+      Object& obj = Object::Handle(p->Decompress(heap_base));
+      OS::PrintErr("%p: %s\n", p, obj.ToCString());
+    }
+  }
 };
 
 DART_EXPORT

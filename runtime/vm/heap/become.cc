@@ -83,9 +83,35 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
         thread_(thread),
         visiting_object_(nullptr) {}
 
-  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
     for (ObjectPtr* p = first; p <= last; p++) {
       ObjectPtr old_target = *p;
+      ObjectPtr new_target;
+      if (IsForwardingObject(old_target)) {
+        new_target = GetForwardedObject(old_target);
+      } else {
+        // Though we do not need to update the slot's value when it is not
+        // forwarded, we do need to recheck the generational barrier. In
+        // particular, the remembered bit may be incorrectly false if this
+        // become was the result of aborting a scavenge while visiting the
+        // remembered set.
+        new_target = old_target;
+      }
+      if (visiting_object_ == nullptr) {
+        *p = new_target;
+      } else if (visiting_object_->untag()->IsCardRemembered()) {
+        visiting_object_->untag()->StoreArrayPointer(p, new_target, thread_);
+      } else {
+        visiting_object_->untag()->StorePointer(p, new_target, thread_);
+      }
+    }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
+    for (CompressedObjectPtr* p = first; p <= last; p++) {
+      ObjectPtr old_target = p->Decompress(heap_base);
       ObjectPtr new_target;
       if (IsForwardingObject(old_target)) {
         new_target = GetForwardedObject(old_target);

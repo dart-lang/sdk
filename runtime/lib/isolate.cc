@@ -145,16 +145,28 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
 
    private:
     void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
-      for (ObjectPtr* raw = from; raw <= to; raw++) {
-        if (!(*raw)->IsHeapObject() || (*raw)->untag()->IsCanonical()) {
-          continue;
-        }
-        if (visited_->GetValueExclusive(*raw) == 1) {
-          continue;
-        }
-        visited_->SetValueExclusive(*raw, 1);
-        working_set_->Add(*raw);
+      for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
+        VisitObject(*ptr);
       }
+    }
+
+    void VisitCompressedPointers(uword heap_base,
+                                 CompressedObjectPtr* from,
+                                 CompressedObjectPtr* to) {
+      for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
+        VisitObject(ptr->Decompress(heap_base));
+      }
+    }
+
+    void VisitObject(ObjectPtr obj) {
+      if (!obj->IsHeapObject() || obj->untag()->IsCanonical()) {
+        return;
+      }
+      if (visited_->GetValueExclusive(obj) == 1) {
+        return;
+      }
+      visited_->SetValueExclusive(obj, 1);
+      working_set_->Add(obj);
     }
 
     WeakTable* visited_;

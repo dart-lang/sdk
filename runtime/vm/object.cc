@@ -2642,6 +2642,26 @@ class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
     }
   }
 
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* from,
+                               CompressedObjectPtr* to) {
+    if (old_obj_->IsArray()) {
+      for (CompressedObjectPtr* slot = from; slot <= to; ++slot) {
+        ObjectPtr value = slot->Decompress(heap_base);
+        if (value->IsHeapObject()) {
+          old_obj_->untag()->CheckArrayPointerStore(slot, value, thread_);
+        }
+      }
+    } else {
+      for (CompressedObjectPtr* slot = from; slot <= to; ++slot) {
+        ObjectPtr value = slot->Decompress(heap_base);
+        if (value->IsHeapObject()) {
+          old_obj_->untag()->CheckHeapPointerStore(value, thread_);
+        }
+      }
+    }
+  }
+
  private:
   Thread* thread_;
   ObjectPtr old_obj_;
@@ -18401,6 +18421,14 @@ class CheckForPointers : public ObjectPointerVisitor {
   bool has_pointers() const { return has_pointers_; }
 
   void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+    if (first != last) {
+      has_pointers_ = true;
+    }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
     if (first != last) {
       has_pointers_ = true;
     }
