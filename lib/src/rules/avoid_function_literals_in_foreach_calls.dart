@@ -55,12 +55,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (node.target != null &&
+    var target = node.target;
+    if (target != null &&
         node.methodName.token.value() == 'forEach' &&
         node.argumentList.arguments.isNotEmpty &&
         node.argumentList.arguments[0] is FunctionExpression &&
         DartTypeUtilities.implementsInterface(
-            node.target!.staticType, 'Iterable', 'dart.core') &&
+            target.staticType, 'Iterable', 'dart.core') &&
         !_hasMethodChaining(node)) {
       rule.reportLint(node.function);
     }

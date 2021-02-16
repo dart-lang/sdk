@@ -69,13 +69,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool get shouldValidateUri => _shouldValidateUri ??= checkForValidation();
 
   bool checkForValidation() {
-    if (pubspecFile == null) {
+    var file = pubspecFile;
+    if (file == null) {
       return false;
     }
 
     YamlMap parsedPubspec;
     try {
-      final content = pubspecFile!.readAsStringSync();
+      final content = file.readAsStringSync();
       parsedPubspec = _parseYaml(content);
       // ignore: avoid_catches_without_on_clauses
     } catch (_) {

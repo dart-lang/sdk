@@ -91,14 +91,20 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (parentMethod == null) return;
 
-    final parameters =
-        node.parameters!.parameters.where((p) => !p.isNamed).toList();
+    var nodeParams = node.parameters;
+    if (nodeParams == null) {
+      return;
+    }
+
+    final parameters = nodeParams.parameters.where((p) => !p.isNamed).toList();
     final parentParameters =
         parentMethod.parameters.where((p) => !p.isNamed).toList();
     final count = math.min(parameters.length, parentParameters.length);
     for (var i = 0; i < count; i++) {
       if (parentParameters.length <= i) break;
-      if (parameters[i].identifier!.name != parentParameters[i].name) {
+      var paramIdentifier = parameters[i].identifier;
+      if (paramIdentifier != null &&
+          paramIdentifier.name != parentParameters[i].name) {
         rule.reportLint(parameters[i].identifier);
       }
     }

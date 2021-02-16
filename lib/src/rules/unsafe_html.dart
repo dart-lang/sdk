@@ -172,7 +172,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
     } else {
-      type = node.realTarget!.staticType;
+      type = node.realTarget?.staticType;
       if (type == null) return;
     }
 

@@ -210,14 +210,17 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     final receiverWasDynamic = _lintIfDynamic(node.realTarget);
     if (!receiverWasDynamic) {
+      var target = node.target;
       // The ".call" method is special, where "a.call()" is treated ~as "a()".
       //
       // If the method is "call", and the receiver is a function, we assume then
       // we are really checking the static type of the receiver, not the static
       // type of the "call" method itself.
       DartType? staticType;
-      if (methodName == 'call' && node.target?.staticType is FunctionType) {
-        staticType = node.target!.staticType;
+      if (methodName == 'call' &&
+          target != null &&
+          target.staticType is FunctionType) {
+        staticType = target.staticType;
       }
       _lintIfDynamicOrFunction(node.function, staticType: staticType);
     }

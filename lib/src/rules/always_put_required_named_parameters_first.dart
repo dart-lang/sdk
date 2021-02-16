@@ -54,7 +54,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       var element = param.declaredElement!;
       if (element.hasRequired || element.isRequiredNamed) {
         if (nonRequiredSeen) {
-          rule.reportLintForToken(param.identifier!.token);
+          var identifier = param.identifier;
+          if (identifier != null) {
+            rule.reportLintForToken(identifier.token);
+          }
         }
       } else {
         nonRequiredSeen = true;

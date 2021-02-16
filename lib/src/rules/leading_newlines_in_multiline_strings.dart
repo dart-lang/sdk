@@ -77,9 +77,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _visitSingleStringLiteral(SingleStringLiteral node, String lexeme) {
+    var nodeLineInfo = lineInfo;
+    if (nodeLineInfo == null) {
+      return;
+    }
     if (node.isMultiline &&
-        lineInfo!.getLocation(node.offset).lineNumber !=
-            lineInfo!.getLocation(node.end).lineNumber) {
+        nodeLineInfo.getLocation(node.offset).lineNumber !=
+            nodeLineInfo.getLocation(node.end).lineNumber) {
       bool startWithNewLine(int index) =>
           lexeme.startsWith('\n', index) || lexeme.startsWith('\r', index);
       if (!startWithNewLine(node.isRaw ? 4 : 3)) {

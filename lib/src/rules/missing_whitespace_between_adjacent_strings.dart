@@ -58,8 +58,9 @@ class _Visitor extends RecursiveAstVisitor<void> {
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
     // skip regexp
-    if (node.parent is ArgumentList) {
-      final parentParent = node.parent!.parent;
+    var parent = node.parent;
+    if (parent is ArgumentList) {
+      final parentParent = parent.parent;
       if (_isRegExpInstanceCreation(parentParent) ||
           parentParent is MethodInvocation &&
               parentParent.realTarget == null &&

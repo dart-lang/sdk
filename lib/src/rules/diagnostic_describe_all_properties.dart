@@ -123,7 +123,7 @@ class _Visitor extends SimpleAstVisitor {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     // We only care about Diagnosticables.
-    final type = node.declaredElement!.thisType;
+    final type = node.declaredElement?.thisType;
     if (!DartTypeUtilities.implementsInterface(type, 'Diagnosticable', '')) {
       return;
     }
@@ -141,11 +141,13 @@ class _Visitor extends SimpleAstVisitor {
         }
       } else if (member is FieldDeclaration) {
         for (var v in member.fields.variables) {
-          if (!v.declaredElement!.isStatic &&
+          var declaredElement = v.declaredElement;
+          if (declaredElement != null &&
+              !declaredElement.isStatic &&
               !skipForDiagnostic(
-                element: v.declaredElement,
+                element: declaredElement,
                 name: v.name,
-                type: v.declaredElement!.type,
+                type: declaredElement.type,
               )) {
             properties.add(v.name);
           }

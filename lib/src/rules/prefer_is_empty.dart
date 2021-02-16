@@ -133,7 +133,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Don't lint if we're in a const constructor initializer.
     final constructorInitializer =
-        search.parent!.thisOrAncestorOfType<ConstructorInitializer>();
+        search.thisOrAncestorOfType<ConstructorInitializer>();
     if (constructorInitializer != null) {
       final constructorDecl =
           constructorInitializer.parent as ConstructorDeclaration;

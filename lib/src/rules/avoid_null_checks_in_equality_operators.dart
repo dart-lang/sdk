@@ -96,9 +96,12 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     final parameters = node.parameters?.parameters;
-    if (node.name.token.type == TokenType.EQ_EQ && parameters?.length == 1) {
+    if (parameters == null) {
+      return;
+    }
+    if (node.name.token.type == TokenType.EQ_EQ && parameters.length == 1) {
       final parameter = DartTypeUtilities.getCanonicalElementFromIdentifier(
-          parameters!.first.identifier);
+          parameters.first.identifier);
       bool checkIfParameterIsNull(AstNode node) =>
           _isParameterWithQuestion(node, parameter) ||
           (node is BinaryExpression &&

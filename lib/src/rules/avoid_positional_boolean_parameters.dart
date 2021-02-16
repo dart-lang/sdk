@@ -65,7 +65,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (!node.declaredElement!.isPrivate) {
+    var declaredElement = node.declaredElement;
+    if (declaredElement != null && !declaredElement.isPrivate) {
       final parametersToLint =
           node.parameters.parameters.where(_isFormalParameterToLint);
       if (parametersToLint.isNotEmpty == true) {
@@ -76,26 +77,29 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (!node.declaredElement!.isPrivate) {
+    var declaredElement = node.declaredElement;
+    if (declaredElement != null && !declaredElement.isPrivate) {
       final parametersToLint = node.functionExpression.parameters?.parameters
           .where(_isFormalParameterToLint);
-      if (parametersToLint?.isNotEmpty == true) {
-        rule.reportLint(parametersToLint!.first);
+      if (parametersToLint != null && parametersToLint.isNotEmpty) {
+        rule.reportLint(parametersToLint.first);
       }
     }
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (!node.isSetter &&
-        !node.declaredElement!.isPrivate &&
+    var declaredElement = node.declaredElement;
+    if (declaredElement != null &&
+        !node.isSetter &&
+        !declaredElement.isPrivate &&
         !node.isOperator &&
         !DartTypeUtilities.hasInheritedMethod(node) &&
-        !_isOverridingMember(node.declaredElement)) {
+        !_isOverridingMember(declaredElement)) {
       final parametersToLint =
           node.parameters?.parameters.where(_isFormalParameterToLint);
-      if (parametersToLint?.isNotEmpty == true) {
-        rule.reportLint(parametersToLint!.first);
+      if (parametersToLint != null && parametersToLint.isNotEmpty) {
+        rule.reportLint(parametersToLint.first);
       }
     }
   }
@@ -103,7 +107,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _isFormalParameterToLint(FormalParameter node) =>
       !node.isNamed &&
       DartTypeUtilities.isClass(
-          node.declaredElement!.type, 'bool', 'dart.core');
+          node.declaredElement?.type, 'bool', 'dart.core');
 
   bool _isOverridingMember(Element? member) {
     if (member == null) {

@@ -63,7 +63,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     final arg = args.first;
     if (arg is FunctionExpression) {
-      if (arg.parameters!.parameters.length != 1) return;
+      if (arg.parameters?.parameters.length != 1) return;
 
       final body = arg.body;
       Expression? expression;
@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (expression is IsExpression && expression.notOperator == null) {
         final target = expression.expression;
         if (target is SimpleIdentifier &&
-            target.name == arg.parameters!.parameters.first.identifier!.name) {
+            target.name == arg.parameters?.parameters.first.identifier?.name) {
           rule.reportLint(node.methodName);
         }
       }

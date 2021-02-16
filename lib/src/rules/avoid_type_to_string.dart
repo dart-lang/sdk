@@ -91,29 +91,27 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    thisType = node.declaredElement!.thisType;
+    thisType = node.declaredElement?.thisType;
   }
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    thisType = node.declaredElement!.thisType;
+    thisType = node.declaredElement?.thisType;
   }
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
+    var extendedType = node.declaredElement?.extendedType;
     // Might not be InterfaceType. Ex: visiting an extension on a dynamic type.
-    thisType = (node.declaredElement!.extendedType is InterfaceType)
-        ? node.declaredElement!.extendedType as InterfaceType
-        : null;
+    thisType = extendedType is InterfaceType ? extendedType : null;
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
     visitArgumentList(node.argumentList);
 
-    final targetType = (node.realTarget?.staticType is InterfaceType)
-        ? node.realTarget!.staticType as InterfaceType?
-        : thisType;
+    var staticType = node.realTarget?.staticType;
+    final targetType = staticType is InterfaceType ? staticType : thisType;
     _reportIfToStringOnCoreTypeClass(targetType, node.methodName);
   }
 

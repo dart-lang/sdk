@@ -120,11 +120,15 @@ const _importKeyword = 'import';
 String _dartDirectiveGoFirst(String type) =>
     "Place 'dart:' ${type}s before other ${type}s.";
 
-bool _isAbsoluteDirective(NamespaceDirective node) =>
-    node.uriContent!.contains(':');
+bool _isAbsoluteDirective(NamespaceDirective node) {
+  var uriContent = node.uriContent;
+  return uriContent != null && uriContent.contains(':');
+}
 
-bool _isDartDirective(NamespaceDirective node) =>
-    node.uriContent!.startsWith('dart:');
+bool _isDartDirective(NamespaceDirective node) {
+  var uriContent = node.uriContent;
+  return uriContent != null && uriContent.startsWith('dart:');
+}
 
 bool _isExportDirective(Directive node) => node is ExportDirective;
 
@@ -132,8 +136,10 @@ bool _isImportDirective(Directive node) => node is ImportDirective;
 
 bool _isNotDartDirective(NamespaceDirective node) => !_isDartDirective(node);
 
-bool _isPackageDirective(NamespaceDirective node) =>
-    node.uriContent!.startsWith('package:');
+bool _isPackageDirective(NamespaceDirective node) {
+  var uriContent = node.uriContent;
+  return uriContent != null && uriContent.startsWith('package:');
+}
 
 bool _isPartDirective(Directive node) => node is PartDirective;
 
@@ -200,8 +206,11 @@ class _PackageBox {
   bool _isNotOwnPackageDirective(NamespaceDirective node) =>
       _isPackageDirective(node) && !_isOwnPackageDirective(node);
 
-  bool _isOwnPackageDirective(NamespaceDirective node) =>
-      node.uriContent!.startsWith('package:$_packageName/');
+  bool _isOwnPackageDirective(NamespaceDirective node) {
+    var uriContent = node.uriContent;
+    return uriContent != null &&
+        uriContent.startsWith('package:$_packageName/');
+  }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
@@ -262,8 +271,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     _checkSectionInOrder(lintedNodes, relativeImports);
     _checkSectionInOrder(lintedNodes, relativeExports);
 
-    if (project != null) {
-      final packageBox = _PackageBox(project!.name);
+    var projectName = project?.name;
+    if (projectName != null) {
+      final packageBox = _PackageBox(projectName);
 
       final thirdPartyPackageImports =
           importDirectives.where(packageBox._isNotOwnPackageDirective);
@@ -338,9 +348,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     NamespaceDirective? previousDirective;
     for (var directive in nodes) {
-      if (previousDirective != null &&
-          previousDirective.uriContent!.compareTo(directive.uriContent!) > 0) {
-        reportDirective(directive);
+      if (previousDirective != null) {
+        var previousUri = previousDirective.uriContent;
+        if (previousUri != null &&
+            previousUri.compareTo(directive.uriContent!) > 0) {
+          reportDirective(directive);
+        }
       }
       previousDirective = directive;
     }

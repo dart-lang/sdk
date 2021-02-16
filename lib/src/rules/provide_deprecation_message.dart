@@ -55,7 +55,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAnnotation(Annotation node) {
-    if (node.elementAnnotation!.isDeprecated && node.arguments == null) {
+    var elementAnnotation = node.elementAnnotation;
+    if (elementAnnotation != null &&
+        elementAnnotation.isDeprecated &&
+        node.arguments == null) {
       rule.reportLint(node);
     }
   }

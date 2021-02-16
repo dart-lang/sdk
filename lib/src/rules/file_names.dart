@@ -66,9 +66,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    final fileName = node.declaredElement!.source.shortName;
-    if (!isValidDartFileName(fileName)) {
-      rule.reportLint(node);
+    var declaredElement = node.declaredElement;
+    if (declaredElement != null) {
+      final fileName = declaredElement.source.shortName;
+      if (!isValidDartFileName(fileName)) {
+        rule.reportLint(node);
+      }
     }
   }
 }
