@@ -579,9 +579,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   return CompilerResult(0);
 }
 
-// Compute code size to embed in the generated JavaScript
-// for this module.  Return `null` to indicate when size could not be properly
-// computed for this module.
+/// Compute code size to embed in the generated JavaScript for this module.
 int _computeDartSize(Component component) {
   var dartSize = 0;
   var uriToSource = component.uriToSource;
@@ -589,7 +587,11 @@ int _computeDartSize(Component component) {
     var libUri = lib.fileUri;
     var importUri = lib.importUri;
     var source = uriToSource[libUri];
-    if (source == null) return null;
+    if (source == null) {
+      // Sources that only contain external declarations have nothing to add to
+      // the sum.
+      continue;
+    }
     dartSize += source.source.length;
     for (var part in lib.parts) {
       var partUri = part.partUri;
@@ -599,7 +601,11 @@ int _computeDartSize(Component component) {
       }
       var fileUri = libUri.resolve(partUri);
       var partSource = uriToSource[fileUri];
-      if (partSource == null) return null;
+      if (partSource == null) {
+        // Sources that only contain external declarations have nothing to add
+        // to the sum.
+        continue;
+      }
       dartSize += partSource.source.length;
     }
   }
