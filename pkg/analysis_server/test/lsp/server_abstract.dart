@@ -403,6 +403,19 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  ClientCapabilitiesWorkspace withResourceOperationKinds(
+    ClientCapabilitiesWorkspace source,
+    List<ResourceOperationKind> kinds,
+  ) {
+    return extendWorkspaceCapabilities(source, {
+      'workspaceEdit': {
+        'documentChanges':
+            true, // docChanges aren't included in resourceOperations
+        'resourceOperations': kinds.map((k) => k.toJson()).toList(),
+      }
+    });
+  }
+
   TextDocumentClientCapabilities withSignatureHelpContentFormat(
     TextDocumentClientCapabilities source,
     List<MarkupKind> formats,
@@ -572,8 +585,23 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     Map<String, String> oldFileContent,
     List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> changes,
   ) {
-    // TODO(dantup): Implement handling of resource changes (not currently used).
-    throw 'Test helper applyResourceChanges not currently supported';
+    for (final change in changes) {
+      change.map(
+        (textDocEdit) => applyTextDocumentEdits(oldFileContent, [textDocEdit]),
+        (create) => applyResourceCreate(oldFileContent, create),
+        (rename) => throw 'applyResourceChanges:Delete not currently supported',
+        (delete) => throw 'applyResourceChanges:Delete not currently supported',
+      );
+    }
+  }
+
+  void applyResourceCreate(
+      Map<String, String> oldFileContent, CreateFile create) {
+    final path = Uri.parse(create.uri).toFilePath();
+    if (oldFileContent.containsKey(path)) {
+      throw 'Recieved create instruction for $path which already existed.';
+    }
+    oldFileContent[path] = '';
   }
 
   String applyTextDocumentEdit(String content, TextDocumentEdit edit) {
@@ -585,7 +613,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     edits.forEach((edit) {
       final path = Uri.parse(edit.textDocument.uri).toFilePath();
       if (!oldFileContent.containsKey(path)) {
-        throw 'Recieved edits for $path which was not provided as a file to be edited';
+        throw 'Recieved edits for $path which was not provided as a file to be edited. '
+            'Perhaps a CreateFile change was missing from the edits?';
       }
       oldFileContent[path] = applyTextDocumentEdit(oldFileContent[path], edit);
     });

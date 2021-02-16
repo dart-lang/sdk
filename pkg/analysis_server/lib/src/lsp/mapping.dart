@@ -116,9 +116,12 @@ lsp.WorkspaceEdit createWorkspaceEdit(
       server.clientCapabilities?.workspace,
       edits
           .map((e) => FileEditInformation(
-              server.getVersionedDocumentIdentifier(e.file),
-              server.getLineInfo(e.file),
-              e.edits))
+                server.getVersionedDocumentIdentifier(e.file),
+                server.getLineInfo(e.file),
+                e.edits,
+                // fileStamp == 1 is used by the server to indicate the file needs creating.
+                newFile: e.fileStamp == -1,
+              ))
           .toList());
 }
 
@@ -1253,14 +1256,36 @@ lsp.WorkspaceEdit toWorkspaceEdit(
   final clientSupportsTextDocumentEdits =
       capabilities?.workspaceEdit?.documentChanges == true;
   if (clientSupportsTextDocumentEdits) {
+    final clientSupportsCreate = capabilities?.workspaceEdit?.resourceOperations
+            ?.contains(ResourceOperationKind.Create) ??
+        false;
+    final changes = <
+        Either4<lsp.TextDocumentEdit, lsp.CreateFile, lsp.RenameFile,
+            lsp.DeleteFile>>[];
+
+    // Convert each SourceEdit to either a TextDocumentEdit or a
+    // CreateFile + a TextDocumentEdit depending on whether it's a new
+    // file.
+    for (final edit in edits) {
+      if (clientSupportsCreate && edit.newFile) {
+        final create = lsp.CreateFile(uri: edit.doc.uri);
+        final createUnion = Either4<lsp.TextDocumentEdit, lsp.CreateFile,
+            lsp.RenameFile, lsp.DeleteFile>.t2(create);
+        changes.add(createUnion);
+      }
+
+      final textDocEdit = toTextDocumentEdit(edit);
+      final textDocEditUnion = Either4<lsp.TextDocumentEdit, lsp.CreateFile,
+          lsp.RenameFile, lsp.DeleteFile>.t1(textDocEdit);
+      changes.add(textDocEditUnion);
+    }
+
     return lsp.WorkspaceEdit(
         documentChanges: Either2<
             List<lsp.TextDocumentEdit>,
             List<
                 Either4<lsp.TextDocumentEdit, lsp.CreateFile, lsp.RenameFile,
-                    lsp.DeleteFile>>>.t1(
-      edits.map(toTextDocumentEdit).toList(),
-    ));
+                    lsp.DeleteFile>>>.t2(changes));
   } else {
     return lsp.WorkspaceEdit(changes: toWorkspaceEditChanges(edits));
   }
