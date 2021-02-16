@@ -328,6 +328,13 @@ class TypeInferrerImpl implements TypeInferrer {
           dataForTesting.flowAnalysisResult.nonPromotionReasons[expression] =
               nonPromotionReasonText;
         }
+        // Note: this will always pick the first viable reason (only).  I
+        // (paulberry) believe this is the one that will be the most relevant,
+        // but I need to do more testing to validate that.  I can't do that
+        // additional testing yet because at the moment we only handle failed
+        // promotions to non-nullable.
+        // TODO(paulberry): do more testing and then expand on the comment
+        // above.
         context = [message];
         break;
       }

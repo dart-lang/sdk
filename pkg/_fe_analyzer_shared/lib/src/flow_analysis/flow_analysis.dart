@@ -4989,6 +4989,31 @@ class _PropertyGetReference<Variable extends Object, Type extends Object>
 
   @override
   Type getDeclaredType(TypeOperations<Variable, Type> typeOperations) {
+    // Since we don't actually support property promotion, we just compute what
+    // promotions would have occurred if we *did* support it (for the purpose of
+    // issuing more useful error messages), we have some leeway in how we define
+    // the "declared type" of a property.  It's tempting to define it as the
+    // return type of the referenced getter, but this is problematic for two
+    // reasons: (1) we don't have the necessary hooks to ask the client what
+    // this type is, and (2) the referenced getter can become more specific due
+    // to the presence of other promotions, breaking the invariant that promoted
+    // types are expected to be subtypes of the declared type, e.g.:
+    //
+    //   abstract class C { num? get x; }
+    //   abstract class D extends C { int? get x; }
+    //   f(C c) {
+    //     if (c.x != null) { // "promotes" c.x to `num`
+    //       if (c is D) { // promotes c to D, so c.x now refers to an `int?`
+    //         // Invariant broken: `num` is not a subtype of `int?`
+    //       }
+    //     }
+    //   }
+    //
+    // Rather than break the invariant (which could lead to unexpected behaviors
+    // of flow analysis, including possibly crashes), it seems wiser to simply
+    // define the "declared type" for properties to be the top type; in practice
+    // this still produces useful results, and it doesn't violate soundness
+    // because we don't actually promote property references.
     return typeOperations.topType;
   }
 
