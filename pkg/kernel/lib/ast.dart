@@ -162,8 +162,9 @@ abstract class TreeNode extends Node {
   ///
   /// Has no effect if [child] is not actually a child of this node.
   ///
-  /// If [replacement] is `null`, this will [remove] the [child] node.
+  /// [replacement] must be non-null.
   void replaceChild(TreeNode child, TreeNode replacement) {
+    assert(replacement != null);
     transformChildren(new _ChildReplacer(child, replacement));
   }
 
@@ -173,18 +174,10 @@ abstract class TreeNode extends Node {
   /// particular, [replacement] should be an orphan or be part of an orphaned
   /// subtree.
   ///
-  /// If [replacement] is `null`, this will [remove] the node.
+  /// [replacement] must be non-null.
   void replaceWith(TreeNode replacement) {
+    assert(replacement != null);
     parent.replaceChild(this, replacement);
-    parent = null;
-  }
-
-  /// Removes this node from the [List] it is currently stored in, or assigns
-  /// `null` to the field on the parent currently pointing to the node.
-  ///
-  /// Has no effect if the node is orphaned or if the parent pointer is stale.
-  void remove() {
-    parent?.replaceChild(this, null);
     parent = null;
   }
 
@@ -11559,3 +11552,7 @@ const DartType dartTypeDummy = const DynamicType();
 /// `List.filled` constructor.
 const NamedType namedTypeDummy =
     const NamedType('', dartTypeDummy, isRequired: false);
+
+/// Non-nullable `Member` value to be used as a dummy initial value for the
+/// `List.filled` constructor.
+final Member dummyMember = new Field.mutable(new _PublicName(''));

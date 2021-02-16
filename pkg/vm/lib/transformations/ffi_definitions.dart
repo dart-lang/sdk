@@ -348,7 +348,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
     // Remove initializers referring to fields to prevent cascading errors.
     for (final Initializer i in toRemove) {
-      i.remove();
+      final Constructor c = i.parent;
+      c.initializers.remove(i);
     }
 
     // Add a constructor which 'load' can use.
@@ -444,7 +445,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
 
     for (final Field f in fields.values) {
-      f.remove();
+      node.fields.remove(f);
     }
 
     for (final i in getters.keys) {

@@ -75,6 +75,7 @@ automagically
 auxiliary
 awaited
 awaiting
+awaits
 b
 b0i
 b0m
@@ -1334,6 +1335,7 @@ vn
 vs
 vtab
 w
+waiting
 waste
 wasted
 watch
