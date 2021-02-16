@@ -350,7 +350,8 @@ class IncrementalCompilerWrapper extends Compiler {
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
         invocationModes: invocationModes);
-
+    // TODO(VM TEAM): This does not seem safe. What if cloning while having
+    // pending deltas for instance?
     generator.resetDeltaState();
     Component fullComponent = await generator.compile();
 

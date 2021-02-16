@@ -6,6 +6,8 @@
 
 library fasta.incremental_compiler;
 
+import 'dart:async' show Completer;
+
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 
@@ -167,6 +169,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   IncrementalKernelTarget userCode;
   Set<Library> previousSourceBuilders;
 
+  /// Guard against multiple computeDelta calls at the same time (possibly
+  /// caused by lacking awaits etc).
+  Completer currentlyCompiling;
+
   IncrementalCompiler.fromComponent(
       this.context, this.componentToInitializeFrom,
       [bool outlineOnly, this.incrementalSerializer])
@@ -216,6 +222,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   @override
   Future<Component> computeDelta(
       {List<Uri> entryPoints, bool fullComponent: false}) async {
+    while (currentlyCompiling != null) {
+      await currentlyCompiling.future;
+    }
+    currentlyCompiling = new Completer();
     if (resetTicker) {
       ticker.reset();
     }
@@ -365,10 +375,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       NonNullableByDefaultCompiledMode compiledMode = componentWithDill == null
           ? data.component?.mode
           : componentWithDill.mode;
-      return context.options.target.configureComponent(
+      Component result = context.options.target.configureComponent(
           new Component(libraries: outputLibraries, uriToSource: uriToSource))
         ..setMainMethodAndMode(mainMethod?.reference, true, compiledMode)
         ..problemsAsJson = problemsAsJson;
+
+      // We're now done. Allow any waiting compile to start.
+      Completer currentlyCompilingLocal = currentlyCompiling;
+      currentlyCompiling = null;
+      currentlyCompilingLocal.complete();
+
+      return result;
     });
   }
 

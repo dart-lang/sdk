@@ -1,0 +1,71 @@
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
+import 'dart:io';
+
+import 'package:front_end/src/api_unstable/vm.dart';
+import 'package:front_end/src/fasta/incremental_compiler.dart';
+import 'package:kernel/ast.dart';
+
+import 'incremental_load_from_dill_suite.dart' show getOptions;
+
+main() async {
+  Uri compileTarget = Platform.script.resolve("binary_md_dill_reader.dart");
+  if (!(new File.fromUri(compileTarget)).existsSync()) {
+    throw "$compileTarget doesn't exist";
+  }
+
+  List<Future> futures = [];
+  List<int> compilesLeft = new List<int>.filled(5, 8);
+  for (int i = 0; i < compilesLeft.length; i++) {
+    Future<Component> compileAgain() async {
+      print("$i has ${compilesLeft[i]} left.");
+      if (compilesLeft[i] > 0) {
+        compilesLeft[i]--;
+        return compile(i, compileTarget).then((value) => compileAgain());
+      }
+      return null;
+    }
+
+    print("Starting first compile for $i");
+    futures.add(compile(i, compileTarget).then((value) => compileAgain()));
+  }
+  await Future.wait(futures);
+
+  print("Checkpoint #1: Can compiles several at once "
+      "(with different compilers!)");
+
+  for (int i = 0; i < 5; i++) {
+    futures.clear();
+    for (int j = 0; j < 10; j++) {
+      futures.add(compile(0, compileTarget));
+    }
+    await Future.wait(futures);
+  }
+
+  print("Checkpoint #2: Can compiles several at once "
+      "(with the same compiler) (without crashing)");
+}
+
+List<IncrementalCompiler> compilers = [];
+
+Future<Component> compile(int compilerNum, Uri uri) async {
+  if (compilers.length <= compilerNum) {
+    compilers.length = compilerNum + 1;
+  }
+  IncrementalCompiler compiler = compilers[compilerNum];
+  if (compiler == null) {
+    var options = getOptions();
+    compiler = new IncrementalCompiler(new CompilerContext(
+        new ProcessedOptions(options: options, inputs: [uri])));
+    compilers[compilerNum] = compiler;
+  } else {
+    compiler.invalidateAllSources();
+  }
+  Component result = await compiler.computeDelta();
+  print("Now compile is done!");
+  return result;
+}
