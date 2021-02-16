@@ -11552,3 +11552,7 @@ const DartType dartTypeDummy = const DynamicType();
 /// `List.filled` constructor.
 const NamedType namedTypeDummy =
     const NamedType('', dartTypeDummy, isRequired: false);
+
+/// Non-nullable `Member` value to be used as a dummy initial value for the
+/// `List.filled` constructor.
+final Member dummyMember = new Field.mutable(new _PublicName(''));

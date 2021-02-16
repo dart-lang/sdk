@@ -248,7 +248,9 @@ abstract class ClassHierarchy implements ClassHierarchyBase {
       List<Member> first, List<Member> second) {
     if (first.isEmpty) return second;
     if (second.isEmpty) return first;
-    List<Member> result = <Member>[]..length = first.length + second.length;
+    List<Member> result = new List<Member>.filled(
+        first.length + second.length, dummyMember,
+        growable: true);
     int storeIndex = 0;
     int i = 0, j = 0;
     while (i < first.length && j < second.length) {
@@ -1282,8 +1284,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   static List<Member> _inheritMembers(
       List<Member> declared, List<Member> inherited,
       {bool skipAbstractMembers: false}) {
-    List<Member> result = <Member>[]..length =
-        declared.length + inherited.length;
+    List<Member> result = new List<Member>.filled(
+        declared.length + inherited.length, dummyMember,
+        growable: true);
     // Since both lists are sorted, we can fuse them like in merge sort.
     int storeIndex = 0;
     int i = 0, j = 0;
@@ -1333,7 +1336,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   /// The input lists must be sorted, and the returned list is sorted.
   static List<Member> _getUnshadowedInheritedMembers(
       List<Member> declared, List<Member> inherited) {
-    List<Member> result = <Member>[]..length = inherited.length;
+    List<Member> result =
+        new List<Member>.filled(inherited.length, dummyMember, growable: true);
     int storeIndex = 0;
     int i = 0, j = 0;
     while (i < declared.length && j < inherited.length) {
@@ -1433,10 +1437,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     for (Class class_ in _infoMap.keys) {
       _ClassInfo info = _infoMap[class_]!;
       int intervals = info.supertypeIntervalList.length ~/ 2;
-      if (intervals >= result.length) {
-        int oldLength = result.length;
-        result.length = intervals + 1;
-        result.fillRange(oldLength, result.length, 0);
+      while (result.length <= intervals) {
+        result.add(0);
       }
       result[intervals] += 1;
     }
