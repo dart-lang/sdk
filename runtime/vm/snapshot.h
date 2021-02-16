@@ -740,7 +740,10 @@ class SnapshotWriterVisitor : public ObjectPointerVisitor {
         writer_(writer),
         as_references_(as_references) {}
 
-  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last);
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last);
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last);
 
  private:
   SnapshotWriter* writer_;

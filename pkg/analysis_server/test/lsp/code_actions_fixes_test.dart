@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:linter/src/rules.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -94,6 +95,38 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     };
     applyChanges(contents, fixAction.edit.changes);
     expect(contents[mainFilePath], equals(expectedContent));
+  }
+
+  Future<void> test_createFile() async {
+    const content = '''
+    import '[[newfile.dart]]';
+    ''';
+
+    final expectedCreatedFile =
+        path.join(path.dirname(mainFilePath), 'newfile.dart');
+
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+      workspaceCapabilities: withResourceOperationKinds(
+          emptyWorkspaceClientCapabilities, [ResourceOperationKind.Create]),
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final fixAction = findEditAction(codeActions,
+        CodeActionKind('quickfix.create.file'), "Create file 'newfile.dart'");
+
+    expect(fixAction, isNotNull);
+    expect(fixAction.edit.documentChanges, isNotNull);
+
+    // Ensure applying the changes creates the file and with the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyDocumentChanges(contents, fixAction.edit.documentChanges);
+    expect(contents[expectedCreatedFile], isNotEmpty);
   }
 
   Future<void> test_filtersCorrectly() async {
@@ -239,8 +272,6 @@ class FixesCodeActionsWithNullSafetyTest extends AbstractCodeActionsTest {
   @override
   String get testPackageLanguageVersion => latestLanguageVersion;
 
-  /// todo (pq): prefer_is_empty newly produces fix-all-fixes; update this test appropriately
-  @failingTest
   Future<void> test_fixAll_notForAmbigiousProducers() async {
     // The ReplaceWithIsEmpty producer does not provide a FixKind up-front, as
     // it may produce `REPLACE_WITH_IS_EMPTY` or `REPLACE_WITH_IS_NOT_EMPTY`

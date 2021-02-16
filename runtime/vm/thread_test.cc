@@ -83,9 +83,19 @@ class ObjectCounter : public ObjectPointerVisitor {
   explicit ObjectCounter(IsolateGroup* isolate_group, const Object* obj)
       : ObjectPointerVisitor(isolate_group), obj_(obj), count_(0) {}
 
-  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
     for (ObjectPtr* current = first; current <= last; ++current) {
       if (*current == obj_->ptr()) {
+        ++count_;
+      }
+    }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
+    for (CompressedObjectPtr* current = first; current <= last; ++current) {
+      if (current->Decompress(heap_base) == obj_->ptr()) {
         ++count_;
       }
     }

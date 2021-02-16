@@ -36,9 +36,6 @@
 
 namespace dart {
 
-// For now there are no compressed pointers.
-typedef ObjectPtr RawCompressed;
-
 // Forward declarations.
 class Isolate;
 class IsolateGroup;
@@ -560,6 +557,15 @@ class UntaggedObject {
     }
   }
 
+  void StorePointer(CompressedObjectPtr* addr,
+                    ObjectPtr value,
+                    Thread* thread) {
+    *addr = value;
+    if (value->IsHeapObject()) {
+      CheckHeapPointerStore(value, thread);
+    }
+  }
+
   template <typename type>
   void StorePointerUnaligned(type const* addr, type value, Thread* thread) {
     StoreUnaligned(const_cast<type*>(addr), value);
@@ -580,6 +586,15 @@ class UntaggedObject {
   template <typename type>
   void StoreArrayPointer(type const* addr, type value, Thread* thread) {
     *const_cast<type*>(addr) = value;
+    if (value->IsHeapObject()) {
+      CheckArrayPointerStore(addr, value, thread);
+    }
+  }
+
+  void StoreArrayPointer(CompressedObjectPtr* addr,
+                         ObjectPtr value,
+                         Thread* thread) {
+    *addr = value;
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, thread);
     }
@@ -642,7 +657,7 @@ class UntaggedObject {
         // old-and-not-remembered -> new reference.
         ASSERT(!this->IsRemembered());
         if (this->IsCardRemembered()) {
-          RememberCard(reinterpret_cast<ObjectPtr const*>(addr));
+          RememberCard(addr);
         } else {
           this->SetRememberedBit();
           thread->StoreBufferAddObject(static_cast<ObjectPtr>(this));
@@ -667,6 +682,9 @@ class UntaggedObject {
 
   friend class StoreBufferUpdateVisitor;  // RememberCard
   void RememberCard(ObjectPtr const* slot);
+#if defined(DART_COMPRESSED_POINTERS)
+  void RememberCard(CompressedObjectPtr const* slot);
+#endif
 
   friend class Array;
   friend class ByteBuffer;
@@ -2415,7 +2433,7 @@ class UntaggedClosure : public UntaggedInstance {
 
   // The following fields are also declared in the Dart source of class
   // _Closure.
-  VISIT_FROM(RawCompressed, instantiator_type_arguments)
+  VISIT_FROM(ObjectPtr, instantiator_type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, instantiator_type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, function_type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, delayed_type_arguments)
@@ -2423,7 +2441,7 @@ class UntaggedClosure : public UntaggedInstance {
   POINTER_FIELD(ContextPtr, context)
   POINTER_FIELD(SmiPtr, hash)
 
-  VISIT_TO(RawCompressed, hash)
+  VISIT_TO(ObjectPtr, hash)
 
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
@@ -2586,8 +2604,8 @@ class UntaggedTypedData : public UntaggedTypedDataBase {
   void RecomputeDataField() { data_ = internal_data(); }
 
  protected:
-  VISIT_FROM(RawCompressed, length)
-  VISIT_TO_LENGTH(RawCompressed, &length_)
+  VISIT_FROM(ObjectPtr, length)
+  VISIT_TO_LENGTH(ObjectPtr, &length_)
 
   // Variable length data follows here.
 
@@ -2704,12 +2722,12 @@ class UntaggedBool : public UntaggedInstance {
 class UntaggedArray : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Array);
 
-  VISIT_FROM(RawCompressed, type_arguments)
+  VISIT_FROM(ObjectPtr, type_arguments)
   ARRAY_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   SMI_FIELD(SmiPtr, length)
   // Variable length data follows here.
   VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
-  VISIT_TO_LENGTH(RawCompressed, &data()[length - 1])
+  VISIT_TO_LENGTH(ObjectPtr, &data()[length - 1])
 
   friend class LinkedHashMapSerializationCluster;
   friend class LinkedHashMapDeserializationCluster;
@@ -2739,11 +2757,11 @@ class UntaggedImmutableArray : public UntaggedArray {
 class UntaggedGrowableObjectArray : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray);
 
-  VISIT_FROM(RawCompressed, type_arguments)
+  VISIT_FROM(ObjectPtr, type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   SMI_FIELD(SmiPtr, length)
   POINTER_FIELD(ArrayPtr, data)
-  VISIT_TO(RawCompressed, data)
+  VISIT_TO(ObjectPtr, data)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class SnapshotReader;
@@ -2753,14 +2771,14 @@ class UntaggedGrowableObjectArray : public UntaggedInstance {
 class UntaggedLinkedHashMap : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
 
-  VISIT_FROM(RawCompressed, type_arguments)
+  VISIT_FROM(ObjectPtr, type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   POINTER_FIELD(TypedDataPtr, index)
   POINTER_FIELD(SmiPtr, hash_mask)
   POINTER_FIELD(ArrayPtr, data)
   POINTER_FIELD(SmiPtr, used_data)
   POINTER_FIELD(SmiPtr, deleted_keys)
-  VISIT_TO(RawCompressed, deleted_keys)
+  VISIT_TO(ObjectPtr, deleted_keys)
 
   friend class SnapshotReader;
 };
@@ -2828,16 +2846,16 @@ class UntaggedExternalTypedData : public UntaggedTypedDataBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTypedData);
 
  protected:
-  VISIT_FROM(RawCompressed, length)
-  VISIT_TO(RawCompressed, length)
+  VISIT_FROM(ObjectPtr, length)
+  VISIT_TO(ObjectPtr, length)
 };
 
 class UntaggedPointer : public UntaggedPointerBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Pointer);
 
-  VISIT_FROM(RawCompressed, type_arguments)
+  VISIT_FROM(ObjectPtr, type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, type_arguments)
-  VISIT_TO(RawCompressed, type_arguments)
+  VISIT_TO(ObjectPtr, type_arguments)
 
   friend class Pointer;
 };
@@ -2995,9 +3013,9 @@ class UntaggedUserTag : public UntaggedInstance {
 class UntaggedFutureOr : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(FutureOr);
 
-  VISIT_FROM(RawCompressed, type_arguments)
+  VISIT_FROM(ObjectPtr, type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, type_arguments)
-  VISIT_TO(RawCompressed, type_arguments)
+  VISIT_TO(ObjectPtr, type_arguments)
 
   friend class SnapshotReader;
 };

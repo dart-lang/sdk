@@ -39,6 +39,7 @@ main(Object p) {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_assignment_all() async {
     await resolveTestCode('''
 main(Object p, Object q) {

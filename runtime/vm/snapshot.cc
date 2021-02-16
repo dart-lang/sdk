@@ -1585,6 +1585,17 @@ void SnapshotWriterVisitor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
   }
 }
 
+void SnapshotWriterVisitor::VisitCompressedPointers(uword heap_base,
+                                                    CompressedObjectPtr* first,
+                                                    CompressedObjectPtr* last) {
+  ASSERT(Utils::IsAligned(first, sizeof(*first)));
+  ASSERT(Utils::IsAligned(last, sizeof(*last)));
+  for (CompressedObjectPtr* current = first; current <= last; current++) {
+    ObjectPtr raw_obj = current->Decompress(heap_base);
+    writer_->WriteObjectImpl(raw_obj, as_references_);
+  }
+}
+
 MessageWriter::MessageWriter(bool can_send_any_object)
     : SnapshotWriter(Thread::Current(),
                      Snapshot::kMessage,

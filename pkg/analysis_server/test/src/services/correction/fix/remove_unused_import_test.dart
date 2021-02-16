@@ -27,6 +27,7 @@ class RemoveUnusedImportTest extends FixProcessorTest {
     useLineEndingsForPlatform = false;
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_all_diverseImports() async {
     await resolveTestCode('''
 import 'dart:math';
@@ -41,6 +42,7 @@ main() {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_all_diverseImports2() async {
     await resolveTestCode('''
 import 'dart:async';
@@ -62,6 +64,7 @@ main() {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_all_singleLine() async {
     await resolveTestCode('''
 import 'dart:math'; import 'dart:math'; import 'dart:math';
@@ -111,6 +114,7 @@ main() {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_multipleOfSame_all() async {
     await resolveTestCode('''
 import 'dart:math';

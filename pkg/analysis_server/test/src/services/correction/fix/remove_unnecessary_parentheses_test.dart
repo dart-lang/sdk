@@ -23,6 +23,7 @@ class RemoveUnnecessaryParenthesesTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_parenthesis;
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_all() async {
     await resolveTestCode('''
 void f() {

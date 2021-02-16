@@ -734,6 +734,12 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
     }
   }
 
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
+    UNREACHABLE();  // Stack slots are not compressed.
+  }
+
  private:
   Thread* const thread_;
   Thread* const current_;

@@ -20,6 +20,7 @@ class ReplaceBooleanWithBoolTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL;
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_all() async {
     await resolveTestCode('''
 main() {

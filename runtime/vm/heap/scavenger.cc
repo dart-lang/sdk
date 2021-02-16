@@ -160,11 +160,21 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     view->untag()->RecomputeDataFieldForInternalTypedData();
   }
 
-  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
     ASSERT(Utils::IsAligned(first, sizeof(*first)));
     ASSERT(Utils::IsAligned(last, sizeof(*last)));
     for (ObjectPtr* current = first; current <= last; current++) {
       ScavengePointer(current);
+    }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
+    ASSERT(Utils::IsAligned(first, sizeof(*first)));
+    ASSERT(Utils::IsAligned(last, sizeof(*last)));
+    for (CompressedObjectPtr* current = first; current <= last; current++) {
+      ScavengeCompressedPointer(heap_base, current);
     }
   }
 
@@ -253,7 +263,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   NewPage* tail() const { return tail_; }
 
  private:
-  void UpdateStoreBuffer(ObjectPtr* p, ObjectPtr obj) {
+  void UpdateStoreBuffer(ObjectPtr obj) {
     ASSERT(obj->IsHeapObject());
     // If the newly written object is not a new object, drop it immediately.
     if (!obj->IsNewObject() || visiting_old_object_->untag()->IsRemembered()) {
@@ -272,6 +282,57 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       return;
     }
 
+    ObjectPtr new_obj = ScavengeObject(raw_obj);
+
+    // Update the reference.
+    if (!new_obj->IsNewObject()) {
+      // Setting the mark bit above must not be ordered after a publishing store
+      // of this object. Note this could be a publishing store even if the
+      // object was promoted by an early invocation of ScavengePointer. Compare
+      // Object::Allocate.
+      reinterpret_cast<std::atomic<ObjectPtr>*>(p)->store(
+          new_obj, std::memory_order_release);
+    } else {
+      *p = new_obj;
+    }
+
+    // Update the store buffer as needed.
+    if (visiting_old_object_ != nullptr) {
+      UpdateStoreBuffer(new_obj);
+    }
+  }
+
+  DART_FORCE_INLINE
+  void ScavengeCompressedPointer(uword heap_base, CompressedObjectPtr* p) {
+    // ScavengePointer cannot be called recursively.
+    ObjectPtr raw_obj = p->Decompress(heap_base);
+
+    if (raw_obj->IsSmiOrOldObject()) {  // Could be tested without decompression
+      return;
+    }
+
+    ObjectPtr new_obj = ScavengeObject(raw_obj);
+
+    // Update the reference.
+    if (!new_obj->IsNewObject()) {
+      // Setting the mark bit above must not be ordered after a publishing store
+      // of this object. Note this could be a publishing store even if the
+      // object was promoted by an early invocation of ScavengePointer. Compare
+      // Object::Allocate.
+      reinterpret_cast<std::atomic<ObjectPtr>*>(p)->store(
+          new_obj, std::memory_order_release);
+    } else {
+      *p = new_obj;
+    }
+
+    // Update the store buffer as needed.
+    if (visiting_old_object_ != nullptr) {
+      UpdateStoreBuffer(new_obj);
+    }
+  }
+
+  DART_FORCE_INLINE
+  ObjectPtr ScavengeObject(ObjectPtr raw_obj) {
     uword raw_addr = UntaggedObject::ToAddr(raw_obj);
     // The scavenger is only expects objects located in the from space.
     ASSERT(from_->Contains(raw_addr));
@@ -356,21 +417,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       }
     }
 
-    // Update the reference.
-    if (!new_obj->IsNewObject()) {
-      // Setting the mark bit above must not be ordered after a publishing store
-      // of this object. Note this could be a publishing store even if the
-      // object was promoted by an early invocation of ScavengePointer. Compare
-      // Object::Allocate.
-      reinterpret_cast<std::atomic<ObjectPtr>*>(p)->store(
-          new_obj, std::memory_order_release);
-    } else {
-      *p = new_obj;
-    }
-    // Update the store buffer as needed.
-    if (visiting_old_object_ != nullptr) {
-      UpdateStoreBuffer(p, new_obj);
-    }
+    return new_obj;
   }
 
   DART_FORCE_INLINE
@@ -783,6 +830,12 @@ class CollectStoreBufferVisitor : public ObjectPointerVisitor {
     }
   }
 
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* from,
+                               CompressedObjectPtr* to) {
+    UNREACHABLE();  // Store buffer blocks are not compressed.
+  }
+
  private:
   ObjectSet* const in_store_buffer_;
 };
@@ -829,6 +882,12 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
         RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
       }
     }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* from,
+                               CompressedObjectPtr* to) {
+    UNREACHABLE();  // Store buffer blocks are not compressed.
   }
 
  private:

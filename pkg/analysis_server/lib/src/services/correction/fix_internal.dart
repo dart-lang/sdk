@@ -161,8 +161,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    hide AnalysisError, Element, ElementKind;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
@@ -182,95 +180,12 @@ class DartFixContributor implements FixContributor {
     try {
       var processor = FixProcessor(context);
       var fixes = await processor.compute();
-      var fixAllFixes = await _computeFixAllFixes(context, fixes);
-      return List.from(fixes)..addAll(fixAllFixes);
+      // todo (pq): add fixes from FixInFileProcessor
+      // https://github.com/dart-lang/sdk/issues/45026
+      return fixes;
     } on CancelCorrectionException {
       return const <Fix>[];
     }
-  }
-
-  Future<List<Fix>> _computeFixAllFixes(
-      DartFixContext context, List<Fix> fixes) async {
-    final analysisError = context.error;
-    final allAnalysisErrors = context.resolveResult.errors.toList();
-
-    // Validate inputs:
-    // - return if no fixes
-    // - return if no other analysis errors
-    if (fixes.isEmpty || allAnalysisErrors.length < 2) {
-      return const <Fix>[];
-    }
-
-    // Remove any analysis errors that don't have the expected error code name
-    allAnalysisErrors
-        .removeWhere((e) => analysisError.errorCode.name != e.errorCode.name);
-    if (allAnalysisErrors.length < 2) {
-      return const <Fix>[];
-    }
-
-    // A map between each FixKind and the List of associated fixes
-    var map = <FixKind, List<Fix>>{};
-
-    // Populate the HashMap by looping through all AnalysisErrors, creating a
-    // new FixProcessor to compute the other fixes that can be applied with this
-    // one.
-    // For each fix, put the fix into the HashMap.
-    for (var i = 0; i < allAnalysisErrors.length; i++) {
-      final FixContext fixContext = DartFixContextImpl(
-        context.instrumentationService,
-        context.workspace,
-        context.resolveResult,
-        allAnalysisErrors[i],
-        (name) => [],
-      );
-      var processorI = FixProcessor(fixContext);
-      var fixesListI = await processorI.compute();
-      for (var f in fixesListI) {
-        if (!map.containsKey(f.kind)) {
-          map[f.kind] = <Fix>[]..add(f);
-        } else {
-          map[f.kind].add(f);
-        }
-      }
-    }
-
-    // For each FixKind in the HashMap, union each list together, then return
-    // the set of unioned fixes.
-    var result = <Fix>[];
-    map.forEach((FixKind kind, List<Fix> fixesList) {
-      if (fixesList.first.kind.canBeAppliedTogether()) {
-        var unionFix = _unionFixList(fixesList);
-        if (unionFix != null) {
-          result.add(unionFix);
-        }
-      }
-    });
-    return result;
-  }
-
-  Fix _unionFixList(List<Fix> fixList) {
-    if (fixList == null || fixList.isEmpty) {
-      return null;
-    } else if (fixList.length == 1) {
-      return fixList[0];
-    }
-    var sourceChange = SourceChange(fixList[0].kind.appliedTogetherMessage);
-    sourceChange.edits = List.from(fixList[0].change.edits);
-    var edits = <SourceEdit>[];
-    edits.addAll(fixList[0].change.edits[0].edits);
-    sourceChange.linkedEditGroups =
-        List.from(fixList[0].change.linkedEditGroups);
-    for (var i = 1; i < fixList.length; i++) {
-      edits.addAll(fixList[i].change.edits[0].edits);
-      sourceChange.linkedEditGroups.addAll(fixList[i].change.linkedEditGroups);
-    }
-    // Sort the list of SourceEdits so that when the edits are applied, they
-    // are applied from the end of the file to the top of the file.
-    edits.sort((s1, s2) => s2.offset - s1.offset);
-
-    sourceChange.edits[0].edits = edits;
-
-    return Fix(fixList[0].kind, sourceChange);
   }
 }
 
