@@ -98,13 +98,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final cascade = invocation.thisOrAncestorOfType<CascadeExpression>()!;
-    final sections = cascade.cascadeSections;
-    final target = cascade.target;
+    final cascade = invocation.thisOrAncestorOfType<CascadeExpression>();
+    final sections = cascade?.cascadeSections;
+    final target = cascade?.target;
     // todo (pq): add support for Set literals.
     if (target is! ListLiteral ||
         (target is ListLiteralImpl && target.inConstantContext) ||
-        sections[0] != invocation) {
+        (sections != null && sections[0] != invocation)) {
       return;
     }
 

@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         final rightOperand =
             DartTypeUtilities.getCanonicalElementFromIdentifier(
                 expression.rightHandSide);
-        final parameterElement = node.declaredElement!.parameters.first;
+        final parameterElement = node.declaredElement?.parameters.first;
         if (rightOperand == parameterElement && leftOperand is FieldElement) {
           rule.reportLint(node);
         }

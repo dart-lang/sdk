@@ -141,12 +141,12 @@ class _InvariantBooleansVisitor extends ConditionScopeVisitor {
   @override
   void visitCondition(Expression? node) {
     // Right part discards reporting a subexpression already reported.
-    if (node?.staticType?.isDartCoreBool != true) {
+    if (node == null || node.staticType?.isDartCoreBool != true) {
       return;
     }
 
-    final testedNodes = _findPreviousTestedExpressions(node!);
-    testedNodes.evaluateInvariant()!.forEach((ContradictoryComparisons e) {
+    final testedNodes = _findPreviousTestedExpressions(node);
+    testedNodes?.evaluateInvariant()?.forEach((ContradictoryComparisons e) {
       final reportRule = _ContradictionReportRule(e);
       reportRule
         ..reporter = rule.reporter
@@ -166,10 +166,13 @@ class _InvariantBooleansVisitor extends ConditionScopeVisitor {
     }
   }
 
-  TestedExpressions _findPreviousTestedExpressions(Expression node) {
+  TestedExpressions? _findPreviousTestedExpressions(Expression node) {
     final elements = _getElementsInExpression(node);
-    final conjunctions = getTrueExpressions(elements).toSet();
-    final negations = getFalseExpressions(elements).toSet();
+    final conjunctions = getTrueExpressions(elements)?.toSet();
+    final negations = getFalseExpressions(elements)?.toSet();
+    if (conjunctions == null || negations == null) {
+      return null;
+    }
     return TestedExpressions(node, conjunctions, negations);
   }
 }

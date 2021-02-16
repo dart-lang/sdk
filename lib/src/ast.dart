@@ -99,8 +99,10 @@ bool inPrivateMember(AstNode node) {
 }
 
 /// Returns `true` if the given [declaration] is annotated `@deprecated`.
-bool isDeprecated(Declaration declaration) =>
-    declaration.declaredElement!.hasDeprecated;
+bool isDeprecated(Declaration declaration) {
+  var declaredElement = declaration.declaredElement;
+  return declaredElement != null && declaredElement.hasDeprecated;
+}
 
 /// Returns `true` if this element is the `==` method declaration.
 bool isEquals(ClassMember element) =>
@@ -121,7 +123,8 @@ bool isHashCode(ClassMember element) =>
 /// [package]'s `lib/` directory tree.
 bool isInLibDir(CompilationUnit node, WorkspacePackage? package) {
   if (package == null) return false;
-  final cuPath = node.declaredElement!.library.source.fullName;
+  final cuPath = node.declaredElement?.library.source.fullName;
+  if (cuPath == null) return false;
   final libDir = path.join(package.root, 'lib');
   return path.isWithin(libDir, cuPath);
 }
@@ -146,8 +149,10 @@ bool isProtected(Declaration declaration) =>
     declaration.metadata.any((Annotation a) => a.name.name == 'protected');
 
 /// Returns `true` if the given [ClassMember] is a public method.
-bool isPublicMethod(ClassMember m) =>
-    isMethod(m) && m.declaredElement!.isPublic;
+bool isPublicMethod(ClassMember m) {
+  var declaredElement = m.declaredElement;
+  return declaredElement != null && isMethod(m) && declaredElement.isPublic;
+}
 
 /// Returns `true` if the given method [declaration] is a "simple getter".
 ///
@@ -287,8 +292,8 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
       return false;
     }
 
-    var parameters = setter.parameters!.parameters;
-    if (parameters.length == 1) {
+    var parameters = setter.parameters?.parameters;
+    if (parameters != null && parameters.length == 1) {
       return rightElement == parameters[0].declaredElement;
     }
   }

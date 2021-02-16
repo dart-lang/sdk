@@ -51,8 +51,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFormalParameterList(FormalParameterList node) {
     var nonRequiredSeen = false;
     for (var param in node.parameters.where((p) => p.isNamed)) {
-      var element = param.declaredElement!;
-      if (element.hasRequired || element.isRequiredNamed) {
+      var element = param.declaredElement;
+      if (element != null && (element.hasRequired || element.isRequiredNamed)) {
         if (nonRequiredSeen) {
           var identifier = param.identifier;
           if (identifier != null) {

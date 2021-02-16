@@ -100,7 +100,7 @@ class TestedExpressions {
             ? binaryExpression.operator.type
             : TokenType.AMPERSAND_AMPERSAND);
 
-    if (_contradictions!.isEmpty) {
+    if (_contradictions?.isEmpty == true) {
       final set = (binaryExpression != null
           ? _extractComparisons(testingExpression as BinaryExpression)
           : {testingExpression})
@@ -109,7 +109,7 @@ class TestedExpressions {
       // Here and in several places we proceed only for
       // TokenType.AMPERSAND_AMPERSAND because we then know that all comparisons
       // must be true.
-      _contradictions!.addAll(
+      _contradictions?.addAll(
           _findContradictoryComparisons(set, TokenType.AMPERSAND_AMPERSAND));
     }
 

@@ -240,7 +240,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       var operand = expressions.operand;
       if (expressions.operator.type == TokenType.MINUS &&
           operand is IntegerLiteral) {
-        return -operand.value!;
+        var value = operand.value;
+        if (value != null) {
+          return -value;
+        }
       }
     }
     // ignore: avoid_returning_null

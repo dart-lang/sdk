@@ -66,8 +66,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    if (node.expression != null) {
-      _visit(node, node.expression!.unParenthesized);
+    var expression = node.expression;
+    if (expression != null) {
+      _visit(node, expression.unParenthesized);
     }
   }
 

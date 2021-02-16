@@ -72,7 +72,11 @@ class _Visitor extends UnifyingAstVisitor<void> {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     if (node.featureSet.isEnabled(Feature.non_nullable)) {
-      currentUnit = node.declaredElement;
+      var declaredElement = node.declaredElement;
+      if (declaredElement == null) {
+        return;
+      }
+      currentUnit = declaredElement;
       lateables.putIfAbsent(currentUnit, () => []);
       nullableAccess.putIfAbsent(currentUnit, () => {});
 
@@ -80,9 +84,8 @@ class _Visitor extends UnifyingAstVisitor<void> {
 
       final unitsInContext =
           context.allUnits.map((e) => e.unit.declaredElement).toSet();
-      final libraryUnitsInContext = node.declaredElement!.library.units
-          .where(unitsInContext.contains)
-          .toSet();
+      final libraryUnitsInContext =
+          declaredElement.library.units.where(unitsInContext.contains).toSet();
       final areAllLibraryUnitsVisited =
           libraryUnitsInContext.every(lateables.containsKey);
       if (areAllLibraryUnitsVisited) {
@@ -123,7 +126,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
           context.typeSystem.isNonNullable(parent.rightHandSide.staticType!)) {
         // ok non-null access
       } else {
-        nullableAccess[currentUnit]!.add(element);
+        nullableAccess[currentUnit]?.add(element);
       }
     }
     super.visitNode(node);
@@ -138,8 +141,9 @@ class _Visitor extends UnifyingAstVisitor<void> {
       // we'd need to ensure that there are no instances of either the
       // enclosing class or any subclass of the enclosing class that are ever
       // accessible outside this library.
-      if (Identifier.isPrivateName(variable.name.name) ||
-          _isPrivateExtension(parent)) {
+      if (parent != null &&
+          (Identifier.isPrivateName(variable.name.name) ||
+              _isPrivateExtension(parent))) {
         _visit(variable);
       }
     }
@@ -163,10 +167,12 @@ class _Visitor extends UnifyingAstVisitor<void> {
     if (variable.isSynthetic) {
       return;
     }
-    if (context.typeSystem.isNonNullable(variable.declaredElement!.type)) {
+    var declaredElement = variable.declaredElement;
+    if (declaredElement == null ||
+        context.typeSystem.isNonNullable(declaredElement.type)) {
       return;
     }
-    lateables[currentUnit]!.add(variable);
+    lateables[currentUnit]?.add(variable);
   }
 
   void _checkAccess(Iterable<CompilationUnitElement> units) {
@@ -183,6 +189,10 @@ class _Visitor extends UnifyingAstVisitor<void> {
   }
 }
 
-bool _isPrivateExtension(AstNode? parent) =>
-    parent is ExtensionDeclaration &&
-    (parent.name == null || Identifier.isPrivateName(parent.name!.name));
+bool _isPrivateExtension(AstNode parent) {
+  if (parent is! ExtensionDeclaration) {
+    return false;
+  }
+  var parentName = parent.name?.name;
+  return parentName == null || Identifier.isPrivateName(parentName);
+}

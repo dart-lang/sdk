@@ -38,8 +38,10 @@ _VisitVariableDeclaration _buildVariableReporter(
         LintRule rule,
         Map<DartTypePredicate, String> predicates) =>
     (VariableDeclaration variable) {
-      if (!predicates.keys
-          .any((DartTypePredicate p) => p(variable.declaredElement!.type))) {
+      if (!predicates.keys.any((DartTypePredicate p) {
+        var declaredElement = variable.declaredElement;
+        return declaredElement != null && p(declaredElement.type);
+      })) {
         return;
       }
 
@@ -72,10 +74,12 @@ _VisitVariableDeclaration _buildVariableReporter(
 Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
     VariableDeclaration variable, Map<DartTypePredicate, String> predicates) {
   final prefixedIdentifiers = containerNodes.whereType<PrefixedIdentifier>();
-  return prefixedIdentifiers.where((n) =>
-      n.prefix.staticElement == variable.name.staticElement &&
-      _hasMatch(predicates, variable.declaredElement!.type,
-          n.identifier.token.lexeme));
+  return prefixedIdentifiers.where((n) {
+    var declaredElement = variable.declaredElement;
+    return declaredElement != null &&
+        n.prefix.staticElement == variable.name.staticElement &&
+        _hasMatch(predicates, declaredElement.type, n.identifier.token.lexeme);
+  });
 }
 
 Iterable<AstNode> _findMethodInvocationsWithVariableAsArgument(
@@ -91,16 +95,18 @@ Iterable<AstNode> _findNodesInvokingMethodOnVariable(
         Iterable<AstNode> classNodes,
         VariableDeclaration variable,
         Map<DartTypePredicate, String> predicates) =>
-    classNodes.where((AstNode n) =>
-        n is MethodInvocation &&
-        ((_hasMatch(predicates, variable.declaredElement!.type,
-                    n.methodName.name) &&
-                (_isSimpleIdentifierElementEqualToVariable(
-                        n.realTarget, variable) ||
-                    _isPropertyAccessThroughThis(n.realTarget, variable) ||
-                    (n.thisOrAncestorMatching((a) => a == variable) !=
-                        null))) ||
-            (_isInvocationThroughCascadeExpression(n, variable))));
+    classNodes.where((AstNode n) {
+      var declaredElement = variable.declaredElement;
+      return declaredElement != null &&
+          n is MethodInvocation &&
+          ((_hasMatch(predicates, declaredElement.type, n.methodName.name) &&
+                  (_isSimpleIdentifierElementEqualToVariable(
+                          n.realTarget, variable) ||
+                      _isPropertyAccessThroughThis(n.realTarget, variable) ||
+                      (n.thisOrAncestorMatching((a) => a == variable) !=
+                          null))) ||
+              (_isInvocationThroughCascadeExpression(n, variable)));
+    });
 
 Iterable<AstNode> _findVariableAssignments(
     Iterable<AstNode> containerNodes, VariableDeclaration variable) {

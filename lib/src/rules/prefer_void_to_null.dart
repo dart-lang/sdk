@@ -69,7 +69,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitTypeName(TypeName node) {
-    if (!node.type!.isDartCoreNull) {
+    var nodeType = node.type;
+    if (nodeType == null || !nodeType.isDartCoreNull) {
       return;
     }
 
@@ -83,7 +84,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Function(Null)
     if (parent is SimpleFormalParameter &&
         parent.parent is FormalParameterList &&
-        parent.parent!.parent is GenericFunctionType) {
+        parent.parent?.parent is GenericFunctionType) {
       return;
     }
 

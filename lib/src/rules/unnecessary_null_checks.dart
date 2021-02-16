@@ -38,12 +38,12 @@ m() {
 
 DartType? getExpectedType(PostfixExpression node) {
   var realNode =
-      node.thisOrAncestorMatching((e) => e.parent is! ParenthesizedExpression)!;
-  var parent = realNode.parent;
+      node.thisOrAncestorMatching((e) => e.parent is! ParenthesizedExpression);
+  var parent = realNode?.parent;
 
   // in return value
   if (parent is ReturnStatement || parent is ExpressionFunctionBody) {
-    var parentExpression = parent!.thisOrAncestorOfType<FunctionExpression>();
+    var parentExpression = parent?.thisOrAncestorOfType<FunctionExpression>();
     if (parentExpression == null) {
       return null;
     }
@@ -60,7 +60,7 @@ DartType? getExpectedType(PostfixExpression node) {
   }
   // in variable declaration
   if (parent is VariableDeclaration) {
-    return parent.declaredElement!.type;
+    return parent.declaredElement?.type;
   }
   // as right member of binary operator
   if (parent is BinaryExpression && parent.rightOperand == realNode) {

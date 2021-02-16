@@ -118,7 +118,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    if (node.declaredElement!.name != '' || node.body!.keyword != null) {
+    if (node.declaredElement?.name != '' || node.body?.keyword != null) {
       return;
     }
     final body = node.body;
@@ -143,23 +143,25 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _visitInvocationExpression(
       InvocationExpression node, FunctionExpression nodeToLint) {
-    if (!DartTypeUtilities.matchesArgumentsWithParameters(
-        node.argumentList.arguments, nodeToLint.parameters!.parameters)) {
+    var nodeToLintParams = nodeToLint.parameters?.parameters;
+    if (nodeToLintParams == null ||
+        !DartTypeUtilities.matchesArgumentsWithParameters(
+            node.argumentList.arguments, nodeToLintParams)) {
       return;
     }
 
     bool isTearoffAssignable(DartType? assignedType) {
       if (assignedType != null) {
-        var tearoffType = node.staticInvokeType!;
-        if (!context.typeSystem.isSubtypeOf(tearoffType, assignedType)) {
+        var tearoffType = node.staticInvokeType;
+        if (tearoffType == null ||
+            !context.typeSystem.isSubtypeOf(tearoffType, assignedType)) {
           return false;
         }
       }
       return true;
     }
 
-    final parameters =
-        nodeToLint.parameters!.parameters.map((e) => e.declaredElement).toSet();
+    final parameters = nodeToLintParams.map((e) => e.declaredElement).toSet();
     if (node is FunctionExpressionInvocation) {
       // todo (pq): consider checking for assignability
       // see: https://github.com/dart-lang/linter/issues/1561

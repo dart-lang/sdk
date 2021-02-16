@@ -93,7 +93,7 @@ Element? _getLeftElement(AssignmentExpression assignment) =>
     DartTypeUtilities.getCanonicalElement(assignment.writeElement);
 
 Iterable<Element?> _getParameters(ConstructorDeclaration node) =>
-    node.parameters.parameters.map((e) => e.identifier!.staticElement);
+    node.parameters.parameters.map((e) => e.identifier?.staticElement);
 
 Element? _getRightElement(AssignmentExpression assignment) =>
     DartTypeUtilities.getCanonicalElementFromIdentifier(
@@ -135,7 +135,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           leftElement is FieldElement &&
           !leftElement.isSynthetic &&
           leftElement.enclosingElement ==
-              node.declaredElement!.enclosingElement &&
+              node.declaredElement?.enclosingElement &&
           parameters.contains(rightElement) &&
           (!parametersUsedMoreThanOnce.contains(rightElement) &&
                   !(rightElement as ParameterElement).isNamed ||
@@ -152,7 +152,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           (!parametersUsedMoreThanOnce.contains(expression.staticElement) &&
                   !(expression.staticElement as ParameterElement).isNamed ||
               (constructorFieldInitializer.fieldName.staticElement?.name ==
-                  expression.staticElement!.name));
+                  expression.staticElement?.name));
     }
 
     void processElement(Element? element) {
@@ -162,7 +162,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     node.parameters.parameterElements
-        .where((p) => p!.isInitializingFormal)
+        .where((p) => p != null && p.isInitializingFormal)
         .forEach(processElement);
 
     _getAssignmentExpressionsInConstructorBody(node)

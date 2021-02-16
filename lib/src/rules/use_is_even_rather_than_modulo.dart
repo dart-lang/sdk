@@ -61,8 +61,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     var rightType = right.staticType;
     // Both sides have to have static type of int
     if (!(right is IntegerLiteral &&
-        leftType!.isDartCoreInt == true &&
-        rightType!.isDartCoreInt == true)) {
+        leftType?.isDartCoreInt == true &&
+        rightType?.isDartCoreInt == true)) {
       return;
     }
     // The left side expression has to be modulo by 2 type.
@@ -72,7 +72,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (left.operator.type == TokenType.PERCENT &&
           rightChild is IntegerLiteral &&
           rightChild.value == 2 &&
-          rightChildType!.isDartCoreInt == true) {
+          rightChildType?.isDartCoreInt == true) {
         rule.reportLint(node);
       }
     }

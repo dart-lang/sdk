@@ -51,13 +51,13 @@ class DartTypeUtilities {
     // And no subclasses in the defining library.
     var compilationUnit = classElement.library.definingCompilationUnit;
     for (var cls in compilationUnit.types) {
-      var classType = cls.thisType;
+      InterfaceType? classType = cls.thisType;
       do {
-        classType = classType.superclass!;
+        classType = classType?.superclass;
         if (classType == type) {
           return null;
         }
-      } while (!classType.isDartCoreObject);
+      } while (classType != null && !classType.isDartCoreObject);
     }
 
     return EnumLikeClassDescription(enumConstantNames);
@@ -249,9 +249,13 @@ class DartTypeUtilities {
       expression?.unParenthesized is NullLiteral;
 
   static PropertyAccessorElement? lookUpGetter(MethodDeclaration node) {
-    final parent = node.declaredElement!.enclosingElement;
+    var declaredElement = node.declaredElement;
+    if (declaredElement == null) {
+      return null;
+    }
+    final parent = declaredElement.enclosingElement;
     if (parent is ClassElement) {
-      return parent.lookUpGetter(node.name.name, node.declaredElement!.library);
+      return parent.lookUpGetter(node.name.name, declaredElement.library);
     }
     if (parent is ExtensionElement) {
       return parent.getGetter(node.name.name);
@@ -261,20 +265,27 @@ class DartTypeUtilities {
 
   static PropertyAccessorElement? lookUpInheritedConcreteGetter(
       MethodDeclaration node) {
-    final parent = node.declaredElement!.enclosingElement;
+    var declaredElement = node.declaredElement;
+    if (declaredElement == null) {
+      return null;
+    }
+    final parent = declaredElement.enclosingElement;
     if (parent is ClassElement) {
       return parent.lookUpInheritedConcreteGetter(
-          node.name.name, node.declaredElement!.library);
+          node.name.name, declaredElement.library);
     }
     // Extensions don't inherit.
     return null;
   }
 
   static MethodElement? lookUpInheritedConcreteMethod(MethodDeclaration node) {
-    final parent = node.declaredElement!.enclosingElement;
-    if (parent is ClassElement) {
-      return parent.lookUpInheritedConcreteMethod(
-          node.name.name, node.declaredElement!.library);
+    var declaredElement = node.declaredElement;
+    if (declaredElement != null) {
+      final parent = declaredElement.enclosingElement;
+      if (parent is ClassElement) {
+        return parent.lookUpInheritedConcreteMethod(
+            node.name.name, declaredElement.library);
+      }
     }
     // Extensions don't inherit.
     return null;
@@ -282,30 +293,40 @@ class DartTypeUtilities {
 
   static PropertyAccessorElement? lookUpInheritedConcreteSetter(
       MethodDeclaration node) {
-    final parent = node.declaredElement!.enclosingElement;
-    if (parent is ClassElement) {
-      return parent.lookUpInheritedConcreteSetter(
-          node.name.name, node.declaredElement!.library);
+    var declaredElement = node.declaredElement;
+    if (declaredElement != null) {
+      final parent = declaredElement.enclosingElement;
+      if (parent is ClassElement) {
+        return parent.lookUpInheritedConcreteSetter(
+            node.name.name, declaredElement.library);
+      }
     }
     // Extensions don't inherit.
     return null;
   }
 
   static MethodElement? lookUpInheritedMethod(MethodDeclaration node) {
-    final parent = node.declaredElement!.enclosingElement;
-    return parent is ClassElement
-        ? parent.lookUpInheritedMethod(
-            node.name.name, node.declaredElement!.library)
-        : null;
+    var declaredElement = node.declaredElement;
+    if (declaredElement != null) {
+      final parent = declaredElement.enclosingElement;
+      if (parent is ClassElement) {
+        return parent.lookUpInheritedMethod(
+            node.name.name, declaredElement.library);
+      }
+    }
+    return null;
   }
 
   static PropertyAccessorElement? lookUpSetter(MethodDeclaration node) {
-    final parent = node.declaredElement!.enclosingElement;
-    if (parent is ClassElement) {
-      return parent.lookUpSetter(node.name.name, node.declaredElement!.library);
-    }
-    if (parent is ExtensionElement) {
-      return parent.getSetter(node.name.name);
+    var declaredElement = node.declaredElement;
+    if (declaredElement != null) {
+      final parent = declaredElement.enclosingElement;
+      if (parent is ClassElement) {
+        return parent.lookUpSetter(node.name.name, declaredElement.library);
+      }
+      if (parent is ExtensionElement) {
+        return parent.getSetter(node.name.name);
+      }
     }
     return null;
   }
@@ -317,11 +338,13 @@ class DartTypeUtilities {
     final positionalParameters = <Element?>[];
     final positionalArguments = <Element>[];
     for (final parameter in parameters) {
-      if (parameter.isNamed) {
-        namedParameters[parameter.identifier!.name] =
-            parameter.identifier!.staticElement;
-      } else {
-        positionalParameters.add(parameter.identifier!.staticElement);
+      var identifier = parameter.identifier;
+      if (identifier != null) {
+        if (parameter.isNamed) {
+          namedParameters[identifier.name] = identifier.staticElement;
+        } else {
+          positionalParameters.add(identifier.staticElement);
+        }
       }
     }
     for (final argument in arguments) {
@@ -365,9 +388,15 @@ class DartTypeUtilities {
     if (parent is! ClassOrMixinDeclaration) {
       return false;
     }
-    final name = node.declaredElement!.name;
+    final name = node.declaredElement?.name;
+    if (name == null) {
+      return false;
+    }
     final clazz = parent;
-    final classElement = clazz.declaredElement!;
+    final classElement = clazz.declaredElement;
+    if (classElement == null) {
+      return false;
+    }
     final library = classElement.library;
     return classElement.allSupertypes
         .map(node.isGetter

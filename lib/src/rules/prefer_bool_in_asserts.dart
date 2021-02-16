@@ -70,8 +70,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAssertStatement(AssertStatement node) {
-    var conditionType = _unbound(node.condition.staticType)!;
-    if (!typeSystem.isAssignableTo(conditionType, boolType)) {
+    var conditionType = _unbound(node.condition.staticType);
+    if (conditionType != null &&
+        !typeSystem.isAssignableTo(conditionType, boolType)) {
       rule.reportLint(node.condition);
     }
   }

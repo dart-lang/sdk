@@ -96,8 +96,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else if (parent is ExpressionFunctionBody) {
       return hasReturnTypeDouble(parent.parent);
     } else if (parent is ReturnStatement) {
-      final body = parent.thisOrAncestorOfType<BlockFunctionBody>()!;
-      return hasReturnTypeDouble(body.parent);
+      final body = parent.thisOrAncestorOfType<BlockFunctionBody>();
+      return body != null && hasReturnTypeDouble(body.parent);
     } else if (parent is VariableDeclaration) {
       final varList = parent.parent;
       if (varList is VariableDeclarationList) {

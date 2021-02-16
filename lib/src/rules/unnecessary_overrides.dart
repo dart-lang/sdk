@@ -128,26 +128,36 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
   }
 
   bool _addsMetadata() {
-    for (var annotation in declaration.declaredElement!.metadata) {
-      if (!annotation.isOverride) {
-        return true;
+    var metadata = declaration.declaredElement?.metadata;
+    if (metadata != null) {
+      for (var annotation in metadata) {
+        if (!annotation.isOverride) {
+          return true;
+        }
       }
     }
     return false;
   }
 
   bool _haveSameDeclaration() {
-    if (declaration.declaredElement!.returnType !=
-        inheritedMethod!.returnType) {
+    var declaredElement = declaration.declaredElement;
+    if (declaredElement == null) {
       return false;
     }
-    if (declaration.declaredElement!.parameters.length !=
-        inheritedMethod!.parameters.length) {
+    var inheritedMethod = this.inheritedMethod;
+    if (inheritedMethod == null) {
       return false;
     }
-    for (var i = 0; i < inheritedMethod!.parameters.length; i++) {
-      final superParam = inheritedMethod!.parameters[i];
-      final param = declaration.declaredElement!.parameters[i];
+    if (declaredElement.returnType != inheritedMethod.returnType) {
+      return false;
+    }
+    if (declaredElement.parameters.length !=
+        inheritedMethod.parameters.length) {
+      return false;
+    }
+    for (var i = 0; i < inheritedMethod.parameters.length; i++) {
+      final superParam = inheritedMethod.parameters[i];
+      final param = declaredElement.parameters[i];
       if (param.type != superParam.type) return false;
       if (param.name != superParam.name) return false;
       if (param.isCovariant != superParam.isCovariant) return false;
@@ -195,9 +205,11 @@ class _UnnecessaryMethodOverrideVisitor
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.staticElement == inheritedMethod &&
+    var declarationParameters = declaration.parameters;
+    if (declarationParameters != null &&
+        node.methodName.staticElement == inheritedMethod &&
         DartTypeUtilities.matchesArgumentsWithParameters(
-            node.argumentList.arguments, declaration.parameters!.parameters)) {
+            node.argumentList.arguments, declarationParameters.parameters)) {
       node.target?.accept(this);
     }
   }
@@ -213,10 +225,11 @@ class _UnnecessaryOperatorOverrideVisitor
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    final parameters = declaration.parameters!.parameters;
+    final parameters = declaration.parameters?.parameters;
     if (node.operator.type == declaration.name.token.type &&
+        parameters != null &&
         parameters.length == 1 &&
-        parameters.first.identifier!.staticElement ==
+        parameters.first.identifier?.staticElement ==
             DartTypeUtilities.getCanonicalElementFromIdentifier(
                 node.rightOperand)) {
       final leftPart = node.leftOperand.unParenthesized;
@@ -228,8 +241,9 @@ class _UnnecessaryOperatorOverrideVisitor
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    final parameters = declaration.parameters!.parameters;
-    if (node.operator.type == declaration.name.token.type &&
+    final parameters = declaration.parameters?.parameters;
+    if (parameters != null &&
+        node.operator.type == declaration.name.token.type &&
         parameters.isEmpty) {
       final operand = node.operand.unParenthesized;
       if (operand is SuperExpression) {
@@ -249,9 +263,10 @@ class _UnnecessarySetterOverrideVisitor
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    final parameters = declaration.parameters!.parameters;
-    if (parameters.length == 1 &&
-        parameters.first.identifier!.staticElement ==
+    final parameters = declaration.parameters?.parameters;
+    if (parameters != null &&
+        parameters.length == 1 &&
+        parameters.first.identifier?.staticElement ==
             DartTypeUtilities.getCanonicalElementFromIdentifier(
                 node.rightHandSide)) {
       final leftPart = node.leftHandSide.unParenthesized;

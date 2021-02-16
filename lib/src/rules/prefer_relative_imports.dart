@@ -72,7 +72,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!samePackage(importUri, sourceUri)) return false;
 
     // todo (pq): context.package.contains(source) should work (but does not)
-    return path.isWithin(context.package!.root, source.fullName);
+    var packageRoot = context.package?.root;
+    return packageRoot != null && path.isWithin(packageRoot, source.fullName);
   }
 
   @override

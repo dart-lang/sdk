@@ -60,7 +60,7 @@ Future writeBenchmarks(
   final pedanticRuleset = await pedanticRules;
   final stats = timings.keys.map((t) {
     final details = pedanticRuleset.contains(t) ? ' [pedantic]' : '';
-    return _Stat('$t$details', timings[t]);
+    return _Stat('$t$details', timings[t] ?? 0);
   }).toList();
   _writeTimings(out, stats, 0);
 }
@@ -95,7 +95,7 @@ void _writeTimings(IOSink out, List<_Stat> timings, int summaryLength) {
 
   timings.sort();
   for (var stat in timings) {
-    totalTime += stat.elapsed!;
+    totalTime += stat.elapsed;
     // TODO: Shame timings slower than 100ms?
     // TODO: Present both total times and time per count?
     out.writeln(
@@ -266,8 +266,9 @@ class SimpleFormatter implements ReportFormatter {
   }
 
   void writeLints() {
+    var filter = this.filter;
     errors.forEach((info) => (info.errors.toList()..sort(compare)).forEach((e) {
-          if (filter != null && filter!.filter(e)) {
+          if (filter != null && filter.filter(e)) {
             filteredLintCount++;
           } else {
             ++errorCount;
@@ -299,7 +300,7 @@ class SimpleFormatter implements ReportFormatter {
   void writeTimings() {
     final timers = lintRegistry.timers;
     final timings = timers.keys
-        .map((t) => _Stat(t, timers[t]!.elapsedMilliseconds))
+        .map((t) => _Stat(t, timers[t]?.elapsedMilliseconds ?? 0))
         .toList();
     _writeTimings(out, timings, _summaryLength);
   }
@@ -322,10 +323,10 @@ class SimpleFormatter implements ReportFormatter {
 
 class _Stat implements Comparable<_Stat> {
   final String name;
-  final int? elapsed;
+  final int elapsed;
 
   _Stat(this.name, this.elapsed);
 
   @override
-  int compareTo(_Stat other) => other.elapsed! - elapsed!;
+  int compareTo(_Stat other) => other.elapsed - elapsed;
 }

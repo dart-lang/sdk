@@ -75,14 +75,17 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    final element = node.declaredElement!;
+    final element = node.declaredElement;
+    if (element == null) {
+      return;
+    }
     final isRedirected =
         element.isFactory && element.redirectedConstructor != null;
     if (node.body is EmptyFunctionBody &&
         !element.isConst &&
         !_hasMixin(element.enclosingElement) &&
         _hasImmutableAnnotation(element.enclosingElement) &&
-        (isRedirected && element.redirectedConstructor!.isConst ||
+        (isRedirected && element.redirectedConstructor?.isConst == true ||
             (!isRedirected &&
                 _hasConstConstructorInvocation(node) &&
                 context.canBeConstConstructor(node)))) {
@@ -91,23 +94,29 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _hasConstConstructorInvocation(ConstructorDeclaration node) {
-    final clazz = node.declaredElement!.enclosingElement;
+    var declaredElement = node.declaredElement;
+    if (declaredElement == null) {
+      return false;
+    }
+    final clazz = declaredElement.enclosingElement;
     // construct with super
     final superInvocation = node.initializers
             .firstWhereOrNull((e) => e is SuperConstructorInvocation)
         as SuperConstructorInvocation?;
-    if (superInvocation != null) return superInvocation.staticElement!.isConst;
+    if (superInvocation != null) {
+      return superInvocation.staticElement?.isConst == true;
+    }
     // construct with this
     final redirectInvocation = node.initializers
             .firstWhereOrNull((e) => e is RedirectingConstructorInvocation)
         as RedirectingConstructorInvocation?;
     if (redirectInvocation != null) {
-      return redirectInvocation.staticElement!.isConst;
+      return redirectInvocation.staticElement?.isConst == true;
     }
     // construct with implicit super()
-    return clazz.supertype!.constructors
-        .firstWhere((e) => e.name.isEmpty)
-        .isConst;
+    var supertype = clazz.supertype;
+    return supertype != null &&
+        supertype.constructors.firstWhere((e) => e.name.isEmpty).isConst;
   }
 
   bool _hasImmutableAnnotation(ClassElement clazz) {

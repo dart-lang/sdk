@@ -57,14 +57,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    var parent = node.parent;
     // Check whether is expression is inside parenthesis
-    if (node.parent is ParenthesizedExpression) {
-      final parenthesizedExpression = node.parent!;
-      final prefixExpression = parenthesizedExpression.parent;
+    if (parent is ParenthesizedExpression) {
+      final prefixExpression = parent.parent;
       // Check for NOT (!) operator
       if (prefixExpression is PrefixExpression &&
           prefixExpression.operator.type == TokenType.BANG) {
-        rule.reportLint(parenthesizedExpression.parent);
+        rule.reportLint(prefixExpression);
       }
     }
   }

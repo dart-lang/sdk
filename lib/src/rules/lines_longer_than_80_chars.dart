@@ -159,11 +159,11 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor {
 }
 
 class _LineInfo {
-  final int? index;
-  final int? offset;
-  final int? end;
-  _LineInfo({this.index, this.offset, this.end});
-  int get length => end! - offset!;
+  final int index;
+  final int offset;
+  final int end;
+  _LineInfo({required this.index, required this.offset, required this.end});
+  int get length => end - offset;
 }
 
 class _Visitor extends SimpleAstVisitor {
@@ -175,7 +175,10 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    final lineInfo = node.lineInfo!;
+    final lineInfo = node.lineInfo;
+    if (lineInfo == null) {
+      return;
+    }
     final lineCount = lineInfo.lineCount;
     final longLines = <_LineInfo>[];
     for (var i = 0; i < lineCount; i++) {
@@ -213,9 +216,9 @@ class _Visitor extends SimpleAstVisitor {
     ];
 
     for (final line in longLines) {
-      if (allowedLines.contains(line.index! + 1)) continue;
+      if (allowedLines.contains(line.index + 1)) continue;
       rule.reporter
-          .reportErrorForOffset(rule.lintCode, line.offset!, line.length);
+          .reportErrorForOffset(rule.lintCode, line.offset, line.length);
     }
   }
 }

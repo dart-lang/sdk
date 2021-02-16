@@ -106,8 +106,9 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
     // [definition].
 
     DartType? targetType;
-    if (node.target != null) {
-      targetType = node.target!.staticType;
+    var target = node.target;
+    if (target != null) {
+      targetType = target.staticType;
     } else {
       final classDeclaration =
           node.thisOrAncestorOfType<ClassOrMixinDeclaration>();

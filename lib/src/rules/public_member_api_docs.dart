@@ -334,14 +334,19 @@ class _Visitor extends SimpleAstVisitor {
       }
     }
 
+    var declaredElement = node.declaredElement;
+    if (declaredElement == null) {
+      return;
+    }
+
     // But only setters whose getter is missing a doc.
     for (var setter in setters) {
       final getter = getters[setter.name.name];
       if (getter == null) {
-        final libraryUri = node.declaredElement!.library.source.uri;
+        final libraryUri = declaredElement.library.source.uri;
         // Look for an inherited getter.
         Element? getter = context.inheritanceManager.getMember(
-          node.declaredElement!.thisType,
+          declaredElement.thisType,
           Name(libraryUri, setter.name.name),
         );
         if (getter is PropertyAccessorElement) {

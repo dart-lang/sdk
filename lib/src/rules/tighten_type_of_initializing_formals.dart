@@ -77,14 +77,17 @@ class _Visitor extends SimpleAstVisitor<void> {
             : e.leftOperand is NullLiteral
                 ? e.rightOperand
                 : null)
-        .where((e) => e != null)
-        .where((e) => context.typeSystem.isNullable(e!.staticType!))
         .whereType<Identifier>()
+        .where((e) {
+          var staticType = e.staticType;
+          return staticType != null &&
+              context.typeSystem.isNullable(staticType);
+        })
         .map((e) => e.staticElement)
         .whereType<FieldFormalParameterElement>()
         .forEach((e) {
-      rule.reportLint(
-          node.parameters.parameters.firstWhere((p) => p.declaredElement == e));
-    });
+          rule.reportLint(node.parameters.parameters
+              .firstWhere((p) => p.declaredElement == e));
+        });
   }
 }

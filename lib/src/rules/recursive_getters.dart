@@ -62,15 +62,16 @@ class _RecursiveGetterParentVisitor extends SimpleAstVisitor<bool> {
 
   @override
   bool? visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.parent is ArgumentList ||
-        node.parent is ConditionalExpression ||
-        node.parent is ExpressionFunctionBody ||
-        node.parent is ReturnStatement) {
+    var parent = node.parent;
+    if (parent is ArgumentList ||
+        parent is ConditionalExpression ||
+        parent is ExpressionFunctionBody ||
+        parent is ReturnStatement) {
       return true;
     }
 
-    if (node.parent is PropertyAccess) {
-      return node.parent!.accept(this);
+    if (parent is PropertyAccess) {
+      return parent.accept(this);
     }
 
     return false;

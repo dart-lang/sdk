@@ -57,8 +57,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var classElement = node.declaredElement!;
-    if (classElement.isPublic &&
+    var classElement = node.declaredElement;
+    if (classElement != null &&
+        classElement.isPublic &&
         hasWidgetAsAscendant(classElement) &&
         classElement.constructors.where((e) => !e.isSynthetic).isEmpty) {
       rule.reportLint(node.name);
@@ -68,7 +69,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var constructorElement = node.declaredElement!;
+    var constructorElement = node.declaredElement;
+    if (constructorElement == null) {
+      return;
+    }
     var classElement = constructorElement.enclosingElement;
     if (constructorElement.isPublic &&
         !constructorElement.isFactory &&
@@ -91,7 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       element.parameters.any((e) => e.name == 'key' && _isKeyType(e.type));
 
   bool _defineKeyArgument(ArgumentList argumentList) => argumentList.arguments
-      .any((a) => a.staticParameterElement!.name == 'key');
+      .any((a) => a.staticParameterElement?.name == 'key');
 
   bool _isKeyType(DartType type) =>
       DartTypeUtilities.implementsInterface(type, 'Key', '');

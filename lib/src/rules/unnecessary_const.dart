@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor {
     final isConstWithoutKeyword = node.isConst;
     node.keyword = oldKeyword;
 
-    if (isConstWithoutKeyword && node.keyword!.type == Keyword.CONST) {
+    if (isConstWithoutKeyword && node.keyword?.type == Keyword.CONST) {
       rule.reportLint(node);
     }
   }
@@ -88,7 +88,7 @@ class _Visitor extends SimpleAstVisitor {
     final isConstWithoutKeyword = node.isConst;
     node.constKeyword = oldKeyword;
 
-    if (isConstWithoutKeyword && node.constKeyword!.type == Keyword.CONST) {
+    if (isConstWithoutKeyword && node.constKeyword?.type == Keyword.CONST) {
       rule.reportLint(node);
     }
   }
