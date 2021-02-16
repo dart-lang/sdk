@@ -24,16 +24,16 @@ class C1O1 {
   Object? operator >>>(arg1, [arg2]) => arg1;
   //               ^
   // [cfe] Operator '>>>' should have exactly one parameter.
-  //                          ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
+  //               ^^^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
 }
 
 class C1N1 {
   Object? operator >>>(arg1, {arg2}) => arg1;
   //               ^
   // [cfe] Operator '>>>' should have exactly one parameter.
-  //                          ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
+  //               ^^^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
 }
 
 class C0 {

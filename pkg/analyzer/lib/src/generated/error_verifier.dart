@@ -931,8 +931,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
         _checkForNonVoidReturnTypeForSetter(returnType);
       } else if (node.isOperator) {
-        _checkForOptionalParameterInOperator(node);
-        _checkForWrongNumberOfParametersForOperator(node);
+        var hasWrongNumberOfParameters =
+            _checkForWrongNumberOfParametersForOperator(node);
+        if (!hasWrongNumberOfParameters) {
+          // If the operator has too many parameters including one or more
+          // optional parameters, only report one error.
+          _checkForOptionalParameterInOperator(node);
+        }
         _checkForNonVoidReturnTypeForOperator(node);
       }
       _checkForExtensionDeclaresMemberOfObject(node);
@@ -4593,12 +4598,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// operator declaration before being called.
   ///
   /// See [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR].
-  void _checkForWrongNumberOfParametersForOperator(
+  bool _checkForWrongNumberOfParametersForOperator(
       MethodDeclaration declaration) {
     // prepare number of parameters
     var parameterList = declaration.parameters;
     if (parameterList == null) {
-      return;
+      return false;
     }
     int numParameters = parameterList.parameters.length;
     // prepare operator name
@@ -4634,12 +4639,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR,
           nameNode,
           [name, expected, numParameters]);
+      return true;
     } else if ("-" == name && numParameters > 1) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS,
           nameNode,
           [numParameters]);
+      return true;
     }
+    return false;
   }
 
   /// Verify that the given setter [parameterList] has only one required

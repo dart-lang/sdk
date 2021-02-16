@@ -242,8 +242,6 @@ class Operators3 {
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '~' shouldn't have any parameters.
-  //          ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
 }
 
 class Operators4 {
@@ -329,8 +327,6 @@ class Operators4 {
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '~' shouldn't have any parameters.
-  //          ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
 }
 
 class Operators5 {
@@ -338,116 +334,78 @@ class Operators5 {
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '==' should have exactly one parameter.
-  //              ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator <(a, [b]) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '<' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator >(a, [b]) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '>' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator <=(a, [b]) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '<=' should have exactly one parameter.
-  //              ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator >=(a, [b]) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '>=' should have exactly one parameter.
-  //              ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator -(a, [b]) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '-' should have zero or one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator +(a, [b]) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '+' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator /(a, [b]) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '/' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator ~/(a, [b]) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '~/' should have exactly one parameter.
-  //              ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator *(a, [b]) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '*' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator %(a, [b]) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '%' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator |(a, [b]) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '|' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator ^(a, [b]) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '^' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator &(a, [b]) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '&' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator <<(a, [b]) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '<<' should have exactly one parameter.
-  //              ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator >>(a, [b]) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '>>' should have exactly one parameter.
-  //              ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator []=(a, b, [c]) => true;
   //       ^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '[]=' should have exactly two parameters.
-  //                  ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator [](a, [b]) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '[]' should have exactly one parameter.
-  //              ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator ~(a, [b]) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '~' shouldn't have any parameters.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
 }
 
 class Operators6 {
@@ -455,116 +413,78 @@ class Operators6 {
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '==' should have exactly one parameter.
-  //              ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator <(a, {b}) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '<' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator >(a, {b}) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '>' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator <=(a, {b}) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '<=' should have exactly one parameter.
-  //              ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator >=(a, {b}) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '>=' should have exactly one parameter.
-  //              ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator -(a, {b}) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '-' should have zero or one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator +(a, {b}) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '+' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator /(a, {b}) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '/' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator ~/(a, {b}) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '~/' should have exactly one parameter.
-  //              ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator *(a, {b}) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '*' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator %(a, {b}) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '%' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator |(a, {b}) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '|' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator ^(a, {b}) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '^' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator &(a, {b}) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '&' should have exactly one parameter.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator <<(a, {b}) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '<<' should have exactly one parameter.
-  //              ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator >>(a, {b}) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '>>' should have exactly one parameter.
-  //              ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator []=(a, b, {c}) => true;
   //       ^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '[]=' should have exactly two parameters.
-  //                  ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator [](a, {b}) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '[]' should have exactly one parameter.
-  //              ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator ~(a, {b}) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '~' shouldn't have any parameters.
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
 }
 
 class Operators7 {
