@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/lint/config.dart'; // ignore: implementation_imports
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:http/http.dart' as http;
 
 final _pedanticOptionsRootUrl =
@@ -16,15 +15,18 @@ List<String?>? _pedanticRules;
 Future<List<String?>> get pedanticRules async =>
     _pedanticRules ??= await _fetchPedanticRules();
 
-Future<List<String?>> fetchRules(Uri optionsUrl) async {
+Future<List<String>> fetchRules(Uri optionsUrl) async {
   final config = await _fetchConfig(optionsUrl);
   if (config == null) {
     print('no config found for: $optionsUrl (SKIPPED)');
     return <String>[];
   }
-  final rules = <String?>[];
+  final rules = <String>[];
   for (var ruleConfig in config.ruleConfigs) {
-    rules.add(ruleConfig.name);
+    var name = ruleConfig.name;
+    if (name != null) {
+      rules.add(name);
+    }
   }
   return rules;
 }

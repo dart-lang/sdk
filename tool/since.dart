@@ -42,7 +42,7 @@ Future<Map<String, SinceInfo>> _getSinceInfo() async {
   final linterVersionCache = loadYamlNode(linterCache) as YamlMap;
 
   var sinceMap = <String, SinceInfo>{};
-  for (var lint in registeredLints!.map((l) => l.name)) {
+  for (var lint in registeredLints.map((l) => l.name)) {
     var linterVersion = linterVersionCache[lint] as String?;
     if (linterVersion == null) {
       linterVersion = await findSinceLinter(lint);
@@ -69,12 +69,14 @@ Future<Map<String, String>?> get dartSdkMap async {
 
     var sdks = await sdkTags;
     for (var sdk in sdks) {
-      if (!_dartSdkMap!.containsKey(sdk)) {
+      if (sdk != null && !_dartSdkMap!.containsKey(sdk)) {
         var linterVersion = await linterForDartSdk(sdk);
-        _dartSdkMap![sdk] = linterVersion;
-        print('fetched...');
-        print('$sdk : $linterVersion');
-        print('(consider caching in tool/since/dart_sdk.yaml)');
+        if (linterVersion != null) {
+          _dartSdkMap![sdk] = linterVersion;
+          print('fetched...');
+          print('$sdk : $linterVersion');
+          print('(consider caching in tool/since/dart_sdk.yaml)');
+        }
       }
     }
   }
@@ -94,10 +96,12 @@ Future<String?> _sinceSdkForLinter(String? linterVersionString) async {
   }
 
   var sdkVersions = <String>[];
-  var sdkCache = await (dartSdkMap as FutureOr<Map<String, String>>);
-  for (var sdkEntry in sdkCache.entries) {
-    if (Version.parse(sdkEntry.value) == linterVersion) {
-      sdkVersions.add(sdkEntry.key);
+  var sdkCache = await dartSdkMap;
+  if (sdkCache != null) {
+    for (var sdkEntry in sdkCache.entries) {
+      if (Version.parse(sdkEntry.value) == linterVersion) {
+        sdkVersions.add(sdkEntry.key);
+      }
     }
   }
   if (sdkVersions.isEmpty) {
@@ -110,9 +114,12 @@ Future<String?> _sinceSdkForLinter(String? linterVersionString) async {
 }
 
 Future<String?> _nextLinterVersion(Version linterVersion) async {
-  for (final version in await (linterVersions as FutureOr<Iterable<String>>)) {
-    if (Version.parse(version).compareTo(linterVersion) > 0) {
-      return version;
+  var versions = await linterVersions;
+  if (versions != null) {
+    for (final version in versions) {
+      if (Version.parse(version).compareTo(linterVersion) > 0) {
+        return version;
+      }
     }
   }
   return null;

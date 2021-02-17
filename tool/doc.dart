@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
@@ -79,7 +78,7 @@ Future<String> get effectiveDartLatestVersion async {
       'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib/analysis_options.yaml';
   var client = http.Client();
   print('loading $url...');
-  var req = await client.get(url);
+  var req = await client.get(Uri.parse(url));
   var parts = req.body.split('package:effective_dart/analysis_options.');
   return parts[1].split('.yaml')[0];
 }
@@ -109,7 +108,7 @@ Future<String> get pedanticLatestVersion async {
       'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.yaml';
   var client = http.Client();
   print('loading $url...');
-  var req = await client.get(url);
+  var req = await client.get(Uri.parse(url));
   var parts = req.body.split('package:pedantic/analysis_options.');
   return parts[1].split('.yaml')[0];
 }
@@ -121,32 +120,35 @@ Future<void> fetchBadgeInfo() async {
   var latestPedantic = await pedanticLatestVersion;
   var latestEffectiveDart = await effectiveDartLatestVersion;
 
-  var pedantic = await (fetchConfig(
-          'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.$latestPedantic.yaml')
-      as FutureOr<LintConfig>);
-  for (var ruleConfig in pedantic.ruleConfigs) {
-    pedanticRules.add(ruleConfig.name);
+  var pedantic = await fetchConfig(
+      'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.$latestPedantic.yaml');
+  if (pedantic != null) {
+    for (var ruleConfig in pedantic.ruleConfigs) {
+      pedanticRules.add(ruleConfig.name);
+    }
   }
 
-  var effectiveDart = await (fetchConfig(
-          'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib/analysis_options.$latestEffectiveDart.yaml')
-      as FutureOr<LintConfig>);
-  for (var ruleConfig in effectiveDart.ruleConfigs) {
-    effectiveDartRules.add(ruleConfig.name);
+  var effectiveDart = await fetchConfig(
+      'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib/analysis_options.$latestEffectiveDart.yaml');
+  if (effectiveDart != null) {
+    for (var ruleConfig in effectiveDart.ruleConfigs) {
+      effectiveDartRules.add(ruleConfig.name);
+    }
   }
 
-  var flutter = await (fetchConfig(
-          'https://raw.githubusercontent.com/flutter/flutter/master/packages/flutter/lib/analysis_options_user.yaml')
-      as FutureOr<LintConfig>);
-  for (var ruleConfig in flutter.ruleConfigs) {
-    flutterRules.add(ruleConfig.name);
+  var flutter = await fetchConfig(
+      'https://raw.githubusercontent.com/flutter/flutter/master/packages/flutter/lib/analysis_options_user.yaml');
+  if (flutter != null) {
+    for (var ruleConfig in flutter.ruleConfigs) {
+      flutterRules.add(ruleConfig.name);
+    }
   }
 }
 
 Future<LintConfig?> fetchConfig(String url) async {
   var client = http.Client();
   print('loading $url...');
-  var req = await client.get(url);
+  var req = await client.get(Uri.parse(url));
   return processAnalysisOptionsFile(req.body);
 }
 

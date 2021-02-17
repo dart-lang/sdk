@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: import_of_legacy_library_into_null_safe
-
 import 'dart:async';
 import 'dart:io';
 
@@ -15,6 +13,8 @@ import 'package:linter/src/rules.dart';
 import 'package:linter/src/util/score_utils.dart' as score_utils;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
+
+/// todo (pq): reign in the nullable types
 
 const _allPathSuffix = '/example/all.yaml';
 final _effectiveDartOptionsRootUrl = Uri.https(
@@ -36,7 +36,7 @@ final _stagehandOptionsUrl = Uri.https('raw.githubusercontent.com',
 /// We don't care about SDKs previous to this bottom.
 final Version bottomDartSdk = Version(2, 0, 0);
 
-Map<String, String> _dartSdkToLinterMap = <String, String>{};
+Map<String, String?> _dartSdkToLinterMap = <String, String?>{};
 
 List<String?>? _effectiveDartRules;
 List<String?>? _flutterRepoRules;
@@ -45,11 +45,11 @@ int? _latestMinor;
 
 Iterable<LintRule>? _registeredLints;
 
-List<String>? _sdkTags;
+List<String?>? _sdkTags;
 
-Map<String, List<String>> _sinceMap = <String, List<String>>{};
+Map<String, List<String?>> _sinceMap = <String, List<String>>{};
 
-List<String?>? _stagehandRules;
+List<String>? _stagehandRules;
 
 Future<List<String?>> get effectiveDartRules async =>
     _effectiveDartRules ??= await _fetchEffectiveDartRules();
@@ -65,26 +65,28 @@ Future<int> get latestMinor async =>
 
 Future<List<String?>> get pedanticRules async => score_utils.pedanticRules;
 
-Iterable<LintRule>? get registeredLints {
+Iterable<LintRule> get registeredLints {
   if (_registeredLints == null) {
     registerLintRules();
     _registeredLints = Registry.ruleRegistry;
   }
-  return _registeredLints;
+  return _registeredLints!;
 }
 
-Future<List<String>> get sdkTags async => _sdkTags ??= await _fetchSdkTags();
+Future<List<String?>> get sdkTags async => _sdkTags ??= await _fetchSdkTags();
 
-Future<List<String?>> get stagehandRules async =>
+Future<List<String>> get stagehandRules async =>
     _stagehandRules ??= await score_utils.fetchRules(_stagehandOptionsUrl);
 
 Future<String?> dartSdkForLinter(String version) async {
   var sdkVersions = <String>[];
   var sdks = await sdkTags;
   for (var sdk in sdks) {
-    var linterVersion = await linterForDartSdk(sdk);
-    if (linterVersion == version) {
-      sdkVersions.add(sdk);
+    if (sdk != null) {
+      var linterVersion = await linterForDartSdk(sdk);
+      if (linterVersion == version) {
+        sdkVersions.add(sdk);
+      }
     }
   }
 
@@ -92,7 +94,7 @@ Future<String?> dartSdkForLinter(String version) async {
   return sdkVersions.isNotEmpty ? sdkVersions.first : null;
 }
 
-Future<List<String?>> fetchRulesForVersion(String version) async =>
+Future<List<String>> fetchRulesForVersion(String version) async =>
     score_utils.fetchRules(_repoPathPrefix.resolve('$version$_allPathSuffix'));
 
 Future<String?> findSinceDartSdk(String linterVersion) async =>
@@ -100,11 +102,13 @@ Future<String?> findSinceDartSdk(String linterVersion) async =>
 
 Future<String?> findSinceLinter(String lint) async {
   // History recorded in `all.yaml` starts in minor 31.
-  var rules_31 = await (rulesForVersion(31) as FutureOr<List<String>>);
-  if (rules_31.contains(lint)) {
-    var version = await _crawlForVersion(lint);
-    if (version != null) {
-      return version;
+  var rules_31 = await rulesForVersion(31);
+  if (rules_31 != null) {
+    if (rules_31.contains(lint)) {
+      var version = await _crawlForVersion(lint);
+      if (version != null) {
+        return version;
+      }
     }
   }
 
@@ -121,15 +125,14 @@ Future<String?> findSinceLinter(String lint) async {
   return null;
 }
 
-Future<String> linterForDartSdk(String sdk) async =>
-    _dartSdkToLinterMap[sdk] ??=
-        await (_fetchLinterForVersion(sdk) as FutureOr<String>);
+Future<String?> linterForDartSdk(String sdk) async =>
+    _dartSdkToLinterMap[sdk] ??= await _fetchLinterForVersion(sdk);
 
-Future<List<String>?> rulesForVersion(int minor) async {
+Future<List<String?>?> rulesForVersion(int minor) async {
   var version = '0.1.$minor';
   if (minor >= 31) {
-    return _sinceMap[version] ??=
-        await (fetchRulesForVersion(version) as FutureOr<List<String>>);
+    var rules = await fetchRulesForVersion(version);
+    return _sinceMap[version] ??= rules;
   }
   return null;
 }
@@ -179,7 +182,7 @@ Future<String?> _fetchLinterForVersion(String version) async {
   return null;
 }
 
-Future<List<String>> _fetchSdkTags() {
+Future<List<String?>> _fetchSdkTags() {
   final github = GitHub();
   final slug = RepositorySlug('dart-lang', 'sdk');
 
@@ -189,6 +192,9 @@ Future<List<String>> _fetchSdkTags() {
       .listTags(slug)
       .map((t) => t.name)
       .where((t) {
+        if (t == null) {
+          return false;
+        }
         // Filter on numeric release tags.
         if (!t.startsWith(RegExp(r'\d+'))) {
           return false;

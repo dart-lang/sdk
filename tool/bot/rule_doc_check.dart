@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
@@ -28,8 +27,8 @@ void main() async {
         test(rule, () async {
           // todo (pq): consider replacing w/ lintCode.url
           // see: https://github.com/dart-lang/linter/issues/2034
-          final response = await http
-              .head('https://dart-lang.github.io/linter/lints/$rule.html');
+          final response = await http.head(
+              Uri.parse('https://dart-lang.github.io/linter/lints/$rule.html'));
           expect(response.statusCode, 200);
         });
       }
@@ -43,4 +42,4 @@ final _client = http.Client();
 
 Future<String> getBody(String url) async => (await getResponse(url)).body;
 
-Future<http.Response> getResponse(String url) async => _client.get(url);
+Future<http.Response> getResponse(String url) async => _client.get(Uri.parse(url));

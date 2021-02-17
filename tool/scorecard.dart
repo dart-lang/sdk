@@ -7,9 +7,7 @@ import 'dart:async';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:github/github.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
@@ -205,8 +203,8 @@ class ScoreCard {
 
   static Future<List<String>> _getLintsWithFixes() async {
     var client = http.Client();
-    var req = await client.get(
-        'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/linter/lint_names.dart');
+    var req = await client.get(Uri.parse(
+        'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/linter/lint_names.dart'));
 
     var parser = CompilationUnitParser();
     var cu = parser.parse(contents: req.body, name: 'lint_names.dart');
@@ -220,8 +218,8 @@ class ScoreCard {
 
   static Future<List<String>> _getLintsWithAssists() async {
     var client = http.Client();
-    var req = await client.get(
-        'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/correction/assist.dart');
+    var req = await client.get(Uri.parse(
+        'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/correction/assist.dart'));
     var parser = CompilationUnitParser();
     var cu = parser.parse(contents: req.body, name: 'assist.dart');
     var assistKindClass = cu.declarations.firstWhere(
@@ -274,7 +272,8 @@ class ScoreCard {
       }
       var bugReferences = <String>[];
       for (var bug in bugs) {
-        if (bug.title.contains(lint.name)) {
+        var title = bug.title;
+        if (title != null && title.contains(lint.name)) {
           bugReferences.add('#${bug.number.toString()}');
         }
       }
@@ -297,7 +296,10 @@ class ScoreCard {
   }
 }
 
-bool _isBug(Issue issue) => issue.labels.map((l) => l.name).contains('bug');
+bool _isBug(Issue issue) {
+  var labels = issue.labels;
+  return labels != null && labels.map((l) => l.name).contains('bug');
+}
 
 class LintScore {
   String? name;
