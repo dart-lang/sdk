@@ -38,32 +38,32 @@ final Version bottomDartSdk = Version(2, 0, 0);
 
 Map<String, String?> _dartSdkToLinterMap = <String, String?>{};
 
-List<String?>? _effectiveDartRules;
-List<String?>? _flutterRepoRules;
-List<String?>? _flutterRules;
+List<String>? _effectiveDartRules;
+List<String>? _flutterRepoRules;
+List<String>? _flutterRules;
 int? _latestMinor;
 
 Iterable<LintRule>? _registeredLints;
 
-List<String?>? _sdkTags;
+List<String>? _sdkTags;
 
 Map<String, List<String?>> _sinceMap = <String, List<String>>{};
 
 List<String>? _stagehandRules;
 
-Future<List<String?>> get effectiveDartRules async =>
+Future<List<String>> get effectiveDartRules async =>
     _effectiveDartRules ??= await _fetchEffectiveDartRules();
 
-Future<List<String?>> get flutterRepoRules async =>
+Future<List<String>> get flutterRepoRules async =>
     _flutterRepoRules ??= await score_utils.fetchRules(_flutterRepoOptionsUrl);
 
-Future<List<String?>> get flutterRules async =>
+Future<List<String>> get flutterRules async =>
     _flutterRules ??= await score_utils.fetchRules(_flutterOptionsUrl);
 
 Future<int> get latestMinor async =>
     _latestMinor ??= await _readLatestMinorVersion();
 
-Future<List<String?>> get pedanticRules async => score_utils.pedanticRules;
+Future<List<String>> get pedanticRules async => score_utils.pedanticRules;
 
 Iterable<LintRule> get registeredLints {
   if (_registeredLints == null) {
@@ -73,7 +73,7 @@ Iterable<LintRule> get registeredLints {
   return _registeredLints!;
 }
 
-Future<List<String?>> get sdkTags async => _sdkTags ??= await _fetchSdkTags();
+Future<List<String>> get sdkTags async => _sdkTags ??= await _fetchSdkTags();
 
 Future<List<String>> get stagehandRules async =>
     _stagehandRules ??= await score_utils.fetchRules(_stagehandOptionsUrl);
@@ -82,11 +82,9 @@ Future<String?> dartSdkForLinter(String version) async {
   var sdkVersions = <String>[];
   var sdks = await sdkTags;
   for (var sdk in sdks) {
-    if (sdk != null) {
-      var linterVersion = await linterForDartSdk(sdk);
-      if (linterVersion == version) {
-        sdkVersions.add(sdk);
-      }
+    var linterVersion = await linterForDartSdk(sdk);
+    if (linterVersion == version) {
+      sdkVersions.add(sdk);
     }
   }
 
@@ -158,7 +156,7 @@ Future<String> _fetchDEPSforVersion(String version) async {
   return req.body;
 }
 
-Future<List<String?>> _fetchEffectiveDartRules() async {
+Future<List<String>> _fetchEffectiveDartRules() async {
   var client = http.Client();
   var req = await client.get(_effectiveDartOptionsUrl);
   var includedOptions =
@@ -182,39 +180,37 @@ Future<String?> _fetchLinterForVersion(String version) async {
   return null;
 }
 
-Future<List<String?>> _fetchSdkTags() {
+Future<List<String>> _fetchSdkTags() async {
   final github = GitHub();
   final slug = RepositorySlug('dart-lang', 'sdk');
 
   print('list repository tags: $slug');
 
-  return github.repositories
+  var tags = await github.repositories
       .listTags(slug)
       .map((t) => t.name)
-      .where((t) {
-        if (t == null) {
-          return false;
-        }
-        // Filter on numeric release tags.
-        if (!t.startsWith(RegExp(r'\d+'))) {
-          return false;
-        }
-
-        // Filter on bottom.
-        try {
-          var version = Version.parse(t);
-          return version.compareTo(bottomDartSdk) >= 0;
-        } on FormatException {
-          return false;
-        }
-      })
       .toList()
       .catchError((e) {
-        print('exception caught fetching SDK tags');
-        print(e);
-        print('(using cached SDK values)');
-        return Future.value(<String>[]);
-      });
+    print('exception caught fetching SDK tags');
+    print(e);
+    print('(using cached SDK values)');
+    return Future.value(<String>[]);
+  });
+
+  return tags.whereType<String>().where((t) {
+    // Filter on numeric release tags.
+    if (!t.startsWith(RegExp(r'\d+'))) {
+      return false;
+    }
+
+    // Filter on bottom.
+    try {
+      var version = Version.parse(t);
+      return version.compareTo(bottomDartSdk) >= 0;
+    } on FormatException {
+      return false;
+    }
+  }).toList();
 }
 
 Future<int> _readLatestMinorVersion() async {

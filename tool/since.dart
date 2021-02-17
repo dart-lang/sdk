@@ -69,7 +69,7 @@ Future<Map<String, String>?> get dartSdkMap async {
 
     var sdks = await sdkTags;
     for (var sdk in sdks) {
-      if (sdk != null && !_dartSdkMap!.containsKey(sdk)) {
+      if (!_dartSdkMap!.containsKey(sdk)) {
         var linterVersion = await linterForDartSdk(sdk);
         if (linterVersion != null) {
           _dartSdkMap![sdk] = linterVersion;
