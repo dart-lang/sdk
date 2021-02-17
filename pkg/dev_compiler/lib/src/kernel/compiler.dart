@@ -3316,16 +3316,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //
     // In the body of an `async`, `await` is generated simply as `yield`.
     var gen = emitGeneratorFn((_) => []);
-    // Return type of an async body is `Future<flatten(T)>`, where T is the
-    // declared return type, unless T is Object. In that case the Object refers
-    // to a return type of `Future<Object?>`.
-    // TODO(nshahan) Use the Future type value when available on a FunctionNode.
-    var declaredReturnType = function
-        .computeThisFunctionType(_currentLibrary.nonNullable)
-        .returnType;
-    var returnType = _coreTypes.isObject(declaredReturnType)
-        ? _coreTypes.objectNullableRawType
-        : _types.flatten(declaredReturnType);
+    var returnType = _currentLibrary.isNonNullableByDefault
+        ? function.futureValueType
+        // Otherwise flatten the return type because futureValueType(T) is not
+        // defined for legacy libraries.
+        : _types.flatten(function
+            .computeThisFunctionType(_currentLibrary.nonNullable)
+            .returnType);
     return js.call('#.async(#, #)',
         [emitLibraryName(_coreTypes.asyncLibrary), _emitType(returnType), gen]);
   }
