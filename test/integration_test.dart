@@ -128,6 +128,7 @@ void coreTests() {
 
         final options = _getOptionsFromString(src);
         var configuredLints =
+            // ignore: cast_nullable_to_non_nullable
             (options['linter'] as YamlMap)['rules'] as YamlList;
 
         // rules are sorted

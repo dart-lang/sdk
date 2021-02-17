@@ -47,7 +47,8 @@ DartType? getExpectedType(PostfixExpression node) {
     if (parentExpression == null) {
       return null;
     }
-    return (parentExpression.staticType as FunctionType).returnType;
+    var staticType = parentExpression.staticType;
+    return staticType is FunctionType ? staticType.returnType : null;
   }
   // assignment
   if (parent is AssignmentExpression &&
@@ -75,8 +76,8 @@ DartType? getExpectedType(PostfixExpression node) {
     realNode = parent;
     parent = parent.parent;
   }
-  if (parent is ArgumentList) {
-    return (realNode as Expression).staticParameterElement?.type;
+  if (parent is ArgumentList && realNode is Expression) {
+    return realNode.staticParameterElement?.type;
   }
   return null;
 }

@@ -75,7 +75,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isStatic) return;
     if (node.documentationComment != null) return;
 
-    final parentNode = node.parent as Declaration;
+    final parentNode = node.parent;
+    if (parentNode is! Declaration) {
+      return;
+    }
     final parentElement = parentNode.declaredElement;
     // Note: there are no override semantics with extension methods.
     if (parentElement is! ClassElement) {

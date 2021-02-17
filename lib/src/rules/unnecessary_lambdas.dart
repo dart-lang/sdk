@@ -124,14 +124,17 @@ class _Visitor extends SimpleAstVisitor<void> {
     final body = node.body;
     if (body is BlockFunctionBody && body.block.statements.length == 1) {
       final statement = body.block.statements.single;
+
       if (statement is ExpressionStatement &&
           statement.expression is InvocationExpression) {
         _visitInvocationExpression(
             statement.expression as InvocationExpression, node);
       } else if (statement is ReturnStatement &&
           statement.expression is InvocationExpression) {
-        _visitInvocationExpression(
-            statement.expression as InvocationExpression, node);
+        var expression = statement.expression;
+        if (expression is InvocationExpression) {
+          _visitInvocationExpression(expression, node);
+        }
       }
     } else if (body is ExpressionFunctionBody) {
       if (body.expression is InvocationExpression) {
@@ -190,10 +193,12 @@ class _Visitor extends SimpleAstVisitor<void> {
           return;
         }
       } else if (parent is VariableDeclaration) {
-        var variableDeclarationList = parent.parent as VariableDeclarationList;
-        var variableType = variableDeclarationList.type?.type;
-        if (!isTearoffAssignable(variableType)) {
-          return;
+        var grandparent = parent.parent;
+        if (grandparent is VariableDeclarationList) {
+          var variableType = grandparent.type?.type;
+          if (!isTearoffAssignable(variableType)) {
+            return;
+          }
         }
       }
 

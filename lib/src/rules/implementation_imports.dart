@@ -95,7 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    if (!samePackage(importUri!, sourceUri!)) {
+    if (!samePackage(importUri, sourceUri)) {
       rule.reportLint(node.uri);
     }
   }

@@ -135,9 +135,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     final constructorInitializer =
         search.thisOrAncestorOfType<ConstructorInitializer>();
     if (constructorInitializer != null) {
-      final constructorDecl =
-          constructorInitializer.parent as ConstructorDeclaration;
-      if (constructorDecl.constKeyword != null) {
+      final constructorDecl = constructorInitializer.parent;
+      if (constructorDecl is! ConstructorDeclaration ||
+          constructorDecl.constKeyword != null) {
         return;
       }
     }

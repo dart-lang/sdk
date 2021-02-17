@@ -78,21 +78,23 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    final constructor = node.parent as ConstructorDeclaration;
-    if (constructor.constKeyword == null) return;
-    // no lint if several constructors
-    final constructorCount = constructor
-        .thisOrAncestorOfType<ClassDeclaration>()!
-        .members
-        .whereType<ConstructorDeclaration>()
-        .length;
-    if (constructorCount > 1) return;
+    final declaration = node.parent;
+    if (declaration is ConstructorDeclaration) {
+      if (declaration.constKeyword == null) return;
+      // no lint if several constructors
+      final constructorCount = declaration
+          .thisOrAncestorOfType<ClassDeclaration>()!
+          .members
+          .whereType<ConstructorDeclaration>()
+          .length;
+      if (constructorCount > 1) return;
 
-    final visitor =
-        HasParameterReferenceVisitor(constructor.parameters.parameterElements);
-    node.expression.accept(visitor);
-    if (!visitor.useParameter) {
-      rule.reportLint(node);
+      final visitor = HasParameterReferenceVisitor(
+          declaration.parameters.parameterElements);
+      node.expression.accept(visitor);
+      if (!visitor.useParameter) {
+        rule.reportLint(node);
+      }
     }
   }
 

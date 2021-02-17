@@ -145,14 +145,18 @@ class _Visitor extends SimpleAstVisitor<void> {
     bool isConstructorFieldInitializerToLint(
         ConstructorFieldInitializer constructorFieldInitializer) {
       final expression = constructorFieldInitializer.expression;
-      return !(constructorFieldInitializer.fieldName.staticElement?.isPrivate ??
-              true) &&
-          expression is SimpleIdentifier &&
-          parameters.contains(expression.staticElement) &&
-          (!parametersUsedMoreThanOnce.contains(expression.staticElement) &&
-                  !(expression.staticElement as ParameterElement).isNamed ||
-              (constructorFieldInitializer.fieldName.staticElement?.name ==
-                  expression.staticElement?.name));
+      if (expression is SimpleIdentifier) {
+        var staticElement = expression.staticElement;
+        return staticElement is ParameterElement &&
+            !(constructorFieldInitializer.fieldName.staticElement?.isPrivate ??
+                true) &&
+            parameters.contains(staticElement) &&
+            (!parametersUsedMoreThanOnce.contains(expression.staticElement) &&
+                    !staticElement.isNamed ||
+                (constructorFieldInitializer.fieldName.staticElement?.name ==
+                    expression.staticElement?.name));
+      }
+      return false;
     }
 
     void processElement(Element? element) {

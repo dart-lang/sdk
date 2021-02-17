@@ -17,16 +17,25 @@ _PredicateBuilder _hasConstructorFieldInitializers = (VariableDeclaration v) =>
         n is ConstructorFieldInitializer &&
         n.fieldName.staticElement == v.name.staticElement;
 
-_PredicateBuilder _hasFieldFormalParameter = (VariableDeclaration v) =>
-    (AstNode n) =>
-        n is FieldFormalParameter &&
-        (n.identifier.staticElement as FieldFormalParameterElement).field ==
-            v.name.staticElement;
+_PredicateBuilder _hasFieldFormalParameter =
+    (VariableDeclaration v) => (AstNode n) {
+          if (n is FieldFormalParameter) {
+            var staticElement = n.identifier.staticElement;
+            return staticElement is FieldFormalParameterElement &&
+                staticElement.field == v.name.staticElement;
+          }
+          return false;
+        };
 
-_PredicateBuilder _hasReturn = (VariableDeclaration v) => (AstNode n) =>
-    n is ReturnStatement &&
-    n.expression is SimpleIdentifier &&
-    (n.expression as SimpleIdentifier).staticElement == v.name.staticElement;
+_PredicateBuilder _hasReturn = (VariableDeclaration v) => (AstNode n) {
+      if (n is ReturnStatement) {
+        var expression = n.expression;
+        if (expression is SimpleIdentifier) {
+          return expression.staticElement == v.name.staticElement;
+        }
+      }
+      return false;
+    };
 
 /// Builds a function that reports the variable node if the set of nodes
 /// inside the [container] node is empty for all the predicates resulting

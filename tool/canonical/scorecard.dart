@@ -381,13 +381,15 @@ class _BulkFixCollector extends _LintNameCollector {
   void visitFieldDeclaration(FieldDeclaration node) {
     for (var field in node.fields.variables) {
       if (field.name.name == 'lintProducerMap') {
-        var map = field.initializer as SetOrMapLiteral;
-        for (var element in map.elements) {
-          var entry = element as MapLiteralEntry;
-          var key = entry.key;
-          if (key is PrefixedIdentifier) {
-            if (key.prefix.name == 'LintNames') {
-              addLint(key.identifier.name);
+        var initializer = field.initializer;
+        if (initializer is SetOrMapLiteral) {
+          for (var element in initializer.elements) {
+            var entry = element as MapLiteralEntry;
+            var key = entry.key;
+            if (key is PrefixedIdentifier) {
+              if (key.prefix.name == 'LintNames') {
+                addLint(key.identifier.name);
+              }
             }
           }
         }
