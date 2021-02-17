@@ -21,7 +21,6 @@ import '../fasta_codes.dart'
         messageTypedefCause,
         noLength,
         templateExtendingRestricted,
-        templateMissingExplicitTypeArguments,
         templateNotAType,
         templateSupertypeIsIllegal,
         templateSupertypeIsTypeVariable,
@@ -142,23 +141,6 @@ class NamedTypeBuilder extends TypeBuilder {
     } else if (member is TypeDeclarationBuilder) {
       declaration = member.origin;
       if (!declaration.isExtension) {
-        if (arguments == null && declaration.typeVariablesCount != 0) {
-          String typeName;
-          int typeNameOffset;
-          if (name is Identifier) {
-            typeName = name.name;
-            typeNameOffset = name.charOffset;
-          } else {
-            typeName = name;
-            typeNameOffset = charOffset;
-          }
-          library.addProblem(
-              templateMissingExplicitTypeArguments
-                  .withArguments(declaration.typeVariablesCount),
-              typeNameOffset,
-              typeName.length,
-              fileUri);
-        }
         return;
       }
     }
