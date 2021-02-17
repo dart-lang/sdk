@@ -3291,15 +3291,6 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
       CODE_REG, target::Code::entry_point_offset(CodeEntryKind::kMonomorphic)));
 }
 
-void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
-    Assembler* assembler) {
-  __ bkpt(0);
-}
-
-void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
-  __ bkpt(0);
-}
-
 void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ CallRuntime(kNotLoadedRuntimeEntry, 0);

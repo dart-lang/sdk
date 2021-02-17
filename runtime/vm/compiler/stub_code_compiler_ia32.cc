@@ -2788,15 +2788,6 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ int3();  // AOT only.
 }
 
-void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
-    Assembler* assembler) {
-  __ int3();  // Marker stub.
-}
-
-void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
-  __ int3();  // Marker stub.
-}
-
 void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ CallRuntime(kNotLoadedRuntimeEntry, 0);

@@ -18,25 +18,35 @@ DECLARE_FLAG(bool, show_invisible_frames);
 
 static const intptr_t kDefaultStackAllocation = 8;
 
+static StackTracePtr CreateStackTraceObject(
+    Zone* zone,
+    const GrowableObjectArray& code_list,
+    const GrowableArray<uword>& pc_offset_list) {
+  const auto& code_array =
+      Array::Handle(zone, Array::MakeFixedLength(code_list));
+  const auto& pc_offset_array = TypedData::Handle(
+      zone, TypedData::New(kUintPtrCid, pc_offset_list.length()));
+  {
+    NoSafepointScope no_safepoint;
+    memmove(pc_offset_array.DataAddr(0), pc_offset_list.data(),
+            pc_offset_list.length() * kWordSize);
+  }
+  return StackTrace::New(code_array, pc_offset_array);
+}
+
 static StackTracePtr CurrentSyncStackTraceLazy(Thread* thread,
                                                intptr_t skip_frames = 1) {
   Zone* zone = thread->zone();
 
   const auto& code_array = GrowableObjectArray::ZoneHandle(
       zone, GrowableObjectArray::New(kDefaultStackAllocation));
-  const auto& pc_offset_array = GrowableObjectArray::ZoneHandle(
-      zone, GrowableObjectArray::New(kDefaultStackAllocation));
+  GrowableArray<uword> pc_offset_array;
 
   // Collect the frames.
-  StackTraceUtils::CollectFramesLazy(thread, code_array, pc_offset_array,
+  StackTraceUtils::CollectFramesLazy(thread, code_array, &pc_offset_array,
                                      skip_frames);
 
-  const auto& code_array_fixed =
-      Array::Handle(zone, Array::MakeFixedLength(code_array));
-  const auto& pc_offset_array_fixed =
-      Array::Handle(zone, Array::MakeFixedLength(pc_offset_array));
-
-  return StackTrace::New(code_array_fixed, pc_offset_array_fixed);
+  return CreateStackTraceObject(zone, code_array, pc_offset_array);
 }
 
 static StackTracePtr CurrentSyncStackTrace(Thread* thread,
@@ -51,8 +61,8 @@ static StackTracePtr CurrentSyncStackTrace(Thread* thread,
   // Allocate once.
   const Array& code_array =
       Array::ZoneHandle(zone, Array::New(stack_trace_length));
-  const Array& pc_offset_array =
-      Array::ZoneHandle(zone, Array::New(stack_trace_length));
+  const TypedData& pc_offset_array = TypedData::ZoneHandle(
+      zone, TypedData::New(kUintPtrCid, stack_trace_length));
 
   // Collect the frames.
   const intptr_t collected_frames_count = StackTraceUtils::CollectFrames(
@@ -89,7 +99,7 @@ DEFINE_NATIVE_ENTRY(StackTrace_current, 0, 0) {
 }
 
 static void AppendFrames(const GrowableObjectArray& code_list,
-                         const GrowableObjectArray& pc_offset_list,
+                         GrowableArray<uword>* pc_offset_list,
                          int skip_frames) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -98,7 +108,6 @@ static void AppendFrames(const GrowableObjectArray& code_list,
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle(zone);
-  Smi& offset = Smi::Handle(zone);
   for (; frame != NULL; frame = frames.NextFrame()) {
     if (!frame->IsDartFrame()) {
       continue;
@@ -109,9 +118,9 @@ static void AppendFrames(const GrowableObjectArray& code_list,
     }
 
     code = frame->LookupDartCode();
-    offset = Smi::New(frame->pc() - code.PayloadStart());
+    const intptr_t pc_offset = frame->pc() - code.PayloadStart();
     code_list.Add(code);
-    pc_offset_list.Add(offset);
+    pc_offset_list->Add(pc_offset);
   }
 }
 
@@ -119,16 +128,14 @@ static void AppendFrames(const GrowableObjectArray& code_list,
 //
 // Skips the first skip_frames Dart frames.
 const StackTrace& GetCurrentStackTrace(int skip_frames) {
+  Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& code_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  const GrowableObjectArray& pc_offset_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  AppendFrames(code_list, pc_offset_list, skip_frames);
-  const Array& code_array = Array::Handle(Array::MakeFixedLength(code_list));
-  const Array& pc_offset_array =
-      Array::Handle(Array::MakeFixedLength(pc_offset_list));
-  const StackTrace& stacktrace =
-      StackTrace::Handle(StackTrace::New(code_array, pc_offset_array));
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  GrowableArray<uword> pc_offset_list;
+  AppendFrames(code_list, &pc_offset_list, skip_frames);
+
+  const StackTrace& stacktrace = StackTrace::Handle(
+      zone, CreateStackTraceObject(zone, code_list, pc_offset_list));
   return stacktrace;
 }
 
