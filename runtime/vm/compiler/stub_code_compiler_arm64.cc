@@ -3435,15 +3435,6 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ br(R1);
 }
 
-void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
-    Assembler* assembler) {
-  __ brk(0);
-}
-
-void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
-  __ brk(0);
-}
-
 void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ CallRuntime(kNotLoadedRuntimeEntry, 0);

@@ -463,8 +463,8 @@ class ExpressionCompilerWorker {
 
   Future<Component> _loadComponent(Uri uri) async {
     var file = _processedOptions.fileSystem.entityForUri(uri);
-    if (await file.exists()) {
-      var bytes = await file.readAsBytes();
+    if (await file.existsAsyncIfPossible()) {
+      var bytes = await file.readAsBytesAsyncIfPossible();
       var component = _processedOptions.loadComponent(bytes, _sdkComponent.root,
           alwaysCreateNewNamedNodes: true);
       return component;

@@ -149,7 +149,7 @@ vars = {
   "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "53eb92ccfe6e64924054f83038a534b959b12b3e",
   "source_span_rev": "1be3c44045a06dff840d2ed3a13e6082d7a03a23",
-  "sse_tag": "17b52bbdeee53fc54e5bdf9b80934460a9d63ba6",
+  "sse_tag": "8add37c0ec0419ce28153a03f299d44ce006a975",
   "stack_trace_tag": "6788afc61875079b71b3d1c3e65aeaa6a25cbc2f",
   "stagehand_rev": "e64ac90cac508981011299c4ceb819149e71f1bd",
   "stream_channel_tag": "d7251e61253ec389ee6e045ee1042311bced8f1d",
