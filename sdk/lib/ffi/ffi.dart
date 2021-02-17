@@ -24,9 +24,7 @@ part "struct.dart";
 ///
 /// Includes padding and alignment of structs.
 ///
-/// Support for invoking this function with non-constant [T] will be removed in
-/// the next stable version of Dart and it will become mandatory to invoke it
-/// with a compile-time constant [T].
+/// This function must be invoked with a compile-time constant [T].
 external int sizeOf<T extends NativeType>();
 
 /// Represents a pointer into the native C memory corresponding to "NULL", e.g.
@@ -65,9 +63,10 @@ class Pointer<T extends NativeType> extends NativeType {
 
   /// Pointer arithmetic (takes element size into account).
   ///
-  /// Support for invoking this method with non-constant [T] will be removed in
-  /// the next stable version of Dart and it will become mandatory to invoke it
-  /// with a compile-time constant [T].
+  /// This method must be invoked with a compile-time constant [T].
+  ///
+  /// Does not accept dynamic invocations -- where the type of the receiver is
+  /// [dynamic].
   external Pointer<T> elementAt(int index);
 
   /// Cast Pointer<T> to a Pointer<V>.

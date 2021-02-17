@@ -13,7 +13,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiExpectedExceptionalReturn,
         templateFfiExpectedNoExceptionalReturn,
         templateFfiExtendsOrImplementsSealedClass,
-        templateFfiNonConstantTypeArgumentWarning,
         templateFfiNotStatic,
         templateFfiTypeInvalid,
         templateFfiTypeMismatch;
@@ -189,7 +188,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         // TODO(http://dartbug.com/38721): Change this to an error after
         // package:ffi is no longer using sizeOf generically.
         if (!isFfiLibrary) {
-          _warningNativeTypeValid(nativeType, node);
+          _ensureNativeTypeValid(nativeType, node);
         }
 
         if (nativeType is InterfaceType) {
@@ -467,13 +466,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
             node.receiver.getStaticType(_staticTypeContext);
         final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
 
-        _warningNativeTypeValid(nativeType, node);
-
-        // TODO(http://dartbug.com/38721): Change this to an error.
-        if (nativeType is TypeParameterType) {
-          // Do not rewire generic invocations.
-          return node;
-        }
+        _ensureNativeTypeValid(nativeType, node);
 
         Expression inlineSizeOf = _inlineSizeOf(nativeType);
         if (inlineSizeOf != null) {
@@ -533,22 +526,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         allowHandle: allowHandle)) {
       diagnosticReporter.report(
           templateFfiTypeInvalid.withArguments(
-              nativeType, currentLibrary.isNonNullableByDefault),
-          node.fileOffset,
-          1,
-          node.location.file);
-      throw _FfiStaticTypeError();
-    }
-  }
-
-  void _warningNativeTypeValid(DartType nativeType, Expression node,
-      {bool allowHandle: false, bool allowStructItself = true}) {
-    if (!_nativeTypeValid(nativeType,
-        allowStructs: true,
-        allowStructItself: allowStructItself,
-        allowHandle: allowHandle)) {
-      diagnosticReporter.report(
-          templateFfiNonConstantTypeArgumentWarning.withArguments(
               nativeType, currentLibrary.isNonNullableByDefault),
           node.fileOffset,
           1,

@@ -26,18 +26,9 @@ int get _intPtrSize => (const [8, 4, 4])[_abi()];
 
 @patch
 int sizeOf<T extends NativeType>() {
-  // This is not super fast, but it is faster than a runtime entry.
-  // Hot loops with elementAt().load() do not use this sizeOf, elementAt is
-  // optimized per NativeType statically to prevent use of sizeOf at runtime.
-  final int? knownSize = _knownSizes[T];
-  if (knownSize != null) return knownSize;
-  if (T == IntPtr) return _intPtrSize;
-  if (T == Pointer) return _intPtrSize;
-  // For structs we fall back to a runtime entry.
-  return _sizeOf<T>();
+  // This case should have been rewritten in pre-processing.
+  throw UnimplementedError("$T");
 }
-
-int _sizeOf<T extends NativeType>() native "Ffi_sizeOf";
 
 @pragma("vm:recognized", "other")
 Pointer<T> _fromAddress<T extends NativeType>(int ptr) native "Ffi_fromAddress";
@@ -98,11 +89,13 @@ class Pointer<T extends NativeType> {
   @pragma("vm:recognized", "other")
   int get address native "Ffi_address";
 
-  // For statically known types, this is rewired.
-  // (Method sizeOf is slow, see notes above.)
+  // For statically known types, this is rewritten.
   @patch
-  Pointer<T> elementAt(int index) =>
-      Pointer.fromAddress(address + sizeOf<T>() * index);
+  Pointer<T> elementAt(int index) {
+    // This case should have been rewritten in pre-processing.
+    // Only dynamic invocations are not rewritten in pre-processing.
+    throw UnsupportedError("Pointer.elementAt cannot be called dynamically.");
+  }
 
   @patch
   Pointer<T> _offsetBy(int offsetInBytes) =>

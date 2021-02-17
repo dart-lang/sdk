@@ -449,7 +449,7 @@ void testDynamicInvocation() {
     final int i = p.value;
   });
   Expect.throws(() => p.value = 1);
-  p.elementAt(5); // Works, but is slow.
+  Expect.throws(() => p.elementAt(5));
   final int addr = p.address;
   final Pointer<Int16> p2 = p.cast<Int16>();
   calloc.free(p);
