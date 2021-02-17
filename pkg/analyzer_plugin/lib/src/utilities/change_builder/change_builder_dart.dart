@@ -1515,7 +1515,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
               writeImport(builder, import);
             });
           } else {
-            var offset = next.offset;
+            // Annotations attached to the first directive should remain above
+            // the newly inserted import, as they are treated as being for the
+            // file.
+            var isFirst =
+                next == (next.parent as CompilationUnit).directives.first;
+            var offset = isFirst && next is AnnotatedNode
+                ? next.firstTokenAfterCommentAndMetadata.offset
+                : next.offset;
             addInsertion(offset, (EditBuilder builder) {
               writeImport(builder, import);
               builder.writeln();
