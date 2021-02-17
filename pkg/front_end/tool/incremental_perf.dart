@@ -249,7 +249,15 @@ class OverlayFileSystemEntity implements FileSystemEntity {
   Future<bool> exists() async => (await delegate).exists();
 
   @override
+  Future<bool> existsAsyncIfPossible() async =>
+      (await delegate).existsAsyncIfPossible();
+
+  @override
   Future<List<int>> readAsBytes() async => (await delegate).readAsBytes();
+
+  @override
+  Future<List<int>> readAsBytesAsyncIfPossible() async =>
+      (await delegate).readAsBytesAsyncIfPossible();
 
   @override
   Future<String> readAsString() async => (await delegate).readAsString();
