@@ -1426,7 +1426,7 @@ dart_ci_builder(
     lkgr = True,
     properties = {
         "$dart/build": {
-            "timeout": 80 * 60,  # 80 minutes,
+            "timeout": 100 * 60,  # 100 minutes,
         },
     },
 )
