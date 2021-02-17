@@ -77,8 +77,8 @@ class ContradictoryComparisons {
 
 class TestedExpressions {
   final Expression testingExpression;
-  final Set<Expression?> truths;
-  final Set<Expression?> negations;
+  final Set<Expression> truths;
+  final Set<Expression> negations;
   LinkedHashSet<ContradictoryComparisons>? _contradictions;
 
   TestedExpressions(this.testingExpression, this.truths, this.negations);
@@ -104,8 +104,8 @@ class TestedExpressions {
       final set = (binaryExpression != null
           ? _extractComparisons(testingExpression as BinaryExpression)
           : {testingExpression})
-        ..addAll(truths as Iterable<Expression>)
-        ..addAll(negations as Iterable<Expression>);
+        ..addAll(truths.whereType<Expression>())
+        ..addAll(negations.whereType<Expression>());
       // Here and in several places we proceed only for
       // TokenType.AMPERSAND_AMPERSAND because we then know that all comparisons
       // must be true.

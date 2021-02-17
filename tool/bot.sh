@@ -9,8 +9,8 @@ set -e
 
 if [ "$LINTER_BOT" = "release" ]; then
   echo "Validating release..."
-  dart --no-sound-null-safety tool/bot/version_check.dart
-  dart --no-sound-null-safety tool/bot/rule_doc_check.dart
+  dart tool/bot/version_check.dart
+  dart tool/bot/rule_doc_check.dart
 
 # https://github.com/dart-lang/linter/issues/2014
 #elif [ "$LINTER_BOT" = "score" ]; then
@@ -30,7 +30,7 @@ elif [ "$LINTER_BOT" = "benchmark" ]; then
   set +e
 
   # Benchmark linter with all lints enabled.
-  dart --no-sound-null-safety bin/linter.dart --benchmark -q -c example/all.yaml .
+  dart bin/linter.dart --benchmark -q -c example/all.yaml .
 
   # Check for errors encountered during analysis / benchmarking and fail as appropriate.
   if [ $? -eq 63 ];  then
@@ -59,7 +59,6 @@ else
     --disable-analytics \
     --enable-vm-service=$OBS_PORT \
     --pause-isolates-on-exit \
-    --no-sound-null-safety \
     test/all.dart &
 
   status=$?  

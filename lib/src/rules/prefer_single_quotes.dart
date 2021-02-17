@@ -141,14 +141,14 @@ class _ImmediateChildrenVisitor extends UnifyingAstVisitor {
 /// its children.
 class _IsOrContainsStringVisitor extends UnifyingAstVisitor<bool> {
   /// Different way to express `accept` in a way that's clearer in this visitor.
-  bool? isOrContainsString(AstNode node) => node.accept(this);
+  bool isOrContainsString(AstNode node) => node.accept(this) ?? false;
 
   /// Scan as little of the tree as possible, by bailing out on first match. For
   /// all leaf nodes, they will either have a method defined here and return
   /// true, or they will return false because leaves have no children.
   @override
-  bool visitNode(AstNode node) => _ImmediateChildrenVisitor.childrenOf(node)
-      .any(isOrContainsString as bool Function(AstNode));
+  bool visitNode(AstNode node) =>
+      _ImmediateChildrenVisitor.childrenOf(node).any(isOrContainsString);
 
   @override
   bool visitSimpleStringLiteral(SimpleStringLiteral string) => true;

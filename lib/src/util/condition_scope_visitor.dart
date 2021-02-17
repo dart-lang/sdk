@@ -55,9 +55,9 @@ class ConditionScope {
     environment.addAll(expressions);
   }
 
-  Iterable<Expression?> getExpressions(Iterable<Element?> elements,
+  Iterable<Expression> getExpressions(Iterable<Element?> elements,
       {bool? value}) {
-    final expressions = <Expression?>[];
+    final expressions = <Expression>[];
     _recursiveGetExpressions(expressions, elements, value);
     return expressions;
   }
@@ -130,10 +130,10 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   final breakScope = BreakScope();
 
   /// todo (pq): here and w/ getTrueExpressions, consider an empty iterable
-  Iterable<Expression?>? getFalseExpressions(Iterable<Element?> elements) =>
+  Iterable<Expression>? getFalseExpressions(Iterable<Element?> elements) =>
       _getExpressions(elements, value: false);
 
-  Iterable<Expression?>? getTrueExpressions(Iterable<Element?> elements) =>
+  Iterable<Expression>? getTrueExpressions(Iterable<Element?> elements) =>
       _getExpressions(elements);
 
   @override
@@ -318,7 +318,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
     });
   }
 
-  Iterable<Expression?>? _getExpressions(Iterable<Element?> elements,
+  Iterable<Expression>? _getExpressions(Iterable<Element?> elements,
           {bool value = true}) =>
       outerScope?.getExpressions(elements, value: value);
 
