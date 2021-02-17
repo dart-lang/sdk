@@ -19,9 +19,9 @@ class HintCode extends AnalyzerErrorCode {
    * 0: the name of the actual argument type
    * 1: the name of the expected function return type
    */
-  static const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE_CATCH_ERROR_ON_ERROR =
+  static const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER =
       HintCode(
-          'ARGUMENT_TYPE_NOT_ASSIGNABLE_CATCH_ERROR_ON_ERROR',
+          'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
           "The argument type '{0}' can't be assigned to the parameter type "
               "'{1} Function(Object)' or '{1} Function(Object, StackTrace)'.");
 

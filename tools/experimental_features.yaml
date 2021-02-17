@@ -124,6 +124,10 @@ features:
 # on the command line, and will eventually be removed.
 #
 
+  extension-types:
+    help: "Extension Types"
+    enabledIn: '2.13.0'
+
   non-nullable:
     help: "Non Nullable by default"
     experimentalReleaseVersion: '2.10.0'

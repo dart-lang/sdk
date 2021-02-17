@@ -23,9 +23,9 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/error/catch_error_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
+import 'package:analyzer/src/error/error_handler_verifier.dart';
 import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -70,7 +70,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   final MustCallSuperVerifier _mustCallSuperVerifier;
 
-  final CatchErrorVerifier _catchErrorVerifier;
+  final ErrorHandlerVerifier _errorHandlerVerifier;
 
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
   final WorkspacePackage? _workspacePackage;
@@ -109,8 +109,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _deprecatedVerifier =
             DeprecatedMemberUseVerifier(workspacePackage, _errorReporter),
         _mustCallSuperVerifier = MustCallSuperVerifier(_errorReporter),
-        _catchErrorVerifier =
-            CatchErrorVerifier(_errorReporter, typeProvider, typeSystem),
+        _errorHandlerVerifier =
+            ErrorHandlerVerifier(_errorReporter, typeProvider, typeSystem),
         _workspacePackage = workspacePackage {
     _deprecatedVerifier.pushInDeprecatedValue(_currentLibrary.hasDeprecated);
     _inDoNotStoreMember = _currentLibrary.hasDoNotStore;
@@ -596,7 +596,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     _deprecatedVerifier.methodInvocation(node);
     _checkForNullAwareHints(node, node.operator);
-    _catchErrorVerifier.verifyMethodInvocation(node);
+    _errorHandlerVerifier.verifyMethodInvocation(node);
     super.visitMethodInvocation(node);
   }
 

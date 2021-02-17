@@ -16,6 +16,7 @@ enum ExperimentalFlag {
   constantUpdate2018,
   controlFlowCollections,
   extensionMethods,
+  extensionTypes,
   genericMetadata,
   nonNullable,
   nonfunctionTypeAliases,
@@ -31,6 +32,7 @@ const Version enableAlternativeInvalidationStrategyVersion =
 const Version enableConstantUpdate2018Version = const Version(2, 0);
 const Version enableControlFlowCollectionsVersion = const Version(2, 0);
 const Version enableExtensionMethodsVersion = const Version(2, 6);
+const Version enableExtensionTypesVersion = const Version(2, 13);
 const Version enableGenericMetadataVersion = const Version(2, 13);
 const Version enableNonNullableVersion = const Version(2, 12);
 const Version enableNonfunctionTypeAliasesVersion = const Version(2, 13);
@@ -50,6 +52,8 @@ ExperimentalFlag parseExperimentalFlag(String flag) {
       return ExperimentalFlag.controlFlowCollections;
     case "extension-methods":
       return ExperimentalFlag.extensionMethods;
+    case "extension-types":
+      return ExperimentalFlag.extensionTypes;
     case "generic-metadata":
       return ExperimentalFlag.genericMetadata;
     case "non-nullable":
@@ -75,6 +79,7 @@ const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.constantUpdate2018: true,
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.extensionMethods: true,
+  ExperimentalFlag.extensionTypes: true,
   ExperimentalFlag.genericMetadata: false,
   ExperimentalFlag.nonNullable: true,
   ExperimentalFlag.nonfunctionTypeAliases: false,
@@ -90,6 +95,7 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
   ExperimentalFlag.constantUpdate2018: true,
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.extensionMethods: false,
+  ExperimentalFlag.extensionTypes: false,
   ExperimentalFlag.genericMetadata: false,
   ExperimentalFlag.nonNullable: false,
   ExperimentalFlag.nonfunctionTypeAliases: false,
@@ -105,6 +111,7 @@ const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
   ExperimentalFlag.constantUpdate2018: const Version(2, 0),
   ExperimentalFlag.controlFlowCollections: const Version(2, 0),
   ExperimentalFlag.extensionMethods: const Version(2, 6),
+  ExperimentalFlag.extensionTypes: const Version(2, 13),
   ExperimentalFlag.genericMetadata: const Version(2, 13),
   ExperimentalFlag.nonNullable: const Version(2, 12),
   ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 13),
@@ -120,6 +127,7 @@ const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
   ExperimentalFlag.constantUpdate2018: const Version(2, 0),
   ExperimentalFlag.controlFlowCollections: const Version(2, 0),
   ExperimentalFlag.extensionMethods: const Version(2, 6),
+  ExperimentalFlag.extensionTypes: const Version(2, 13),
   ExperimentalFlag.genericMetadata: const Version(2, 13),
   ExperimentalFlag.nonNullable: const Version(2, 10),
   ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 13),
