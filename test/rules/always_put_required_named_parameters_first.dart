@@ -25,6 +25,25 @@ m2({
   @required f, // LINT
 }) {}
 
+n1(
+  a, // OK
+  {
+  b, // OK
+  required c, // LINT
+  required d, // LINT
+  e, // OK
+  required f, // LINT
+}) {}
+
+n2({
+  required a, // OK
+  required b, // OK
+  c, // OK
+  required d, // LINT
+  e, // OK
+  required f, // LINT
+}) {}
+
 class A {
   A.c1(
     a, // OK
@@ -42,5 +61,22 @@ class A {
     @required d, // LINT
     e, // OK
     @required f, // LINT
+  });
+  A.d1(
+    a, // OK
+    {
+    b, // OK
+    required c, // LINT
+    required d, // LINT
+    e, // OK
+    required f, // LINT
+  });
+  A.d2({
+    required a, // OK
+    required b, // OK
+    c, // OK
+    required d, // LINT
+    e, // OK
+    required f, // LINT
   });
 }

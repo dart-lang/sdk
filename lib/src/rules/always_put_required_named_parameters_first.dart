@@ -7,11 +7,21 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Put @required named parameters first.';
+const _desc = r'Put required named parameters first.';
 
 const _details = r'''
 
-**DO** specify `@required` on named parameter before other named parameters.
+**DO** specify `required` on named parameter before other named parameters.
+
+**GOOD:**
+```
+m({required a, b, c}) ;
+```
+
+**BAD:**
+```
+m({b, c, required a}) ;
+```
 
 **GOOD:**
 ```
