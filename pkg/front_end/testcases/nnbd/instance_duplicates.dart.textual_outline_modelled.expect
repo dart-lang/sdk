@@ -1,0 +1,57 @@
+class Class {
+  final int? fieldAndFinalFieldAndSetter1 = 0;
+  final int? fieldAndFinalFieldAndSetter2 = 0;
+  final int? fieldAndFinalFieldAndSetter3 = 0;
+  final int? fieldAndFinalFieldAndSetter4 = 0;
+  final int? methodAndFinalField1 = 0;
+  final int? methodAndFinalField2 = 0;
+  final int? methodAndFinalFieldAndSetter1 = 0;
+  final int? methodAndFinalFieldAndSetter2 = 0;
+  final int? methodAndFinalFieldAndSetter3 = 0;
+  final int? methodAndFinalFieldAndSetter4 = 0;
+  int? fieldAndFinalFieldAndSetter1;
+  int? fieldAndFinalFieldAndSetter2;
+  int? fieldAndFinalFieldAndSetter3;
+  int? fieldAndFinalFieldAndSetter4;
+  int? fieldAndSetter1;
+  int? fieldAndSetter2;
+  int? methodAndField1() {}
+  int? methodAndField1;
+  int? methodAndField2() {}
+  int? methodAndField2;
+  int? methodAndFieldAndSetter1() {}
+  int? methodAndFieldAndSetter1;
+  int? methodAndFieldAndSetter2() {}
+  int? methodAndFieldAndSetter2;
+  int? methodAndFieldAndSetter3() {}
+  int? methodAndFieldAndSetter3;
+  int? methodAndFieldAndSetter4() {}
+  int? methodAndFieldAndSetter4;
+  int? methodAndFinalField1() {}
+  int? methodAndFinalField2() {}
+  int? methodAndFinalFieldAndSetter1() {}
+  int? methodAndFinalFieldAndSetter2() {}
+  int? methodAndFinalFieldAndSetter3() {}
+  int? methodAndFinalFieldAndSetter4() {}
+  int? methodAndSetter1() {}
+  int? set methodAndSetter2() {}
+  void methodAndSetter2(int? value) {}
+  void set fieldAndFinalFieldAndSetter1(int? value) {}
+  void set fieldAndFinalFieldAndSetter2(int? value) {}
+  void set fieldAndFinalFieldAndSetter3(int? value) {}
+  void set fieldAndFinalFieldAndSetter4(int? value) {}
+  void set fieldAndSetter1(int? value) {}
+  void set fieldAndSetter2(int? value) {}
+  void set methodAndFieldAndSetter1(int? value) {}
+  void set methodAndFieldAndSetter2(int? value) {}
+  void set methodAndFieldAndSetter3(int? value) {}
+  void set methodAndFieldAndSetter4(int? value) {}
+  void set methodAndFinalFieldAndSetter1(int? value) {}
+  void set methodAndFinalFieldAndSetter2(int? value) {}
+  void set methodAndFinalFieldAndSetter3(int? value) {}
+  void set methodAndFinalFieldAndSetter4(int? value) {}
+  void set methodAndSetter1(int? value) {}
+}
+
+main() {}
+test(Class c) {}

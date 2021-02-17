@@ -20,13 +20,13 @@ library /*isNonNullableByDefault*/;
 // void set topLevelMethodAndSetter(value) {}
 //          ^
 //
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:5:1: Error: Conflicts with setter 'topLevelMethodAndSetter'.
-// topLevelMethodAndSetter() {}
-// ^
-//
 // pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:6:10: Error: Conflicts with member 'topLevelMethodAndSetter'.
 // void set topLevelMethodAndSetter(value) {}
 //          ^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:5:1: Error: Conflicts with setter 'topLevelMethodAndSetter'.
+// topLevelMethodAndSetter() {}
+// ^
 //
 // pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:13:10: Error: Conflicts with member 'classAndSetter'.
 // void set classAndSetter(value) {}

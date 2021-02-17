@@ -58,6 +58,8 @@ extension E3 on int {
   static void set property(int value) {}
   static int field = 3;
   static int field2 = 4;
+  //         ^
+  // [cfe] Conflicts with setter 'field2'.
 
   static int method() => 0;
   //         ^^^^^^
@@ -82,6 +84,7 @@ extension E3 on int {
   static void set field2(int value) {}
   //              ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] Conflicts with the implicit setter of the field 'field2'.
 }
 
 // Check instance members colliding with instance members (of the same kind).
@@ -112,6 +115,7 @@ extension E5 on int {
   static int get property => 1;
   //             ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] Conflicts with setter 'property'.
   static void set property(int value) {}
   //              ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
@@ -143,6 +147,8 @@ extension E5 on int {
   void set property(int value) {}
   //       ^
   // [cfe] 'property' is already declared in this scope.
+  //       ^
+  // [cfe] Conflicts with member 'property'.
   void set property2(int value) {}
   //       ^
   // [cfe] Conflicts with member 'property2'.
