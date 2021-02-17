@@ -141,7 +141,7 @@ abstract class BigInt implements Comparable<BigInt> {
   /// of `this` and [other]
   ///
   /// If both operands are non-negative, the result is non-negative,
-  /// otherwise the result us negative.
+  /// otherwise the result is negative.
   BigInt operator |(BigInt other);
 
   /// Bit-wise exclusive-or operator.
