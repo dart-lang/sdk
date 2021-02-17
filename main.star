@@ -14,7 +14,10 @@ Generates the Luci configuration for the Dart project.
 
 load("//defaults.star", "defaults")
 
-lucicfg.check_version("1.17.0")
+lucicfg.check_version("1.21.5")
+
+# Enable LUCI Realms support.
+lucicfg.enable_experiment("crbug.com/1085650")
 
 DART_GIT = "https://dart.googlesource.com/sdk"
 DART_GERRIT = "https://dart-review.googlesource.com/"
@@ -103,12 +106,17 @@ def mac():
 def windows():
     return {"os": "Windows"}
 
+# https://chrome-infra-auth.appspot.com/auth/groups/project-dart-ci-task-accounts
+CI_ACCOUNTS_GROUP = "project-dart-ci-task-accounts"
+
+# https://chrome-infra-auth.appspot.com/auth/groups/project-dart-try-task-accounts
+TRY_ACCOUNTS_GROUP = "project-dart-try-task-accounts"
+
 CI_ACCOUNT = "dart-luci-ci-builder@dart-ci.iam.gserviceaccount.com"
 TRY_ACCOUNT = "dart-luci-try-builder@dart-ci.iam.gserviceaccount.com"
-CI_TRIGGERERS = ["luci-scheduler@appspot.gserviceaccount.com", CI_ACCOUNT]
+CI_TRIGGERERS = [CI_ACCOUNT]
 ROLL_TRIGGERERS = {
     "users": [
-        "luci-scheduler@appspot.gserviceaccount.com",
         CI_ACCOUNT,
     ],
     "groups": ["project-dart-roller-owners"],
@@ -125,6 +133,7 @@ lucicfg.config(
         "luci-notify.cfg",
         "luci-scheduler.cfg",
         "project.cfg",
+        "realms.cfg",
     ],
     lint_checks = ["default"],
 )
@@ -155,6 +164,58 @@ luci.project(
         acl.entry(acl.CQ_COMMITTER, groups = ["project-dart-committers"]),
         acl.entry(acl.CQ_DRY_RUNNER, groups = ["project-dart-tryjob-access"]),
     ],
+    bindings = [
+        luci.binding(
+            roles = "role/swarming.poolOwner",
+            groups = "project-dart-admins",
+        ),
+        luci.binding(
+            roles = "role/swarming.poolViewer",
+            groups = "project-dart-committers",
+        ),
+    ],
+)
+
+# Swarming permissions in realms.cfg.
+
+luci.realm(name = "pools/ci")
+luci.realm(name = "pools/try")
+luci.realm(
+    name = "pools/tests",
+    bindings = [
+        luci.binding(
+            roles = "role/swarming.poolUser",
+            groups = [CI_ACCOUNTS_GROUP, TRY_ACCOUNTS_GROUP],
+        ),
+    ],
+)
+
+def led_users(*, pool_realms, builder_realm, groups):
+    for realm in pool_realms:
+        luci.binding(
+            realm = realm,
+            roles = "role/swarming.poolUser",
+            groups = groups,
+        )
+    luci.binding(
+        realm = builder_realm,
+        roles = "role/swarming.taskTriggerer",
+        groups = groups,
+    )
+
+# Allow admins to use LED and "Debug" button on every Dart builder and bot.
+led_users(
+    pool_realms = ["@root"],
+    builder_realm = "@root",
+    groups = ["project-dart-admins"],
+)
+
+# Allow mdb/dart-build-access to use LED and "Debug" button on try builders and
+# try and test bots.
+led_users(
+    pool_realms = ["pools/try", "pools/tests"],
+    builder_realm = "try",
+    groups = ["mdb/dart-build-access"],
 )
 
 luci.milo(
