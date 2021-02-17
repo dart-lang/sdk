@@ -713,6 +713,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   bool CanReload() { return false; }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
+  // Prefers old classes when we are in the middle of a reload.
+  ClassPtr GetClassForHeapWalkAt(intptr_t cid);
+
   bool IsReloading() const {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     return group_reload_context_ != nullptr;
@@ -1025,9 +1028,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   IsolateObjectStore* isolate_object_store() const {
     return isolate_object_store_.get();
   }
-
-  // Prefers old classes when we are in the middle of a reload.
-  ClassPtr GetClassForHeapWalkAt(intptr_t cid);
 
   static intptr_t ic_miss_code_offset() {
     return OFFSET_OF(Isolate, ic_miss_code_);

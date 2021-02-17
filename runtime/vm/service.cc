@@ -3757,7 +3757,7 @@ static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
 
   // Notify clients that the set of subscribed streams has been updated.
   if (Service::timeline_stream.enabled()) {
-    ServiceEvent event(NULL, ServiceEvent::kTimelineStreamSubscriptionsUpdate);
+    ServiceEvent event(ServiceEvent::kTimelineStreamSubscriptionsUpdate);
     Service::HandleEvent(&event);
   }
 
@@ -4885,7 +4885,7 @@ static bool SetFlag(Thread* thread, JSONStream* js) {
       Profiler::UpdateRunningState();
     }
     if (Service::vm_stream.enabled()) {
-      ServiceEvent event(NULL, ServiceEvent::kVMFlagUpdate);
+      ServiceEvent event(ServiceEvent::kVMFlagUpdate);
       event.set_flag_name(flag_name);
       event.set_flag_new_value(flag_value);
       Service::HandleEvent(&event);
@@ -4951,7 +4951,7 @@ static bool SetVMName(Thread* thread, JSONStream* js) {
   free(vm_name);
   vm_name = Utils::StrDup(name_param);
   if (Service::vm_stream.enabled()) {
-    ServiceEvent event(NULL, ServiceEvent::kVMUpdate);
+    ServiceEvent event(ServiceEvent::kVMUpdate);
     Service::HandleEvent(&event);
   }
   PrintSuccess(js);

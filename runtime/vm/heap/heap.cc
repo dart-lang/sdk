@@ -222,7 +222,7 @@ HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
       heap_(isolate_group()->heap()),
       old_space_(heap_->old_space()),
       writable_(writable) {
-  isolate()->safepoint_handler()->SafepointThreads(thread);
+  isolate_group()->safepoint_handler()->SafepointThreads(thread);
 
   {
     // It's not safe to iterate over old space when concurrent marking or
@@ -273,7 +273,7 @@ HeapIterationScope::~HeapIterationScope() {
     ml.NotifyAll();
   }
 
-  isolate()->safepoint_handler()->ResumeThreads(thread());
+  isolate_group()->safepoint_handler()->ResumeThreads(thread());
 }
 
 void HeapIterationScope::IterateObjects(ObjectVisitor* visitor) const {

@@ -59,7 +59,6 @@ DEFINE_FLAG(bool, gc_during_reload, false, "Cause explicit GC during reload.");
 
 DECLARE_FLAG(bool, trace_deoptimization);
 
-#define I (isolate())
 #define IG (isolate_group())
 #define Z zone_
 
@@ -485,26 +484,22 @@ ProgramReloadContext::~ProgramReloadContext() {
 }
 
 void IsolateGroupReloadContext::ReportError(const Error& error) {
-  // TODO(dartbug.com/36097): We need to change the "reloadSources" service-api
-  // call to accept an isolate group instead of an isolate.
-  Isolate* isolate = Isolate::Current();
-  if (Isolate::IsSystemIsolate(isolate)) {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  if (IsolateGroup::IsSystemIsolateGroup(isolate_group)) {
     return;
   }
   TIR_Print("ISO-RELOAD: Error: %s\n", error.ToErrorCString());
-  ServiceEvent service_event(isolate, ServiceEvent::kIsolateReload);
+  ServiceEvent service_event(isolate_group, ServiceEvent::kIsolateReload);
   service_event.set_reload_error(&error);
   Service::HandleEvent(&service_event);
 }
 
 void IsolateGroupReloadContext::ReportSuccess() {
-  // TODO(dartbug.com/36097): We need to change the "reloadSources" service-api
-  // call to accept an isolate group instead of an isolate.
-  Isolate* isolate = Isolate::Current();
-  if (Isolate::IsSystemIsolate(isolate)) {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  if (IsolateGroup::IsSystemIsolateGroup(isolate_group)) {
     return;
   }
-  ServiceEvent service_event(isolate, ServiceEvent::kIsolateReload);
+  ServiceEvent service_event(isolate_group, ServiceEvent::kIsolateReload);
   Service::HandleEvent(&service_event);
 }
 
@@ -616,9 +611,11 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     }
 
+    NoActiveIsolateScope no_active_isolate_scope;
+
     ExternalTypedData& external_typed_data =
         ExternalTypedData::Handle(Z, kernel_program.get()->typed_data()->ptr());
-    IsolateGroupSource* source = Isolate::Current()->source();
+    IsolateGroupSource* source = IsolateGroup::Current()->source();
     source->add_loaded_blob(Z, external_typed_data);
 
     modified_libs_ = new (Z) BitVector(Z, num_old_libs_);
@@ -2124,10 +2121,13 @@ class FieldInvalidator {
       if (field.needs_load_guard()) {
         continue;  // Already guarding.
       }
-      value_ = field.StaticValue();
-      if (value_.ptr() != Object::sentinel().ptr()) {
-        CheckValueType(null_safety, value_, field);
-      }
+      const intptr_t field_id = field.field_id();
+      thread->isolate_group()->ForEachIsolate([&](Isolate* isolate) {
+        value_ = isolate->field_table()->At(field_id);
+        if (value_.ptr() != Object::sentinel().ptr()) {
+          CheckValueType(null_safety, value_, field);
+        }
+      });
     }
   }
 

@@ -78,10 +78,12 @@ class ServiceEvent {
     const String* event_data;
   };
 
+  explicit ServiceEvent(EventKind event_kind);
+  ServiceEvent(IsolateGroup* isolate_group, EventKind event_kind);
   ServiceEvent(Isolate* isolate, EventKind event_kind);
 
   Isolate* isolate() const { return isolate_; }
-  IsolateGroup* isolate_group() const { return isolate_->group(); }
+  IsolateGroup* isolate_group() const { return isolate_group_; }
 
   // Used by the C embedding api.
   Dart_Port isolate_id() const { return isolate_->main_port(); }
@@ -204,7 +206,12 @@ class ServiceEvent {
   void PrintJSONHeader(JSONObject* jsobj) const;
 
  private:
+  ServiceEvent(IsolateGroup* isolate_group,
+               Isolate* isolate,
+               EventKind event_kind);
+
   Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   EventKind kind_;
   const char* flag_name_;
   const char* flag_new_value_;

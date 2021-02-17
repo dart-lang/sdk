@@ -876,7 +876,7 @@ class Pass2Visitor : public ObjectVisitor,
       : ObjectVisitor(),
         ObjectPointerVisitor(IsolateGroup::Current()),
         HandleVisitor(Thread::Current()),
-        isolate_(thread()->isolate()),
+        isolate_group_(thread()->isolate_group()),
         writer_(writer) {}
 
   virtual bool trace_values_through_fields() const { return true; }
@@ -989,9 +989,9 @@ class Pass2Visitor : public ObjectVisitor,
     }
 
     DoCount();
-    obj->untag()->VisitPointersPrecise(isolate_, this);
+    obj->untag()->VisitPointersPrecise(isolate_group_, this);
     DoWrite();
-    obj->untag()->VisitPointersPrecise(isolate_, this);
+    obj->untag()->VisitPointersPrecise(isolate_group_, this);
   }
 
   void ScrubAndWriteUtf8(StringPtr str) {
@@ -1069,10 +1069,7 @@ class Pass2Visitor : public ObjectVisitor,
   }
 
  private:
-  // TODO(dartbug.com/36097): Once the shared class table contains more
-  // information than just the size (i.e. includes an immutable class
-  // descriptor), we can remove this dependency on the current isolate.
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   HeapSnapshotWriter* const writer_;
   bool writing_ = false;
   intptr_t counted_ = 0;

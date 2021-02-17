@@ -377,7 +377,7 @@ intptr_t UntaggedObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 #endif
 }
 
-void UntaggedObject::VisitPointersPrecise(Isolate* isolate,
+void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
                                           ObjectPointerVisitor* visitor) {
   intptr_t class_id = GetClassId();
   if (class_id < kNumPredefinedCids) {
@@ -386,7 +386,7 @@ void UntaggedObject::VisitPointersPrecise(Isolate* isolate,
   }
 
   // N.B.: Not using the heap size!
-  uword next_field_offset = isolate->GetClassForHeapWalkAt(class_id)
+  uword next_field_offset = isolate_group->GetClassForHeapWalkAt(class_id)
                                 ->untag()
                                 ->host_next_field_offset_in_words_
                             << kWordSizeLog2;

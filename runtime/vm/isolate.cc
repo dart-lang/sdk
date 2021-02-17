@@ -2866,19 +2866,19 @@ void IsolateGroup::RememberLiveTemporaries() {
                  /*at_safepoint=*/true);
 }
 
-ClassPtr Isolate::GetClassForHeapWalkAt(intptr_t cid) {
+ClassPtr IsolateGroup::GetClassForHeapWalkAt(intptr_t cid) {
   ClassPtr raw_class = nullptr;
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (group()->IsReloading()) {
-    raw_class = group()->program_reload_context()->GetClassForHeapWalkAt(cid);
+  if (IsReloading()) {
+    raw_class = program_reload_context()->GetClassForHeapWalkAt(cid);
   } else {
-    raw_class = group()->class_table()->At(cid);
+    raw_class = class_table()->At(cid);
   }
 #else
-  raw_class = group()->class_table()->At(cid);
+  raw_class = class_table()->At(cid);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(raw_class != nullptr);
-  ASSERT(group()->remapping_cids() || raw_class->untag()->id_ == cid);
+  ASSERT(remapping_cids() || raw_class->untag()->id_ == cid);
   return raw_class;
 }
 
