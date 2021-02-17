@@ -44,7 +44,7 @@ abstract class Future<T> {
 
   Future<T> catchError(Function onError, {bool test(Object error)});
 
-  Future<R> then<R>(FutureOr<R> onValue(T value));
+  Future<R> then<R>(FutureOr<R> onValue(T value), {Function? onError});
 
   Future<T> whenComplete(action());
 
@@ -90,6 +90,8 @@ abstract class Stream<T> {
 
   StreamSubscription<T> listen(void onData(T event)?,
       {Function? onError, void onDone()?, bool? cancelOnError});
+
+  Stream<T> handleError(Function onError, {bool test(dynamic error)});
 }
 
 abstract class StreamIterator<T> {}
