@@ -114,14 +114,13 @@ TRY_ACCOUNTS_GROUP = "project-dart-try-task-accounts"
 
 CI_ACCOUNT = "dart-luci-ci-builder@dart-ci.iam.gserviceaccount.com"
 TRY_ACCOUNT = "dart-luci-try-builder@dart-ci.iam.gserviceaccount.com"
-CI_TRIGGERERS = [CI_ACCOUNT]
 ROLL_TRIGGERERS = {
     "users": [
         CI_ACCOUNT,
     ],
     "groups": ["project-dart-roller-owners"],
 }
-CI_SANDBOX_TRIGGERERS = CI_TRIGGERERS + [TRY_ACCOUNT]
+CI_SANDBOX_TRIGGERERS = [CI_ACCOUNT, TRY_ACCOUNT]
 
 lucicfg.config(
     config_dir = ".",
@@ -298,7 +297,7 @@ luci.logdog(gs_bucket = "chromium-luci-logdog")
 luci.bucket(
     name = "ci",
     acls = [
-        acl.entry(acl.BUILDBUCKET_TRIGGERER, users = CI_TRIGGERERS),
+        acl.entry(acl.BUILDBUCKET_TRIGGERER, users = [CI_ACCOUNT]),
     ],
 )
 luci.bucket(
