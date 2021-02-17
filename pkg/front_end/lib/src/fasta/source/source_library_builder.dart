@@ -892,55 +892,69 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(checkForMethodVsSetterConflict != null);
 
     scope.forEachLocalSetter((String name, MemberBuilder setter) {
-      Builder member = scope.lookupLocalMember(name, setter: false);
-      if (member == null) {
+      Builder getable = scope.lookupLocalMember(name, setter: false);
+      if (getable == null) {
         // Setter without getter.
         return;
       }
-      MemberBuilderImpl setterBuilder = setter;
-      do {
-        bool conflict = checkForInstanceVsStaticConflict &&
-            member.isDeclarationInstanceMember !=
-                setterBuilder.isDeclarationInstanceMember;
-        if (member is FieldBuilder) {
-          if (member.isAssignable) {
+
+      bool isConflictingSetter = false;
+      Set<Builder> conflictingGetables = {};
+      for (Builder currentGetable = getable;
+          currentGetable != null;
+          currentGetable = currentGetable.next) {
+        if (currentGetable is FieldBuilder) {
+          if (currentGetable.isAssignable) {
             // Setter with writable field.
-            setterBuilder.isConflictingSetter = true;
-            conflict = true;
+            isConflictingSetter = true;
+            conflictingGetables.add(currentGetable);
           }
-        } else if (checkForMethodVsSetterConflict && !member.isGetter) {
+        } else if (checkForMethodVsSetterConflict && !currentGetable.isGetter) {
           // Setter with method.
-          conflict = true;
+          conflictingGetables.add(currentGetable);
+        }
+      }
+      for (MemberBuilderImpl currentSetter = setter;
+          currentSetter != null;
+          currentSetter = currentSetter.next) {
+        bool conflict = conflictingGetables.isNotEmpty;
+        for (Builder currentGetable = getable;
+            currentGetable != null;
+            currentGetable = currentGetable.next) {
+          if (checkForInstanceVsStaticConflict &&
+              currentGetable.isDeclarationInstanceMember !=
+                  currentSetter.isDeclarationInstanceMember) {
+            conflict = true;
+            conflictingGetables.add(currentGetable);
+          }
+        }
+        if (isConflictingSetter) {
+          currentSetter.isConflictingSetter = true;
         }
         if (conflict) {
-          if (setterBuilder.isConflictingSetter) {
+          if (currentSetter.isConflictingSetter) {
             sourceLibraryBuilder.addProblem(
                 templateConflictsWithImplicitSetter.withArguments(name),
-                setterBuilder.charOffset,
+                currentSetter.charOffset,
                 noLength,
-                setterBuilder.fileUri);
-            // TODO(ahe): Context argument to previous message?
-            sourceLibraryBuilder.addProblem(
-                templateConflictsWithSetter.withArguments(name),
-                member.charOffset,
-                noLength,
-                member.fileUri);
+                currentSetter.fileUri);
           } else {
             sourceLibraryBuilder.addProblem(
                 templateConflictsWithMember.withArguments(name),
-                setterBuilder.charOffset,
+                currentSetter.charOffset,
                 noLength,
-                setterBuilder.fileUri);
-            // TODO(ahe): Context argument to previous message?
-            sourceLibraryBuilder.addProblem(
-                templateConflictsWithSetter.withArguments(name),
-                member.charOffset,
-                noLength,
-                member.fileUri);
+                currentSetter.fileUri);
           }
         }
-        setterBuilder = setterBuilder.next;
-      } while (setterBuilder != null);
+      }
+      for (Builder conflictingGetable in conflictingGetables) {
+        // TODO(ahe): Context argument to previous message?
+        sourceLibraryBuilder.addProblem(
+            templateConflictsWithSetter.withArguments(name),
+            conflictingGetable.charOffset,
+            noLength,
+            conflictingGetable.fileUri);
+      }
     });
   }
 

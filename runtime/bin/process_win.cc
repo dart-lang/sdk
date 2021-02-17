@@ -564,7 +564,6 @@ class ProcessStarter {
         reinterpret_cast<STARTUPINFOW*>(&startup_info), &process_info);
 
     if (result == 0) {
-      Syslog::PrintErr("CreateProcessW failed %d\n", GetLastError());
       return CleanupAndReturnError();
     }
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -1042,7 +1043,11 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest
   }) {
     var expression = findNode.topVariableDeclarationByName(name).initializer!;
 
-    var source = this.result.unit!.declaredElement!.source;
+    var unit = this.result.unit;
+    if (unit == null) {
+      throw StateError('analysis result unit is null');
+    }
+    var source = unit.declaredElement!.source;
     var errorListener = GatheringErrorListener();
     var errorReporter = ErrorReporter(
       errorListener,
@@ -1054,6 +1059,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest
       ConstantVisitor(
         ConstantEvaluationEngine(
           DeclaredVariables.fromMap(declaredVariables),
+          unit.featureSet.isEnabled(Feature.triple_shift),
         ),
         this.result.libraryElement as LibraryElementImpl,
         errorReporter,

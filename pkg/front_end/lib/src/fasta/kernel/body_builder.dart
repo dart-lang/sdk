@@ -2726,7 +2726,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleAssignmentExpression(Token token) {
     assert(checkState(token, [
-      unionOfKinds(<ValueKind>[ValueKinds.Expression, ValueKinds.Generator]),
+      unionOfKinds(<ValueKind>[
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        // TODO(johnniwinther): Avoid problem builders here.
+        ValueKinds.ProblemBuilder
+      ]),
       unionOfKinds(<ValueKind>[
         ValueKinds.Expression, ValueKinds.Generator,
         // TODO(johnniwinther): Avoid problem builders here.
