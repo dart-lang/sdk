@@ -1676,8 +1676,8 @@ abstract class InstanceState {
     return BoolState.from(leftValue | rightValue);
   }
 
-  /// Return the result of invoking the '&gt;&gt;' operator on this object with
-  /// the [rightOperand].
+  /// Return the result of invoking the '&gt;&gt;&gt;' operator on this object
+  /// with the [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.

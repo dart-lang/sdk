@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -65,7 +66,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     this._typeSystem,
     this._typeProvider,
     this.declaredVariables,
-  ) : _evaluationEngine = ConstantEvaluationEngine(declaredVariables);
+  ) : _evaluationEngine = ConstantEvaluationEngine(declaredVariables,
+            _currentLibrary.featureSet.isEnabled(Feature.triple_shift));
 
   bool get _isNonNullableByDefault => _currentLibrary.isNonNullableByDefault;
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -113,6 +114,7 @@ class ConstantEvaluator {
     var result = expression.accept(ConstantVisitor(
         ConstantEvaluationEngine(
           DeclaredVariables(),
+          _library.featureSet.isEnabled(Feature.triple_shift),
         ),
         _library,
         errorReporter));

@@ -58,11 +58,15 @@ class ConstantEvaluationEngine {
   /// The set of variables declared on the command line using '-D'.
   final DeclaredVariables _declaredVariables;
 
+  /// Whether the `triple_shift` experiment is enabled.
+  final bool _isTripleShiftExperimentEnabled;
+
   /// Initialize a newly created [ConstantEvaluationEngine].
   ///
   /// [declaredVariables] is the set of variables declared on the command
   /// line using '-D'.
-  ConstantEvaluationEngine(DeclaredVariables declaredVariables)
+  ConstantEvaluationEngine(
+      DeclaredVariables declaredVariables, this._isTripleShiftExperimentEnabled)
       : _declaredVariables = declaredVariables;
 
   /// Check that the arguments to a call to fromEnvironment() are correct. The
@@ -127,7 +131,14 @@ class ConstantEvaluationEngine {
       return false;
     }
     var name = argumentValues[0]?.toStringValue();
-    return name != null && isValidPublicSymbol(name);
+    if (name == null) {
+      return false;
+    }
+    // TODO(srawlins): If the argument is '>>>' but triple-shift is not enabled,
+    // report a different error indicating that the triple-shift experiment
+    // should be enabled, or a minimum SDK version set, when one is declared.
+    return isValidPublicSymbol(name) ||
+        (_isTripleShiftExperimentEnabled && name == '>>>');
   }
 
   /// Compute the constant value associated with the given [constant].
@@ -414,11 +425,11 @@ class ConstantEvaluationEngine {
 
     constructor = followConstantRedirectionChain(constructor);
     InterfaceType definingType = constructor.returnType;
-    ClassElement definingClass = constructor.enclosingElement;
     if (constructor.isFactory) {
       // We couldn't find a non-factory constructor.
       // See if it's because we reached an external const factory constructor
       // that we can emulate.
+      ClassElement definingClass = constructor.enclosingElement;
       if (constructor.name == "fromEnvironment") {
         if (!checkFromEnvironmentArguments(
             library, arguments, argumentValues, namedValues, definingType)) {
@@ -479,8 +490,6 @@ class ConstantEvaluationEngine {
         definingType,
       );
     }
-    var constructorBase = constructor.declaration as ConstructorElementImpl;
-    var initializers = constructorBase.constantInitializers;
 
     var fieldMap = HashMap<String, DartObjectImpl>();
 
@@ -597,6 +606,8 @@ class ConstantEvaluationEngine {
       lexicalEnvironment: parameterMap,
       substitution: Substitution.fromInterfaceType(definingType),
     );
+    var constructorBase = constructor.declaration as ConstructorElementImpl;
+    var initializers = constructorBase.constantInitializers;
     String? superName;
     NodeList<Expression>? superArguments;
     for (var i = 0; i < initializers.length; i++) {

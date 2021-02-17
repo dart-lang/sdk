@@ -77,7 +77,8 @@ class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
   }
 
   ConstantEvaluationEngine _getEvaluationEngine(_ConstantNode node) {
-    return ConstantEvaluationEngine(declaredVariables);
+    return ConstantEvaluationEngine(
+        declaredVariables, experimentStatus.triple_shift);
   }
 
   _ConstantNode _getNode(ConstantEvaluationTarget constant) {
