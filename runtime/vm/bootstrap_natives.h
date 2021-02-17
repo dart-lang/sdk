@@ -405,7 +405,6 @@ namespace dart {
   V(Ffi_storePointer, 3)                                                       \
   V(Ffi_address, 1)                                                            \
   V(Ffi_fromAddress, 1)                                                        \
-  V(Ffi_sizeOf, 0)                                                             \
   V(Ffi_asFunctionInternal, 1)                                                 \
   V(Ffi_nativeCallbackFunction, 2)                                             \
   V(Ffi_pointerFromFunction, 1)                                                \

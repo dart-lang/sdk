@@ -1677,11 +1677,6 @@ LoadLibraryTakesNoArguments:
   template: "'loadLibrary' takes no arguments."
   analyzerCode: LOAD_LIBRARY_TAKES_NO_ARGUMENTS
 
-LoadLibraryHidesMember:
-  template: "The library '#uri' defines a top-level member named 'loadLibrary'. This member is hidden by the special member 'loadLibrary' that the language adds to support deferred loading."
-  tip: "Try to rename or hide the member."
-  severity: IGNORED
-
 TypeArgumentMismatch:
   template: "Expected #count type arguments."
   analyzerCode: WRONG_NUMBER_OF_TYPE_ARGUMENTS
@@ -1925,24 +1920,8 @@ IncrementalCompilerIllegalParameter:
 IncrementalCompilerIllegalTypeParameter:
   template: "Illegal type parameter name '#string' found during expression compilation."
 
-LocalDefinitionHidesExport:
-  template: "Local definition of '#name' hides export from '#uri'."
-  severity: IGNORED
-
-LocalDefinitionHidesImport:
-  template: "Local definition of '#name' hides import from '#uri'."
-  severity: IGNORED
-
 DebugTrace:
   template: "Fatal '#name' at:\n#string"
-  severity: IGNORED
-
-ExportHidesExport:
-  template: "Export of '#name' (from '#uri') hides export from '#uri2'."
-  severity: IGNORED
-
-ImportHidesImport:
-  template: "Import of '#name' (from '#uri') hides import from '#uri2'."
   severity: IGNORED
 
 MissingPrefixInDeferredImport:
@@ -1990,10 +1969,6 @@ DuplicatedExport:
 
 DuplicatedExportInType:
   template: "'#name' is exported from both '#uri' and '#uri2'."
-
-DuplicatedImport:
-  template: "'#name' is imported from both '#uri' and '#uri2'."
-  severity: IGNORED
 
 DuplicatedImportInType:
   template: "'#name' is imported from both '#uri' and '#uri2'."
@@ -3777,10 +3752,6 @@ InitializeFromDillUnknownProblemNoDump:
   frontendInternal: true
   external: test/incremental_load_from_invalid_dill_test.dart
 
-MissingExplicitTypeArguments:
-  template: "No type arguments provided, #count possible."
-  severity: IGNORED
-
 WebLiteralCannotBeRepresentedExactly:
   template: "The integer literal #string can't be represented exactly in JavaScript."
   tip: "Try changing the literal to something that can be represented in Javascript. In Javascript #string2 is the nearest value that can be represented exactly."
@@ -4269,13 +4240,6 @@ FfiFieldCyclic:
   template: |
     Struct '#name' contains itself. Cycle elements:
     #names
-  external: test/ffi_test.dart
-
-FfiNonConstantTypeArgumentWarning:
-  # Used by dart:ffi
-  template: "Support for using non-constant type arguments '#type' in this FFI API is deprecated and will be removed in the next stable version of Dart. Rewrite the code to ensure that type arguments are compile time constants referring to a valid native type."
-  analyzerCode: NON_CONSTANT_TYPE_ARGUMENT_WARNING
-  severity: INFO
   external: test/ffi_test.dart
 
 FfiNotStatic:

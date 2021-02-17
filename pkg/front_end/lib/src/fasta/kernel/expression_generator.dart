@@ -2995,12 +2995,6 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
         // as a recovery node once the IR can represent it (Issue #29840).
         arguments = null;
       }
-    } else if (declaration.typeVariablesCount != 0) {
-      _helper.addProblem(
-          templateMissingExplicitTypeArguments
-              .withArguments(declaration.typeVariablesCount),
-          fileOffset,
-          lengthForToken(token));
     }
 
     List<TypeBuilder> argumentBuilders;

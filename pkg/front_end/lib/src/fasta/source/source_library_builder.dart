@@ -2707,54 +2707,25 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       AccessErrorBuilder error = other;
       other = error.builder;
     }
-    bool isLocal = false;
-    bool isLoadLibrary = false;
     Builder preferred;
     Uri uri;
     Uri otherUri;
-    Uri preferredUri;
-    Uri hiddenUri;
     if (scope.lookupLocalMember(name, setter: false) == declaration) {
-      isLocal = true;
       preferred = declaration;
-      hiddenUri = computeLibraryUri(other);
     } else {
       uri = computeLibraryUri(declaration);
       otherUri = computeLibraryUri(other);
       if (declaration is LoadLibraryBuilder) {
-        isLoadLibrary = true;
         preferred = declaration;
-        preferredUri = otherUri;
       } else if (other is LoadLibraryBuilder) {
-        isLoadLibrary = true;
         preferred = other;
-        preferredUri = uri;
       } else if (otherUri?.scheme == "dart" && uri?.scheme != "dart") {
         preferred = declaration;
-        preferredUri = uri;
-        hiddenUri = otherUri;
       } else if (uri?.scheme == "dart" && otherUri?.scheme != "dart") {
         preferred = other;
-        preferredUri = otherUri;
-        hiddenUri = uri;
       }
     }
     if (preferred != null) {
-      if (isLocal) {
-        Template<Message Function(String name, Uri uri)> template = isExport
-            ? templateLocalDefinitionHidesExport
-            : templateLocalDefinitionHidesImport;
-        addProblem(template.withArguments(name, hiddenUri), charOffset,
-            noLength, fileUri);
-      } else if (isLoadLibrary) {
-        addProblem(templateLoadLibraryHidesMember.withArguments(preferredUri),
-            charOffset, noLength, fileUri);
-      } else {
-        Template<Message Function(String name, Uri uri, Uri uri2)> template =
-            isExport ? templateExportHidesExport : templateImportHidesImport;
-        addProblem(template.withArguments(name, preferredUri, hiddenUri),
-            charOffset, noLength, fileUri);
-      }
       return preferred;
     }
     if (declaration.next == null && other.next == null) {
@@ -2770,15 +2741,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           });
       }
     }
-    Template<Message Function(String name, Uri uri, Uri uri2)> template =
-        isExport ? templateDuplicatedExport : templateDuplicatedImport;
-    Message message = template.withArguments(name, uri, otherUri);
-    addProblem(message, charOffset, noLength, fileUri);
+    if (isExport) {
+      Template<Message Function(String name, Uri uri, Uri uri2)> template =
+          templateDuplicatedExport;
+      Message message = template.withArguments(name, uri, otherUri);
+      addProblem(message, charOffset, noLength, fileUri);
+    }
     Template<Message Function(String name, Uri uri, Uri uri2)> builderTemplate =
         isExport
             ? templateDuplicatedExportInType
             : templateDuplicatedImportInType;
-    message = builderTemplate.withArguments(
+    Message message = builderTemplate.withArguments(
         name,
         // TODO(ahe): We should probably use a context object here
         // instead of including URIs in this message.

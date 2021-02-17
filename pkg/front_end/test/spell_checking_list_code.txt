@@ -388,6 +388,7 @@ established
 estimate
 eval
 exhausted
+existence
 existentially
 exp
 expando
@@ -845,6 +846,7 @@ per
 perf
 permanently
 permit
+physically
 pi
 picking
 pkg
@@ -1033,6 +1035,7 @@ semantically
 semver
 separators
 sequencing
+sequential
 serializables
 serializer
 serializers
@@ -1340,6 +1343,7 @@ vs
 vtab
 w
 waiting
+wanting
 waste
 wasted
 watch

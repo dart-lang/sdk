@@ -525,9 +525,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (!_isValidFfiNativeType(T, allowVoid: true, allowEmptyStruct: true)) {
         final AstNode errorNode = node;
         _errorReporter.reportErrorForNode(
-            FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING,
-            errorNode,
-            ['elementAt']);
+            FfiCode.NON_CONSTANT_TYPE_ARGUMENT, errorNode, ['elementAt']);
       }
     }
   }
@@ -703,7 +701,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (!_isValidFfiNativeType(T, allowVoid: true, allowEmptyStruct: true)) {
       final AstNode errorNode = node;
       _errorReporter.reportErrorForNode(
-          FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['sizeOf']);
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT, errorNode, ['sizeOf']);
     }
   }
 

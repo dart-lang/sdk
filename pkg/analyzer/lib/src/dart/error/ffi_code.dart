@@ -185,20 +185,6 @@ class FfiCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: the name of the function, method, or constructor having type arguments
-   */
-  static const FfiCode NON_CONSTANT_TYPE_ARGUMENT_WARNING = FfiCode(
-      name: 'NON_CONSTANT_TYPE_ARGUMENT_WARNING',
-      message:
-          "Support for using non-constant type arguments '{0}' in this FFI API"
-          " is deprecated and will be removed in the next stable version of "
-          "Dart. Rewrite the code to ensure that type arguments are compile "
-          "time constants referring to a valid native type.",
-      correction: "Try changing the type argument to be a constant type.",
-      type: ErrorType.HINT);
-
-  /**
-   * Parameters:
    * 0: the type that should be a valid dart:ffi native type.
    */
   static const FfiCode NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER = FfiCode(

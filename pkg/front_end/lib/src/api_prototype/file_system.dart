@@ -38,15 +38,48 @@ abstract class FileSystemEntity {
   Uri get uri;
 
   /// Whether this file system entity exists.
+  ///
+  /// This method cannot be assumed to do any async work, in fact, if possible
+  /// it should perform the check sync as that might be faster depending on the
+  /// caller. If wanting to check async - for instance if trying to physically
+  /// check for existence and read in parallel - use [existsAsyncIfPossible]
+  /// instead.
   Future<bool> exists();
+
+  /// Whether this file system entity exists.
+  ///
+  /// This method cannot be assumed to do any async work, but should - if
+  /// possible - in fact do async work as that might be faster depending on the
+  /// caller - for instance if trying to physically check for existence (and
+  /// read) in parallel.
+  /// For sequential checks one should use [exists] instead.
+  Future<bool> existsAsyncIfPossible();
 
   /// Attempts to access this file system entity as a file and read its contents
   /// as raw bytes.
+  ///
+  /// This method cannot be assumed to do any async work, in fact, if possible
+  /// it should the read sync as that might be faster depending on the caller.
+  /// If wanting to read async - for instance if trying to physically read in
+  /// parallel - use [readAsBytesAsyncIfPossible] instead.
   ///
   /// If an error occurs while attempting to read the file (e.g. because no such
   /// file exists, or the entity is a directory), the future is completed with
   /// [FileSystemException].
   Future<List<int>> readAsBytes();
+
+  /// Attempts to access this file system entity as a file and read its contents
+  /// as raw bytes.
+  ///
+  /// This method cannot be assumed to do any async work, but should - if
+  /// possible - in fact do async work as that might be faster depending on the
+  /// caller - for instance if trying to physically read in parallel.
+  /// For sequential reads one should use [readAsBytes] instead.
+  ///
+  /// If an error occurs while attempting to read the file (e.g. because no such
+  /// file exists, or the entity is a directory), the future is completed with
+  /// [FileSystemException].
+  Future<List<int>> readAsBytesAsyncIfPossible();
 
   /// Attempts to access this file system entity as a file and read its contents
   /// as a string.

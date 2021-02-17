@@ -3254,7 +3254,6 @@ TypeArgumentsPtr Class::InstantiateToBounds(Thread* thread) const {
 ClassPtr Class::SuperClass(bool original_classes) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  auto isolate = thread->isolate();
   auto isolate_group = thread->isolate_group();
   if (super_type() == AbstractType::null()) {
     if (id() == kTypeArgumentsCid) {
@@ -3266,7 +3265,7 @@ ClassPtr Class::SuperClass(bool original_classes) const {
   const AbstractType& sup_type = AbstractType::Handle(zone, super_type());
   const intptr_t type_class_id = sup_type.type_class_id();
   if (original_classes) {
-    return isolate->GetClassForHeapWalkAt(type_class_id);
+    return isolate_group->GetClassForHeapWalkAt(type_class_id);
   } else {
     return isolate_group->class_table()->At(type_class_id);
   }

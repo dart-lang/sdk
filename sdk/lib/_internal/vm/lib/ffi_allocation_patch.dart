@@ -12,6 +12,7 @@ extension AllocatorAlloc on Allocator {
   // TODO(http://dartbug.com/39964): Add `alignmentOf<T>()` call.
   @patch
   Pointer<T> call<T extends NativeType>([int count = 1]) {
-    return this.allocate(sizeOf<T>() * count);
+    // This case should have been rewritten in pre-processing.
+    throw UnimplementedError("Pointer<$T>");
   }
 }

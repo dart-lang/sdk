@@ -32,6 +32,11 @@ abstract class int extends num {
   /// ```
   /// const int.fromEnvironment("defaultPort", defaultValue: 80)
   /// ```
+  ///
+  /// The string value, or lack of a value, associated with a [name]
+  /// must be consistent across all calls to [String.fromEnvironment],
+  /// `int.fromEnvironment`, [bool.fromEnvironment] and [bool.hasEnvironment]
+  /// in a single program.
   // The .fromEnvironment() constructors are special in that we do not want
   // users to call them using "new". We prohibit that by giving them bodies
   // that throw, even though const constructors are not allowed to have bodies.

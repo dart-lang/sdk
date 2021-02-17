@@ -34,6 +34,9 @@ class HttpFileSystemEntity implements FileSystemEntity {
   }
 
   @override
+  Future<bool> existsAsyncIfPossible() => exists();
+
+  @override
   Future<List<int>> readAsBytes() async {
     return connectAndRun((io.HttpClient httpClient) async {
       io.HttpClientRequest request = await httpClient.getUrl(uri);
@@ -45,6 +48,9 @@ class HttpFileSystemEntity implements FileSystemEntity {
       return list.expand((list) => list).toList();
     });
   }
+
+  @override
+  Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
 
   @override
   Future<String> readAsString() async {

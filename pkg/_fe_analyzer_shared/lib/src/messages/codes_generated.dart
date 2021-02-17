@@ -2393,32 +2393,6 @@ Message _withArgumentsDuplicatedExportInType(String name, Uri uri_, Uri uri2_) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, Uri uri_, Uri uri2_)>
-    templateDuplicatedImport =
-    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
-        messageTemplate:
-            r"""'#name' is imported from both '#uri' and '#uri2'.""",
-        withArguments: _withArgumentsDuplicatedImport);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, Uri uri_, Uri uri2_)>
-    codeDuplicatedImport =
-    const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
-        "DuplicatedImport",
-        severity: Severity.ignored);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedImport(String name, Uri uri_, Uri uri2_) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  String? uri = relativizeUri(uri_);
-  String? uri2 = relativizeUri(uri2_);
-  return new Message(codeDuplicatedImport,
-      message: """'${name}' is imported from both '${uri}' and '${uri2}'.""",
-      arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_, Uri uri2_)>
     templateDuplicatedImportInType =
     const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
         messageTemplate:
@@ -3242,33 +3216,6 @@ const MessageCode messageExportAfterPart = const MessageCode("ExportAfterPart",
     index: 75,
     message: r"""Export directives must precede part directives.""",
     tip: r"""Try moving the export directives before the part directives.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_, Uri uri2_)>
-    templateExportHidesExport =
-    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
-        messageTemplate:
-            r"""Export of '#name' (from '#uri') hides export from '#uri2'.""",
-        withArguments: _withArgumentsExportHidesExport);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, Uri uri_, Uri uri2_)>
-    codeExportHidesExport =
-    const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
-        "ExportHidesExport",
-        severity: Severity.ignored);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExportHidesExport(String name, Uri uri_, Uri uri2_) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  String? uri = relativizeUri(uri_);
-  String? uri2 = relativizeUri(uri2_);
-  return new Message(codeExportHidesExport,
-      message:
-          """Export of '${name}' (from '${uri}') hides export from '${uri2}'.""",
-      arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExportOptOutFromOptIn = messageExportOptOutFromOptIn;
@@ -4624,33 +4571,6 @@ const MessageCode messageImportAfterPart = const MessageCode("ImportAfterPart",
     index: 10,
     message: r"""Import directives must precede part directives.""",
     tip: r"""Try moving the import directives before the part directives.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_, Uri uri2_)>
-    templateImportHidesImport =
-    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
-        messageTemplate:
-            r"""Import of '#name' (from '#uri') hides import from '#uri2'.""",
-        withArguments: _withArgumentsImportHidesImport);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, Uri uri_, Uri uri2_)>
-    codeImportHidesImport =
-    const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
-        "ImportHidesImport",
-        severity: Severity.ignored);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  String? uri = relativizeUri(uri_);
-  String? uri2 = relativizeUri(uri2_);
-  return new Message(codeImportHidesImport,
-      message:
-          """Import of '${name}' (from '${uri}') hides import from '${uri2}'.""",
-      arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeIncorrectTypeArgumentVariable =
@@ -6255,30 +6175,6 @@ const MessageCode messageListLiteralTooManyTypeArguments = const MessageCode(
     message: r"""List literal requires exactly one type argument.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(Uri uri_)> templateLoadLibraryHidesMember = const Template<
-        Message Function(Uri uri_)>(
-    messageTemplate:
-        r"""The library '#uri' defines a top-level member named 'loadLibrary'. This member is hidden by the special member 'loadLibrary' that the language adds to support deferred loading.""",
-    tipTemplate: r"""Try to rename or hide the member.""",
-    withArguments: _withArgumentsLoadLibraryHidesMember);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Uri uri_)> codeLoadLibraryHidesMember =
-    const Code<Message Function(Uri uri_)>("LoadLibraryHidesMember",
-        severity: Severity.ignored);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLoadLibraryHidesMember(Uri uri_) {
-  String? uri = relativizeUri(uri_);
-  return new Message(codeLoadLibraryHidesMember,
-      message:
-          """The library '${uri}' defines a top-level member named 'loadLibrary'. This member is hidden by the special member 'loadLibrary' that the language adds to support deferred loading.""",
-      tip: """Try to rename or hide the member.""",
-      arguments: {'uri': uri_});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeLoadLibraryTakesNoArguments =
     messageLoadLibraryTakesNoArguments;
 
@@ -6287,56 +6183,6 @@ const MessageCode messageLoadLibraryTakesNoArguments = const MessageCode(
     "LoadLibraryTakesNoArguments",
     analyzerCodes: <String>["LOAD_LIBRARY_TAKES_NO_ARGUMENTS"],
     message: r"""'loadLibrary' takes no arguments.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_)>
-    templateLocalDefinitionHidesExport =
-    const Template<Message Function(String name, Uri uri_)>(
-        messageTemplate:
-            r"""Local definition of '#name' hides export from '#uri'.""",
-        withArguments: _withArgumentsLocalDefinitionHidesExport);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, Uri uri_)>
-    codeLocalDefinitionHidesExport =
-    const Code<Message Function(String name, Uri uri_)>(
-        "LocalDefinitionHidesExport",
-        severity: Severity.ignored);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLocalDefinitionHidesExport(String name, Uri uri_) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  String? uri = relativizeUri(uri_);
-  return new Message(codeLocalDefinitionHidesExport,
-      message: """Local definition of '${name}' hides export from '${uri}'.""",
-      arguments: {'name': name, 'uri': uri_});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_)>
-    templateLocalDefinitionHidesImport =
-    const Template<Message Function(String name, Uri uri_)>(
-        messageTemplate:
-            r"""Local definition of '#name' hides import from '#uri'.""",
-        withArguments: _withArgumentsLocalDefinitionHidesImport);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, Uri uri_)>
-    codeLocalDefinitionHidesImport =
-    const Code<Message Function(String name, Uri uri_)>(
-        "LocalDefinitionHidesImport",
-        severity: Severity.ignored);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLocalDefinitionHidesImport(String name, Uri uri_) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  String? uri = relativizeUri(uri_);
-  return new Message(codeLocalDefinitionHidesImport,
-      message: """Local definition of '${name}' hides import from '${uri}'.""",
-      arguments: {'name': name, 'uri': uri_});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMainNotFunctionDeclaration =
@@ -6508,27 +6354,6 @@ const MessageCode messageMissingExplicitConst = const MessageCode(
     analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
     message: r"""Constant expression expected.""",
     tip: r"""Try inserting 'const'.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(int count)>
-    templateMissingExplicitTypeArguments =
-    const Template<Message Function(int count)>(
-        messageTemplate: r"""No type arguments provided, #count possible.""",
-        withArguments: _withArgumentsMissingExplicitTypeArguments);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(int count)> codeMissingExplicitTypeArguments =
-    const Code<Message Function(int count)>("MissingExplicitTypeArguments",
-        severity: Severity.ignored);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMissingExplicitTypeArguments(int count) {
-  // ignore: unnecessary_null_comparison
-  if (count == null) throw 'No count provided';
-  return new Message(codeMissingExplicitTypeArguments,
-      message: """No type arguments provided, ${count} possible.""",
-      arguments: {'count': count});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingExponent = messageMissingExponent;

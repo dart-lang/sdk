@@ -625,7 +625,7 @@ T genericRef3<T extends Struct>(Pointer<T> p) => //# 1202: compile-time error
 void testSizeOfGeneric() {
   int generic<T extends Pointer>() {
     int size = sizeOf<IntPtr>();
-    size = sizeOf<T>(); //# 1300: ok
+    size = sizeOf<T>(); //# 1300: compile-time error
     return size;
   }
 
@@ -634,7 +634,7 @@ void testSizeOfGeneric() {
 
 void testSizeOfNativeType() {
   try {
-    sizeOf(); //# 1301: ok
+    sizeOf(); //# 1301: compile-time error
   } catch (e) {
     print(e);
   }
@@ -643,7 +643,7 @@ void testSizeOfNativeType() {
 void testElementAtGeneric() {
   Pointer<T> generic<T extends NativeType>(Pointer<T> pointer) {
     Pointer<T> returnValue = pointer;
-    returnValue = returnValue.elementAt(1); //# 1310: ok
+    returnValue = returnValue.elementAt(1); //# 1310: compile-time error
     return returnValue;
   }
 
@@ -657,6 +657,6 @@ void testElementAtNativeType() {
   Pointer<Int8> p = calloc();
   p.elementAt(1);
   Pointer<NativeType> p2 = p;
-  p2.elementAt(1); //# 1311: ok
+  p2.elementAt(1); //# 1311: compile-time error
   calloc.free(p);
 }
