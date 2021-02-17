@@ -19,6 +19,9 @@ lucicfg.check_version("1.21.5")
 # Enable LUCI Realms support.
 lucicfg.enable_experiment("crbug.com/1085650")
 
+# Launch 2% of Swarming tasks in "realms-aware mode", crbug.com/1170330.
+luci.builder.defaults.experiments.set({"luci.use_realms": 2})
+
 DART_GIT = "https://dart.googlesource.com/sdk"
 DART_GERRIT = "https://dart-review.googlesource.com/"
 
