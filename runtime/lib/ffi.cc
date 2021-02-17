@@ -11,7 +11,6 @@
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
 #include "vm/class_id.h"
-#include "vm/compiler/ffi/native_type.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/log.h"
@@ -29,45 +28,6 @@
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
-
-// The following functions are runtime checks on type arguments.
-// Some checks are also performed in kernel transformation, these are asserts.
-// Some checks are only performed at runtime to allow for generic code, these
-// throw ArgumentExceptions.
-
-static void CheckSized(const AbstractType& type_arg) {
-  const classid_t type_cid = type_arg.type_class_id();
-  if (IsFfiNativeTypeTypeClassId(type_cid) || IsFfiTypeVoidClassId(type_cid) ||
-      IsFfiTypeNativeFunctionClassId(type_cid)) {
-    const String& error = String::Handle(String::NewFormatted(
-        "%s does not have a predefined size (@unsized). "
-        "Unsized NativeTypes do not support [sizeOf] because their size "
-        "is unknown. "
-        "Consequently, [allocate], [Pointer.load], [Pointer.store], and "
-        "[Pointer.elementAt] are not available.",
-        String::Handle(type_arg.UserVisibleName()).ToCString()));
-    Exceptions::ThrowArgumentError(error);
-  }
-}
-
-// Calculate the size of a native type.
-//
-// You must check [IsConcreteNativeType] and [CheckSized] first to verify that
-// this type has a defined size.
-static size_t SizeOf(Zone* zone, const AbstractType& type) {
-  if (IsFfiTypeClassId(type.type_class_id())) {
-    return compiler::ffi::NativeType::FromAbstractType(zone, type)
-        .SizeInBytes();
-  } else {
-    Class& struct_class = Class::Handle(type.type_class());
-    Object& result = Object::Handle(
-        struct_class.InvokeGetter(Symbols::SizeOfStructField(),
-                                  /*throw_nsm_if_absent=*/false,
-                                  /*respect_reflectable=*/false));
-    ASSERT(!result.IsNull() && result.IsInteger());
-    return Integer::Cast(result).AsInt64Value();
-  }
-}
 
 // The remainder of this file implements the dart:ffi native methods.
 
@@ -99,13 +59,6 @@ CLASS_LIST_FFI_NUMERIC(DEFINE_NATIVE_ENTRY_STORE)
 
 DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 3) {
   UNREACHABLE();
-}
-
-DEFINE_NATIVE_ENTRY(Ffi_sizeOf, 1, 0) {
-  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
-  CheckSized(type_arg);
-
-  return Integer::New(SizeOf(zone, type_arg));
 }
 
 // Static invocations to this method are translated directly in streaming FGB.
