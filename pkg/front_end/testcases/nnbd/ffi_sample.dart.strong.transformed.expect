@@ -6,12 +6,10 @@ import "dart:ffi" as ffi;
 import "dart:ffi";
 import "package:ffi/ffi.dart";
 
-@#C3
-@#C9
+@#C6
 class Coordinate extends ffi::Struct {
-  @#C3
-  static final field core::int* #sizeOf = (#C12).{core::List::[]}(ffi::_abi())/*isLegacy*/;
-  @#C3
+  static final field core::int* #sizeOf = (#C9).{core::List::[]}(ffi::_abi())/*isLegacy*/;
+  @#C12
   constructor #fromTypedDataBase(dynamic #pointer) → dynamic
     : super ffi::Struct::_fromPointer(#pointer)
     ;
@@ -42,18 +40,18 @@ class Coordinate extends ffi::Struct {
 static method main() → dynamic {}
 
 constants  {
-  #C1 = "vm:entry-point"
-  #C2 = null
-  #C3 = core::pragma {name:#C1, options:#C2}
-  #C4 = "vm:ffi:struct-fields"
-  #C5 = TypeLiteralConstant(ffi::Double)
-  #C6 = TypeLiteralConstant(ffi::Pointer<ffi::NativeType>)
-  #C7 = <core::Type>[#C5, #C5, #C6]
-  #C8 = ffi::_FfiStructLayout {fieldTypes:#C7}
-  #C9 = core::pragma {name:#C4, options:#C8}
-  #C10 = 24
-  #C11 = 20
-  #C12 = <core::int*>[#C10, #C11, #C10]
+  #C1 = "vm:ffi:struct-fields"
+  #C2 = TypeLiteralConstant(ffi::Double)
+  #C3 = TypeLiteralConstant(ffi::Pointer<ffi::NativeType>)
+  #C4 = <core::Type>[#C2, #C2, #C3]
+  #C5 = ffi::_FfiStructLayout {fieldTypes:#C4}
+  #C6 = core::pragma {name:#C1, options:#C5}
+  #C7 = 24
+  #C8 = 20
+  #C9 = <core::int*>[#C7, #C8, #C7]
+  #C10 = "vm:entry-point"
+  #C11 = null
+  #C12 = core::pragma {name:#C10, options:#C11}
   #C13 = ffi::Double {}
   #C14 = 0
   #C15 = <core::int*>[#C14, #C14, #C14]
