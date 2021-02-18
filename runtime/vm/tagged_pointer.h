@@ -193,7 +193,7 @@ class ObjectPtr {
     ASSERT(IsHeapObject());
     ASSERT(!IsInstructions());
     ASSERT(!IsInstructionsSection());
-    return tagged_pointer_ & ~(4ULL * GB - 1);
+    return tagged_pointer_ & kHeapBaseMask;
   }
 
  protected:

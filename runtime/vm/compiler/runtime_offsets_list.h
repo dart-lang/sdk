@@ -258,6 +258,7 @@
   FIELD(Thread, write_barrier_code_offset)                                     \
   FIELD(Thread, write_barrier_entry_point_offset)                              \
   FIELD(Thread, write_barrier_mask_offset)                                     \
+  FIELD(Thread, heap_base_offset)                                              \
   FIELD(Thread, callback_code_offset)                                          \
   FIELD(Thread, callback_stack_return_offset)                                  \
   FIELD(TimelineStream, enabled_offset)                                        \

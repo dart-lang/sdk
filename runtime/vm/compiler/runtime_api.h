@@ -1032,6 +1032,7 @@ class Thread : public AllStatic {
   static word store_buffer_block_offset();
   static word call_to_runtime_entry_point_offset();
   static word write_barrier_mask_offset();
+  static word heap_base_offset();
   static word switchable_call_miss_entry_offset();
   static word write_barrier_wrappers_thread_offset(Register regno);
   static word array_write_barrier_entry_point_offset();

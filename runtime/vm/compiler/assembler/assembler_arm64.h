@@ -1653,6 +1653,10 @@ class Assembler : public AssemblerBase {
     kValueCanBeSmi,
   };
 
+  void LoadCompressed(Register dest,
+                      const Address& slot,
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi);
+
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,
   // if the value can be proven either Smi or old-and-premarked, its NoBarrier

@@ -325,10 +325,12 @@ class Thread : public ThreadState {
   };
 
   uword write_barrier_mask() const { return write_barrier_mask_; }
+  uword heap_base() const { return heap_base_; }
 
   static intptr_t write_barrier_mask_offset() {
     return OFFSET_OF(Thread, write_barrier_mask_);
   }
+  static intptr_t heap_base_offset() { return OFFSET_OF(Thread, heap_base_); }
   static intptr_t stack_overflow_flags_offset() {
     return OFFSET_OF(Thread, stack_overflow_flags_);
   }
@@ -930,6 +932,7 @@ class Thread : public ThreadState {
   // different architectures. See also CheckOffsets in dart.cc.
   RelaxedAtomic<uword> stack_limit_;
   uword write_barrier_mask_;
+  uword heap_base_;
   Isolate* isolate_;
   const uword* dispatch_table_array_;
   uword top_ = 0;

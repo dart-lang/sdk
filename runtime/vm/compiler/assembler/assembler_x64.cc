@@ -1339,6 +1339,26 @@ void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
   }
 }
 
+void Assembler::LoadCompressed(Register dest,
+                               const Address& slot,
+                               CanBeSmi can_value_be_smi) {
+#if !defined(DART_COMPRESSED_POINTERS)
+  movq(dest, slot);
+#else
+  Label done;
+  movsxd(dest, slot);  // (movslq) Sign-extension.
+  if (can_value_be_smi == kValueCanBeSmi) {
+    BranchIfSmi(dest, &done, kNearJump);
+  }
+  addq(dest, Address(THR, target::Thread::heap_base_offset()));
+  Bind(&done);
+
+  // After further Smi changes:
+  // movl(dest, slot);  // Zero-extension.
+  // addq(dest, Address(THR, target::Thread::heap_base_offset());
+#endif
+}
+
 // Destroys the value register.
 void Assembler::StoreIntoObjectFilter(Register object,
                                       Register value,
