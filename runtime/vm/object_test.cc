@@ -374,7 +374,7 @@ ISOLATE_UNIT_TEST_CASE(Smi) {
   EXPECT(Smi::IsValid(-15));
   EXPECT(Smi::IsValid(0xFFu));
 // Upper two bits must be either 00 or 11.
-#if defined(ARCH_IS_64_BIT)
+#if defined(ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
   EXPECT(!Smi::IsValid(kMaxInt64));
   EXPECT(Smi::IsValid(0x3FFFFFFFFFFFFFFF));
   EXPECT(Smi::IsValid(-1));
@@ -502,7 +502,7 @@ ISOLATE_UNIT_TEST_CASE(StringIRITwoByte) {
 ISOLATE_UNIT_TEST_CASE(Mint) {
 // On 64-bit architectures a Smi is stored in a 64 bit word. A Midint cannot
 // be allocated if it does fit into a Smi.
-#if !defined(ARCH_IS_64_BIT)
+#if !defined(ARCH_IS_64_BIT) || defined(DART_COMPRESSED_POINTERS)
   {
     Mint& med = Mint::Handle();
     EXPECT(med.IsNull());

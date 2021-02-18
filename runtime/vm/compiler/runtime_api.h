@@ -303,7 +303,11 @@ constexpr word kWordMin = -(static_cast<uword>(1) << (kBitsPerWord - 1));
 constexpr uword kUwordMax = static_cast<word>(-1);
 
 // The number of bits in the _magnitude_ of a Smi, not counting the sign bit.
+#if !defined(DART_COMPRESSED_POINTERS)
 constexpr int kSmiBits = kBitsPerWord - 2;
+#else
+constexpr int kSmiBits = 30;
+#endif
 constexpr word kSmiMax = (static_cast<uword>(1) << kSmiBits) - 1;
 constexpr word kSmiMin = -(static_cast<uword>(1) << kSmiBits);
 
@@ -326,7 +330,7 @@ enum ParameterFlags {
 // calculate both the parameter flag index in the parameter names array and
 // which bit to check, kNumParameterFlagsPerElement should be a power of two.
 static constexpr intptr_t kNumParameterFlagsPerElementLog2 =
-    kBitsPerWordLog2 - kNumParameterFlags;
+    kBitsPerWordLog2 - 1 - kNumParameterFlags;
 static constexpr intptr_t kNumParameterFlagsPerElement =
     1 << kNumParameterFlagsPerElementLog2;
 static_assert(kNumParameterFlagsPerElement <= kSmiBits,

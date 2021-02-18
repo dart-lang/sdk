@@ -2176,8 +2176,7 @@ static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     16;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
-static constexpr dart::compiler::target::word Array_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word Array_kMaxElements = 134217727;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     32765;
 static constexpr dart::compiler::target::word
@@ -2195,8 +2194,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OldPage_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
-static constexpr dart::compiler::target::word String_kMaxElements =
-    2305843009213693951;
+static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
@@ -2215,7 +2213,7 @@ static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult = 0;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
-    576460752303423487;
+    134217727;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -2717,8 +2715,7 @@ static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     16;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
-static constexpr dart::compiler::target::word Array_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word Array_kMaxElements = 134217727;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     32765;
 static constexpr dart::compiler::target::word
@@ -2736,8 +2733,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OldPage_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
-static constexpr dart::compiler::target::word String_kMaxElements =
-    2305843009213693951;
+static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
@@ -2756,7 +2752,7 @@ static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult = 0;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
-    576460752303423487;
+    134217727;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -5381,8 +5377,7 @@ static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     16;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
-static constexpr dart::compiler::target::word Array_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word Array_kMaxElements = 134217727;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     32765;
 static constexpr dart::compiler::target::word
@@ -5400,8 +5395,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OldPage_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
-static constexpr dart::compiler::target::word String_kMaxElements =
-    2305843009213693951;
+static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
@@ -5420,7 +5414,7 @@ static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult = 0;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
-    576460752303423487;
+    134217727;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -5916,8 +5910,7 @@ static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     16;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
-static constexpr dart::compiler::target::word Array_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word Array_kMaxElements = 134217727;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     32765;
 static constexpr dart::compiler::target::word
@@ -5935,8 +5928,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OldPage_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
-static constexpr dart::compiler::target::word String_kMaxElements =
-    2305843009213693951;
+static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
@@ -5955,7 +5947,7 @@ static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult = 0;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
-    576460752303423487;
+    134217727;
 static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
@@ -8248,7 +8240,7 @@ static constexpr dart::compiler::target::word
     AOT_ObjectPool_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
-    576460752303423487;
+    134217727;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     32765;
 static constexpr dart::compiler::target::word
@@ -8268,7 +8260,7 @@ static constexpr dart::compiler::target::word AOT_OldPage_kBytesPerCardLog2 =
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
-    2305843009213693951;
+    536870911;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
@@ -8288,7 +8280,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
-    576460752303423487;
+    134217727;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -8846,7 +8838,7 @@ static constexpr dart::compiler::target::word
     AOT_ObjectPool_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
-    576460752303423487;
+    134217727;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     32765;
 static constexpr dart::compiler::target::word
@@ -8866,7 +8858,7 @@ static constexpr dart::compiler::target::word AOT_OldPage_kBytesPerCardLog2 =
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
-    2305843009213693951;
+    536870911;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
@@ -8886,7 +8878,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
-    576460752303423487;
+    134217727;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -11220,7 +11212,7 @@ static constexpr dart::compiler::target::word
     AOT_ObjectPool_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
-    576460752303423487;
+    134217727;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     32765;
 static constexpr dart::compiler::target::word
@@ -11240,7 +11232,7 @@ static constexpr dart::compiler::target::word AOT_OldPage_kBytesPerCardLog2 =
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
-    2305843009213693951;
+    536870911;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
@@ -11260,7 +11252,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
-    576460752303423487;
+    134217727;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -11811,7 +11803,7 @@ static constexpr dart::compiler::target::word
     AOT_ObjectPool_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
-    576460752303423487;
+    134217727;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     32765;
 static constexpr dart::compiler::target::word
@@ -11831,7 +11823,7 @@ static constexpr dart::compiler::target::word AOT_OldPage_kBytesPerCardLog2 =
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
-    2305843009213693951;
+    536870911;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
@@ -11851,7 +11843,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
-    576460752303423487;
+    134217727;
 static constexpr dart::compiler::target::word
     AOT_AbstractType_type_test_stub_entry_point_offset = 8;
 static constexpr dart::compiler::target::word

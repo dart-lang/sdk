@@ -559,9 +559,18 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
       Label length, smi_case;
 
       // The user-controlled index might not fit into a Smi.
+#if !defined(DART_COMPRESSED_POINTERS)
       __ adds(RangeErrorABI::kIndexReg, RangeErrorABI::kIndexReg,
               compiler::Operand(RangeErrorABI::kIndexReg));
       __ BranchIf(NO_OVERFLOW, &length);
+#else
+      __ mov(TMP, RangeErrorABI::kIndexReg);
+      __ SmiTag(RangeErrorABI::kIndexReg);
+      __ sxtw(RangeErrorABI::kIndexReg, RangeErrorABI::kIndexReg);
+      __ cmp(TMP,
+             compiler::Operand(RangeErrorABI::kIndexReg, ASR, kSmiTagSize));
+      __ BranchIf(EQ, &length);
+#endif
       {
         // Allocate a mint, reload the two registers and popualte the mint.
         __ PushRegister(NULL_REG);
@@ -2172,8 +2181,14 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ BranchIfNotSmi(TMP, not_smi_or_overflow);
   switch (kind) {
     case Token::kADD: {
-      __ adds(R0, R1, Operand(R0));   // Adds.
+#if !defined(DART_COMPRESSED_POINTERS)
+      __ adds(R0, R1, Operand(R0));   // Add.
       __ b(not_smi_or_overflow, VS);  // Branch if overflow.
+#else
+      __ addsw(R0, R1, Operand(R0));  // Add (32-bit).
+      __ b(not_smi_or_overflow, VS);  // Branch if overflow.
+      __ sxtw(R0, R0);                // Sign extend.
+#endif
       break;
     }
     case Token::kLT: {
