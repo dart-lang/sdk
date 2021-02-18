@@ -1,0 +1,47 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///error_location_03_lib1.dart";
+import "org-dartlang-testcase:///error_location_03_lib2.dart";
+import "org-dartlang-testcase:///error_location_03_lib3.dart";
+
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+class Foo extends core::Object /*hasConstConstructor*/  {
+  const constructor •(core::int* i) → self2::Foo*
+    : assert(i.{core::num::>}(0)), super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method foo() → dynamic
+  ;
+
+library;
+import self as self3;
+import "error_location_03_lib1.dart" as self2;
+
+import "org-dartlang-testcase:///error_location_03_lib1.dart";
+
+static const field self2::Foo* fooField = const self2::Foo::•(0);
+
+library;
+import self as self4;
+import "error_location_03_lib1.dart" as self2;
+
+import "org-dartlang-testcase:///error_location_03_lib1.dart";
+
+static const field self2::Foo* fooField2 = const self2::Foo::•(0);

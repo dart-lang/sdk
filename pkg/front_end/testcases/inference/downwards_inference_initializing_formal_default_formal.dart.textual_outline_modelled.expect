@@ -1,3 +1,4 @@
+// @dart = 2.9
 library test;
 
 Function2<List<int>, String> g = ([llll = const [1]]) => "hello";

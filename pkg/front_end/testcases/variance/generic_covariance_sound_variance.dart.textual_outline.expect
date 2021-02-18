@@ -1,3 +1,4 @@
+// @dart = 2.9
 typedef ContraFunction<T> = void Function(T);
 typedef InvFunction<T> = T Function(T);
 class Contravariant<in T> {}

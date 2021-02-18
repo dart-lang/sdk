@@ -1,3 +1,4 @@
+// @dart = 2.9
 void test(List<String> args) {}
 
 extension on List<String> {

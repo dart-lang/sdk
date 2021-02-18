@@ -1,0 +1,71 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class C extends core::Object {
+  static field core::int* staticField;
+  field core::int* field;
+  synthetic constructor •() → self::C*
+    ;
+  static get staticGetter() → core::int*
+    ;
+  static set staticSetter(dynamic val) → void
+    ;
+  static method staticFoo(core::int* param) → core::int*
+    ;
+  get getter() → core::int*
+    ;
+  set setter(dynamic val) → void
+    ;
+  method foo(core::int* param) → core::int*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field core::int* globalVariable;
+static final field core::bool* assertStatementsEnabled;
+static method topLevelFoo(core::int* param) → core::int*
+  ;
+static get topLevelGetter() → core::int*
+  ;
+static set topLevelSetter(dynamic val) → void
+  ;
+static method dummy() → dynamic
+  ;
+static method staticMembers() → dynamic async 
+  ;
+static method topLevelMembers() → dynamic async 
+  ;
+static method instanceMembers() → dynamic async 
+  ;
+static method others() → dynamic async 
+  ;
+static method conditionals() → dynamic async 
+  ;
+static method asserts() → dynamic async 
+  ;
+static method controlFlow() → dynamic async 
+  ;
+static method future<T extends core::Object* = dynamic>(self::future::T* value) → FutureOr<self::future::T*>* async 
+  ;
+static method id<T extends core::Object* = dynamic>(self::id::T* value) → FutureOr<self::id::T*>*
+  ;
+static method intStream() → asy::Stream<core::int*>* async* 
+  ;
+static method main() → dynamic async 
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method expectList(core::List<dynamic>* expected, core::List<dynamic>* actual) → dynamic
+  ;

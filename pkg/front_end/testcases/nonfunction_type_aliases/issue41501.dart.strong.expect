@@ -2,21 +2,18 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:13:42: Error: A value of type 'Null' can't be assigned to a variable of type 'FutureOr<A>'.
-//  - 'FutureOr' is from 'dart:async'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:13:42: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
 //   FutureOr<AAlias> foLegacyNonNullable = null; // error
 //                                          ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:15:47: Error: A value of type 'Null' can't be assigned to a variable of type 'FutureOr<A>'.
-//  - 'FutureOr' is from 'dart:async'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:15:47: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
 //   FutureOr<AAliasNonNullable> foNonNullable = null; // error
 //                                               ^
 //
 import self as self;
 import "issue41501_lib.dart" as opt;
-import "dart:async" as asy;
 
 import "dart:async";
 import "org-dartlang-testcase:///issue41501_lib.dart";
@@ -24,27 +21,31 @@ import "org-dartlang-testcase:///issue41501_lib.dart";
 typedef AAliasNonNullable = opt::A;
 typedef AAliasNullable = opt::A?;
 static method test() → dynamic {
-  asy::FutureOr<opt::A> foLegacyNonNullable = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:13:42: Error: A value of type 'Null' can't be assigned to a variable of type 'FutureOr<A>'.
- - 'FutureOr' is from 'dart:async'.
+  FutureOr<opt::A>foLegacyNonNullable = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:13:42: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
   FutureOr<AAlias> foLegacyNonNullable = null; // error
-                                         ^" in null as{TypeError,ForNonNullableByDefault} asy::FutureOr<opt::A>;
-  asy::FutureOr<opt::A?> foLegacyNullable = null;
-  asy::FutureOr<opt::A> foNonNullable = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:15:47: Error: A value of type 'Null' can't be assigned to a variable of type 'FutureOr<A>'.
- - 'FutureOr' is from 'dart:async'.
+                                         ^" in null as{TypeError,ForNonNullableByDefault} FutureOr<opt::A>;
+  FutureOr<opt::A?>foLegacyNullable = null;
+  FutureOr<opt::A>foNonNullable = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:15:47: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
   FutureOr<AAliasNonNullable> foNonNullable = null; // error
-                                              ^" in null as{TypeError,ForNonNullableByDefault} asy::FutureOr<opt::A>;
-  asy::FutureOr<opt::A?> foNullable = null;
-  asy::FutureOr<opt::A?> foNonNullableNullable = null;
-  asy::FutureOr<opt::A?> foNullableNullable = null;
+                                              ^" in null as{TypeError,ForNonNullableByDefault} FutureOr<opt::A>;
+  FutureOr<opt::A?>foNullable = null;
+  FutureOr<opt::A?>foNonNullableNullable = null;
+  FutureOr<opt::A?>foNullableNullable = null;
 }
 static method main() → dynamic {}
 
 library opted_out_lib;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart:5:1: Error: A library can't opt out of null safety by default, when using sound null safety.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
 import self as opt;
 import "dart:core" as core;
-import "dart:async" as asy;
 
 import "dart:async";
 import "org-dartlang-testcase:///issue41501.dart";
@@ -54,19 +55,19 @@ class A extends core::Object {
   synthetic constructor •() → opt::A*
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test() → dynamic {
-  asy::FutureOr<opt::A*>* foLegacy = null;
-  asy::FutureOr<opt::A*>* foNonNullable = null;
-  asy::FutureOr<opt::A*>* foNullable = null;
+  FutureOr<opt::A*>* foLegacy = null;
+  FutureOr<opt::A*>* foNonNullable = null;
+  FutureOr<opt::A*>* foNullable = null;
 }

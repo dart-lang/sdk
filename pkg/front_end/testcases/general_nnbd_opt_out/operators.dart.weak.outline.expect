@@ -1,0 +1,59 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Operators extends core::Object {
+  synthetic constructor •() → self::Operators*
+    ;
+  operator +(dynamic other) → dynamic
+    ;
+  operator &(dynamic other) → dynamic
+    ;
+  operator ~() → dynamic
+    ;
+  operator |(dynamic other) → dynamic
+    ;
+  operator ^(dynamic other) → dynamic
+    ;
+  operator /(dynamic other) → dynamic
+    ;
+  operator ==(dynamic other) → core::bool*
+    ;
+  operator >(dynamic other) → dynamic
+    ;
+  operator >=(dynamic other) → dynamic
+    ;
+  operator [](dynamic index) → dynamic
+    ;
+  operator []=(dynamic index, dynamic value) → void
+    ;
+  operator <<(dynamic other) → dynamic
+    ;
+  operator <(dynamic other) → dynamic
+    ;
+  operator <=(dynamic other) → dynamic
+    ;
+  operator *(dynamic other) → dynamic
+    ;
+  operator %(dynamic other) → dynamic
+    ;
+  operator >>(dynamic other) → dynamic
+    ;
+  operator -(dynamic other) → dynamic
+    ;
+  operator ~/(dynamic other) → dynamic
+    ;
+  operator unary-() → dynamic
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main(dynamic arguments) → dynamic
+  ;

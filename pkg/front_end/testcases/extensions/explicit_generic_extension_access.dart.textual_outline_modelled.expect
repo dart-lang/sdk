@@ -1,3 +1,4 @@
+// @dart = 2.9
 class Class<T extends num> {
   Class(this.field1, this.field2);
   T field1;

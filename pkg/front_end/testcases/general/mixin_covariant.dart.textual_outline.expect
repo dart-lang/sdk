@@ -1,3 +1,4 @@
+// @dart = 2.9
 typedef void TakeInts(int a, int b, int c, int d, int e);
 typedef void TakeObjectsAndInts(Object a, int b, Object c, int d, int e);
 typedef void TakeObjects(Object a, Object b, Object c, Object d, Object e);

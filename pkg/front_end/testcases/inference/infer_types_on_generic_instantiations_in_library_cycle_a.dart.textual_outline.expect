@@ -1,3 +1,4 @@
+// @dart = 2.9
 import 'infer_types_on_generic_instantiations_in_library_cycle.dart';
 
 abstract class I<E> {

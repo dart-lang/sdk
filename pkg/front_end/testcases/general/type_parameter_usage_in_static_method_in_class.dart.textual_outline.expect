@@ -1,3 +1,4 @@
+// @dart = 2.9
 class Foo<U> {
   static U foo1() {}
   static List<U> foo1Prime() {}

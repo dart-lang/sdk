@@ -1,3 +1,4 @@
+// @dart = 2.9
 foo<X>(Map<X, Y> Function<Y>() f) => null;
 baz() => foo(<Z>() => <dynamic, Z>{});
 main() {}

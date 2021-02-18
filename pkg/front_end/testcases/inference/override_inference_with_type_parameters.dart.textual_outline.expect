@@ -1,3 +1,4 @@
+// @dart = 2.9
 abstract class A<X> {
   void foo({Iterable<X> x});
 }

@@ -1,3 +1,4 @@
+// @dart = 2.9
 extension C on int {
   static int property2;
   static void set property2(int x) {}

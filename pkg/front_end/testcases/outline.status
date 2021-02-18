@@ -2,6 +2,24 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
+general/abstract_members: TypeCheckError
+general/bug30695: TypeCheckError
+general/covariant_field: TypeCheckError
+general/getter_vs_setter_type: TypeCheckError
+general/infer_field_from_multiple: TypeCheckError
+general/invalid_operator: TypeCheckError
+general/invalid_operator_override: TypeCheckError
+general/issue41210a: TypeCheckError
+general/issue41210b/issue41210.no_link: TypeCheckError
+general/issue41210b/issue41210: TypeCheckError
+general/mixin_application_override: TypeCheckError
+general/override_check_accessor_after_inference: TypeCheckError
+general/override_check_accessor_basic: TypeCheckError
+general/override_check_accessor_with_covariant_modifier: TypeCheckError
+general/override_check_after_inference: TypeCheckError
+general/override_check_basic: TypeCheckError
+general/override_check_with_covariant_modifier: TypeCheckError
+general/override_setter_with_field: TypeCheckError
 general_nnbd_opt_out/abstract_members: TypeCheckError
 general_nnbd_opt_out/bug30695: TypeCheckError
 general_nnbd_opt_out/mixin_application_override: TypeCheckError
@@ -12,30 +30,12 @@ general_nnbd_opt_out/override_check_after_inference: TypeCheckError
 general_nnbd_opt_out/override_check_basic: TypeCheckError
 general_nnbd_opt_out/override_check_with_covariant_modifier: TypeCheckError
 general_nnbd_opt_out/override_setter_with_field: TypeCheckError
-general/abstract_members: TypeCheckError
-general/bug30695: TypeCheckError
-general/covariant_field: TypeCheckError
-general/getter_vs_setter_type: TypeCheckError
-general/infer_field_from_multiple: TypeCheckError
-general/invalid_operator: TypeCheckError
-general/invalid_operator_override: TypeCheckError
-general/issue41210a: TypeCheckError
-general/issue41210b/issue41210: TypeCheckError
-general/issue41210b/issue41210.no_link: TypeCheckError
-general/mixin_application_override: TypeCheckError
-general/override_check_accessor_after_inference: TypeCheckError
-general/override_check_accessor_basic: TypeCheckError
-general/override_check_accessor_with_covariant_modifier: TypeCheckError
-general/override_check_after_inference: TypeCheckError
-general/override_check_basic: TypeCheckError
-general/override_check_with_covariant_modifier: TypeCheckError
-general/override_setter_with_field: TypeCheckError
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: Fail
 inference/generic_methods_do_not_infer_invalid_override_of_generic_method: Fail
 inference/generic_methods_handle_override_of_non_generic_with_generic: Fail
 inference/infer_assign_to_index: Fail
-inference/infer_assign_to_property_custom: Fail
 inference/infer_assign_to_property: Fail
+inference/infer_assign_to_property_custom: Fail
 inference/infer_method_missing_params: TypeCheckError
 inference/infer_types_on_generic_instantiations_infer: TypeCheckError
 inference/mixin_inference_outwards_3: TypeCheckError
@@ -46,4 +46,18 @@ late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue42603: TypeCheckError
+nnbd_mixed/bad_mixins: TypeCheckError
+nnbd_mixed/covariant_from_opt_in: TypeCheckError
+nnbd_mixed/hierarchy/conflict: TypeCheckError
+nnbd_mixed/hierarchy/duplicates: TypeCheckError
+nnbd_mixed/hierarchy/forwarding_semi_stub_field: TypeCheckError
+nnbd_mixed/hierarchy/forwarding_semi_stub_method: TypeCheckError
+nnbd_mixed/hierarchy/forwarding_semi_stub_setter: TypeCheckError
+nnbd_mixed/hierarchy/getter_setter: TypeCheckError
+nnbd_mixed/hierarchy/mix_in_override: TypeCheckError
+nnbd_mixed/hierarchy/override: TypeCheckError
+nnbd_mixed/inheritance_from_opt_in: TypeCheckError
+nnbd_mixed/issue41567: TypeCheckError
+nnbd_mixed/messages_with_types_opt_in: TypeCheckError
+nnbd_mixed/messages_with_types_opt_out: TypeCheckError
 rasta/native_is_illegal: Pass # Issue 29763

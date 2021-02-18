@@ -1,0 +1,38 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///issue42660_lib.dart";
+
+static method main() → void
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self2::Class<self2::Class::T%>
+    ;
+  method f() → core::int?
+    ;
+  get p() → core::int?
+    ;
+  operator [](core::int index) → core::int?
+    ;
+  operator unary-() → core::int?
+    ;
+  operator +(core::Object? other) → core::int?
+    ;
+}
+extension E on core::int {
+  method m = self2::E|m;
+  tearoff m = self2::E|get#m;
+}
+static method E|m(lowered final core::int #this) → core::String
+  ;
+static method E|get#m(lowered final core::int #this) → () → core::String
+  return () → core::String => self2::E|m(#this);
+static method f() → core::int?
+  ;
+static get p() → core::int?
+  ;

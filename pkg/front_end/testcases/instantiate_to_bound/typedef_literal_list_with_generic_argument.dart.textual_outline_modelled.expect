@@ -1,3 +1,4 @@
+// @dart = 2.9
 class B<S> {
   final List<A<S>> foo = <A<S>>[];
   final List<A<num>> bar = <A<num>>[];

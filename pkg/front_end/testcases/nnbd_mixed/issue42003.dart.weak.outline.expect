@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "org-dartlang-testcase:///issue42003_lib.dart";
+
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+static method returnString() → core::String*
+  ;

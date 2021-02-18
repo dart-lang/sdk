@@ -1,3 +1,4 @@
+// @dart = 2.9
 import './non_simple_many_libs_same_name_cycle_lib.dart' as lib;
 
 class Hest<TypeX extends lib.Hest> {}

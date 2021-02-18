@@ -1,3 +1,4 @@
+// @dart = 2.9
 import 'infer_consts_transitively_2.dart';
 import 'infer_consts_transitively_2_b.dart';
 

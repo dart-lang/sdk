@@ -1,3 +1,4 @@
+// @dart = 2.9
 class A<X extends G<A<Y, X>>, Y extends G<A<X, Y>>> {}
 
 main() {}

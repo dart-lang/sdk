@@ -1,3 +1,4 @@
+// @dart = 2.9
 class Foo<T> {
   final Future<dynamic> Function() quux;
   T t;

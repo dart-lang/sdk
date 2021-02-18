@@ -311,7 +311,7 @@ class FastaContext extends ChainContext with MatchContext {
   final bool skipVm;
   final bool semiFuzz;
   final bool verify;
-  final bool weak;
+  final bool soundNullSafety;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
   final Map<Component, List<Iterable<String>>> componentToDiagnostics =
@@ -351,7 +351,7 @@ class FastaContext extends ChainContext with MatchContext {
       bool kernelTextSerialization,
       bool fullCompile,
       this.verify,
-      this.weak)
+      this.soundNullSafety)
       : steps = <Step>[
           new Outline(fullCompile, updateComments: updateComments),
           const Print(),
@@ -359,12 +359,12 @@ class FastaContext extends ChainContext with MatchContext {
         ] {
     String fullPrefix;
     String outlinePrefix;
-    if (weak) {
+    if (soundNullSafety) {
+      fullPrefix = '.strong';
+      outlinePrefix = '.strong.outline';
+    } else {
       fullPrefix = '.weak';
       outlinePrefix = '.weak.outline';
-    } else {
-      fullPrefix = '.strong';
-      outlinePrefix = '.outline';
     }
 
     if (!fullCompile) {
@@ -444,7 +444,7 @@ class FastaContext extends ChainContext with MatchContext {
             line = line.trim();
             if (line.startsWith(experimentalFlagOptions)) {
               experimentalFlagsArguments =
-                  line.substring(experimentalFlagOptions.length).split('\n');
+                  line.substring(experimentalFlagOptions.length).split(',');
             } else if (line.startsWith(overwriteCurrentSdkVersion)) {
               overwriteCurrentSdkVersionArgument =
                   line.substring(overwriteCurrentSdkVersion.length);
@@ -554,11 +554,11 @@ class FastaContext extends ChainContext with MatchContext {
         ..environmentDefines = folderOptions.defines
         ..explicitExperimentalFlags = folderOptions
             .computeExplicitExperimentalFlags(explicitExperimentalFlags)
-        ..nnbdMode = weak
-            ? NnbdMode.Weak
-            : (folderOptions.nnbdAgnosticMode
+        ..nnbdMode = soundNullSafety
+            ? (folderOptions.nnbdAgnosticMode
                 ? NnbdMode.Agnostic
                 : NnbdMode.Strong)
+            : NnbdMode.Weak
         ..librariesSpecificationUri =
             uriConfiguration.librariesSpecificationUri;
       if (folderOptions.overwriteCurrentSdkVersion != null) {
@@ -729,7 +729,7 @@ class FastaContext extends ChainContext with MatchContext {
     addForcedExperimentalFlag(
         "enableNonNullable", ExperimentalFlag.nonNullable);
 
-    bool weak = environment["weak"] == "true";
+    bool soundNullSafety = environment["soundNullSafety"] == "true";
     bool onlyCrashes = environment["onlyCrashes"] == "true";
     bool ignoreExpectations = environment["ignoreExpectations"] == "true";
     bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
@@ -759,7 +759,7 @@ class FastaContext extends ChainContext with MatchContext {
         kernelTextSerialization,
         environment.containsKey(ENABLE_FULL_COMPILE),
         verify,
-        weak);
+        soundNullSafety);
   }
 }
 
@@ -788,7 +788,7 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
         try {
           var args = <String>[];
           if (experimentalFlags[ExperimentalFlag.nonNullable] == true) {
-            if (!context.weak) {
+            if (context.soundNullSafety) {
               args.add("--sound-null-safety");
             }
           }
@@ -1035,7 +1035,7 @@ CompilationSetup createCompilationSetup(
   FolderOptions folderOptions = context.computeFolderOptions(description);
   Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
       .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
-  NnbdMode nnbdMode = context.weak ||
+  NnbdMode nnbdMode = !context.soundNullSafety ||
           !isExperimentEnabled(ExperimentalFlag.nonNullable,
               explicitExperimentalFlags: experimentalFlags)
       ? NnbdMode.Weak
@@ -1641,7 +1641,7 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
     forceStaticFieldLoweringForTesting: folderOptions.forceStaticFieldLowering,
     forceNoExplicitGetterCallsForTesting:
         folderOptions.forceNoExplicitGetterCalls,
-    enableNullSafety: !context.weak,
+    enableNullSafety: context.soundNullSafety,
   );
   Target target;
   switch (folderOptions.target) {

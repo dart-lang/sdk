@@ -1,3 +1,4 @@
+// @dart = 2.9
 class MapLike<K, V> {
   V get(Object key) => _map[key];
   V put(K key, V value) => _map[key] = value;

@@ -1,3 +1,4 @@
+// @dart = 2.9
 List<Iterable> globalVar;
 
 abstract class F<T> {

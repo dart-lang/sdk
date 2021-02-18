@@ -1,3 +1,4 @@
+// @dart = 2.9
 class A<X> {}
 
 class B<Z> extends Object with A<Z Function()> {}

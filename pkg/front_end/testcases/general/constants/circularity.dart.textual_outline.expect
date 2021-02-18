@@ -1,3 +1,4 @@
+// @dart = 2.9
 const int a = b;
 const int b = a;
 const int c = d;

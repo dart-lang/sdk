@@ -1,3 +1,4 @@
+// @dart = 2.9
 typedef ContravariantUse<T> = Function(T);
 typedef InvariantUse<T> = T Function(T);
 

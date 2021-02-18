@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::Class::redirect]/*isLegacy*/;
+  constructor •() → self::Class
+    ;
+  static factory redirect() → self::Class
+    let dynamic #redirecting_factory = self::Class::• in invalid-expression;
+}
+static method main() → dynamic
+  ;

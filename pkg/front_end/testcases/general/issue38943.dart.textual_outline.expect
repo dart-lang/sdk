@@ -1,3 +1,4 @@
+// @dart = 2.9
 class D<X extends void Function()> {
   factory D.foo() => new D._();
   D._() {}

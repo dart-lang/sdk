@@ -1,0 +1,35 @@
+library;
+import self as self;
+import "public_method_tearoff_lib.dart" as pub;
+
+import "org-dartlang-testcase:///public_method_tearoff_lib.dart";
+
+class Foo extends pub::Bar {
+  synthetic constructor •() → self::Foo*
+    ;
+}
+static method main() → void
+  ;
+
+library;
+import self as pub;
+import "dart:core" as core;
+
+class Bar extends core::Object {
+  synthetic constructor •() → pub::Bar*
+    ;
+  method f() → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method baz(pub::Bar* bar) → void
+  ;

@@ -1,3 +1,4 @@
+// @dart = 2.9
 class Am1<X, Y> {}
 class Bm1<Z> extends Object with Am1<Function(int), Z> {}
 class Cm1<Z> extends Object with Am1<Function(int x), Z> {}

@@ -1,7 +1,7 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
+// @dart=2.9
 // In the classes below the function type is cloned when the anonymous mixin
 // application is desugared into a named mixin application, in order to re-bind
 // the type builders for its subterms.

@@ -1,3 +1,4 @@
+// @dart = 2.9
 class A<X> {
   R f<R>(R Function<X>(A<X>) f) => f<X>(this);
 }

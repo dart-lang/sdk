@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::int> a = const <core::int>[];
+static const field core::List<core::int?> b = const <core::int?>[];
+static const field core::bool c = core::identical(self::a, self::b);
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///identical.dart:5:16 -> ListConstant(const <int*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///identical.dart:6:17 -> ListConstant(const <int?>[])
+Evaluated: StaticInvocation @ org-dartlang-testcase:///identical.dart:7:11 -> BoolConstant(false)
+Extra constant evaluation: evaluated: 3, effectively constant: 3

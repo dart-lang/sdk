@@ -1,0 +1,52 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:2:7: Error: The name of a constructor must match the name of the enclosing class.
+//   get foo.x() {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:2:3: Error: Constructors can't be a getter.
+// Try removing 'get'.
+//   get foo.x() {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:5:7: Error: The name of a constructor must match the name of the enclosing class.
+//   get foo.x() : initializer = true {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:5:3: Error: Constructors can't be a getter.
+// Try removing 'get'.
+//   get foo.x() : initializer = true {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:5:7: Error: 'Foo.x' is already declared in this scope.
+//   get foo.x() : initializer = true {
+//       ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:2:7: Context: Previous declaration of 'Foo.x'.
+//   get foo.x() {
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:8:10: Error: A getter can't have formal parameters.
+// Try removing '(...)'.
+//   get foo() : initializer = true {
+//          ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:8:7: Error: The name of a constructor must match the name of the enclosing class.
+//   get foo() : initializer = true {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:8:3: Error: Constructors can't be a getter.
+// Try removing 'get'.
+//   get foo() : initializer = true {
+//   ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor x() → self::Foo
+    ;
+  constructor foo() → self::Foo
+    ;
+}

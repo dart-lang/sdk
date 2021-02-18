@@ -18,7 +18,6 @@ import 'package:testing/src/suite.dart' as testing show Suite;
 import 'package:testing/src/test_description.dart' show TestDescription;
 
 import 'fasta/expression_suite.dart' as expression show createContext;
-import 'fasta/fast_strong_suite.dart' as fast_strong show createContext;
 import 'fasta/incremental_suite.dart' as incremental show createContext;
 import 'fasta/messages_suite.dart' as messages show createContext;
 import 'fasta/outline_suite.dart' as outline show createContext;
@@ -26,7 +25,7 @@ import 'fasta/strong_tester.dart' as strong show createContext;
 import 'fasta/text_serialization_tester.dart' as text_serialization
     show createContext;
 import 'fasta/textual_outline_suite.dart' as textual_outline show createContext;
-import 'fasta/weak_suite.dart' as weak show createContext;
+import 'fasta/weak_tester.dart' as weak show createContext;
 import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
     show createContext;
 import 'incremental_load_from_dill_suite.dart' as incremental_load
@@ -333,13 +332,6 @@ const List<Suite> suites = [
     "../../testing.json",
     shardCount: 2,
   ),
-  // TODO(CFE TEAM): Should the 'fast strong' be run at all?
-  const Suite(
-    "fasta/fast_strong",
-    fast_strong.createContext,
-    "../../testing.json",
-    shardCount: 4,
-  ),
   const Suite(
     "fasta/incremental",
     incremental.createContext,
@@ -365,7 +357,7 @@ const List<Suite> suites = [
     strong.createContext,
     "../../testing.json",
     path: "fasta/strong_tester.dart",
-    shardCount: 10,
+    shardCount: 2,
   ),
   const Suite(
     "incremental_bulk_compiler_smoke",
@@ -420,7 +412,8 @@ const List<Suite> suites = [
     "fasta/weak",
     weak.createContext,
     "../../testing.json",
-    shardCount: 2,
+    path: "fasta/weak_tester.dart",
+    shardCount: 10,
   ),
   const Suite(
     "fasta/textual_outline",

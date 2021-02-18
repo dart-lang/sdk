@@ -1,3 +1,4 @@
+// @dart = 2.9
 import 'dart-ext:/usr/local/somewhere';
 import 'dart-ext:foo/../there';
 import 'dart-ext:here';

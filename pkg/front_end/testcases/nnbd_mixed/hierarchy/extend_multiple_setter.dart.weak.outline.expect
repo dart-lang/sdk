@@ -1,0 +1,122 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_setter.dart:37:7: Error: The non-abstract class 'ConcreteSub' is missing implementations for these members:
+//  - Interface1.extendedAbstractImplementedMultipleSetter=
+//  - Interface1.extendedAbstractImplementedSetter=
+//  - Interface2.extendedAbstractImplementedMultipleSetter=
+//  - Super.extendedAbstractImplementedMultipleSetter=
+//  - Super.extendedAbstractImplementedSetter=
+//  - Super.extendedAbstractSetter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteSub extends AbstractClass {}
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_setter.dart:26:12: Context: 'Interface1.extendedAbstractImplementedMultipleSetter=' is defined here.
+//   void set extendedAbstractImplementedMultipleSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_setter.dart:22:12: Context: 'Interface1.extendedAbstractImplementedSetter=' is defined here.
+//   void set extendedAbstractImplementedSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_setter.dart:32:12: Context: 'Interface2.extendedAbstractImplementedMultipleSetter=' is defined here.
+//   void set extendedAbstractImplementedMultipleSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_setter.dart:16:12: Context: 'Super.extendedAbstractImplementedMultipleSetter=' is defined here.
+//   void set extendedAbstractImplementedMultipleSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_setter.dart:12:12: Context: 'Super.extendedAbstractImplementedSetter=' is defined here.
+//   void set extendedAbstractImplementedSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_setter.dart:8:12: Context: 'Super.extendedAbstractSetter=' is defined here.
+//   void set extendedAbstractSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_setter.dart:39:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - Interface1.extendedAbstractImplementedMultipleSetter=
+//  - Interface1.extendedAbstractImplementedSetter=
+//  - Interface2.extendedAbstractImplementedMultipleSetter=
+//  - Super.extendedAbstractImplementedMultipleSetter=
+//  - Super.extendedAbstractImplementedSetter=
+//  - Super.extendedAbstractSetter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass extends Super implements Interface1, Interface2 {}
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_setter.dart:26:12: Context: 'Interface1.extendedAbstractImplementedMultipleSetter=' is defined here.
+//   void set extendedAbstractImplementedMultipleSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_setter.dart:22:12: Context: 'Interface1.extendedAbstractImplementedSetter=' is defined here.
+//   void set extendedAbstractImplementedSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_setter.dart:32:12: Context: 'Interface2.extendedAbstractImplementedMultipleSetter=' is defined here.
+//   void set extendedAbstractImplementedMultipleSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_setter.dart:16:12: Context: 'Super.extendedAbstractImplementedMultipleSetter=' is defined here.
+//   void set extendedAbstractImplementedMultipleSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_setter.dart:12:12: Context: 'Super.extendedAbstractImplementedSetter=' is defined here.
+//   void set extendedAbstractImplementedSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_setter.dart:8:12: Context: 'Super.extendedAbstractSetter=' is defined here.
+//   void set extendedAbstractSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    ;
+  set extendedConcreteSetter(core::int value) → void
+    ;
+  abstract set extendedAbstractSetter(core::int value) → void;
+  set extendedConcreteImplementedSetter(core::int value) → void
+    ;
+  abstract set extendedAbstractImplementedSetter(core::int value) → void;
+  set extendedConcreteImplementedMultipleSetter(core::int value) → void
+    ;
+  abstract set extendedAbstractImplementedMultipleSetter(core::int value) → void;
+}
+class Interface1 extends core::Object {
+  synthetic constructor •() → self::Interface1
+    ;
+  set extendedConcreteImplementedSetter(core::int value) → void
+    ;
+  set extendedAbstractImplementedSetter(core::int value) → void
+    ;
+  set extendedConcreteImplementedMultipleSetter(core::int value) → void
+    ;
+  set extendedAbstractImplementedMultipleSetter(core::int value) → void
+    ;
+}
+class Interface2 extends core::Object {
+  synthetic constructor •() → self::Interface2
+    ;
+  set extendedConcreteImplementedMultipleSetter(core::int value) → void
+    ;
+  set extendedAbstractImplementedMultipleSetter(core::int value) → void
+    ;
+}
+abstract class AbstractClass extends self::Super implements self::Interface1, self::Interface2 {
+  synthetic constructor •() → self::AbstractClass
+    ;
+}
+class ConcreteSub extends self::AbstractClass {
+  synthetic constructor •() → self::ConcreteSub
+    ;
+}
+class ConcreteClass extends self::Super implements self::Interface1, self::Interface2 {
+  synthetic constructor •() → self::ConcreteClass
+    ;
+}
+static method main() → dynamic
+  ;

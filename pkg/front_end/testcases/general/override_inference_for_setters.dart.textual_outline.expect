@@ -1,3 +1,4 @@
+// @dart = 2.9
 class B {
   num get foo => null;
   set foo(dynamic newFoo) {}

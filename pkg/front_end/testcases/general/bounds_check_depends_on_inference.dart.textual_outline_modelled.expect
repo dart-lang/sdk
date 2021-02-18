@@ -1,3 +1,4 @@
+// @dart = 2.9
 baz() {}
 
 class A<X> {

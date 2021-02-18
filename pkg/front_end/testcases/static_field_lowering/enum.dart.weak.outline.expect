@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*isEnum*/  {
+  final field core::int index;
+  final field core::String _name;
+  static const field core::List<self::A> values = const <self::A>[self::A::a, self::A::b];
+  static const field self::A a = const self::A::•(0, "A.a");
+  static const field self::A b = const self::A::•(1, "A.b");
+  const constructor •(core::int index, core::String _name) → self::A
+    : self::A::index = index, self::A::_name = _name, super core::Object::•()
+    ;
+  method toString() → core::String
+    return this.{self::A::_name};
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum.dart:5:6 -> ListConstant(const <A*>[const A{A.index: 0, A._name: "A.a"}, const A{A.index: 1, A._name: "A.b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum.dart:6:3 -> InstanceConstant(const A{A.index: 0, A._name: "A.a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum.dart:7:3 -> InstanceConstant(const A{A.index: 1, A._name: "A.b"})
+Extra constant evaluation: evaluated: 7, effectively constant: 3

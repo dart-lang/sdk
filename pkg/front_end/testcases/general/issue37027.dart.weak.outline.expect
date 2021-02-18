@@ -1,0 +1,11 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  final field core::Set<core::int> s;
+  constructor •(core::List<core::int> ell) → self::C
+    ;
+}
+static method main() → dynamic
+  ;

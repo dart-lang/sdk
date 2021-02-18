@@ -1,3 +1,4 @@
+// @dart = 2.9
 oracle<T>([T t]) => true;
 testIfElement(dynamic dynVar, List<int> listInt, List<double> listDouble,
     Map<String, int> mapToInt, Map<String, double> mapToDouble) {}

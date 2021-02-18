@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+additionalExports = (core::print)
+
+import "dart:developer" show UserTag;
+export "dart:core" show print;
+
+static method main() → dynamic
+  ;

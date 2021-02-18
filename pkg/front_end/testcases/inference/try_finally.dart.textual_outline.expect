@@ -1,3 +1,4 @@
+// @dart = 2.9
 library test;
 
 void test(void f()) {}

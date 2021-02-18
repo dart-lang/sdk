@@ -1,3 +1,4 @@
+// @dart = 2.9
 library test;
 
 import 'infer_from_variables_in_non_cycle_imports_with_flag_a.dart';

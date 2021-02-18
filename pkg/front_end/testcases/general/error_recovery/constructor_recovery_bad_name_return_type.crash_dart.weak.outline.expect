@@ -1,0 +1,47 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:2:8: Error: The name of a constructor must match the name of the enclosing class.
+//   void foo.x() {
+//        ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:2:3: Error: Constructors can't have a return type.
+// Try removing the return type.
+//   void foo.x() {
+//   ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:5:8: Error: The name of a constructor must match the name of the enclosing class.
+//   void foo.x() : initializer = true {
+//        ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:5:3: Error: Constructors can't have a return type.
+// Try removing the return type.
+//   void foo.x() : initializer = true {
+//   ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:5:8: Error: 'Foo.x' is already declared in this scope.
+//   void foo.x() : initializer = true {
+//        ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:2:8: Context: Previous declaration of 'Foo.x'.
+//   void foo.x() {
+//        ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:8:8: Error: The name of a constructor must match the name of the enclosing class.
+//   void foo() : initializer = true {
+//        ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:8:3: Error: Constructors can't have a return type.
+// Try removing the return type.
+//   void foo() : initializer = true {
+//   ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor x() → self::Foo
+    ;
+  constructor foo() → self::Foo
+    ;
+}

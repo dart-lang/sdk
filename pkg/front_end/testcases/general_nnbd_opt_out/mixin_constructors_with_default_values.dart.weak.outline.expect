@@ -1,0 +1,55 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+class C<T extends core::Object* = dynamic> extends core::Object {
+  field core::String* trace;
+  constructor •({dynamic a, dynamic b}) → self::C<self::C::T*>*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class M extends core::Object {
+  synthetic constructor •() → self::M*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class D = self::C<core::String*> with self::M {
+  synthetic constructor •({dynamic a, dynamic b}) → self::D*
+    : super self::C::•(a: a, b: b)
+    ;
+}
+class E extends self::D {
+  synthetic constructor •() → self::E*
+    ;
+}
+abstract class _F&C&M = self::C<core::int*> with self::M /*isAnonymousMixin*/  {
+  synthetic constructor •({dynamic a, dynamic b}) → self::_F&C&M*
+    : super self::C::•(a: a, b: b)
+    ;
+}
+class F extends self::_F&C&M {
+  synthetic constructor •() → self::F*
+    ;
+}
+static method main() → dynamic
+  ;

@@ -1,3 +1,4 @@
+// @dart = 2.9
 class B<X, Y> {}
 
 class C1<X extends X Function(Y), Y extends X Function(Y)> {}

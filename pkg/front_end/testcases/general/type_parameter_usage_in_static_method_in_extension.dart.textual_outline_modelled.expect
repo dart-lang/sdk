@@ -1,3 +1,4 @@
+// @dart = 2.9
 extension Foo<U> on List {
   static List<U> Function() foo8Prime() {}
   static List<U> Function(List<U>) foo15Prime = null;
