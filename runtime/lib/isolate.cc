@@ -886,10 +886,10 @@ static const char* CanonicalizeUri(Thread* thread,
                                    char** error) {
   const char* result = NULL;
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  if (isolate->HasTagHandler()) {
+  auto isolate_group = thread->isolate_group();
+  if (isolate_group->HasTagHandler()) {
     const Object& obj = Object::Handle(
-        isolate->CallTagHandler(Dart_kCanonicalizeUrl, library, uri));
+        isolate_group->CallTagHandler(Dart_kCanonicalizeUrl, library, uri));
     if (obj.IsString()) {
       result = String2UTF8(String::Cast(obj));
     } else if (obj.IsError()) {

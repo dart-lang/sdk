@@ -704,13 +704,13 @@ void KernelLoader::LoadNativeExtensionLibraries() {
 void KernelLoader::LoadNativeExtension(const Library& library,
                                        const String& uri_path) {
 #if !defined(DART_PRECOMPILER)
-  if (!I->HasTagHandler()) {
+  if (!IG->HasTagHandler()) {
     H.ReportError("no library handler registered.");
   }
 
   I->BlockClassFinalization();
   const auto& result = Object::Handle(
-      Z, I->CallTagHandler(Dart_kImportExtensionTag, library, uri_path));
+      Z, IG->CallTagHandler(Dart_kImportExtensionTag, library, uri_path));
   I->UnblockClassFinalization();
 
   if (result.IsError()) {

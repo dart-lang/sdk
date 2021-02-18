@@ -10,8 +10,10 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdint.h>
+#include <string.h>
+#include <unistd.h>
 
-#include <fuchsia/deprecatedtimezone/cpp/fidl.h>
+#include <fuchsia/intl/cpp/fidl.h>
 #include <lib/async-loop/default.h>
 #include <lib/async-loop/loop.h>
 #include <lib/async/default.h>
@@ -22,21 +24,49 @@
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
-#include <zircon/time.h>
 #include <zircon/threads.h>
+#include <zircon/time.h>
 #include <zircon/types.h>
 
+#include <set>
+
+#include "unicode/errorcode.h"
+#include "unicode/timezone.h"
+#include "unicode/umachine.h"
+
 #include "platform/assert.h"
+#include "platform/syslog.h"
 #include "platform/utils.h"
+#include "vm/lockers.h"
+#include "vm/os_thread.h"
 #include "vm/zone.h"
 
 namespace {
 
+using dart::Mutex;
+using dart::MutexLocker;
+using dart::Syslog;
+using dart::Zone;
+
+// This is the default timezone returned if it could not be obtained.  For
+// Fuchsia, the default device timezone is always UTC.
+static const char kDefaultTimezone[] = "UTC";
+
+static constexpr int32_t kMsPerSec = 1000;
+
 // The data directory containing ICU timezone data files.
 static constexpr char kICUTZDataDir[] = "/config/data/tzdata/icu/44/le";
 
+// This is the general OK status.
+static constexpr int32_t kOk = 0;
+
+// This status means that the error code is not initialized yet ("set" was not
+// yet called).  Error codes are usually either 0 (kOk), or negative.
+static constexpr int32_t kUninitialized = 1;
+
 // The status codes for tzdata file open and read.
 enum class TZDataStatus {
+  // The operation completed without error.
   OK = 0,
   // The open call for the tzdata file did not succeed.
   COULD_NOT_OPEN = -1,
@@ -46,6 +76,8 @@ enum class TZDataStatus {
 
 // Adds a facility for introspecting timezone data errors.  Allows insight into
 // the internal state of the VM even if error reporting facilities fail.
+//
+// Under normal operation, all metric values below should be zero.
 class InspectMetrics {
  public:
   // Does not take ownership of inspector.
@@ -53,9 +85,27 @@ class InspectMetrics {
       : inspector_(inspector),
         root_(inspector_->GetRoot()),
         metrics_(root_.CreateChild("os")),
-        dst_status_(metrics_.CreateInt("dst_status", 0)),
-        tz_data_status_(metrics_.CreateInt("tz_data_status", 0)),
-        tz_data_close_status_(metrics_.CreateInt("tz_data_close_status", 0)) {}
+        dst_status_(metrics_.CreateInt("dst_status", kUninitialized)),
+        tz_data_status_(metrics_.CreateInt("tz_data_status", kUninitialized)),
+        tz_data_close_status_(
+            metrics_.CreateInt("tz_data_close_status", kUninitialized)),
+        get_profile_status_(
+            metrics_.CreateInt("get_profile_status", kUninitialized)),
+        profiles_timezone_content_status_(
+            metrics_.CreateInt("timezone_content_status", kOk)),
+        num_get_profile_calls_(metrics_.CreateInt("num_get_profile_calls", 0)),
+        num_on_change_calls_(metrics_.CreateInt("num_on_change_calls", 0)),
+        num_intl_provider_errors_(
+            metrics_.CreateInt("num_intl_provider_errors", 0)) {}
+
+  // Registers a single call to GetProfile callback.
+  void RegisterGetProfileCall() { num_get_profile_calls_.Add(1); }
+
+  // Registers a single call to OnChange callback.
+  void RegisterOnChangeCall() { num_on_change_calls_.Add(1); }
+
+  // Registers a provider error.
+  void RegisterIntlProviderError() { num_intl_provider_errors_.Add(1); }
 
   // Sets the last status code for DST offset calls.
   void SetDSTOffsetStatus(zx_status_t status) {
@@ -67,6 +117,17 @@ class InspectMetrics {
   void SetInitTzData(TZDataStatus value, int32_t status) {
     tz_data_status_.Set(static_cast<int32_t>(value));
     tz_data_close_status_.Set(status);
+  }
+
+  // Sets the last status code for the call to PropertyProvider::GetProfile.
+  void SetProfileStatus(zx_status_t status) {
+    get_profile_status_.Set(static_cast<int32_t>(status));
+  }
+
+  // Sets the last status seen while examining timezones returned from
+  // PropertyProvider::GetProfile.
+  void SetTimeZoneContentStatus(zx_status_t status) {
+    profiles_timezone_content_status_.Set(static_cast<int32_t>(status));
   }
 
  private:
@@ -87,11 +148,166 @@ class InspectMetrics {
 
   // The return code for the close() call for tzdata files.
   inspect::IntProperty tz_data_close_status_;
+
+  // The return code of the GetProfile call in GetTimeZoneName.  If this is
+  // nonzero, then os_fuchsia.cc reported a default timezone as a fallback.
+  inspect::IntProperty get_profile_status_;
+
+  // U_ILLEGAL_ARGUMENT_ERROR(=1) if timezones read from ProfileProvider were
+  // incorrect. Otherwise 0.  If this metric reports U_ILLEGAL_ARGUMENT_ERROR,
+  // the os_fuchsia.cc module reported a default timezone as a fallback.
+  inspect::IntProperty profiles_timezone_content_status_;
+
+  // Keeps a number of get_profile update calls.
+  inspect::IntProperty num_get_profile_calls_;
+
+  // Number of "on change" callback calls.
+  inspect::IntProperty num_on_change_calls_;
+
+  // Keeps a number of errors encountered in intl provider.
+  inspect::IntProperty num_intl_provider_errors_;
 };
+
+// Thread-safe storage for the current timezone name.
+//
+// Keeps an up to date timezone cache, updating if needed through the
+// asynchronous update interface.  Access to this class is thread-safe.
+class TimezoneName final {
+ public:
+  // Creates a new instance of TimezoneName.  Does not take ownership of
+  // metrics.
+  static std::shared_ptr<TimezoneName> New(
+      fuchsia::intl::PropertyProviderPtr proxy,
+      std::weak_ptr<InspectMetrics> metrics) {
+    auto timezone_name =
+        std::make_shared<TimezoneName>(std::move(proxy), metrics);
+    timezone_name->InitHandlers(timezone_name);
+    return timezone_name;
+  }
+
+  TimezoneName(fuchsia::intl::PropertyProviderPtr proxy,
+               std::weak_ptr<InspectMetrics> metrics)
+      : m_(),
+        metrics_(std::move(metrics)),
+        proxy_(std::move(proxy)),
+        timezone_name_(kDefaultTimezone) {
+    ASSERT(metrics_.lock() != nullptr);
+  }
+
+  // Gets the current timezone name.  Repeated calls may retrieve updated
+  // values.
+  std::string Get() const {
+    MutexLocker lock(&m_);
+    // Returns a copy, to avoid a data race with async updates.
+    return timezone_name_;
+  }
+
+ private:
+  // Sets the event handlers in this resolver.  Intended to resolve a circular
+  // reference between the shared timezone name and this.
+  void InitHandlers(std::shared_ptr<TimezoneName> timezone_name) {
+    ASSERT(timezone_name.get() == this);
+    timezone_name->proxy_.set_error_handler(
+        [weak_this =
+             std::weak_ptr<TimezoneName>(timezone_name)](zx_status_t status) {
+          if (!weak_this.expired()) {
+            weak_this.lock()->ErrorHandler(status);
+          }
+        });
+    timezone_name->proxy_.events().OnChange =
+        [weak_this = std::weak_ptr<TimezoneName>(timezone_name)]() {
+          if (!weak_this.expired()) {
+            weak_this.lock()->OnChangeCallback();
+          }
+        };
+    timezone_name->proxy_->GetProfile(
+        [weak_this = std::weak_ptr<TimezoneName>(timezone_name)](
+            fuchsia::intl::Profile profile) {
+          if (!weak_this.expired()) {
+            weak_this.lock()->GetProfileCallback(std::move(profile));
+          }
+        });
+  }
+
+  // Called on a profile provider error in the context of the event loop
+  // thread.
+  void ErrorHandler(zx_status_t status) {
+    MutexLocker lock(&m_);
+    WithMetrics([status](std::shared_ptr<InspectMetrics> metrics) {
+      metrics->SetProfileStatus(status);
+      metrics->RegisterIntlProviderError();
+    });
+  }
+
+  // Called when an OnChange event is received in the context of the event loop
+  // thread.  The only action here is to trigger an asynchronous update of the
+  // intl profile.
+  void OnChangeCallback() {
+    MutexLocker lock(&m_);
+    WithMetrics([](std::shared_ptr<InspectMetrics> metrics) {
+      metrics->RegisterOnChangeCall();
+    });
+    proxy_->GetProfile([this](fuchsia::intl::Profile profile) {
+      this->GetProfileCallback(std::move(profile));
+    });
+  }
+
+  // Called when a GetProfile async request is resolved, in the context of the
+  // event loop thread.
+  void GetProfileCallback(fuchsia::intl::Profile profile) {
+    MutexLocker lock(&m_);
+    WithMetrics([](std::shared_ptr<InspectMetrics> metrics) {
+      metrics->RegisterGetProfileCall();
+    });
+    const std::vector<fuchsia::intl::TimeZoneId>& timezones =
+        profile.time_zones();
+    if (timezones.empty()) {
+      WithMetrics([](std::shared_ptr<InspectMetrics> metrics) {
+        metrics->SetTimeZoneContentStatus(U_ILLEGAL_ARGUMENT_ERROR);
+      });
+      // Empty timezone array is not up to fuchsia::intl spec.  The serving
+      // endpoint is broken and should be fixed.
+      Syslog::PrintErr("got empty timezone value\n");
+      return;
+    }
+    WithMetrics([](std::shared_ptr<InspectMetrics> metrics) {
+      metrics->SetProfileStatus(ZX_OK);
+      metrics->SetTimeZoneContentStatus(ZX_OK);
+    });
+
+    timezone_name_ = timezones[0].id;
+  }
+
+  // Runs the provided function only on valid metrics.
+  void WithMetrics(std::function<void(std::shared_ptr<InspectMetrics> m)> f) {
+    std::shared_ptr<InspectMetrics> l = metrics_.lock();
+    if (l != nullptr) {
+      f(l);
+    }
+  }
+
+  // Guards timezone_name_ because the callbacks will be called in an
+  // asynchronous thread.
+  mutable Mutex m_;
+
+  // Used to keep tally on the update events. Not owned.
+  std::weak_ptr<InspectMetrics> metrics_;
+
+  // A client-side proxy for a connection to the property provider service.
+  fuchsia::intl::PropertyProviderPtr proxy_;
+
+  // Caches the current timezone name.  This is updated asynchronously through
+  // GetProfileCallback.
+  std::string timezone_name_;
+};
+
+// The timezone names encountered so far.  The timezone names must live forever.
+std::set<const std::string> timezone_names;
 
 // Initialized on OS:Init(), deinitialized on OS::Cleanup.
 std::unique_ptr<sys::ComponentInspector> component_inspector;
-std::unique_ptr<InspectMetrics> metrics;
+std::shared_ptr<InspectMetrics> metrics;
+std::shared_ptr<TimezoneName> timezone_name;
 async_loop_t* message_loop = nullptr;
 
 // Initializes the source of timezone data if available.  Timezone data file in
@@ -153,35 +369,57 @@ intptr_t OS::ProcessId() {
 // Putting this hack right now due to CP-120 as I need to remove
 // component:ConnectToEnvironmentServices and this is the only thing that is
 // blocking it and FL-98 will take time.
-static fuchsia::deprecatedtimezone::TimezoneSyncPtr tz;
+static fuchsia::intl::PropertyProviderPtr property_provider;
 
 static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
                                                  int32_t* dst_offset) {
-  zx_status_t status = tz->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000,
-                                                    local_offset, dst_offset);
-  metrics->SetDSTOffsetStatus(status);
-  if (status != ZX_OK) {
-    return status;
+  const char* timezone_id = OS::GetTimeZoneName(seconds_since_epoch);
+  std::unique_ptr<icu::TimeZone> timezone(
+      icu::TimeZone::createTimeZone(timezone_id));
+  UErrorCode error = U_ZERO_ERROR;
+  const auto ms_since_epoch =
+      static_cast<UDate>(kMsPerSec * seconds_since_epoch);
+  // The units of time that local_offset and dst_offset are returned from this
+  // function is, usefully, not documented, but it seems that the units are
+  // milliseconds.  Add these variables here for clarity.
+  int32_t local_offset_ms = 0;
+  int32_t dst_offset_ms = 0;
+  timezone->getOffset(ms_since_epoch, /*local_time=*/0, local_offset_ms,
+                      dst_offset_ms, error);
+  metrics->SetDSTOffsetStatus(error);
+  if (error != U_ZERO_ERROR) {
+    icu::ErrorCode icu_error;
+    icu_error.set(error);
+    Syslog::PrintErr("could not get DST offset: %s\n", icu_error.errorName());
+    return ZX_ERR_INTERNAL;
   }
-  *local_offset *= 60;
-  *dst_offset *= 60;
+  // We must return offset in seconds, so convert.
+  *local_offset = local_offset_ms / kMsPerSec;
+  *dst_offset = dst_offset_ms / kMsPerSec;
   return ZX_OK;
 }
 
+// Returns a C string with the time zone name. This module retains the
+// ownership of the pointer.
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
-  // TODO(abarth): Handle time zone changes.
-  static const auto* tz_name = new std::string([] {
-    std::string result;
-    tz->GetTimezoneId(&result);
-    return result;
-  }());
-  return tz_name->c_str();
+  ASSERT(timezone_name != nullptr);
+
+  // Sadly, since we do not know how long the timezone name will be needed, we
+  // can not ever deallocate it. So instead, we put it into a a set that will
+  // not move it around in memory and return a pointer to it.  Since the number
+  // of timezones is finite, this ensures that the memory taken up by timezones
+  // does not grow indefinitely, even if we end up retaining all the timezones
+  // there are.
+  const auto i = timezone_names.insert(timezone_name->Get());
+  ASSERT(i.first != timezone_names.end());
+  return i.first->c_str();
 }
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
-  int32_t local_offset, dst_offset;
-  zx_status_t status = GetLocalAndDstOffsetInSeconds(
+  int32_t local_offset = 0;
+  int32_t dst_offset = 0;
+  const zx_status_t status = GetLocalAndDstOffsetInSeconds(
       seconds_since_epoch, &local_offset, &dst_offset);
   return status == ZX_OK ? local_offset + dst_offset : 0;
 }
@@ -211,7 +449,7 @@ int64_t OS::GetCurrentMonotonicFrequency() {
 }
 
 int64_t OS::GetCurrentMonotonicMicros() {
-  int64_t ticks = GetCurrentMonotonicTicks();
+  const int64_t ticks = GetCurrentMonotonicTicks();
   ASSERT(GetCurrentMonotonicFrequency() == kNanosecondsPerSecond);
   return ticks / kNanosecondsPerMicrosecond;
 }
@@ -230,6 +468,9 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 int64_t OS::GetCurrentThreadCPUMicrosForTimeline() {
   return -1;
 }
+
+// The timezone names encountered so far.  The timezone names must live forever.
+std::set<const std::string> timezone_names;
 
 // TODO(5411554):  May need to hoist these architecture dependent code
 // into a architecture specific file e.g: os_ia32_fuchsia.cc
@@ -300,7 +541,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   va_end(measure_args);
 
   char* buffer;
-  if (zone) {
+  if (zone != nullptr) {
     buffer = zone->Alloc<char>(len + 1);
   } else {
     buffer = reinterpret_cast<char*>(malloc(len + 1));
@@ -364,19 +605,22 @@ void OS::Init() {
 
   sys::ComponentContext* context = dart::ComponentContext();
   component_inspector = std::make_unique<sys::ComponentInspector>(context);
-  metrics = std::make_unique<InspectMetrics>(component_inspector->inspector());
+  metrics = std::make_shared<InspectMetrics>(component_inspector->inspector());
 
   InitializeTZData();
-  context->svc()->Connect(tz.NewRequest());
+  auto services = sys::ServiceDirectory::CreateFromNamespace();
+  services->Connect(property_provider.NewRequest());
+
+  timezone_name = TimezoneName::New(std::move(property_provider), metrics);
 }
 
 void OS::Cleanup() {
   if (message_loop != nullptr) {
     async_loop_shutdown(message_loop);
   }
-
-  metrics = nullptr;
-  component_inspector = nullptr;
+  timezone_name.reset();
+  metrics.reset();
+  component_inspector.reset();
 
   if (message_loop != nullptr) {
     // Check message_loop is still the default dispatcher before clearing it.
