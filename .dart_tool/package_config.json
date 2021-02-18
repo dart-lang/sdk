@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-02-11T15:59:54.232365",
+  "generated": "2021-02-17T14:49:35.996535",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -779,7 +779,7 @@
       "name": "web_socket_channel",
       "rootUri": "../third_party/pkg/web_socket_channel",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "webdriver",
