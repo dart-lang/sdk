@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// ignore: import_of_legacy_library_into_null_safe
 import '../ast.dart';
 import '../type_algebra.dart';
 
@@ -73,13 +72,13 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
 
       for (int i = 0; i < newTypeParameters.length; i++) {
         DartType? newBound =
-            mergeTypes(a.typeParameters[i].bound, b.typeParameters[i].bound);
+            mergeTypes(a.typeParameters[i].bound!, b.typeParameters[i].bound!);
         if (newBound == null) {
           return null;
         }
         newTypeParameters[i].bound = newBound;
         DartType? newDefaultType = mergeTypes(
-            a.typeParameters[i].defaultType, b.typeParameters[i].defaultType);
+            a.typeParameters[i].defaultType!, b.typeParameters[i].defaultType!);
         if (newDefaultType == null) {
           return null;
         }
@@ -90,7 +89,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     DartType? newReturnType = mergeTypes(a.returnType, b.returnType);
     if (newReturnType == null) return null;
     List<DartType> newPositionalParameters =
-        new List<DartType>.filled(a.positionalParameters.length, dartTypeDummy);
+        new List<DartType>.filled(a.positionalParameters.length, dummyDartType);
     for (int i = 0; i < a.positionalParameters.length; i++) {
       DartType? newType =
           mergeTypes(a.positionalParameters[i], b.positionalParameters[i]);
@@ -100,7 +99,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       newPositionalParameters[i] = newType;
     }
     List<NamedType> newNamedParameters =
-        new List<NamedType>.filled(a.namedParameters.length, namedTypeDummy);
+        new List<NamedType>.filled(a.namedParameters.length, dummyNamedType);
     for (int i = 0; i < a.namedParameters.length; i++) {
       DartType? newType =
           mergeTypes(a.namedParameters[i].type, b.namedParameters[i].type);
@@ -116,7 +115,8 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     }
     TypedefType? newTypedefType;
     if (a.typedefType != null && b.typedefType != null) {
-      newTypedefType = mergeTypes(a.typedefType, b.typedefType) as TypedefType?;
+      newTypedefType =
+          mergeTypes(a.typedefType!, b.typedefType!) as TypedefType?;
       // If the typedef couldn't be merged we just omit it from the resulting
       // function type since the typedef type is only informational.
     }
@@ -157,7 +157,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       return new InterfaceType(a.classNode, nullability);
     }
     List<DartType> newTypeArguments =
-        new List<DartType>.filled(a.typeArguments.length, dartTypeDummy);
+        new List<DartType>.filled(a.typeArguments.length, dummyDartType);
     for (int i = 0; i < a.typeArguments.length; i++) {
       DartType? newType = a.typeArguments[i].accept1(this, b.typeArguments[i]);
       if (newType == null) {
@@ -259,7 +259,8 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     assert(a.parameter == b.parameter);
     assert(a.promotedBound != null);
     assert(b.promotedBound != null);
-    DartType? newPromotedBound = a.promotedBound.accept1(this, b.promotedBound);
+    DartType? newPromotedBound =
+        a.promotedBound!.accept1(this, b.promotedBound);
     if (newPromotedBound == null) {
       return null;
     }
@@ -287,7 +288,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       return new TypedefType(a.typedefNode, nullability);
     }
     List<DartType> newTypeArguments =
-        new List<DartType>.filled(a.typeArguments.length, dartTypeDummy);
+        new List<DartType>.filled(a.typeArguments.length, dummyDartType);
     for (int i = 0; i < a.typeArguments.length; i++) {
       DartType? newType = a.typeArguments[i].accept1(this, b.typeArguments[i]);
       if (newType == null) return null;

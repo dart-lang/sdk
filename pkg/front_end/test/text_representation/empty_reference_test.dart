@@ -85,7 +85,7 @@ void testTypes() {
 void testMembers() {
   testExpression(new PropertyGet(new IntLiteral(0), new Name('foo')), '''
 0.foo''');
-  testExpression(new StaticGet(null), '''
+  testExpression(new StaticGet.byReference(null), '''
 <missing-member-reference>''');
 
   Reference unlinkedMemberName = new Reference();

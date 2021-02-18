@@ -4,7 +4,6 @@
 
 import 'dart:math' as math;
 
-// ignore: import_of_legacy_library_into_null_safe
 import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
@@ -216,7 +215,7 @@ mixin StandardBounds {
         s.promotedBound != null &&
         t is TypeParameterType &&
         t.promotedBound != null) {
-      return morebottom(s.promotedBound, t.promotedBound);
+      return morebottom(s.promotedBound!, t.promotedBound!);
     }
 
     // MOREBOTTOM(X&S, T) = true.
@@ -233,7 +232,7 @@ mixin StandardBounds {
     if (s is TypeParameterType && t is TypeParameterType) {
       assert(s.promotedBound == null);
       assert(t.promotedBound == null);
-      return morebottom(s.parameter.bound, t.parameter.bound);
+      return morebottom(s.parameter.bound!, t.parameter.bound!);
     }
 
     throw new UnsupportedError("morebottom($s, $t)");
@@ -950,8 +949,8 @@ mixin StandardBounds {
           // TODO(dmitryas): Figure out if a procedure for syntactic equality
           // should be used instead.
           if (!areMutualSubtypes(
-              f.typeParameters[i].bound,
-              substitution.substituteType(g.typeParameters[i].bound),
+              f.typeParameters[i].bound!,
+              substitution.substituteType(g.typeParameters[i].bound!),
               SubtypeCheckMode.withNullabilities)) {
             boundsMatch = false;
           }
@@ -967,7 +966,7 @@ mixin StandardBounds {
     List<TypeParameter> typeParameters = f.typeParameters;
 
     List<DartType> positionalParameters =
-        new List<DartType>.filled(maxPos, dartTypeDummy);
+        new List<DartType>.filled(maxPos, dummyDartType);
     for (int i = 0; i < minPos; ++i) {
       positionalParameters[i] = _getNullabilityAwareStandardUpperBound(
           f.positionalParameters[i],
@@ -1149,8 +1148,8 @@ mixin StandardBounds {
           // TODO(dmitryas): Figure out if a procedure for syntactic
           // equality should be used instead.
           if (!areMutualSubtypes(
-              f.typeParameters[i].bound,
-              substitution.substituteType(g.typeParameters[i].bound),
+              f.typeParameters[i].bound!,
+              substitution.substituteType(g.typeParameters[i].bound!),
               SubtypeCheckMode.withNullabilities)) {
             boundsMatch = false;
           }
@@ -1164,7 +1163,7 @@ mixin StandardBounds {
     List<TypeParameter> typeParameters = f.typeParameters;
 
     List<DartType> positionalParameters =
-        new List<DartType>.filled(minPos, dartTypeDummy);
+        new List<DartType>.filled(minPos, dummyDartType);
     for (int i = 0; i < minPos; ++i) {
       positionalParameters[i] = _getNullabilityAwareStandardLowerBound(
           f.positionalParameters[i],
@@ -1233,12 +1232,12 @@ mixin StandardBounds {
               topFunctionType: coreTypes.functionNonNullableRawType,
               unhandledTypeHandler: (type, recursor) => false);
       return _getNullabilityAwareStandardUpperBound(
-              eliminator.eliminateToGreatest(type1.parameter.bound),
+              eliminator.eliminateToGreatest(type1.parameter.bound!),
               type2,
               clientLibrary)
           .withDeclaredNullability(uniteNullabilities(
               type1.declaredNullability,
-              uniteNullabilities(type1.parameter.bound.declaredNullability,
+              uniteNullabilities(type1.parameter.bound!.declaredNullability,
                   type2.declaredNullability)));
     } else {
       // UP(X1 & B1, T2) =
@@ -1265,11 +1264,11 @@ mixin StandardBounds {
               topFunctionType: coreTypes.functionNonNullableRawType,
               unhandledTypeHandler: (type, recursor) => false);
       return _getNullabilityAwareStandardUpperBound(
-              eliminator.eliminateToGreatest(type1.promotedBound),
+              eliminator.eliminateToGreatest(type1.promotedBound!),
               type2,
               clientLibrary)
           .withDeclaredNullability(uniteNullabilities(
-              type1.promotedBound.declaredNullability,
+              type1.promotedBound!.declaredNullability,
               type2.declaredNullability));
     }
   }
@@ -1419,7 +1418,7 @@ mixin StandardBounds {
     int totalPositional =
         math.max(f.positionalParameters.length, g.positionalParameters.length);
     List<DartType> positionalParameters =
-        new List<DartType>.filled(totalPositional, dartTypeDummy);
+        new List<DartType>.filled(totalPositional, dummyDartType);
     for (int i = 0; i < totalPositional; i++) {
       if (i < f.positionalParameters.length) {
         DartType fType = f.positionalParameters[i];
@@ -1523,7 +1522,7 @@ mixin StandardBounds {
     int totalPositional =
         math.min(f.positionalParameters.length, g.positionalParameters.length);
     List<DartType> positionalParameters =
-        new List<DartType>.filled(totalPositional, dartTypeDummy);
+        new List<DartType>.filled(totalPositional, dummyDartType);
     for (int i = 0; i < totalPositional; i++) {
       positionalParameters[i] = getStandardLowerBound(
           f.positionalParameters[i], g.positionalParameters[i], clientLibrary);
@@ -1602,7 +1601,7 @@ mixin StandardBounds {
 
       assert(tArgs1.length == tArgs2.length);
       assert(tArgs1.length == tParams.length);
-      List<DartType> tArgs = new List.filled(tArgs1.length, dartTypeDummy);
+      List<DartType> tArgs = new List.filled(tArgs1.length, dummyDartType);
       for (int i = 0; i < tArgs1.length; i++) {
         if (tParams[i].variance == Variance.contravariant) {
           tArgs[i] = getStandardLowerBound(tArgs1[i], tArgs2[i], clientLibrary);
@@ -1675,14 +1674,14 @@ mixin StandardBounds {
       // we need to replicate that behavior?
       return getStandardUpperBound(
           Substitution.fromMap({type1.parameter: coreTypes.objectLegacyRawType})
-              .substituteType(type1.parameter.bound),
+              .substituteType(type1.parameter.bound!),
           type2,
           clientLibrary);
     } else if (type2 is TypeParameterType) {
       return getStandardUpperBound(
           type1,
           Substitution.fromMap({type2.parameter: coreTypes.objectLegacyRawType})
-              .substituteType(type2.parameter.bound),
+              .substituteType(type2.parameter.bound!),
           clientLibrary);
     } else {
       // We should only be called when at least one of the types is a

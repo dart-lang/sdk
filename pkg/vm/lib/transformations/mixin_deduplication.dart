@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 library vm.transformations.mixin_deduplication;
 
 import 'package:kernel/ast.dart';
@@ -13,7 +15,8 @@ void transformComponent(Component component) {
 
   // Deduplicate mixins and re-resolve super initializers.
   // (this is a shallow transformation)
-  component.libraries.forEach(deduplicateMixins.visitLibrary);
+  component.libraries
+      .forEach((library) => deduplicateMixins.visitLibrary(library, null));
 
   // Do a deep transformation to update references to the removed mixin
   // application classes in the interface targets and types.
@@ -83,29 +86,30 @@ class _DeduplicateMixinKey {
   }
 }
 
-class DeduplicateMixinsTransformer extends Transformer {
+class DeduplicateMixinsTransformer extends RemovingTransformer {
   final _canonicalMixins = new Map<_DeduplicateMixinKey, Class>();
   final _duplicatedMixins = new Map<Class, Class>();
 
   @override
-  TreeNode visitLibrary(Library node) {
-    transformList(node.classes, this, node);
+  TreeNode visitLibrary(Library node, TreeNode? removalSentinel) {
+    transformClassList(node.classes, node);
     return node;
   }
 
   @override
-  TreeNode visitClass(Class c) {
+  TreeNode visitClass(Class c, TreeNode? removalSentinel) {
     if (_duplicatedMixins.containsKey(c)) {
-      return null; // Class was de-duplicated already, just remove it.
+      // Class was de-duplicated already, just remove it.
+      return removalSentinel!;
     }
 
     if (c.supertype != null) {
-      c.supertype = _transformSupertype(c.supertype, c, true);
+      c.supertype = _transformSupertype(c.supertype!, c, true);
     }
     if (c.mixedInType != null) {
       throw 'All mixins should be transformed already.';
     }
-    transformSupertypeList(c.implementedTypes, this);
+    transformSupertypeList(c.implementedTypes);
 
     if (!c.isAnonymousMixin) {
       return c;
@@ -113,6 +117,7 @@ class DeduplicateMixinsTransformer extends Transformer {
 
     Class canonical =
         _canonicalMixins.putIfAbsent(new _DeduplicateMixinKey(c), () => c);
+    // ignore: unnecessary_null_comparison
     assert(canonical != null);
 
     if (canonical != c) {
@@ -120,34 +125,34 @@ class DeduplicateMixinsTransformer extends Transformer {
       // write a dangling reference to the deleted class.
       c.reference.canonicalName = null;
       _duplicatedMixins[c] = canonical;
-      return null; // Remove class.
+      // Remove class.
+      return removalSentinel!;
     }
 
     return c;
   }
 
   @override
-  Supertype visitSupertype(Supertype node) {
+  Supertype visitSupertype(Supertype node, Supertype? removalSentinel) {
     return _transformSupertype(node, null, false);
   }
 
   Supertype _transformSupertype(
-      Supertype supertype, Class cls, bool isSuperclass) {
+      Supertype supertype, Class? cls, bool isSuperclass) {
     Class oldSuper = supertype.classNode;
-    Class newSuper = visitClass(oldSuper);
-    if (newSuper == null) {
-      Class canonicalSuper = _duplicatedMixins[oldSuper];
-      assert(canonicalSuper != null);
+    Class newSuper = visitClass(oldSuper, dummyClass) as Class;
+    if (identical(newSuper, dummyClass)) {
+      Class canonicalSuper = _duplicatedMixins[oldSuper]!;
       supertype = new Supertype(canonicalSuper, supertype.typeArguments);
       if (isSuperclass) {
-        _correctForwardingConstructors(cls, oldSuper, canonicalSuper);
+        _correctForwardingConstructors(cls!, oldSuper, canonicalSuper);
       }
     }
     return supertype;
   }
 
   @override
-  TreeNode defaultTreeNode(TreeNode node) =>
+  TreeNode defaultTreeNode(TreeNode node, TreeNode? removalSentinel) =>
       throw 'Unexpected node ${node.runtimeType}: $node';
 }
 
@@ -204,17 +209,18 @@ class ReferenceUpdater extends RecursiveVisitor {
 
   @override
   visitSuperMethodInvocation(SuperMethodInvocation node) {
-    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
+    node.interfaceTarget =
+        _resolveNewInterfaceTarget(node.interfaceTarget) as Procedure?;
     super.visitSuperMethodInvocation(node);
   }
 
-  Member _resolveNewInterfaceTarget(Member m) {
-    final Class c = m?.enclosingClass;
+  Member? _resolveNewInterfaceTarget(Member? m) {
+    final Class? c = m?.enclosingClass;
     if (c != null && c.isAnonymousMixin) {
-      final Class replacement = transformer._duplicatedMixins[c];
+      final Class? replacement = transformer._duplicatedMixins[c];
       if (replacement != null) {
         // The class got removed, so we need to re-resolve the interface target.
-        return _findMember(replacement, m);
+        return _findMember(replacement, m!);
       }
     }
     return m;
@@ -240,8 +246,8 @@ class ReferenceUpdater extends RecursiveVisitor {
 
   Reference _updateClassReference(Reference classRef) {
     final Class c = classRef.asClass;
-    if (c != null && c.isAnonymousMixin) {
-      final Class replacement = transformer._duplicatedMixins[c];
+    if (c.isAnonymousMixin) {
+      final Class? replacement = transformer._duplicatedMixins[c];
       if (replacement != null) {
         return replacement.reference;
       }
@@ -279,7 +285,7 @@ void _correctForwardingConstructors(Class c, Class oldSuper, Class newSuper) {
     for (var initializer in constructor.initializers) {
       if ((initializer is SuperInitializer) &&
           initializer.target.enclosingClass == oldSuper) {
-        Constructor replacement = null;
+        Constructor? replacement = null;
         for (var c in newSuper.constructors) {
           if (c.name == initializer.target.name) {
             replacement = c;

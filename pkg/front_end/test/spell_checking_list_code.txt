@@ -375,6 +375,7 @@ end'ed
 enforce
 enforced
 enforces
+enforcing
 enumerates
 env
 eof

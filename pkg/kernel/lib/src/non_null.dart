@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// ignore: import_of_legacy_library_into_null_safe
 import '../ast.dart';
 
 /// Returns the type defines as `NonNull(type)` in the nnbd specification.
@@ -78,12 +77,12 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
       return null;
     }
     if (node.promotedBound != null) {
-      if (node.promotedBound.nullability == Nullability.nonNullable) {
+      if (node.promotedBound!.nullability == Nullability.nonNullable) {
         // The promoted bound is already non-nullable so we set the declared
         // nullability to non-nullable.
         return node.withDeclaredNullability(Nullability.nonNullable);
       }
-      DartType? promotedBound = node.promotedBound.accept(this);
+      DartType? promotedBound = node.promotedBound!.accept(this);
       if (promotedBound == null) {
         // The promoted bound could not be made non-nullable so we set the
         // declared nullability to undetermined.
@@ -91,7 +90,7 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
           return null;
         }
         return new TypeParameterType.intersection(
-            node.parameter, Nullability.undetermined, node.promotedBound);
+            node.parameter, Nullability.undetermined, node.promotedBound!);
       } else if (promotedBound.nullability == Nullability.nonNullable) {
         // The bound could be made non-nullable so we use it as the promoted
         // bound.

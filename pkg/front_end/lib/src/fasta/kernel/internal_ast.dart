@@ -260,23 +260,47 @@ class ForInStatementWithSynthesizedVariable extends InternalStatement {
   @override
   void transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept<TreeNode>(v);
+      variable = v.transform(variable);
       variable?.parent = this;
     }
     if (iterable != null) {
-      iterable = iterable.accept<TreeNode>(v);
+      iterable = v.transform(iterable);
       iterable?.parent = this;
     }
     if (syntheticAssignment != null) {
-      syntheticAssignment = syntheticAssignment.accept<TreeNode>(v);
+      syntheticAssignment = v.transform(syntheticAssignment);
       syntheticAssignment?.parent = this;
     }
     if (expressionEffects != null) {
-      expressionEffects = expressionEffects.accept<TreeNode>(v);
+      expressionEffects = v.transform(expressionEffects);
       expressionEffects?.parent = this;
     }
     if (body != null) {
-      body = body.accept<TreeNode>(v);
+      body = v.transform(body);
+      body?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (variable != null) {
+      variable = v.transform(variable);
+      variable?.parent = this;
+    }
+    if (iterable != null) {
+      iterable = v.transform(iterable);
+      iterable?.parent = this;
+    }
+    if (syntheticAssignment != null) {
+      syntheticAssignment = v.transform(syntheticAssignment);
+      syntheticAssignment?.parent = this;
+    }
+    if (expressionEffects != null) {
+      expressionEffects = v.transform(expressionEffects);
+      expressionEffects?.parent = this;
+    }
+    if (body != null) {
+      body = v.transform(body);
       body?.parent = this;
     }
   }
@@ -318,12 +342,25 @@ class TryStatement extends InternalStatement {
   @override
   void transformChildren(Transformer v) {
     if (tryBlock != null) {
-      tryBlock = tryBlock.accept<TreeNode>(v);
+      tryBlock = v.transform(tryBlock);
       tryBlock?.parent = this;
     }
-    transformList(catchBlocks, v, this);
+    v.transformList(catchBlocks, this);
     if (finallyBlock != null) {
-      finallyBlock = finallyBlock.accept<TreeNode>(v);
+      finallyBlock = v.transform(finallyBlock);
+      finallyBlock?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (tryBlock != null) {
+      tryBlock = v.transformOrRemoveStatement(tryBlock);
+      tryBlock?.parent = this;
+    }
+    v.transformCatchList(catchBlocks, this);
+    if (finallyBlock != null) {
+      finallyBlock = v.transformOrRemoveStatement(finallyBlock);
       finallyBlock?.parent = this;
     }
   }
@@ -584,10 +621,19 @@ class Cascade extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept<TreeNode>(v);
+      variable = v.transform(variable);
       variable?.parent = this;
     }
-    transformList(expressions, v, this);
+    v.transformList(expressions, this);
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (variable != null) {
+      variable = v.transformOrRemoveVariableDeclaration(variable);
+      variable?.parent = this;
+    }
+    v.transformExpressionList(expressions, this);
   }
 
   @override
@@ -644,11 +690,23 @@ class DeferredCheck extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept<TreeNode>(v);
+      variable = v.transform(variable);
       variable?.parent = this;
     }
     if (expression != null) {
-      expression = expression.accept<TreeNode>(v);
+      expression = v.transform(expression);
+      expression?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (variable != null) {
+      variable = v.transformOrRemoveVariableDeclaration(variable);
+      variable?.parent = this;
+    }
+    if (expression != null) {
+      expression = v.transformOrRemoveExpression(expression);
       expression?.parent = this;
     }
   }
@@ -847,11 +905,23 @@ class IfNullExpression extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (left != null) {
-      left = left.accept<TreeNode>(v);
+      left = v.transform(left);
       left?.parent = this;
     }
     if (right != null) {
-      right = right.accept<TreeNode>(v);
+      right = v.transform(right);
+      right?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (left != null) {
+      left = v.transformOrRemoveExpression(left);
+      left?.parent = this;
+    }
+    if (right != null) {
+      right = v.transformOrRemoveExpression(right);
       right?.parent = this;
     }
   }
@@ -1038,11 +1108,23 @@ class ExpressionInvocation extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (expression != null) {
-      expression = expression.accept<TreeNode>(v);
+      expression = v.transform(expression);
       expression?.parent = this;
     }
     if (arguments != null) {
-      arguments = arguments.accept<TreeNode>(v);
+      arguments = v.transform(arguments);
+      arguments?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (expression != null) {
+      expression = v.transformOrRemoveExpression(expression);
+      expression?.parent = this;
+    }
+    if (arguments != null) {
+      arguments = v.transformOrRemove(arguments, dummyArguments);
       arguments?.parent = this;
     }
   }
@@ -1120,13 +1202,25 @@ class NullAwareMethodInvocation extends InternalExpression {
   }
 
   @override
-  transformChildren(Transformer v) {
+  void transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept<TreeNode>(v);
+      variable = v.transform(variable);
       variable?.parent = this;
     }
     if (invocation != null) {
-      invocation = invocation.accept<TreeNode>(v);
+      invocation = v.transform(invocation);
+      invocation?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (variable != null) {
+      variable = v.transformOrRemoveVariableDeclaration(variable);
+      variable?.parent = this;
+    }
+    if (invocation != null) {
+      invocation = v.transformOrRemoveExpression(invocation);
       invocation?.parent = this;
     }
   }
@@ -1193,13 +1287,25 @@ class NullAwarePropertyGet extends InternalExpression {
   }
 
   @override
-  transformChildren(Transformer v) {
+  void transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept<TreeNode>(v);
+      variable = v.transform(variable);
       variable?.parent = this;
     }
     if (read != null) {
-      read = read.accept<TreeNode>(v);
+      read = v.transform(read);
+      read?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (variable != null) {
+      variable = v.transform(variable);
+      variable?.parent = this;
+    }
+    if (read != null) {
+      read = v.transform(read);
       read?.parent = this;
     }
   }
@@ -1265,13 +1371,25 @@ class NullAwarePropertySet extends InternalExpression {
   }
 
   @override
-  transformChildren(Transformer v) {
+  void transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept<TreeNode>(v);
+      variable = v.transform(variable);
       variable?.parent = this;
     }
     if (write != null) {
-      write = write.accept<TreeNode>(v);
+      write = v.transform(write);
+      write?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (variable != null) {
+      variable = v.transformOrRemoveVariableDeclaration(variable);
+      variable?.parent = this;
+    }
+    if (write != null) {
+      write = v.transformOrRemoveExpression(write);
       write?.parent = this;
     }
   }
@@ -1508,6 +1626,11 @@ class VariableDeclarationImpl extends VariableDeclaration {
         isLate: isLate || lateGetter != null, type: lateType ?? type);
     printer.write(';');
   }
+
+  @override
+  String toString() {
+    return "VariableDeclarationImpl(${toStringInternal()})";
+  }
 }
 
 /// Front end specific implementation of [VariableGet].
@@ -1568,19 +1691,14 @@ class LoadLibraryTearOff extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    import?.accept(v);
-    target?.accept(v);
+    v.visitProcedureReference(target);
   }
 
   @override
-  void transformChildren(Transformer v) {
-    if (import != null) {
-      import = import.accept<TreeNode>(v);
-    }
-    if (target != null) {
-      target = target.accept<TreeNode>(v);
-    }
-  }
+  void transformChildren(Transformer v) {}
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
 
   @override
   String toString() {
@@ -1649,11 +1767,23 @@ class IfNullPropertySet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept<TreeNode>(v);
+      receiver = v.transform(receiver);
       receiver?.parent = this;
     }
     if (rhs != null) {
-      rhs = rhs.accept<TreeNode>(v);
+      rhs = v.transform(rhs);
+      rhs?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (receiver != null) {
+      receiver = v.transformOrRemoveExpression(receiver);
+      receiver?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = v.transformOrRemoveExpression(rhs);
       rhs?.parent = this;
     }
   }
@@ -1718,11 +1848,23 @@ class IfNullSet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (read != null) {
-      read = read.accept<TreeNode>(v);
+      read = v.transform(read);
       read?.parent = this;
     }
     if (write != null) {
-      write = write.accept<TreeNode>(v);
+      write = v.transform(write);
+      write?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (read != null) {
+      read = v.transformOrRemoveExpression(read);
+      read?.parent = this;
+    }
+    if (write != null) {
+      write = v.transformOrRemoveExpression(write);
       write?.parent = this;
     }
   }
@@ -1841,11 +1983,23 @@ class CompoundExtensionSet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept<TreeNode>(v);
+      receiver = v.transform(receiver);
       receiver?.parent = this;
     }
     if (rhs != null) {
-      rhs = rhs.accept<TreeNode>(v);
+      rhs = v.transform(rhs);
+      rhs?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (receiver != null) {
+      receiver = v.transformOrRemoveExpression(receiver);
+      receiver?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = v.transformOrRemoveExpression(rhs);
       rhs?.parent = this;
     }
   }
@@ -1921,11 +2075,23 @@ class CompoundPropertySet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept<TreeNode>(v);
+      receiver = v.transform(receiver);
       receiver?.parent = this;
     }
     if (rhs != null) {
-      rhs = rhs.accept<TreeNode>(v);
+      rhs = v.transform(rhs);
+      rhs?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (receiver != null) {
+      receiver = v.transformOrRemoveExpression(receiver);
+      receiver?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = v.transformOrRemoveExpression(rhs);
       rhs?.parent = this;
     }
   }
@@ -1997,11 +2163,23 @@ class PropertyPostIncDec extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept<TreeNode>(v);
+      variable = v.transform(variable);
       variable?.parent = this;
     }
     if (write != null) {
-      write = write.accept<TreeNode>(v);
+      write = v.transform(write);
+      write?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (variable != null) {
+      variable = v.transformOrRemoveVariableDeclaration(variable);
+      variable?.parent = this;
+    }
+    if (write != null) {
+      write = v.transformOrRemoveVariableDeclaration(write);
       write?.parent = this;
     }
   }
@@ -2050,11 +2228,23 @@ class LocalPostIncDec extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (read != null) {
-      read = read.accept<TreeNode>(v);
+      read = v.transform(read);
       read?.parent = this;
     }
     if (write != null) {
-      write = write.accept<TreeNode>(v);
+      write = v.transform(write);
+      write?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (read != null) {
+      read = v.transformOrRemoveVariableDeclaration(read);
+      read?.parent = this;
+    }
+    if (write != null) {
+      write = v.transformOrRemoveVariableDeclaration(write);
       write?.parent = this;
     }
   }
@@ -2103,11 +2293,23 @@ class StaticPostIncDec extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (read != null) {
-      read = read.accept<TreeNode>(v);
+      read = v.transform(read);
       read?.parent = this;
     }
     if (write != null) {
-      write = write.accept<TreeNode>(v);
+      write = v.transform(write);
+      write?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (read != null) {
+      read = v.transform(read);
+      read?.parent = this;
+    }
+    if (write != null) {
+      write = v.transform(write);
       write?.parent = this;
     }
   }
@@ -2156,11 +2358,23 @@ class SuperPostIncDec extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (read != null) {
-      read = read.accept<TreeNode>(v);
+      read = v.transform(read);
       read?.parent = this;
     }
     if (write != null) {
-      write = write.accept<TreeNode>(v);
+      write = v.transform(write);
+      write?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (read != null) {
+      read = v.transformOrRemoveVariableDeclaration(read);
+      read?.parent = this;
+    }
+    if (write != null) {
+      write = v.transformOrRemoveVariableDeclaration(write);
       write?.parent = this;
     }
   }
@@ -2202,11 +2416,23 @@ class IndexGet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept<TreeNode>(v);
+      receiver = v.transform(receiver);
       receiver?.parent = this;
     }
     if (index != null) {
-      index = index.accept<TreeNode>(v);
+      index = v.transform(index);
+      index?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (receiver != null) {
+      receiver = v.transformOrRemoveExpression(receiver);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = v.transformOrRemoveExpression(index);
       index?.parent = this;
     }
   }
@@ -2268,15 +2494,31 @@ class IndexSet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept<TreeNode>(v);
+      receiver = v.transform(receiver);
       receiver?.parent = this;
     }
     if (index != null) {
-      index = index.accept<TreeNode>(v);
+      index = v.transform(index);
       index?.parent = this;
     }
     if (value != null) {
-      value = value.accept<TreeNode>(v);
+      value = v.transform(value);
+      value?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (receiver != null) {
+      receiver = v.transformOrRemoveExpression(receiver);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = v.transformOrRemoveExpression(index);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = v.transformOrRemoveExpression(value);
       value?.parent = this;
     }
   }
@@ -2333,11 +2575,23 @@ class SuperIndexSet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (index != null) {
-      index = index.accept<TreeNode>(v);
+      index = v.transform(index);
       index?.parent = this;
     }
     if (value != null) {
-      value = value.accept<TreeNode>(v);
+      value = v.transform(value);
+      value?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (index != null) {
+      index = v.transformOrRemoveExpression(index);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = v.transformOrRemoveExpression(value);
       value?.parent = this;
     }
   }
@@ -2414,15 +2668,31 @@ class ExtensionIndexSet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept<TreeNode>(v);
+      receiver = v.transform(receiver);
       receiver?.parent = this;
     }
     if (index != null) {
-      index = index.accept<TreeNode>(v);
+      index = v.transform(index);
       index?.parent = this;
     }
     if (value != null) {
-      value = value.accept<TreeNode>(v);
+      value = v.transform(value);
+      value?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (receiver != null) {
+      receiver = v.transformOrRemoveExpression(receiver);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = v.transformOrRemoveExpression(index);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = v.transformOrRemoveExpression(value);
       value?.parent = this;
     }
   }
@@ -2522,15 +2792,31 @@ class IfNullIndexSet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept<TreeNode>(v);
+      receiver = v.transform(receiver);
       receiver?.parent = this;
     }
     if (index != null) {
-      index = index.accept<TreeNode>(v);
+      index = v.transform(index);
       index?.parent = this;
     }
     if (value != null) {
-      value = value.accept<TreeNode>(v);
+      value = v.transform(value);
+      value?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (receiver != null) {
+      receiver = v.transformOrRemoveExpression(receiver);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = v.transformOrRemoveExpression(index);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = v.transformOrRemoveExpression(value);
       value?.parent = this;
     }
   }
@@ -2613,11 +2899,23 @@ class IfNullSuperIndexSet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (index != null) {
-      index = index.accept<TreeNode>(v);
+      index = v.transform(index);
       index?.parent = this;
     }
     if (value != null) {
-      value = value.accept<TreeNode>(v);
+      value = v.transform(value);
+      value?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (index != null) {
+      index = v.transformOrRemoveExpression(index);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = v.transformOrRemoveExpression(value);
       value?.parent = this;
     }
   }
@@ -2713,15 +3011,31 @@ class IfNullExtensionIndexSet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept<TreeNode>(v);
+      receiver = v.transform(receiver);
       receiver?.parent = this;
     }
     if (index != null) {
-      index = index.accept<TreeNode>(v);
+      index = v.transform(index);
       index?.parent = this;
     }
     if (value != null) {
-      value = value.accept<TreeNode>(v);
+      value = v.transform(value);
+      value?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (receiver != null) {
+      receiver = v.transformOrRemoveExpression(receiver);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = v.transformOrRemoveExpression(index);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = v.transformOrRemoveExpression(value);
       value?.parent = this;
     }
   }
@@ -2806,15 +3120,31 @@ class CompoundIndexSet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept<TreeNode>(v);
+      receiver = v.transform(receiver);
       receiver?.parent = this;
     }
     if (index != null) {
-      index = index.accept<TreeNode>(v);
+      index = v.transform(index);
       index?.parent = this;
     }
     if (rhs != null) {
-      rhs = rhs.accept<TreeNode>(v);
+      rhs = v.transform(rhs);
+      rhs?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (receiver != null) {
+      receiver = v.transformOrRemoveExpression(receiver);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = v.transformOrRemoveExpression(index);
+      index?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = v.transformOrRemoveExpression(rhs);
       rhs?.parent = this;
     }
   }
@@ -2945,11 +3275,23 @@ class NullAwareCompoundSet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept<TreeNode>(v);
+      receiver = v.transform(receiver);
       receiver?.parent = this;
     }
     if (rhs != null) {
-      rhs = rhs.accept<TreeNode>(v);
+      rhs = v.transform(rhs);
+      rhs?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (receiver != null) {
+      receiver = v.transformOrRemoveExpression(receiver);
+      receiver?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = v.transformOrRemoveExpression(rhs);
       rhs?.parent = this;
     }
   }
@@ -3054,11 +3396,23 @@ class NullAwareIfNullSet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept<TreeNode>(v);
+      receiver = v.transform(receiver);
       receiver?.parent = this;
     }
     if (value != null) {
-      value = value.accept<TreeNode>(v);
+      value = v.transform(value);
+      value?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (receiver != null) {
+      receiver = v.transformOrRemoveExpression(receiver);
+      receiver?.parent = this;
+    }
+    if (value != null) {
+      value = v.transformOrRemoveExpression(value);
       value?.parent = this;
     }
   }
@@ -3154,11 +3508,23 @@ class CompoundSuperIndexSet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (index != null) {
-      index = index.accept<TreeNode>(v);
+      index = v.transform(index);
       index?.parent = this;
     }
     if (rhs != null) {
-      rhs = rhs.accept<TreeNode>(v);
+      rhs = v.transform(rhs);
+      rhs?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (index != null) {
+      index = v.transformOrRemoveExpression(index);
+      index?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = v.transformOrRemoveExpression(rhs);
       rhs?.parent = this;
     }
   }
@@ -3272,15 +3638,31 @@ class CompoundExtensionIndexSet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept<TreeNode>(v);
+      receiver = v.transform(receiver);
       receiver?.parent = this;
     }
     if (index != null) {
-      index = index.accept<TreeNode>(v);
+      index = v.transform(index);
       index?.parent = this;
     }
     if (rhs != null) {
-      rhs = rhs.accept<TreeNode>(v);
+      rhs = v.transform(rhs);
+      rhs?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (receiver != null) {
+      receiver = v.transformOrRemoveExpression(receiver);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = v.transformOrRemoveExpression(index);
+      index?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = v.transformOrRemoveExpression(rhs);
       rhs?.parent = this;
     }
   }
@@ -3358,11 +3740,23 @@ class ExtensionSet extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept<TreeNode>(v);
+      receiver = v.transform(receiver);
       receiver?.parent = this;
     }
     if (value != null) {
-      value = value.accept<TreeNode>(v);
+      value = v.transform(value);
+      value?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (receiver != null) {
+      receiver = v.transform(receiver);
+      receiver?.parent = this;
+    }
+    if (value != null) {
+      value = v.transform(value);
       value?.parent = this;
     }
   }
@@ -3409,11 +3803,23 @@ class NullAwareExtension extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept<TreeNode>(v);
+      variable = v.transform(variable);
       variable?.parent = this;
     }
     if (expression != null) {
-      expression = expression.accept<TreeNode>(v);
+      expression = v.transform(expression);
+      expression?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (variable != null) {
+      variable = v.transformOrRemoveVariableDeclaration(variable);
+      variable?.parent = this;
+    }
+    if (expression != null) {
+      expression = v.transformOrRemoveExpression(expression);
       expression?.parent = this;
     }
   }
@@ -3484,7 +3890,15 @@ class ExtensionTearOff extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (arguments != null) {
-      arguments = arguments.accept<TreeNode>(v);
+      arguments = v.transform(arguments);
+      arguments?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (arguments != null) {
+      arguments = v.transformOrRemove(arguments, dummyArguments);
       arguments?.parent = this;
     }
   }
@@ -3525,11 +3939,23 @@ class EqualsExpression extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (left != null) {
-      left = left.accept<TreeNode>(v);
+      left = v.transform(left);
       left?.parent = this;
     }
     if (right != null) {
-      right = right.accept<TreeNode>(v);
+      right = v.transform(right);
+      right?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (left != null) {
+      left = v.transformOrRemoveExpression(left);
+      left?.parent = this;
+    }
+    if (right != null) {
+      right = v.transformOrRemoveExpression(right);
       right?.parent = this;
     }
   }
@@ -3580,11 +4006,23 @@ class BinaryExpression extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (left != null) {
-      left = left.accept<TreeNode>(v);
+      left = v.transform(left);
       left?.parent = this;
     }
     if (right != null) {
-      right = right.accept<TreeNode>(v);
+      right = v.transform(right);
+      right?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (left != null) {
+      left = v.transformOrRemoveExpression(left);
+      left?.parent = this;
+    }
+    if (right != null) {
+      right = v.transformOrRemoveExpression(right);
       right?.parent = this;
     }
   }
@@ -3631,7 +4069,15 @@ class UnaryExpression extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (expression != null) {
-      expression = expression.accept<TreeNode>(v);
+      expression = v.transform(expression);
+      expression?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (expression != null) {
+      expression = v.transformOrRemoveExpression(expression);
       expression?.parent = this;
     }
   }
@@ -3680,7 +4126,15 @@ class ParenthesizedExpression extends InternalExpression {
   @override
   void transformChildren(Transformer v) {
     if (expression != null) {
-      expression = expression.accept<TreeNode>(v);
+      expression = v.transform(expression);
+      expression?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (expression != null) {
+      expression = v.transformOrRemoveExpression(expression);
       expression?.parent = this;
     }
   }

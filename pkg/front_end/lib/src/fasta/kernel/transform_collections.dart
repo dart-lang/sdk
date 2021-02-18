@@ -279,8 +279,8 @@ class CollectionTransformer extends Transformer {
         element.condition?.accept<TreeNode>(this),
         element.updates,
         loopBody);
-    transformList(loop.variables, this, loop);
-    transformList(loop.updates, this, loop);
+    transformList(loop.variables, loop);
+    transformList(loop.updates, loop);
     _dataForTesting?.registerAlias(element, loop);
     body.add(loop);
   }
@@ -531,8 +531,8 @@ class CollectionTransformer extends Transformer {
     ForStatement loop = _createForStatement(entry.fileOffset, entry.variables,
         entry.condition?.accept<TreeNode>(this), entry.updates, loopBody);
     _dataForTesting?.registerAlias(entry, loop);
-    transformList(loop.variables, this, loop);
-    transformList(loop.updates, this, loop);
+    transformList(loop.variables, loop);
+    transformList(loop.updates, loop);
     body.add(loop);
   }
 

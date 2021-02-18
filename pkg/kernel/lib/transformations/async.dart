@@ -177,7 +177,7 @@ class ExpressionLifter extends Transformer {
   // Transform an expression given an action to transform the children.  For
   // this purposes of the await transformer the children should generally be
   // translated from right to left, in the reverse of evaluation order.
-  Expression transform(Expression expr, void action()) {
+  Expression transformTreeNode(Expression expr, void action()) {
     var shouldName = seenAwait;
 
     // 1. If there is an await in a sibling to the right, emit an assignment to
@@ -208,7 +208,7 @@ class ExpressionLifter extends Transformer {
 
   // Unary expressions.
   Expression unary(Expression expr) {
-    return transform(expr, () {
+    return transformTreeNode(expr, () {
       expr.transformChildren(this);
     });
   }
@@ -223,7 +223,7 @@ class ExpressionLifter extends Transformer {
   TreeNode visitThrow(Throw expr) => unary(expr);
 
   TreeNode visitPropertySet(PropertySet expr) {
-    return transform(expr, () {
+    return transformTreeNode(expr, () {
       expr.value = expr.value.accept<TreeNode>(this)..parent = expr;
       expr.receiver = expr.receiver.accept<TreeNode>(this)..parent = expr;
     });
@@ -243,32 +243,32 @@ class ExpressionLifter extends Transformer {
   }
 
   TreeNode visitMethodInvocation(MethodInvocation expr) {
-    return transform(expr, () {
+    return transformTreeNode(expr, () {
       visitArguments(expr.arguments);
       expr.receiver = expr.receiver.accept<TreeNode>(this)..parent = expr;
     });
   }
 
   TreeNode visitSuperMethodInvocation(SuperMethodInvocation expr) {
-    return transform(expr, () {
+    return transformTreeNode(expr, () {
       visitArguments(expr.arguments);
     });
   }
 
   TreeNode visitStaticInvocation(StaticInvocation expr) {
-    return transform(expr, () {
+    return transformTreeNode(expr, () {
       visitArguments(expr.arguments);
     });
   }
 
   TreeNode visitConstructorInvocation(ConstructorInvocation expr) {
-    return transform(expr, () {
+    return transformTreeNode(expr, () {
       visitArguments(expr.arguments);
     });
   }
 
   TreeNode visitStringConcatenation(StringConcatenation expr) {
-    return transform(expr, () {
+    return transformTreeNode(expr, () {
       var expressions = expr.expressions;
       for (var i = expressions.length - 1; i >= 0; --i) {
         expressions[i] = expressions[i].accept<TreeNode>(this)..parent = expr;
@@ -277,7 +277,7 @@ class ExpressionLifter extends Transformer {
   }
 
   TreeNode visitListLiteral(ListLiteral expr) {
-    return transform(expr, () {
+    return transformTreeNode(expr, () {
       var expressions = expr.expressions;
       for (var i = expressions.length - 1; i >= 0; --i) {
         expressions[i] = expr.expressions[i].accept<TreeNode>(this)
@@ -287,7 +287,7 @@ class ExpressionLifter extends Transformer {
   }
 
   TreeNode visitMapLiteral(MapLiteral expr) {
-    return transform(expr, () {
+    return transformTreeNode(expr, () {
       for (var entry in expr.entries.reversed) {
         entry.value = entry.value.accept<TreeNode>(this)..parent = entry;
         entry.key = entry.key.accept<TreeNode>(this)..parent = entry;
@@ -310,7 +310,7 @@ class ExpressionLifter extends Transformer {
     if (rightStatements.isEmpty) {
       // Easy case: right did not emit any statements.
       seenAwait = shouldName;
-      return transform(expr, () {
+      return transformTreeNode(expr, () {
         expr.left = expr.left.accept<TreeNode>(this)..parent = expr;
         seenAwait = seenAwait || rightAwait;
       });
@@ -391,7 +391,7 @@ class ExpressionLifter extends Transformer {
     if (thenStatements.isEmpty && otherwiseStatements.isEmpty) {
       // Easy case: neither then nor otherwise emitted any statements.
       seenAwait = shouldName;
-      return transform(expr, () {
+      return transformTreeNode(expr, () {
         expr.condition = expr.condition.accept<TreeNode>(this)..parent = expr;
         seenAwait = seenAwait || thenAwait || otherwiseAwait;
       });
@@ -518,7 +518,7 @@ class ExpressionLifter extends Transformer {
     } else {
       // The body in `let x = initializer in body` did not contain an await.  We
       // can leave a let expression.
-      return transform(expr, () {
+      return transformTreeNode(expr, () {
         // The body has already been translated.
         expr.body = body..parent = expr;
         variable.initializer = variable.initializer.accept<TreeNode>(this)
@@ -534,7 +534,7 @@ class ExpressionLifter extends Transformer {
   }
 
   TreeNode visitBlockExpression(BlockExpression expr) {
-    return transform(expr, () {
+    return transformTreeNode(expr, () {
       expr.value = expr.value.accept<TreeNode>(this)..parent = expr;
       List<Statement> body = <Statement>[];
       for (Statement stmt in expr.body.statements.reversed) {

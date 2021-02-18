@@ -4,7 +4,6 @@
 
 library kernel.type_environment;
 
-// ignore: import_of_legacy_library_into_null_safe
 import 'ast.dart';
 import 'class_hierarchy.dart';
 import 'core_types.dart';
@@ -115,8 +114,7 @@ abstract class TypeEnvironment extends Types {
   DartType _resolveTypeParameterType(DartType type) {
     while (type is TypeParameterType) {
       TypeParameterType typeParameterType = type;
-      type =
-          typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
+      type = typeParameterType.bound;
     }
     return type;
   }
@@ -148,13 +146,13 @@ abstract class TypeEnvironment extends Types {
   bool isSpecialCasedBinaryOperator(Procedure member,
       {bool isNonNullableByDefault: false}) {
     if (isNonNullableByDefault) {
-      Class class_ = member.enclosingClass;
+      Class? class_ = member.enclosingClass;
       // TODO(johnniwinther): Do we need to recognize backend implementation
       //  methods?
       if (class_ == coreTypes.intClass ||
           class_ == coreTypes.numClass ||
           class_ == coreTypes.doubleClass) {
-        String name = member.name.text;
+        String name = member.name!.text;
         return name == '+' ||
             name == '-' ||
             name == '*' ||
@@ -162,9 +160,9 @@ abstract class TypeEnvironment extends Types {
             name == '%';
       }
     } else {
-      Class class_ = member.enclosingClass;
+      Class? class_ = member.enclosingClass;
       if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
-        String name = member.name.text;
+        String name = member.name!.text;
         return name == '+' ||
             name == '-' ||
             name == '*' ||
@@ -180,9 +178,9 @@ abstract class TypeEnvironment extends Types {
   bool isSpecialCasedTernaryOperator(Procedure member,
       {bool isNonNullableByDefault: false}) {
     if (isNonNullableByDefault) {
-      Class class_ = member.enclosingClass;
+      Class? class_ = member.enclosingClass;
       if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
-        String name = member.name.text;
+        String name = member.name!.text;
         return name == 'clamp';
       }
     }
@@ -751,7 +749,7 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
         "No member currently associated with StaticTypeContext.");
     return _currentMember?.enclosingClass?.getThisType(
         typeEnvironment.coreTypes,
-        _currentMember?.enclosingLibrary.nonNullable);
+        _currentMember!.enclosingLibrary.nonNullable);
   }
 
   @override

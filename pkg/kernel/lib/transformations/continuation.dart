@@ -296,7 +296,7 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
     }
 
     ++currentCatchDepth;
-    transformList(node.catches, this, node);
+    transformList(node.catches, node);
     --currentCatchDepth;
     return node;
   }

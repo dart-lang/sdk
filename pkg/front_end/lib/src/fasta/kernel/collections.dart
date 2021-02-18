@@ -6,19 +6,7 @@
 
 library fasta.collections;
 
-import 'package:kernel/ast.dart'
-    show
-        DartType,
-        Expression,
-        ExpressionStatement,
-        MapEntry,
-        NullLiteral,
-        Statement,
-        TreeNode,
-        VariableDeclaration,
-        setParents,
-        transformList,
-        visitList;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/src/printer.dart';
 
@@ -90,14 +78,22 @@ class SpreadElement extends Expression with ControlFlowElement {
   }
 
   @override
-  visitChildren(Visitor<Object> v) {
+  void visitChildren(Visitor<Object> v) {
     expression?.accept(v);
   }
 
   @override
-  transformChildren(Transformer v) {
+  void transformChildren(Transformer v) {
     if (expression != null) {
-      expression = expression.accept<TreeNode>(v);
+      expression = v.transform(expression);
+      expression?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (expression != null) {
+      expression = v.transformOrRemoveExpression(expression);
       expression?.parent = this;
     }
   }
@@ -136,24 +132,40 @@ class IfElement extends Expression with ControlFlowElement {
   }
 
   @override
-  visitChildren(Visitor<Object> v) {
+  void visitChildren(Visitor<Object> v) {
     condition?.accept(v);
     then?.accept(v);
     otherwise?.accept(v);
   }
 
   @override
-  transformChildren(Transformer v) {
+  void transformChildren(Transformer v) {
     if (condition != null) {
-      condition = condition.accept<TreeNode>(v);
+      condition = v.transform(condition);
       condition?.parent = this;
     }
     if (then != null) {
-      then = then.accept<TreeNode>(v);
+      then = v.transform(then);
       then?.parent = this;
     }
     if (otherwise != null) {
-      otherwise = otherwise.accept<TreeNode>(v);
+      otherwise = v.transform(otherwise);
+      otherwise?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (condition != null) {
+      condition = v.transformOrRemoveExpression(condition);
+      condition?.parent = this;
+    }
+    if (then != null) {
+      then = v.transformOrRemoveExpression(then);
+      then?.parent = this;
+    }
+    if (otherwise != null) {
+      otherwise = v.transformOrRemoveExpression(otherwise);
       otherwise?.parent = this;
     }
   }
@@ -211,7 +223,7 @@ class ForElement extends Expression with ControlFlowElement {
   }
 
   @override
-  visitChildren(Visitor<Object> v) {
+  void visitChildren(Visitor<Object> v) {
     visitList(variables, v);
     condition?.accept(v);
     visitList(updates, v);
@@ -219,15 +231,29 @@ class ForElement extends Expression with ControlFlowElement {
   }
 
   @override
-  transformChildren(Transformer v) {
-    transformList(variables, v, this);
+  void transformChildren(Transformer v) {
+    v.transformList(variables, this);
     if (condition != null) {
-      condition = condition.accept<TreeNode>(v);
+      condition = v.transform(condition);
       condition?.parent = this;
     }
-    transformList(updates, v, this);
+    v.transformList(updates, this);
     if (body != null) {
-      body = body.accept<TreeNode>(v);
+      body = v.transform(body);
+      body?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformVariableDeclarationList(variables, this);
+    if (condition != null) {
+      condition = v.transformOrRemoveExpression(condition);
+      condition?.parent = this;
+    }
+    v.transformExpressionList(updates, this);
+    if (body != null) {
+      body = v.transformOrRemoveExpression(body);
       body?.parent = this;
     }
   }
@@ -284,7 +310,7 @@ class ForInElement extends Expression with ControlFlowElement {
         ..fileOffset = syntheticAssignment.fileOffset)
       : expressionEffects;
 
-  visitChildren(Visitor<Object> v) {
+  void visitChildren(Visitor<Object> v) {
     variable?.accept(v);
     iterable?.accept(v);
     syntheticAssignment?.accept(v);
@@ -293,29 +319,57 @@ class ForInElement extends Expression with ControlFlowElement {
     problem?.accept(v);
   }
 
-  transformChildren(Transformer v) {
+  void transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept<TreeNode>(v);
+      variable = v.transform(variable);
       variable?.parent = this;
     }
     if (iterable != null) {
-      iterable = iterable.accept<TreeNode>(v);
+      iterable = v.transform(iterable);
       iterable?.parent = this;
     }
     if (syntheticAssignment != null) {
-      syntheticAssignment = syntheticAssignment.accept<TreeNode>(v);
+      syntheticAssignment = v.transform(syntheticAssignment);
       syntheticAssignment?.parent = this;
     }
     if (expressionEffects != null) {
-      expressionEffects = expressionEffects.accept<TreeNode>(v);
+      expressionEffects = v.transform(expressionEffects);
       expressionEffects?.parent = this;
     }
     if (body != null) {
-      body = body.accept<TreeNode>(v);
+      body = v.transform(body);
       body?.parent = this;
     }
     if (problem != null) {
-      problem = problem.accept<TreeNode>(v);
+      problem = v.transform(problem);
+      problem?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (variable != null) {
+      variable = v.transformOrRemoveVariableDeclaration(variable);
+      variable?.parent = this;
+    }
+    if (iterable != null) {
+      iterable = v.transformOrRemoveExpression(iterable);
+      iterable?.parent = this;
+    }
+    if (syntheticAssignment != null) {
+      syntheticAssignment = v.transformOrRemoveExpression(syntheticAssignment);
+      syntheticAssignment?.parent = this;
+    }
+    if (expressionEffects != null) {
+      expressionEffects = v.transformOrRemoveStatement(expressionEffects);
+      expressionEffects?.parent = this;
+    }
+    if (body != null) {
+      body = v.transformOrRemoveExpression(body);
+      body?.parent = this;
+    }
+    if (problem != null) {
+      problem = v.transformOrRemoveExpression(problem);
       problem?.parent = this;
     }
   }
@@ -372,6 +426,9 @@ mixin ControlFlowMapEntry implements MapEntry {
   R accept<R>(TreeVisitor<R> v) => v.defaultTreeNode(this);
 
   @override
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) => v.defaultTreeNode(this, arg);
+
+  @override
   String toStringInternal() => toText(defaultAstTextStrategy);
 
   @override
@@ -398,14 +455,22 @@ class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
   }
 
   @override
-  visitChildren(Visitor<Object> v) {
+  void visitChildren(Visitor<Object> v) {
     expression?.accept(v);
   }
 
   @override
-  transformChildren(Transformer v) {
+  void transformChildren(Transformer v) {
     if (expression != null) {
-      expression = expression.accept<TreeNode>(v);
+      expression = v.transform(expression);
+      expression?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (expression != null) {
+      expression = v.transformOrRemoveExpression(expression);
       expression?.parent = this;
     }
   }
@@ -434,24 +499,40 @@ class IfMapEntry extends TreeNode with ControlFlowMapEntry {
   }
 
   @override
-  visitChildren(Visitor<Object> v) {
+  void visitChildren(Visitor<Object> v) {
     condition?.accept(v);
     then?.accept(v);
     otherwise?.accept(v);
   }
 
   @override
-  transformChildren(Transformer v) {
+  void transformChildren(Transformer v) {
     if (condition != null) {
-      condition = condition.accept<TreeNode>(v);
+      condition = v.transform(condition);
       condition?.parent = this;
     }
     if (then != null) {
-      then = then.accept<TreeNode>(v);
+      then = v.transform(then);
       then?.parent = this;
     }
     if (otherwise != null) {
-      otherwise = otherwise.accept<TreeNode>(v);
+      otherwise = v.transform(otherwise);
+      otherwise?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (condition != null) {
+      condition = v.transformOrRemoveExpression(condition);
+      condition?.parent = this;
+    }
+    if (then != null) {
+      then = v.transformOrRemove(then, dummyMapEntry);
+      then?.parent = this;
+    }
+    if (otherwise != null) {
+      otherwise = v.transformOrRemove(otherwise, dummyMapEntry);
       otherwise?.parent = this;
     }
   }
@@ -482,7 +563,7 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
   }
 
   @override
-  visitChildren(Visitor<Object> v) {
+  void visitChildren(Visitor<Object> v) {
     visitList(variables, v);
     condition?.accept(v);
     visitList(updates, v);
@@ -490,15 +571,29 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
   }
 
   @override
-  transformChildren(Transformer v) {
-    transformList(variables, v, this);
+  void transformChildren(Transformer v) {
+    v.transformList(variables, this);
     if (condition != null) {
-      condition = condition.accept<TreeNode>(v);
+      condition = v.transform(condition);
       condition?.parent = this;
     }
-    transformList(updates, v, this);
+    v.transformList(updates, this);
     if (body != null) {
-      body = body.accept<TreeNode>(v);
+      body = v.transform(body);
+      body?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformVariableDeclarationList(variables, this);
+    if (condition != null) {
+      condition = v.transformOrRemoveExpression(condition);
+      condition?.parent = this;
+    }
+    v.transformExpressionList(updates, this);
+    if (body != null) {
+      body = v.transformOrRemove(body, dummyMapEntry);
       body?.parent = this;
     }
   }
@@ -541,7 +636,7 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
         ..fileOffset = syntheticAssignment.fileOffset)
       : expressionEffects;
 
-  visitChildren(Visitor<Object> v) {
+  void visitChildren(Visitor<Object> v) {
     variable?.accept(v);
     iterable?.accept(v);
     syntheticAssignment?.accept(v);
@@ -550,29 +645,57 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
     problem?.accept(v);
   }
 
-  transformChildren(Transformer v) {
+  void transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept<TreeNode>(v);
+      variable = v.transform(variable);
       variable?.parent = this;
     }
     if (iterable != null) {
-      iterable = iterable.accept<TreeNode>(v);
+      iterable = v.transform(iterable);
       iterable?.parent = this;
     }
     if (syntheticAssignment != null) {
-      syntheticAssignment = syntheticAssignment.accept<TreeNode>(v);
+      syntheticAssignment = v.transform(syntheticAssignment);
       syntheticAssignment?.parent = this;
     }
     if (expressionEffects != null) {
-      expressionEffects = expressionEffects.accept<TreeNode>(v);
+      expressionEffects = v.transform(expressionEffects);
       expressionEffects?.parent = this;
     }
     if (body != null) {
-      body = body.accept<TreeNode>(v);
+      body = v.transform(body);
       body?.parent = this;
     }
     if (problem != null) {
-      problem = problem.accept<TreeNode>(v);
+      problem = v.transform(problem);
+      problem?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (variable != null) {
+      variable = v.transformOrRemoveVariableDeclaration(variable);
+      variable?.parent = this;
+    }
+    if (iterable != null) {
+      iterable = v.transformOrRemoveExpression(iterable);
+      iterable?.parent = this;
+    }
+    if (syntheticAssignment != null) {
+      syntheticAssignment = v.transformOrRemoveExpression(syntheticAssignment);
+      syntheticAssignment?.parent = this;
+    }
+    if (expressionEffects != null) {
+      expressionEffects = v.transformOrRemoveStatement(expressionEffects);
+      expressionEffects?.parent = this;
+    }
+    if (body != null) {
+      body = v.transformOrRemove(body, dummyMapEntry);
+      body?.parent = this;
+    }
+    if (problem != null) {
+      problem = v.transformOrRemoveExpression(problem);
       problem?.parent = this;
     }
   }

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore: import_of_legacy_library_into_null_safe
 import '../ast.dart';
 
 String nullabilityToString(Nullability nullability) {
@@ -47,17 +46,17 @@ String qualifiedCanonicalNameToString(CanonicalName canonicalName,
     {bool includeLibraryName: false}) {
   if (canonicalName.isRoot) {
     return '<root>';
-  } else if (canonicalName.parent.isRoot) {
+  } else if (canonicalName.parent!.isRoot) {
     return canonicalName.name;
-  } else if (canonicalName.parent.parent.isRoot) {
+  } else if (canonicalName.parent!.parent!.isRoot) {
     if (!includeLibraryName) {
       return canonicalName.name;
     }
-    String parentName = qualifiedCanonicalNameToString(canonicalName.parent,
+    String parentName = qualifiedCanonicalNameToString(canonicalName.parent!,
         includeLibraryName: includeLibraryName);
     return '$parentName::${canonicalName.name}';
   } else {
-    String parentName = qualifiedCanonicalNameToString(canonicalName.parent,
+    String parentName = qualifiedCanonicalNameToString(canonicalName.parent!,
         includeLibraryName: includeLibraryName);
     return '$parentName.${canonicalName.name}';
   }
@@ -165,15 +164,13 @@ String qualifiedTypedefNameToStringByReference(Reference? reference,
 }
 
 String typedefNameToString(Typedef? node) {
-  return node == null
-      ? 'null'
-      : node.name ?? 'null-named typedef ${node.runtimeType} ${node.hashCode}';
+  return node == null ? 'null' : node.name;
 }
 
 String qualifiedMemberNameToString(Member node,
     {bool includeLibraryName: false}) {
   if (node.enclosingClass != null) {
-    return qualifiedClassNameToString(node.enclosingClass,
+    return qualifiedClassNameToString(node.enclosingClass!,
             includeLibraryName: includeLibraryName) +
         '.' +
         memberNameToString(node);
@@ -215,7 +212,7 @@ String memberNameToString(Member node) {
 
 String qualifiedTypeParameterNameToString(TypeParameter node,
     {bool includeLibraryName: false}) {
-  TreeNode parent = node.parent;
+  TreeNode? parent = node.parent;
   if (parent is Class) {
     return qualifiedClassNameToString(parent,
             includeLibraryName: includeLibraryName) +

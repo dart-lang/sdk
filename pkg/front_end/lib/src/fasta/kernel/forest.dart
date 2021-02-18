@@ -775,6 +775,10 @@ class _VariablesDeclaration extends Statement {
     throw unsupported("transformChildren", fileOffset, uri);
   }
 
+  transformOrRemoveChildren(v) {
+    throw unsupported("transformOrRemoveChildren", fileOffset, uri);
+  }
+
   @override
   String toString() {
     return "_VariablesDeclaration(${toStringInternal()})";
