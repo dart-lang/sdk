@@ -2,31 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/src/replacement_visitor.dart';
 
-import '../ast.dart'
-    show
-        BottomType,
-        Class,
-        DartType,
-        DynamicType,
-        FunctionType,
-        FutureOrType,
-        InterfaceType,
-        InvalidType,
-        Library,
-        NamedType,
-        NeverType,
-        NullType,
-        Nullability,
-        TypeParameter,
-        TypeParameterType,
-        Typedef,
-        TypedefType,
-        Variance,
-        VoidType;
+import '../ast.dart' hide MapEntry;
 
 import '../type_algebra.dart' show Substitution, substitute;
 
@@ -39,20 +17,25 @@ import '../visitor.dart' show DartTypeVisitor, DartTypeVisitor1;
 import 'legacy_erasure.dart';
 
 class TypeVariableGraph extends Graph<int> {
-  List<int> vertices;
+  late List<int> vertices;
   List<TypeParameter> typeParameters;
   List<DartType> bounds;
 
   // `edges[i]` is the list of indices of type variables that reference the type
   // variable with the index `i` in their bounds.
-  List<List<int>> edges;
+  late List<List<int>> edges;
 
   TypeVariableGraph(this.typeParameters, this.bounds) {
     assert(typeParameters.length == bounds.length);
 
-    vertices = new List<int>.filled(typeParameters.length, null);
+    vertices = new List<int>.filled(
+        typeParameters.length,
+        // Dummy value.
+        -1);
     Map<TypeParameter, int> typeParameterIndices = <TypeParameter, int>{};
-    edges = new List<List<int>>.filled(typeParameters.length, null);
+    edges = new List<List<int>>.filled(typeParameters.length,
+        // Dummy value.
+        const []);
     for (int i = 0; i < vertices.length; i++) {
       vertices[i] = i;
       typeParameterIndices[typeParameters[i]] = i;
@@ -64,7 +47,7 @@ class TypeVariableGraph extends Graph<int> {
           new OccurrenceCollectorVisitor(typeParameters.toSet());
       collector.visit(bounds[i]);
       for (TypeParameter typeParameter in collector.occurred) {
-        edges[typeParameterIndices[typeParameter]].add(i);
+        edges[typeParameterIndices[typeParameter]!].add(i);
       }
     }
   }
@@ -104,7 +87,7 @@ class OccurrenceCollectorVisitor extends DartTypeVisitor<void> {
 
   void visitFunctionType(FunctionType node) {
     for (TypeParameter typeParameter in node.typeParameters) {
-      typeParameter.bound.accept(this);
+      typeParameter.bound!.accept(this);
       typeParameter.defaultType?.accept(this);
     }
     for (DartType parameter in node.positionalParameters) {
@@ -174,17 +157,18 @@ List<DartType> calculateBounds(List<TypeParameter> typeParameters,
 
 List<DartType> calculateBoundsInternal(
     List<TypeParameter> typeParameters, Class objectClass,
-    {bool isNonNullableByDefault}) {
+    {required bool isNonNullableByDefault}) {
+  // ignore: unnecessary_null_comparison
   assert(isNonNullableByDefault != null);
 
   List<DartType> bounds =
-      new List<DartType>.filled(typeParameters.length, null);
+      new List<DartType>.filled(typeParameters.length, dummyDartType);
   for (int i = 0; i < typeParameters.length; i++) {
-    DartType bound = typeParameters[i].bound;
+    DartType? bound = typeParameters[i].bound;
     if (bound == null) {
       bound = const DynamicType();
     } else if (bound is InterfaceType && bound.classNode == objectClass) {
-      DartType defaultType = typeParameters[i].defaultType;
+      DartType defaultType = typeParameters[i].defaultType!;
       if (!(defaultType is InterfaceType &&
           defaultType.classNode == objectClass)) {
         bound = const DynamicType();
@@ -240,7 +224,7 @@ class TypeArgumentIssue {
   final TypeParameter typeParameter;
 
   /// The enclosing type of the issue, that is, the one with [typeParameter].
-  final DartType enclosingType;
+  final DartType? enclosingType;
 
   /// The type computed from [enclosingType] for the super-boundness check.
   ///
@@ -251,7 +235,7 @@ class TypeArgumentIssue {
   /// regular-bounded, so the super-boundness check is skipped.  It is set to
   /// null also if the inversion didn't change the type at all, and it's not
   /// helpful to show the same type to the user.
-  DartType invertedType;
+  DartType? invertedType;
 
   TypeArgumentIssue(
       this.index, this.argument, this.typeParameter, this.enclosingType,
@@ -287,8 +271,6 @@ class TypeArgumentIssue {
 // checks for super-boundness for construction of the auxiliary type.  For
 // details see Dart Language Specification, Section 14.3.2 The Instantiation to
 // Bound Algorithm.
-// TODO(dmitryas):  Remove [typedefInstantiations] when type arguments passed to
-// typedefs are preserved in the Kernel output.
 List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
     TypeEnvironment typeEnvironment, SubtypeCheckMode subtypeCheckMode,
     {bool allowSuperBounded = false}) {
@@ -311,7 +293,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
     typedefRhsResult = findTypeArgumentIssues(
         library, cloned, typeEnvironment, subtypeCheckMode,
         allowSuperBounded: true);
-    type = functionType.typedefType;
+    type = functionType.typedefType!;
   }
 
   if (type is InterfaceType) {
@@ -325,7 +307,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
 
     for (TypeParameter parameter in type.typeParameters) {
       result.addAll(findTypeArgumentIssues(
-          library, parameter.bound, typeEnvironment, subtypeCheckMode,
+          library, parameter.bound!, typeEnvironment, subtypeCheckMode,
           allowSuperBounded: true));
     }
 
@@ -370,7 +352,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
       // Generic function types aren't allowed as type arguments either.
       result.add(new TypeArgumentIssue(i, argument, variables[i], type));
     } else if (variables[i].bound is! InvalidType) {
-      DartType bound = substitute(variables[i].bound, substitutionMap);
+      DartType bound = substitute(variables[i].bound!, substitutionMap);
       if (!library.isNonNullableByDefault) {
         bound = legacyErasure(bound);
       }
@@ -394,7 +376,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
   if (!allowSuperBounded) return result;
 
   bool isCorrectSuperBounded = true;
-  DartType invertedType =
+  DartType? invertedType =
       convertSuperBoundedToRegularBounded(library, typeEnvironment, type);
 
   // The auxiliary type is the same as [type].  At this point we know that
@@ -421,7 +403,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
       // Generic function types aren't allowed as type arguments either.
       isCorrectSuperBounded = false;
     } else if (!typeEnvironment.isSubtypeOf(argument,
-        substitute(variables[i].bound, substitutionMap), subtypeCheckMode)) {
+        substitute(variables[i].bound!, substitutionMap), subtypeCheckMode)) {
       isCorrectSuperBounded = false;
     }
   }
@@ -453,16 +435,13 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
 // checks for super-boundness for construction of the auxiliary type.  For
 // details see Dart Language Specification, Section 14.3.2 The Instantiation to
 // Bound Algorithm.
-// TODO(dmitryas):  Remove [typedefInstantiations] when type arguments passed to
-// typedefs are preserved in the Kernel output.
 List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
     Library library,
     List<TypeParameter> parameters,
     List<DartType> arguments,
     TypeEnvironment typeEnvironment,
     SubtypeCheckMode subtypeCheckMode,
-    DartType bottomType,
-    {Map<FunctionType, List<DartType>> typedefInstantiations}) {
+    DartType bottomType) {
   assert(arguments.length == parameters.length);
   assert(bottomType == const NeverType.nonNullable() || bottomType is NullType);
   List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
@@ -478,7 +457,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
       // Generic function types aren't allowed as type arguments either.
       result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
     } else if (parameters[i].bound is! InvalidType) {
-      DartType bound = substitute(parameters[i].bound, substitutionMap);
+      DartType bound = substitute(parameters[i].bound!, substitutionMap);
       if (!library.isNonNullableByDefault) {
         bound = legacyErasure(bound);
       }
@@ -506,7 +485,7 @@ String getGenericTypeName(DartType type) {
 /// Replaces all covariant occurrences of `dynamic`, `Object`, and `void` with
 /// [BottomType] and all contravariant occurrences of `Null` and [BottomType]
 /// with `Object`.  Returns null if the converted type is the same as [type].
-DartType convertSuperBoundedToRegularBounded(
+DartType? convertSuperBoundedToRegularBounded(
     Library clientLibrary, TypeEnvironment typeEnvironment, DartType type,
     {int variance = Variance.covariant}) {
   return type.accept1(
@@ -519,8 +498,11 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   final TypeEnvironment typeEnvironment;
   final bool isNonNullableByDefault;
 
-  _SuperBoundedTypeInverter(this.typeEnvironment, {this.isNonNullableByDefault})
+  _SuperBoundedTypeInverter(this.typeEnvironment,
+      {required this.isNonNullableByDefault})
+      // ignore: unnecessary_null_comparison
       : assert(typeEnvironment != null),
+        // ignore: unnecessary_null_comparison
         assert(isNonNullableByDefault != null);
 
   bool flipTop(int variance) {
@@ -567,7 +549,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   }
 
   @override
-  DartType visitDynamicType(DynamicType node, int variance) {
+  DartType? visitDynamicType(DynamicType node, int variance) {
     // dynamic is always a top type.
     assert(isTop(node));
     if (flipTop(variance)) {
@@ -578,7 +560,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   }
 
   @override
-  DartType visitVoidType(VoidType node, int variance) {
+  DartType? visitVoidType(VoidType node, int variance) {
     // void is always a top type.
     assert(isTop(node));
     if (flipTop(variance)) {
@@ -589,7 +571,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   }
 
   @override
-  DartType visitInterfaceType(InterfaceType node, int variance) {
+  DartType? visitInterfaceType(InterfaceType node, int variance) {
     // Check for Object-based top types.
     if (isTop(node) && flipTop(variance)) {
       return bottomType;
@@ -599,7 +581,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   }
 
   @override
-  DartType visitFutureOrType(FutureOrType node, int variance) {
+  DartType? visitFutureOrType(FutureOrType node, int variance) {
     // Check FutureOr-based top types.
     if (isTop(node) && flipTop(variance)) {
       return bottomType;
@@ -609,7 +591,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   }
 
   @override
-  DartType visitNullType(NullType node, int variance) {
+  DartType? visitNullType(NullType node, int variance) {
     // Null isn't a bottom type in NNBD.
     if (isBottom(node) && flipBottom(variance)) {
       return topType;
@@ -619,7 +601,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   }
 
   @override
-  DartType visitNeverType(NeverType node, int variance) {
+  DartType? visitNeverType(NeverType node, int variance) {
     // Depending on the variance, Never may not be a bottom type.
     if (isBottom(node) && flipBottom(variance)) {
       return topType;
@@ -629,7 +611,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   }
 
   @override
-  DartType visitTypeParameterType(TypeParameterType node, int variance) {
+  DartType? visitTypeParameterType(TypeParameterType node, int variance) {
     // Types such as X extends Never are bottom types.
     if (isBottom(node) && flipBottom(variance)) {
       return topType;
@@ -639,7 +621,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   }
 
   @override
-  DartType visitBottomType(BottomType node, int variance) {
+  DartType? visitBottomType(BottomType node, int variance) {
     // Bottom is always a bottom type.
     assert(isBottom(node));
     if (flipBottom(variance)) {
@@ -654,15 +636,15 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   // TODO(dmitryas): Remove the method when the discrepancy between the NNBD
   // modes is resolved.
   @override
-  DartType visitTypedefType(TypedefType node, int variance) {
-    Nullability newNullability = visitNullability(node);
-    List<DartType> newTypeArguments = null;
+  DartType? visitTypedefType(TypedefType node, int variance) {
+    Nullability? newNullability = visitNullability(node);
+    List<DartType>? newTypeArguments = null;
     for (int i = 0; i < node.typeArguments.length; i++) {
       // The implementation of instantiate-to-bound in legacy mode ignored the
       // variance of type parameters of the typedef.  This behavior is preserved
       // here in passing the 'variance' parameter unchanged in for legacy
       // libraries.
-      DartType newTypeArgument = node.typeArguments[i].accept1(
+      DartType? newTypeArgument = node.typeArguments[i].accept1(
           this,
           isNonNullableByDefault
               ? Variance.combine(
@@ -678,15 +660,16 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
 }
 
 int computeVariance(TypeParameter typeParameter, DartType type,
-    {Map<TypeParameter, Map<DartType, int>> computedVariances}) {
+    {Map<TypeParameter, Map<DartType, int>>? computedVariances}) {
   computedVariances ??= new Map<TypeParameter, Map<DartType, int>>.identity();
-  computedVariances[typeParameter] ??= new Map<DartType, int>.identity();
+  Map<DartType, int> variancesFromTypeParameter =
+      computedVariances[typeParameter] ??= new Map<DartType, int>.identity();
 
-  int variance = computedVariances[typeParameter][type];
+  int? variance = variancesFromTypeParameter[type];
   if (variance != null) return variance;
-  computedVariances[typeParameter][type] = VarianceCalculator._visitMarker;
+  variancesFromTypeParameter[type] = VarianceCalculator._visitMarker;
 
-  return computedVariances[typeParameter][type] =
+  return variancesFromTypeParameter[type] =
       type.accept1(new VarianceCalculator(typeParameter), computedVariances);
 }
 
@@ -742,7 +725,7 @@ class VarianceCalculator
       Typedef typedefNode = node.typedefNode;
       TypeParameter typedefTypeParameter = typedefNode.typeParameters[i];
       if (computedVariances.containsKey(typedefTypeParameter) &&
-          computedVariances[typedefTypeParameter][typedefNode.type] ==
+          computedVariances[typedefTypeParameter]![typedefNode.type] ==
               _visitMarker) {
         throw new StateError("The typedef '${node.typedefNode.name}' "
             "has a reference to itself.");
@@ -753,7 +736,7 @@ class VarianceCalculator
           Variance.combine(
               computeVariance(typeParameter, node.typeArguments[i],
                   computedVariances: computedVariances),
-              computeVariance(typedefTypeParameter, typedefNode.type,
+              computeVariance(typedefTypeParameter, typedefNode.type!,
                   computedVariances: computedVariances)));
     }
     return result;
@@ -772,7 +755,7 @@ class VarianceCalculator
       // variance of [typeParameter] in the entire type invariant.  The
       // invocation of the visitor below is made to simply figure out if
       // [typeParameter] occurs in the bound.
-      if (computeVariance(typeParameter, functionTypeParameter.bound,
+      if (computeVariance(typeParameter, functionTypeParameter.bound!,
               computedVariances: computedVariances) !=
           Variance.unrelated) {
         result = Variance.invariant;

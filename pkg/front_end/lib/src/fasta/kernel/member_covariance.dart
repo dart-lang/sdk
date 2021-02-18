@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:math';
 
 import 'package:kernel/ast.dart';
@@ -51,27 +49,27 @@ class Covariance {
   /// The covariance mask for the positional parameters.
   ///
   /// If no positional parameters have covariance, this is `null`.
-  final List<int> _positionalParameters;
+  final List<int>? _positionalParameters;
 
   /// The covariance mask for the named parameters with name covariance.
   ///
   /// If no named parameters have covariance, this is `null`.
-  final Map<String, int> _namedParameters;
+  final Map<String, int>? _namedParameters;
 
   /// The generic-covariant-impl state for the type parameters.
   ///
   /// If no type parameters are generic-covariant-impl, this is `null`.
-  final List<bool> _typeParameters;
+  final List<bool>? _typeParameters;
 
   Covariance.internal(
       this._positionalParameters, this._namedParameters, this._typeParameters) {
     assert(_positionalParameters == null ||
-        _positionalParameters.any((element) => element != 0));
+        _positionalParameters!.any((element) => element != 0));
     assert(_namedParameters == null ||
-        _namedParameters.values.isNotEmpty &&
-            _namedParameters.values.every((element) => element != 0));
+        _namedParameters!.values.isNotEmpty &&
+            _namedParameters!.values.every((element) => element != 0));
     assert(
-        _typeParameters == null || _typeParameters.any((element) => element));
+        _typeParameters == null || _typeParameters!.any((element) => element));
   }
 
   /// The empty covariance.
@@ -97,7 +95,7 @@ class Covariance {
   /// Computes the covariance for the [setter].
   factory Covariance.fromSetter(Procedure setter) {
     int covariance =
-        covarianceFromParameter(setter.function.positionalParameters.first);
+        covarianceFromParameter(setter.function!.positionalParameters.first);
     if (covariance == 0) {
       return const Covariance.empty();
     }
@@ -106,8 +104,8 @@ class Covariance {
 
   /// Computes the covariance for the [procedure].
   factory Covariance.fromMethod(Procedure procedure) {
-    FunctionNode function = procedure.function;
-    List<int> positionalParameters;
+    FunctionNode function = procedure.function!;
+    List<int>? positionalParameters;
     if (function.positionalParameters.isNotEmpty) {
       for (int index = 0;
           index < function.positionalParameters.length;
@@ -121,18 +119,18 @@ class Covariance {
         }
       }
     }
-    Map<String, int> namedParameters;
+    Map<String, int>? namedParameters;
     if (function.namedParameters.isNotEmpty) {
       for (int index = 0; index < function.namedParameters.length; index++) {
         VariableDeclaration parameter = function.namedParameters[index];
         int covariance = covarianceFromParameter(parameter);
         if (covariance != 0) {
           namedParameters ??= {};
-          namedParameters[parameter.name] = covariance;
+          namedParameters[parameter.name!] = covariance;
         }
       }
     }
-    List<bool> typeParameters;
+    List<bool>? typeParameters;
     if (function.typeParameters.isNotEmpty) {
       for (int index = 0; index < function.typeParameters.length; index++) {
         if (function.typeParameters[index].isGenericCovariantImpl) {
@@ -156,7 +154,8 @@ class Covariance {
   /// If [forSetter] is `true`, the covariance is computed for the setter
   /// aspect of [member]. Otherwise, the covariance for the getter/method aspect
   /// of [member] is computed.
-  factory Covariance.fromMember(Member member, {bool forSetter}) {
+  factory Covariance.fromMember(Member member, {required bool forSetter}) {
+    // ignore: unnecessary_null_comparison
     assert(forSetter != null);
     if (member is Procedure) {
       if (member.kind == ProcedureKind.Getter) {
@@ -185,40 +184,47 @@ class Covariance {
       _typeParameters == null;
 
   /// Returns the covariance mask for the [index]th positional parameter.
-  int getPositionalVariance(int index) =>
-      _positionalParameters != null && index < _positionalParameters.length
-          ? _positionalParameters[index]
-          : 0;
+  int getPositionalVariance(int index) {
+    List<int>? positionalParameters = _positionalParameters;
+    return positionalParameters != null && index < positionalParameters.length
+        ? positionalParameters[index]
+        : 0;
+  }
 
   /// Returns the covariance mask for the named parameter with the [name].
-  int getNamedVariance(String name) =>
-      _namedParameters != null ? (_namedParameters[name] ?? 0) : 0;
+  int getNamedVariance(String name) {
+    Map<String, int>? namedParameters = _namedParameters;
+    return namedParameters != null ? (namedParameters[name] ?? 0) : 0;
+  }
 
   /// Returns `true` if the [index]th type parameter is generic-covariant-impl.
-  bool isTypeParameterGenericCovariantImpl(int index) =>
-      _typeParameters != null && index < _typeParameters.length
-          ? _typeParameters[index]
-          : false;
+  bool isTypeParameterGenericCovariantImpl(int index) {
+    List<bool>? typeParameters = _typeParameters;
+    return typeParameters != null && index < typeParameters.length
+        ? typeParameters[index]
+        : false;
+  }
 
   /// Returns the merge of this covariance with [other] in which parameters are
   /// covariant if they are covariant in either [this] or [other].
   Covariance merge(Covariance other) {
     if (identical(this, other)) return this;
-    List<int> positionalParameters;
+    List<int>? positionalParameters;
     if (_positionalParameters == null) {
       positionalParameters = other._positionalParameters;
     } else if (other._positionalParameters == null) {
       positionalParameters = _positionalParameters;
     } else {
       positionalParameters = new List<int>.filled(
-          max(_positionalParameters.length, other._positionalParameters.length),
-          null);
+          max(_positionalParameters!.length,
+              other._positionalParameters!.length),
+          0);
       for (int index = 0; index < positionalParameters.length; index++) {
         positionalParameters[index] =
             getPositionalVariance(index) | other.getPositionalVariance(index);
       }
     }
-    Map<String, int> namedParameters;
+    Map<String, int>? namedParameters;
     if (_namedParameters == null) {
       namedParameters = other._namedParameters;
     } else if (other._namedParameters == null) {
@@ -226,22 +232,22 @@ class Covariance {
     } else {
       namedParameters = {};
       Set<String> names = {
-        ..._namedParameters.keys,
-        ...other._namedParameters.keys
+        ..._namedParameters!.keys,
+        ...other._namedParameters!.keys
       };
       for (String name in names) {
         namedParameters[name] =
             getNamedVariance(name) | other.getNamedVariance(name);
       }
     }
-    List<bool> typeParameters;
+    List<bool>? typeParameters;
     if (_typeParameters == null) {
       typeParameters = other._typeParameters;
     } else if (other._typeParameters == null) {
       typeParameters = _typeParameters;
     } else {
       typeParameters = new List<bool>.filled(
-          max(_typeParameters.length, other._typeParameters.length), null);
+          max(_typeParameters!.length, other._typeParameters!.length), false);
       for (int index = 0; index < typeParameters.length; index++) {
         typeParameters[index] = isTypeParameterGenericCovariantImpl(index) ||
             other.isTypeParameterGenericCovariantImpl(index);
@@ -263,24 +269,26 @@ class Covariance {
   void applyCovariance(Member member) {
     if (isEmpty) return;
     if (member is Procedure) {
-      FunctionNode function = member.function;
-      if (_positionalParameters != null) {
-        for (int index = 0; index < _positionalParameters.length; index++) {
+      FunctionNode function = member.function!;
+      List<int>? positionalParameters = _positionalParameters;
+      if (positionalParameters != null) {
+        for (int index = 0; index < positionalParameters.length; index++) {
           if (index < function.positionalParameters.length) {
-            covarianceToParameter(_positionalParameters[index],
+            covarianceToParameter(positionalParameters[index],
                 function.positionalParameters[index]);
           }
         }
       }
       if (_namedParameters != null) {
         for (VariableDeclaration parameter in function.namedParameters) {
-          covarianceToParameter(getNamedVariance(parameter.name), parameter);
+          covarianceToParameter(getNamedVariance(parameter.name!), parameter);
         }
       }
-      if (_typeParameters != null) {
-        for (int index = 0; index < _typeParameters.length; index++) {
+      List<bool>? typeParameters = _typeParameters;
+      if (typeParameters != null) {
+        for (int index = 0; index < typeParameters.length; index++) {
           if (index < function.typeParameters.length) {
-            if (_typeParameters[index]) {
+            if (typeParameters[index]) {
               function.typeParameters[index].isGenericCovariantImpl = true;
             }
           }
@@ -299,18 +307,21 @@ class Covariance {
   @override
   int get hashCode {
     int hash = 0;
-    if (_positionalParameters != null) {
-      for (int covariance in _positionalParameters) {
+    List<int>? positionalParameters = _positionalParameters;
+    if (positionalParameters != null) {
+      for (int covariance in positionalParameters) {
         hash += covariance.hashCode * 17;
       }
     }
-    if (_namedParameters != null) {
-      for (String name in _namedParameters.keys) {
-        hash += name.hashCode * 19 + _namedParameters[name].hashCode * 23;
+    Map<String, int>? namedParameters = _namedParameters;
+    if (namedParameters != null) {
+      for (String name in namedParameters.keys) {
+        hash += name.hashCode * 19 + namedParameters[name].hashCode * 23;
       }
     }
-    if (_typeParameters != null) {
-      for (bool covariance in _typeParameters) {
+    List<bool>? typeParameters = _typeParameters;
+    if (typeParameters != null) {
+      for (bool covariance in typeParameters) {
         if (covariance) {
           hash += covariance.hashCode * 31;
         }
@@ -329,7 +340,7 @@ class Covariance {
           return false;
         }
         int positionalParameterCount = max(
-            _positionalParameters.length, other._positionalParameters.length);
+            _positionalParameters!.length, other._positionalParameters!.length);
         for (int i = 0; i < positionalParameterCount; i++) {
           if (getPositionalVariance(i) != other.getPositionalVariance(i)) {
             return false;
@@ -341,8 +352,8 @@ class Covariance {
           return false;
         }
         Set<String> names = {
-          ..._namedParameters.keys,
-          ...other._namedParameters.keys
+          ..._namedParameters!.keys,
+          ...other._namedParameters!.keys
         };
         for (String name in names) {
           if (getNamedVariance(name) != other.getNamedVariance(name)) {
@@ -355,7 +366,7 @@ class Covariance {
           return false;
         }
         int typeParameterCount =
-            max(_typeParameters.length, other._typeParameters.length);
+            max(_typeParameters!.length, other._typeParameters!.length);
         for (int i = 0; i < typeParameterCount; i++) {
           if (isTypeParameterGenericCovariantImpl(i) !=
               other.isTypeParameterGenericCovariantImpl(i)) {
@@ -376,12 +387,13 @@ class Covariance {
     } else {
       sb.write('Covariance(');
       String comma = '';
-      if (_positionalParameters != null) {
-        for (int index = 0; index < _positionalParameters.length; index++) {
-          if (_positionalParameters[index] != 0) {
+      List<int>? positionalParameters = _positionalParameters;
+      if (positionalParameters != null) {
+        for (int index = 0; index < positionalParameters.length; index++) {
+          if (positionalParameters[index] != 0) {
             sb.write(comma);
             sb.write('$index:');
-            switch (_positionalParameters[index]) {
+            switch (positionalParameters[index]) {
               case GenericCovariantImpl:
                 sb.write('GenericCovariantImpl');
                 break;
@@ -396,9 +408,10 @@ class Covariance {
           }
         }
       }
-      if (_namedParameters != null) {
-        for (String name in _namedParameters.keys) {
-          int covariance = _namedParameters[name];
+      Map<String, int>? namedParameters = _namedParameters;
+      if (namedParameters != null) {
+        for (String name in namedParameters.keys) {
+          int covariance = namedParameters[name]!;
           if (covariance != 0) {
             sb.write(comma);
             sb.write('$name:');
@@ -418,12 +431,13 @@ class Covariance {
           }
         }
       }
-      if (_typeParameters != null) {
+      List<bool>? typeParameters = _typeParameters;
+      if (typeParameters != null) {
         sb.write(comma);
         sb.write('types:');
         comma = '';
-        for (int index = 0; index < _typeParameters.length; index++) {
-          if (_typeParameters[index]) {
+        for (int index = 0; index < typeParameters.length; index++) {
+          if (typeParameters[index]) {
             sb.write(comma);
             sb.write('$index');
             comma = ',';

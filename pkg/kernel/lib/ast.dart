@@ -873,6 +873,7 @@ class Typedef extends NamedNode implements FileUriNode {
   List<Expression> annotations = const <Expression>[];
   String name;
   final List<TypeParameter> typeParameters;
+  // TODO(johnniwinther): Make this non-nullable.
   DartType? type;
 
   // The following two fields describe parameters of the underlying type when
@@ -1840,7 +1841,7 @@ class Field extends Member {
   CanonicalName? get getterCanonicalName => getterReference.canonicalName;
   CanonicalName? get setterCanonicalName => setterReference?.canonicalName;
 
-  Field.mutable(Name name,
+  Field.mutable(Name? name,
       {this.type: const DynamicType(),
       this.initializer,
       bool isCovariant: false,
@@ -1864,7 +1865,7 @@ class Field extends Member {
     this.transformerFlags = transformerFlags;
   }
 
-  Field.immutable(Name name,
+  Field.immutable(Name? name,
       {this.type: const DynamicType(),
       this.initializer,
       bool isCovariant: false,
@@ -2616,7 +2617,7 @@ class Procedure extends Member {
   ProcedureStubKind stubKind;
   Reference? stubTargetReference;
 
-  Procedure(Name name, ProcedureKind kind, FunctionNode function,
+  Procedure(Name? name, ProcedureKind kind, FunctionNode function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
@@ -2642,7 +2643,7 @@ class Procedure extends Member {
             stubTargetReference:
                 getMemberReferenceBasedOnProcedureKind(stubTarget, kind));
 
-  Procedure._byReferenceRenamed(Name name, this.kind, this.function,
+  Procedure._byReferenceRenamed(Name? name, this.kind, this.function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,

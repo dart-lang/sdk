@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "ast.dart"
     show
         Class,
@@ -29,15 +27,15 @@ class ReferenceFromIndex {
   }
 
   /// Lookup the new library and get an index of the old library.
-  IndexedLibrary lookupLibrary(Library library) => _indexedLibraries[library];
+  IndexedLibrary? lookupLibrary(Library library) => _indexedLibraries[library];
 }
 
 abstract class IndexedContainer {
   final Map<Name, Reference> _getterReferences = new Map<Name, Reference>();
   final Map<Name, Reference> _setterReferences = new Map<Name, Reference>();
 
-  Reference lookupGetterReference(Name name) => _getterReferences[name];
-  Reference lookupSetterReference(Name name) => _setterReferences[name];
+  Reference? lookupGetterReference(Name name) => _getterReferences[name];
+  Reference? lookupSetterReference(Name name) => _setterReferences[name];
 
   Library get library;
 
@@ -48,7 +46,7 @@ abstract class IndexedContainer {
   }
 
   void _addProcedure(Procedure procedure) {
-    Name name = procedure.name;
+    Name name = procedure.name!;
     if (procedure.isSetter) {
       assert(_setterReferences[name] == null);
       _setterReferences[name] = procedure.reference;
@@ -64,12 +62,12 @@ abstract class IndexedContainer {
   void _addFields(List<Field> fields) {
     for (int i = 0; i < fields.length; i++) {
       Field field = fields[i];
-      Name name = field.name;
+      Name name = field.name!;
       assert(_getterReferences[name] == null);
       _getterReferences[name] = field.getterReference;
       if (field.hasSetter) {
         assert(_setterReferences[name] == null);
-        _setterReferences[name] = field.setterReference;
+        _setterReferences[name] = field.setterReference!;
       }
     }
   }
@@ -105,10 +103,10 @@ class IndexedLibrary extends IndexedContainer {
     _addFields(library.fields);
   }
 
-  Typedef lookupTypedef(String name) => _typedefs[name];
-  Class lookupClass(String name) => _classes[name];
-  IndexedClass lookupIndexedClass(String name) => _indexedClasses[name];
-  Extension lookupExtension(String name) => _extensions[name];
+  Typedef? lookupTypedef(String name) => _typedefs[name];
+  Class? lookupClass(String name) => _classes[name];
+  IndexedClass? lookupIndexedClass(String name) => _indexedClasses[name];
+  Extension? lookupExtension(String name) => _extensions[name];
 }
 
 class IndexedClass extends IndexedContainer {
@@ -118,12 +116,12 @@ class IndexedClass extends IndexedContainer {
   IndexedClass._(Class c, this.library) {
     for (int i = 0; i < c.constructors.length; i++) {
       Constructor constructor = c.constructors[i];
-      _constructors[constructor.name] = constructor;
+      _constructors[constructor.name!] = constructor;
     }
     for (int i = 0; i < c.procedures.length; i++) {
       Procedure procedure = c.procedures[i];
       if (procedure.isFactory) {
-        _constructors[procedure.name] = procedure;
+        _constructors[procedure.name!] = procedure;
       } else {
         _addProcedure(procedure);
       }
@@ -131,5 +129,5 @@ class IndexedClass extends IndexedContainer {
     _addFields(c.fields);
   }
 
-  Member lookupConstructor(Name name) => _constructors[name];
+  Member? lookupConstructor(Name name) => _constructors[name];
 }
