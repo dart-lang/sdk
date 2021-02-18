@@ -1,3 +1,4 @@
+// @dart = 2.9
 final int field = 42;
 void set field(int value) {}
 

@@ -1,3 +1,4 @@
+// @dart = 2.9
 class C {
   int value;
   C() : value = 0 {}

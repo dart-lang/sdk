@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::bool a = const <Null>[] is{ForNonNullableByDefault} core::List<core::int>;
+static const field core::bool b = const <core::int?>[] is{ForNonNullableByDefault} core::List<core::int>;
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///is.dart:5:20 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///is.dart:6:20 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 2, effectively constant: 2

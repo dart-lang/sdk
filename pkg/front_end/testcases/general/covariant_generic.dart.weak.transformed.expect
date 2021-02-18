@@ -1,0 +1,55 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Callback<contravariant T extends core::Object* = dynamic> = (T*) →* void;
+class Foo<T extends core::Object* = dynamic> extends core::Object {
+  final field self::Foo::T* finalField;
+  final field (self::Foo::T*) →* void callbackField;
+  generic-covariant-impl field self::Foo::T* mutableField = null;
+  field (self::Foo::T*) →* void mutableCallbackField = null;
+  constructor •(self::Foo::T* finalField, (self::Foo::T*) →* void callbackField) → self::Foo<self::Foo::T*>*
+    : self::Foo::finalField = finalField, self::Foo::callbackField = callbackField, super core::Object::•()
+    ;
+  method method(generic-covariant-impl self::Foo::T* x) → void {}
+  set setter(generic-covariant-impl self::Foo::T* x) → void {}
+  method withCallback((self::Foo::T*) →* void callback) → void {
+    callback.call(this.{self::Foo::finalField});
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  self::Foo<core::int*>* fooInt = new self::Foo::•<core::int*>(1, (core::int* x) → Null {});
+  fooInt.{self::Foo::method}(3);
+  fooInt.{self::Foo::setter} = 3;
+  fooInt.{self::Foo::withCallback}((core::int* x) → Null {});
+  fooInt.{self::Foo::withCallback}((core::num* x) → Null {});
+  fooInt.{self::Foo::mutableField} = 3;
+  fooInt.{self::Foo::mutableCallbackField} = (core::int* x) → Null {};
+  self::Foo<core::num*>* fooNum = fooInt;
+  fooNum.{self::Foo::method}(3);
+  fooNum.{self::Foo::method}(2.5);
+  fooNum.{self::Foo::setter} = 3;
+  fooNum.{self::Foo::setter} = 2.5;
+  fooNum.{self::Foo::withCallback}((core::num* x) → Null {});
+  fooNum.{self::Foo::mutableField} = 3;
+  fooNum.{self::Foo::mutableField} = 2.5;
+  let final self::Foo<core::num*>* #t1 = fooNum in let final core::int* #t2 = 3 in (#t1.{self::Foo::mutableCallbackField} as{TypeError,CovarianceCheck} (core::num*) →* void).call(#t2);
+  let final self::Foo<core::num*>* #t3 = fooNum in let final core::double* #t4 = 2.5 in (#t3.{self::Foo::mutableCallbackField} as{TypeError,CovarianceCheck} (core::num*) →* void).call(#t4);
+  fooNum.{self::Foo::mutableCallbackField} = (core::num* x) → Null {};
+}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///covariant_generic.dart:45:31 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///covariant_generic.dart:46:31 -> DoubleConstant(2.5)
+Extra constant evaluation: evaluated: 58, effectively constant: 2

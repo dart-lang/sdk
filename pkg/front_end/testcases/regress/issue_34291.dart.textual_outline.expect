@@ -1,3 +1,4 @@
+// @dart = 2.9
 import "issue_34291_lib.dart" as lib;
 
 class B {}

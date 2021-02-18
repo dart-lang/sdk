@@ -1,0 +1,125 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object* = dynamic> extends core::Object {
+  generic-covariant-impl field self::C::T* field1;
+  generic-covariant-impl field () →* self::C::T* field2;
+  field (self::C::T*) →* void field3;
+  generic-covariant-impl field (self::C::T*) →* self::C::T* field4;
+  generic-covariant-impl field () →* () →* self::C::T* field5;
+  field (() →* self::C::T*) →* void field6;
+  generic-covariant-impl field (() →* self::C::T*) →* self::C::T* field7;
+  generic-covariant-impl field ((self::C::T*) →* void) →* void field8;
+  generic-covariant-impl field ((self::C::T*) →* void) →* self::C::T* field9;
+  generic-covariant-impl field ((self::C::T*) →* self::C::T*) →* void field10;
+  generic-covariant-impl field ((self::C::T*) →* self::C::T*) →* self::C::T* field11;
+  generic-covariant-impl field <S extends self::C::T* = dynamic>() →* S* field12;
+  generic-covariant-impl field <S extends self::C::T* = dynamic>(S*) →* void field13;
+  generic-covariant-impl field <S extends self::C::T* = dynamic>(S*) →* S* field14;
+  generic-covariant-impl field (<S extends self::C::T* = dynamic>() →* S*) →* void field15;
+  constructor •(self::C::T* field1) → self::C<self::C::T*>*
+    ;
+  get getter1() → self::C::T*
+    ;
+  get getter2() → () →* self::C::T*
+    ;
+  get getter3() → (self::C::T*) →* void
+    ;
+  get getter4() → (self::C::T*) →* self::C::T*
+    ;
+  get getter5() → () →* () →* self::C::T*
+    ;
+  get getter6() → (() →* self::C::T*) →* void
+    ;
+  get getter7() → (() →* self::C::T*) →* self::C::T*
+    ;
+  get getter8() → ((self::C::T*) →* void) →* void
+    ;
+  get getter9() → ((self::C::T*) →* void) →* self::C::T*
+    ;
+  get getter10() → ((self::C::T*) →* self::C::T*) →* void
+    ;
+  get getter11() → ((self::C::T*) →* self::C::T*) →* self::C::T*
+    ;
+  get getter12() → <S extends self::C::T* = dynamic>() →* S*
+    ;
+  get getter13() → <S extends self::C::T* = dynamic>(S*) →* void
+    ;
+  get getter14() → <S extends self::C::T* = dynamic>(S*) →* S*
+    ;
+  get getter15() → (<S extends self::C::T* = dynamic>() →* S*) →* void
+    ;
+  set setter1(generic-covariant-impl self::C::T* value) → void
+    ;
+  set setter2(generic-covariant-impl () →* self::C::T* value) → void
+    ;
+  set setter3((self::C::T*) →* void value) → void
+    ;
+  set setter4(generic-covariant-impl (self::C::T*) →* self::C::T* value) → void
+    ;
+  set setter5(generic-covariant-impl () →* () →* self::C::T* value) → void
+    ;
+  set setter6((() →* self::C::T*) →* void value) → void
+    ;
+  set setter7(generic-covariant-impl (() →* self::C::T*) →* self::C::T* value) → void
+    ;
+  set setter8(generic-covariant-impl ((self::C::T*) →* void) →* void value) → void
+    ;
+  set setter9(generic-covariant-impl ((self::C::T*) →* void) →* self::C::T* value) → void
+    ;
+  set setter10(generic-covariant-impl ((self::C::T*) →* self::C::T*) →* void value) → void
+    ;
+  set setter11(generic-covariant-impl ((self::C::T*) →* self::C::T*) →* self::C::T* value) → void
+    ;
+  set setter12(generic-covariant-impl <S extends self::C::T* = dynamic>() →* S* value) → void
+    ;
+  set setter13(generic-covariant-impl <S extends self::C::T* = dynamic>(S*) →* void value) → void
+    ;
+  set setter14(generic-covariant-impl <S extends self::C::T* = dynamic>(S*) →* S* value) → void
+    ;
+  set setter15(generic-covariant-impl (<S extends self::C::T* = dynamic>() →* S*) →* void value) → void
+    ;
+  method method1(generic-covariant-impl self::C::T* value) → void
+    ;
+  method method2(generic-covariant-impl () →* self::C::T* value) → void
+    ;
+  method method3((self::C::T*) →* void value) → void
+    ;
+  method method4(generic-covariant-impl (self::C::T*) →* self::C::T* value) → void
+    ;
+  method method5(generic-covariant-impl () →* () →* self::C::T* value) → void
+    ;
+  method method6((() →* self::C::T*) →* void value) → void
+    ;
+  method method7(generic-covariant-impl (() →* self::C::T*) →* self::C::T* value) → void
+    ;
+  method method8(generic-covariant-impl ((self::C::T*) →* void) →* void value) → void
+    ;
+  method method9(generic-covariant-impl ((self::C::T*) →* void) →* self::C::T* value) → void
+    ;
+  method method10(generic-covariant-impl ((self::C::T*) →* self::C::T*) →* void value) → void
+    ;
+  method method11(generic-covariant-impl ((self::C::T*) →* self::C::T*) →* self::C::T* value) → void
+    ;
+  method method12(generic-covariant-impl <S extends self::C::T* = dynamic>() →* S* value) → void
+    ;
+  method method13(generic-covariant-impl <S extends self::C::T* = dynamic>(S*) →* void value) → void
+    ;
+  method method14(generic-covariant-impl <S extends self::C::T* = dynamic>(S*) →* S* value) → void
+    ;
+  method method15(generic-covariant-impl (<S extends self::C::T* = dynamic>() →* S*) →* void value) → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic
+  ;

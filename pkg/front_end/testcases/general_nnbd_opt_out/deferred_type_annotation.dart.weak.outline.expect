@@ -1,0 +1,35 @@
+library;
+import self as self;
+import "deferred_lib.dart" as def;
+
+import "org-dartlang-testcase:///deferred_lib.dart" deferred as d;
+
+static method bad(def::C* x) → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+library;
+import self as def;
+import "dart:core" as core;
+
+class C extends core::Object {
+  static field core::int* y;
+  synthetic constructor •() → def::C*
+    ;
+  static method m() → core::int*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field core::int* x;
+static method m(dynamic x) → dynamic
+  ;

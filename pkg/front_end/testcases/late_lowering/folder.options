@@ -1,3 +1,2 @@
---enable-experiment=non-nullable
 --force-late-lowering
 --overwrite-current-sdk-version=2.9999

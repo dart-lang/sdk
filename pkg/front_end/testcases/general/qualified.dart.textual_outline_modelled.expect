@@ -1,3 +1,4 @@
+// @dart = 2.9
 library test.qualified.main;
 
 import "qualified_lib.dart" as lib;

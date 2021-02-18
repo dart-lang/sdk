@@ -76,8 +76,8 @@ general/issue38938: RuntimeError
 general/issue38944: RuntimeError
 general/issue38961: RuntimeError
 general/issue41210a: TypeCheckError
-general/issue41210b/issue41210: TypeCheckError
 general/issue41210b/issue41210.no_link: TypeCheckError
+general/issue41210b/issue41210: TypeCheckError
 general/micro: RuntimeError
 general/mixin_application_override: TypeCheckError
 general/mixin_constructors_with_default_values: RuntimeError
@@ -137,7 +137,6 @@ general_nnbd_opt_out/override_check_basic: TypeCheckError # Issue #31620
 general_nnbd_opt_out/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general_nnbd_opt_out/override_setter_with_field: TypeCheckError
 general_nnbd_opt_out/spread_collection: RuntimeError # Should be fixed as part of implementing spread collection support
-general_nnbd_opt_out/statements: Crash
 general_nnbd_opt_out/type_parameter_type_named_int: RuntimeError
 general_nnbd_opt_out/type_variable_as_super: RuntimeError
 general_nnbd_opt_out/unsound_promotion: TypeCheckError
@@ -178,13 +177,30 @@ nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
+nnbd_mixed/bad_mixins: TypeCheckError
+nnbd_mixed/covariant_from_opt_in: TypeCheckError
+nnbd_mixed/hierarchy/conflict: TypeCheckError
+nnbd_mixed/hierarchy/duplicates: TypeCheckError
+nnbd_mixed/hierarchy/forwarding_semi_stub_field: TypeCheckError
+nnbd_mixed/hierarchy/forwarding_semi_stub_method: TypeCheckError
+nnbd_mixed/hierarchy/forwarding_semi_stub_setter: TypeCheckError
+nnbd_mixed/hierarchy/getter_setter: TypeCheckError
+nnbd_mixed/hierarchy/in_dill_out_in/in_out_in: TypeCheckError
+nnbd_mixed/hierarchy/in_out_dill_in/in_out_in: TypeCheckError
+nnbd_mixed/hierarchy/in_out_in: TypeCheckError
+nnbd_mixed/hierarchy/mix_in_override: TypeCheckError
+nnbd_mixed/hierarchy/override: TypeCheckError
+nnbd_mixed/inheritance_from_opt_in: TypeCheckError
+nnbd_mixed/issue41567: TypeCheckError
+nnbd_mixed/messages_with_types_opt_in: TypeCheckError
+nnbd_mixed/messages_with_types_opt_out: TypeCheckError
 none/equals: TypeCheckError
 none/method_invocation: TypeCheckError
 none/mixin_covariant: TextSerializationFailure
+none/mixin_super: TextSerializationFailure
 none/operator: TypeCheckError
 none/property_get: TypeCheckError
 none/property_set: TypeCheckError
-none/mixin_super: TextSerializationFailure
 none/tearoff_opt_out: TextSerializationFailure
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
@@ -255,7 +271,7 @@ regress/issue_39091_2: RuntimeError
 regress/utf_16_le_content.crash: RuntimeError
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 set_literals/disambiguation_rule: RuntimeError
+value_class/copy_with_call_sites: RuntimeError # Expected
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected
 value_class/value_implements_non_value: RuntimeError # Expected
-value_class/copy_with_call_sites: RuntimeError # Expected

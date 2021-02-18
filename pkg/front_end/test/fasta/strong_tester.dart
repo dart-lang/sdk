@@ -15,6 +15,7 @@ const int shardCount = 4;
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
   environment[ENABLE_FULL_COMPILE] = "";
+  environment['soundNullSafety'] = "true";
   return FastaContext.create(suite, environment);
 }
 

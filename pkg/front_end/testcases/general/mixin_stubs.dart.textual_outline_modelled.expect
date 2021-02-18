@@ -1,3 +1,4 @@
+// @dart = 2.9
 abstract class ClassEqMixin = Super with Mixin;
 abstract class ClassEqMixinClass = Super with MixinClass;
 

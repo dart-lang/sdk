@@ -1,3 +1,4 @@
+// @dart = 2.9
 class Class1 {
   Class1(this.field);
   String toString() => 'Class1($field)';

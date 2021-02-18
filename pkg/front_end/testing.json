@@ -56,7 +56,6 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
-        "/testcases/shaker/",
         "/testcases/expression/"
       ]
     },
@@ -74,13 +73,7 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
-        "/testcases/shaker/",
-        "/testcases/expression/",
-        "/testcases/general_nnbd_opt_out/",
-        "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/",
-        "/testcases/static_field_lowering/",
-        "/testcases/unified_collections"
+        "/testcases/expression/"
       ]
     },
     {
@@ -97,35 +90,24 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
-        "/testcases/shaker/",
         "/testcases/expression/",
+        "/testcases/extensions/",
+        "/testcases/general/",
         "/testcases/general_nnbd_opt_out/",
+        "/testcases/implicit_getter_calls",
+        "/testcases/inference",
+        "/testcases/inference_new",
+        "/testcases/instantiate_to_bound/",
+        "/testcases/new_const_insertion",
         "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/",
-        "/testcases/static_field_lowering/",
-        "/testcases/unified_collections"
-      ]
-    },
-    {
-      "name": "fast_strong",
-      "kind": "Chain",
-      "source": "test/fasta/fast_strong_suite.dart",
-      "path": "testcases/",
-      "status": "testcases/strong.status",
-      "pattern": [
-        "\\.dart$",
-        "\\.crash_dart$"
-      ],
-      "exclude": [
-        "/testcases/.*_part[0-9]*\\.dart$",
-        "/testcases/.*_lib[0-9]*\\.dart$",
-        "/testcases/dartino/",
-        "/testcases/shaker/",
-        "/testcases/expression/",
-        "/testcases/general_nnbd_opt_out/",
-        "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/",
-        "/testcases/static_field_lowering/",
+        "/testcases/no_such_method_forwarders",
+        "/testcases/nonfunction_type_aliases_no_nnbd/",
+        "/testcases/rasta/",
+        "/testcases/regress/",
+        "/testcases/runtime_checks",
+        "/testcases/runtime_checks_new",
+        "/testcases/set_literals",
+        "/testcases/variance",
         "/testcases/unified_collections"
       ]
     },
@@ -143,19 +125,13 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
-        "/testcases/shaker/",
-        "/testcases/expression/",
-        "/testcases/general_nnbd_opt_out/",
-        "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/",
-        "/testcases/static_field_lowering/",
-        "/testcases/unified_collections"
+        "/testcases/expression/"
       ]
     },
     {
       "name": "weak",
       "kind": "Chain",
-      "source": "test/fasta/weak_suite.dart",
+      "source": "test/fasta/weak_tester.dart",
       "path": "testcases/",
       "status": "testcases/weak.status",
       "pattern": [
@@ -165,21 +141,7 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
-        "/testcases/expression/",
-        "/testcases/extensions/",
-        "/testcases/general/",
-        "/testcases/implicit_getter_calls",
-        "/testcases/inference",
-        "/testcases/inference_new",
-        "/testcases/instantiate_to_bound/",
-        "/testcases/new_const_insertion",
-        "/testcases/no_such_method_forwarders",
-        "/testcases/rasta/",
-        "/testcases/regress/",
-        "/testcases/runtime_checks",
-        "/testcases/runtime_checks_new",
-        "/testcases/set_literals",
-        "/testcases/variance"
+        "/testcases/expression/"
       ]
     },
     {

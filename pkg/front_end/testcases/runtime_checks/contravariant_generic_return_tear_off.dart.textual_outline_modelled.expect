@@ -1,3 +1,4 @@
+// @dart = 2.9
 library test;
 
 G<num> g(C<num> c) {}

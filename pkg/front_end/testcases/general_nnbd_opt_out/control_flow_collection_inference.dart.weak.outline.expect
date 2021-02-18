@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    ;
+  get foo() → core::int*
+    ;
+}
+static method oracle<T extends core::Object* = dynamic>([self::oracle::T* t]) → dynamic
+  ;
+static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, core::List<core::double*>* listDouble, core::Map<core::String*, core::int*>* mapToInt, core::Map<core::String*, core::double*>* mapToDouble) → dynamic
+  ;
+static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dynamic
+  ;
+static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, core::List<core::double*>* listDouble, core::int* index, core::Map<core::String*, core::int*>* mapStringInt, core::Map<core::String*, core::double*>* mapStringDouble) → dynamic
+  ;
+static method testForElementErrors(core::Map<core::int*, core::int*>* map, core::List<core::int*>* list) → dynamic async 
+  ;
+static method testForElementErrorsNotAsync(asy::Stream<core::int*>* stream) → dynamic
+  ;
+static method testPromotion(self::A* a) → dynamic
+  ;
+static method main() → dynamic
+  ;

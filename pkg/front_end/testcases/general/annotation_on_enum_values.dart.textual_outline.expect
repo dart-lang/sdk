@@ -1,3 +1,4 @@
+// @dart = 2.9
 const int hest = 42;
 
 class Fisk<T> {

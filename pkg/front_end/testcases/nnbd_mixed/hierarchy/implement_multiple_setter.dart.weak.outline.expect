@@ -1,0 +1,99 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:21:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - ConcreteClass.declareAbstractImplementMultipleSetter=
+//  - Interface1.implementMultipleSetter=
+//  - Interface2.implementMultipleSetter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass implements Interface1, Interface2 {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:24:12: Context: 'ConcreteClass.declareAbstractImplementMultipleSetter=' is defined here.
+//   void set declareAbstractImplementMultipleSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:6:12: Context: 'Interface1.implementMultipleSetter=' is defined here.
+//   void set implementMultipleSetter(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:14:12: Context: 'Interface2.implementMultipleSetter=' is defined here.
+//   void set implementMultipleSetter(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:33:7: Error: The non-abstract class 'ConcreteSub' is missing implementations for these members:
+//  - AbstractClass.declareAbstractImplementMultipleSetter=
+//  - Interface1.declareAbstractImplementMultipleSetter=
+//  - Interface1.implementMultipleSetter=
+//  - Interface2.declareAbstractImplementMultipleSetter=
+//  - Interface2.implementMultipleSetter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteSub extends AbstractClass {}
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:30:12: Context: 'AbstractClass.declareAbstractImplementMultipleSetter=' is defined here.
+//   void set declareAbstractImplementMultipleSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:10:12: Context: 'Interface1.declareAbstractImplementMultipleSetter=' is defined here.
+//   void set declareAbstractImplementMultipleSetter(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:6:12: Context: 'Interface1.implementMultipleSetter=' is defined here.
+//   void set implementMultipleSetter(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:18:12: Context: 'Interface2.declareAbstractImplementMultipleSetter=' is defined here.
+//   void set declareAbstractImplementMultipleSetter(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:14:12: Context: 'Interface2.implementMultipleSetter=' is defined here.
+//   void set implementMultipleSetter(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Interface1 extends core::Object {
+  synthetic constructor •() → self::Interface1
+    ;
+  set implementMultipleSetter(core::int i) → void
+    ;
+  set declareConcreteImplementMultipleSetter(core::int i) → void
+    ;
+  set declareAbstractImplementMultipleSetter(core::int i) → void
+    ;
+}
+class Interface2 extends core::Object {
+  synthetic constructor •() → self::Interface2
+    ;
+  set implementMultipleSetter(core::int i) → void
+    ;
+  set declareConcreteImplementMultipleSetter(core::int i) → void
+    ;
+  set declareAbstractImplementMultipleSetter(core::int i) → void
+    ;
+}
+class ConcreteClass extends core::Object implements self::Interface1, self::Interface2 {
+  synthetic constructor •() → self::ConcreteClass
+    ;
+  set declareConcreteImplementMultipleSetter(core::int i) → void
+    ;
+  abstract set declareAbstractImplementMultipleSetter(core::int i) → void;
+}
+abstract class AbstractClass extends core::Object implements self::Interface1, self::Interface2 {
+  synthetic constructor •() → self::AbstractClass
+    ;
+  set declareConcreteImplementMultipleSetter(core::int i) → void
+    ;
+  abstract set declareAbstractImplementMultipleSetter(core::int i) → void;
+}
+class ConcreteSub extends self::AbstractClass {
+  synthetic constructor •() → self::ConcreteSub
+    ;
+}
+static method main() → dynamic
+  ;

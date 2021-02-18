@@ -18,7 +18,7 @@
 //
 // Translated first from Smalltalk to JavaScript, and finally to
 // Dart by Google 2008-2010.
-
+// @dart=2.9
 /**
  * A Dart implementation of the DeltaBlue constraint-solving
  * algorithm, as described in:

@@ -1,3 +1,4 @@
+// @dart = 2.9
 <
 foo< int >f1() {}
 foo Future<List<int>> (){}

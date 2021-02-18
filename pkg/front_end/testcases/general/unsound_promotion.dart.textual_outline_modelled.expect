@@ -1,3 +1,4 @@
+// @dart = 2.9
 List<A> list;
 List<S> f<S>(S s) {}
 List<T> g<T extends A>(T t) {}

@@ -1,0 +1,17 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///issue41435_lib.dart";
+
+static method main() → void
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+
+static field Never x;
+static field (Null) → void f;
+static method takesNever(Never x) → void
+  ;
+static method takesTakesNull((Null) → void f) → void
+  ;

@@ -1,0 +1,79 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_setter.dart:5:7: Error: The non-abstract class 'ConcreteSuper' is missing implementations for these members:
+//  - ConcreteSuper.declaredAbstractExtendsAbstractSetter=
+//  - ConcreteSuper.declaredConcreteExtendsAbstractSetter=
+//  - ConcreteSuper.extendedAbstractSetter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteSuper {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_setter.dart:16:12: Context: 'ConcreteSuper.declaredAbstractExtendsAbstractSetter=' is defined here.
+//   void set declaredAbstractExtendsAbstractSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_setter.dart:14:12: Context: 'ConcreteSuper.declaredConcreteExtendsAbstractSetter=' is defined here.
+//   void set declaredConcreteExtendsAbstractSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_setter.dart:8:12: Context: 'ConcreteSuper.extendedAbstractSetter=' is defined here.
+//   void set extendedAbstractSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_setter.dart:19:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - ConcreteClass.declaredAbstractExtendsAbstractSetter=
+//  - ConcreteClass.declaredAbstractSetter=
+//  - ConcreteSuper.extendedAbstractSetter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass extends ConcreteSuper {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_setter.dart:30:12: Context: 'ConcreteClass.declaredAbstractExtendsAbstractSetter=' is defined here.
+//   void set declaredAbstractExtendsAbstractSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_setter.dart:22:12: Context: 'ConcreteClass.declaredAbstractSetter=' is defined here.
+//   void set declaredAbstractSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_setter.dart:8:12: Context: 'ConcreteSuper.extendedAbstractSetter=' is defined here.
+//   void set extendedAbstractSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class ConcreteSuper extends core::Object {
+  synthetic constructor •() → self::ConcreteSuper
+    ;
+  set extendedConcreteSetter(core::int value) → void
+    ;
+  abstract set extendedAbstractSetter(core::int value) → void;
+  set declaredConcreteExtendsConcreteSetter(core::int value) → void
+    ;
+  set declaredAbstractExtendsConcreteSetter(core::int value) → void
+    ;
+  abstract set declaredConcreteExtendsAbstractSetter(core::int value) → void;
+  abstract set declaredAbstractExtendsAbstractSetter(core::int value) → void;
+}
+class ConcreteClass extends self::ConcreteSuper {
+  synthetic constructor •() → self::ConcreteClass
+    ;
+  set declaredConcreteSetter(core::int value) → void
+    ;
+  abstract set declaredAbstractSetter(core::int value) → void;
+  set declaredConcreteExtendsConcreteSetter(core::int value) → void
+    ;
+  abstract set declaredAbstractExtendsConcreteSetter(core::int value) → void;
+  set declaredConcreteExtendsAbstractSetter(core::int value) → void
+    ;
+  abstract set declaredAbstractExtendsAbstractSetter(core::int value) → void;
+}
+static method main() → dynamic
+  ;

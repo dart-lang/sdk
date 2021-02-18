@@ -1,0 +1,144 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:7:11: Error: 'superDuplicate1' is already declared in this scope.
+//   int get superDuplicate1 => 42;
+//           ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:6:8: Context: Previous declaration of 'superDuplicate1'.
+//   void superDuplicate1() {}
+//        ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:10:8: Error: 'superDuplicate2' is already declared in this scope.
+//   void superDuplicate2() {}
+//        ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:9:11: Context: Previous declaration of 'superDuplicate2'.
+//   int get superDuplicate2 => 42;
+//           ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:29:11: Error: 'interfaceDuplicate1' is already declared in this scope.
+//   int get interfaceDuplicate1 => 42;
+//           ^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:28:8: Context: Previous declaration of 'interfaceDuplicate1'.
+//   void interfaceDuplicate1() {}
+//        ^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:32:8: Error: 'interfaceDuplicate2' is already declared in this scope.
+//   void interfaceDuplicate2() {}
+//        ^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:31:11: Context: Previous declaration of 'interfaceDuplicate2'.
+//   int get interfaceDuplicate2 => 42;
+//           ^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:43:11: Error: 'extendedDuplicate1' is already declared in this scope.
+//   int get extendedDuplicate1 => 42;
+//           ^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:42:8: Context: Previous declaration of 'extendedDuplicate1'.
+//   void extendedDuplicate1() {}
+//        ^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:46:8: Error: 'extendedDuplicate2' is already declared in this scope.
+//   void extendedDuplicate2() {}
+//        ^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:45:11: Context: Previous declaration of 'extendedDuplicate2'.
+//   int get extendedDuplicate2 => 42;
+//           ^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:52:11: Error: 'mixedInDuplicate1' is already declared in this scope.
+//   int get mixedInDuplicate1 => 42;
+//           ^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:51:8: Context: Previous declaration of 'mixedInDuplicate1'.
+//   void mixedInDuplicate1() {}
+//        ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:55:8: Error: 'mixedInDuplicate2' is already declared in this scope.
+//   void mixedInDuplicate2() {}
+//        ^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:54:11: Context: Previous declaration of 'mixedInDuplicate2'.
+//   int get mixedInDuplicate2 => 42;
+//           ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:61:11: Error: 'implementedDuplicate1' is already declared in this scope.
+//   int get implementedDuplicate1 => 42;
+//           ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:60:8: Context: Previous declaration of 'implementedDuplicate1'.
+//   void implementedDuplicate1() {}
+//        ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:64:8: Error: 'implementedDuplicate2' is already declared in this scope.
+//   void implementedDuplicate2() {}
+//        ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/duplicates.dart:63:11: Context: Previous declaration of 'implementedDuplicate2'.
+//   int get implementedDuplicate2 => 42;
+//           ^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    ;
+  method superDuplicate1() → void
+    ;
+  get superDuplicate2() → core::int
+    ;
+  method extendedDuplicate1() → void
+    ;
+  method extendedDuplicate2() → void
+    ;
+}
+class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin
+    ;
+  method mixedInDuplicate1() → void
+    ;
+  method mixedInDuplicate2() → void
+    ;
+}
+class Interface extends core::Object {
+  synthetic constructor •() → self::Interface
+    ;
+  method interfaceDuplicate1() → void
+    ;
+  get interfaceDuplicate2() → core::int
+    ;
+  method implementedDuplicate1() → void
+    ;
+  method implementedDuplicate2() → void
+    ;
+}
+abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&Super&Mixin
+    : super self::Super::•()
+    ;
+  mixin-super-stub method mixedInDuplicate1() → void
+    return super.{self::Mixin::mixedInDuplicate1}();
+  mixin-super-stub method mixedInDuplicate2() → void
+    return super.{self::Mixin::mixedInDuplicate2}();
+}
+abstract class Class extends self::_Class&Super&Mixin implements self::Interface {
+  synthetic constructor •() → self::Class
+    ;
+  method superDuplicate1() → void
+    ;
+  method superDuplicate2() → void
+    ;
+  method extendedDuplicate1() → void
+    ;
+  get extendedDuplicate2() → core::int
+    ;
+  method mixedInDuplicate1() → void
+    ;
+  get mixedInDuplicate2() → core::int
+    ;
+  method interfaceDuplicate1() → void
+    ;
+  method interfaceDuplicate2() → void
+    ;
+  method implementedDuplicate1() → void
+    ;
+  get implementedDuplicate2() → core::int
+    ;
+}
+static method main() → dynamic
+  ;

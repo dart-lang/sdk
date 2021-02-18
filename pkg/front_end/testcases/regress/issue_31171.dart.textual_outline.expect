@@ -1,3 +1,4 @@
+// @dart = 2.9
 main() {}
 typedef T = ;
 typedef F = Map<String, dynamic> Function();

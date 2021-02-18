@@ -1,3 +1,4 @@
+// @dart = 2.9
 extension on List<String> {
   void foo(String bar) {}
   void foo(String baz, int a) {}

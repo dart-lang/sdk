@@ -1,0 +1,51 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field dynamic superField;
+  synthetic constructor •() → self::C*
+    ;
+  method superMethod() → dynamic
+    ;
+  get setterOnly() → dynamic
+    ;
+  set setterOnly(dynamic _) → void
+    ;
+  get getterOnly() → dynamic
+    ;
+  set getterOnly(dynamic _) → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class D extends self::C {
+  field dynamic field;
+  synthetic constructor •() → self::D*
+    ;
+  set setterOnly(dynamic _) → void
+    ;
+  get getterOnly() → dynamic
+    ;
+  method method() → dynamic
+    ;
+  method test() → void
+    ;
+}
+class E extends self::D {
+  field dynamic missingField;
+  synthetic constructor •() → self::E*
+    ;
+  method missingMethod() → void
+    ;
+}
+static method main() → dynamic
+  ;

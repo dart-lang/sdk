@@ -1,0 +1,79 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_getter.dart:5:7: Error: The non-abstract class 'ConcreteSuper' is missing implementations for these members:
+//  - ConcreteSuper.declaredAbstractExtendsAbstractGetter
+//  - ConcreteSuper.declaredConcreteExtendsAbstractGetter
+//  - ConcreteSuper.extendedAbstractGetter
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteSuper {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_getter.dart:16:11: Context: 'ConcreteSuper.declaredAbstractExtendsAbstractGetter' is defined here.
+//   int get declaredAbstractExtendsAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_getter.dart:14:11: Context: 'ConcreteSuper.declaredConcreteExtendsAbstractGetter' is defined here.
+//   int get declaredConcreteExtendsAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_getter.dart:8:11: Context: 'ConcreteSuper.extendedAbstractGetter' is defined here.
+//   int get extendedAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_getter.dart:19:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - ConcreteClass.declaredAbstractExtendsAbstractGetter
+//  - ConcreteClass.declaredAbstractGetter
+//  - ConcreteSuper.extendedAbstractGetter
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass extends ConcreteSuper {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_getter.dart:30:11: Context: 'ConcreteClass.declaredAbstractExtendsAbstractGetter' is defined here.
+//   int get declaredAbstractExtendsAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_getter.dart:22:11: Context: 'ConcreteClass.declaredAbstractGetter' is defined here.
+//   int get declaredAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_getter.dart:8:11: Context: 'ConcreteSuper.extendedAbstractGetter' is defined here.
+//   int get extendedAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class ConcreteSuper extends core::Object {
+  synthetic constructor •() → self::ConcreteSuper
+    ;
+  get extendedConcreteGetter() → core::int
+    ;
+  abstract get extendedAbstractGetter() → core::int;
+  get declaredConcreteExtendsConcreteGetter() → core::int
+    ;
+  get declaredAbstractExtendsConcreteGetter() → core::int
+    ;
+  abstract get declaredConcreteExtendsAbstractGetter() → core::int;
+  abstract get declaredAbstractExtendsAbstractGetter() → core::int;
+}
+class ConcreteClass extends self::ConcreteSuper {
+  synthetic constructor •() → self::ConcreteClass
+    ;
+  get declaredConcreteGetter() → core::int
+    ;
+  abstract get declaredAbstractGetter() → core::int;
+  get declaredConcreteExtendsConcreteGetter() → core::int
+    ;
+  abstract get declaredAbstractExtendsConcreteGetter() → core::int;
+  get declaredConcreteExtendsAbstractGetter() → core::int
+    ;
+  abstract get declaredAbstractExtendsAbstractGetter() → core::int;
+}
+static method main() → dynamic
+  ;

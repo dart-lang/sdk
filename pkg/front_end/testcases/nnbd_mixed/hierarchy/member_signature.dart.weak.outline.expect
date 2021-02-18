@@ -1,0 +1,185 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/member_signature.dart:11:7: Error: The non-abstract class 'ConcreteSub' is missing implementations for these members:
+//  - Interface1.extendedAbstractImplementedMethod
+//  - Interface1.implementedMethod
+//  - Interface1.implementedMultipleMethod
+//  - Interface2.implementedMultipleMethod
+//  - Super.extendedAbstractImplementedMethod
+//  - Super.extendedAbstractMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteSub extends AbstractClass {}
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/member_signature_lib.dart:18:8: Context: 'Interface1.extendedAbstractImplementedMethod' is defined here.
+//   void extendedAbstractImplementedMethod(int i) {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/member_signature_lib.dart:20:8: Context: 'Interface1.implementedMethod' is defined here.
+//   void implementedMethod(int i) {}
+//        ^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/member_signature_lib.dart:22:8: Context: 'Interface1.implementedMultipleMethod' is defined here.
+//   void implementedMultipleMethod(int i) {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/member_signature_lib.dart:26:8: Context: 'Interface2.implementedMultipleMethod' is defined here.
+//   void implementedMultipleMethod(int i) {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/member_signature_lib.dart:12:8: Context: 'Super.extendedAbstractImplementedMethod' is defined here.
+//   void extendedAbstractImplementedMethod(int i);
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/member_signature_lib.dart:8:8: Context: 'Super.extendedAbstractMethod' is defined here.
+//   void extendedAbstractMethod(int i);
+//        ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/member_signature.dart:13:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - Interface1.extendedAbstractImplementedMethod
+//  - Interface1.implementedMethod
+//  - Interface1.implementedMultipleMethod
+//  - Interface2.implementedMultipleMethod
+//  - Super.extendedAbstractImplementedMethod
+//  - Super.extendedAbstractMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass extends Super implements Interface1, Interface2 {}
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/member_signature_lib.dart:18:8: Context: 'Interface1.extendedAbstractImplementedMethod' is defined here.
+//   void extendedAbstractImplementedMethod(int i) {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/member_signature_lib.dart:20:8: Context: 'Interface1.implementedMethod' is defined here.
+//   void implementedMethod(int i) {}
+//        ^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/member_signature_lib.dart:22:8: Context: 'Interface1.implementedMultipleMethod' is defined here.
+//   void implementedMultipleMethod(int i) {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/member_signature_lib.dart:26:8: Context: 'Interface2.implementedMultipleMethod' is defined here.
+//   void implementedMultipleMethod(int i) {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/member_signature_lib.dart:12:8: Context: 'Super.extendedAbstractImplementedMethod' is defined here.
+//   void extendedAbstractImplementedMethod(int i);
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/member_signature_lib.dart:8:8: Context: 'Super.extendedAbstractMethod' is defined here.
+//   void extendedAbstractMethod(int i);
+//        ^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "member_signature_lib.dart" as mem;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///member_signature_lib.dart";
+
+abstract class AbstractClass extends mem::Super implements mem::Interface1, mem::Interface2 {
+  synthetic constructor •() → self::AbstractClass*
+    ;
+  abstract member-signature method extendedConcreteMethod(core::int* i) → void; -> mem::Super::extendedConcreteMethod
+  abstract member-signature method extendedConcreteImplementedMethod(core::int* i) → void; -> mem::Super::extendedConcreteImplementedMethod
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature method extendedAbstractMethod(core::int* i) → void; -> mem::Super::extendedAbstractMethod
+  abstract member-signature method extendedAbstractImplementedMethod(core::int* i) → void; -> mem::Super::extendedAbstractImplementedMethod
+  abstract member-signature method implementedMethod(core::int* i) → void; -> mem::Interface1::implementedMethod
+  abstract member-signature method implementedMultipleMethod(core::int* i) → void; -> mem::Interface1::implementedMultipleMethod
+}
+class ConcreteSub extends self::AbstractClass {
+  synthetic constructor •() → self::ConcreteSub*
+    ;
+}
+class ConcreteClass extends mem::Super implements mem::Interface1, mem::Interface2 {
+  synthetic constructor •() → self::ConcreteClass*
+    ;
+  abstract member-signature method extendedConcreteMethod(core::int* i) → void; -> mem::Super::extendedConcreteMethod
+  abstract member-signature method extendedConcreteImplementedMethod(core::int* i) → void; -> mem::Super::extendedConcreteImplementedMethod
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature method extendedAbstractMethod(core::int* i) → void; -> mem::Super::extendedAbstractMethod
+  abstract member-signature method extendedAbstractImplementedMethod(core::int* i) → void; -> mem::Super::extendedAbstractImplementedMethod
+  abstract member-signature method implementedMethod(core::int* i) → void; -> mem::Interface1::implementedMethod
+  abstract member-signature method implementedMultipleMethod(core::int* i) → void; -> mem::Interface1::implementedMultipleMethod
+}
+abstract class OptOutInterface extends core::Object {
+  synthetic constructor •() → self::OptOutInterface*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class ClassImplementsOptOut extends core::Object implements self::OptOutInterface {
+  synthetic constructor •() → self::ClassImplementsOptOut*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as mem;
+import "dart:core" as core;
+
+abstract class Super extends core::Object {
+  synthetic constructor •() → mem::Super
+    ;
+  method extendedConcreteMethod(core::int i) → void
+    ;
+  abstract method extendedAbstractMethod(core::int i) → void;
+  method extendedConcreteImplementedMethod(core::int i) → void
+    ;
+  abstract method extendedAbstractImplementedMethod(core::int i) → void;
+}
+abstract class Interface1 extends core::Object {
+  synthetic constructor •() → mem::Interface1
+    ;
+  method extendedConcreteImplementedMethod(core::int i) → void
+    ;
+  method extendedAbstractImplementedMethod(core::int i) → void
+    ;
+  method implementedMethod(core::int i) → void
+    ;
+  method implementedMultipleMethod(core::int i) → void
+    ;
+}
+abstract class Interface2 extends core::Object {
+  synthetic constructor •() → mem::Interface2
+    ;
+  method implementedMultipleMethod(core::int i) → void
+    ;
+}

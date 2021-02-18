@@ -58,6 +58,7 @@ general/invalid_operator: FormatterCrash
 general/issue42997: FormatterCrash
 general/issue43363: FormatterCrash
 general/many_errors: FormatterCrash
+general/null_safety_invalid_experiment: FormatterCrash
 general/null_safety_invalid_experiment_and_language_version: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
 general/var_as_type_name: FormatterCrash

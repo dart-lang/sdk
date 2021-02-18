@@ -1,3 +1,2 @@
 --force-no-explicit-getter-calls
---enable-experiment=no-non-nullable
 --target=none

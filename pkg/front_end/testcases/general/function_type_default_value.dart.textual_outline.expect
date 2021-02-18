@@ -1,2 +1,3 @@
+// @dart = 2.9
 void Function({obj: Object}) x;
 main() {}

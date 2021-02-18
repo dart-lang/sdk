@@ -1,3 +1,4 @@
+// @dart = 2.9
 const bool barFromEnv = const bool.fromEnvironment("bar");
 const bool hasBarEnv = const bool.hasEnvironment("bar");
 const bool barFromEnvOrNull = const bool.fromEnvironment("bar", defaultValue: null);

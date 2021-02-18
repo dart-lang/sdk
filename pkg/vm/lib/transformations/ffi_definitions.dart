@@ -176,9 +176,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
     _checkStructClass(node);
 
-    // Struct objects are manufactured in the VM by 'allocate' and 'load'.
-    _makeEntryPoint(node);
-
     final indexedClass = currentLibraryIndex?.lookupIndexedClass(node.name);
     _checkConstructors(node, indexedClass);
     indexedStructClasses[node] = indexedClass;
@@ -367,6 +364,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         reference: referenceFrom?.reference)
       ..fileOffset = node.fileOffset
       ..isNonNullableByDefault = node.enclosingLibrary.isNonNullableByDefault;
+
+    // Struct objects are manufactured in the VM by being passed by value
+    // in return position in FFI calls, and by value in arguments in FFI
+    // callbacks.
+    // TODO(http://dartbug.com/38721): Support tree-shaking, remove this.
     _makeEntryPoint(ctor);
     node.addConstructor(ctor);
   }
@@ -538,7 +540,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         fileUri: struct.fileUri,
         getterReference: getterReference)
       ..fileOffset = struct.fileOffset;
-    _makeEntryPoint(sizeOf);
     struct.addField(sizeOf);
   }
 

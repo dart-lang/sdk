@@ -1,3 +1,4 @@
+// @dart = 2.9
 import 'dart:core' show int;
 
 dynamic testDynamic() => 0;

@@ -1,0 +1,140 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:37:7: Error: The non-abstract class 'ConcreteSub' is missing implementations for these members:
+//  - Interface1.extendedAbstractImplementedField
+//  - Interface1.extendedAbstractImplementedMultipleField
+//  - Interface2.extendedAbstractImplementedMultipleField
+//  - Super.extendedAbstractField
+//  - Super.extendedAbstractField=
+//  - Super.extendedAbstractImplementedField
+//  - Super.extendedAbstractImplementedField=
+//  - Super.extendedAbstractImplementedMultipleField
+//  - Super.extendedAbstractImplementedMultipleField=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteSub extends AbstractClass {}
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:22:7: Context: 'Interface1.extendedAbstractImplementedField' is defined here.
+//   int extendedAbstractImplementedField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:26:7: Context: 'Interface1.extendedAbstractImplementedMultipleField' is defined here.
+//   int extendedAbstractImplementedMultipleField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:32:7: Context: 'Interface2.extendedAbstractImplementedMultipleField' is defined here.
+//   int extendedAbstractImplementedMultipleField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:8:16: Context: 'Super.extendedAbstractField' is defined here.
+//   abstract int extendedAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:8:16: Context: 'Super.extendedAbstractField=' is defined here.
+//   abstract int extendedAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:12:16: Context: 'Super.extendedAbstractImplementedField' is defined here.
+//   abstract int extendedAbstractImplementedField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:12:16: Context: 'Super.extendedAbstractImplementedField=' is defined here.
+//   abstract int extendedAbstractImplementedField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:16:16: Context: 'Super.extendedAbstractImplementedMultipleField' is defined here.
+//   abstract int extendedAbstractImplementedMultipleField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:16:16: Context: 'Super.extendedAbstractImplementedMultipleField=' is defined here.
+//   abstract int extendedAbstractImplementedMultipleField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:39:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - Interface1.extendedAbstractImplementedField
+//  - Interface1.extendedAbstractImplementedMultipleField
+//  - Interface2.extendedAbstractImplementedMultipleField
+//  - Super.extendedAbstractField
+//  - Super.extendedAbstractField=
+//  - Super.extendedAbstractImplementedField
+//  - Super.extendedAbstractImplementedField=
+//  - Super.extendedAbstractImplementedMultipleField
+//  - Super.extendedAbstractImplementedMultipleField=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass extends Super implements Interface1, Interface2 {}
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:22:7: Context: 'Interface1.extendedAbstractImplementedField' is defined here.
+//   int extendedAbstractImplementedField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:26:7: Context: 'Interface1.extendedAbstractImplementedMultipleField' is defined here.
+//   int extendedAbstractImplementedMultipleField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:32:7: Context: 'Interface2.extendedAbstractImplementedMultipleField' is defined here.
+//   int extendedAbstractImplementedMultipleField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:8:16: Context: 'Super.extendedAbstractField' is defined here.
+//   abstract int extendedAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:8:16: Context: 'Super.extendedAbstractField=' is defined here.
+//   abstract int extendedAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:12:16: Context: 'Super.extendedAbstractImplementedField' is defined here.
+//   abstract int extendedAbstractImplementedField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:12:16: Context: 'Super.extendedAbstractImplementedField=' is defined here.
+//   abstract int extendedAbstractImplementedField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:16:16: Context: 'Super.extendedAbstractImplementedMultipleField' is defined here.
+//   abstract int extendedAbstractImplementedMultipleField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_field.dart:16:16: Context: 'Super.extendedAbstractImplementedMultipleField=' is defined here.
+//   abstract int extendedAbstractImplementedMultipleField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Super extends core::Object {
+  field core::int extendedConcreteField;
+  field core::int extendedConcreteImplementedField;
+  field core::int extendedConcreteImplementedMultipleField;
+  synthetic constructor •() → self::Super
+    ;
+  abstract get extendedAbstractField() → core::int;
+  abstract set extendedAbstractField(core::int #externalFieldValue) → void;
+  abstract get extendedAbstractImplementedField() → core::int;
+  abstract set extendedAbstractImplementedField(core::int #externalFieldValue) → void;
+  abstract get extendedAbstractImplementedMultipleField() → core::int;
+  abstract set extendedAbstractImplementedMultipleField(core::int #externalFieldValue) → void;
+}
+class Interface1 extends core::Object {
+  field core::int extendedConcreteImplementedField;
+  field core::int extendedAbstractImplementedField;
+  field core::int extendedConcreteImplementedMultipleField;
+  field core::int extendedAbstractImplementedMultipleField;
+  synthetic constructor •() → self::Interface1
+    ;
+}
+class Interface2 extends core::Object {
+  field core::int extendedConcreteImplementedMultipleField;
+  field core::int extendedAbstractImplementedMultipleField;
+  synthetic constructor •() → self::Interface2
+    ;
+}
+abstract class AbstractClass extends self::Super implements self::Interface1, self::Interface2 {
+  synthetic constructor •() → self::AbstractClass
+    ;
+}
+class ConcreteSub extends self::AbstractClass {
+  synthetic constructor •() → self::ConcreteSub
+    ;
+}
+class ConcreteClass extends self::Super implements self::Interface1, self::Interface2 {
+  synthetic constructor •() → self::ConcreteClass
+    ;
+}
+static method main() → dynamic
+  ;

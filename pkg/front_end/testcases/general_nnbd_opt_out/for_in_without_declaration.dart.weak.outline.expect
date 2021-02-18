@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  field core::int* superInstanceField;
+  field dynamic untypedSuperInstanceField;
+  synthetic constructor •() → self::Super*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class C extends self::Super {
+  field core::int* instanceField;
+  field dynamic untypedInstanceField;
+  static field core::double* staticField;
+  static field dynamic untypedStaticField;
+  synthetic constructor •() → self::C*
+    ;
+  method m() → dynamic
+    ;
+}
+static field core::bool* topLevelField;
+static field dynamic untypedTopLevelField;
+static method main() → dynamic
+  ;

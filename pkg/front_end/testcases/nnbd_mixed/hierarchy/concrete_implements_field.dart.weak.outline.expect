@@ -1,0 +1,115 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:5:7: Error: The non-abstract class 'Interface' is missing implementations for these members:
+//  - Interface.declaredAbstractImplementsAbstractField
+//  - Interface.declaredAbstractImplementsAbstractField=
+//  - Interface.declaredConcreteImplementsAbstractField
+//  - Interface.declaredConcreteImplementsAbstractField=
+//  - Interface.implementedAbstractField
+//  - Interface.implementedAbstractField=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class Interface {
+//       ^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:16:16: Context: 'Interface.declaredAbstractImplementsAbstractField' is defined here.
+//   abstract int declaredAbstractImplementsAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:16:16: Context: 'Interface.declaredAbstractImplementsAbstractField=' is defined here.
+//   abstract int declaredAbstractImplementsAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:14:16: Context: 'Interface.declaredConcreteImplementsAbstractField' is defined here.
+//   abstract int declaredConcreteImplementsAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:14:16: Context: 'Interface.declaredConcreteImplementsAbstractField=' is defined here.
+//   abstract int declaredConcreteImplementsAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:8:16: Context: 'Interface.implementedAbstractField' is defined here.
+//   abstract int implementedAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:8:16: Context: 'Interface.implementedAbstractField=' is defined here.
+//   abstract int implementedAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:19:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - ConcreteClass.declaredAbstractField
+//  - ConcreteClass.declaredAbstractField=
+//  - ConcreteClass.declaredAbstractImplementsAbstractField
+//  - ConcreteClass.declaredAbstractImplementsAbstractField=
+//  - ConcreteClass.declaredAbstractImplementsConcreteField
+//  - ConcreteClass.declaredAbstractImplementsConcreteField=
+//  - Interface.implementedAbstractField
+//  - Interface.implementedAbstractField=
+//  - Interface.implementedConcreteField
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass implements Interface {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:22:16: Context: 'ConcreteClass.declaredAbstractField' is defined here.
+//   abstract int declaredAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:22:16: Context: 'ConcreteClass.declaredAbstractField=' is defined here.
+//   abstract int declaredAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:30:16: Context: 'ConcreteClass.declaredAbstractImplementsAbstractField' is defined here.
+//   abstract int declaredAbstractImplementsAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:30:16: Context: 'ConcreteClass.declaredAbstractImplementsAbstractField=' is defined here.
+//   abstract int declaredAbstractImplementsAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:26:16: Context: 'ConcreteClass.declaredAbstractImplementsConcreteField' is defined here.
+//   abstract int declaredAbstractImplementsConcreteField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:26:16: Context: 'ConcreteClass.declaredAbstractImplementsConcreteField=' is defined here.
+//   abstract int declaredAbstractImplementsConcreteField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:8:16: Context: 'Interface.implementedAbstractField' is defined here.
+//   abstract int implementedAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:8:16: Context: 'Interface.implementedAbstractField=' is defined here.
+//   abstract int implementedAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_field.dart:6:7: Context: 'Interface.implementedConcreteField' is defined here.
+//   int implementedConcreteField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Interface extends core::Object {
+  field core::int implementedConcreteField;
+  field core::int declaredConcreteImplementsConcreteField;
+  field core::int declaredAbstractImplementsConcreteField;
+  synthetic constructor •() → self::Interface
+    ;
+  abstract get implementedAbstractField() → core::int;
+  abstract set implementedAbstractField(core::int #externalFieldValue) → void;
+  abstract get declaredConcreteImplementsAbstractField() → core::int;
+  abstract set declaredConcreteImplementsAbstractField(core::int #externalFieldValue) → void;
+  abstract get declaredAbstractImplementsAbstractField() → core::int;
+  abstract set declaredAbstractImplementsAbstractField(core::int #externalFieldValue) → void;
+}
+class ConcreteClass extends core::Object implements self::Interface {
+  field core::int declaredConcreteField;
+  field core::int declaredConcreteImplementsConcreteField;
+  field core::int declaredConcreteImplementsAbstractField;
+  synthetic constructor •() → self::ConcreteClass
+    ;
+  abstract get declaredAbstractField() → core::int;
+  abstract set declaredAbstractField(core::int #externalFieldValue) → void;
+  abstract get declaredAbstractImplementsConcreteField() → core::int;
+  abstract set declaredAbstractImplementsConcreteField(core::int #externalFieldValue) → void;
+  abstract get declaredAbstractImplementsAbstractField() → core::int;
+  abstract set declaredAbstractImplementsAbstractField(core::int #externalFieldValue) → void;
+}
+static method main() → dynamic
+  ;

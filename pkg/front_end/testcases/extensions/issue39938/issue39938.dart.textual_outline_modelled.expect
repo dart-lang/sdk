@@ -1,3 +1,4 @@
+// @dart = 2.9
 import 'issue39938_lib.dart';
 
 expect(expected, actual) {}

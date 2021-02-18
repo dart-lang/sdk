@@ -1,3 +1,4 @@
+// @dart = 2.9
 import 'extension_from_dill_lib.dart';
 
 main() {}

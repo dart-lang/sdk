@@ -1,3 +1,4 @@
+// @dart = 2.9
 final list = ["a", "b", "c"].myMap((it) => it);
 
 extension A<T> on List<T> {

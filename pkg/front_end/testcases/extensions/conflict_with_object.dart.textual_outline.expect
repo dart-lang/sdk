@@ -1,3 +1,4 @@
+// @dart = 2.9
 extension Extension on String {
   int get noSuchMethod => 42;
   void set hashCode(int value) {}
