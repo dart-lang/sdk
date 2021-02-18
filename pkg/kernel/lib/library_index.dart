@@ -141,18 +141,18 @@ class _ClassTable {
       _classes = <String, _MemberTable>{};
       _classes![LibraryIndex.topLevel] = new _MemberTable.topLevel(this);
       for (Class class_ in library.classes) {
-        _classes![class_.name!] = new _MemberTable.fromClass(this, class_);
+        _classes![class_.name] = new _MemberTable.fromClass(this, class_);
       }
       for (Extension extension_ in library.extensions) {
-        _classes![extension_.name!] =
+        _classes![extension_.name] =
             new _MemberTable.fromExtension(this, extension_);
       }
       for (Reference reference in library.additionalExports) {
         NamedNode? node = reference.node;
         if (node is Class) {
-          _classes![node.name!] = new _MemberTable.fromClass(this, node);
+          _classes![node.name] = new _MemberTable.fromClass(this, node);
         } else if (node is Extension) {
-          _classes![node.name!] = new _MemberTable.fromExtension(this, node);
+          _classes![node.name] = new _MemberTable.fromExtension(this, node);
         }
       }
     }

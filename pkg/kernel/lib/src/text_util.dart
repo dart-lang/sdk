@@ -85,9 +85,7 @@ String qualifiedClassNameToStringByReference(Reference? reference,
 }
 
 String classNameToString(Class? node) {
-  return node == null
-      ? 'null'
-      : node.name ?? 'null-named class ${node.runtimeType} ${node.hashCode}';
+  return node == null ? 'null' : node.name;
 }
 
 String qualifiedExtensionNameToString(Extension node,
@@ -124,10 +122,7 @@ String qualifiedExtensionNameToStringByReference(Reference? reference,
 }
 
 String extensionNameToString(Extension? node) {
-  return node == null
-      ? 'null'
-      : node.name ??
-          'null-named extension ${node.runtimeType} ${node.hashCode}';
+  return node == null ? 'null' : node.name;
 }
 
 String qualifiedTypedefNameToString(Typedef node,

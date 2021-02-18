@@ -180,7 +180,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
 
     scope.forEach(buildBuilders);
 
-    _extension.onType = onType?.build(libraryBuilder);
+    _extension.onType = onType.build(libraryBuilder);
 
     return _extension;
   }
