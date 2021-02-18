@@ -1895,9 +1895,9 @@ Thread* Isolate::mutator_thread() const {
   return mutator_thread_;
 }
 
-ObjectPtr Isolate::CallTagHandler(Dart_LibraryTag tag,
-                                  const Object& arg1,
-                                  const Object& arg2) {
+ObjectPtr IsolateGroup::CallTagHandler(Dart_LibraryTag tag,
+                                       const Object& arg1,
+                                       const Object& arg2) {
   Thread* thread = Thread::Current();
   Api::Scope api_scope(thread);
   Dart_Handle api_arg1 = Api::NewHandle(thread, arg1.ptr());
@@ -1906,7 +1906,7 @@ ObjectPtr Isolate::CallTagHandler(Dart_LibraryTag tag,
   {
     TransitionVMToNative transition(thread);
     ASSERT(HasTagHandler());
-    api_result = group()->library_tag_handler()(tag, api_arg1, api_arg2);
+    api_result = library_tag_handler()(tag, api_arg1, api_arg2);
   }
   return Api::UnwrapHandle(api_result);
 }
@@ -2473,7 +2473,6 @@ void Isolate::Shutdown() {
     StackZone zone(thread);
     HandleScope handle_scope(thread);
     ServiceIsolate::SendIsolateShutdownMessage();
-    KernelIsolate::NotifyAboutIsolateShutdown(this);
 #if !defined(PRODUCT)
     debugger()->Shutdown();
 #endif
@@ -2545,6 +2544,8 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   const bool shutdown_group =
       isolate_group->UnregisterIsolateDecrementCount(isolate);
   if (shutdown_group) {
+    KernelIsolate::NotifyAboutIsolateGroupShutdown(isolate_group);
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
     if (!is_vm_isolate) {
       Thread::EnterIsolateGroupAsHelper(isolate_group, Thread::kUnknownTask,

@@ -600,6 +600,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void IncreaseMutatorCount(Isolate* mutator);
   void DecreaseMutatorCount(Isolate* mutator);
 
+  bool HasTagHandler() const { return library_tag_handler() != nullptr; }
+  ObjectPtr CallTagHandler(Dart_LibraryTag tag,
+                           const Object& arg1,
+                           const Object& arg2);
   Dart_LibraryTagHandler library_tag_handler() const {
     return library_tag_handler_;
   }
@@ -724,7 +728,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 #endif
   }
 
-  uint64_t id() { return id_; }
+  uint64_t id() const { return id_; }
 
   static void Init();
   static void Cleanup();
@@ -1102,12 +1106,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     environment_callback_ = value;
   }
 
-  bool HasTagHandler() const {
-    return group()->library_tag_handler() != nullptr;
-  }
-  ObjectPtr CallTagHandler(Dart_LibraryTag tag,
-                           const Object& arg1,
-                           const Object& arg2);
   bool HasDeferredLoadHandler() const {
     return group()->deferred_load_handler() != nullptr;
   }

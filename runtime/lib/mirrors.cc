@@ -662,7 +662,7 @@ static void ThrowLanguageError(const char* message) {
 DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(0));
 
-  if (!isolate->HasTagHandler()) {
+  if (!isolate->group()->HasTagHandler()) {
     ThrowLanguageError("no library handler registered");
   }
 
@@ -675,7 +675,7 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 0, 1) {
   } else {
     isolate->BlockClassFinalization();
     const Object& result = Object::Handle(
-        zone, isolate->CallTagHandler(
+        zone, isolate->group()->CallTagHandler(
                   Dart_kCanonicalizeUrl,
                   Library::Handle(
                       zone, isolate->group()->object_store()->root_library()),
@@ -703,7 +703,7 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 0, 1) {
   // Request the embedder to load the library.
   isolate->BlockClassFinalization();
   Object& result = Object::Handle(
-      zone, isolate->CallTagHandler(
+      zone, isolate->group()->CallTagHandler(
                 Dart_kImportTag,
                 Library::Handle(
                     zone, isolate->group()->object_store()->root_library()),
