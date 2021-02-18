@@ -171,7 +171,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Guard against multiple computeDelta calls at the same time (possibly
   /// caused by lacking awaits etc).
-  Completer currentlyCompiling;
+  Completer<dynamic> currentlyCompiling;
 
   IncrementalCompiler.fromComponent(
       this.context, this.componentToInitializeFrom,
@@ -381,7 +381,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ..problemsAsJson = problemsAsJson;
 
       // We're now done. Allow any waiting compile to start.
-      Completer currentlyCompilingLocal = currentlyCompiling;
+      Completer<dynamic> currentlyCompilingLocal = currentlyCompiling;
       currentlyCompiling = null;
       currentlyCompilingLocal.complete();
 
