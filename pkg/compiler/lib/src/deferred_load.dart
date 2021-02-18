@@ -10,6 +10,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
+import '../compiler_new.dart' show OutputType;
 import 'common/metrics.dart' show Metric, Metrics, CountMetric, DurationMetric;
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
@@ -69,10 +70,7 @@ class OutputUnit implements Comparable<OutputUnit> {
     var imports = _imports.toList();
     var otherImports = other._imports.toList();
     for (var i = 0; i < size; i++) {
-      if (imports[i] == otherImports[i]) continue;
-      var a = imports[i].uri.path;
-      var b = otherImports[i].uri.path;
-      var cmp = a.compareTo(b);
+      var cmp = _compareImportEntities(imports[i], otherImports[i]);
       if (cmp != 0) return cmp;
     }
     // TODO(sigmund): make compare stable.  If we hit this point, all imported
@@ -861,9 +859,39 @@ class DeferredLoadTask extends CompilerTask {
     return _buildResult();
   }
 
+  // Dumps a graph as a list of strings of 0 and 1. There is one 'bit' for each
+  // import entity in the graph, and each string in the list represents an
+  // output unit.
+  void _dumpDeferredGraph() {
+    int id = 0;
+    Map<ImportEntity, int> importMap = {};
+    var entities = _deferredImportDescriptions.keys.toList();
+    entities.sort(_compareImportEntities);
+    for (var key in entities) {
+      importMap[key] = id++;
+    }
+    List<String> graph = [];
+    for (var outputUnit in _allOutputUnits) {
+      if (!outputUnit.isMainOutput) {
+        List<int> representation = List.filled(id, 0);
+        for (var entity in outputUnit._imports) {
+          representation[importMap[entity]] = 1;
+        }
+        graph.add(representation.join());
+      }
+    }
+    compiler.outputProvider.createOutputSink(
+        compiler.options.deferredGraphUri.path, '', OutputType.debug)
+      ..add(graph.join('\n'))
+      ..close();
+  }
+
   OutputUnitData _buildResult() {
     _createOutputUnits();
     Map<String, List<OutputUnit>> hunksToLoad = _setupHunksToLoad();
+    if (compiler.options.deferredGraphUri != null) {
+      _dumpDeferredGraph();
+    }
     Map<ClassEntity, OutputUnit> classMap = {};
     Map<ClassEntity, OutputUnit> classTypeMap = {};
     Map<MemberEntity, OutputUnit> memberMap = {};
@@ -1968,5 +1996,13 @@ class ConstantCollector extends ir.RecursiveVisitor {
   @override
   void visitConstantExpression(ir.ConstantExpression node) {
     add(node);
+  }
+}
+
+int _compareImportEntities(ImportEntity a, ImportEntity b) {
+  if (a == b) {
+    return 0;
+  } else {
+    return a.uri.path.compareTo(b.uri.path);
   }
 }

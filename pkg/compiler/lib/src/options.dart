@@ -161,6 +161,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// libraries are subdivided.
   Uri deferredMapUri;
 
+  /// Location where to generate an internal format representing the deferred
+  /// graph.
+  Uri deferredGraphUri;
+
   /// The maximum number of deferred fragments to generate. If the number of
   /// fragments exceeds this amount, then they may be merged.
   /// Note: Currently, we only merge fragments in a single dependency chain. We
@@ -466,6 +470,8 @@ class CompilerOptions implements DiagnosticOptions {
           _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)
       ..compileForServer = _hasOption(options, Flags.serverMode)
       ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
+      ..deferredGraphUri =
+          _extractUriOption(options, '${Flags.dumpDeferredGraph}=')
       ..fatalWarnings = _hasOption(options, Flags.fatalWarnings)
       ..terseDiagnostics = _hasOption(options, Flags.terse)
       ..suppressWarnings = _hasOption(options, Flags.suppressWarnings)

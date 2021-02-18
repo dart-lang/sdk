@@ -11,29 +11,53 @@ import 'package:compiler/src/world.dart';
 import '../helpers/memory_source_file_helper.dart';
 import '../helpers/memory_compiler.dart';
 
+void testLoadMap() async {
+  var collector = new OutputCollector();
+  CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      options: ['--deferred-map=deferred_map.json'],
+      outputProvider: collector);
+  CompilerImpl compiler = result.compiler;
+  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  // Ensure a mapping file is output.
+  Expect.isNotNull(
+      collector.getOutput("deferred_map.json", OutputType.deferredMap));
+
+  Map mapping = closedWorld.outputUnitData
+      .computeDeferredMap(compiler.options, closedWorld.elementEnvironment);
+  // Test structure of mapping.
+  Expect.equals("<unnamed>", mapping["main.dart"]["name"]);
+  Expect.equals(2, mapping["main.dart"]["imports"]["lib1"].length);
+  Expect.equals(2, mapping["main.dart"]["imports"]["lib2"].length);
+  Expect.equals(1, mapping["main.dart"]["imports"]["convert"].length);
+  Expect.equals("lib1", mapping["memory:lib1.dart"]["name"]);
+  Expect.equals(1, mapping["memory:lib1.dart"]["imports"]["lib4_1"].length);
+  Expect.equals(1, mapping["memory:lib2.dart"]["imports"]["lib4_2"].length);
+}
+
+void testDumpDeferredGraph() async {
+  var collector = new OutputCollector();
+  await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      options: ['--dump-deferred-graph=deferred_graph.txt'],
+      outputProvider: collector);
+  var actual =
+      collector.getOutput("deferred_graph.txt", OutputType.debug).split('\n');
+
+  // This program has 5 deferred imports `convert`, `lib1`, `lib2`, `lib4_1`,
+  // and `lib4_2`. Most are independent of one another, except for `lib1`
+  // and `lib2`, that happen to both use common code (foo3 in lib3). As a
+  // result we expect to have an 6 output files:
+  //  * one for code that is only use by an individual deferred import, and
+  //  * an extra one for the intersection of lib1 and lib2.
+  var expected = ['10000', '01000', '00100', '00010', '00001', '01100'];
+  Expect.listEquals(expected, actual);
+}
+
 void main() {
   asyncTest(() async {
-    var collector = new OutputCollector();
-    CompilationResult result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES,
-        options: ['--deferred-map=deferred_map.json'],
-        outputProvider: collector);
-    CompilerImpl compiler = result.compiler;
-    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
-    // Ensure a mapping file is output.
-    Expect.isNotNull(
-        collector.getOutput("deferred_map.json", OutputType.deferredMap));
-
-    Map mapping = closedWorld.outputUnitData
-        .computeDeferredMap(compiler.options, closedWorld.elementEnvironment);
-    // Test structure of mapping.
-    Expect.equals("<unnamed>", mapping["main.dart"]["name"]);
-    Expect.equals(2, mapping["main.dart"]["imports"]["lib1"].length);
-    Expect.equals(2, mapping["main.dart"]["imports"]["lib2"].length);
-    Expect.equals(1, mapping["main.dart"]["imports"]["convert"].length);
-    Expect.equals("lib1", mapping["memory:lib1.dart"]["name"]);
-    Expect.equals(1, mapping["memory:lib1.dart"]["imports"]["lib4_1"].length);
-    Expect.equals(1, mapping["memory:lib2.dart"]["imports"]["lib4_2"].length);
+    testLoadMap();
+    testDumpDeferredGraph();
   });
 }
 
