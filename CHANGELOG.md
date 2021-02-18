@@ -15,70 +15,84 @@
 
 ### Language
 
-*   **Breaking Change** [Null
-    Safety](https://dart.dev/null-safety/understanding-null-safety) is now
-    enabled by default in all packages with a lower sdk constraint of 2.12.0 or
-    greater.  Files that are not subject to language versioning (whether because
-    they are not contained in a pub package, or because the package that they
-    are contained in has no lower sdk constraint) are treated as opted into to
-    null safety by default and may report new errors.  Pub packages may be opted
-    out of null safety by setting a min sdk constraint in pubspec.yaml of 2.9.0
-    or less.  Files may be opted out of null safety by adding `// @dart=2.9` to
-    the beginning of the file.
+*   **Breaking Change** [Null safety][] is now enabled by default in all code
+    that has not opted out. With null safety, types in your code are
+    non-nullable by default. Null can only flow into parts of your program where
+    you want it. With null safety, your runtime null-dereference bugs turn into
+    edit-time analysis errors.
+
+    You can opt out of null safety and preserve your code's previous behavior by
+    setting the lower bound of the SDK constraint in your pubspec to 2.11.0 or
+    earlier to request an earlier [language version][]. You can opt out
+    individual Dart files by adding `// @dart=2.11` to the beginning of the
+    file.
+
+    Files that are opted in to null safety may report new compile-time errors.
+    Opting in to null safety also gives you access to other new language
+    features:
+
+    *   Smarter flow analysis and type promotion
+    *   `required` named parameters
+    *   `late` variables
+    *   The postfix `!` null assertion operator
+    *   The `?..` and `?[]` null-aware operators
 
 *   **Breaking Change** [#44660][]: Fixed an implementation bug where `this`
     would sometimes undergo type promotion in extensions.
 
+[null safety]: https://dart.dev/null-safety/understanding-null-safety
+[language version]: https://dart.dev/guides/language/evolution#language-versioning
 [#44660]: https://github.com/dart-lang/sdk/issues/44660
 
 ### Core libraries
 
 #### `dart:async`
 
-* Adds extension method `onError` on `Future` to allow better typing
-  of error handling.
+*   Add extension method `onError()` on `Future` to allow better typing of error
+    callbacks.
 
 #### `dart:collection`
 
-* Added `UnmodifiableSetView` class, which allows users to guarantee that
-  methods that could change underlying `Set` instance can not be invoked.
+*   Add `UnmodifiableSetView` class, which allows users to guarantee that
+    methods that could change underlying `Set` instance can not be invoked.
 
-* `LinkedList` made it explicit that elements are compared by identity,
-  and updated `contains` to take advantage of this.
+*   Make it explicit that `LinkedList` compares elements by identity, and update
+    `contains()` to take advantage of this.
 
 #### `dart:core`
 
-* Added `unmodifiable` constructor to class `Set`, which allows users to create
-  unmodifiable `Set` instances.
+*   Add `Set.unmodifiable()` constructor, which allows users to create
+    unmodifiable `Set` instances.
 
 #### `dart:io`
 
-* `HttpRequest` will now correctly follow HTTP 308 redirects
-  (`HttpStatus.permanentRedirect`).
+*   `HttpRequest` now correctly follows HTTP 308 redirects
+    (`HttpStatus.permanentRedirect`).
 
 #### `dart:isolate`
 
-* Added `debugName` positional parameter to `ReceivePort` and `RawReceivePort`
-  constructors, a name which can be associated with the port and displayed in
-  tooling.
+*   Add `debugName` positional parameter to `ReceivePort` and `RawReceivePort`
+    constructors, a name which can be associated with the port and displayed in
+    tooling.
 
 #### `dart:html`
 
-* `EventStreamSubscription.cancel` has been updated to retain its synchronous
-  timing when running in both sound and unsound null safety modes. See issue
-  [#44157][] for more details.
+*   `EventStreamSubscription.cancel` has been updated to retain its synchronous
+    timing when running in both sound and unsound null safety modes. See issue
+    [#44157][] for more details.
 
 [#44157]: https://github.com/dart-lang/sdk/issues/44157
 
 ### Dart VM
 
-*   **Breaking Change** [#42312][]: `Dart_WeakPersistentHandle`s will no longer
+*   **Breaking Change** [#42312][]: `Dart_WeakPersistentHandle`s no longer
     auto-delete themselves when the referenced object is garbage collected to
     avoid race conditions, but they are still automatically deleted when the
     isolate group shuts down.
+
 *   **Breaking Change** [#42312][]: `Dart_WeakPersistentHandleFinalizer`
     is renamed to `Dart_HandleFinalizer` and had its `handle` argument removed.
-    All api functions using that type have been updated.
+    All API functions using that type have been updated.
 
 [#42312]: https://github.com/dart-lang/sdk/issues/42312
 
@@ -93,6 +107,7 @@
     Instead, the `Allocator` it is introduced to `dart:ffi`, and also requires
     a constant `T` on invocations. For migration notes see the breaking change
     request.
+
 *   **Breaking Change** [#44622][]: Subtypes of `Struct` without any native
     member are being deprecated in the current stable release (2.12), and are
     planned to be fully removed in the following stable release (2.13).
@@ -103,154 +118,192 @@
 
 ### Dart2JS
 
-* Removed `--no-defer-class-types` and `--no-new-deferred-split`.
+*   Remove `--no-defer-class-types` and `--no-new-deferred-split`.
 
 ### Tools
 
 #### Dartanalyzer
 
-* Removed the `--use-fasta-parser`, `--preview-dart-2`, and
-  `--enable-assert-initializers` command line options. These options haven't
-  been supported in a while and were no-ops.
-* Report diagnostics regarding the
-  [`@internal`](https://pub.dev/documentation/meta/latest/meta/internal-constant.html)
-  annotation.
-* Improve diagnostic-reporting regarding the
-  [`@doNotStore`](https://pub.dev/documentation/meta/latest/meta/doNotStore-constant.html)
-  annotation.
-* Introduce a diagnostic which is reported when a library member named `main`
-  is not a function.
-* Introduce a diagnostic which is reported when a `main` function's first
-  parameter is not a supertype of `List<String>`.
-* Introduce a diagnostic which is reported when an `// ignore` comment contains
-  an error code which is not being reported.
-* Introduce a diagnostic which is reported when an `// ignore` comment contains
-  an error code which cannot be ignored.
-* Introduce a diagnostic which is reported when an `// ignore` comment contains
-  an error code which is already being ignored.
-* Report diagnostics when using
-  [`@visibleForTesting`](https://pub.dev/documentation/meta/latest/meta/visibleForTesting-constant.html)
-  on top-level variables.
-* Fix false positive reports of "unused element" for top-level setters and
-  getters.
-* Fix false positive reports regarding `@deprecated` field formal parameters at
-  their declaration.
-* For null safety, introduce a diagnostic which reports when a null-check will
-  always fail.
-* Fix false positive reports regarding optional parameters on privat
-  constructors being unused.
-* Introduce a diagnostic which is reported when a constructor includes
-  duplicate field formal parameters.
-* Improve the "unused import" diagnostic when multiple import directives share
-  a common prefix.
-* Fix false positive "unused import" diagnostic regarding an import which
-  provides an extension method which is used.
-* For null safety, improve the messaging of "use of nullable value" diagnostics
-  for eight different contexts.
-* Fix false positive reports regarding `@visibleForTesting` members in a "hide"
-  combinator of an import or export directive.
-* Improve the messaging of "invalid override" diagnostics.
-* Introduce a diagnostic which is reported when `Future<T>.catchError` is
-  called with an `onError` callback which does not return `FutureOr<T>`.
+*   Remove the `--use-fasta-parser`, `--preview-dart-2`, and
+    `--enable-assert-initializers` command line options. These options haven't
+    been supported in a while and were no-ops.
+
+*   Report diagnostics regarding the
+    [`@internal`](https://pub.dev/documentation/meta/latest/meta/internal-constant.html)
+    annotation.
+
+*   Improve diagnostic-reporting regarding the
+    [`@doNotStore`](https://pub.dev/documentation/meta/latest/meta/doNotStore-constant.html)
+    annotation.
+
+*   Introduce a diagnostic which is reported when a library member named `main`
+    is not a function.
+
+*   Introduce a diagnostic which is reported when a `main` function's first
+    parameter is not a supertype of `List<String>`.
+
+*   Introduce diagnostics for when an `// ignore` comment contains an error code
+    which is not being reported, cannot be ignored, or is already being ignored.
+
+*   Report diagnostics when using
+    [`@visibleForTesting`](https://pub.dev/documentation/meta/latest/meta/
+    visibleForTesting-constant.html) on top-level variables.
+
+*   Fix false positive reports of "unused element" for top-level setters and
+    getters.
+
+*   Fix false positive reports regarding `@deprecated` field formal parameters
+    at their declaration.
+
+*   For null safety, introduce a diagnostic which reports when a null-check will
+    always fail.
+
+*   Fix false positive reports regarding optional parameters on private
+    constructors being unused.
+
+*   Introduce a diagnostic which is reported when a constructor includes
+    duplicate field formal parameters.
+
+*   Improve the "unused import" diagnostic when multiple import directives share
+    a common prefix.
+
+*   Fix false positive "unused import" diagnostic regarding an import which
+    provides an extension method which is used.
+
+*   For null safety, improve the messaging of "use of nullable value"
+    diagnostics for eight different contexts.
+
+*   Fix false positive reports regarding `@visibleForTesting` members in a
+    "hide" combinator of an import or export directive.
+
+*   Improve the messaging of "invalid override" diagnostics.
+
+*   Introduce a diagnostic which is reported when `Future<T>.catchError` is
+    called with an `onError` callback which does not return `FutureOr<T>`.
 
 #### dartfmt
 
-* Don't duplicate comments on chained if elements.
-* Preserve `?` in initializing formal function-typed parameters.
+*   Don't duplicate comments on chained if elements.
+
+*   Preserve `?` in initializing formal function-typed parameters.
+
+*   Fix performance issue with constructors that have no initializer list.
 
 #### Linter
 
 Updated the Linter to `0.1.129`, which includes:
 
-* New lint: `avoid_dynamic_calls`.
-* (Internal): `avoid_type_to_string` updated to use `addArgumentList` registry API.
-* Miscellaneous documentation improvements.
-* Fixed crash in `prefer_collection_literals` when there is no static parameter
-  element.
-* Fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
-  LinkedHashMap instantiation is passed as the argument to a function in any
-  position other than the first.
-* Fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
-  LinkedHashMap instantiation is used in a place with a static type other than
-  Set or Map.
-* (Internal): test updates to the new `PhysicalResourceProvider` API.
-* Fixed false positives in `prefer_constructors_over_static_methods`.
-* Updates to `package_names` to allow leading underscores.
-* Fixed NPEs in `unnecessary_null_checks`.
-* A fixed NPE in `missing_whitespace_between_adjacent_strings`.
-* Updates to `void_checks` for NNBD.
-* A fixed range error in `unnecessary_string_escapes`.
-* A fixed false positives in `unnecessary_null_types`.
-* Fixes to `prefer_constructors_over_static_methods` to respect type parameters.
-* Updates to `always_require_non_null_named_parameters` to be NNBD-aware.
-* Updates tp `unnecessary_nullable_for_final_variable_declarations` to allow dynamic.
-* Updates `overridden_fields` to not report on abstract parent fields.
-* Fixes to `unrelated_type_equality_checks` for NNBD.
-* Improvements to `type_init_formals`to allow types not equal to the field type.
-* Performance improvements to `always_use_package_imports`,
-  `avoid_renaming_method_parameters`, `prefer_relative_imports` and
-  `public_member_api_docs`.
-* (internal): updates to analyzer `0.40.4` APIs
-* New lint: `cast_nullable_to_non_nullable`.
-* New lint: `null_check_on_nullable_type_parameter`.
-* New lint: `tighten_type_of_initializing_formals`.
-* Updates to `public_member_apis` to check generic type aliases.
-* (Internal): updates to adopt new analyzer APIs.
-* Fixed `close_sinks` to handle `this`-prefixed property accesses.
-* New lint: `unnecessary_null_checks`.
-* Fixed `unawaited_futures` to handle `Future` subtypes.
-* New lint: `avoid_type_to_string`.
+*   New lints: `avoid_dynamic_calls`, `cast_nullable_to_non_nullable`,
+    `null_check_on_nullable_type_parameter`,
+    `tighten_type_of_initializing_formals`, `unnecessary_null_checks`, and
+    `avoid_type_to_string`.
+
+*   Fix crash in `prefer_collection_literals` when there is no static parameter
+    element.
+
+*   Fix false negatives for `prefer_collection_literals` when a LinkedHashSet or
+    LinkedHashMap instantiation is passed as the argument to a function in any
+    position other than the first.
+
+*   Fix false negatives for `prefer_collection_literals` when a LinkedHashSet or
+    LinkedHashMap instantiation is used in a place with a static type other than
+    Set or Map.
+
+*   Update to `package_names` to allow leading underscores.
+
+*   Fix crashes in `unnecessary_null_checks` and
+    `missing_whitespace_between_adjacent_strings`.
+
+*   Update to `void_checks` for null safety.
+
+*   Fix range error in `unnecessary_string_escapes`.
+
+*   Fix false positives in `unnecessary_null_types`.
+
+*   Fix to `prefer_constructors_over_static_methods` to respect type
+    parameters.
+
+*   Update to `always_require_non_null_named_parameters` to be null safety-aware.
+
+*   Update to `unnecessary_nullable_for_final_variable_declarations` to allow
+    dynamic.
+
+*   Update `overridden_fields` to not report on abstract parent fields.
+
+*   Fix to `unrelated_type_equality_checks` for null safety.
+
+*   Improvements to `type_init_formals`to allow types not equal to the field
+    type.
+
+*   Updates to `public_member_apis` to check generic type aliases.
+
+*   Fix `close_sinks` to handle `this`-prefixed property accesses.
+
+*   Fix `unawaited_futures` to handle `Future` subtypes.
+
+*   Performance improvements to `always_use_package_imports`,
+    `avoid_renaming_method_parameters`, `prefer_relative_imports` and
+    `public_member_api_docs`.
 
 #### Pub
 
-* **Breaking**: The Dart SDK constraint is now **required** in `pubspec.yaml`.
+*   **Breaking**: The Dart SDK constraint is now **required** in `pubspec.yaml`.
+    You must include a section like:
 
-  You now have to include a section like:
+    ```yaml
+    environment:
+      sdk: '>=2.10.0 <3.0.0'
+    ```
 
-  ```yaml
-  environment:
-    sdk: '>=2.10.0 <3.0.0'
-  ```
+    See [#44072][].
 
-  See [#44072][].
+    For legacy dependencies without an SDK constraint, pub will now assume a
+    default language version of 2.7.
 
-  For legacy dependencies without an sdk constraint pub will now assume a
-  default language version of 2.7.
-* The top level `pub` executable has been deprecated. Use `dart pub` instead.
-  See [dart tool][].
-* New command `dart pub add` that adds  new dependencies to your `pubspec.yaml`.
+*   The top level `pub` executable has been deprecated. Use `dart pub` instead.
+    See [dart tool][].
 
-  And a corresponding `dart pub remove` that removes dependencies.
-* New option `dart pub upgrade --major-versions` will update constraints in
-  your `pubspec.yaml` to match the the _resolvable_ column reported in
-  `dart pub outdated`. This allows users to easily upgrade to latest version for
-  all dependencies where this is possible, even if such upgrade requires an
-  update to the version constraint in `pubspec.yaml`.
+*   New command `dart pub add` that adds new dependencies to your
+    `pubspec.yaml`, and a corresponding `dart pub remove` that removes
+    dependencies.
 
-  It is also possible to only upgrade the major version for a subset of your
-  dependencies using `dart pub upgrade --major-versions <dependencies...>`.
-* New option `dart pub upgrade --null-safety` will attempt to update constraints
-  in your `pubspec.yaml`, such that only null-safety migrated versions of
-  dependencies are allowed.
-* New option `dart pub outdated --mode=null-safety` that will analyze your
-  dependencies for null-safety.
-* `dart pub get` and `dart pub upgrade` will highlight dependencies that have
-  been [discontinued](https://dart.dev/tools/pub/publishing#discontinue) on
-  pub.dev.
-* `dart pub publish` will now check your pubspec keys for likely typos.
-* `dart pub upgrade package_foo` will fetch dependencies, but ignore the
-  `pubspec.lock` for `package_foo`, allowing users to only upgrade a subset of
-  dependencies.
-* New command `dart pub login` that logs in to pub.dev.
-* The `--server` option to `dart pub publish` and `dart pub uploader` have been
-  deprecated. Use `publish_to` in your `pubspec.yaml` or set the
-  `$PUB_HOSTED_URL` environment variable.
-* `pub global activate` no longer re-precompiles if current global installed was
-   same version.
-* The Flutter SDK constraint upper bound is now ignored in pubspecs and
-  deprecated when publishing.
+*   New option `dart pub upgrade --major-versions` will update constraints in
+    your `pubspec.yaml` to match the the _resolvable_ column reported in `dart
+    pub outdated`. This allows users to easily upgrade to latest version for all
+    dependencies where this is possible, even if such upgrade requires an update
+    to the version constraint in `pubspec.yaml`.
 
-  See: [flutter-upper-bound-deprecation][].
+    It is also possible to only upgrade the major version for a subset of your
+    dependencies using `dart pub upgrade --major-versions <dependencies...>`.
+
+*   New option `dart pub upgrade --null-safety` will attempt to update constraints
+    in your `pubspec.yaml`, such that only null-safety migrated versions of
+    dependencies are allowed.
+
+*   New option `dart pub outdated --mode=null-safety` that will analyze your
+    dependencies for null-safety.
+
+*   `dart pub get` and `dart pub upgrade` will highlight dependencies that have
+    been [discontinued](https://dart.dev/tools/pub/publishing#discontinue) on
+    pub.dev.
+
+*   `dart pub publish` will now check your pubspec keys for likely typos.
+
+*   `dart pub upgrade package_foo` fetchs dependencies but ignores the
+    `pubspec.lock` for `package_foo`, allowing users to only upgrade a subset of
+    dependencies.
+
+*   New command `dart pub login` that logs in to pub.dev.
+
+*   The `--server` option to `dart pub publish` and `dart pub uploader` are
+    deprecated. Use `publish_to` in your `pubspec.yaml` or set the
+    `$PUB_HOSTED_URL` environment variable.
+
+*   `pub global activate` no longer re-precompiles if the current global
+    installation was same version.
+
+*   The Flutter SDK constraint upper bound is now ignored in pubspecs and
+    deprecated when publishing. See: [flutter-upper-bound-deprecation][].
 
 [flutter-upper-bound-deprecation]: https://dart.dev/go/flutter-upper-bound-deprecation
 [#44072]: https://github.com/dart-lang/sdk/issues/44072
@@ -621,7 +674,7 @@ minor breaking changes:
 *   **Breaking change** [#40681][]: The `runZoned()` function is split into two
     functions: `runZoned()` and `runZonedGuarded()`, where the latter has a
     required `onError` parameter, and the former has none. This prepares the
-    functions for Null Safety where the two functions will differ in the
+    functions for null safety where the two functions will differ in the
     nullability of their return types.
 
 *   **Breaking change** [#40683][]: Errors passed to
