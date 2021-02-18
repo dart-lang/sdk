@@ -6,7 +6,7 @@
 
 library fasta.dill_class_builder;
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 
 import '../builder/class_builder.dart';
 import '../builder/library_builder.dart';

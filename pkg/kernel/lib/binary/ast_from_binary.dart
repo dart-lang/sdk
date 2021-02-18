@@ -6,7 +6,6 @@
 
 library kernel.ast_from_binary;
 
-import 'dart:core' hide MapEntry;
 import 'dart:developer';
 import 'dart:convert';
 import 'dart:typed_data';

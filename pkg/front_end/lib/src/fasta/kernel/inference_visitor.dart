@@ -4,12 +4,9 @@
 
 // @dart = 2.9
 
-import 'dart:core' hide MapEntry;
-
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
-import 'package:kernel/ast.dart'
-    hide Reference; // Work around https://github.com/dart-lang/sdk/issues/44667
+import 'package:kernel/ast.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';

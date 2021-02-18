@@ -4,7 +4,6 @@
 
 library kernel.core_types;
 
-// ignore: import_of_legacy_library_into_null_safe
 import 'ast.dart';
 import 'library_index.dart';
 import 'type_algebra.dart';
@@ -1137,13 +1136,13 @@ class CoreTypes {
     if (type is TypeParameterType &&
         type.promotedBound != null &&
         type.isPotentiallyNonNullable) {
-      return isBottom(type.promotedBound);
+      return isBottom(type.promotedBound!);
     }
 
     // BOTTOM(X extends T) is true iff BOTTOM(T).
     if (type is TypeParameterType && type.isPotentiallyNonNullable) {
       assert(type.promotedBound == null);
-      return isBottom(type.parameter.bound);
+      return isBottom(type.parameter.bound!);
     }
 
     if (type is BottomType) return true;

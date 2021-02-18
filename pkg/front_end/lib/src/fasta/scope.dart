@@ -6,7 +6,7 @@
 
 library fasta.scope;
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
 import 'builder/builder.dart';

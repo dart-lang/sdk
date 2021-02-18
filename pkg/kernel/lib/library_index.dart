@@ -4,7 +4,6 @@
 
 library kernel.library_index;
 
-// ignore: import_of_legacy_library_into_null_safe
 import 'ast.dart';
 
 /// Provides name-based access to library, class, and member AST nodes.
@@ -142,18 +141,18 @@ class _ClassTable {
       _classes = <String, _MemberTable>{};
       _classes![LibraryIndex.topLevel] = new _MemberTable.topLevel(this);
       for (Class class_ in library.classes) {
-        _classes![class_.name] = new _MemberTable.fromClass(this, class_);
+        _classes![class_.name!] = new _MemberTable.fromClass(this, class_);
       }
       for (Extension extension_ in library.extensions) {
-        _classes![extension_.name] =
+        _classes![extension_.name!] =
             new _MemberTable.fromExtension(this, extension_);
       }
       for (Reference reference in library.additionalExports) {
-        NamedNode node = reference.node;
+        NamedNode? node = reference.node;
         if (node is Class) {
-          _classes![node.name] = new _MemberTable.fromClass(this, node);
+          _classes![node.name!] = new _MemberTable.fromClass(this, node);
         } else if (node is Extension) {
-          _classes![node.name] = new _MemberTable.fromExtension(this, node);
+          _classes![node.name!] = new _MemberTable.fromExtension(this, node);
         }
       }
     }
@@ -222,14 +221,14 @@ class _MemberTable {
 
   String getDisambiguatedName(Member member) {
     if (member is Procedure) {
-      if (member.isGetter) return LibraryIndex.getterPrefix + member.name.text;
-      if (member.isSetter) return LibraryIndex.setterPrefix + member.name.text;
+      if (member.isGetter) return LibraryIndex.getterPrefix + member.name!.text;
+      if (member.isSetter) return LibraryIndex.setterPrefix + member.name!.text;
     }
-    return member.name.text;
+    return member.name!.text;
   }
 
   void _addMember(Member member) {
-    if (member.name.isPrivate && member.name.library != library) {
+    if (member.name!.isPrivate && member.name!.library != library) {
       // Members whose name is private to other libraries cannot currently
       // be found with the LibraryIndex class.
       return;
@@ -252,10 +251,10 @@ class _MemberTable {
   }
 
   void _addExtensionMember(ExtensionMemberDescriptor extensionMember) {
-    final NamedNode replacement = extensionMember.member.node;
+    final NamedNode? replacement = extensionMember.member.node;
     if (replacement is! Member) return;
     Member member = replacement;
-    if (member.name.isPrivate && member.name.library != library) {
+    if (member.name!.isPrivate && member.name!.library != library) {
       // Members whose name is private to other libraries cannot currently
       // be found with the LibraryIndex class.
       return;

@@ -6,8 +6,6 @@
 
 library fasta.transform_set_literals;
 
-import 'dart:core' hide MapEntry;
-
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart' show CoreTypes;

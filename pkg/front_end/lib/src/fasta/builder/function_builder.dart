@@ -6,8 +6,6 @@
 
 library fasta.procedure_builder;
 
-import 'dart:core' hide MapEntry;
-
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:kernel/ast.dart';
 

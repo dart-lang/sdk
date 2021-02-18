@@ -6,8 +6,6 @@
 
 library fasta.member_builder;
 
-import 'dart:core' hide MapEntry;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 

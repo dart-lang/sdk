@@ -1089,10 +1089,15 @@ YieldStatement wrapYieldStatement(Expression expression) {
 }
 
 TextSerializer<AssertStatement> assertStatementSerializer =
-    Wrapped<Tuple2<Expression, Expression>, AssertStatement>(
-        (a) => Tuple2(a.condition, a.message),
-        (t) => AssertStatement(t.first, message: t.second),
-        Tuple2Serializer(expressionSerializer, Optional(expressionSerializer)));
+    Wrapped<Tuple4<Expression, Expression, int, int>, AssertStatement>(
+        (a) => Tuple4(a.condition, a.message, a.conditionStartOffset,
+            a.conditionEndOffset),
+        (t) => AssertStatement(t.first,
+            message: t.second,
+            conditionStartOffset: t.third,
+            conditionEndOffset: t.fourth),
+        Tuple4Serializer(expressionSerializer, Optional(expressionSerializer),
+            const DartInt(), const DartInt()));
 
 TextSerializer<Block> blockSerializer =
     Wrapped<Tuple2<List<Statement>, Expression>, Block>(
@@ -2102,11 +2107,9 @@ TextSerializer<ExtensionMemberDescriptor> extensionMemberDescriptorSerializer =
     Wrapped<Tuple4<Name, ExtensionMemberKind, int, CanonicalName>,
             ExtensionMemberDescriptor>(
         (w) => Tuple4(w.name, w.kind, w.flags, w.member.canonicalName),
-        (u) => ExtensionMemberDescriptor()
-          ..name = u.first
-          ..kind = u.second
-          ..flags = u.third
-          ..member = u.fourth.getReference(),
+        (u) => ExtensionMemberDescriptor(
+            name: u.first, kind: u.second, member: u.fourth.getReference())
+          ..flags = u.third,
         Tuple4Serializer(
             nameSerializer,
             extensionMemberKindSerializer,

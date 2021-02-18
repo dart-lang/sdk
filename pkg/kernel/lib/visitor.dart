@@ -4,10 +4,8 @@
 
 library kernel.ast.visitor;
 
-import 'dart:core' hide MapEntry;
 import 'dart:collection';
 
-// ignore: import_of_legacy_library_into_null_safe
 import 'ast.dart';
 
 abstract class ExpressionVisitor<R> {
@@ -127,6 +125,20 @@ abstract class MemberVisitor<R> {
   }
 }
 
+abstract class MemberVisitor1<R, A> {
+  const MemberVisitor1();
+
+  R defaultMember(Member node, A arg);
+
+  R visitConstructor(Constructor node, A arg) => defaultMember(node, arg);
+  R visitProcedure(Procedure node, A arg) => defaultMember(node, arg);
+  R visitField(Field node, A arg) => defaultMember(node, arg);
+  R visitRedirectingFactoryConstructor(
+      RedirectingFactoryConstructor node, A arg) {
+    return defaultMember(node, arg);
+  }
+}
+
 abstract class InitializerVisitor<R> {
   const InitializerVisitor();
 
@@ -140,6 +152,25 @@ abstract class InitializerVisitor<R> {
       defaultInitializer(node);
   R visitLocalInitializer(LocalInitializer node) => defaultInitializer(node);
   R visitAssertInitializer(AssertInitializer node) => defaultInitializer(node);
+}
+
+abstract class InitializerVisitor1<R, A> {
+  const InitializerVisitor1();
+
+  R defaultInitializer(Initializer node, A arg);
+
+  R visitInvalidInitializer(InvalidInitializer node, A arg) =>
+      defaultInitializer(node, arg);
+  R visitFieldInitializer(FieldInitializer node, A arg) =>
+      defaultInitializer(node, arg);
+  R visitSuperInitializer(SuperInitializer node, A arg) =>
+      defaultInitializer(node, arg);
+  R visitRedirectingInitializer(RedirectingInitializer node, A arg) =>
+      defaultInitializer(node, arg);
+  R visitLocalInitializer(LocalInitializer node, A arg) =>
+      defaultInitializer(node, arg);
+  R visitAssertInitializer(AssertInitializer node, A arg) =>
+      defaultInitializer(node, arg);
 }
 
 abstract class TreeVisitor<R>
@@ -286,6 +317,195 @@ abstract class TreeVisitor<R>
   R visitCatch(Catch node) => defaultTreeNode(node);
   R visitMapEntry(MapEntry node) => defaultTreeNode(node);
   R visitComponent(Component node) => defaultTreeNode(node);
+}
+
+abstract class TreeVisitor1<R, A>
+    implements
+        ExpressionVisitor1<R, A>,
+        StatementVisitor1<R, A>,
+        MemberVisitor1<R, A>,
+        InitializerVisitor1<R, A> {
+  const TreeVisitor1();
+
+  R defaultTreeNode(TreeNode node, A arg);
+
+  // Expressions
+  R defaultExpression(Expression node, A arg) => defaultTreeNode(node, arg);
+  R defaultBasicLiteral(BasicLiteral node, A arg) =>
+      defaultExpression(node, arg);
+  R visitInvalidExpression(InvalidExpression node, A arg) =>
+      defaultExpression(node, arg);
+  R visitVariableGet(VariableGet node, A arg) => defaultExpression(node, arg);
+  R visitVariableSet(VariableSet node, A arg) => defaultExpression(node, arg);
+  R visitDynamicGet(DynamicGet node, A arg) => defaultExpression(node, arg);
+  R visitDynamicSet(DynamicSet node, A arg) => defaultExpression(node, arg);
+  R visitFunctionTearOff(FunctionTearOff node, A arg) =>
+      defaultExpression(node, arg);
+  R visitInstanceGet(InstanceGet node, A arg) => defaultExpression(node, arg);
+  R visitInstanceSet(InstanceSet node, A arg) => defaultExpression(node, arg);
+  R visitInstanceTearOff(InstanceTearOff node, A arg) =>
+      defaultExpression(node, arg);
+  R visitPropertyGet(PropertyGet node, A arg) => defaultExpression(node, arg);
+  R visitPropertySet(PropertySet node, A arg) => defaultExpression(node, arg);
+  R visitSuperPropertyGet(SuperPropertyGet node, A arg) =>
+      defaultExpression(node, arg);
+  R visitSuperPropertySet(SuperPropertySet node, A arg) =>
+      defaultExpression(node, arg);
+  R visitStaticGet(StaticGet node, A arg) => defaultExpression(node, arg);
+  R visitStaticSet(StaticSet node, A arg) => defaultExpression(node, arg);
+  R visitStaticTearOff(StaticTearOff node, A arg) =>
+      defaultExpression(node, arg);
+  R visitLocalFunctionInvocation(LocalFunctionInvocation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitDynamicInvocation(DynamicInvocation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitFunctionInvocation(FunctionInvocation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitInstanceInvocation(InstanceInvocation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitEqualsNull(EqualsNull node, A arg) => defaultExpression(node, arg);
+  R visitEqualsCall(EqualsCall node, A arg) => defaultExpression(node, arg);
+  R visitMethodInvocation(MethodInvocation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitSuperMethodInvocation(SuperMethodInvocation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitStaticInvocation(StaticInvocation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitConstructorInvocation(ConstructorInvocation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitNot(Not node, A arg) => defaultExpression(node, arg);
+  R visitNullCheck(NullCheck node, A arg) => defaultExpression(node, arg);
+  R visitLogicalExpression(LogicalExpression node, A arg) =>
+      defaultExpression(node, arg);
+  R visitConditionalExpression(ConditionalExpression node, A arg) =>
+      defaultExpression(node, arg);
+  R visitStringConcatenation(StringConcatenation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitListConcatenation(ListConcatenation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitSetConcatenation(SetConcatenation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitMapConcatenation(MapConcatenation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitInstanceCreation(InstanceCreation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitFileUriExpression(FileUriExpression node, A arg) =>
+      defaultExpression(node, arg);
+  R visitIsExpression(IsExpression node, A arg) => defaultExpression(node, arg);
+  R visitAsExpression(AsExpression node, A arg) => defaultExpression(node, arg);
+  R visitSymbolLiteral(SymbolLiteral node, A arg) =>
+      defaultExpression(node, arg);
+  R visitTypeLiteral(TypeLiteral node, A arg) => defaultExpression(node, arg);
+  R visitThisExpression(ThisExpression node, A arg) =>
+      defaultExpression(node, arg);
+  R visitRethrow(Rethrow node, A arg) => defaultExpression(node, arg);
+  R visitThrow(Throw node, A arg) => defaultExpression(node, arg);
+  R visitListLiteral(ListLiteral node, A arg) => defaultExpression(node, arg);
+  R visitSetLiteral(SetLiteral node, A arg) => defaultExpression(node, arg);
+  R visitMapLiteral(MapLiteral node, A arg) => defaultExpression(node, arg);
+  R visitAwaitExpression(AwaitExpression node, A arg) =>
+      defaultExpression(node, arg);
+  R visitFunctionExpression(FunctionExpression node, A arg) =>
+      defaultExpression(node, arg);
+  R visitConstantExpression(ConstantExpression node, A arg) =>
+      defaultExpression(node, arg);
+  R visitStringLiteral(StringLiteral node, A arg) =>
+      defaultBasicLiteral(node, arg);
+  R visitIntLiteral(IntLiteral node, A arg) => defaultBasicLiteral(node, arg);
+  R visitDoubleLiteral(DoubleLiteral node, A arg) =>
+      defaultBasicLiteral(node, arg);
+  R visitBoolLiteral(BoolLiteral node, A arg) => defaultBasicLiteral(node, arg);
+  R visitNullLiteral(NullLiteral node, A arg) => defaultBasicLiteral(node, arg);
+  R visitLet(Let node, A arg) => defaultExpression(node, arg);
+  R visitBlockExpression(BlockExpression node, A arg) =>
+      defaultExpression(node, arg);
+  R visitInstantiation(Instantiation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitLoadLibrary(LoadLibrary node, A arg) => defaultExpression(node, arg);
+  R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node, A arg) =>
+      defaultExpression(node, arg);
+
+  // Statements
+  R defaultStatement(Statement node, A arg) => defaultTreeNode(node, arg);
+  R visitExpressionStatement(ExpressionStatement node, A arg) =>
+      defaultStatement(node, arg);
+  R visitBlock(Block node, A arg) => defaultStatement(node, arg);
+  R visitAssertBlock(AssertBlock node, A arg) => defaultStatement(node, arg);
+  R visitEmptyStatement(EmptyStatement node, A arg) =>
+      defaultStatement(node, arg);
+  R visitAssertStatement(AssertStatement node, A arg) =>
+      defaultStatement(node, arg);
+  R visitLabeledStatement(LabeledStatement node, A arg) =>
+      defaultStatement(node, arg);
+  R visitBreakStatement(BreakStatement node, A arg) =>
+      defaultStatement(node, arg);
+  R visitWhileStatement(WhileStatement node, A arg) =>
+      defaultStatement(node, arg);
+  R visitDoStatement(DoStatement node, A arg) => defaultStatement(node, arg);
+  R visitForStatement(ForStatement node, A arg) => defaultStatement(node, arg);
+  R visitForInStatement(ForInStatement node, A arg) =>
+      defaultStatement(node, arg);
+  R visitSwitchStatement(SwitchStatement node, A arg) =>
+      defaultStatement(node, arg);
+  R visitContinueSwitchStatement(ContinueSwitchStatement node, A arg) =>
+      defaultStatement(node, arg);
+  R visitIfStatement(IfStatement node, A arg) => defaultStatement(node, arg);
+  R visitReturnStatement(ReturnStatement node, A arg) =>
+      defaultStatement(node, arg);
+  R visitTryCatch(TryCatch node, A arg) => defaultStatement(node, arg);
+  R visitTryFinally(TryFinally node, A arg) => defaultStatement(node, arg);
+  R visitYieldStatement(YieldStatement node, A arg) =>
+      defaultStatement(node, arg);
+  R visitVariableDeclaration(VariableDeclaration node, A arg) =>
+      defaultStatement(node, arg);
+  R visitFunctionDeclaration(FunctionDeclaration node, A arg) =>
+      defaultStatement(node, arg);
+
+  // Members
+  R defaultMember(Member node, A arg) => defaultTreeNode(node, arg);
+  R visitConstructor(Constructor node, A arg) => defaultMember(node, arg);
+  R visitProcedure(Procedure node, A arg) => defaultMember(node, arg);
+  R visitField(Field node, A arg) => defaultMember(node, arg);
+  R visitRedirectingFactoryConstructor(
+      RedirectingFactoryConstructor node, A arg) {
+    return defaultMember(node, arg);
+  }
+
+  // Classes
+  R visitClass(Class node, A arg) => defaultTreeNode(node, arg);
+  R visitExtension(Extension node, A arg) => defaultTreeNode(node, arg);
+
+  // Initializers
+  R defaultInitializer(Initializer node, A arg) => defaultTreeNode(node, arg);
+  R visitInvalidInitializer(InvalidInitializer node, A arg) =>
+      defaultInitializer(node, arg);
+  R visitFieldInitializer(FieldInitializer node, A arg) =>
+      defaultInitializer(node, arg);
+  R visitSuperInitializer(SuperInitializer node, A arg) =>
+      defaultInitializer(node, arg);
+  R visitRedirectingInitializer(RedirectingInitializer node, A arg) =>
+      defaultInitializer(node, arg);
+  R visitLocalInitializer(LocalInitializer node, A arg) =>
+      defaultInitializer(node, arg);
+  R visitAssertInitializer(AssertInitializer node, A arg) =>
+      defaultInitializer(node, arg);
+
+  // Other tree nodes
+  R visitLibrary(Library node, A arg) => defaultTreeNode(node, arg);
+  R visitLibraryDependency(LibraryDependency node, A arg) =>
+      defaultTreeNode(node, arg);
+  R visitCombinator(Combinator node, A arg) => defaultTreeNode(node, arg);
+  R visitLibraryPart(LibraryPart node, A arg) => defaultTreeNode(node, arg);
+  R visitTypedef(Typedef node, A arg) => defaultTreeNode(node, arg);
+  R visitTypeParameter(TypeParameter node, A arg) => defaultTreeNode(node, arg);
+  R visitFunctionNode(FunctionNode node, A arg) => defaultTreeNode(node, arg);
+  R visitArguments(Arguments node, A arg) => defaultTreeNode(node, arg);
+  R visitNamedExpression(NamedExpression node, A arg) =>
+      defaultTreeNode(node, arg);
+  R visitSwitchCase(SwitchCase node, A arg) => defaultTreeNode(node, arg);
+  R visitCatch(Catch node, A arg) => defaultTreeNode(node, arg);
+  R visitMapEntry(MapEntry node, A arg) => defaultTreeNode(node, arg);
+  R visitComponent(Component node, A arg) => defaultTreeNode(node, arg);
 }
 
 abstract class DartTypeVisitor<R> {
@@ -776,6 +996,54 @@ class RecursiveResultVisitor<R> extends Visitor<R?> with VisitorNullMixin<R> {
 class Transformer extends TreeVisitor<TreeNode> {
   const Transformer();
 
+  T transform<T extends TreeNode>(T node) {
+    T result = node.accept<TreeNode>(this) as T;
+    assert(
+        // ignore: unnecessary_null_comparison
+        result != null,
+        'Attempting to remove ${node} (${node.runtimeType}) '
+        'in transformer.');
+    return result;
+  }
+
+  void transformDartTypeList(List<DartType> nodes) {
+    for (int i = 0; i < nodes.length; ++i) {
+      DartType result = visitDartType(nodes[i]);
+      assert(
+          // ignore: unnecessary_null_comparison
+          result != null,
+          'Attempting to remove ${nodes[i]} (${nodes[i].runtimeType}) '
+          'in transformer.');
+      nodes[i] = result;
+    }
+  }
+
+  void transformSupertypeList(List<Supertype> nodes) {
+    for (int i = 0; i < nodes.length; ++i) {
+      Supertype result = visitSupertype(nodes[i]);
+      assert(
+          // ignore: unnecessary_null_comparison
+          result != null,
+          'Attempting to remove ${nodes[i]} (${nodes[i].runtimeType}) '
+          'in transformer.');
+      nodes[i] = result;
+    }
+  }
+
+  void transformList<T extends TreeNode>(List<T> nodes, TreeNode parent) {
+    for (int i = 0; i < nodes.length; ++i) {
+      T result = transform(nodes[i]);
+      assert(
+          // ignore: unnecessary_null_comparison
+          result != null,
+          'Attempting to remove ${nodes[i]} (${nodes[i].runtimeType}) '
+          'in transformer.');
+      // ignore: invalid_null_aware_operator
+      result.parent = parent;
+      nodes[i] = result;
+    }
+  }
+
   /// Replaces a use of a type.
   ///
   /// By default, recursion stops at this point.
@@ -787,6 +1055,362 @@ class Transformer extends TreeVisitor<TreeNode> {
 
   TreeNode defaultTreeNode(TreeNode node) {
     node.transformChildren(this);
+    return node;
+  }
+}
+
+/// Transformer that recursively rewrites each node in tree and supports removal
+/// of nodes.
+///
+/// Visit methods should return a new node, the visited node (possibly
+/// mutated), any node from the visited node's subtree, or the provided
+/// removal sentinel, if non-null.
+///
+/// To support removal of nodes during traversal, while enforcing nullability
+/// invariants, this visitor takes an argument, the removal sentinel. If a
+/// node is visited in a context where it can be removed, for instance in a
+/// list or as an optional child of its parent, a non-null sentinel value is
+/// provided, and this value can be returned to signal to the caller that the
+/// visited node should be removed. If the sentinel value is `null`, the node
+/// cannot be removed from its context, in which case the node itself or a new
+/// non-null node must be returned, possibly a sentinel value specific to the
+/// particular visitor.
+///
+/// For instance
+///
+///     class AssertRemover extends RemovingTransformer {
+///        @override
+///        TreeNode visitAssertStatement(
+///            AssertStatement node,
+///            TreeNode? removalSentinel) {
+///          return removalSentinel ?? new EmptyStatement();
+///        }
+///
+///        @override
+///        TreeNode visitIfStatement(
+///            IfStatement node,
+///            TreeNode? removalSentinel) {
+///          node.transformOrRemoveChildren(this);
+///          if (node.then is EmptyStatement) {
+///            if (node.otherwise != null) {
+///              return new IfStatement(
+///                  new Not(node.condition), node.otherwise);
+///            } else {
+///              return removalSentinel ?? new EmptyStatement();
+///            }
+///          }
+///          return node;
+///        }
+///     }
+///
+/// Each subclass is responsible for ensuring that the AST remains a tree.
+///
+/// For example, the following transformer replaces every occurrence of
+/// `!(x && y)` with `(!x || !y)`:
+///
+///     class NegationSinker extends RemovingTransformer {
+///       @override
+///       Node visitNot(Not node) {
+///         var operand = node.operand.accept(this); // Remember to visit.
+///         if (operand is LogicalExpression && operand.operator == '&&') {
+///           return new LogicalExpression(
+///             new Not(operand.left),
+///             '||',
+///             new Not(operand.right));
+///         }
+///         return node;
+///       }
+///     }
+///
+class RemovingTransformer extends TreeVisitor1<TreeNode, TreeNode?> {
+  const RemovingTransformer();
+
+  /// Visits [node], returning the transformation result.
+  ///
+  /// The transformation cannot result in `null`.
+  T transform<T extends TreeNode>(T node) {
+    return node.accept1<TreeNode, TreeNode?>(this, cannotRemoveSentinel) as T;
+  }
+
+  /// Visits [node], returning the transformation result. Removal of [node] is
+  /// supported with `null` as the result.
+  ///
+  /// This is convenience method for calling [transformOrRemove] with removal
+  /// sentinel for [Expression] nodes.
+  Expression? transformOrRemoveExpression(Expression node) {
+    return transformOrRemove(node, dummyExpression);
+  }
+
+  /// Visits [node], returning the transformation result. Removal of [node] is
+  /// supported with `null` as the result.
+  ///
+  /// This is convenience method for calling [transformOrRemove] with removal
+  /// sentinel for [Statement] nodes.
+  Statement? transformOrRemoveStatement(Statement node) {
+    return transformOrRemove(node, dummyStatement);
+  }
+
+  /// Visits [node], returning the transformation result. Removal of [node] is
+  /// supported with `null` as the result.
+  ///
+  /// This is convenience method for calling [transformOrRemove] with removal
+  /// sentinel for [VariableDeclaration] nodes.
+  VariableDeclaration? transformOrRemoveVariableDeclaration(
+      VariableDeclaration node) {
+    return transformOrRemove(node, dummyVariableDeclaration);
+  }
+
+  /// Visits [node] using [removalSentinel] as the removal sentinel.
+  ///
+  /// If [removalSentinel] is the result of visiting [node], `null` is returned.
+  /// Otherwise the result is returned.
+  T? transformOrRemove<T extends TreeNode>(T node, T? removalSentinel) {
+    T result = node.accept1<TreeNode, TreeNode?>(this, removalSentinel) as T;
+    if (identical(result, removalSentinel)) {
+      return null;
+    } else {
+      return result;
+    }
+  }
+
+  /// Transforms or removes [DartType] nodes in [nodes].
+  void transformDartTypeList(List<DartType> nodes) {
+    int storeIndex = 0;
+    for (int i = 0; i < nodes.length; ++i) {
+      DartType result = visitDartType(nodes[i], dummyDartType);
+      if (!identical(result, dummyDartType)) {
+        nodes[storeIndex] = result;
+        ++storeIndex;
+      }
+    }
+    if (storeIndex < nodes.length) {
+      nodes.length = storeIndex;
+    }
+  }
+
+  /// Transforms or removes [Supertype] nodes in [nodes].
+  void transformSupertypeList(List<Supertype> nodes) {
+    int storeIndex = 0;
+    for (int i = 0; i < nodes.length; ++i) {
+      Supertype result = visitSupertype(nodes[i], dummySupertype);
+      if (!identical(result, dummySupertype)) {
+        nodes[storeIndex] = result;
+        ++storeIndex;
+      }
+    }
+    if (storeIndex < nodes.length) {
+      nodes.length = storeIndex;
+    }
+  }
+
+  /// Transforms or removes [Library] nodes in [nodes] as children of [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [Library] nodes.
+  void transformLibraryList(List<Library> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyLibrary);
+  }
+
+  /// Transforms or removes [LibraryDependency] nodes in [nodes] as children of
+  /// [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [LibraryDependency] nodes.
+  void transformLibraryDependencyList(
+      List<LibraryDependency> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyLibraryDependency);
+  }
+
+  /// Transforms or removes [Combinator] nodes in [nodes] as children of
+  /// [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [Combinator] nodes.
+  void transformCombinatorList(List<Combinator> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyCombinator);
+  }
+
+  /// Transforms or removes [LibraryPart] nodes in [nodes] as children of
+  /// [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [LibraryPart] nodes.
+  void transformLibraryPartList(List<LibraryPart> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyLibraryPart);
+  }
+
+  /// Transforms or removes [Class] nodes in [nodes] as children of [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [Class] nodes.
+  void transformClassList(List<Class> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyClass);
+  }
+
+  /// Transforms or removes [Extension] nodes in [nodes] as children of
+  /// [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [Extension] nodes.
+  void transformExtensionList(List<Extension> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyExtension);
+  }
+
+  /// Transforms or removes [Constructor] nodes in [nodes] as children of
+  /// [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [Constructor] nodes.
+  void transformConstructorList(List<Constructor> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyConstructor);
+  }
+
+  /// Transforms or removes [Procedure] nodes in [nodes] as children of
+  /// [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [Procedure] nodes.
+  void transformProcedureList(List<Procedure> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyProcedure);
+  }
+
+  /// Transforms or removes [Field] nodes in [nodes] as children of [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [Field] nodes.
+  void transformFieldList(List<Field> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyField);
+  }
+
+  /// Transforms or removes [RedirectingFactoryConstructor] nodes in [nodes] as
+  /// children of [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [RedirectingFactoryConstructor] nodes.
+  void transformRedirectingFactoryConstructorList(
+      List<RedirectingFactoryConstructor> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyRedirectingFactoryConstructor);
+  }
+
+  /// Transforms or removes [Typedef] nodes in [nodes] as children of [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [Typedef] nodes.
+  void transformTypedefList(List<Typedef> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyTypedef);
+  }
+
+  /// Transforms or removes [Initializer] nodes in [nodes] as children of
+  /// [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [Initializer] nodes.
+  void transformInitializerList(List<Initializer> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyInitializer);
+  }
+
+  /// Transforms or removes [Expression] nodes in [nodes] as children of
+  /// [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [Expression] nodes.
+  void transformExpressionList(List<Expression> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyExpression);
+  }
+
+  /// Transforms or removes [NamedExpression] nodes in [nodes] as children of
+  /// [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [NamedExpression] nodes.
+  void transformNamedExpressionList(
+      List<NamedExpression> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyNamedExpression);
+  }
+
+  /// Transforms or removes [MapEntry] nodes in [nodes] as children of [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [MapEntry] nodes.
+  void transformMapEntryList(List<MapEntry> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyMapEntry);
+  }
+
+  /// Transforms or removes [Statement] nodes in [nodes] as children of
+  /// [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [Statement] nodes.
+  void transformStatementList(List<Statement> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyStatement);
+  }
+
+  /// Transforms or removes [SwitchCase] nodes in [nodes] as children of
+  /// [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [SwitchCase] nodes.
+  void transformSwitchCaseList(List<SwitchCase> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummySwitchCase);
+  }
+
+  /// Transforms or removes [Catch] nodes in [nodes] as children of [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [Catch] nodes.
+  void transformCatchList(List<Catch> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyCatch);
+  }
+
+  /// Transforms or removes [TypeParameter] nodes in [nodes] as children of
+  /// [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [TypeParameter] nodes.
+  void transformTypeParameterList(List<TypeParameter> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyTypeParameter);
+  }
+
+  /// Transforms or removes [VariableDeclaration] nodes in [nodes] as children
+  /// of [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [VariableDeclaration] nodes.
+  void transformVariableDeclarationList(
+      List<VariableDeclaration> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyVariableDeclaration);
+  }
+
+  /// Transforms or removes [T] nodes in [nodes] as children of [parent] by
+  /// calling [transformOrRemove] using [removalSentinel] as the removal
+  /// sentinel.
+  void transformList<T extends TreeNode>(
+      List<T> nodes, TreeNode parent, T removalSentinel) {
+    int storeIndex = 0;
+    for (int i = 0; i < nodes.length; ++i) {
+      T? result = transformOrRemove(nodes[i], removalSentinel);
+      if (result != null) {
+        nodes[storeIndex] = result;
+        result.parent = parent;
+        ++storeIndex;
+      }
+    }
+    if (storeIndex < nodes.length) {
+      nodes.length = storeIndex;
+    }
+  }
+
+  /// Replaces a use of a type.
+  ///
+  /// By default, recursion stops at this point.
+  DartType visitDartType(DartType node, DartType? removalSentinel) => node;
+
+  Constant visitConstant(Constant node, Constant? removalSentinel) => node;
+
+  Supertype visitSupertype(Supertype node, Supertype? removalSentinel) => node;
+
+  TreeNode defaultTreeNode(TreeNode node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
     return node;
   }
 }

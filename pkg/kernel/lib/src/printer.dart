@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore: import_of_legacy_library_into_null_safe
 import '../ast.dart';
 import 'text_util.dart';
 
@@ -157,8 +156,9 @@ class AstPrinter {
   }
 
   String getVariableName(VariableDeclaration node) {
-    if (node.name != null) {
-      return node.name;
+    String? name = node.name;
+    if (name != null) {
+      return name;
     }
     return _variableNames[node] ??= '#${_variableNames.length}';
   }
@@ -259,22 +259,22 @@ class AstPrinter {
       for (TypeParameter typeParameter in typeParameters) {
         _sb.write(comma);
         _sb.write(typeParameter.name);
-        DartType bound = typeParameter.bound;
+        DartType bound = typeParameter.bound!;
 
         bool isTopObject(DartType type) {
           if (type is InterfaceType &&
               type.className.node != null &&
               type.classNode.name == 'Object') {
-            Uri? uri = type.classNode.enclosingLibrary?.importUri;
-            return uri?.scheme == 'dart' &&
-                uri?.path == 'core' &&
+            Uri uri = type.classNode.enclosingLibrary.importUri;
+            return uri.scheme == 'dart' &&
+                uri.path == 'core' &&
                 (type.nullability == Nullability.legacy ||
                     type.nullability == Nullability.nullable);
           }
           return false;
         }
 
-        if (!isTopObject(bound) || isTopObject(typeParameter.defaultType)) {
+        if (!isTopObject(bound) || isTopObject(typeParameter.defaultType!)) {
           // Include explicit bounds only.
           _sb.write(' extends ');
           writeType(bound);
@@ -385,7 +385,7 @@ class AstPrinter {
     _sb.write(getVariableName(node));
     if (includeInitializer && node.initializer != null && !node.isRequired) {
       _sb.write(' = ');
-      writeExpression(node.initializer);
+      writeExpression(node.initializer!);
     }
   }
 
@@ -401,7 +401,7 @@ class AstPrinter {
         }
         _sb.write(node.typeParameters[index].name);
         _sb.write(' extends ');
-        writeType(node.typeParameters[index].bound);
+        writeType(node.typeParameters[index].bound!);
       }
       _sb.write('>');
     }
@@ -437,7 +437,7 @@ class AstPrinter {
     if (body != null) {
       if (body is ReturnStatement) {
         _sb.write(' => ');
-        writeExpression(body.expression);
+        writeExpression(body.expression!);
       } else {
         _sb.write(' ');
         writeStatement(body);

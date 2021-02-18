@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 
 import '../problems.dart';
 import 'library_builder.dart';

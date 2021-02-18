@@ -6,8 +6,6 @@
 
 library fasta.fangorn;
 
-import 'dart:core' hide MapEntry;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 
@@ -775,6 +773,10 @@ class _VariablesDeclaration extends Statement {
 
   transformChildren(v) {
     throw unsupported("transformChildren", fileOffset, uri);
+  }
+
+  transformOrRemoveChildren(v) {
+    throw unsupported("transformOrRemoveChildren", fileOffset, uri);
   }
 
   @override

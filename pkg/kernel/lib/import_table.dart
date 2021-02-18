@@ -4,7 +4,6 @@
 
 library kernel.import_table;
 
-// ignore: import_of_legacy_library_into_null_safe
 import 'ast.dart';
 
 abstract class ImportTable {
@@ -111,7 +110,7 @@ class _ImportTableBuilder extends RecursiveVisitor {
   visitLibrary(Library node) {
     super.visitLibrary(node);
     for (Reference exportedReference in node.additionalExports) {
-      addLibraryImport(exportedReference.node.parent as Library);
+      addLibraryImport(exportedReference.node!.parent as Library);
     }
   }
 

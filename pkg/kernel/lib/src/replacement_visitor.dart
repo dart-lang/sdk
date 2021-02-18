@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// ignore: import_of_legacy_library_into_null_safe
-import '../ast.dart' hide MapEntry;
+import '../ast.dart';
 import '../type_algebra.dart';
 
 /// Helper visitor that clones a type if a nested type is replaced, and
@@ -49,7 +48,7 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
           Substitution.fromPairs(node.typeParameters, typeParameterTypes);
       for (int i = 0; i < newTypeParameters.length; i++) {
         newTypeParameters[i].bound =
-            substitution.substituteType(newTypeParameters[i].bound);
+            substitution.substituteType(newTypeParameters[i].bound!);
       }
     }
 
@@ -211,7 +210,7 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
   DartType? visitTypeParameterType(TypeParameterType node, int variance) {
     Nullability? newNullability = visitNullability(node);
     if (node.promotedBound != null) {
-      DartType newPromotedBound = node.promotedBound.accept1(this, variance);
+      DartType? newPromotedBound = node.promotedBound!.accept1(this, variance);
       return createPromotedTypeParameterType(
           node, newNullability, newPromotedBound);
     }

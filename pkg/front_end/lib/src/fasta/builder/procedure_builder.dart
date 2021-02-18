@@ -4,8 +4,6 @@
 
 // @dart = 2.9
 
-import 'dart:core' hide MapEntry;
-
 import 'package:front_end/src/fasta/dill/dill_member_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:kernel/ast.dart';

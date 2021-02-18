@@ -8,7 +8,7 @@ library fasta.field_builder;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 

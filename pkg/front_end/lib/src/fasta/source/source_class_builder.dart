@@ -7,7 +7,7 @@
 library fasta.source_class_builder;
 
 import 'package:front_end/src/fasta/kernel/combined_member_signature.dart';
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';

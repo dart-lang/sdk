@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 
 import 'type_schema.dart' show UnknownType;

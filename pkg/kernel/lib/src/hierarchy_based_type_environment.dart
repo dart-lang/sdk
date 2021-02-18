@@ -4,7 +4,6 @@
 
 library kernel.hierarchy_based_type_environment;
 
-// ignore: import_of_legacy_library_into_null_safe
 import '../ast.dart' show Class, DartType, InterfaceType, Library, Member, Name;
 
 import '../class_hierarchy.dart' show ClassHierarchyBase;

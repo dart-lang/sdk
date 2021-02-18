@@ -8,7 +8,6 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 
-// ignore: import_of_legacy_library_into_null_safe
 import 'ast.dart' hide MapEntry;
 import 'core_types.dart';
 import 'type_algebra.dart';
@@ -283,7 +282,7 @@ abstract class ClassHierarchy implements ClassHierarchyBase {
   /// [getDeclaredMembers] and [getInterfaceMembers].
   static int compareMembers(Member first, Member second) {
     if (first == second) return 0;
-    return compareNames(first.name, second.name);
+    return compareNames(first.name!, second.name!);
   }
 
   /// Compares names, using the same sort order as [getDeclaredMembers] and
@@ -329,7 +328,7 @@ abstract class ClassHierarchy implements ClassHierarchyBase {
     while (low <= high) {
       int mid = low + ((high - low) >> 1);
       Member pivot = members[mid];
-      int comparison = compareNames(name, pivot.name);
+      int comparison = compareNames(name, pivot.name!);
       if (comparison < 0) {
         high = mid - 1;
       } else if (comparison > 0) {
@@ -418,9 +417,9 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
   Member? getSingleTargetForInterfaceInvocation(Member interfaceTarget,
       {bool setter: false}) {
     if (invalidated) throw "This data structure has been invalidated";
-    Name name = interfaceTarget.name;
+    Name name = interfaceTarget.name!;
     Member? target = null;
-    ClassSet subtypes = getSubtypesOf(interfaceTarget.enclosingClass);
+    ClassSet subtypes = getSubtypesOf(interfaceTarget.enclosingClass!);
     for (Class c in subtypes) {
       if (!c.isAbstract) {
         Member? candidate =
@@ -591,8 +590,14 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         heap.add(infoFor(supertype.classNode));
       }
 
-      if (classNode.supertype != null) addToHeap(classNode.supertype);
-      if (classNode.mixedInType != null) addToHeap(classNode.mixedInType);
+      Supertype? supertype = classNode.supertype;
+      if (supertype != null) {
+        addToHeap(supertype);
+      }
+      Supertype? mixedInType = classNode.mixedInType;
+      if (mixedInType != null) {
+        addToHeap(mixedInType);
+      }
       classNode.implementedTypes.forEach(addToHeap);
     }
     return chain;
@@ -861,11 +866,13 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     void removeClass(Class cls) {
       _ClassInfo? info = _infoMap[cls];
       if (info == null) return;
-      if (cls.supertype != null) {
-        _infoMap[cls.supertype.classNode]?.directExtenders.remove(info);
+      Supertype? supertype = cls.supertype;
+      if (supertype != null) {
+        _infoMap[supertype.classNode]?.directExtenders.remove(info);
       }
-      if (cls.mixedInType != null) {
-        _infoMap[cls.mixedInType.classNode]?.directMixers.remove(info);
+      Supertype? mixedInType = cls.mixedInType;
+      if (mixedInType != null) {
+        _infoMap[mixedInType.classNode]?.directMixers.remove(info);
       }
       for (Supertype supertype in cls.implementedTypes) {
         _infoMap[supertype.classNode]?.directImplementers.remove(info);
@@ -1095,12 +1102,14 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       }
       _collectSupersForClass(class_);
 
-      if (class_.supertype != null) {
-        _recordSuperTypes(info, class_.supertype);
+      Supertype? supertype = class_.supertype;
+      if (supertype != null) {
+        _recordSuperTypes(info, supertype);
       }
-      if (class_.mixedInType != null) {
+      Supertype? mixedInType = class_.mixedInType;
+      if (mixedInType != null) {
         mixinInferrer?.infer(this, class_);
-        _recordSuperTypes(info, class_.mixedInType);
+        _recordSuperTypes(info, mixedInType);
       }
       for (Supertype supertype in class_.implementedTypes) {
         _recordSuperTypes(info, supertype);
@@ -1169,10 +1178,11 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     if (members != null) return members;
 
     List<Member> inherited;
-    if (classNode.supertype == null) {
+    Supertype? supertype = classNode.supertype;
+    if (supertype == null) {
       inherited = const <Member>[];
     } else {
-      Class superClassNode = classNode.supertype.classNode;
+      Class superClassNode = supertype.classNode;
       _ClassInfo superInfo = _infoMap[superClassNode]!;
       inherited =
           _buildImplementedMembers(superClassNode, superInfo, setters: setters);
@@ -1208,7 +1218,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
           setters: setters)) {
         if (mixinMember is! Procedure ||
             (mixinMember is Procedure && !mixinMember.isSynthetic)) {
-          memberMap[mixinMember.name] = mixinMember;
+          memberMap[mixinMember.name!] = mixinMember;
         }
       }
     }
@@ -1217,21 +1227,21 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       if (procedure.isStatic) continue;
       if (procedure.kind == ProcedureKind.Setter) {
         if (setters) {
-          memberMap[procedure.name] = procedure;
+          memberMap[procedure.name!] = procedure;
         }
       } else {
         if (!setters) {
-          memberMap[procedure.name] = procedure;
+          memberMap[procedure.name!] = procedure;
         }
       }
     }
     for (Field field in classNode.fields) {
       if (field.isStatic) continue;
       if (!setters) {
-        memberMap[field.name] = field;
+        memberMap[field.name!] = field;
       }
       if (setters && field.hasSetter) {
-        memberMap[field.name] = field;
+        memberMap[field.name!] = field;
       }
     }
 

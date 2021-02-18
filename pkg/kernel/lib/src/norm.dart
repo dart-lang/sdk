@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// ignore: import_of_legacy_library_into_null_safe
-import '../ast.dart' hide MapEntry;
+import '../ast.dart';
 import '../core_types.dart';
 import '../type_algebra.dart';
 
@@ -94,7 +93,7 @@ class _Norm extends ReplacementVisitor {
   @override
   DartType? visitTypeParameterType(TypeParameterType node, int variance) {
     if (node.promotedBound == null) {
-      DartType bound = node.parameter.bound;
+      DartType bound = node.parameter.bound!;
       if (normalizesToNever(bound)) {
         DartType result = NeverType.fromNullability(node.nullability);
         return result.accept1(this, variance) ?? result;
@@ -103,7 +102,7 @@ class _Norm extends ReplacementVisitor {
       // If the bound isn't Never, the type is already normalized.
       return null;
     } else {
-      DartType bound = node.promotedBound;
+      DartType bound = node.promotedBound!;
       bound = bound.accept1(this, variance) ?? bound;
       if (bound is NeverType && bound.nullability == Nullability.nonNullable) {
         return bound;
@@ -119,7 +118,7 @@ class _Norm extends ReplacementVisitor {
         assert(!coreTypes.isTop(bound));
         return new TypeParameterType(node.parameter, node.declaredNullability);
       } else if (bound == coreTypes.objectNonNullableRawType &&
-          norm(coreTypes, node.parameter.bound) ==
+          norm(coreTypes, node.parameter.bound!) ==
               coreTypes.objectNonNullableRawType) {
         return new TypeParameterType(node.parameter, node.declaredNullability);
       } else if (identical(bound, node.promotedBound)) {
@@ -144,9 +143,9 @@ class _Norm extends ReplacementVisitor {
       return true;
     } else if (type is TypeParameterType) {
       if (type.promotedBound == null) {
-        return normalizesToNever(type.parameter.bound);
+        return normalizesToNever(type.parameter.bound!);
       } else {
-        return normalizesToNever(type.promotedBound);
+        return normalizesToNever(type.promotedBound!);
       }
     }
     return false;

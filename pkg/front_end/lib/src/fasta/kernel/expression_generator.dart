@@ -7,8 +7,6 @@
 /// A library to help generate expression.
 library fasta.expression_generator;
 
-import 'dart:core' hide MapEntry;
-
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show lengthForToken, lengthOfSpan;
 

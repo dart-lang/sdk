@@ -4,7 +4,6 @@
 
 library kernel.transformations.flags;
 
-// ignore: import_of_legacy_library_into_null_safe
 import '../ast.dart';
 
 /// Flags summarizing the kinds of AST nodes contained in a given member or
