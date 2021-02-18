@@ -20,8 +20,6 @@
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
 
-import 'dart:core' hide MapEntry;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
 import 'package:kernel/src/printer.dart';

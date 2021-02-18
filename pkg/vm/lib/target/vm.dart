@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 library vm.target.vm;
 
-import 'dart:core' hide MapEntry;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/class_hierarchy.dart';

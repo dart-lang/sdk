@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 // ignore: import_of_legacy_library_into_null_safe
-import '../ast.dart' hide MapEntry;
+import '../ast.dart';
 import '../core_types.dart';
 import '../type_algebra.dart';
 

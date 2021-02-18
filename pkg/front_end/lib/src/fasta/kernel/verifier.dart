@@ -6,8 +6,6 @@
 
 library fasta.verifier;
 
-import 'dart:core' hide MapEntry;
-
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:kernel/ast.dart';

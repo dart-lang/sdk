@@ -6,8 +6,6 @@
 
 library kernel.clone;
 
-import 'dart:core' hide MapEntry;
-
 import 'ast.dart';
 import 'type_algebra.dart';
 

@@ -6,7 +6,7 @@
 
 import 'package:kernel/src/bounds_checks.dart';
 
-import '../ast.dart' hide MapEntry;
+import '../ast.dart';
 import '../core_types.dart';
 import '../type_algebra.dart';
 

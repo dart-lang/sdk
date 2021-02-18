@@ -6,7 +6,7 @@
 
 import "package:expect/expect.dart" show Expect;
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/testing/type_parser_environment.dart';
 import 'package:kernel/type_environment.dart';

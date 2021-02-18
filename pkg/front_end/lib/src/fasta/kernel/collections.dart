@@ -6,8 +6,6 @@
 
 library fasta.collections;
 
-import 'dart:core' hide MapEntry;
-
 import 'package:kernel/ast.dart'
     show
         DartType,

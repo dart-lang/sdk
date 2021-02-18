@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 import 'package:kernel/visitor.dart';
 
 import '../type_inference/type_schema.dart';

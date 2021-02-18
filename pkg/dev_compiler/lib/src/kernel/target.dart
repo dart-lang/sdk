@@ -5,7 +5,6 @@
 // @dart = 2.9
 
 import 'dart:collection';
-import 'dart:core' hide MapEntry;
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;

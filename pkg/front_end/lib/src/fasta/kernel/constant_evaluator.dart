@@ -20,8 +20,6 @@
 /// language.  Issue(http://dartbug.com/31799)
 library fasta.constant_evaluator;
 
-import 'dart:core' hide MapEntry;
-
 import 'dart:io' as io;
 
 import 'package:kernel/ast.dart';

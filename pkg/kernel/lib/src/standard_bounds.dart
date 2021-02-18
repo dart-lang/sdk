@@ -5,7 +5,7 @@
 import 'dart:math' as math;
 
 // ignore: import_of_legacy_library_into_null_safe
-import '../ast.dart' hide MapEntry;
+import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../type_algebra.dart';

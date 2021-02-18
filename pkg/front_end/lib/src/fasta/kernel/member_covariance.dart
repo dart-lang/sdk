@@ -6,7 +6,7 @@
 
 import 'dart:math';
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 
 /// Class that holds the covariant and generic-covariant-impl information for
 /// a member.
