@@ -53,9 +53,8 @@ void IsolateObjectStore::PrintToJSONObject(JSONObject* jsobj) {
 static StackTracePtr CreatePreallocatedStackTrace(Zone* zone) {
   const Array& code_array = Array::Handle(
       zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
-  const TypedData& pc_offset_array = TypedData::Handle(
-      zone, TypedData::New(kUintPtrCid, StackTrace::kPreallocatedStackdepth,
-                           Heap::kOld));
+  const Array& pc_offset_array = Array::Handle(
+      zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
   const StackTrace& stack_trace =
       StackTrace::Handle(zone, StackTrace::New(code_array, pc_offset_array));
   // Expansion of inlined functions requires additional memory at run time,

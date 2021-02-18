@@ -146,7 +146,7 @@ void Dwarf::AddCode(const Code& orig_code, const char* name) {
   // Dwarf object (which is currently true).  Otherwise, need to copy.
   code_to_name_.Insert({&code, name});
 
-  if (code.IsFunctionCode() && !code.IsUnknownDartCode()) {
+  if (code.IsFunctionCode()) {
     const Function& function = Function::Handle(zone_, code.function());
     AddFunction(function);
   }
@@ -364,7 +364,7 @@ void Dwarf::WriteConcreteFunctions(DwarfWriteStream* stream) {
   for (intptr_t i = 0; i < codes_.length(); i++) {
     const Code& code = *(codes_[i]);
     RELEASE_ASSERT(!code.IsNull());
-    if (!code.IsFunctionCode() || code.IsUnknownDartCode()) {
+    if (!code.IsFunctionCode()) {
       continue;
     }
 

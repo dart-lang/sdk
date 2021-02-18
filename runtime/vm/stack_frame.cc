@@ -105,13 +105,17 @@ void UntaggedFrame::Init() {
 }
 
 bool StackFrame::IsBareInstructionsDartFrame() const {
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
-    return false;
-  }
   NoSafepointScope no_safepoint;
 
   Code code;
   code = ReversePc::Lookup(this->isolate_group(), pc(),
+                           /*is_return_address=*/true);
+  if (!code.IsNull()) {
+    auto const cid = code.OwnerClassId();
+    ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
+    return cid == kFunctionCid;
+  }
+  code = ReversePc::Lookup(Dart::vm_isolate_group(), pc(),
                            /*is_return_address=*/true);
   if (!code.IsNull()) {
     auto const cid = code.OwnerClassId();
@@ -123,13 +127,17 @@ bool StackFrame::IsBareInstructionsDartFrame() const {
 }
 
 bool StackFrame::IsBareInstructionsStubFrame() const {
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
-    return false;
-  }
   NoSafepointScope no_safepoint;
 
   Code code;
   code = ReversePc::Lookup(this->isolate_group(), pc(),
+                           /*is_return_address=*/true);
+  if (!code.IsNull()) {
+    auto const cid = code.OwnerClassId();
+    ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
+    return cid == kNullCid || cid == kClassCid;
+  }
+  code = ReversePc::Lookup(Dart::vm_isolate_group(), pc(),
                            /*is_return_address=*/true);
   if (!code.IsNull()) {
     auto const cid = code.OwnerClassId();
@@ -217,13 +225,9 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // helper functions to the raw object interface.
   NoSafepointScope no_safepoint;
   Code code;
-  CompressedStackMaps maps;
-  uword code_start;
 
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    maps = ReversePc::FindCompressedStackMaps(isolate_group(), pc(),
-                                              /*is_return_address=*/true,
-                                              &code_start);
+    code = GetCodeObject();
   } else {
     ObjectPtr pc_marker = *(reinterpret_cast<ObjectPtr*>(
         fp() + (runtime_frame_layout.code_from_fp * kWordSize)));
@@ -232,23 +236,23 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     visitor->VisitPointer(&pc_marker);
     if (pc_marker->IsHeapObject() && (pc_marker->GetClassId() == kCodeCid)) {
       code ^= pc_marker;
-      code_start = code.PayloadStart();
-      maps = code.compressed_stackmaps();
-      ASSERT(!maps.IsNull());
     } else {
       ASSERT(pc_marker == Object::null());
     }
   }
 
-  if (!maps.IsNull()) {
+  if (!code.IsNull()) {
     // Optimized frames have a stack map. We need to visit the frame based
     // on the stack map.
+    CompressedStackMaps maps;
+    maps = code.compressed_stackmaps();
     CompressedStackMaps global_table;
 
     global_table =
         isolate_group()->object_store()->canonicalized_stack_map_entries();
     CompressedStackMaps::Iterator it(maps, global_table);
-    const uint32_t pc_offset = pc() - code_start;
+    const uword start = code.PayloadStart();
+    const uint32_t pc_offset = pc() - start;
     if (it.Find(pc_offset)) {
       ObjectPtr* first = reinterpret_cast<ObjectPtr*>(sp());
       ObjectPtr* last = reinterpret_cast<ObjectPtr*>(
@@ -301,14 +305,8 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     // unoptimized code, code with no stack map information at all, or the entry
     // to an osr function. In each of these cases, all stack slots contain
     // tagged pointers, so fall through.
-#if defined(DEBUG)
-    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-      ASSERT(IsStubFrame());
-    } else {
-      ASSERT(!code.is_optimized() ||
-             (pc_offset == code.EntryPoint() - code.PayloadStart()));
-    }
-#endif  // defined(DEBUG)
+    ASSERT(!code.is_optimized() || maps.IsNull() ||
+           (pc_offset == code.EntryPoint() - code.PayloadStart()));
   }
 
   // For normal unoptimized Dart frames and Stub frames each slot
@@ -350,23 +348,15 @@ CodePtr StackFrame::LookupDartCode() const {
 CodePtr StackFrame::GetCodeObject() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    NoSafepointScope no_safepoint;
-    Code code;
-    code = ReversePc::Lookup(isolate_group(), pc(),
+    CodePtr code = ReversePc::Lookup(isolate_group(), pc(),
+                                     /*is_return_address=*/true);
+    if (code != Code::null()) {
+      return code;
+    }
+    code = ReversePc::Lookup(Dart::vm_isolate_group(), pc(),
                              /*is_return_address=*/true);
-    if (!code.IsNull()) {
-      // This is needed in order to test stack traces with the future
-      // behavior of ReversePc::Lookup which will return
-      // StubCode::UnknownDartCode() if code object is omitted from
-      // the snapshot.
-      if (FLAG_dwarf_stack_traces_mode && code.CanBeOmittedFromAOTSnapshot()) {
-        ASSERT(StubCode::UnknownDartCode().PayloadStart() == 0);
-        ASSERT(StubCode::UnknownDartCode().Size() == kUwordMax);
-        ASSERT(StubCode::UnknownDartCode().IsFunctionCode());
-        ASSERT(StubCode::UnknownDartCode().IsUnknownDartCode());
-        return StubCode::UnknownDartCode().ptr();
-      }
-      return code.ptr();
+    if (code != Code::null()) {
+      return code;
     }
     UNREACHABLE();
   }

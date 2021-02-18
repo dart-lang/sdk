@@ -457,9 +457,6 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 void Disassembler::DisassembleCode(const Function& function,
                                    const Code& code,
                                    bool optimized) {
-  if (code.IsUnknownDartCode()) {
-    return;
-  }
   TextBuffer buffer(128);
   const char* function_fullname = function.ToFullyQualifiedCString();
   buffer.Printf("%s", Function::KindToCString(function.kind()));

@@ -75,7 +75,7 @@
 
 namespace dart {
 
-DEFINE_FLAG(uint64_t,
+DEFINE_FLAG(int,
             huge_method_cutoff_in_code_size,
             200000,
             "Huge method cutoff in unoptimized code size (in bytes).");
@@ -1059,11 +1059,6 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
 
-  cls = Class::New<FunctionType, RTN::FunctionType>(isolate_group);
-  cls.set_is_allocate_finalized();
-  cls.set_is_declaration_loaded();
-  cls.set_is_type_finalized();
-
   cls = dynamic_class_;
   *dynamic_type_ =
       Type::New(cls, Object::null_type_arguments(), Nullability::kNullable);
@@ -1369,12 +1364,6 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
   cls.set_name(Symbols::FreeListElement());
   cls = isolate_group->class_table()->At(kForwardingCorpse);
   cls.set_name(Symbols::ForwardingCorpse());
-
-#if defined(DART_PRECOMPILER)
-  const auto& function =
-      Function::Handle(StubCode::UnknownDartCode().function());
-  function.set_name(Symbols::OptimizedOut());
-#endif  // defined(DART_PRECOMPILER)
 
   {
     ASSERT(isolate_group == Dart::vm_isolate_group());
@@ -16784,8 +16773,7 @@ void Code::NotifyCodeObservers(const char* name,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 bool Code::SlowFindRawCodeVisitor::FindObject(ObjectPtr raw_obj) const {
-  return UntaggedCode::ContainsPC(raw_obj, pc_) &&
-         !Code::IsUnknownDartCode(Code::RawCast(raw_obj));
+  return UntaggedCode::ContainsPC(raw_obj, pc_);
 }
 
 CodePtr Code::LookupCodeInIsolateGroup(IsolateGroup* isolate_group, uword pc) {
@@ -16940,10 +16928,6 @@ bool Code::IsFunctionCode() const {
   return OwnerClassId() == kFunctionCid;
 }
 
-bool Code::IsUnknownDartCode(CodePtr code) {
-  return code == StubCode::UnknownDartCode().ptr();
-}
-
 void Code::DisableDartCode() const {
   SafepointOperationScope safepoint(Thread::Current());
   ASSERT(IsFunctionCode());
@@ -17058,41 +17042,6 @@ void Code::DumpSourcePositions(bool relative_addresses) const {
   const Function& root = Function::Handle(function());
   CodeSourceMapReader reader(map, id_map, root);
   reader.DumpSourcePositions(relative_addresses ? 0 : PayloadStart());
-}
-
-bool Code::CanBeOmittedFromAOTSnapshot() const {
-  NoSafepointScope no_safepoint;
-
-  // Code objects are stored in stack frames if not use_bare_instructions.
-  // Code objects are used by stack traces if not dwarf_stack_traces.
-  if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions ||
-      !FLAG_dwarf_stack_traces_mode) {
-    return false;
-  }
-  // Only omit Code objects corresponding to Dart functions.
-  if (!IsFunctionCode()) {
-    return false;
-  }
-  // Retain Code object if it has exception handlers or PC descriptors.
-  if ((exception_handlers() != Object::empty_exception_handlers().ptr()) ||
-      (pc_descriptors() != Object::empty_descriptors().ptr())) {
-    return false;
-  }
-  if (!owner()->IsHeapObject()) {
-    // Can drop Code if precompiler dropped the Function and only left Smi
-    // classId.
-    return true;
-  }
-  // Retain Code objects corresponding to:
-  // * invisible functions (to filter them from stack traces);
-  // * async/async* closures (to construct async stacks).
-  // * native functions (to find native implementation).
-  const auto& func = Function::Handle(function());
-  if (!func.is_visible() || func.is_native() || func.IsAsyncClosure() ||
-      func.IsAsyncGenClosure()) {
-    return false;
-  }
-  return true;
 }
 
 intptr_t Context::GetLevel() const {
@@ -24717,17 +24666,15 @@ void StackTrace::SetCodeAtFrame(intptr_t frame_index,
   code_array.SetAt(frame_index, code);
 }
 
-uword StackTrace::PcOffsetAtFrame(intptr_t frame_index) const {
-  const TypedData& pc_offset_array =
-      TypedData::Handle(untag()->pc_offset_array());
-  return pc_offset_array.GetUintPtr(frame_index * kWordSize);
+SmiPtr StackTrace::PcOffsetAtFrame(intptr_t frame_index) const {
+  const Array& pc_offset_array = Array::Handle(untag()->pc_offset_array());
+  return static_cast<SmiPtr>(pc_offset_array.At(frame_index));
 }
 
 void StackTrace::SetPcOffsetAtFrame(intptr_t frame_index,
-                                    uword pc_offset) const {
-  const TypedData& pc_offset_array =
-      TypedData::Handle(untag()->pc_offset_array());
-  pc_offset_array.SetUintPtr(frame_index * kWordSize, pc_offset);
+                                    const Smi& pc_offset) const {
+  const Array& pc_offset_array = Array::Handle(untag()->pc_offset_array());
+  pc_offset_array.SetAt(frame_index, pc_offset);
 }
 
 void StackTrace::set_async_link(const StackTrace& async_link) const {
@@ -24738,7 +24685,7 @@ void StackTrace::set_code_array(const Array& code_array) const {
   untag()->set_code_array(code_array.ptr());
 }
 
-void StackTrace::set_pc_offset_array(const TypedData& pc_offset_array) const {
+void StackTrace::set_pc_offset_array(const Array& pc_offset_array) const {
   untag()->set_pc_offset_array(pc_offset_array.ptr());
 }
 
@@ -24751,7 +24698,7 @@ bool StackTrace::expand_inlined() const {
 }
 
 StackTracePtr StackTrace::New(const Array& code_array,
-                              const TypedData& pc_offset_array,
+                              const Array& pc_offset_array,
                               Heap::Space space) {
   StackTrace& result = StackTrace::Handle();
   {
@@ -24768,7 +24715,7 @@ StackTracePtr StackTrace::New(const Array& code_array,
 }
 
 StackTracePtr StackTrace::New(const Array& code_array,
-                              const TypedData& pc_offset_array,
+                              const Array& pc_offset_array,
                               const StackTrace& async_link,
                               bool skip_sync_start_in_parent_stack,
                               Heap::Space space) {
@@ -24955,8 +24902,9 @@ const char* StackTrace::ToCString() const {
         if ((i < (stack_trace.Length() - 1)) &&
             (stack_trace.CodeAtFrame(i + 1) != Code::null())) {
           buffer.AddString("...\n...\n");
+          ASSERT(stack_trace.PcOffsetAtFrame(i) != Smi::null());
           // To account for gap frames.
-          frame_index += stack_trace.PcOffsetAtFrame(i);
+          frame_index += Smi::Value(stack_trace.PcOffsetAtFrame(i));
         }
         continue;
       }
@@ -24969,7 +24917,7 @@ const char* StackTrace::ToCString() const {
         continue;
       }
 
-      const uword pc_offset = stack_trace.PcOffsetAtFrame(i);
+      intptr_t pc_offset = Smi::Value(stack_trace.PcOffsetAtFrame(i));
       ASSERT(code_object.IsCode());
       code ^= code_object.ptr();
       ASSERT(code.IsFunctionCode());

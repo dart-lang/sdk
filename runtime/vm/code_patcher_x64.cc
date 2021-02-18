@@ -220,8 +220,10 @@ class PoolPointerCall : public ValueObject {
 //   call target.entry           call stub.entry         call stub.entry
 class SwitchableCallBase : public ValueObject {
  public:
-  explicit SwitchableCallBase(const ObjectPool& object_pool)
-      : object_pool_(object_pool), target_index_(-1), data_index_(-1) {}
+  explicit SwitchableCallBase(const Code& code)
+      : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
+        target_index_(-1),
+        data_index_(-1) {}
 
   intptr_t data_index() const { return data_index_; }
   intptr_t target_index() const { return target_index_; }
@@ -235,7 +237,7 @@ class SwitchableCallBase : public ValueObject {
   }
 
  protected:
-  const ObjectPool& object_pool_;
+  ObjectPool& object_pool_;
   intptr_t target_index_;
   intptr_t data_index_;
 
@@ -249,9 +251,8 @@ class SwitchableCallBase : public ValueObject {
 // monomorphic function or a stub code.
 class SwitchableCall : public SwitchableCallBase {
  public:
-  SwitchableCall(uword return_address, const Code& caller_code)
-      : SwitchableCallBase(ObjectPool::Handle(caller_code.GetObjectPool())) {
-    ASSERT(caller_code.ContainsInstructionAt(return_address));
+  SwitchableCall(uword return_address, const Code& code)
+      : SwitchableCallBase(code) {
     uword pc = return_address;
 
     // callq RCX
@@ -332,9 +333,11 @@ class SwitchableCall : public SwitchableCallBase {
 // of the monomorphic function or a stub entry point.
 class BareSwitchableCall : public SwitchableCallBase {
  public:
-  explicit BareSwitchableCall(uword return_address)
-      : SwitchableCallBase(ObjectPool::Handle(
-            IsolateGroup::Current()->object_store()->global_object_pool())) {
+  BareSwitchableCall(uword return_address, const Code& code)
+      : SwitchableCallBase(code) {
+    object_pool_ = ObjectPool::RawCast(
+        IsolateGroup::Current()->object_store()->global_object_pool());
+
     uword pc = return_address;
 
     // callq RCX
@@ -486,8 +489,9 @@ void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
     const Code& caller_code,
     const Object& data,
     const Code& target) {
+  ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    BareSwitchableCall call(return_address);
+    BareSwitchableCall call(return_address, caller_code);
     call.SetData(data);
     call.SetTarget(target);
   } else {
@@ -499,8 +503,9 @@ void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
 
 uword CodePatcher::GetSwitchableCallTargetEntryAt(uword return_address,
                                                   const Code& caller_code) {
+  ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    BareSwitchableCall call(return_address);
+    BareSwitchableCall call(return_address, caller_code);
     return call.target_entry();
   } else {
     SwitchableCall call(return_address, caller_code);
@@ -510,8 +515,9 @@ uword CodePatcher::GetSwitchableCallTargetEntryAt(uword return_address,
 
 ObjectPtr CodePatcher::GetSwitchableCallDataAt(uword return_address,
                                                const Code& caller_code) {
+  ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    BareSwitchableCall call(return_address);
+    BareSwitchableCall call(return_address, caller_code);
     return call.data();
   } else {
     SwitchableCall call(return_address, caller_code);

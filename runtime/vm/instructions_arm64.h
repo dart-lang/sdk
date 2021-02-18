@@ -141,7 +141,7 @@ class NativeCallPattern : public ValueObject {
 //   call target.entry           call stub.entry         call stub.entry
 class SwitchableCallPatternBase : public ValueObject {
  public:
-  explicit SwitchableCallPatternBase(const ObjectPool& object_pool);
+  explicit SwitchableCallPatternBase(const Code& code);
 
   ObjectPtr data() const;
   void SetData(const Object& data) const;
@@ -176,7 +176,7 @@ class SwitchableCallPattern : public SwitchableCallPatternBase {
 // of the monomorphic function or a stub entry point.
 class BareSwitchableCallPattern : public SwitchableCallPatternBase {
  public:
-  explicit BareSwitchableCallPattern(uword pc);
+  BareSwitchableCallPattern(uword pc, const Code& code);
 
   uword target_entry() const;
   void SetTarget(const Code& target) const;

@@ -429,17 +429,19 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
 void StackTraceUtils::UnwindAwaiterChain(
     Zone* zone,
     const GrowableObjectArray& code_array,
-    GrowableArray<uword>* pc_offset_array,
+    const GrowableObjectArray& pc_offset_array,
     CallerClosureFinder* caller_closure_finder,
     const Closure& leaf_closure) {
   auto& code = Code::Handle(zone);
   auto& function = Function::Handle(zone);
   auto& closure = Closure::Handle(zone, leaf_closure.ptr());
   auto& pc_descs = PcDescriptors::Handle(zone);
+  auto& offset = Smi::Handle(zone);
 
   // Inject async suspension marker.
   code_array.Add(StubCode::AsynchronousGapMarker());
-  pc_offset_array->Add(0);
+  offset = Smi::New(0);
+  pc_offset_array.Add(offset);
 
   // Traverse the trail of async futures all the way up.
   for (; !closure.IsNull();
@@ -453,22 +455,23 @@ void StackTraceUtils::UnwindAwaiterChain(
     RELEASE_ASSERT(!code.IsNull());
     code_array.Add(code);
     pc_descs = code.pc_descriptors();
-    const intptr_t pc_offset = FindPcOffset(pc_descs, GetYieldIndex(closure));
+    offset = Smi::New(FindPcOffset(pc_descs, GetYieldIndex(closure)));
     // Unlike other sources of PC offsets, the offset may be 0 here if we
     // reach a non-async closure receiving the yielded value.
-    ASSERT(pc_offset >= 0);
-    pc_offset_array->Add(pc_offset);
+    ASSERT(offset.Value() >= 0);
+    pc_offset_array.Add(offset);
 
     // Inject async suspension marker.
     code_array.Add(StubCode::AsynchronousGapMarker());
-    pc_offset_array->Add(0);
+    offset = Smi::New(0);
+    pc_offset_array.Add(offset);
   }
 }
 
 void StackTraceUtils::CollectFramesLazy(
     Thread* thread,
     const GrowableObjectArray& code_array,
-    GrowableArray<uword>* pc_offset_array,
+    const GrowableObjectArray& pc_offset_array,
     int skip_frames,
     std::function<void(StackFrame*)>* on_sync_frames,
     bool* has_async) {
@@ -486,6 +489,7 @@ void StackTraceUtils::CollectFramesLazy(
   }
 
   auto& code = Code::Handle(zone);
+  auto& offset = Smi::Handle(zone);
   auto& closure = Closure::Handle(zone);
 
   CallerClosureFinder caller_closure_finder(zone);
@@ -509,9 +513,10 @@ void StackTraceUtils::CollectFramesLazy(
       // Add the current synchronous frame.
       code = frame->LookupDartCode();
       code_array.Add(code);
-      const uword pc_offset = frame->pc() - code.PayloadStart();
+      const intptr_t pc_offset = frame->pc() - code.PayloadStart();
       ASSERT(pc_offset > 0 && pc_offset <= code.Size());
-      pc_offset_array->Add(pc_offset);
+      offset = Smi::New(pc_offset);
+      pc_offset_array.Add(offset);
       // Callback for sync frame.
       if (on_sync_frames != nullptr) {
         (*on_sync_frames)(frame);
@@ -588,7 +593,7 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
 
 intptr_t StackTraceUtils::CollectFrames(Thread* thread,
                                         const Array& code_array,
-                                        const TypedData& pc_offset_array,
+                                        const Array& pc_offset_array,
                                         intptr_t array_offset,
                                         intptr_t count,
                                         int skip_frames) {
@@ -597,6 +602,7 @@ intptr_t StackTraceUtils::CollectFrames(Thread* thread,
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle(zone);
+  Smi& offset = Smi::Handle(zone);
   intptr_t collected_frames_count = 0;
   for (; (frame != NULL) && (collected_frames_count < count);
        frame = frames.NextFrame()) {
@@ -605,9 +611,9 @@ intptr_t StackTraceUtils::CollectFrames(Thread* thread,
       continue;
     }
     code = frame->LookupDartCode();
-    const intptr_t pc_offset = frame->pc() - code.PayloadStart();
+    offset = Smi::New(frame->pc() - code.PayloadStart());
     code_array.SetAt(array_offset, code);
-    pc_offset_array.SetUintPtr(array_offset * kWordSize, pc_offset);
+    pc_offset_array.SetAt(array_offset, offset);
     array_offset++;
     collected_frames_count++;
   }

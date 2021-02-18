@@ -1846,6 +1846,7 @@ DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
   Code& code = Code::Handle(zone);
   Code& inlined_code = Code::Handle(zone);
   Array& deopt_frame = Array::Handle(zone);
+  Smi& offset = Smi::Handle(zone);
   Function& function = Function::Handle(zone);
 
   constexpr intptr_t kDefaultStackAllocation = 8;
@@ -1853,7 +1854,8 @@ DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
 
   const auto& code_array = GrowableObjectArray::ZoneHandle(
       zone, GrowableObjectArray::New(kDefaultStackAllocation));
-  GrowableArray<uword> pc_offset_array(kDefaultStackAllocation);
+  const auto& pc_offset_array = GrowableObjectArray::ZoneHandle(
+      zone, GrowableObjectArray::New(kDefaultStackAllocation));
   bool has_async = false;
 
   std::function<void(StackFrame*)> on_sync_frame = [&](StackFrame* frame) {
@@ -1862,7 +1864,7 @@ DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
                      &inlined_code, &deopt_frame);
   };
 
-  StackTraceUtils::CollectFramesLazy(thread, code_array, &pc_offset_array,
+  StackTraceUtils::CollectFramesLazy(thread, code_array, pc_offset_array,
                                      /*skip_frames=*/0, &on_sync_frame,
                                      &has_async);
 
@@ -1898,8 +1900,8 @@ DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
       continue;
     }
 
-    const uword pc_offset = pc_offset_array[i];
-    const uword absolute_pc = code.PayloadStart() + pc_offset;
+    offset ^= pc_offset_array.At(i);
+    const uword absolute_pc = code.PayloadStart() + offset.Value();
     stack_trace->AddAsyncCausalFrame(absolute_pc, code);
   }
 
@@ -2134,7 +2136,8 @@ DebuggerStackTrace* Debugger::StackTraceFrom(const class StackTrace& ex_trace) {
       function = code.function();
       if (function.is_visible()) {
         ASSERT(function.ptr() == code.function());
-        uword pc = code.PayloadStart() + ex_trace.PcOffsetAtFrame(i);
+        uword pc =
+            code.PayloadStart() + Smi::Value(ex_trace.PcOffsetAtFrame(i));
         if (code.is_optimized() && ex_trace.expand_inlined()) {
           // Traverse inlined frames.
           for (InlinedFunctionsIterator it(code, pc); !it.Done();
