@@ -13,11 +13,12 @@ main() {
   });
 }
 
+/// For null safe code, `*_ELEMENT_TYPE_NOT_ASSIGNABLE` is generally reported
+/// for test cases like below, without `INVALID_CAST_NEW_EXPR`. Those are
+/// covered well in their own diagnostic tests.
 @reflectiveTest
 class InvalidCastNewExprTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
   test_listLiteral_const() async {
     await assertErrorsInCode(r'''
 const c = <B>[A()];

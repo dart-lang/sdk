@@ -13,11 +13,12 @@ main() {
   });
 }
 
+/// For null safe code, `GETTER_NOT_SUBTYPE_SETTER_TYPES ` is generally reported
+/// for test cases like below, without `GETTER_NOT_ASSIGNABLE_SETTER_TYPES`.
+/// Those are covered well in their own diagnostic tests.
 @reflectiveTest
 class GetterNotAssignableSetterTypesTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
   test_class_instance_dynamicGetter() async {
     await assertNoErrorsInCode(r'''
 class C {
