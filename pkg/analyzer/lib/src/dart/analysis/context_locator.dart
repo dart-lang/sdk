@@ -273,15 +273,25 @@ class ContextLocatorImpl implements ContextLocator {
             if (excludeOptions is YamlList) {
               List<String>? excludeList = toStringList(excludeOptions);
               if (excludeList != null) {
+                var pathContext = resourceProvider.pathContext;
+
+                void addGlob(List<String> components) {
+                  var pattern = posix.joinAll(components);
+                  patterns.add(Glob(pattern, context: pathContext));
+                }
+
                 for (String excludedPath in excludeList) {
-                  Context context = resourceProvider.pathContext;
-                  if (context.isRelative(excludedPath)) {
-                    excludedPath = posix.joinAll([
-                      ...context.split(optionsFile.parent2.path),
-                      ...posix.split(excludedPath),
-                    ]);
+                  var excludedComponents = posix.split(excludedPath);
+                  if (pathContext.isRelative(excludedPath)) {
+                    excludedComponents = [
+                      ...pathContext.split(optionsFile.parent2.path),
+                      ...excludedComponents,
+                    ];
                   }
-                  patterns.add(Glob(excludedPath, context: context));
+                  addGlob(excludedComponents);
+                  if (excludedComponents.last == '**') {
+                    addGlob(excludedComponents..removeLast());
+                  }
                 }
               }
             }
