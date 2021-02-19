@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-02-18T15:38:59.798996",
+  "generated": "2021-02-19T10:27:13.251974",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -587,7 +587,7 @@
       "name": "shelf_web_socket",
       "rootUri": "../third_party/pkg/shelf_web_socket",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.1"
     },
     {
       "name": "smith",
