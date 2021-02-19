@@ -45,7 +45,6 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart';
@@ -108,15 +107,10 @@ class EditDomainHandler extends AbstractRequestHandler {
       var processor = BulkFixProcessor(server.instrumentationService, workspace,
           useConfigFiles: params.inTestMode);
 
-      String sdkPath;
-      var sdk = server.findSdk();
-      if (sdk is FolderBasedDartSdk) {
-        sdkPath = sdk.directory.path;
-      }
       var collection = AnalysisContextCollectionImpl(
         includedPaths: params.included,
         resourceProvider: server.resourceProvider,
-        sdkPath: sdkPath,
+        sdkPath: server.sdkPath,
       );
       var changeBuilder = await processor.fixErrors(collection.contexts);
 

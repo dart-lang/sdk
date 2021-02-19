@@ -41,11 +41,12 @@ class ContextBuilderImpl implements ContextBuilder {
       {ByteStore? byteStore,
       required ContextRoot contextRoot,
       DeclaredVariables? declaredVariables,
+      bool drainStreams = true,
       bool enableIndex = false,
       List<String>? librarySummaryPaths,
-      @deprecated PerformanceLog? performanceLog,
+      PerformanceLog? performanceLog,
       bool retainDataForTesting = false,
-      @deprecated AnalysisDriverScheduler? scheduler,
+      AnalysisDriverScheduler? scheduler,
       String? sdkPath,
       String? sdkSummaryPath}) {
     // TODO(scheglov) Remove this, and make `sdkPath` required.
@@ -95,8 +96,10 @@ class ContextBuilderImpl implements ContextBuilder {
 
     // AnalysisDriver reports results into streams.
     // We need to drain these streams to avoid memory leak.
-    driver.results.drain();
-    driver.exceptions.drain();
+    if (drainStreams) {
+      driver.results.drain();
+      driver.exceptions.drain();
+    }
 
     DriverBasedAnalysisContext context =
         DriverBasedAnalysisContext(resourceProvider, contextRoot, driver);

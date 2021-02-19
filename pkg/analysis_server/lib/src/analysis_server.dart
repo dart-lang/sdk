@@ -47,8 +47,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
@@ -198,23 +196,16 @@ class AnalysisServer extends AbstractAnalysisServer {
     return _onAnalysisStartedController.stream;
   }
 
+  String get sdkPath {
+    return sdkManager.defaultSdkDirectory;
+  }
+
   /// The socket from which requests are being read has been closed.
   void done() {}
 
   /// There was an error related to the socket from which requests are being
   /// read.
   void error(argument) {}
-
-  /// Return one of the SDKs that has been created, or `null` if no SDKs have
-  /// been created yet.
-  DartSdk findSdk() {
-    var sdk = sdkManager.anySdk;
-    if (sdk != null) {
-      return sdk;
-    }
-    // TODO(brianwilkerson) Should we create an SDK using the default options?
-    return null;
-  }
 
   /// Return the cached analysis result for the file with the given [path].
   /// If there is no cached result, return `null`.
@@ -388,7 +379,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// projects/contexts support.
   void setAnalysisRoots(String requestId, List<String> includedPaths,
       List<String> excludedPaths) {
-    declarationsTracker?.discardContexts();
     if (notificationManager != null) {
       notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
     }
@@ -397,7 +387,6 @@ class AnalysisServer extends AbstractAnalysisServer {
     } on UnimplementedError catch (e) {
       throw RequestFailure(Response.unsupportedFeature(requestId, e.message));
     }
-    addContextsToDeclarationsTracker();
     analysisDriverScheduler.transitionToAnalyzingToIdleIfNoFilesToAnalyze();
   }
 
@@ -408,29 +397,13 @@ class AnalysisServer extends AbstractAnalysisServer {
       notificationManager.setSubscriptions(subscriptions);
     }
     analysisServices = subscriptions;
-    var allNewFiles = subscriptions.values.expand((files) => files).toSet();
-    for (var file in allNewFiles) {
-      // The result will be produced by the "results" stream with
-      // the fully resolved unit, and processed with sending analysis
-      // notifications as it happens after content changes.
-      if (AnalysisEngine.isDartFileName(file)) {
-        getResolvedUnit(file, sendCachedToStream: true);
-      }
-    }
+    _sendSubscriptions(analysis: true);
   }
 
   /// Implementation for `flutter.setSubscriptions`.
   void setFlutterSubscriptions(Map<FlutterService, Set<String>> subscriptions) {
     flutterServices = subscriptions;
-    var allNewFiles = subscriptions.values.expand((files) => files).toSet();
-    for (var file in allNewFiles) {
-      // The result will be produced by the "results" stream with
-      // the fully resolved unit, and processed with sending analysis
-      // notifications as it happens after content changes.
-      if (AnalysisEngine.isDartFileName(file)) {
-        getResolvedUnit(file, sendCachedToStream: true);
-      }
-    }
+    _sendSubscriptions(flutter: true);
   }
 
   /// Implementation for `analysis.setGeneralSubscriptions`.
@@ -467,8 +440,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     // during normal analysis (for example dot folders are skipped over in
     // _handleWatchEventImpl).
     return contextManager.isInAnalysisRoot(file) &&
-        !contextManager.isContainedInDotFolder(file) &&
-        !contextManager.isIgnored(file);
+        !contextManager.isContainedInDotFolder(file);
   }
 
   Future<void> shutdown() {
@@ -596,6 +568,31 @@ class AnalysisServer extends AbstractAnalysisServer {
       scheduleImplementedNotification(this, files);
     }
   }
+
+  void _sendSubscriptions({bool analysis = false, bool flutter = false}) {
+    var files = <String>{};
+
+    if (analysis) {
+      analysisServices.values.forEach((serviceFiles) {
+        files.addAll(serviceFiles);
+      });
+    }
+
+    if (flutter) {
+      flutterServices.values.forEach((serviceFiles) {
+        files.addAll(serviceFiles);
+      });
+    }
+
+    for (var file in files) {
+      // The result will be produced by the "results" stream with
+      // the fully resolved unit, and processed with sending analysis
+      // notifications as it happens after content changes.
+      if (AnalysisEngine.isDartFileName(file)) {
+        getResolvedUnit(file, sendCachedToStream: true);
+      }
+    }
+  }
 }
 
 /// Various IDE options.
@@ -642,14 +639,30 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       analysisServer.notificationManager;
 
   @override
-  nd.AnalysisDriver addAnalysisDriver(Folder folder, ContextRoot contextRoot) {
-    var builder = createContextBuilder(folder);
-    var workspace = ContextBuilder.createWorkspace(
-      resourceProvider: resourceProvider,
-      options: builder.builderOptions,
-      rootPath: folder.path,
-    );
-    var analysisDriver = builder.buildDriver(contextRoot, workspace);
+  void afterContextsCreated() {
+    analysisServer.addContextsToDeclarationsTracker();
+    analysisServer._sendSubscriptions(analysis: true, flutter: true);
+  }
+
+  @override
+  void afterWatchEvent(WatchEvent event) {
+    analysisServer._onAnalysisSetChangedController.add(null);
+  }
+
+  @override
+  void applyFileRemoved(String file) {
+    sendAnalysisNotificationFlushResults(analysisServer, [file]);
+  }
+
+  @override
+  void broadcastWatchEvent(WatchEvent event) {
+    analysisServer.notifyDeclarationsTracker(event.path);
+    analysisServer.notifyFlutterWidgetDescriptions(event.path);
+    analysisServer.pluginManager.broadcastWatchEvent(event);
+  }
+
+  @override
+  void listenAnalysisDriver(nd.AnalysisDriver analysisDriver) {
     analysisDriver.results.listen((result) {
       var notificationManager = analysisServer.notificationManager;
       var path = result.path;
@@ -757,66 +770,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
     analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
-    analysisServer.driverMap[folder] = analysisDriver;
-    return analysisDriver;
-  }
-
-  @override
-  void afterContextRefresh() {
-    analysisServer.addContextsToDeclarationsTracker();
-  }
-
-  @override
-  void afterWatchEvent(WatchEvent event) {
-    analysisServer._onAnalysisSetChangedController.add(null);
-  }
-
-  @override
-  void analysisOptionsUpdated(nd.AnalysisDriver driver) {
-    analysisServer.updateContextInDeclarationsTracker(driver);
-  }
-
-  @override
-  void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
-    var analysisDriver = analysisServer.driverMap[contextFolder];
-    if (analysisDriver != null) {
-      changeSet.addedFiles.forEach((path) {
-        analysisDriver.addFile(path);
-      });
-      changeSet.changedFiles.forEach((path) {
-        analysisDriver.changeFile(path);
-      });
-      changeSet.removedFiles.forEach((path) {
-        analysisDriver.removeFile(path);
-      });
-    }
-  }
-
-  @override
-  void applyFileRemoved(nd.AnalysisDriver driver, String file) {
-    driver.removeFile(file);
-    sendAnalysisNotificationFlushResults(analysisServer, [file]);
-  }
-
-  @override
-  void broadcastWatchEvent(WatchEvent event) {
-    analysisServer.notifyDeclarationsTracker(event.path);
-    analysisServer.notifyFlutterWidgetDescriptions(event.path);
-    analysisServer.pluginManager.broadcastWatchEvent(event);
-  }
-
-  @override
-  ContextBuilder createContextBuilder(Folder folder) {
-    var builderOptions = ContextBuilderOptions();
-    var builder = ContextBuilder(
-        resourceProvider, analysisServer.sdkManager, null,
-        options: builderOptions);
-    builder.analysisDriverScheduler = analysisServer.analysisDriverScheduler;
-    builder.performanceLog = analysisServer.analysisPerformanceLogger;
-    builder.byteStore = analysisServer.byteStore;
-    builder.enableIndex = true;
-    builder.lookForBazelBuildFileSubstitutes = false;
-    return builder;
   }
 
   @override

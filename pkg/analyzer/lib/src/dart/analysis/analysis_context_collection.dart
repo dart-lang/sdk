@@ -10,6 +10,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_builder.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:cli_util/cli_util.dart';
 
 /// An implementation of [AnalysisContextCollection].
@@ -25,12 +27,15 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   AnalysisContextCollectionImpl({
     ByteStore? byteStore,
     Map<String, String>? declaredVariables,
+    bool drainStreams = true,
     bool enableIndex = false,
     required List<String> includedPaths,
     List<String>? excludedPaths,
+    PerformanceLog? performanceLog,
     ResourceProvider? resourceProvider,
     bool retainDataForTesting = false,
     String? sdkPath,
+    AnalysisDriverScheduler? scheduler,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
@@ -53,9 +58,12 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         byteStore: byteStore,
         contextRoot: root,
         declaredVariables: DeclaredVariables.fromMap(declaredVariables ?? {}),
+        drainStreams: drainStreams,
         enableIndex: enableIndex,
+        performanceLog: performanceLog,
         retainDataForTesting: retainDataForTesting,
         sdkPath: sdkPath,
+        scheduler: scheduler,
       );
       contexts.add(context);
     }

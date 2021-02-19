@@ -39,8 +39,6 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
@@ -345,8 +343,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   bool isAnalyzedFile(String file) {
     return contextManager.isInAnalysisRoot(file) &&
         // Dot folders are not analyzed (skipped over in _handleWatchEventImpl)
-        !contextManager.isContainedInDotFolder(file) &&
-        !contextManager.isIgnored(file);
+        !contextManager.isContainedInDotFolder(file);
   }
 
   /// Logs the error on the client using window/logMessage.
@@ -705,11 +702,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     _lastIncludedRootPaths = includedPaths;
     _lastExcludedRootPaths = excludedPaths;
 
-    declarationsTracker?.discardContexts();
     notificationManager.setAnalysisRoots(
         includedPaths.toList(), excludedPaths.toList());
     contextManager.setRoots(includedPaths.toList(), excludedPaths.toList());
-    addContextsToDeclarationsTracker();
   }
 
   void _updateDriversAndPluginsPriorityFiles() {
@@ -780,14 +775,32 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       analysisServer.notificationManager;
 
   @override
-  nd.AnalysisDriver addAnalysisDriver(Folder folder, ContextRoot contextRoot) {
-    var builder = createContextBuilder(folder);
-    var workspace = ContextBuilder.createWorkspace(
-      resourceProvider: resourceProvider,
-      options: builder.builderOptions,
-      rootPath: folder.path,
-    );
-    var analysisDriver = builder.buildDriver(contextRoot, workspace);
+  void afterContextsCreated() {
+    analysisServer.addContextsToDeclarationsTracker();
+  }
+
+  @override
+  void afterWatchEvent(WatchEvent event) {
+    // TODO: implement afterWatchEvent
+  }
+
+  @override
+  void applyFileRemoved(String file) {
+    analysisServer.publishDiagnostics(file, []);
+  }
+
+  @override
+  void broadcastWatchEvent(WatchEvent event) {
+    analysisServer.notifyDeclarationsTracker(event.path);
+    analysisServer.notifyFlutterWidgetDescriptions(event.path);
+    analysisServer.pluginManager.broadcastWatchEvent(event);
+  }
+
+  @override
+  void listenAnalysisDriver(nd.AnalysisDriver analysisDriver) {
+    analysisServer.declarationsTracker
+        ?.addContext(analysisDriver.analysisContext);
+
     final textDocumentCapabilities =
         analysisServer.clientCapabilities?.textDocument;
     final supportedDiagnosticTags = HashSet<DiagnosticTag>.of(
@@ -835,66 +848,6 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
     analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
-    analysisServer.driverMap[folder] = analysisDriver;
-    return analysisDriver;
-  }
-
-  @override
-  void afterContextRefresh() {
-    analysisServer.addContextsToDeclarationsTracker();
-  }
-
-  @override
-  void afterWatchEvent(WatchEvent event) {
-    // TODO: implement afterWatchEvent
-  }
-
-  @override
-  void analysisOptionsUpdated(nd.AnalysisDriver driver) {
-    // TODO: implement analysisOptionsUpdated
-  }
-
-  @override
-  void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
-    var analysisDriver = analysisServer.driverMap[contextFolder];
-    if (analysisDriver != null) {
-      changeSet.addedFiles.forEach((path) {
-        analysisDriver.addFile(path);
-      });
-      changeSet.changedFiles.forEach((path) {
-        analysisDriver.changeFile(path);
-      });
-      changeSet.removedFiles.forEach((path) {
-        analysisDriver.removeFile(path);
-      });
-    }
-  }
-
-  @override
-  void applyFileRemoved(nd.AnalysisDriver driver, String file) {
-    driver.removeFile(file);
-    analysisServer.publishDiagnostics(file, []);
-  }
-
-  @override
-  void broadcastWatchEvent(WatchEvent event) {
-    analysisServer.notifyDeclarationsTracker(event.path);
-    analysisServer.notifyFlutterWidgetDescriptions(event.path);
-    analysisServer.pluginManager.broadcastWatchEvent(event);
-  }
-
-  @override
-  ContextBuilder createContextBuilder(Folder folder) {
-    var builderOptions = ContextBuilderOptions();
-    var builder = ContextBuilder(
-        resourceProvider, analysisServer.sdkManager, null,
-        options: builderOptions);
-    builder.analysisDriverScheduler = analysisServer.analysisDriverScheduler;
-    builder.performanceLog = analysisServer.analysisPerformanceLogger;
-    builder.byteStore = analysisServer.byteStore;
-    builder.enableIndex = true;
-    builder.lookForBazelBuildFileSubstitutes = false;
-    return builder;
   }
 
   @override
