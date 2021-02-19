@@ -68,7 +68,7 @@ vars = {
   "gperftools_revision": "180bfa10d7cb38e8b3784d60943d50e8fcef0dcb",
 
   # Revisions of /third_party/* dependencies.
-  "args_rev": "5f5082b7fcc41595d95d7ba002e8f51f352b3b4f",
+  "args_rev": "eb2deca5b4489709acd001a5c7fd2df4f1eed19d",
   "async_rev": "376d418b1b535030fbe3369938d2ffdbb0340a77",
   "bazel_worker_rev": "060c55a933d39798681a4f533b161b81dc48d77e",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
