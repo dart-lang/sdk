@@ -23,7 +23,7 @@ class TransformSetManager {
   List<TransformSet> forLibrary(LibraryElement library) {
     var transformSets = <TransformSet>[];
     var analysisContext = library.session.analysisContext;
-    var workspace = analysisContext.workspace;
+    var workspace = analysisContext.contextRoot.workspace;
     var libraryPath = library.source.fullName;
     var package = workspace.findPackageFor(libraryPath);
     if (package == null) {

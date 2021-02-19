@@ -8,7 +8,6 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -27,7 +26,6 @@ MicroContextObjects createMicroContextObjects({
   required SourceFactory sourceFactory,
   required ContextRootImpl root,
   required ResourceProvider resourceProvider,
-  required Workspace workspace,
 }) {
   var declaredVariables = DeclaredVariables();
   var synchronousSession = SynchronousSession(
@@ -52,7 +50,6 @@ MicroContextObjects createMicroContextObjects({
     declaredVariables,
     sourceFactory,
     resourceProvider,
-    workspace: workspace,
   );
 
   analysisContext2.currentSession = analysisSession;
@@ -111,7 +108,6 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
   final DeclaredVariables declaredVariables;
 
   final SourceFactory sourceFactory;
-  Workspace? _workspace;
 
   _MicroAnalysisContextImpl(
     this.fileResolver,
@@ -119,9 +115,8 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
     this.contextRoot,
     this.declaredVariables,
     this.sourceFactory,
-    this.resourceProvider, {
-    Workspace? workspace,
-  }) : _workspace = workspace;
+    this.resourceProvider,
+  );
 
   @override
   AnalysisOptionsImpl get analysisOptions {
@@ -131,22 +126,14 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
   @override
   Folder? get sdkRoot => null;
 
+  @Deprecated('Use contextRoot.workspace instead')
   @override
   Workspace get workspace {
-    return _workspace ??= _buildWorkspace();
+    return contextRoot.workspace;
   }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  Workspace _buildWorkspace() {
-    var path = contextRoot.root.path;
-    return ContextBuilder.createWorkspace(
-      resourceProvider: resourceProvider,
-      options: ContextBuilderOptions(),
-      rootPath: path,
-    );
-  }
 }
 
 class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {

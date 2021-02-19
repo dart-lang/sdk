@@ -5,6 +5,8 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/workspace/basic.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,12 +20,14 @@ main() {
 class ContextRootTest with ResourceProviderMixin {
   late final String rootPath;
   late final Folder rootFolder;
+  late Workspace workspace;
   late ContextRootImpl contextRoot;
 
   void setUp() {
     rootPath = convertPath('/test/root');
     rootFolder = newFolder(rootPath);
-    contextRoot = ContextRootImpl(resourceProvider, rootFolder);
+    workspace = BasicWorkspace.find(resourceProvider, {}, rootPath);
+    contextRoot = ContextRootImpl(resourceProvider, rootFolder, workspace);
     contextRoot.included.add(rootFolder);
   }
 
@@ -84,7 +88,7 @@ class ContextRootTest with ResourceProviderMixin {
     String bPath = convertPath('/test/root/lib/b.dart');
     File aFile = getFile(aPath);
 
-    contextRoot = ContextRootImpl(resourceProvider, rootFolder);
+    contextRoot = ContextRootImpl(resourceProvider, rootFolder, workspace);
     contextRoot.included.add(aFile);
 
     expect(contextRoot.isAnalyzed(aPath), isTrue);

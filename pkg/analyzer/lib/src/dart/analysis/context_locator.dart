@@ -9,9 +9,14 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/context/builder.dart' as old;
+import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart';
@@ -40,12 +45,15 @@ class ContextLocatorImpl implements ContextLocator {
       : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
+  /// TODO(scheglov) Remove [overrideWorkspace] when DAS uses collection.
   @override
-  List<ContextRoot> locateRoots(
-      {required List<String> includedPaths,
-      List<String>? excludedPaths,
-      String? optionsFile,
-      String? packagesFile}) {
+  List<ContextRoot> locateRoots({
+    required List<String> includedPaths,
+    List<String>? excludedPaths,
+    String? optionsFile,
+    String? packagesFile,
+    Workspace? overrideWorkspace,
+  }) {
     //
     // Compute the list of folders and files that are to be included.
     //
@@ -95,8 +103,11 @@ class ContextLocatorImpl implements ContextLocator {
     }
     List<ContextRoot> roots = <ContextRoot>[];
     for (Folder folder in includedFolders) {
-      ContextRootImpl root = ContextRootImpl(resourceProvider, folder);
-      root.packagesFile = defaultPackagesFile ?? _findPackagesFile(folder);
+      var rootPackagesFile = defaultPackagesFile ?? _findPackagesFile(folder);
+      var workspace =
+          overrideWorkspace ?? _createWorkspace(folder, rootPackagesFile);
+      var root = ContextRootImpl(resourceProvider, folder, workspace);
+      root.packagesFile = rootPackagesFile;
       root.optionsFile = defaultOptionsFile ?? _findOptionsFile(folder);
       root.included.add(folder);
       root.excludedGlobs = _getExcludedGlobs(root);
@@ -108,8 +119,10 @@ class ContextLocatorImpl implements ContextLocator {
     for (File file in includedFiles) {
       Folder parent = file.parent2;
       ContextRoot root = rootMap.putIfAbsent(parent, () {
-        ContextRootImpl root = ContextRootImpl(resourceProvider, parent);
-        root.packagesFile = defaultPackagesFile ?? _findPackagesFile(parent);
+        var rootPackagesFile = defaultPackagesFile ?? _findPackagesFile(parent);
+        var workspace = _createWorkspace(parent, rootPackagesFile);
+        var root = ContextRootImpl(resourceProvider, parent, workspace);
+        root.packagesFile = rootPackagesFile;
         root.optionsFile = defaultOptionsFile ?? _findOptionsFile(parent);
         roots.add(root);
         return root;
@@ -167,8 +180,10 @@ class ContextLocatorImpl implements ContextLocator {
       if (packagesFile != null) {
         localPackagesFile = packagesFile;
       }
-      ContextRootImpl root = ContextRootImpl(resourceProvider, folder);
-      root.packagesFile = localPackagesFile ?? containingRoot.packagesFile;
+      var rootPackagesFile = localPackagesFile ?? containingRoot.packagesFile;
+      var workspace = _createWorkspace(folder, rootPackagesFile);
+      var root = ContextRootImpl(resourceProvider, folder, workspace);
+      root.packagesFile = rootPackagesFile;
       root.optionsFile = localOptionsFile ?? containingRoot.optionsFile;
       root.included.add(folder);
       containingRoot.excluded.add(folder);
@@ -229,6 +244,22 @@ class ContextLocatorImpl implements ContextLocator {
     }
   }
 
+  Workspace _createWorkspace(Folder folder, File? packagesFile) {
+    Packages packages;
+    if (packagesFile != null) {
+      packages = parsePackagesFile(resourceProvider, packagesFile);
+    } else {
+      packages = Packages.empty;
+    }
+
+    return old.ContextBuilder.createWorkspace(
+      resourceProvider: resourceProvider,
+      packages: packages,
+      options: ContextBuilderOptions(), // TODO(scheglov) remove it
+      rootPath: folder.path,
+    );
+  }
+
   /// Return the analysis options file to be used to analyze files in the given
   /// [folder], or `null` if there is no analysis options file in the given
   /// folder or any parent folder.
@@ -262,9 +293,11 @@ class ContextLocatorImpl implements ContextLocator {
     List<Glob> patterns = [];
     File? optionsFile = root.optionsFile;
     if (optionsFile != null) {
+      var doc = AnalysisOptionsProvider(
+              root.workspace.createSourceFactory(null, null))
+          .getOptionsFromFile(optionsFile);
+
       try {
-        String content = optionsFile.readAsStringSync();
-        YamlNode doc = loadYamlNode(content);
         if (doc is YamlMap) {
           var analyzerOptions = getValue(doc, AnalyzerOptions.analyzer);
           if (analyzerOptions is YamlMap) {

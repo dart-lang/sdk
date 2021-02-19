@@ -1566,7 +1566,7 @@ class ContextManagerImpl implements ContextManager {
   /// Does nothing if the [driver] is not in a Bazel workspace.
   void _watchBazelFilesIfNeeded(Folder folder, AnalysisDriver analysisDriver) {
     if (!experimentalEnableBazelWatching) return;
-    var workspace = analysisDriver.analysisContext.workspace;
+    var workspace = analysisDriver.analysisContext.contextRoot.workspace;
     if (workspace is BazelWorkspace &&
         !bazelSubscriptions.containsKey(folder)) {
       var subscription = workspace.bazelCandidateFiles.listen(

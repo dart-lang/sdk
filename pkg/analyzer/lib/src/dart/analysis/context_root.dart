@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart';
 
@@ -14,6 +15,9 @@ class ContextRootImpl implements ContextRoot {
 
   @override
   final Folder root;
+
+  @override
+  final Workspace workspace;
 
   @override
   final List<Resource> included = [];
@@ -32,7 +36,7 @@ class ContextRootImpl implements ContextRoot {
   File? packagesFile;
 
   /// Initialize a newly created context root.
-  ContextRootImpl(this.resourceProvider, this.root);
+  ContextRootImpl(this.resourceProvider, this.root, this.workspace);
 
   @override
   Iterable<String> get excludedPaths =>

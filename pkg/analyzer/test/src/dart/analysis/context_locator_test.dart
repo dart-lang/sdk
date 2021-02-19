@@ -571,6 +571,88 @@ analyzer:
     ]);
   }
 
+  void test_locateRoots_options_withExclude_wholeFolder_includedOptions() {
+    Folder rootFolder = newFolder('/test/root');
+    File optionsFile = newFile(
+        '/test/root/${ContextLocatorImpl.ANALYSIS_OPTIONS_NAME}',
+        content: '''
+include: has_excludes.yaml
+''');
+    newFile('/test/root/has_excludes.yaml', content: '''
+analyzer:
+  exclude:
+    - data/**
+''');
+
+    File packagesFile = newPackagesFile('/test/root');
+    Folder dataFolder = newFolder('/test/root/data');
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, unorderedEquals([dataFolder.path]));
+    expect(root.optionsFile, optionsFile);
+    expect(root.packagesFile, packagesFile);
+
+    _assertNotAnalyzed(root, [
+      '/test/root/data/f.dart',
+      '/test/root/data/foo/f.dart',
+    ]);
+
+    _assertAnalyzed(root, [
+      '/test/root/f.dart',
+    ]);
+  }
+
+  void test_locateRoots_options_withExclude_wholeFolder_includedOptionsMerge() {
+    Folder rootFolder = newFolder('/test/root');
+    File optionsFile = newFile(
+        '/test/root/${ContextLocatorImpl.ANALYSIS_OPTIONS_NAME}',
+        content: '''
+include: has_excludes.yaml
+analyzer:
+  exclude:
+    - bar/**
+''');
+    newFile('/test/root/has_excludes.yaml', content: '''
+analyzer:
+  exclude:
+    - foo/**
+''');
+
+    File packagesFile = newPackagesFile('/test/root');
+    Folder fooFolder = newFolder('/test/root/foo');
+    Folder barFolder = newFolder('/test/root/bar');
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(
+      root.excludedPaths,
+      unorderedEquals([fooFolder.path, barFolder.path]),
+    );
+    expect(root.optionsFile, optionsFile);
+    expect(root.packagesFile, packagesFile);
+
+    _assertNotAnalyzed(root, [
+      '/test/root/foo/f.dart',
+      '/test/root/foo/aaa/f.dart',
+      '/test/root/bar/f.dart',
+      '/test/root/bar/aaa/f.dart',
+    ]);
+
+    _assertAnalyzed(root, [
+      '/test/root/f.dart',
+      '/test/root/baz/f.dart',
+    ]);
+  }
+
   void test_locateRoots_options_withExclude_wholeFolder_withItsOptions() {
     Folder rootFolder = newFolder('/test/root');
     File optionsFile = newOptionsFile('/test/root', content: '''

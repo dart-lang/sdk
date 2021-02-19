@@ -5,7 +5,6 @@
 import 'dart:collection';
 import 'dart:core';
 
-import 'package:analyzer/dart/analysis/context_locator.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -14,6 +13,7 @@ import 'package:analyzer/src/command_line/arguments.dart'
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'
@@ -110,15 +110,8 @@ class ContextBuilder {
 
   /// Return an analysis driver that is configured correctly to analyze code in
   /// the directory with the given [path].
-  AnalysisDriver buildDriver(ContextRoot contextRoot) {
+  AnalysisDriver buildDriver(ContextRoot contextRoot, Workspace workspace) {
     String path = contextRoot.root;
-
-    Workspace workspace = ContextBuilder.createWorkspace(
-      resourceProvider: resourceProvider,
-      options: builderOptions,
-      rootPath: path,
-      lookForBazelBuildFileSubstitutes: lookForBazelBuildFileSubstitutes,
-    );
 
     var options = getAnalysisOptions(path, workspace, contextRoot: contextRoot);
     //_processAnalysisOptions(context, optionMap);
@@ -152,18 +145,18 @@ class ContextBuilder {
     );
 
     // Set API AnalysisContext for the driver.
-    var apiContextRoots = api.ContextLocator(
+    var apiContextRoots = ContextLocatorImpl(
       resourceProvider: resourceProvider,
     ).locateRoots(
       includedPaths: [contextRoot.root],
       excludedPaths: contextRoot.exclude,
+      overrideWorkspace: workspace,
     );
     driver.configure(
       analysisContext: api.DriverBasedAnalysisContext(
         resourceProvider,
         apiContextRoots.first,
         driver,
-        workspace: workspace,
       ),
     );
 
@@ -410,13 +403,19 @@ class ContextBuilder {
     }
   }
 
+  /// If [packages] is provided, it will be used for the [Workspace],
+  /// otherwise the packages file from [options] will be used, or discovered
+  /// from [rootPath].
+  ///
+  /// TODO(scheglov) Make [packages] required, remove [options] and discovery.
   static Workspace createWorkspace({
     required ResourceProvider resourceProvider,
     required ContextBuilderOptions options,
+    Packages? packages,
     required String rootPath,
     bool lookForBazelBuildFileSubstitutes = true,
   }) {
-    var packages = ContextBuilder.createPackageMap(
+    packages ??= ContextBuilder.createPackageMap(
       resourceProvider: resourceProvider,
       options: options,
       rootPath: rootPath,

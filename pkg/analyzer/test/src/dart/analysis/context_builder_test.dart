@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/workspace/basic.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -36,7 +37,8 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   void setUp() {
     var folder = newFolder('/home/test');
     contextBuilder = ContextBuilderImpl(resourceProvider: resourceProvider);
-    contextRoot = ContextRootImpl(resourceProvider, folder);
+    var workspace = BasicWorkspace.find(resourceProvider, {}, folder.path);
+    contextRoot = ContextRootImpl(resourceProvider, folder, workspace);
   }
 
   test_createContext_declaredVariables() {

@@ -209,7 +209,7 @@ class DeclarationsContext {
     }
 
     var contextPathList = <String>[];
-    if (!_analysisContext.workspace.isBazel) {
+    if (!_analysisContext.contextRoot.workspace.isBazel) {
       _Package? package;
       for (var candidatePackage in _packages) {
         if (candidatePackage.contains(path)) {

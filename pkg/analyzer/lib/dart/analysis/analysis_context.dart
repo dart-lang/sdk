@@ -33,5 +33,6 @@ abstract class AnalysisContext {
   Folder? get sdkRoot;
 
   /// Return the workspace for containing the context root.
+  @Deprecated('Use contextRoot.workspace instead')
   Workspace get workspace;
 }

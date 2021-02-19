@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 
 /// Information about the root directory associated with an analysis context.
 ///
@@ -42,6 +43,9 @@ abstract class ContextRoot {
 
   /// The root directory containing the files to be analyzed.
   Folder get root;
+
+  /// Return the workspace that contains this context root.
+  Workspace get workspace;
 
   /// Return the absolute, normalized paths of all of the files that are
   /// contained in this context. These are all of the files that are included

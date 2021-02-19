@@ -442,7 +442,8 @@ class LibraryAnalyzer {
 
   WorkspacePackage? _getPackage(CompilationUnit unit) {
     final libraryPath = _library.source.fullName;
-    var workspace = unit.declaredElement!.session.analysisContext.workspace;
+    final session = unit.declaredElement!.session;
+    final workspace = session.analysisContext.contextRoot.workspace;
     return workspace.findPackageFor(libraryPath);
   }
 
