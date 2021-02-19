@@ -10,7 +10,7 @@ import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:front_end/src/fasta/incremental_compiler.dart';
 import 'package:kernel/ast.dart';
 
-import 'incremental_load_from_dill_suite.dart' show getOptions;
+import 'incremental_suite.dart' show getOptions;
 
 main() async {
   Uri compileTarget = Platform.script.resolve("binary_md_dill_reader.dart");

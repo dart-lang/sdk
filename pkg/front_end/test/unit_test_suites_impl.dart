@@ -29,8 +29,7 @@ import 'fasta/textual_outline_suite.dart' as textual_outline show createContext;
 import 'fasta/weak_suite.dart' as weak show createContext;
 import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
     show createContext;
-import 'incremental_load_from_dill_suite.dart' as incremental_load
-    show createContext;
+import 'incremental_suite.dart' as incremental show createContext;
 import 'lint_suite.dart' as lint show createContext;
 import 'parser_suite.dart' as parser show createContext;
 import 'parser_all_suite.dart' as parserAll show createContext;
@@ -367,8 +366,8 @@ const List<Suite> suites = [
     shardCount: 1,
   ),
   const Suite(
-    "incremental_load_from_dill",
-    incremental_load.createContext,
+    "incremental",
+    incremental.createContext,
     "../testing.json",
     shardCount: 2,
   ),

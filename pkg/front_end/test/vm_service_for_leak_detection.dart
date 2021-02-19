@@ -50,12 +50,10 @@ main(List<String> args) async {
   } else {
     heapHelper.start([
       "--enable-asserts",
-      Platform.script
-          .resolve("incremental_load_from_dill_suite.dart")
-          .toString(),
+      Platform.script.resolve("incremental_suite.dart").toString(),
       "-DaddDebugBreaks=true",
       "--",
-      "incremental_load_from_dill/no_outline_change_38",
+      "incremental/no_outline_change_38",
     ]);
   }
 }

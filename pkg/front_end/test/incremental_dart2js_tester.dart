@@ -14,7 +14,7 @@ import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/kernel.dart'
     show Component, Library, LibraryPart, Reference;
 
-import 'incremental_load_from_dill_suite.dart' as helper;
+import 'incremental_suite.dart' as helper;
 
 import "incremental_utils.dart" as util;
 

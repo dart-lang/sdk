@@ -64,7 +64,7 @@ import "package:vm/target/flutter.dart" show FlutterTarget;
 
 import "package:vm/target/vm.dart" show VmTarget;
 
-import 'incremental_load_from_dill_suite.dart' show getOptions;
+import 'incremental_suite.dart' show getOptions;
 
 import 'parser_test_listener.dart' show ParserTestListener;
 
