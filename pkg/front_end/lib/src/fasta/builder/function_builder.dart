@@ -37,6 +37,8 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 
+import '../util/helpers.dart' show DelayedActionPerformer;
+
 import 'builder.dart';
 import 'class_builder.dart';
 import 'extension_builder.dart';
@@ -501,7 +503,8 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   bool _hasBuiltOutlineExpressions = false;
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
     if (!_hasBuiltOutlineExpressions) {
       MetadataBuilder.buildAnnotations(
           member, metadata, library, isClassMember ? parent : null, this);
@@ -512,7 +515,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
         // buildOutlineExpressions to clear initializerToken to prevent
         // consuming too much memory.
         for (FormalParameterBuilder formal in formals) {
-          formal.buildOutlineExpressions(library);
+          formal.buildOutlineExpressions(library, delayedActionPerformers);
         }
       }
       _hasBuiltOutlineExpressions = true;

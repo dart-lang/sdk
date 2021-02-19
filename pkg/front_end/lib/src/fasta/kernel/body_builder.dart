@@ -113,6 +113,10 @@ import '../type_inference/type_inferrer.dart'
 import '../type_inference/type_promotion.dart'
     show TypePromoter, TypePromotionFact, TypePromotionScope;
 
+import '../type_inference/type_schema.dart' show UnknownType;
+
+import '../util/helpers.dart' show DelayedActionPerformer;
+
 import 'collections.dart';
 
 import 'constness.dart' show Constness;
@@ -151,7 +155,7 @@ const int noLocation = TreeNode.noOffset;
 const Object invalidCollectionElement = const Object();
 
 class BodyBuilder extends ScopeListener<JumpTarget>
-    implements ExpressionGeneratorHelper, EnsureLoaded {
+    implements ExpressionGeneratorHelper, EnsureLoaded, DelayedActionPerformer {
   final Forest forest;
 
   // TODO(ahe): Rename [library] to 'part'.
@@ -312,6 +316,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// List of built redirecting factory invocations.  The targets of the
   /// invocations are to be resolved in a separate step.
   final List<Expression> redirectingFactoryInvocations = <Expression>[];
+
+  /// List of redirecting factory invocations delayed for resolution.
+  ///
+  /// A resolution of a redirecting factory invocation can be delayed because
+  /// the inference in the declaration of the redirecting factory isn't done
+  /// yet.
+  final List<Expression> delayedRedirectingFactoryInvocations = <Expression>[];
 
   /// List of built type aliased generative constructor invocations that
   /// require unaliasing.
@@ -1160,7 +1171,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void resolveRedirectingFactoryTargets() {
     _unaliasTypeAliasedConstructorInvocations();
     _unaliasTypeAliasedFactoryInvocations();
-    _resolveRedirectingFactoryTargets();
+    _resolveRedirectingFactoryTargets(
+        redirectingFactoryInvocations, delayedRedirectingFactoryInvocations);
   }
 
   /// Return an [Expression] resolving the argument invocation.
@@ -1168,6 +1180,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// The arguments specify the [StaticInvocation] whose `.target` is
   /// [target], `.arguments` is [arguments], `.fileOffset` is [fileOffset],
   /// and `.isConst` is [isConst].
+  /// Returns null if the invocation can't be resolved.
   Expression _resolveRedirectingFactoryTarget(
       Procedure target, Arguments arguments, int fileOffset, bool isConst) {
     Procedure initialTarget = target;
@@ -1176,6 +1189,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     RedirectionTarget redirectionTarget =
         getRedirectionTarget(initialTarget, this);
     Member resolvedTarget = redirectionTarget?.target;
+    if (redirectionTarget != null &&
+        redirectionTarget.typeArguments.any((type) => type is UnknownType)) {
+      return null;
+    }
 
     if (resolvedTarget == null) {
       String name = constructorNameForDiagnostics(initialTarget.name.text,
@@ -1233,7 +1250,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return replacementNode;
   }
 
-  void _resolveRedirectingFactoryTargets() {
+  void _resolveRedirectingFactoryTargets(
+      List<Expression> redirectingFactoryInvocations,
+      List<Expression> delayedRedirectingFactoryInvocations) {
     for (StaticInvocation invocation in redirectingFactoryInvocations) {
       // If the invocation was invalid, it or its parent has already been
       // desugared into an exception throwing expression.  There is nothing to
@@ -1254,8 +1273,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
         if (parent == null) continue;
       }
-      invocation.replaceWith(_resolveRedirectingFactoryTarget(invocation.target,
-          invocation.arguments, invocation.fileOffset, invocation.isConst));
+      Expression replacement = _resolveRedirectingFactoryTarget(
+          invocation.target,
+          invocation.arguments,
+          invocation.fileOffset,
+          invocation.isConst);
+      if (replacement == null) {
+        delayedRedirectingFactoryInvocations?.add(invocation);
+      } else {
+        invocation.replaceWith(replacement);
+      }
     }
     redirectingFactoryInvocations.clear();
   }
@@ -1304,6 +1331,33 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           invocationArguments, invocation.fileOffset, invocation.isConst));
     }
     typeAliasedFactoryInvocations.clear();
+  }
+
+  /// Perform actions that were delayed
+  ///
+  /// An action can be delayed, for instance, because it depends on some
+  /// calculations in another library.  For example, a resolution of a
+  /// redirecting factory invocation depends on the type inference in the
+  /// redirecting factory.
+  void performDelayedActions() {
+    if (delayedRedirectingFactoryInvocations.isNotEmpty) {
+      _resolveRedirectingFactoryTargets(
+          delayedRedirectingFactoryInvocations, null);
+      if (delayedRedirectingFactoryInvocations.isNotEmpty) {
+        for (StaticInvocation invocation
+            in delayedRedirectingFactoryInvocations) {
+          internalProblem(
+              fasta.templateInternalProblemUnhandled.withArguments(
+                  invocation.target.name.text, 'performDelayedActions'),
+              invocation.fileOffset,
+              uri);
+        }
+      }
+    }
+  }
+
+  bool get hasDelayedActions {
+    return delayedRedirectingFactoryInvocations.isNotEmpty;
   }
 
   void finishVariableMetadata() {

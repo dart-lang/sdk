@@ -61,6 +61,8 @@ import '../source/source_loader.dart';
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
+import '../util/helpers.dart' show DelayedActionPerformer;
+
 import 'builder.dart';
 import 'constructor_builder.dart';
 import 'constructor_reference_builder.dart';
@@ -122,7 +124,8 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   List<ConstructorReferenceBuilder> get constructorReferences;
 
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes);
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers);
 
   /// Registers a constructor redirection for this class and returns true if
   /// this redirection gives rise to a cycle that has not been reported before.
@@ -349,10 +352,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
     void build(String ignore, Builder declaration) {
       MemberBuilder member = declaration;
-      member.buildOutlineExpressions(library, coreTypes);
+      member.buildOutlineExpressions(
+          library, coreTypes, delayedActionPerformers);
     }
 
     MetadataBuilder.buildAnnotations(

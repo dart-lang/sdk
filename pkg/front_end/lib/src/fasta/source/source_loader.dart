@@ -110,6 +110,8 @@ import '../type_inference/type_inference_engine.dart';
 
 import '../type_inference/type_inferrer.dart';
 
+import '../util/helpers.dart';
+
 import 'diet_listener.dart' show DietListener;
 
 import 'diet_parser.dart' show DietParser;
@@ -1134,6 +1136,8 @@ class SourceLoader extends Loader {
   }
 
   void buildOutlineExpressions(CoreTypes coreTypes) {
+    List<DelayedActionPerformer> delayedActionPerformers =
+        <DelayedActionPerformer>[];
     for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         library.buildOutlineExpressions();
@@ -1141,14 +1145,21 @@ class SourceLoader extends Loader {
         while (iterator.moveNext()) {
           Builder declaration = iterator.current;
           if (declaration is ClassBuilder) {
-            declaration.buildOutlineExpressions(library, coreTypes);
+            declaration.buildOutlineExpressions(
+                library, coreTypes, delayedActionPerformers);
           } else if (declaration is ExtensionBuilder) {
-            declaration.buildOutlineExpressions(library, coreTypes);
+            declaration.buildOutlineExpressions(
+                library, coreTypes, delayedActionPerformers);
           } else if (declaration is MemberBuilder) {
-            declaration.buildOutlineExpressions(library, coreTypes);
+            declaration.buildOutlineExpressions(
+                library, coreTypes, delayedActionPerformers);
           }
         }
       }
+    }
+    for (DelayedActionPerformer delayedActionPerformer
+        in delayedActionPerformers) {
+      delayedActionPerformer.performDelayedActions();
     }
     ticker.logMs("Build outline expressions");
   }

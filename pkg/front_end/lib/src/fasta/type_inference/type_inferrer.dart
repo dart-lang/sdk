@@ -2788,6 +2788,13 @@ class TypeInferrerImpl implements TypeInferrer {
               fileOffset,
               noLength);
         } else {
+          // Handles cases like:
+          //   int? i;
+          //   i.methodOnNonNullInt();
+          // where `methodOnNonNullInt` is declared in an extension:
+          //   extension on int {
+          //     void methodOnNonNullInt() {}
+          //   }
           replacement = helper.wrapInProblem(
               replacement,
               templateNullableMethodCallError.withArguments(
@@ -2866,6 +2873,9 @@ class TypeInferrerImpl implements TypeInferrer {
             fileOffset,
             noLength);
       } else {
+        // Handles cases like:
+        //   void Function()? f;
+        //   f.call();
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableMethodCallError.withArguments(
@@ -3029,6 +3039,9 @@ class TypeInferrerImpl implements TypeInferrer {
             fileOffset,
             noLength);
       } else {
+        // Handles cases like:
+        //   int? i;
+        //   i.abs();
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableMethodCallError.withArguments(

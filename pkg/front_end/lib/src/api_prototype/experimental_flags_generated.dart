@@ -79,7 +79,7 @@ const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.constantUpdate2018: true,
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.extensionMethods: true,
-  ExperimentalFlag.extensionTypes: true,
+  ExperimentalFlag.extensionTypes: false,
   ExperimentalFlag.genericMetadata: false,
   ExperimentalFlag.nonNullable: true,
   ExperimentalFlag.nonfunctionTypeAliases: false,

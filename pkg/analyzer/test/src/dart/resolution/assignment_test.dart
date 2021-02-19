@@ -135,6 +135,55 @@ void f(A a) {
     );
   }
 
+  test_indexExpression_instance_compound_double_num() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  num operator[](int index) => 0;
+  operator[]=(int index, num _) {}
+}
+
+void f(A a) {
+  a[0] += 2.0;
+}
+''');
+
+    assertAssignment(
+      findNode.assignment('[0] += 2.0'),
+      readElement: findElement.method('[]'),
+      readType: 'num',
+      writeElement: findElement.method('[]='),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'double',
+    );
+  }
+
+  test_indexExpression_instance_ifNull() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int? operator[](int? index) => 0;
+  operator[]=(int? index, num? _) {}
+}
+
+void f(A a) {
+  a[0] ??= 2;
+}
+''');
+
+    assertAssignment(
+      findNode.assignment('[0] ??= 2'),
+      readElement: findElement.method('[]'),
+      readType: 'int?',
+      writeElement: findElement.method('[]='),
+      writeType: 'num?',
+      operatorElement: null,
+      type: 'int',
+    );
+  }
+
   test_indexExpression_instance_simple() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -697,6 +746,37 @@ void f(A a) {
     assertType(assignment.rightHandSide, 'int');
   }
 
+  test_prefixedIdentifier_instance_ifNull() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int? get x => 0;
+  set x(num? _) {}
+}
+
+void f(A a) {
+  a.x ??= 2;
+}
+''');
+
+    var assignment = findNode.assignment('x ??= 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('x'),
+      readType: 'int?',
+      writeElement: findElement.setter('x'),
+      writeType: 'num?',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
+    assertSimpleIdentifierAssignmentTarget(
+      prefixed.identifier,
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
   test_prefixedIdentifier_instance_simple() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -1099,6 +1179,37 @@ void f(C c) {
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
+  test_propertyAccess_instance_ifNull() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int? get x => 0;
+  set x(num? _) {}
+}
+
+void f(A a) {
+  (a).x ??= 2;
+}
+''');
+
+    var assignment = findNode.assignment('x ??= 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('x'),
+      readType: 'int?',
+      writeElement: findElement.setter('x'),
+      writeType: 'num?',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    var propertyAccess = assignment.leftHandSide as PropertyAccess;
+    assertSimpleIdentifierAssignmentTarget(
+      propertyAccess.propertyName,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -2075,6 +2186,36 @@ class C with M1, M2 {
         numElement.getMethod('+'),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
+      type: 'int',
+    );
+
+    assertSimpleIdentifierAssignmentTarget(
+      assignment.leftHandSide,
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
+  test_simpleIdentifier_thisGetter_thisSetter_ifNull() async {
+    await assertNoErrorsInCode('''
+class C {
+  int? get x => 0;
+  set x(num? _) {}
+
+  void f() {
+    x ??= 2;
+  }
+}
+''');
+
+    var assignment = findNode.assignment('x ??= 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('x'),
+      readType: 'int?',
+      writeElement: findElement.setter('x'),
+      writeType: 'num?',
+      operatorElement: null,
       type: 'int',
     );
 

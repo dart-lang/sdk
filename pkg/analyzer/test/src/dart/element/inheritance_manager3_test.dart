@@ -1140,7 +1140,7 @@ class B extends A {
     );
   }
 
-  test_getMember_optIn_topMerge_getter() async {
+  test_getMember_optIn_topMerge_getter_existing() async {
     await resolveTestCode('''
 class A {
   dynamic get foo => 0;
@@ -1157,6 +1157,26 @@ class X extends A implements B {}
       className: 'X',
       name: 'foo',
       expected: 'B.foo: Object? Function()',
+    );
+  }
+
+  test_getMember_optIn_topMerge_getter_synthetic() async {
+    await resolveTestCode('''
+abstract class A {
+  Future<void> get foo;
+}
+
+abstract class B {
+  Future<dynamic> get foo;
+}
+
+abstract class X extends A implements B {}
+''');
+
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      expected: 'X.foo: Future<Object?> Function()',
     );
   }
 
@@ -1180,7 +1200,7 @@ class X extends A implements B {}
     );
   }
 
-  test_getMember_optIn_topMerge_setter() async {
+  test_getMember_optIn_topMerge_setter_existing() async {
     await resolveTestCode('''
 class A {
   set foo(dynamic _) {}
@@ -1197,6 +1217,26 @@ class X extends A implements B {}
       className: 'X',
       name: 'foo=',
       expected: 'B.foo=: void Function(Object?)',
+    );
+  }
+
+  test_getMember_optIn_topMerge_setter_synthetic() async {
+    await resolveTestCode('''
+abstract class A {
+  set foo(Future<void> _);
+}
+
+abstract class B {
+  set foo(Future<dynamic> _);
+}
+
+abstract class X extends A implements B {}
+''');
+
+    _assertGetMember(
+      className: 'X',
+      name: 'foo=',
+      expected: 'X.foo=: void Function(Future<Object?>)',
     );
   }
 
@@ -1299,6 +1339,16 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
 
       var actual = '${enclosingElement.name}.${element.name}: $typeStr';
       expect(actual, expected);
+
+      if (element is PropertyAccessorElement) {
+        var variable = element.variable;
+        expect(variable.name, element.displayName);
+        if (element.isGetter) {
+          expect(variable.type, element.returnType);
+        } else {
+          expect(variable.type, element.parameters[0].type);
+        }
+      }
     } else {
       expect(element, isNull);
     }

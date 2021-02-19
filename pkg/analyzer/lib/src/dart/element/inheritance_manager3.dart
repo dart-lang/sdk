@@ -772,11 +772,25 @@ class InheritanceManager3 {
       return result;
     } else {
       var firstAccessor = first as PropertyAccessorElement;
-      var result = PropertyAccessorElementImpl(firstAccessor.name, -1);
+      var variableName = firstAccessor.displayName;
+
+      var result = PropertyAccessorElementImpl(variableName, -1);
       result.enclosingElement = targetClass;
       result.isGetter = firstAccessor.isGetter;
+      result.isSetter = firstAccessor.isSetter;
       result.returnType = resultType.returnType;
       result.parameters = resultType.parameters;
+
+      var field = FieldElementImpl(variableName, -1);
+      if (firstAccessor.isGetter) {
+        field.getter = result;
+        field.type = result.returnType;
+      } else {
+        field.setter = result;
+        field.type = result.parameters[0].type;
+      }
+      result.variable = field;
+
       return result;
     }
   }

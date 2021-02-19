@@ -11,6 +11,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 String getFilename(String path) => Platform.script.resolve(path).toFilePath();
@@ -45,6 +46,8 @@ void main(List<String> args) async {
     exit(1);
   }
 
+  asyncStart();
+
   final serverProcess = await Process.start(
       Platform.executable, [Platform.script.toFilePath(), 'server']);
   final serverPortCompleter = Completer<int>();
@@ -65,17 +68,20 @@ void main(List<String> args) async {
 
   int port = await serverPortCompleter.future;
 
-  var thrownException;
-  try {
-    print('client connecting...');
-    await SecureSocket.connect('localhost', port,
+  final errorCompleter = Completer();
+  await runZoned(() async {
+    var socket = await SecureSocket.connect('localhost', port,
         context: clientSecurityContext);
-    print('client connected.');
-  } catch (e) {
-    thrownException = e;
-  } finally {
-    await serverProcess.kill();
-  }
-  print('thrownException: $thrownException');
-  Expect.isTrue(thrownException is HandshakeException);
+    socket.write(<int>[1, 2, 3]);
+  }, onError: (e) async {
+    // Even if server disconnects during later parts of handshake, since
+    // TLS v1.3 client might not notice it until attempt to communicate with
+    // the server.
+    print('thrownException: $e');
+    errorCompleter.complete(e);
+  });
+  Expect.isTrue((await errorCompleter.future) is SocketException);
+  await serverProcess.kill();
+
+  asyncEnd();
 }

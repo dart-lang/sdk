@@ -3857,6 +3857,30 @@ Message _withArgumentsFfiFieldNoAnnotation(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+    Message Function(String name)> templateFfiFieldNull = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Field '#name' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct`.""",
+    withArguments: _withArgumentsFfiFieldNull);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiFieldNull =
+    const Code<Message Function(String name)>(
+  "FfiFieldNull",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiFieldNull(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiFieldNull,
+      message:
+          """Field '${name}' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct`.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
     Message Function(String name)> templateFfiNotStatic = const Template<
         Message Function(String name)>(
     messageTemplate:

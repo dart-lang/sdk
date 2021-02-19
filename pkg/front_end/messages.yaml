@@ -4225,6 +4225,11 @@ FfiTypeInvalid:
   template: "Expected type '#type' to be a valid and instantiated subtype of 'NativeType'."
   external: test/ffi_test.dart
 
+FfiFieldNull:
+  # Used by dart:ffi
+  template: "Field '#name' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct`."
+  external: test/ffi_test.dart
+
 FfiFieldAnnotation:
   # Used by dart:ffi
   template: "Field '#name' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields."

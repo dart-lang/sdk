@@ -28,6 +28,8 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
 
+import '../util/helpers.dart';
+
 import 'builder.dart';
 import 'constructor_reference_builder.dart';
 import 'extension_builder.dart';
@@ -762,8 +764,9 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
-    super.buildOutlineExpressions(library, coreTypes);
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    super.buildOutlineExpressions(library, coreTypes, delayedActionPerformers);
     LibraryBuilder thisLibrary = this.library;
     if (thisLibrary is SourceLibraryBuilder) {
       RedirectingFactoryBody redirectingFactoryBody = procedure.function.body;

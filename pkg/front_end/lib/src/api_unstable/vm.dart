@@ -62,6 +62,7 @@ export '../fasta/fasta_codes.dart'
         templateFfiFieldCyclic,
         templateFfiFieldInitializer,
         templateFfiFieldNoAnnotation,
+        templateFfiFieldNull,
         templateFfiNotStatic,
         templateFfiStructGeneric,
         templateFfiTypeInvalid,

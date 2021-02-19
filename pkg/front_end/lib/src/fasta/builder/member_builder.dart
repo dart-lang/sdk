@@ -16,6 +16,7 @@ import '../modifier.dart';
 import '../problems.dart' show unsupported;
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting;
+import '../util/helpers.dart' show DelayedActionPerformer;
 
 import 'builder.dart';
 import 'class_builder.dart';
@@ -72,7 +73,8 @@ abstract class MemberBuilder implements ModifierBuilder {
   /// setter of a field.
   bool get isConflictingSetter;
 
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes);
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers);
 
   /// Returns the [ClassMember]s for the non-setter members created for this
   /// member builder.
@@ -171,7 +173,8 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   ProcedureKind get kind => unsupported("kind", charOffset, fileUri);
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {}
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {}
 
   /// Builds the core AST structures for this member as needed for the outline.
   void buildMembers(
