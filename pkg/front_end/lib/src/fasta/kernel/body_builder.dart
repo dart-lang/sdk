@@ -4392,8 +4392,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     String name = pop();
     List<UnresolvedType> typeArguments = pop();
     if (inMetadata && typeArguments != null) {
-      handleRecoverableError(fasta.messageMetadataTypeArguments,
-          nameLastToken.next, nameLastToken.next);
+      if (!libraryBuilder.enableGenericMetadataInLibrary) {
+        handleRecoverableError(fasta.messageMetadataTypeArguments,
+            nameLastToken.next, nameLastToken.next);
+      }
     }
 
     Object type = pop();
