@@ -570,3 +570,17 @@ class FfiTransformerData {
   FfiTransformerData(
       this.replacedGetters, this.replacedSetters, this.emptyStructs);
 }
+
+/// Checks if any library depends on dart:ffi.
+bool importsFfi(Component component, List<Library> libraries) {
+  Set<Library> allLibs = {...component.libraries, ...libraries};
+  final Uri dartFfiUri = Uri.parse("dart:ffi");
+  for (Library lib in allLibs) {
+    for (LibraryDependency dependency in lib.dependencies) {
+      if (dependency.targetLibrary.importUri == dartFfiUri) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
