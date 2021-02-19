@@ -1,8 +1,0 @@
-// @dart = 2.6
-class C {
-  var x;
-  void f() {}
-}
-
-void test(C c) {}
-main() {}

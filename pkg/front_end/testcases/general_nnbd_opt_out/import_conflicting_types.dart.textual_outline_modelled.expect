@@ -1,6 +1,0 @@
-// @dart = 2.6
-import 'import_conflicting_types_lib1.dart';
-import 'import_conflicting_types_lib2.dart';
-
-errors() {}
-main() {}
