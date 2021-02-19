@@ -1050,17 +1050,18 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void _token(Token? token) {
     if (token == null) return;
 
-    if (_last != null) {
-      if (_last!.next != token) {
+    var last = _last;
+    if (last != null) {
+      if (last.next != token) {
         throw StateError(
-          '|$_last| must be followed by |${_last!.next}|, got |$token|',
+          '|$last| must be followed by |${last.next}|, got |$token|',
         );
       }
     }
 
     // Print preceding comments as a separate sequence of tokens.
     if (token.precedingComments != null) {
-      var lastToken = _last;
+      var lastToken = last;
       _last = null;
       for (Token? c = token.precedingComments; c != null; c = c.next) {
         _token(c);

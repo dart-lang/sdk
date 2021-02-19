@@ -44,7 +44,9 @@ class DartdocDirectiveInfo {
 
   /// Process the given Dartdoc [comment], extracting the template directive if
   /// there is one.
-  void extractTemplate(String comment) {
+  void extractTemplate(String? comment) {
+    if (comment == null) return;
+
     for (Match match in templateRegExp.allMatches(comment)) {
       String name = match.group(1)!.trim();
       String body = match.group(2)!.trim();

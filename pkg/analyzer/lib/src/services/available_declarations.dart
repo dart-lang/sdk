@@ -196,9 +196,10 @@ class DeclarationsContext {
     _addLibrariesWithPaths(sdkLibraries, _sdkLibraryPathList);
 
     var dependencyLibraries = <Library>[];
-    for (var pathPrefix in _pathPrefixToDependencyPathList.keys) {
+    for (var entry in _pathPrefixToDependencyPathList.entries) {
+      var pathPrefix = entry.key;
       if (path.startsWith(pathPrefix)) {
-        var pathList = _pathPrefixToDependencyPathList[pathPrefix]!;
+        var pathList = entry.value;
         _addLibrariesWithPaths(dependencyLibraries, pathList);
         break;
       }
@@ -1493,13 +1494,13 @@ class _File {
                 relevanceTags: ['ElementKind.FIELD'],
                 returnType: _getTypeAnnotationString(classMember.returnType),
               );
-            } else if (classMember.isSetter) {
+            } else if (classMember.isSetter && parameters != null) {
               addDeclaration(
                 isDeprecated: isDeprecated,
                 isStatic: isStatic,
                 kind: DeclarationKind.SETTER,
                 name: classMember.name,
-                parameters: parameters!.toSource(),
+                parameters: parameters.toSource(),
                 parameterNames: _getFormalParameterNames(parameters),
                 parameterTypes: _getFormalParameterTypes(parameters),
                 parent: parent,
@@ -1507,8 +1508,8 @@ class _File {
                 requiredParameterCount:
                     _getFormalParameterRequiredCount(parameters),
               );
-            } else {
-              var defaultArguments = _computeDefaultArguments(parameters!);
+            } else if (parameters != null) {
+              var defaultArguments = _computeDefaultArguments(parameters);
               addDeclaration(
                 defaultArgumentListString: defaultArguments?.text,
                 defaultArgumentListTextRanges: defaultArguments?.ranges,
@@ -1605,11 +1606,12 @@ class _File {
           );
         }
       } else if (node is ExtensionDeclaration) {
-        if (node.name != null) {
+        var name = node.name;
+        if (name != null) {
           addDeclaration(
             isDeprecated: isDeprecated,
             kind: DeclarationKind.EXTENSION,
-            name: node.name!,
+            name: name,
             relevanceTags: ['ElementKind.EXTENSION'],
           );
         }
@@ -1626,20 +1628,20 @@ class _File {
             relevanceTags: ['ElementKind.FUNCTION'],
             returnType: _getTypeAnnotationString(node.returnType),
           );
-        } else if (node.isSetter) {
+        } else if (node.isSetter && parameters != null) {
           addDeclaration(
             isDeprecated: isDeprecated,
             kind: DeclarationKind.SETTER,
             name: node.name,
-            parameters: parameters!.toSource(),
+            parameters: parameters.toSource(),
             parameterNames: _getFormalParameterNames(parameters),
             parameterTypes: _getFormalParameterTypes(parameters),
             relevanceTags: ['ElementKind.FUNCTION'],
             requiredParameterCount:
                 _getFormalParameterRequiredCount(parameters),
           );
-        } else {
-          var defaultArguments = _computeDefaultArguments(parameters!);
+        } else if (parameters != null) {
+          var defaultArguments = _computeDefaultArguments(parameters);
           addDeclaration(
             defaultArgumentListString: defaultArguments?.text,
             defaultArgumentListTextRanges: defaultArguments?.ranges,
@@ -1731,35 +1733,27 @@ class _File {
     DartdocDirectiveInfo info = DartdocDirectiveInfo();
     for (Directive directive in unit.directives) {
       var comment = directive.documentationComment;
-      if (comment != null) {
-        info.extractTemplate(getCommentNodeRawText(comment)!);
-      }
+      info.extractTemplate(getCommentNodeRawText(comment));
     }
     for (CompilationUnitMember declaration in unit.declarations) {
       var comment = declaration.documentationComment;
-      if (comment != null) {
-        info.extractTemplate(getCommentNodeRawText(comment)!);
-      }
+      info.extractTemplate(getCommentNodeRawText(comment));
       if (declaration is ClassOrMixinDeclaration) {
         for (ClassMember member in declaration.members) {
           var comment = member.documentationComment;
-          if (comment != null) {
-            info.extractTemplate(getCommentNodeRawText(comment)!);
-          }
+          info.extractTemplate(getCommentNodeRawText(comment));
         }
       } else if (declaration is EnumDeclaration) {
         for (EnumConstantDeclaration constant in declaration.constants) {
           var comment = constant.documentationComment;
-          if (comment != null) {
-            info.extractTemplate(getCommentNodeRawText(comment)!);
-          }
+          info.extractTemplate(getCommentNodeRawText(comment));
         }
       }
     }
     Map<String, String> templateMap = info.templateMap;
-    for (String name in templateMap.keys) {
-      templateNames.add(name);
-      templateValues.add(templateMap[name]!);
+    for (var entry in templateMap.entries) {
+      templateNames.add(entry.key);
+      templateValues.add(entry.value);
     }
   }
 
