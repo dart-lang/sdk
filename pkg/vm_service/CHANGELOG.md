@@ -1,4 +1,6 @@
 # Changelog
+## 6.1.1
+- Callsite `StackTrace`s are now attached to `RPCError`s and `SentinelException`s.
 
 ## 6.1.0+1
 - Documentation update.

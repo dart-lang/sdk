@@ -100,12 +100,11 @@ final String _implCode = r'''
 
   Future<void> dispose() async {
     await _streamSub.cancel();
-    _completers.forEach((id, c) {
-      final method = _methodCalls[id];
-      return c.completeError(RPCError(
-          method, RPCError.kServerError, 'Service connection disposed'));
+    _outstandingRequests.forEach((id, request) {
+      request._completer.completeError(RPCError(
+          request.method, RPCError.kServerError, 'Service connection disposed',));
     });
-    _completers.clear();
+    _outstandingRequests.clear();
     if (_disposeHandler != null) {
       await _disposeHandler!();
     }
@@ -116,16 +115,14 @@ final String _implCode = r'''
 
   Future get onDone => _onDoneCompleter.future;
 
-  Future<T> _call<T>(String method, [Map args = const {}]) {
-    String id = '${++_id}';
-    Completer<T> completer = Completer<T>();
-    _completers[id] = completer;
-    _methodCalls[id] = method;
-    Map m = {'jsonrpc': '2.0', 'id': id, 'method': method, 'params': args,};
+  Future<T> _call<T>(String method, [Map args = const {}]) async {
+    final request = _OutstandingRequest(method);
+    _outstandingRequests[request.id] = request;
+    Map m = {'jsonrpc': '2.0', 'id': request.id, 'method': method, 'params': args,};
     String message = jsonEncode(m);
     _onSend.add(message);
     _writeMessage(message);
-    return completer.future;
+    return await request.future as T;
   }
 
   /// Register a service for invocation.
@@ -196,22 +193,21 @@ final String _implCode = r'''
   }
 
   void _processResponse(Map<String, dynamic> json) {
-    Completer? completer = _completers.remove(json['id']);
-    String methodName = _methodCalls.remove(json['id'])!;
-    List<String> returnTypes = _methodReturnTypes[methodName] ?? [];
-    if (completer == null) {
+    final request = _outstandingRequests.remove(json['id']);
+    if (request == null) {
       _log.severe('unmatched request response: ${jsonEncode(json)}');
     } else if (json['error'] != null) {
-      completer.completeError(RPCError.parse(methodName, json['error']));
+      request.completeError(RPCError.parse(request.method, json['error']));
     } else {
       Map<String, dynamic> result = json['result'] as Map<String, dynamic>;
       String type = result['type'];
       if (type == 'Sentinel') {
-        completer.completeError(SentinelException.parse(methodName, result));
+        request.completeError(SentinelException.parse(request.method, result));
       } else if (_typeFactories[type] == null) {
-        completer.complete(Response.parse(result));
+        request.complete(Response.parse(result));
       } else {
-        completer.complete(createServiceObject(result, returnTypes));
+        List<String> returnTypes = _methodReturnTypes[request.method] ?? [];
+        request.complete(createServiceObject(result, returnTypes));
       }
     }
   }
@@ -816,13 +812,29 @@ abstract class VmServiceInterface {
     gen.write('}');
     gen.writeln();
 
+    gen.write('''
+class _OutstandingRequest<T> {
+  _OutstandingRequest(this.method);
+  static int _idCounter = 0;
+  final String id = '\${_idCounter++}';
+  final String method;
+  final StackTrace _stackTrace = StackTrace.current;
+  final Completer<T> _completer = Completer<T>();
+
+  Future<T> get future => _completer.future;
+
+  void complete(T value) => _completer.complete(value);
+  void completeError(Object error) =>
+      _completer.completeError(error, _stackTrace);
+}
+''');
+
     // The client side service implementation.
     gen.writeStatement('class VmService implements VmServiceInterface {');
     gen.writeStatement('late final StreamSubscription _streamSub;');
     gen.writeStatement('late final Function _writeMessage;');
-    gen.writeStatement('int _id = 0;');
-    gen.writeStatement('Map<String, Completer> _completers = {};');
-    gen.writeStatement('Map<String, String> _methodCalls = {};');
+    gen.writeStatement(
+        'final Map<String, _OutstandingRequest> _outstandingRequests = {};');
     gen.writeStatement('Map<String, ServiceCallback> _services = {};');
     gen.writeStatement('late final Log _log;');
     gen.write('''
