@@ -17,6 +17,27 @@ main() {
 /// TODO(scheglov) Move other for-in tests here.
 @reflectiveTest
 class ForEachStatementResolutionTest extends PubPackageResolutionTest {
+  test_forIn_variable() async {
+    var code = r'''
+T f<T>() => null;
+
+void test(Iterable<num> iter) {
+  for (var w in f()) {} // 1
+  for (var x in iter) {} // 2
+  for (num y in f()) {} // 3
+}
+''';
+    await resolveTestCode(code);
+
+    assertType(findElement.localVar('w').type, 'Object?');
+    assertType(findNode.methodInvocation('f()) {} // 1'), 'Iterable<Object?>');
+
+    assertType(findElement.localVar('x').type, 'num');
+
+    assertType(findElement.localVar('y').type, 'num');
+    assertType(findNode.methodInvocation('f()) {} // 3'), 'Iterable<num>');
+  }
+
   test_iterable_missing() async {
     await assertErrorsInCode(r'''
 void f() {
