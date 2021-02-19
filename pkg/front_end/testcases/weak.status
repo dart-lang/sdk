@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-# Status file for the weak_tester.dart test suite.
+# Status file for the weak_suite.dart test suite.
 
 # general/platform_invalid_uris/main: SemiFuzzFailure # semi fuzz fails but isn't currently enabled by default.
 # general/error_recovery/issue_39058.crash: SemiFuzzFailure # semi fuzz fails but isn't currently enabled by default.

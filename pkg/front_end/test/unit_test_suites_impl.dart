@@ -21,11 +21,11 @@ import 'fasta/expression_suite.dart' as expression show createContext;
 import 'fasta/incremental_suite.dart' as incremental show createContext;
 import 'fasta/messages_suite.dart' as messages show createContext;
 import 'fasta/outline_suite.dart' as outline show createContext;
-import 'fasta/strong_tester.dart' as strong show createContext;
+import 'fasta/strong_suite.dart' as strong show createContext;
 import 'fasta/text_serialization_tester.dart' as text_serialization
     show createContext;
 import 'fasta/textual_outline_suite.dart' as textual_outline show createContext;
-import 'fasta/weak_tester.dart' as weak show createContext;
+import 'fasta/weak_suite.dart' as weak show createContext;
 import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
     show createContext;
 import 'incremental_load_from_dill_suite.dart' as incremental_load
@@ -356,7 +356,7 @@ const List<Suite> suites = [
     "fasta/strong",
     strong.createContext,
     "../../testing.json",
-    path: "fasta/strong_tester.dart",
+    path: "fasta/strong_suite.dart",
     shardCount: 2,
   ),
   const Suite(
@@ -412,7 +412,7 @@ const List<Suite> suites = [
     "fasta/weak",
     weak.createContext,
     "../../testing.json",
-    path: "fasta/weak_tester.dart",
+    path: "fasta/weak_suite.dart",
     shardCount: 10,
   ),
   const Suite(
