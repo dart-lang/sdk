@@ -10,6 +10,7 @@ import 'package:kernel/core_types.dart';
 import '../fasta_codes.dart' show templateInternalProblemNotFoundIn;
 import '../scope.dart';
 import '../problems.dart';
+import '../util/helpers.dart';
 
 import 'builder.dart';
 import 'library_builder.dart';
@@ -27,7 +28,8 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   /// Return the [Extension] built by this builder.
   Extension get extension;
 
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes);
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers);
 
   /// Looks up extension member by [name] taking privacy into account.
   ///
@@ -145,10 +147,12 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   String get debugName => "ExtensionBuilder";
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
     void build(String ignore, Builder declaration) {
       MemberBuilder member = declaration;
-      member.buildOutlineExpressions(library, coreTypes);
+      member.buildOutlineExpressions(
+          library, coreTypes, delayedActionPerformers);
     }
 
     // TODO(johnniwinther): Handle annotations on the extension declaration.

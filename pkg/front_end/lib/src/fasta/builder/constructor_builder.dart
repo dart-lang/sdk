@@ -36,6 +36,7 @@ import '../messages.dart'
 
 import '../source/source_class_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../util/helpers.dart' show DelayedActionPerformer;
 
 import 'builder.dart';
 import 'class_builder.dart';
@@ -239,8 +240,9 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
-    super.buildOutlineExpressions(library, coreTypes);
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    super.buildOutlineExpressions(library, coreTypes, delayedActionPerformers);
 
     // For modular compilation purposes we need to include initializers
     // for const constructors into the outline.
@@ -451,10 +453,13 @@ class SyntheticConstructorBuilder extends DillConstructorBuilder {
         super(constructor, parent);
 
   void buildOutlineExpressions(
-      LibraryBuilder libraryBuilder, CoreTypes coreTypes) {
+      LibraryBuilder libraryBuilder,
+      CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
     if (_origin != null) {
       // Ensure that default value expressions have been created for [_origin].
-      _origin.buildOutlineExpressions(libraryBuilder, coreTypes);
+      _origin.buildOutlineExpressions(
+          libraryBuilder, coreTypes, delayedActionPerformers);
       _clonedFunctionNode.cloneDefaultValues();
       _clonedFunctionNode = null;
       _origin = null;

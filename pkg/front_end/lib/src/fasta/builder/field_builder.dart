@@ -35,6 +35,8 @@ import '../source/source_loader.dart' show SourceLoader;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 
+import '../util/helpers.dart' show DelayedActionPerformer;
+
 import 'class_builder.dart';
 import 'extension_builder.dart';
 import 'library_builder.dart';
@@ -376,7 +378,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
     _fieldEncoding.completeSignature(coreTypes);
 
     ClassBuilder classBuilder = isClassMember ? parent : null;
@@ -417,6 +420,9 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       }
       buildBody(coreTypes, initializer);
       bodyBuilder.resolveRedirectingFactoryTargets();
+      if (bodyBuilder.hasDelayedActions) {
+        delayedActionPerformers.add(bodyBuilder);
+      }
     }
     constInitializerToken = null;
   }

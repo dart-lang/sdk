@@ -2164,6 +2164,8 @@ perfect
 perform
 performance
 performed
+performer
+performers
 performing
 performs
 perhaps
