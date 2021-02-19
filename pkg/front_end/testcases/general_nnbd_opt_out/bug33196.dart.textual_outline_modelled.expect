@@ -1,5 +1,0 @@
-// @dart = 2.6
-import 'dart:async';
-
-FutureOr<String> returnsString() async {}
-main() {}

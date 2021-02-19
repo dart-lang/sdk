@@ -18,18 +18,18 @@ import 'package:testing/src/suite.dart' as testing show Suite;
 import 'package:testing/src/test_description.dart' show TestDescription;
 
 import 'fasta/expression_suite.dart' as expression show createContext;
-import 'fasta/incremental_suite.dart' as incremental show createContext;
+import 'fasta/incremental_dartino_suite.dart' as incremental_dartino
+    show createContext;
 import 'fasta/messages_suite.dart' as messages show createContext;
 import 'fasta/outline_suite.dart' as outline show createContext;
-import 'fasta/strong_tester.dart' as strong show createContext;
+import 'fasta/strong_suite.dart' as strong show createContext;
 import 'fasta/text_serialization_tester.dart' as text_serialization
     show createContext;
 import 'fasta/textual_outline_suite.dart' as textual_outline show createContext;
-import 'fasta/weak_tester.dart' as weak show createContext;
+import 'fasta/weak_suite.dart' as weak show createContext;
 import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
     show createContext;
-import 'incremental_load_from_dill_suite.dart' as incremental_load
-    show createContext;
+import 'incremental_suite.dart' as incremental show createContext;
 import 'lint_suite.dart' as lint show createContext;
 import 'parser_suite.dart' as parser show createContext;
 import 'parser_all_suite.dart' as parserAll show createContext;
@@ -333,8 +333,8 @@ const List<Suite> suites = [
     shardCount: 2,
   ),
   const Suite(
-    "fasta/incremental",
-    incremental.createContext,
+    "fasta/incremental_dartino",
+    incremental_dartino.createContext,
     "../../testing.json",
     shardCount: 1,
   ),
@@ -356,7 +356,7 @@ const List<Suite> suites = [
     "fasta/strong",
     strong.createContext,
     "../../testing.json",
-    path: "fasta/strong_tester.dart",
+    path: "fasta/strong_suite.dart",
     shardCount: 2,
   ),
   const Suite(
@@ -366,8 +366,8 @@ const List<Suite> suites = [
     shardCount: 1,
   ),
   const Suite(
-    "incremental_load_from_dill",
-    incremental_load.createContext,
+    "incremental",
+    incremental.createContext,
     "../testing.json",
     shardCount: 2,
   ),
@@ -412,7 +412,7 @@ const List<Suite> suites = [
     "fasta/weak",
     weak.createContext,
     "../../testing.json",
-    path: "fasta/weak_tester.dart",
+    path: "fasta/weak_suite.dart",
     shardCount: 10,
   ),
   const Suite(

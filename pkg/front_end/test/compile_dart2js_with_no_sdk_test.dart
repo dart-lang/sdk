@@ -6,8 +6,7 @@
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 
-import 'incremental_load_from_dill_suite.dart'
-    show TestIncrementalCompiler, getOptions;
+import 'incremental_suite.dart' show TestIncrementalCompiler, getOptions;
 
 main() async {
   final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/bin/dart2js.dart");

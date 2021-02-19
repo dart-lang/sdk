@@ -1105,7 +1105,13 @@ class ContextManagerImpl implements ContextManager {
   /// given [folder].
   SourceFactory _createSourceFactory(Folder folder) {
     var builder = callbacks.createContextBuilder(folder);
-    return builder.createSourceFactory(folder.path);
+    var workspace = ContextBuilder.createWorkspace(
+      resourceProvider: resourceProvider,
+      options: builder.builderOptions,
+      rootPath: folder.path,
+      lookForBazelBuildFileSubstitutes: false,
+    );
+    return builder.createSourceFactory(folder.path, workspace);
   }
 
   /// Clean up and destroy the context associated with the given folder.
@@ -1523,14 +1529,20 @@ class ContextManagerImpl implements ContextManager {
     var driver = info.analysisDriver;
     var contextRoot = info.folder.path;
     var builder = callbacks.createContextBuilder(info.folder);
-    var options = builder.getAnalysisOptions(contextRoot,
+    var workspace = ContextBuilder.createWorkspace(
+      resourceProvider: resourceProvider,
+      options: builder.builderOptions,
+      rootPath: contextRoot,
+      lookForBazelBuildFileSubstitutes: false,
+    );
+    var options = builder.getAnalysisOptions(contextRoot, workspace,
         contextRoot: driver.contextRoot);
     var packages = ContextBuilder.createPackageMap(
       resourceProvider: builder.resourceProvider,
       options: builder.builderOptions,
       rootPath: contextRoot,
     );
-    var factory = builder.createSourceFactory(contextRoot);
+    var factory = builder.createSourceFactory(contextRoot, workspace);
     driver.configure(
       analysisOptions: options,
       packages: packages,
@@ -1554,7 +1566,7 @@ class ContextManagerImpl implements ContextManager {
   /// Does nothing if the [driver] is not in a Bazel workspace.
   void _watchBazelFilesIfNeeded(Folder folder, AnalysisDriver analysisDriver) {
     if (!experimentalEnableBazelWatching) return;
-    var workspace = analysisDriver.analysisContext.workspace;
+    var workspace = analysisDriver.analysisContext.contextRoot.workspace;
     if (workspace is BazelWorkspace &&
         !bazelSubscriptions.containsKey(folder)) {
       var subscription = workspace.bazelCandidateFiles.listen(

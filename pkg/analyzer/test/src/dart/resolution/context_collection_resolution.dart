@@ -132,27 +132,27 @@ abstract class ContextResolutionTest
   bool get retainDataForTesting => false;
 
   void assertBasicWorkspaceFor(String path) {
-    var workspace = contextFor(path).workspace;
+    var workspace = contextFor(path).contextRoot.workspace;
     expect(workspace, TypeMatcher<BasicWorkspace>());
   }
 
   void assertBazelWorkspaceFor(String path) {
-    var workspace = contextFor(path).workspace;
+    var workspace = contextFor(path).contextRoot.workspace;
     expect(workspace, TypeMatcher<BazelWorkspace>());
   }
 
   void assertGnWorkspaceFor(String path) {
-    var workspace = contextFor(path).workspace;
+    var workspace = contextFor(path).contextRoot.workspace;
     expect(workspace, TypeMatcher<GnWorkspace>());
   }
 
   void assertPackageBuildWorkspaceFor(String path) {
-    var workspace = contextFor(path).workspace;
+    var workspace = contextFor(path).contextRoot.workspace;
     expect(workspace, TypeMatcher<PackageBuildWorkspace>());
   }
 
   void assertPubWorkspaceFor(String path) {
-    var workspace = contextFor(path).workspace;
+    var workspace = contextFor(path).contextRoot.workspace;
     expect(workspace, TypeMatcher<PubWorkspace>());
   }
 

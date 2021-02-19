@@ -79,7 +79,7 @@
     {
       "name": "strong",
       "kind": "Chain",
-      "source": "test/fasta/strong_tester.dart",
+      "source": "test/fasta/strong_suite.dart",
       "path": "testcases/",
       "status": "testcases/strong.status",
       "pattern": [
@@ -93,7 +93,6 @@
         "/testcases/expression/",
         "/testcases/extensions/",
         "/testcases/general/",
-        "/testcases/general_nnbd_opt_out/",
         "/testcases/implicit_getter_calls",
         "/testcases/inference",
         "/testcases/inference_new",
@@ -131,7 +130,7 @@
     {
       "name": "weak",
       "kind": "Chain",
-      "source": "test/fasta/weak_tester.dart",
+      "source": "test/fasta/weak_suite.dart",
       "path": "testcases/",
       "status": "testcases/weak.status",
       "pattern": [
@@ -145,11 +144,11 @@
       ]
     },
     {
-      "name": "incremental",
+      "name": "incremental_dartino",
       "kind": "Chain",
-      "source": "test/fasta/incremental_suite.dart",
-      "path": "testcases/",
-      "status": "testcases/incremental.status",
+      "source": "test/fasta/incremental_dartino_suite.dart",
+      "path": "testcases/dartino",
+      "status": "testcases/incremental_dartino.status",
       "pattern": [
         "\\.incremental\\.yaml$"
       ],
@@ -167,11 +166,11 @@
       "exclude": []
     },
     {
-      "name": "incremental_load_from_dill",
+      "name": "incremental",
       "kind": "Chain",
-      "source": "test/incremental_load_from_dill_suite.dart",
-      "path": "testcases/incremental_initialize_from_dill/",
-      "status": "testcases/incremental_initialize_from_dill/status.status",
+      "source": "test/incremental_suite.dart",
+      "path": "testcases/incremental/",
+      "status": "testcases/incremental.status",
       "pattern": [
         "\\.yaml$"
       ],
@@ -311,17 +310,6 @@
         "testcases/general/micro\\.dart$",
         "testcases/general/redirecting_factory\\.dart$",
         "testcases/general/spread_collection_inference\\.dart$",
-        "testcases/general_nnbd_opt_out/DeltaBlue\\.dart$",
-        "testcases/general_nnbd_opt_out/annotation_variable_declaration\\.dart$",
-        "testcases/general_nnbd_opt_out/arithmetic\\.dart$",
-        "testcases/general_nnbd_opt_out/bad_type_variable_uses_in_supertypes\\.dart$",
-        "testcases/general_nnbd_opt_out/clone_function_type\\.dart$",
-        "testcases/general_nnbd_opt_out/co19_language_metadata_syntax_t04\\.dart$",
-        "testcases/general_nnbd_opt_out/complex_class_hierarchy\\.dart$",
-        "testcases/general_nnbd_opt_out/issue34899\\.dart$",
-        "testcases/general_nnbd_opt_out/micro\\.dart$",
-        "testcases/general_nnbd_opt_out/redirecting_factory\\.dart$",
-        "testcases/general_nnbd_opt_out/spread_collection_inference\\.dart$",
         "testcases/inference/downwards_inference_initializing_formal_default_formal\\.dart$",
         "testcases/inference/downwards_inference_on_generic_function_expressions\\.dart$",
         "testcases/inference/for_in_loop_promotion\\.dart$",

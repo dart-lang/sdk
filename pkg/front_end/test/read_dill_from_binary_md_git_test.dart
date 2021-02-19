@@ -10,8 +10,7 @@ import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
 
 import 'binary_md_dill_reader.dart' show BinaryMdDillReader;
 
-import 'incremental_load_from_dill_suite.dart'
-    show getOptions, normalCompileToBytes;
+import 'incremental_suite.dart' show getOptions, normalCompileToBytes;
 
 import 'utils/io_utils.dart' show computeRepoDir;
 

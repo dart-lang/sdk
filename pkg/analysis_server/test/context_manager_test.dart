@@ -2285,7 +2285,12 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     builder.byteStore = MemoryByteStore();
     builder.performanceLog = logger;
     builder.fileContentOverlay = FileContentOverlay();
-    currentDriver = builder.buildDriver(contextRoot);
+    var workspace = ContextBuilder.createWorkspace(
+      resourceProvider: resourceProvider,
+      options: builder.builderOptions,
+      rootPath: path,
+    );
+    currentDriver = builder.buildDriver(contextRoot, workspace);
 
     driverMap[path] = currentDriver;
     currentDriver.exceptions.listen((ExceptionResult result) {

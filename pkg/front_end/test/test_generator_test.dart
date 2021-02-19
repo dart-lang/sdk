@@ -15,7 +15,7 @@ import 'package:kernel/binary/ast_to_binary.dart';
 
 import 'package:kernel/kernel.dart' show Component;
 
-import 'incremental_load_from_dill_suite.dart' as helper;
+import 'incremental_suite.dart' as helper;
 
 main() async {
   TestCompiler compiler = await TestCompiler.initialize();

@@ -5,6 +5,7 @@
 * Added `Resource.parent2` and deprecated `Resource.parent`.
 * Added `Folder.isRoot`.
 * Added `FolderExtension` with `withAncestors`.
+* Added `ContextRoot.workspace`, deprecated `AnalysisContext.workspace`.
 
 ## 1.0.0
 * Stable null safety release.

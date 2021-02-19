@@ -465,7 +465,7 @@ class FileResolver {
 
     if (contextObjects == null) {
       var rootFolder = resourceProvider.getFolder(workspace.root);
-      var root = ContextRootImpl(resourceProvider, rootFolder);
+      var root = ContextRootImpl(resourceProvider, rootFolder, workspace);
       root.included.add(rootFolder);
 
       contextObjects = createMicroContextObjects(
@@ -474,7 +474,6 @@ class FileResolver {
         sourceFactory: sourceFactory,
         root: root,
         resourceProvider: resourceProvider,
-        workspace: workspace,
       );
 
       libraryContext = _LibraryContext(

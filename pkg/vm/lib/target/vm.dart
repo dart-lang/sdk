@@ -21,6 +21,7 @@ import 'package:kernel/vm/constants_native_effects.dart'
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
 import '../transformations/lowering.dart' as lowering
     show transformLibraries, transformProcedure;
+import '../transformations/ffi.dart' as ffiHelper show importsFfi;
 import '../transformations/ffi_definitions.dart' as transformFfiDefinitions
     show transformLibraries;
 import '../transformations/ffi_use_sites.dart' as transformFfiUseSites
@@ -153,17 +154,29 @@ class VmTarget extends Target {
         this, coreTypes, hierarchy, libraries, referenceFromIndex);
     logger?.call("Transformed mixin applications");
 
-    final ffiTransformerData = transformFfiDefinitions.transformLibraries(
-        component,
-        coreTypes,
-        hierarchy,
-        libraries,
-        diagnosticReporter,
-        referenceFromIndex,
-        changedStructureNotifier);
-    transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
-        libraries, diagnosticReporter, ffiTransformerData, referenceFromIndex);
-    logger?.call("Transformed ffi annotations");
+    if (!ffiHelper.importsFfi(component, libraries)) {
+      logger?.call("Skipped ffi transformation");
+    } else {
+      // TODO(jensj/dacoharkes): We can probably limit the transformations to
+      // libraries that transitivley depend on dart:ffi.
+      final ffiTransformerData = transformFfiDefinitions.transformLibraries(
+          component,
+          coreTypes,
+          hierarchy,
+          libraries,
+          diagnosticReporter,
+          referenceFromIndex,
+          changedStructureNotifier);
+      transformFfiUseSites.transformLibraries(
+          component,
+          coreTypes,
+          hierarchy,
+          libraries,
+          diagnosticReporter,
+          ffiTransformerData,
+          referenceFromIndex);
+      logger?.call("Transformed ffi annotations");
+    }
 
     // TODO(kmillikin): Make this run on a per-method basis.
     bool productMode = environmentDefines["dart.vm.product"] == "true";

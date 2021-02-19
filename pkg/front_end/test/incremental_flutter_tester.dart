@@ -24,7 +24,7 @@ import 'package:kernel/target/targets.dart' show Target, TargetFlags;
 import 'package:kernel/text/ast_to_text.dart'
     show Annotator, NameSystem, Printer;
 
-import 'incremental_load_from_dill_suite.dart' as helper;
+import 'incremental_suite.dart' as helper;
 
 import "package:vm/target/flutter.dart" show FlutterTarget;
 

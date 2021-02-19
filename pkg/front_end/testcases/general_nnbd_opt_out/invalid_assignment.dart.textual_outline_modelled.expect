@@ -1,7 +1,0 @@
-// @dart = 2.6
-class A {
-  String operator +(int i) => '';
-}
-
-main() {}
-test(int i, String s, A a) {}

@@ -644,7 +644,12 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   nd.AnalysisDriver addAnalysisDriver(Folder folder, ContextRoot contextRoot) {
     var builder = createContextBuilder(folder);
-    var analysisDriver = builder.buildDriver(contextRoot);
+    var workspace = ContextBuilder.createWorkspace(
+      resourceProvider: resourceProvider,
+      options: builder.builderOptions,
+      rootPath: folder.path,
+    );
+    var analysisDriver = builder.buildDriver(contextRoot, workspace);
     analysisDriver.results.listen((result) {
       var notificationManager = analysisServer.notificationManager;
       var path = result.path;

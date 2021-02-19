@@ -1,8 +1,0 @@
-// @dart = 2.6
-import "dart:core" as T;
-
-class C<T> {
-  T.String method() => "Hello, World!";
-}
-
-main() {}

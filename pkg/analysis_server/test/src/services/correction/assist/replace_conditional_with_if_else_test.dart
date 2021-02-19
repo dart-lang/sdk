@@ -100,4 +100,24 @@ main() {
 }
 ''');
   }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45030')
+  Future<void> test_variableDeclaration_nullSafe() async {
+    writeTestPackageConfig(languageVersion: '2.12.0');
+    await resolveTestCode('''
+main() {
+  var a = true ? 111 : 222;
+}
+''');
+    await assertHasAssistAt('11 :', '''
+main() {
+  late int a;
+  if (true) {
+    a = 111;
+  } else {
+    a = 222;
+  }
+}
+''');
+  }
 }

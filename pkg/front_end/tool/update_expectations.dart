@@ -16,7 +16,7 @@ const List<String> standardSuites = <String>[
 
 const List<String> specialSuites = <String>[
   'expression',
-  'incremental_load_from_dill',
+  'incremental',
 ];
 
 Future<void> runStandardSuites([List<String> args]) async {

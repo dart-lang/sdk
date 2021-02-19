@@ -782,7 +782,12 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   nd.AnalysisDriver addAnalysisDriver(Folder folder, ContextRoot contextRoot) {
     var builder = createContextBuilder(folder);
-    var analysisDriver = builder.buildDriver(contextRoot);
+    var workspace = ContextBuilder.createWorkspace(
+      resourceProvider: resourceProvider,
+      options: builder.builderOptions,
+      rootPath: folder.path,
+    );
+    var analysisDriver = builder.buildDriver(contextRoot, workspace);
     final textDocumentCapabilities =
         analysisServer.clientCapabilities?.textDocument;
     final supportedDiagnosticTags = HashSet<DiagnosticTag>.of(
