@@ -94,13 +94,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   }
 
   @override
-  void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    if (opType.includeTypeNameSuggestions) {
-      builder.suggestTypeAlias(element, prefix: prefix);
-    }
-  }
-
-  @override
   void visitLibraryElement(LibraryElement element) {
     if (visitedLibraries.add(element)) {
       element.visitChildren(this);
