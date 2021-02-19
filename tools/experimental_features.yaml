@@ -119,14 +119,13 @@ features:
   generic-metadata:
     help: "Allow annotations to accept type arguments; also allow generic function types as type arguments"
 
+  extension-types:
+    help: "Extension Types"
+
 #
 # Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.
 #
-
-  extension-types:
-    help: "Extension Types"
-    enabledIn: '2.13.0'
 
   non-nullable:
     help: "Non Nullable by default"

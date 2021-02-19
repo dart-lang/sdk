@@ -106,7 +106,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.extension_types,
     documentation: 'Extension Types',
     experimentalReleaseVersion: null,
-    releaseVersion: Version.parse('2.13.0'),
+    releaseVersion: null,
   );
 
   static final generic_metadata = ExperimentalFeature(
@@ -204,7 +204,7 @@ class IsEnabledByDefault {
   static const bool extension_methods = true;
 
   /// Default state of the experiment "extension-types"
-  static const bool extension_types = true;
+  static const bool extension_types = false;
 
   /// Default state of the experiment "generic-metadata"
   static const bool generic_metadata = false;
