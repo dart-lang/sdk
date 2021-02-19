@@ -1060,17 +1060,15 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // RoundedAllocationSize(
     //     (array_length * target::kwordSize) + target::Array::header_size()).
     __ movq(RDI, R10);  // Array Length.
-    // Check that length is a positive Smi.
+    // Check that length is Smi.
     __ testq(RDI, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, &slow_case);
 
-    __ cmpq(RDI, Immediate(0));
-    __ j(LESS, &slow_case);
-    // Check for maximum allowed length.
+    // Check length >= 0 && length <= kMaxNewSpaceElements
     const Immediate& max_len =
         Immediate(target::ToRawSmi(target::Array::kMaxNewSpaceElements));
     __ cmpq(RDI, max_len);
-    __ j(GREATER, &slow_case);
+    __ j(ABOVE, &slow_case);
 
     // Check for allocation tracing.
     NOT_IN_PRODUCT(
@@ -3538,13 +3536,11 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   /* RDI: requested array length argument. */
   __ testq(RDI, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &call_runtime);
-  __ cmpq(RDI, Immediate(0));
-  __ j(LESS, &call_runtime);
   __ SmiUntag(RDI);
-  /* Check for maximum allowed length. */
+  /* Check for length >= 0 && length <= max_len. */
   /* RDI: untagged array length. */
   __ cmpq(RDI, Immediate(max_len));
-  __ j(GREATER, &call_runtime);
+  __ j(ABOVE, &call_runtime);
   /* Special case for scaling by 16. */
   if (scale_factor == TIMES_16) {
     /* double length of array. */

@@ -804,25 +804,21 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
 // Uses EAX, EBX, ECX, EDI  as temporary registers.
 // The newly allocated object is returned in EAX.
 void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
-  Label slow_case;
-  // Compute the size to be allocated, it is based on the array length
-  // and is computed as:
-  // RoundedAllocationSize(
-  //     (array_length * kwordSize) + target::Array::header_size()).
-  // Assert that length is a Smi.
-  __ testl(EDX, Immediate(kSmiTagMask));
-
   if (!FLAG_use_slow_path) {
+    Label slow_case;
+    // Compute the size to be allocated, it is based on the array length
+    // and is computed as:
+    // RoundedAllocationSize(
+    //     (array_length * kwordSize) + target::Array::header_size()).
+    // Assert that length is a Smi.
+    __ testl(EDX, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, &slow_case);
-
-    __ cmpl(EDX, Immediate(0));
-    __ j(LESS, &slow_case);
 
     // Check for maximum allowed length.
     const Immediate& max_len =
         Immediate(target::ToRawSmi(target::Array::kMaxNewSpaceElements));
     __ cmpl(EDX, max_len);
-    __ j(GREATER, &slow_case);
+    __ j(ABOVE, &slow_case);
 
     NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid, EAX, &slow_case,
                                            Assembler::kFarJump));
@@ -2948,13 +2944,11 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   /* EDI: requested array length argument. */
   __ testl(EDI, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &call_runtime);
-  __ cmpl(EDI, Immediate(0));
-  __ j(LESS, &call_runtime);
   __ SmiUntag(EDI);
-  /* Check for maximum allowed length. */
+  /* Check for length >= 0 && length <= max_len. */
   /* EDI: untagged array length. */
   __ cmpl(EDI, Immediate(max_len));
-  __ j(GREATER, &call_runtime);
+  __ j(ABOVE, &call_runtime);
   /* Special case for scaling by 16. */
   if (scale_factor == TIMES_16) {
     /* double length of array. */
