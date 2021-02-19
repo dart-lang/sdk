@@ -128,7 +128,7 @@ void main(List<String> args) {
 
   // TODO(rnystrom): Consider using package_config_v2 to generate this instead.
   var json = JsonEncoder.withIndent('  ').convert(config);
-  configFile.writeAsStringSync(json);
+  configFile.writeAsStringSync('$json\n');
   print('Generated .dart_tool/package_config.dart containing '
       '${packages.length} packages.');
 }
