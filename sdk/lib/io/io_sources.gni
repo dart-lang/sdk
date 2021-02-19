@@ -20,6 +20,7 @@ io_sdk_sources = [
   "io_sink.dart",
   "link.dart",
   "namespace_impl.dart",
+  "network_policy.dart",
   "network_profiling.dart",
   "overrides.dart",
   "platform.dart",
