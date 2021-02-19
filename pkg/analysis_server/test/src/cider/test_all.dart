@@ -4,11 +4,13 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'assists_test.dart' as assists;
 import 'completion_test.dart' as completion;
 import 'fixes_test.dart' as fixes;
 
 void main() {
   defineReflectiveSuite(() {
+    assists.main();
     completion.main();
     fixes.main();
   });
