@@ -18,7 +18,8 @@ import 'package:testing/src/suite.dart' as testing show Suite;
 import 'package:testing/src/test_description.dart' show TestDescription;
 
 import 'fasta/expression_suite.dart' as expression show createContext;
-import 'fasta/incremental_suite.dart' as incremental show createContext;
+import 'fasta/incremental_dartino_suite.dart' as incremental_dartino
+    show createContext;
 import 'fasta/messages_suite.dart' as messages show createContext;
 import 'fasta/outline_suite.dart' as outline show createContext;
 import 'fasta/strong_suite.dart' as strong show createContext;
@@ -333,8 +334,8 @@ const List<Suite> suites = [
     shardCount: 2,
   ),
   const Suite(
-    "fasta/incremental",
-    incremental.createContext,
+    "fasta/incremental_dartino",
+    incremental_dartino.createContext,
     "../../testing.json",
     shardCount: 1,
   ),
