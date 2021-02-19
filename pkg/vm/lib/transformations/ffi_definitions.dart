@@ -10,6 +10,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show
         templateFfiEmptyStruct,
         templateFfiFieldAnnotation,
+        templateFfiFieldNull,
         templateFfiFieldCyclic,
         templateFfiFieldNoAnnotation,
         templateFfiTypeMismatch,
@@ -227,6 +228,14 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     if (type is InvalidType) {
       return false;
     }
+    if (type is NullType) {
+      return false;
+    }
+    if (type is InterfaceType) {
+      if (type.classNode == structClass) {
+        return false;
+      }
+    }
     return env.isSubtypeOf(type, InterfaceType(structClass, Nullability.legacy),
         SubtypeCheckMode.ignoringNullabilities);
   }
@@ -279,7 +288,15 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       }
       final nativeTypeAnnos = _getNativeTypeAnnotations(f).toList();
       final type = _structFieldMemberType(f);
-      if (_isPointerType(type) || _isStructSubtype(type)) {
+      if (type is NullType) {
+        diagnosticReporter.report(
+            templateFfiFieldNull.withArguments(f.name.text),
+            f.fileOffset,
+            f.name.text.length,
+            f.fileUri);
+        // This class is invalid, but continue reporting other errors on it.
+        success = false;
+      } else if (_isPointerType(type) || _isStructSubtype(type)) {
         if (nativeTypeAnnos.length != 0) {
           diagnosticReporter.report(
               templateFfiFieldNoAnnotation.withArguments(f.name.text),

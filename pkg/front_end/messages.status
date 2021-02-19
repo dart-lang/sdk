@@ -327,6 +327,7 @@ FfiFieldAnnotation/analyzerCode: Fail
 FfiFieldCyclic/analyzerCode: Fail
 FfiFieldInitializer/analyzerCode: Fail
 FfiFieldNoAnnotation/analyzerCode: Fail
+FfiFieldNull/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail
 FfiStructAnnotation/analyzerCode: Fail
 FfiStructGeneric/analyzerCode: Fail
