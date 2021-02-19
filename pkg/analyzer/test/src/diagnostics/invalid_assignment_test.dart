@@ -10,14 +10,13 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidAssignmentTest);
-    defineReflectiveTests(InvalidAssignmentNnbdTest);
+    defineReflectiveTests(InvalidAssignmentWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class InvalidAssignmentNnbdTest extends InvalidAssignmentTest
-    with WithNullSafetyMixin {
-  @override
+class InvalidAssignmentTest extends PubPackageResolutionTest
+    with InvalidAssignmentTestCases {
   test_ifNullAssignment() async {
     await assertErrorsInCode('''
 void f(int i) {
@@ -29,9 +28,7 @@ void f(int i) {
     ]);
   }
 
-  @override
   test_ifNullAssignment_sameType() async {
-    // This test is overridden solely to make [j] nullable.
     await assertNoErrorsInCode('''
 void f(int i) {
   int? j;
@@ -40,9 +37,7 @@ void f(int i) {
 ''');
   }
 
-  @override
   test_ifNullAssignment_superType() async {
-    // This test is overridden solely to make [n] nullable.
     await assertNoErrorsInCode('''
 void f(int i) {
   num? n;
@@ -75,9 +70,7 @@ void f() {
     ]);
   }
 
-  @override
   test_typeParameter() async {
-    // This test is overridden solely to make [value] nullable.
     // https://github.com/dart-lang/sdk/issues/14221
     await assertErrorsInCode(r'''
 class B<T> {
@@ -92,9 +85,7 @@ class B<T> {
   }
 }
 
-@reflectiveTest
-class InvalidAssignmentTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+mixin InvalidAssignmentTestCases on PubPackageResolutionTest {
   test_assignment_to_dynamic() async {
     await assertErrorsInCode(r'''
 f() {
@@ -173,35 +164,6 @@ class C {
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 11),
     ]);
-  }
-
-  test_ifNullAssignment() async {
-    await assertErrorsInCode('''
-void f(int i) {
-  double d;
-  d ??= i;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 36, 1),
-    ]);
-  }
-
-  test_ifNullAssignment_sameType() async {
-    await assertNoErrorsInCode('''
-void f(int i) {
-  int j;
-  j ??= i;
-}
-''');
-  }
-
-  test_ifNullAssignment_superType() async {
-    await assertNoErrorsInCode('''
-void f(int i) {
-  num n;
-  n ??= i;
-}
-''');
   }
 
   test_implicitlyImplementFunctionViaCall_1() async {
@@ -543,20 +505,6 @@ int x = 'string';
     ]);
   }
 
-  test_typeParameter() async {
-    // https://github.com/dart-lang/sdk/issues/14221
-    await assertErrorsInCode(r'''
-class B<T> {
-  T value;
-  void test(num n) {
-    value = n;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 57, 1),
-    ]);
-  }
-
   test_typeParameterRecursion_regress35306() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -603,6 +551,53 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 218, 7),
+    ]);
+  }
+}
+
+@reflectiveTest
+class InvalidAssignmentWithoutNullSafetyTest extends PubPackageResolutionTest
+    with InvalidAssignmentTestCases, WithoutNullSafetyMixin {
+  test_ifNullAssignment() async {
+    await assertErrorsInCode('''
+void f(int i) {
+  double d;
+  d ??= i;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 36, 1),
+    ]);
+  }
+
+  test_ifNullAssignment_sameType() async {
+    await assertNoErrorsInCode('''
+void f(int i) {
+  int j;
+  j ??= i;
+}
+''');
+  }
+
+  test_ifNullAssignment_superType() async {
+    await assertNoErrorsInCode('''
+void f(int i) {
+  num n;
+  n ??= i;
+}
+''');
+  }
+
+  test_typeParameter() async {
+    // https://github.com/dart-lang/sdk/issues/14221
+    await assertErrorsInCode(r'''
+class B<T> {
+  T value;
+  void test(num n) {
+    value = n;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 57, 1),
     ]);
   }
 }
