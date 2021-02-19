@@ -732,6 +732,10 @@ _Collected_ [Sentinel](#sentinel) is returned.
 
 ### getAllocationTraces
 
+```
+CpuSamples getAllocationTraces(string isolateId, int timeOriginMicros [optional], int timeExtentMicros [optional], string classId [optional])
+```
+
 The _getAllocationTraces_ RPC allows for the retrieval of allocation traces for objects of a
 specific set of types (see [setTraceClassAllocation](#setTraceClassAllocation)). Only samples
 collected in the time range `[timeOriginMicros, timeOriginMicros + timeExtentMicros]` will be
@@ -743,10 +747,6 @@ reported.
 If the profiler is disabled, an RPC error response will be returned.
 
 If isolateId refers to an isolate which has exited, then the Collected Sentinel is returned.
-
-```
-CpuSamples getAllocationTraces(string isolateId, int timeOriginMicros [optional], int timeExtentMicros [optional], string classId [optional])
-```
 
 See [CpuSamples](#cpusamples).
 
@@ -1385,15 +1385,15 @@ See [Success](#success).
 
 ### setTraceClassAllocation
 
+```
+Success|Sentinel setTraceClassAllocation(string isolateId, string classId, bool enable)
+```
+
 The _setTraceClassAllocation_ RPC allows for enabling or disabling allocation tracing for a specific type of object. Allocation traces can be retrieved with the _getAllocationTraces_ RPC.
 
 If `enable` is true, allocations of objects of the class represented by `classId` will be traced.
 
 If `isolateId` refers to an isolate which has exited, then the _Collected_ [Sentinel](#sentinel) is returned.
-
-```
-Success|Sentinel setTraceClassAllocation(string isolateId, string classId, bool enable)
-```
 
 See [Success](#success).
 
@@ -3996,8 +3996,6 @@ version | comments
 3.40 | Added `IsolateFlag` object and `isolateFlags` property to `Isolate`.
 3.41 | Added `PortList` object, `ReceivePort` `InstanceKind`, and `getPorts` RPC.
 3.42 | Added `limit` optional parameter to `getStack` RPC.
-3.43 | Updated heap snapshot format to include identity hash codes. Added `getAllocationTraces`
-and `setTraceClassAllocation` RPCs, updated `CpuSample` to include `identityHashCode` and
-`classId` properties, updated `Class` to include `traceAllocations` property.
+3.43 | Updated heap snapshot format to include identity hash codes. Added `getAllocationTraces` and `setTraceClassAllocation` RPCs, updated `CpuSample` to include `identityHashCode` and `classId` properties, updated `Class` to include `traceAllocations` property.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

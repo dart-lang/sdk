@@ -1,7 +1,10 @@
 # Changelog
 
+## 6.1.0+1
+- Documentation update.
+
 ## 6.1.0
-- *bug fix* Fixed issue where the root object was omitted from
+- *breaking bug fix*: Fixed issue where the root object was omitted from
   `HeapSnapshot.classes` and the sentinel `HeapSnapshotObject` was omitted from
   `HeapSnapshot.objects`
 - Added `identityHashCode` property to `HeapSnapshotObject`, which can be used to compare
@@ -10,6 +13,9 @@
   access children of a given object.
 - Added `klass` getter to `HeapSnapshotObject`.
 - Fixed issue where `null` could be returned instead of `InstanceRef` of type `Null`.
+- Added `getAllocationTraces` and `setTraceClassAllocation` RPCs.
+- Updated `CpuSample` to include `identityHashCode` and `classId` properties.
+- Updated `Class` to include `traceAllocations` property.
 
 ## 6.0.1
 - Stable null-safe release.

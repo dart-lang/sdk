@@ -505,6 +505,20 @@ abstract class VmServiceInterface {
   Future<AllocationProfile> getAllocationProfile(String isolateId,
       {bool? reset, bool? gc});
 
+  /// The `getAllocationTraces` RPC allows for the retrieval of allocation
+  /// traces for objects of a specific set of types (see
+  /// [setTraceClassAllocation]). Only samples collected in the time range
+  /// `[timeOriginMicros, timeOriginMicros + timeExtentMicros]` will be
+  /// reported.
+  ///
+  /// If `classId` is provided, only traces for allocations with the matching
+  /// `classId` will be reported.
+  ///
+  /// If the profiler is disabled, an RPC error response will be returned.
+  ///
+  /// If isolateId refers to an isolate which has exited, then the Collected
+  /// Sentinel is returned.
+  ///
   /// See [CpuSamples].
   Future<CpuSamples> getAllocationTraces(
     String isolateId, {
@@ -1061,6 +1075,16 @@ abstract class VmServiceInterface {
   /// returned.
   Future<Success> setName(String isolateId, String name);
 
+  /// The `setTraceClassAllocation` RPC allows for enabling or disabling
+  /// allocation tracing for a specific type of object. Allocation traces can be
+  /// retrieved with the `getAllocationTraces` RPC.
+  ///
+  /// If `enable` is true, allocations of objects of the class represented by
+  /// `classId` will be traced.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [Success].
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
@@ -6645,8 +6669,7 @@ class ScriptRef extends ObjRef {
 /// line number followed by `(tokenPos, columnNumber)` pairs:
 ///
 /// ```
-/// [
-/// ```lineNumber, (tokenPos, columnNumber)*]
+/// [lineNumber, (tokenPos, columnNumber)*]
 /// ```
 ///
 /// The `tokenPos` is an arbitrary integer value that is used to represent a
@@ -6656,10 +6679,7 @@ class ScriptRef extends ObjRef {
 /// For example, a `tokenPosTable` with the value...
 ///
 /// ```
-/// [
-/// ```[
-/// ```1, 100, 5, 101, 8],[
-/// ```2, 102, 7]]
+/// [[1, 100, 5, 101, 8],[2, 102, 7]]
 /// ```
 ///
 /// ...encodes the mapping:
