@@ -112,7 +112,15 @@ class ContextBuilder {
   /// the directory with the given [path].
   AnalysisDriver buildDriver(ContextRoot contextRoot) {
     String path = contextRoot.root;
-    var options = getAnalysisOptions(path, contextRoot: contextRoot);
+
+    Workspace workspace = ContextBuilder.createWorkspace(
+      resourceProvider: resourceProvider,
+      options: builderOptions,
+      rootPath: path,
+      lookForBazelBuildFileSubstitutes: lookForBazelBuildFileSubstitutes,
+    );
+
+    var options = getAnalysisOptions(path, workspace, contextRoot: contextRoot);
     //_processAnalysisOptions(context, optionMap);
 
     SummaryDataStore? summaryData;
@@ -121,12 +129,6 @@ class ContextBuilder {
       summaryData = SummaryDataStore(librarySummaryPaths);
     }
 
-    Workspace workspace = ContextBuilder.createWorkspace(
-      resourceProvider: resourceProvider,
-      options: builderOptions,
-      rootPath: path,
-      lookForBazelBuildFileSubstitutes: lookForBazelBuildFileSubstitutes,
-    );
     final sf =
         createSourceFactoryFromWorkspace(workspace, summaryData: summaryData);
 
@@ -206,13 +208,8 @@ class ContextBuilder {
 //    }
 //  }
 
-  SourceFactory createSourceFactory(String rootPath,
+  SourceFactory createSourceFactory(String rootPath, Workspace workspace,
       {SummaryDataStore? summaryData}) {
-    Workspace workspace = ContextBuilder.createWorkspace(
-      resourceProvider: resourceProvider,
-      options: builderOptions,
-      rootPath: rootPath,
-    );
     DartSdk sdk = findSdk(workspace);
     if (summaryData != null && sdk is SummaryBasedDartSdk) {
       summaryData.addBundle(null, sdk.bundle);
@@ -288,7 +285,7 @@ class ContextBuilder {
   /// Return the analysis options that should be used to analyze code in the
   /// directory with the given [path]. Use [verbosePrint] to echo verbose
   /// information about the analysis options selection process.
-  AnalysisOptionsImpl getAnalysisOptions(String path,
+  AnalysisOptionsImpl getAnalysisOptions(String path, Workspace workspace,
       {void Function(String text)? verbosePrint, ContextRoot? contextRoot}) {
     void verbose(String text) {
       if (verbosePrint != null) {
@@ -296,13 +293,6 @@ class ContextBuilder {
       }
     }
 
-    // TODO(danrubel) restructure so that we don't create a workspace
-    // both here and in createSourceFactory
-    Workspace workspace = ContextBuilder.createWorkspace(
-      resourceProvider: resourceProvider,
-      options: builderOptions,
-      rootPath: path,
-    );
     SourceFactory sourceFactory = workspace.createSourceFactory(null, null);
     AnalysisOptionsProvider optionsProvider =
         AnalysisOptionsProvider(sourceFactory);

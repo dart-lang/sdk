@@ -107,7 +107,13 @@ class ContextCacheEntry {
   /// This should not be used except behind the getter which caches this result
   /// automatically.
   AnalysisOptionsImpl _getAnalysisOptions() {
-    var contextOptions = builder.getAnalysisOptions(requestedSourceDirectory,
+    var workspace = ContextBuilder.createWorkspace(
+      resourceProvider: builder.resourceProvider,
+      options: builder.builderOptions,
+      rootPath: requestedSourceDirectory,
+    );
+    var contextOptions = builder.getAnalysisOptions(
+        requestedSourceDirectory, workspace,
         verbosePrint: clOptions.verbose ? verbosePrint : null);
 
     _buildContextFeatureSet(contextOptions);
