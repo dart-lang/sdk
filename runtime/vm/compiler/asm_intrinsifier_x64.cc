@@ -94,8 +94,14 @@ void AsmIntrinsifier::Integer_addFromInteger(Assembler* assembler,
                                              Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
   // RAX contains right argument.
+#if !defined(DART_COMPRESSED_POINTERS)
   __ addq(RAX, Address(RSP, +2 * target::kWordSize));
   __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+#else
+  __ addl(RAX, Address(RSP, +2 * target::kWordSize));
+  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+  __ movsxd(RAX, RAX);
+#endif
   // Result is in RAX.
   __ ret();
   __ Bind(normal_ir_body);
@@ -109,8 +115,14 @@ void AsmIntrinsifier::Integer_subFromInteger(Assembler* assembler,
                                              Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
   // RAX contains right argument, which is the actual minuend of subtraction.
+#if !defined(DART_COMPRESSED_POINTERS)
   __ subq(RAX, Address(RSP, +2 * target::kWordSize));
   __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+#else
+  __ subl(RAX, Address(RSP, +2 * target::kWordSize));
+  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+  __ movsxd(RAX, RAX);
+#endif
   // Result is in RAX.
   __ ret();
   __ Bind(normal_ir_body);
@@ -121,8 +133,14 @@ void AsmIntrinsifier::Integer_sub(Assembler* assembler, Label* normal_ir_body) {
   // RAX contains right argument, which is the actual subtrahend of subtraction.
   __ movq(RCX, RAX);
   __ movq(RAX, Address(RSP, +2 * target::kWordSize));
+#if !defined(DART_COMPRESSED_POINTERS)
   __ subq(RAX, RCX);
   __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+#else
+  __ subl(RAX, RCX);
+  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+  __ movsxd(RAX, RAX);
+#endif
   // Result is in RAX.
   __ ret();
   __ Bind(normal_ir_body);
@@ -134,8 +152,14 @@ void AsmIntrinsifier::Integer_mulFromInteger(Assembler* assembler,
   // RAX is the right argument.
   ASSERT(kSmiTag == 0);  // Adjust code below if not the case.
   __ SmiUntag(RAX);
+#if !defined(DART_COMPRESSED_POINTERS)
   __ imulq(RAX, Address(RSP, +2 * target::kWordSize));
   __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+#else
+  __ imull(RAX, Address(RSP, +2 * target::kWordSize));
+  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+  __ movsxd(RAX, RAX);
+#endif
   // Result is in RAX.
   __ ret();
   __ Bind(normal_ir_body);
@@ -179,6 +203,7 @@ static void EmitRemainderOperation(Assembler* assembler) {
 
   __ Bind(&try_modulo);
 
+#if !defined(DART_COMPRESSED_POINTERS)
   // Check if both operands fit into 32bits as idiv with 64bit operands
   // requires twice as many cycles and has much higher latency. We are checking
   // this before untagging them to avoid corner case dividing INT_MAX by -1 that
@@ -189,6 +214,7 @@ static void EmitRemainderOperation(Assembler* assembler) {
   __ movsxd(RBX, RCX);
   __ cmpq(RBX, RCX);
   __ j(NOT_EQUAL, &not_32bit, Assembler::kNearJump);
+#endif
 
   // Both operands are 31bit smis. Divide using 32bit idiv.
   __ SmiUntag(RAX);
@@ -196,6 +222,7 @@ static void EmitRemainderOperation(Assembler* assembler) {
   __ cdq();
   __ idivl(RCX);
   __ movsxd(RAX, RDX);
+#if !defined(DART_COMPRESSED_POINTERS)
   __ jmp(&done, Assembler::kNearJump);
 
   // Divide using 64bit idiv.
@@ -206,6 +233,7 @@ static void EmitRemainderOperation(Assembler* assembler) {
   __ idivq(RCX);
   __ movq(RAX, RDX);
   __ Bind(&done);
+#endif
 }
 
 // Implementation:
@@ -262,6 +290,7 @@ void AsmIntrinsifier::Integer_truncDivide(Assembler* assembler,
   __ movq(RAX,
           Address(RSP, +2 * target::kWordSize));  // Left argument (dividend).
 
+#if !defined(DART_COMPRESSED_POINTERS)
   // Check if both operands fit into 32bits as idiv with 64bit operands
   // requires twice as many cycles and has much higher latency. We are checking
   // this before untagging them to avoid corner case dividing INT_MAX by -1 that
@@ -296,6 +325,21 @@ void AsmIntrinsifier::Integer_truncDivide(Assembler* assembler,
   __ j(EQUAL, normal_ir_body);
   __ SmiTag(RAX);
   __ ret();
+#else
+  // Check the corner case of dividing the 'MIN_SMI' with -1, in which case we
+  // cannot tag the result.
+  __ cmpq(RAX, Immediate(target::ToRawSmi(target::kSmiMin)));
+  __ j(EQUAL, normal_ir_body);
+
+  // Both operands are 31bit smis. Divide using 32bit idiv.
+  __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
+  __ cdq();
+  __ idivl(RCX);
+  __ SmiTag(RAX);  // Result is guaranteed to fit into a smi.
+  __ movsxd(RAX, RAX);
+  __ ret();
+#endif
   __ Bind(normal_ir_body);
 }
 
@@ -304,8 +348,14 @@ void AsmIntrinsifier::Integer_negate(Assembler* assembler,
   __ movq(RAX, Address(RSP, +1 * target::kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, normal_ir_body, Assembler::kNearJump);  // Non-smi value.
+#if !defined(DART_COMPRESSED_POINTERS)
   __ negq(RAX);
   __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+#else
+  __ negl(RAX);
+  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+  __ movsxd(RAX, RAX);
+#endif
   // Result is in RAX.
   __ ret();
   __ Bind(normal_ir_body);
@@ -371,8 +421,14 @@ void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
 
   // Overflow test - all the shifted-out bits must be same as the sign bit.
   __ movq(RDI, RAX);
+#if !defined(DART_COMPRESSED_POINTERS)
   __ shlq(RAX, RCX);
   __ sarq(RAX, RCX);
+#else
+  __ shll(RAX, RCX);
+  __ sarl(RAX, RCX);
+  __ movsxd(RAX, RAX);
+#endif
   __ cmpq(RAX, RDI);
   __ j(NOT_EQUAL, &overflow, Assembler::kNearJump);
 
@@ -383,7 +439,7 @@ void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
 
   __ Bind(&overflow);
   // Mint is rarely used on x64 (only for integers requiring 64 bit instead of
-  // 63 bits as represented by Smi).
+  // 63 or 31 bits as represented by Smi).
   __ Bind(normal_ir_body);
 }
 
@@ -1219,7 +1275,11 @@ void AsmIntrinsifier::DoubleFromInteger(Assembler* assembler,
   __ j(NOT_ZERO, normal_ir_body);
   // Is Smi.
   __ SmiUntag(RAX);
+#if !defined(DART_COMPRESSED_POINTER)
   __ cvtsi2sdq(XMM0, RAX);
+#else
+  __ cvtsi2sdl(XMM0, RAX);
+#endif
   const Class& double_class = DoubleClass();
   __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump,
                  RAX,  // Result register.
@@ -1291,13 +1351,26 @@ void AsmIntrinsifier::DoubleToInteger(Assembler* assembler,
                                       Label* normal_ir_body) {
   __ movq(RAX, Address(RSP, +1 * target::kWordSize));
   __ movsd(XMM0, FieldAddress(RAX, target::Double::value_offset()));
+#if !defined(DART_COMPRESSED_POINTERS)
   __ cvttsd2siq(RAX, XMM0);
+#else
+  __ cvttsd2sil(RAX, XMM0);
+#endif
   // Overflow is signalled with minint.
   // Check for overflow and that it fits into Smi.
   __ movq(RCX, RAX);
+#if !defined(DART_COMPRESSED_POINTERS)
   __ shlq(RCX, Immediate(1));
+#else
+  __ shll(RCX, Immediate(1));
+#endif
   __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+#if !defined(DART_COMPRESSED_POINTERS)
   __ SmiTag(RAX);
+#else
+  ASSERT((kSmiTagShift == 1) && (kSmiTag == 0));
+  __ movsxd(RAX, RCX);
+#endif
   __ ret();
   __ Bind(normal_ir_body);
 }
@@ -1310,15 +1383,26 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   // back to a double in XMM1.
   __ movq(RCX, Address(RSP, +1 * target::kWordSize));
   __ movsd(XMM0, FieldAddress(RCX, target::Double::value_offset()));
+#if !defined(DART_COMPRESSED_POINTERS)
   __ cvttsd2siq(RAX, XMM0);
   __ cvtsi2sdq(XMM1, RAX);
+#else
+  __ cvttsd2sil(RAX, XMM0);
+  __ cvtsi2sdl(XMM1, RAX);
+#endif
 
   // Tag the int as a Smi, making sure that it fits; this checks for
   // overflow and NaN in the conversion from double to int. Conversion
   // overflow from cvttsd2si is signalled with an INT64_MIN value.
   ASSERT(kSmiTag == 0 && kSmiTagShift == 1);
+#if !defined(DART_COMPRESSED_POINTERS)
   __ addq(RAX, RAX);
   __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+#else
+  __ addl(RAX, RAX);
+  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+  __ movsxd(RAX, RAX);
+#endif
 
   // Compare the two double values. If they are equal, we return the
   // Smi tagged result immediately as the hash code.

@@ -70,9 +70,6 @@ const char* ProfileFunction::ResolvedScriptUrl() const {
     return NULL;
   }
   const Script& script = Script::Handle(function_.script());
-  if (script.IsNull()) {
-    return NULL;
-  }
   const String& uri = String::Handle(script.resolved_url());
   if (uri.IsNull()) {
     return NULL;

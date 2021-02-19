@@ -2173,7 +2173,7 @@ bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
 static intptr_t RepresentationBits(Representation r) {
   switch (r) {
     case kTagged:
-      return compiler::target::kBitsPerWord - 1;
+      return compiler::target::kSmiBits + 1;
     case kUnboxedInt32:
     case kUnboxedUint32:
       return 32;

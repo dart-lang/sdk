@@ -2526,16 +2526,19 @@ static void EnterTestFrame(Assembler* assembler) {
   __ Push(THR);
   __ Push(BARRIER_MASK);
   __ Push(NULL_REG);
+  __ Push(HEAP_BASE);
   __ TagAndPushPP();
   __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
   __ mov(THR, R1);
   __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
   __ ldr(NULL_REG, Address(THR, Thread::object_null_offset()));
+  __ ldr(HEAP_BASE, Address(THR, Thread::heap_base_offset()));
   __ LoadPoolPointer(PP);
 }
 
 static void LeaveTestFrame(Assembler* assembler) {
   __ PopAndUntagPP();
+  __ Pop(HEAP_BASE);
   __ Pop(NULL_REG);
   __ Pop(BARRIER_MASK);
   __ Pop(THR);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 
@@ -28,7 +26,8 @@ class _HasPromotedTypeVariableVisitor extends DartTypeVisitor<bool> {
     for (NamedType namedParameterType in node.namedParameters) {
       if (namedParameterType.type.accept(this)) return true;
     }
-    if (node.typedefType != null && node.typedefType.accept(this)) {
+    TypedefType? typedefType = node.typedefType;
+    if (typedefType != null && typedefType.accept(this)) {
       return true;
     }
     return false;
@@ -106,12 +105,15 @@ class _DemotionNullabilityNormalization extends ReplacementVisitor {
   final bool forNonNullableByDefault;
 
   const _DemotionNullabilityNormalization(
-      {this.demoteTypeVariables, this.forNonNullableByDefault})
+      {required this.demoteTypeVariables,
+      required this.forNonNullableByDefault})
+      // ignore: unnecessary_null_comparison
       : assert(demoteTypeVariables != null),
+        // ignore: unnecessary_null_comparison
         assert(forNonNullableByDefault != null);
 
   @override
-  Nullability visitNullability(DartType node) {
+  Nullability? visitNullability(DartType node) {
     if (forNonNullableByDefault) {
       if (node.declaredNullability == Nullability.legacy) {
         return Nullability.nonNullable;
@@ -125,8 +127,8 @@ class _DemotionNullabilityNormalization extends ReplacementVisitor {
   }
 
   @override
-  DartType visitTypeParameterType(TypeParameterType node, int variance) {
-    Nullability newNullability = visitNullability(node);
+  DartType? visitTypeParameterType(TypeParameterType node, int variance) {
+    Nullability? newNullability = visitNullability(node);
     if (demoteTypeVariables && node.promotedBound != null) {
       return new TypeParameterType(
           node.parameter, newNullability ?? node.declaredNullability);

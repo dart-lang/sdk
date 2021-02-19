@@ -23,10 +23,7 @@ main() {
 }
 
 @reflectiveTest
-abstract class AbstractLinterContextTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
   late final LinterContextImpl context;
 
   Future<void> resolve(String content) async {

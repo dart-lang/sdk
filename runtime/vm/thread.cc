@@ -62,6 +62,7 @@ Thread::Thread(bool is_vm_isolate)
     : ThreadState(false),
       stack_limit_(0),
       write_barrier_mask_(UntaggedObject::kGenerationalBarrierMask),
+      heap_base_(0),
       isolate_(NULL),
       dispatch_table_array_(NULL),
       saved_stack_limit_(0),
@@ -176,6 +177,8 @@ static const struct ALIGN16 {
 } float_zerow_constant = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000};
 
 void Thread::InitVMConstants() {
+  heap_base_ = Object::null()->heap_base();
+
 #define ASSERT_VM_HEAP(type_name, member_name, init_expr, default_init_value)  \
   ASSERT((init_expr)->IsOldObject());
   CACHED_VM_OBJECTS_LIST(ASSERT_VM_HEAP)

@@ -502,8 +502,17 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
       Label length, smi_case;
 
       // The user-controlled index might not fit into a Smi.
+#if !defined(DART_COMPRESSED_POINTERS)
       __ addq(RangeErrorABI::kIndexReg, RangeErrorABI::kIndexReg);
       __ BranchIf(NO_OVERFLOW, &length);
+#else
+      __ movq(TMP, RangeErrorABI::kIndexReg);
+      __ SmiTag(RangeErrorABI::kIndexReg);
+      __ sarq(TMP, Immediate(30));
+      __ addq(TMP, Immediate(1));
+      __ cmpq(TMP, Immediate(2));
+      __ j(BELOW, &length);
+#endif
       {
         // Allocate a mint, reload the two registers and popualte the mint.
         __ PushImmediate(Immediate(0));
@@ -2099,8 +2108,14 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ j(NOT_ZERO, not_smi_or_overflow);
   switch (kind) {
     case Token::kADD: {
+#if !defined(DART_COMPRESSED_POINTERS)
       __ addq(RAX, RCX);
       __ j(OVERFLOW, not_smi_or_overflow);
+#else
+      __ addl(RAX, RCX);
+      __ j(OVERFLOW, not_smi_or_overflow);
+      __ movsxd(RAX, RAX);
+#endif
       break;
     }
     case Token::kLT: {
@@ -3363,6 +3378,15 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ movq(RCX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                           CodeEntryKind::kMonomorphic)));
   __ jmp(RCX);
+}
+
+void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
+    Assembler* assembler) {
+  __ int3();
+}
+
+void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
+  __ int3();
 }
 
 void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {

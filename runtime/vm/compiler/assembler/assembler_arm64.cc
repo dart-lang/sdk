@@ -928,6 +928,26 @@ void Assembler::VRSqrts(VRegister vd, VRegister vn) {
   vmuls(vd, vd, VTMP);
 }
 
+void Assembler::LoadCompressed(Register dest,
+                               const Address& slot,
+                               CanBeSmi can_value_be_smi) {
+#if !defined(DART_COMPRESSED_POINTERS)
+  ldr(dest, slot);
+#else
+  Label done;
+  ldr(dest, slot, kFourBytes);  // Sign-extension.
+  if (can_value_be_smi == kValueCanBeSmi) {
+    BranchIfSmi(dest, &done);
+  }
+  add(dest, dest, Operand(HEAP_BASE));
+  Bind(&done);
+
+  // After further Smi changes:
+  // ldr(dest, slot, kUnsignedFourBytes);  // Zero-extension.
+  // add(dest, dest, Operand(HEAP_BASE));
+#endif
+}
+
 // Preserves object and value registers.
 void Assembler::StoreIntoObjectFilter(Register object,
                                       Register value,
@@ -1263,6 +1283,9 @@ void Assembler::RestorePinnedRegisters() {
   ldr(BARRIER_MASK,
       compiler::Address(THR, target::Thread::write_barrier_mask_offset()));
   ldr(NULL_REG, compiler::Address(THR, target::Thread::object_null_offset()));
+#if defined(DART_COMPRESSED_POINTERS)
+  ldr(HEAP_BASE, compiler::Address(THR, target::Thread::heap_base_offset()));
+#endif
 }
 
 void Assembler::SetupGlobalPoolAndDispatchTable() {

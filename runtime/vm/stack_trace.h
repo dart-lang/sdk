@@ -107,7 +107,7 @@ class StackTraceUtils : public AllStatic {
 
   static void UnwindAwaiterChain(Zone* zone,
                                  const GrowableObjectArray& code_array,
-                                 GrowableArray<uword>* pc_offset_array,
+                                 const GrowableObjectArray& pc_offset_array,
                                  CallerClosureFinder* caller_closure_finder,
                                  const Closure& leaf_closure);
 
@@ -130,7 +130,7 @@ class StackTraceUtils : public AllStatic {
   static void CollectFramesLazy(
       Thread* thread,
       const GrowableObjectArray& code_array,
-      GrowableArray<uword>* pc_offset_array,
+      const GrowableObjectArray& pc_offset_array,
       int skip_frames,
       std::function<void(StackFrame*)>* on_sync_frames = nullptr,
       bool* has_async = nullptr);
@@ -151,7 +151,7 @@ class StackTraceUtils : public AllStatic {
   /// Returns the number of frames collected.
   static intptr_t CollectFrames(Thread* thread,
                                 const Array& code_array,
-                                const TypedData& pc_offset_array,
+                                const Array& pc_offset_array,
                                 intptr_t array_offset,
                                 intptr_t count,
                                 int skip_frames);

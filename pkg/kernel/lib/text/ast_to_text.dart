@@ -112,9 +112,7 @@ String debugLibraryName(Library? node) {
 }
 
 String debugClassName(Class? node) {
-  return node == null
-      ? 'null'
-      : node.name ?? globalDebuggingNames.nameClass(node);
+  return node == null ? 'null' : node.name;
 }
 
 String debugQualifiedClassName(Class node) {
@@ -335,11 +333,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   String getClassName(Class node) {
-    return node.name ?? syntheticNames.nameClass(node);
+    return node.name;
   }
 
   String getExtensionName(Extension node) {
-    return node.name ?? syntheticNames.nameExtension(node);
+    return node.name;
   }
 
   String getClassReference(Class node) {
@@ -500,11 +498,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       if (node is Class) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-        write(prefix + '::' + node.name!);
+        write(prefix + '::' + node.name);
       } else if (node is Extension) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-        write(prefix + '::' + node.name!);
+        write(prefix + '::' + node.name);
       } else if (node is Field) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
@@ -1317,7 +1315,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeWord(getExtensionName(node));
     writeTypeParameterList(node.typeParameters);
     writeSpaced('on');
-    writeType(node.onType!);
+    writeType(node.onType);
     String endLineString = ' {';
     if (node.enclosingLibrary.fileUri != node.fileUri) {
       endLineString += ' // from ${node.fileUri}';

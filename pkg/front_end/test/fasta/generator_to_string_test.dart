@@ -109,7 +109,7 @@ main() async {
         new ThisAccessGenerator(helper, token, false, false, false);
 
     Library library = new Library(uri);
-    Class cls = new Class();
+    Class cls = new Class(name: 'foo');
     library.addClass(cls);
     library.addProcedure(getter);
     library.addProcedure(setter);

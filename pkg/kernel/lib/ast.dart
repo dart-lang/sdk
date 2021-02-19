@@ -559,12 +559,12 @@ class Library extends NamedNode
     }
     for (int i = 0; i < classes.length; ++i) {
       Class class_ = classes[i];
-      canonicalName.getChild(class_.name!).bindTo(class_.reference);
+      canonicalName.getChild(class_.name).bindTo(class_.reference);
       class_.computeCanonicalNames();
     }
     for (int i = 0; i < extensions.length; ++i) {
       Extension extension = extensions[i];
-      canonicalName.getChild(extension.name!).bindTo(extension.reference);
+      canonicalName.getChild(extension.name).bindTo(extension.reference);
     }
   }
 
@@ -873,6 +873,7 @@ class Typedef extends NamedNode implements FileUriNode {
   List<Expression> annotations = const <Expression>[];
   String name;
   final List<TypeParameter> typeParameters;
+  // TODO(johnniwinther): Make this non-nullable.
   DartType? type;
 
   // The following two fields describe parameters of the underlying type when
@@ -1032,8 +1033,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// The name may contain characters that are not valid in a Dart identifier,
   /// in particular, the symbol '&' is used in class names generated for mixin
   /// applications.
-  // TODO(johnniwinther): Make this non-nullable.
-  String? name;
+  String name;
 
   // Must match serialized bit positions.
   static const int FlagAbstract = 1 << 0;
@@ -1231,7 +1231,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   }
 
   Class(
-      {this.name,
+      {required this.name,
       bool isAbstract: false,
       bool isAnonymousMixin: false,
       this.supertype,
@@ -1244,7 +1244,9 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       List<RedirectingFactoryConstructor>? redirectingFactoryConstructors,
       this.fileUri,
       Reference? reference})
-      : this.typeParameters = typeParameters ?? <TypeParameter>[],
+      // ignore: unnecessary_null_comparison
+      : assert(name != null),
+        this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.implementedTypes = implementedTypes ?? <Supertype>[],
         this.fieldsInternal = fields ?? <Field>[],
         this.constructorsInternal = constructors ?? <Constructor>[],
@@ -1334,18 +1336,18 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   String get demangledName {
     if (isAnonymousMixin) return nameAsMixinApplication;
-    assert(!name!.contains('&'));
-    return name!;
+    assert(!name.contains('&'));
+    return name;
   }
 
   String get nameAsMixinApplication {
     assert(isAnonymousMixin);
-    return demangleMixinApplicationName(name!);
+    return demangleMixinApplicationName(name);
   }
 
   String get nameAsMixinApplicationSubclass {
     assert(isAnonymousMixin);
-    return demangleMixinApplicationSubclassName(name!);
+    return demangleMixinApplicationSubclassName(name);
   }
 
   /// Members declared in this class.
@@ -1520,8 +1522,7 @@ class Extension extends NamedNode implements FileUriNode {
   ///
   /// If unnamed, the extension will be given a synthesized name by the
   /// front end.
-  // TODO(johnniwinther): Make this non-nullable.
-  String? name;
+  String name;
 
   /// The URI of the source file this class was loaded from.
   Uri? fileUri;
@@ -1536,8 +1537,7 @@ class Extension extends NamedNode implements FileUriNode {
   ///   class A {}
   ///   extension B on A {}
   ///
-  // TODO(johnniwinther): Should this be late non-nullable?
-  DartType? onType;
+  late DartType onType;
 
   /// The members declared by the extension.
   ///
@@ -1546,16 +1546,21 @@ class Extension extends NamedNode implements FileUriNode {
   final List<ExtensionMemberDescriptor> members;
 
   Extension(
-      {this.name,
+      {required this.name,
       List<TypeParameter>? typeParameters,
-      this.onType,
+      DartType? onType,
       List<ExtensionMemberDescriptor>? members,
       this.fileUri,
       Reference? reference})
-      : this.typeParameters = typeParameters ?? <TypeParameter>[],
+      // ignore: unnecessary_null_comparison
+      : assert(name != null),
+        this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.members = members ?? <ExtensionMemberDescriptor>[],
         super(reference) {
     setParents(this.typeParameters, this);
+    if (onType != null) {
+      this.onType = onType;
+    }
   }
 
   Library get enclosingLibrary => parent as Library;
@@ -1569,27 +1574,24 @@ class Extension extends NamedNode implements FileUriNode {
   @override
   void visitChildren(Visitor v) {
     visitList(typeParameters, v);
-    onType?.accept(v);
+    onType.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     v.transformList(typeParameters, this);
+    // ignore: unnecessary_null_comparison
     if (onType != null) {
-      onType = v.visitDartType(onType!);
+      onType = v.visitDartType(onType);
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformTypeParameterList(typeParameters, this);
+    // ignore: unnecessary_null_comparison
     if (onType != null) {
-      DartType newOnType = v.visitDartType(onType!, dummyDartType);
-      if (identical(newOnType, dummyDartType)) {
-        onType = null;
-      } else {
-        onType = newOnType;
-      }
+      onType = v.visitDartType(onType, cannotRemoveSentinel);
     }
   }
 
@@ -1839,7 +1841,7 @@ class Field extends Member {
   CanonicalName? get getterCanonicalName => getterReference.canonicalName;
   CanonicalName? get setterCanonicalName => setterReference?.canonicalName;
 
-  Field.mutable(Name name,
+  Field.mutable(Name? name,
       {this.type: const DynamicType(),
       this.initializer,
       bool isCovariant: false,
@@ -1863,7 +1865,7 @@ class Field extends Member {
     this.transformerFlags = transformerFlags;
   }
 
-  Field.immutable(Name name,
+  Field.immutable(Name? name,
       {this.type: const DynamicType(),
       this.initializer,
       bool isCovariant: false,
@@ -2615,7 +2617,7 @@ class Procedure extends Member {
   ProcedureStubKind stubKind;
   Reference? stubTargetReference;
 
-  Procedure(Name name, ProcedureKind kind, FunctionNode function,
+  Procedure(Name? name, ProcedureKind kind, FunctionNode function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
@@ -2641,7 +2643,7 @@ class Procedure extends Member {
             stubTargetReference:
                 getMemberReferenceBasedOnProcedureKind(stubTarget, kind));
 
-  Procedure._byReferenceRenamed(Name name, this.kind, this.function,
+  Procedure._byReferenceRenamed(Name? name, this.kind, this.function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
@@ -8657,11 +8659,12 @@ class AssertStatement extends Statement {
 ///
 /// The frontend does not generate labeled statements without uses.
 class LabeledStatement extends Statement {
-  // TODO(johnniwinther): Make this non-nullable.
-  Statement? body;
+  late Statement body;
 
-  LabeledStatement(this.body) {
-    body?.parent = this;
+  LabeledStatement(Statement? body) {
+    if (body != null) {
+      this.body = body..parent = this;
+    }
   }
 
   @override
@@ -8673,22 +8676,24 @@ class LabeledStatement extends Statement {
 
   @override
   void visitChildren(Visitor v) {
-    body?.accept(v);
+    body.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (body != null) {
-      body = v.transform(body!);
-      body?.parent = this;
+      body = v.transform(body);
+      body.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (body != null) {
-      body = v.transformOrRemoveStatement(body!);
-      body?.parent = this;
+      body = v.transform(body);
+      body.parent = this;
     }
   }
 
@@ -8702,7 +8707,7 @@ class LabeledStatement extends Statement {
     printer.write(printer.getLabelName(this));
     printer.write(':');
     printer.newLine();
-    printer.writeStatement(body!);
+    printer.writeStatement(body);
   }
 }
 
@@ -9204,28 +9209,25 @@ class SwitchStatement extends Statement {
 class SwitchCase extends TreeNode {
   final List<Expression> expressions;
   final List<int> expressionOffsets;
-  // TODO(johnniwinther): Make this non-nullable.
-  Statement? body;
+  late Statement body;
   bool isDefault;
 
-  SwitchCase(this.expressions, this.expressionOffsets, this.body,
+  SwitchCase(this.expressions, this.expressionOffsets, Statement? body,
       {this.isDefault: false}) {
     setParents(expressions, this);
-    body?.parent = this;
+    if (body != null) {
+      this.body = body..parent = this;
+    }
   }
 
-  SwitchCase.defaultCase(this.body)
+  SwitchCase.defaultCase(Statement? body)
       : isDefault = true,
         expressions = <Expression>[],
         expressionOffsets = <int>[] {
-    body?.parent = this;
+    if (body != null) {
+      this.body = body..parent = this;
+    }
   }
-
-  SwitchCase.empty()
-      : expressions = <Expression>[],
-        expressionOffsets = <int>[],
-        body = null,
-        isDefault = false;
 
   @override
   R accept<R>(TreeVisitor<R> v) => v.visitSwitchCase(this);
@@ -9236,24 +9238,26 @@ class SwitchCase extends TreeNode {
   @override
   void visitChildren(Visitor v) {
     visitList(expressions, v);
-    body?.accept(v);
+    body.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     v.transformList(expressions, this);
+    // ignore: unnecessary_null_comparison
     if (body != null) {
-      body = v.transform(body!);
-      body?.parent = this;
+      body = v.transform(body);
+      body.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(expressions, this);
+    // ignore: unnecessary_null_comparison
     if (body != null) {
-      body = v.transformOrRemoveStatement(body!);
-      body?.parent = this;
+      body = v.transform(body);
+      body.parent = this;
     }
   }
 
@@ -9294,7 +9298,7 @@ class SwitchCase extends TreeNode {
       }
     } else {
       printer.write(' ');
-      printer.writeStatement(body!);
+      printer.writeStatement(body);
     }
     printer.decIndentation();
   }
@@ -13412,7 +13416,7 @@ final LibraryPart dummyLibraryPart = new LibraryPart(const [], '');
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Class dummyClass = new Class();
+final Class dummyClass = new Class(name: '');
 
 /// Non-nullable [Constructor] dummy value.
 ///
@@ -13426,7 +13430,7 @@ final Constructor dummyConstructor = new Constructor(dummyFunctionNode);
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Extension dummyExtension = new Extension();
+final Extension dummyExtension = new Extension(name: '');
 
 /// Non-nullable [Member] dummy value.
 ///
@@ -13544,7 +13548,7 @@ final AssertStatement dummyAssertStatement = new AssertStatement(
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final SwitchCase dummySwitchCase = new SwitchCase.empty();
+final SwitchCase dummySwitchCase = new SwitchCase.defaultCase(dummyStatement);
 
 /// Non-nullable [Catch] dummy value.
 ///

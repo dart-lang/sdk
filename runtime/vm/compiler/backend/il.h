@@ -5744,7 +5744,8 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
   intptr_t element_count() const { return element_count_; }
 
   bool can_pack_into_smi() const {
-    return element_count() <= kSmiBits / (index_scale() * kBitsPerByte);
+    return element_count() <=
+           compiler::target::kSmiBits / (index_scale() * kBitsPerByte);
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }

@@ -128,8 +128,7 @@ namespace dart {
   V(InstantiateTypeArguments)                                                  \
   V(InstantiateTypeArgumentsMayShareInstantiatorTA)                            \
   V(InstantiateTypeArgumentsMayShareFunctionTA)                                \
-  V(NoSuchMethodDispatcher)                                                    \
-  V(UnknownDartCode)
+  V(NoSuchMethodDispatcher)
 
 }  // namespace dart
 

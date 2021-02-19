@@ -963,11 +963,7 @@ class Pass2Visitor : public ObjectVisitor,
       ScrubAndWriteUtf8(static_cast<FunctionPtr>(obj)->untag()->name_);
     } else if (cid == kCodeCid) {
       ObjectPtr owner = static_cast<CodePtr>(obj)->untag()->owner_;
-      if (!owner->IsHeapObject()) {
-        // Precompiler removed owner object from the snapshot,
-        // only leaving Smi classId.
-        writer_->WriteUnsigned(kNoData);
-      } else if (owner->IsFunction()) {
+      if (owner->IsFunction()) {
         writer_->WriteUnsigned(kNameData);
         ScrubAndWriteUtf8(static_cast<FunctionPtr>(owner)->untag()->name_);
       } else if (owner->IsClass()) {

@@ -1274,17 +1274,20 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
+    Uri fileUri = readUriReference();
+    int startFileOffset = readOffset();
+    int fileOffset = readOffset();
+    int fileEndOffset = readOffset();
+    int flags = readByte();
+    String name = readStringReference();
     if (node == null) {
-      node = new Class(reference: reference)..dirty = false;
+      node = new Class(name: name, reference: reference)..dirty = false;
     }
 
-    Uri fileUri = readUriReference();
-    node.startFileOffset = readOffset();
-    node.fileOffset = readOffset();
-    node.fileEndOffset = readOffset();
-    int flags = readByte();
+    node.startFileOffset = startFileOffset;
+    node.fileOffset = fileOffset;
+    node.fileEndOffset = fileEndOffset;
     node.flags = flags;
-    String name = readStringOrNullIfEmpty();
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(node.name ?? 'normal-class');
@@ -1326,13 +1329,13 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    if (node == null) {
-      node = new Extension(reference: reference);
-    }
 
-    String name = readStringOrNullIfEmpty();
+    String name = readStringReference();
+    if (node == null) {
+      node = new Extension(name: name, reference: reference);
+    }
     assert(() {
-      debugPath.add(node.name ?? 'extension');
+      debugPath.add(name);
       return true;
     }());
 
@@ -2577,11 +2580,13 @@ class BinaryBuilder {
     Expression expression = readExpression();
     int count = readUInt30();
     List<SwitchCase> cases = new List<SwitchCase>.generate(
-        count, (_) => new SwitchCase.empty(),
+        count,
+        (_) => new SwitchCase(<Expression>[], <int>[], dummyStatement,
+            isDefault: false),
         growable: true);
     switchCaseStack.addAll(cases);
     for (int i = 0; i < cases.length; ++i) {
-      readSwitchCaseInto(cases[i]);
+      _readSwitchCaseInto(cases[i]);
     }
     switchCaseStack.length -= count;
     return new SwitchStatement(expression, cases)..fileOffset = offset;
@@ -2640,7 +2645,7 @@ class BinaryBuilder {
     return new FunctionDeclaration(variable, function)..fileOffset = offset;
   }
 
-  void readSwitchCaseInto(SwitchCase caseNode) {
+  void _readSwitchCaseInto(SwitchCase caseNode) {
     int length = readUInt30();
     caseNode.expressions.length = length;
     caseNode.expressionOffsets.length = length;
@@ -3196,9 +3201,9 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  void readSwitchCaseInto(SwitchCase caseNode) {
+  void _readSwitchCaseInto(SwitchCase caseNode) {
     _associateMetadata(caseNode, _byteOffset);
-    super.readSwitchCaseInto(caseNode);
+    super._readSwitchCaseInto(caseNode);
   }
 
   @override

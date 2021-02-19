@@ -342,6 +342,12 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
     FlowGraph* flow_graph) {
   ASSERT(!CompilerState::Current().is_aot());
   const Function& function = parsed_function()->function();
+
+  // If another thread compiled and installed unoptmized code already,
+  // skip installation.
+  if (!optimized() && function.unoptimized_code() != Code::null()) {
+    return function.unoptimized_code();
+  }
   Zone* const zone = thread()->zone();
 
   // CreateDeoptInfo uses the object pool and needs to be done before

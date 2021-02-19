@@ -397,9 +397,10 @@ void ICCallPattern::SetTargetCode(const Code& target) const {
   // No need to flush the instruction cache, since the code is not modified.
 }
 
-SwitchableCallPatternBase::SwitchableCallPatternBase(
-    const ObjectPool& object_pool)
-    : object_pool_(object_pool), data_pool_index_(-1), target_pool_index_(-1) {}
+SwitchableCallPatternBase::SwitchableCallPatternBase(const Code& code)
+    : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
+      data_pool_index_(-1),
+      target_pool_index_(-1) {}
 
 ObjectPtr SwitchableCallPatternBase::data() const {
   return object_pool_.ObjectAt(data_pool_index_);
@@ -411,7 +412,7 @@ void SwitchableCallPatternBase::SetData(const Object& data) const {
 }
 
 SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
-    : SwitchableCallPatternBase(ObjectPool::Handle(code.GetObjectPool())) {
+    : SwitchableCallPatternBase(code) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blr lr.
   ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f03c0);
@@ -437,9 +438,9 @@ void SwitchableCallPattern::SetTarget(const Code& target) const {
   object_pool_.SetObjectAt(target_pool_index_, target);
 }
 
-BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc)
-    : SwitchableCallPatternBase(ObjectPool::Handle(
-          IsolateGroup::Current()->object_store()->global_object_pool())) {
+BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
+    : SwitchableCallPatternBase(code) {
+  ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blr lr.
   ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f03c0);
 

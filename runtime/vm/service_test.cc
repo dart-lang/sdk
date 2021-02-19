@@ -259,7 +259,7 @@ ISOLATE_UNIT_TEST_CASE(Service_Code) {
   // Use the entry of the code object as it's reference.
   uword entry = code_c.PayloadStart();
   int64_t compile_timestamp = code_c.compile_timestamp();
-  EXPECT_GT(code_c.Size(), 16u);
+  EXPECT_GT(code_c.Size(), 16);
   uword last = entry + code_c.Size();
 
   // Build a mock message handler and wrap it in a dart port.

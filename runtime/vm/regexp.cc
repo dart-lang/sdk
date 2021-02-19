@@ -2683,18 +2683,28 @@ intptr_t ChoiceNode::CalculatePreloadCharacters(RegExpCompiler* compiler,
                                                 intptr_t eats_at_least) {
   intptr_t preload_characters =
       Utils::Minimum(static_cast<intptr_t>(4), eats_at_least);
-  if (compiler->macro_assembler()->CanReadUnaligned()) {
-    bool one_byte = compiler->one_byte();
-    if (one_byte) {
-      if (preload_characters > 4) preload_characters = 4;
-      // We can't preload 3 characters because there is no machine instruction
-      // to do that.  We can't just load 4 because we could be reading
-      // beyond the end of the string, which could cause a memory fault.
-      if (preload_characters == 3) preload_characters = 2;
-    } else {
-      if (preload_characters > 2) preload_characters = 2;
-    }
+  if (compiler->one_byte()) {
+#if !defined(DART_COMPRESSED_POINTERS)
+    if (preload_characters > 4) preload_characters = 4;
+    // We can't preload 3 characters because there is no machine instruction
+    // to do that.  We can't just load 4 because we could be reading
+    // beyond the end of the string, which could cause a memory fault.
+    if (preload_characters == 3) preload_characters = 2;
+#else
+    // Ensure LoadCodeUnitsInstr can always produce a Smi. See
+    // https://github.com/dart-lang/sdk/issues/29951
+    if (preload_characters > 2) preload_characters = 2;
+#endif
   } else {
+#if !defined(DART_COMPRESSED_POINTERS)
+    if (preload_characters > 2) preload_characters = 2;
+#else
+    // Ensure LoadCodeUnitsInstr can always produce a Smi. See
+    // https://github.com/dart-lang/sdk/issues/29951
+    if (preload_characters > 1) preload_characters = 1;
+#endif
+  }
+  if (!compiler->macro_assembler()->CanReadUnaligned()) {
     if (preload_characters > 1) preload_characters = 1;
   }
   return preload_characters;

@@ -1755,6 +1755,7 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         default:
           UNREACHABLE();
       }
+      ASSERT(can_pack_into_smi());
       __ SmiTag(result);
       break;
     case kTwoByteStringCid:
@@ -1769,6 +1770,7 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         default:
           UNREACHABLE();
       }
+      ASSERT(can_pack_into_smi());
       __ SmiTag(result);
       break;
     default:
@@ -3372,26 +3374,47 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     const Object& constant = locs.in(1).constant();
     ASSERT(constant.IsSmi());
     // shlq operation masks the count to 6 bits.
+#if !defined(DART_COMPRESSED_POINTERS)
     const intptr_t kCountLimit = 0x3F;
+#else
+    const intptr_t kCountLimit = 0x1F;
+#endif
     const intptr_t value = Smi::Cast(constant).Value();
     ASSERT((0 < value) && (value < kCountLimit));
     if (shift_left->can_overflow()) {
       if (value == 1) {
         // Use overflow flag.
+#if !defined(DART_COMPRESSED_POINTERS)
         __ shlq(left, compiler::Immediate(1));
         __ j(OVERFLOW, deopt);
+#else
+        __ shll(left, compiler::Immediate(1));
+        __ j(OVERFLOW, deopt);
+        __ movsxd(left, left);
+#endif
         return;
       }
       // Check for overflow.
       Register temp = locs.temp(0).reg();
       __ movq(temp, left);
+#if !defined(DART_COMPRESSED_POINTERS)
       __ shlq(left, compiler::Immediate(value));
       __ sarq(left, compiler::Immediate(value));
+#else
+      __ shll(left, compiler::Immediate(value));
+      __ sarl(left, compiler::Immediate(value));
+      __ movsxd(left, left);
+#endif
       __ cmpq(left, temp);
       __ j(NOT_EQUAL, deopt);  // Overflow.
     }
     // Shift for result now we know there is no overflow.
     __ shlq(left, compiler::Immediate(value));
+#if defined(DART_COMPRESSED_POINTERS)
+    if (shift_left->is_truncating()) {
+      __ movsxd(left, left);
+    }
+#endif
     return;
   }
 
@@ -3420,6 +3443,13 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       }
       __ SmiUntag(right);
       __ shlq(left, right);
+#if defined(DART_COMPRESSED_POINTERS)
+      if (shift_left->is_truncating()) {
+        __ movsxd(left, left);
+      }
+#endif
+    } else {
+      __ int3();  //???
     }
     return;
   }
@@ -3451,6 +3481,11 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       __ SmiUntag(right);
       __ shlq(left, right);
     }
+#if defined(DART_COMPRESSED_POINTERS)
+    if (shift_left->is_truncating()) {
+      __ movsxd(left, left);
+    }
+#endif
   } else {
     if (right_needs_check) {
       ASSERT(shift_left->CanDeoptimize());
@@ -3462,15 +3497,26 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     // Left is not a constant.
     Register temp = locs.temp(0).reg();
     // Check if count too large for handling it inlined.
+#if !defined(DART_COMPRESSED_POINTERS)
     __ movq(temp, left);
+#else
+    __ movl(temp, left);
+#endif
     __ SmiUntag(right);
     // Overflow test (preserve temp and right);
+#if !defined(DART_COMPRESSED_POINTERS)
     __ shlq(left, right);
     __ sarq(left, right);
     __ cmpq(left, temp);
+#else
+    __ shll(temp, right);
+    __ sarl(temp, right);
+    __ cmpl(temp, left);
+#endif
     __ j(NOT_EQUAL, deopt);  // Overflow.
     // Shift for result now we know there is no overflow.
     __ shlq(left, right);
+    ASSERT(!shift_left->is_truncating());
   }
 }
 
@@ -3572,19 +3618,37 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (op_kind()) {
     case Token::kADD:
       __ movq(result, left);
+#if !defined(DART_COMPRESSED_POINTERS)
       __ addq(result, right);
       __ j(OVERFLOW, slow_path->entry_label());
+#else
+      __ addl(result, right);
+      __ j(OVERFLOW, slow_path->entry_label());
+      __ movsxd(result, result);
+#endif
       break;
     case Token::kSUB:
       __ movq(result, left);
+#if !defined(DART_COMPRESSED_POINTERS)
       __ subq(result, right);
       __ j(OVERFLOW, slow_path->entry_label());
+#else
+      __ subl(result, right);
+      __ j(OVERFLOW, slow_path->entry_label());
+      __ movsxd(result, result);
+#endif
       break;
     case Token::kMUL:
       __ movq(result, left);
       __ SmiUntag(result);
+#if !defined(DART_COMPRESSED_POINTERS)
       __ imulq(result, right);
       __ j(OVERFLOW, slow_path->entry_label());
+#else
+      __ imull(result, right);
+      __ j(OVERFLOW, slow_path->entry_label());
+      __ movsxd(result, result);
+#endif
       break;
     case Token::kBIT_OR:
       ASSERT(left == result);
@@ -3607,11 +3671,20 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movq(RCX, right);
       __ SmiUntag(RCX);
       __ movq(result, left);
+#if !defined(DART_COMPRESSED_POINTERS)
       __ shlq(result, RCX);
       __ movq(TMP, result);
       __ sarq(TMP, RCX);
       __ cmpq(TMP, left);
       __ j(NOT_EQUAL, slow_path->entry_label());
+#else
+      __ shll(result, RCX);
+      __ movq(TMP, result);
+      __ sarl(TMP, RCX);
+      __ cmpl(TMP, left);
+      __ j(NOT_EQUAL, slow_path->entry_label());
+      __ movsxd(result, result);
+#endif
       break;
     case Token::kSHR: {
       compiler::Label shift_count_ok;
@@ -3900,20 +3973,57 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const int64_t imm = static_cast<int64_t>(constant.ptr());
     switch (op_kind()) {
       case Token::kADD: {
-        __ AddImmediate(left, compiler::Immediate(imm));
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (deopt == NULL) {
+          // When we can't overflow, prefer 64-bit op to 32-bit op followed by
+          // sign extension.
+          __ AddImmediate(left, compiler::Immediate(imm));
+        } else {
+#if !defined(DART_COMPRESSED_POINTERS)
+          __ AddImmediate(left, compiler::Immediate(imm));
+          __ j(OVERFLOW, deopt);
+#else
+          __ AddImmediate(left, compiler::Immediate(imm), compiler::kFourBytes);
+          __ j(OVERFLOW, deopt);
+          __ movsxd(left, left);
+#endif
+        }
         break;
       }
       case Token::kSUB: {
-        __ SubImmediate(left, compiler::Immediate(imm));
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (deopt == NULL) {
+          // When we can't overflow, prefer 64-bit op to 32-bit op followed by
+          // sign extension.
+          __ SubImmediate(left, compiler::Immediate(imm));
+        } else {
+#if !defined(DART_COMPRESSED_POINTERS)
+          __ SubImmediate(left, compiler::Immediate(imm));
+          __ j(OVERFLOW, deopt);
+#else
+          __ SubImmediate(left, compiler::Immediate(imm), compiler::kFourBytes);
+          __ j(OVERFLOW, deopt);
+          __ movsxd(left, left);
+#endif
+        }
         break;
       }
       case Token::kMUL: {
         // Keep left value tagged and untag right value.
         const intptr_t value = Smi::Cast(constant).Value();
-        __ MulImmediate(left, compiler::Immediate(value));
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (deopt == NULL) {
+          // When we can't overflow, prefer 64-bit op to 32-bit op followed by
+          // sign extension.
+          __ MulImmediate(left, compiler::Immediate(value));
+        } else {
+#if !defined(DART_COMPRESSED_POINTERS)
+          __ MulImmediate(left, compiler::Immediate(value));
+          __ j(OVERFLOW, deopt);
+#else
+          __ MulImmediate(left, compiler::Immediate(value),
+                          compiler::kFourBytes);
+          __ j(OVERFLOW, deopt);
+          __ movsxd(left, left);
+#endif
+        }
         break;
       }
       case Token::kTRUNCDIV: {
@@ -3925,7 +4035,12 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         ASSERT(kSmiTagSize == 1);
         Register temp = locs()->temp(0).reg();
         __ movq(temp, left);
+#if !defined(DART_COMPRESSED_POINTERS)
         __ sarq(temp, compiler::Immediate(63));
+#else
+        // Assumes Smis are sign extended.
+        __ sarq(temp, compiler::Immediate(31));
+#endif
         ASSERT(shift_count > 1);  // 1, -1 case handled above.
         __ shrq(temp, compiler::Immediate(64 - shift_count));
         __ addq(left, temp);
@@ -3955,7 +4070,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       case Token::kSHR: {
         // sarq operation masks the count to 6 bits.
+#if !defined(DART_COMPRESSED_POINTERS)
         const intptr_t kCountLimit = 0x3F;
+#else
+        const intptr_t kCountLimit = 0x1F;
+#endif
         const intptr_t value = Smi::Cast(constant).Value();
         __ sarq(left, compiler::Immediate(
                           Utils::Minimum(value + kSmiTagSize, kCountLimit)));
@@ -3974,19 +4093,55 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const compiler::Address& right = LocationToStackSlotAddress(locs()->in(1));
     switch (op_kind()) {
       case Token::kADD: {
-        __ addq(left, right);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (deopt == NULL) {
+          // When we can't overflow, prefer 64-bit op to 32-bit op followed by
+          // sign extension.
+          __ addq(left, right);
+        } else {
+#if !defined(DART_COMPRESSED_POINTERS)
+          __ addq(left, right);
+          __ j(OVERFLOW, deopt);
+#else
+          __ addl(left, right);
+          __ j(OVERFLOW, deopt);
+          __ movsxd(left, left);
+#endif
+        }
         break;
       }
       case Token::kSUB: {
-        __ subq(left, right);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (deopt == NULL) {
+          // When we can't overflow, prefer 64-bit op to 32-bit op followed by
+          // sign extension.
+          __ subq(left, right);
+        } else {
+#if !defined(DART_COMPRESSED_POINTERS)
+          __ subq(left, right);
+          __ j(OVERFLOW, deopt);
+#else
+          __ subl(left, right);
+          __ j(OVERFLOW, deopt);
+          __ movsxd(left, left);
+#endif
+        }
         break;
       }
       case Token::kMUL: {
         __ SmiUntag(left);
-        __ imulq(left, right);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (deopt == NULL) {
+          // When we can't overflow, prefer 64-bit op to 32-bit op followed by
+          // sign extension.
+          __ imulq(left, right);
+        } else {
+#if !defined(DART_COMPRESSED_POINTERS)
+          __ imulq(left, right);
+          __ j(OVERFLOW, deopt);
+#else
+          __ imull(left, right);
+          __ j(OVERFLOW, deopt);
+          __ movsxd(left, left);
+#endif
+        }
         break;
       }
       case Token::kBIT_AND: {
@@ -4015,19 +4170,55 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register right = locs()->in(1).reg();
   switch (op_kind()) {
     case Token::kADD: {
+#if !defined(DART_COMPRESSED_POINTERS)
       __ addq(left, right);
       if (deopt != NULL) __ j(OVERFLOW, deopt);
+#else
+      if (deopt == NULL) {
+        // When we can't overflow, prefer 64-bit op to 32-bit op followed by
+        // sign extension.
+        __ addq(left, right);
+      } else {
+        __ addl(left, right);
+        __ j(OVERFLOW, deopt);
+        __ movsxd(left, left);
+      }
+#endif
       break;
     }
     case Token::kSUB: {
+#if !defined(DART_COMPRESSED_POINTERS)
       __ subq(left, right);
       if (deopt != NULL) __ j(OVERFLOW, deopt);
+#else
+      if (deopt == NULL) {
+        // When we can't overflow, prefer 64-bit op to 32-bit op followed by
+        // sign extension.
+        __ subq(left, right);
+      } else {
+        __ subl(left, right);
+        __ j(OVERFLOW, deopt);
+        __ movsxd(left, left);
+      }
+#endif
       break;
     }
     case Token::kMUL: {
       __ SmiUntag(left);
+#if !defined(DART_COMPRESSED_POINTERS)
       __ imulq(left, right);
       if (deopt != NULL) __ j(OVERFLOW, deopt);
+#else
+      if (deopt == NULL) {
+        // When we can't overflow, prefer 64-bit op to 32-bit op followed by
+        // sign extension.
+        __ imulq(left, right);
+      } else {
+        __ imull(left, right);
+        __ j(OVERFLOW, deopt);
+        __ movsxd(left, left);
+      }
+#endif
       break;
     }
     case Token::kBIT_AND: {
@@ -4058,6 +4249,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ testq(right, right);
         __ j(ZERO, deopt);
       }
+#if !defined(DART_COMPRESSED_POINTERS)
       // Check if both operands fit into 32bits as idiv with 64bit operands
       // requires twice as many cycles and has much higher latency.
       // We are checking this before untagging them to avoid corner case
@@ -4090,6 +4282,21 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ CompareImmediate(result, compiler::Immediate(0x4000000000000000));
         __ j(EQUAL, deopt);
       }
+#else
+      // Both operands are 31bit smis. Divide using 32bit idiv.
+      __ SmiUntag(left);
+      __ SmiUntag(right);
+      __ cdq();
+      __ idivl(right);
+
+      if (RangeUtils::Overlaps(right_range(), -1, -1)) {
+        // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+        // case we cannot tag the result.
+        __ cmpl(result, compiler::Immediate(0x40000000));
+        __ j(EQUAL, deopt);
+      }
+      __ movsxd(result, result);
+#endif
       __ Bind(&done);
       __ SmiTag(result);
       break;
@@ -4107,6 +4314,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ testq(right, right);
         __ j(ZERO, deopt);
       }
+#if !defined(DART_COMPRESSED_POINTERS)
       // Check if both operands fit into 32bits as idiv with 64bit operands
       // requires twice as many cycles and has much higher latency.
       // We are checking this before untagging them to avoid corner case
@@ -4118,6 +4326,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movsxd(temp, right);
       __ cmpq(temp, right);
       __ j(NOT_EQUAL, &not_32bit);
+#endif
       // Both operands are 31bit smis. Divide using 32bit idiv.
       __ SmiUntag(left);
       __ SmiUntag(right);
@@ -4125,6 +4334,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ cdq();
       __ idivl(right);
       __ movsxd(result, result);
+#if !defined(DART_COMPRESSED_POINTERS)
       __ jmp(&div_done);
 
       // Divide using 64bit idiv.
@@ -4135,6 +4345,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ cqo();         // Sign extend RAX -> RDX:RAX.
       __ idivq(right);  //  RAX: quotient, RDX: remainder.
       __ Bind(&div_done);
+#endif
       //  res = left % right;
       //  if (res < 0) {
       //    if (right < 0) {
@@ -4426,6 +4637,11 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
     __ movq(value, compiler::Address(value, TIMES_2, Mint::value_offset()));
     __ Bind(&done);
+#if defined(DART_COMPRESSED_POINTERS)
+    if (is_truncating()) {
+      __ movsxd(value, value);
+    }
+#endif
     return;
   } else {
     compiler::Label done;
@@ -4474,11 +4690,19 @@ LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,
   ASSERT((from_representation() == kUnboxedInt32) ||
          (from_representation() == kUnboxedUint32));
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
+      LocationSummary(zone, kNumInputs, kNumTemps,
+                      ValueFitsSmi() ? LocationSummary::kNoCall
+                                     : LocationSummary::kCallOnSlowPath);
+  const bool needs_writable_input =
+      ValueFitsSmi() || (from_representation() == kUnboxedUint32) || true;
+  summary->set_in(0, needs_writable_input ? Location::WritableRegister()
+                                          : Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
+  if (!ValueFitsSmi()) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   return summary;
 }
 
@@ -4487,6 +4711,7 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register out = locs()->out(0).reg();
   ASSERT(value != out);
 
+#if !defined(DART_COMPRESSED_POINTERS)
   ASSERT(kSmiTagSize == 1);
   if (from_representation() == kUnboxedInt32) {
     __ movsxd(out, value);
@@ -4495,6 +4720,40 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ movl(out, value);
   }
   __ SmiTag(out);
+#else
+  compiler::Label done;
+  if (from_representation() == kUnboxedInt32) {
+    __ MoveRegister(out, value);
+    __ addl(out, out);
+    __ movsxd(out, out);  // Does not affect flags.
+    if (ValueFitsSmi()) {
+      return;
+    }
+    __ j(NO_OVERFLOW, &done);
+  } else {
+    __ movl(out, value);
+    __ SmiTag(out);
+    if (ValueFitsSmi()) {
+      return;
+    }
+    __ TestImmediate(value, compiler::Immediate(0xC0000000LL));
+    __ j(ZERO, &done);
+  }
+  // Allocate a mint.
+  // Value input is a writable register and we have to inform the compiler of
+  // the type so it can be preserved untagged on the slow path
+  locs()->live_registers()->Add(locs()->in(0), from_representation());
+  const Register temp = locs()->temp(0).reg();
+  BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(), out,
+                                  temp);
+  if (from_representation() == kUnboxedInt32) {
+    __ movsxd(temp, value);  // Sign-extend.
+  } else {
+    __ movl(temp, value);  // Zero-extend.
+  }
+  __ movq(compiler::FieldAddress(out, Mint::value_offset()), temp);
+  __ Bind(&done);
+#endif
 }
 
 LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
@@ -4538,6 +4797,7 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
 void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register out = locs()->out(0).reg();
   const Register value = locs()->in(0).reg();
+#if !defined(DART_COMPRESSED_POINTERS)
   __ MoveRegister(out, value);
   __ SmiTag(out);
   if (ValueFitsSmi()) {
@@ -4546,9 +4806,22 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // If the value doesn't fit in a smi, the tagging changes the sign,
   // which causes the overflow flag to be set.
   compiler::Label done;
-  __ j(NO_OVERFLOW, &done);
-
   const Register temp = locs()->temp(0).reg();
+  __ j(NO_OVERFLOW, &done);
+#else
+  __ leaq(out, compiler::Address(value, value, TIMES_1, 0));
+  if (ValueFitsSmi()) {
+    return;
+  }
+  compiler::Label done;
+  const Register temp = locs()->temp(0).reg();
+  __ movq(temp, value);
+  __ sarq(temp, compiler::Immediate(30));
+  __ addq(temp, compiler::Immediate(1));
+  __ cmpq(temp, compiler::Immediate(2));
+  __ j(BELOW, &done);
+#endif
+
   if (compiler->intrinsic_mode()) {
     __ TryAllocate(compiler->mint_class(),
                    compiler->intrinsic_slow_path_label(),
@@ -5133,7 +5406,12 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kNEGATE: {
       compiler::Label* deopt =
           compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnaryOp);
+#if !defined(DART_COMPRESSED_POINTERS)
       __ negq(value);
+#else
+      __ negl(value);
+      __ movsxd(value, value);
+#endif
       __ j(OVERFLOW, deopt);
       break;
     }
@@ -5285,7 +5563,11 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   FpuRegister result = locs()->out(0).fpu_reg();
   __ SmiUntag(value);
+#if !defined(DART_COMPRESSED_POINTERS)
   __ cvtsi2sdq(result, value);
+#else
+  __ cvtsi2sdl(result, value);
+#endif
 }
 
 DEFINE_BACKEND(Int64ToDouble, (FpuRegister result, Register value)) {
@@ -5314,14 +5596,25 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(result != temp);
   __ movsd(value_double,
            compiler::FieldAddress(value_obj, Double::value_offset()));
+#if !defined(DART_COMPRESSED_POINTERS)
   __ cvttsd2siq(result, value_double);
+#else
+  __ cvttsd2sil(result, value_double);
+#endif
   // Overflow is signalled with minint.
   compiler::Label do_call, done;
   // Check for overflow and that it fits into Smi.
+#if !defined(DART_COMPRESSED_POINTERS)
   __ movq(temp, result);
   __ shlq(temp, compiler::Immediate(1));
   __ j(OVERFLOW, &do_call, compiler::Assembler::kNearJump);
   __ SmiTag(result);
+#else
+  __ movl(temp, result);
+  __ shll(temp, compiler::Immediate(1));
+  __ j(OVERFLOW, &do_call, compiler::Assembler::kNearJump);
+  __ movsxd(result, temp);
+#endif
   __ jmp(&done);
   __ Bind(&do_call);
   __ pushq(value_obj);
@@ -5360,14 +5653,26 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
   Register temp = locs()->temp(0).reg();
 
+#if !defined(DART_COMPRESSED_POINTERS)
   __ cvttsd2siq(result, value);
+#else
+  __ cvttsd2sil(result, value);
+#endif
   // Overflow is signalled with minint.
   compiler::Label do_call, done;
   // Check for overflow and that it fits into Smi.
+#if !defined(DART_COMPRESSED_POINTERS)
   __ movq(temp, result);
   __ shlq(temp, compiler::Immediate(1));
   __ j(OVERFLOW, deopt);
   __ SmiTag(result);
+#else
+  __ movl(temp, result);
+  __ shll(temp, compiler::Immediate(1));
+  __ j(OVERFLOW, deopt);
+  ASSERT(kSmiTagShift == 1 && kSmiTag == 0);
+  __ movsxd(result, temp);
+#endif
 }
 
 LocationSummary* DoubleToDoubleInstr::MakeLocationSummary(Zone* zone,
@@ -5694,6 +5999,7 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ testq(right, right);
     __ j(ZERO, deopt);
   }
+#if !defined(DART_COMPRESSED_POINTERS)
   // Check if both operands fit into 32bits as idiv with 64bit operands
   // requires twice as many cycles and has much higher latency.
   // We are checking this before untagging them to avoid corner case
@@ -5726,6 +6032,21 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ CompareImmediate(RAX, compiler::Immediate(0x4000000000000000));
   __ j(EQUAL, deopt);
   __ Bind(&done);
+#else
+  USE(temp);
+  // Both operands are 31bit smis. Divide using 32bit idiv.
+  __ SmiUntag(left);
+  __ SmiUntag(right);
+  __ cdq();
+  __ idivl(right);
+
+  // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+  // case we cannot tag the result.
+  __ cmpl(RAX, compiler::Immediate(0x40000000));
+  __ j(EQUAL, deopt);
+  __ movsxd(RAX, RAX);
+  __ movsxd(RDX, RDX);
+#endif
 
   // Modulo correction (RDX).
   //  res = left % right;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import '../ast.dart';
 import '../core_types.dart';
 
@@ -19,7 +17,7 @@ class FutureValueTypeVisitor implements DartTypeVisitor1<DartType, CoreTypes> {
   /// the visitor.  If not set, an exception is thrown then an unhandled
   /// implementer of [DartType] is encountered.
   final DartType Function(DartType node, CoreTypes coreTypes,
-          DartType Function(DartType node, CoreTypes coreTypes) recursor)
+          DartType Function(DartType node, CoreTypes coreTypes) recursor)?
       unhandledTypeHandler;
 
   const FutureValueTypeVisitor({this.unhandledTypeHandler});
@@ -32,7 +30,7 @@ class FutureValueTypeVisitor implements DartTypeVisitor1<DartType, CoreTypes> {
     if (unhandledTypeHandler == null) {
       throw new UnsupportedError("Unsupported type '${node.runtimeType}'.");
     } else {
-      return unhandledTypeHandler(node, coreTypes, visit);
+      return unhandledTypeHandler!(node, coreTypes, visit);
     }
   }
 

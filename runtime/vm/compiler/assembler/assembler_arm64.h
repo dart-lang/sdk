@@ -926,12 +926,16 @@ class Assembler : public AssemblerBase {
             OperandSize sz = kEightBytes) {
     EmitMiscDP3Source(MSUB, rd, rn, rm, ra, sz);
   }
+  // Signed Multiply High
+  // rd <- (rn * rm)[127:64]
   void smulh(Register rd,
              Register rn,
              Register rm,
              OperandSize sz = kEightBytes) {
     EmitMiscDP3Source(SMULH, rd, rn, rm, R31, sz);
   }
+  // Unsigned Multiply High
+  // rd <- (rn * rm)[127:64]
   void umulh(Register rd,
              Register rn,
              Register rm,
@@ -945,6 +949,8 @@ class Assembler : public AssemblerBase {
               OperandSize sz = kEightBytes) {
     EmitMiscDP3Source(UMADDL, rd, rn, rm, ra, sz);
   }
+  // Unsigned Multiply Long
+  // rd:uint64 <- rn:uint32 * rm:uint32
   void umull(Register rd,
              Register rn,
              Register rm,
@@ -958,6 +964,8 @@ class Assembler : public AssemblerBase {
               OperandSize sz = kEightBytes) {
     EmitMiscDP3Source(SMADDL, rd, rn, rm, ra, sz);
   }
+  // Signed Multiply Long
+  // rd:int64 <- rn:int32 * rm:int32
   void smull(Register rd,
              Register rn,
              Register rm,
@@ -1652,6 +1660,10 @@ class Assembler : public AssemblerBase {
     kValueIsNotSmi,
     kValueCanBeSmi,
   };
+
+  void LoadCompressed(Register dest,
+                      const Address& slot,
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi);
 
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,

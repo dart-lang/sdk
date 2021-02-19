@@ -60,30 +60,6 @@ void StubCode::Init() {
   for (size_t i = 0; i < ARRAY_SIZE(entries_); i++) {
     entries_[i].code->set_object_pool(object_pool.ptr());
   }
-
-#if defined(DART_PRECOMPILER)
-  {
-    // Set Function owner for UnknownDartCode stub so it pretends to
-    // be a Dart code.
-    Zone* zone = Thread::Current()->zone();
-    const auto& signature = FunctionType::Handle(zone, FunctionType::New());
-    auto& owner = Object::Handle(zone);
-    owner = Object::void_class();
-    ASSERT(!owner.IsNull());
-    owner = Function::New(signature, Object::null_string(),
-                          UntaggedFunction::kRegularFunction,
-                          /*is_static=*/true,
-                          /*is_const=*/false,
-                          /*is_abstract=*/false,
-                          /*is_external=*/false,
-                          /*is_native=*/false, owner, TokenPosition::kNoSource);
-    StubCode::UnknownDartCode().set_owner(owner);
-    StubCode::UnknownDartCode().set_exception_handlers(
-        Object::empty_exception_handlers());
-    StubCode::UnknownDartCode().set_pc_descriptors(Object::empty_descriptors());
-    ASSERT(StubCode::UnknownDartCode().IsFunctionCode());
-  }
-#endif  // defined(DART_PRECOMPILER)
 }
 
 #undef STUB_CODE_GENERATE
