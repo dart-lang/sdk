@@ -12,8 +12,15 @@ var tests = <VMTest>[
     try {
       final res = await vm.getIsolate('isolates/12321');
       fail('Expected SentinelException, got $res');
-    } on SentinelException {
-      // Expected.
+    } on SentinelException catch (e, st) {
+      // Ensure stack trace contains actual invocation path.
+      final stack = st.toString().split('\n');
+      expect(stack.where((e) => e.contains('VmService.getIsolate')).length, 1);
+      // Call to vm.getIsolate('isolates/12321') and the invocation of the test closure.
+      expect(
+        stack.where((e) => e.contains('test/throws_sentinel_test.dart')).length,
+        2,
+      );
     } catch (e) {
       fail('Expected SentinelException, got $e');
     }

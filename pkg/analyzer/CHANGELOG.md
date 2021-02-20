@@ -6,6 +6,8 @@
 * Added `Folder.isRoot`.
 * Added `FolderExtension` with `withAncestors`.
 * Added `ContextRoot.workspace`, deprecated `AnalysisContext.workspace`.
+* Deprecated `ElementVisitor.visitFunctionTypeAliasElement()`.
+  Override `ElementVisitor.visitTypeAliasElement()` instead.
 
 ## 1.0.0
 * Stable null safety release.

@@ -1009,18 +1009,15 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // RoundedAllocationSize(
     //     (array_length * kwordSize) + target::Array::header_size()).
     __ mov(R3, Operand(R2));  // Array length.
-    // Check that length is a positive Smi.
+    // Check that length is a Smi.
     __ tst(R3, Operand(kSmiTagMask));
     __ b(&slow_case, NE);
 
-    __ cmp(R3, Operand(0));
-    __ b(&slow_case, LT);
-
-    // Check for maximum allowed length.
+    // Check length >= 0 && length <= kMaxNewSpaceElements
     const intptr_t max_len =
         target::ToRawSmi(target::Array::kMaxNewSpaceElements);
     __ CompareImmediate(R3, max_len);
-    __ b(&slow_case, GT);
+    __ b(&slow_case, HI);
 
     const intptr_t cid = kArrayCid;
     NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
@@ -3450,13 +3447,11 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   /* R2: requested array length argument. */
   __ tst(R2, Operand(kSmiTagMask));
   __ b(&call_runtime, NE);
-  __ CompareImmediate(R2, 0);
-  __ b(&call_runtime, LT);
   __ SmiUntag(R2);
-  /* Check for maximum allowed length. */
+  /* Check for length >= 0 && length <= max_len. */
   /* R2: untagged array length. */
   __ CompareImmediate(R2, max_len);
-  __ b(&call_runtime, GT);
+  __ b(&call_runtime, HI);
   __ mov(R2, Operand(R2, LSL, scale_shift));
   const intptr_t fixed_size_plus_alignment_padding =
       target::TypedData::InstanceSize() +

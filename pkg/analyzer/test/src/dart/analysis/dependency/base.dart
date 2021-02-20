@@ -9,10 +9,7 @@ import 'package:test/test.dart';
 
 import '../../resolution/context_collection_resolution.dart';
 
-class BaseDependencyTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+class BaseDependencyTest extends PubPackageResolutionTest {
   late final String a;
   late final String b;
   late final String c;

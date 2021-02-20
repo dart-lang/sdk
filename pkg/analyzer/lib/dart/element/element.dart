@@ -995,6 +995,7 @@ abstract class ElementVisitor<R> {
 
   R? visitFunctionElement(FunctionElement element);
 
+  @Deprecated('Override visitTypeAliasElement() instead')
   R? visitFunctionTypeAliasElement(FunctionTypeAliasElement element);
 
   R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element);

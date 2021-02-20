@@ -36,17 +36,15 @@ final isVoidType = TypeMatcher<VoidTypeImpl>();
 /// Integration tests for resolution.
 @reflectiveTest
 class AnalysisDriverResolutionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, ElementsTypesMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+    with ElementsTypesMixin {
   void assertDeclaredVariableType(SimpleIdentifier node, String expected) {
     var element = node.staticElement as VariableElement;
     assertType(element.type, expected);
   }
 
-  void assertDeclaredVariableTypeDynamic(SimpleIdentifier node) {
+  void assertDeclaredVariableTypeObject(SimpleIdentifier node) {
     var element = node.staticElement as VariableElement;
-    expect(element.type, isDynamicType);
+    expect(element.type, typeProvider.objectType);
   }
 
   /// Test that [argumentList] has exactly two type items `int` and `double`.
@@ -669,11 +667,11 @@ f() {}
     expect(atD.name.staticElement, elementD);
     expect(atD.element, constructorD);
 
-    expect(constC.staticType, interfaceTypeStar(elementC));
+    expect(constC.staticType, interfaceTypeNone(elementC));
 
     var constructorName = constC.constructorName;
     expect(constructorName.staticElement, constructorC);
-    expect(constructorName.type.type, interfaceTypeStar(elementC));
+    expect(constructorName.type.type, interfaceTypeNone(elementC));
   }
 
   test_annotation_unprefixed_topLevelVariable() async {
@@ -978,7 +976,7 @@ main() {
       var forTarget = forInvocation.target as SimpleIdentifier;
       expect(forTarget.staticElement, itemsElement);
 
-      var closureTypeStr = 'Null Function(int)';
+      var closureTypeStr = 'void Function(int)';
       var closure =
           forInvocation.argumentList.arguments[0] as FunctionExpression;
 
@@ -988,7 +986,7 @@ main() {
       ParameterElement itemElement = closureElement.parameters[0];
       itemElement1 = itemElement;
 
-      expect(closureElement.returnType, typeProvider.nullType);
+      expect(closureElement.returnType, typeProvider.voidType);
       assertType(closureElement.type, closureTypeStr);
       expect(closure.staticType, same(closureElement.type));
 
@@ -1019,7 +1017,7 @@ main() {
       var forTarget = forInvocation.target as SimpleIdentifier;
       expect(forTarget.staticElement, itemsElement);
 
-      var closureTypeStr = 'Null Function(int)';
+      var closureTypeStr = 'void Function(int)';
       var closure =
           forInvocation.argumentList.arguments[0] as FunctionExpression;
 
@@ -1029,7 +1027,7 @@ main() {
       ParameterElement itemElement = closureElement.parameters[0];
       expect(itemElement, isNot(same(itemElement1)));
 
-      expect(closureElement.returnType, typeProvider.nullType);
+      expect(closureElement.returnType, typeProvider.voidType);
       assertType(closureElement.type, closureTypeStr);
       expect(closure.staticType, same(closureElement.type));
 
@@ -1330,7 +1328,7 @@ class B {
       expect(constructorName.staticElement, same(aUnnamed));
 
       TypeName typeName = constructorName.type;
-      expect(typeName.type, interfaceTypeStar(aElement));
+      expect(typeName.type, interfaceTypeNone(aElement));
 
       var identifier = typeName.name as SimpleIdentifier;
       expect(identifier.staticElement, same(aElement));
@@ -1350,7 +1348,7 @@ class B {
       expect(constructorName.staticElement, same(aNamed));
 
       var typeName = constructorName.type;
-      expect(typeName.type, interfaceTypeStar(aElement));
+      expect(typeName.type, interfaceTypeNone(aElement));
 
       var identifier = typeName.name as SimpleIdentifier;
       expect(identifier.staticElement, same(aElement));
@@ -1380,10 +1378,10 @@ class B<U> {
 
     var bNode = result.unit!.declarations[1] as ClassDeclaration;
     TypeParameterType uType =
-        typeParameterTypeStar(bNode.declaredElement!.typeParameters[0]);
+        typeParameterTypeNone(bNode.declaredElement!.typeParameters[0]);
     InterfaceType auType = aElement.instantiate(
       typeArguments: [uType],
-      nullabilitySuffix: NullabilitySuffix.star,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
 
     {
@@ -1767,7 +1765,7 @@ class C<T> {
     VariableDeclaration fNode = fDeclaration.fields.variables[0];
     var fElement = fNode.declaredElement as FieldElement;
     expect(
-        fElement.type, typeProvider.listType(typeParameterTypeStar(tElement)));
+        fElement.type, typeProvider.listType(typeParameterTypeNone(tElement)));
   }
 
   test_field_generic() async {
@@ -2091,7 +2089,7 @@ var b = new C.named();
       var aDeclaration = unit.declarations[1] as TopLevelVariableDeclaration;
       VariableDeclaration aNode = aDeclaration.variables.variables[0];
       var value = aNode.initializer as InstanceCreationExpression;
-      expect(value.staticType, interfaceTypeStar(cElement));
+      expect(value.staticType, interfaceTypeNone(cElement));
 
       var constructorName = value.constructorName;
       expect(constructorName.name, isNull);
@@ -2109,7 +2107,7 @@ var b = new C.named();
       var bDeclaration = unit.declarations[2] as TopLevelVariableDeclaration;
       VariableDeclaration bNode = bDeclaration.variables.variables[0];
       var value = bNode.initializer as InstanceCreationExpression;
-      expect(value.staticType, interfaceTypeStar(cElement));
+      expect(value.staticType, interfaceTypeNone(cElement));
 
       var constructorName = value.constructorName;
       expect(constructorName.staticElement, namedConstructor);
@@ -2144,7 +2142,7 @@ var v = new X(1, b: true, c: 3.0);
 
     var creation = vNode.initializer as InstanceCreationExpression;
     List<Expression> arguments = creation.argumentList.arguments;
-    expect(creation.staticType, interfaceTypeStar(xElement));
+    expect(creation.staticType, interfaceTypeNone(xElement));
 
     var constructorName = creation.constructorName;
     expect(constructorName.name, isNull);
@@ -2185,7 +2183,7 @@ var b = new C.named(2);
       var aDeclaration = unit.declarations[1] as TopLevelVariableDeclaration;
       VariableDeclaration aNode = aDeclaration.variables.variables[0];
       var value = aNode.initializer as InstanceCreationExpression;
-      expect(value.staticType, interfaceTypeStar(cElement));
+      expect(value.staticType, interfaceTypeNone(cElement));
 
       var constructorName = value.constructorName;
       expect(constructorName.name, isNull);
@@ -2206,7 +2204,7 @@ var b = new C.named(2);
       var bDeclaration = unit.declarations[2] as TopLevelVariableDeclaration;
       VariableDeclaration bNode = bDeclaration.variables.variables[0];
       var value = bNode.initializer as InstanceCreationExpression;
-      expect(value.staticType, interfaceTypeStar(cElement));
+      expect(value.staticType, interfaceTypeNone(cElement));
 
       var constructorName = value.constructorName;
       expect(constructorName.staticElement, namedConstructor);
@@ -2254,7 +2252,7 @@ main() {
     {
       var cTypeInt = cElement.instantiate(
         typeArguments: [typeProvider.intType],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
 
       var statement = statements[0] as ExpressionStatement;
@@ -2283,7 +2281,7 @@ main() {
     {
       var cTypeDouble = cElement.instantiate(
         typeArguments: [typeProvider.doubleType],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
 
       var statement = statements[1] as ExpressionStatement;
@@ -2313,7 +2311,7 @@ main() {
     {
       var cTypeBool = cElement.instantiate(
         typeArguments: [typeProvider.boolType],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
 
       var statement = statements[2] as ExpressionStatement;
@@ -2369,7 +2367,7 @@ class C<T> {
     {
       var cTypeInt = cElement.instantiate(
         typeArguments: [typeProvider.intType],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
 
       var statement = statements[0] as ExpressionStatement;
@@ -2391,7 +2389,7 @@ class C<T> {
     {
       var cTypeBool = cElement.instantiate(
         typeArguments: [typeProvider.boolType],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
 
       var statement = statements[1] as ExpressionStatement;
@@ -2415,7 +2413,7 @@ class C<T> {
     {
       var cTypeDouble = cElement.instantiate(
         typeArguments: [typeProvider.doubleType],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
 
       var statement = statements[2] as ExpressionStatement;
@@ -2438,7 +2436,7 @@ class C<T> {
     {
       var cTypeBool = cElement.instantiate(
         typeArguments: [typeProvider.boolType],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
 
       var statement = statements[3] as ExpressionStatement;
@@ -2555,7 +2553,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    assertDeclaredVariableTypeDynamic(findNode.simple('x,'));
+    assertDeclaredVariableTypeObject(findNode.simple('x,'));
     assertDeclaredVariableType(findNode.simple('y,'), 'StackTrace');
   }
 
@@ -2578,7 +2576,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    assertDeclaredVariableTypeDynamic(findNode.simple('e,'));
+    assertDeclaredVariableTypeObject(findNode.simple('e,'));
     assertDeclaredVariableType(findNode.simple('s})'), 'StackTrace');
   }
 
@@ -2591,7 +2589,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    assertDeclaredVariableTypeDynamic(findNode.simple('e,'));
+    assertDeclaredVariableTypeObject(findNode.simple('e,'));
     assertDeclaredVariableType(findNode.simple('s])'), 'StackTrace');
   }
 
@@ -2686,7 +2684,7 @@ const c = id(a, b);
 
     var invocation = findNode.functionExpressionInvocation('id(');
     assertElement(invocation.function, findElement.topGet('id'));
-    assertInvokeType(invocation, 'bool Function(Object, Object)');
+    assertInvokeType(invocation, 'bool Function(Object?, Object?)');
     assertType(invocation, 'bool');
 
     var aRef = invocation.argumentList.arguments[0];
@@ -4369,26 +4367,24 @@ void f() {
 
   test_local_parameter() async {
     await assertNoErrorsInCode(r'''
-void main(int p) {
+void main(List<String> p) {
   p;
 }
 ''');
-
-    InterfaceType intType = typeProvider.intType;
 
     var main = result.unit!.declarations[0] as FunctionDeclaration;
     List<Statement> statements = _getMainStatements(result);
 
     // (int p)
     VariableElement pElement = main.declaredElement!.parameters[0];
-    expect(pElement.type, intType);
+    expect(pElement.type, listNone(typeProvider.stringType));
 
     // p;
     {
       var statement = statements[0] as ExpressionStatement;
       var identifier = statement.expression as SimpleIdentifier;
       expect(identifier.staticElement, pElement);
-      expect(identifier.staticType, intType);
+      expect(identifier.staticType, listNone(typeProvider.stringType));
     }
   }
 
@@ -5210,7 +5206,7 @@ main() {
 
   test_methodInvocation_explicitCall_functionTarget() async {
     addTestFile(r'''
-main(double computation(int p)) {
+f(double computation(int p)) {
   computation.call(1);
 }
 ''');
@@ -5933,7 +5929,7 @@ typedef T<int> F<T>();
 
   test_outline_type_genericFunction() async {
     addTestFile(r'''
-int Function(double) g() => null;
+int Function(double) g() => (double g) => 0;
 ''');
     await resolveTestFile();
     expect(result.errors, isEmpty);
@@ -5950,8 +5946,8 @@ int Function(double) g() => null;
 
   test_outline_type_topLevelVar_named() async {
     addTestFile(r'''
-int a;
-List<double> b;
+int a = 0;
+List<double> b = [];
 ''');
     await resolveTestFile();
     expect(result.errors, isEmpty);
@@ -6176,7 +6172,7 @@ class C {
 
     SimpleIdentifier prefix = prefixed.prefix;
     expect(prefix.staticElement, same(vElement));
-    expect(prefix.staticType, interfaceTypeStar(cElement));
+    expect(prefix.staticType, interfaceTypeNone(cElement));
 
     SimpleIdentifier identifier = prefixed.identifier;
     expect(identifier.staticElement, same(fElement.getter));
@@ -6216,7 +6212,7 @@ class C {
 
   test_prefixedIdentifier_explicitCall() async {
     addTestFile(r'''
-main(double computation(int p)) {
+f(double computation(int p)) {
   computation.call;
 }
 ''');
@@ -6519,7 +6515,7 @@ class C {
         newC.constructorName.staticElement,
         cClassElement.unnamedConstructor,
       );
-      expect(newC.staticType, interfaceTypeStar(cClassElement));
+      expect(newC.staticType, interfaceTypeNone(cClassElement));
 
       expect(access.propertyName.staticElement, same(fElement.getter));
       expect(access.propertyName.staticType, typeProvider.intType);
@@ -6556,7 +6552,7 @@ class C {
         newC.constructorName.staticElement,
         cClassElement.unnamedConstructor,
       );
-      expect(newC.staticType, interfaceTypeStar(cClassElement));
+      expect(newC.staticType, interfaceTypeNone(cClassElement));
 
       expect(access.propertyName.staticElement, same(fElement.getter));
       expect(access.propertyName.staticType, typeProvider.intType);
@@ -6720,7 +6716,7 @@ class B extends A {
 
       var target = invocation.target as SuperExpression;
       expect(
-          target.staticType, interfaceTypeStar(bNode.declaredElement!)); // raw
+          target.staticType, interfaceTypeNone(bNode.declaredElement!)); // raw
 
       expect(invocation.methodName.staticElement, same(methodElement));
     }
@@ -6742,7 +6738,7 @@ class B extends A {
 
       var target = propertyAccess.target as SuperExpression;
       expect(
-          target.staticType, interfaceTypeStar(bNode.declaredElement!)); // raw
+          target.staticType, interfaceTypeNone(bNode.declaredElement!)); // raw
 
       expect(propertyAccess.propertyName.staticElement, same(getterElement));
       expect(propertyAccess.propertyName.staticType, typeProvider.intType);
@@ -6772,7 +6768,7 @@ class B extends A {
 
       var target = propertyAccess.target as SuperExpression;
       expect(
-          target.staticType, interfaceTypeStar(bNode.declaredElement!)); // raw
+          target.staticType, interfaceTypeNone(bNode.declaredElement!)); // raw
 
       if (hasAssignmentLeftResolution) {
         expect(propertyAccess.propertyName.staticElement, same(setterElement));
@@ -6790,7 +6786,7 @@ class B extends A {
 
       var target = binary.leftOperand as ThisExpression;
       expect(
-          target.staticType, interfaceTypeStar(bNode.declaredElement!)); // raw
+          target.staticType, interfaceTypeNone(bNode.declaredElement!)); // raw
 
       expect(binary.staticElement, same(operatorElement));
       expect(binary.staticType, typeProvider.intType);
@@ -6832,7 +6828,7 @@ class A {
     List<Statement> testStatements = testBody.block.statements;
 
     var elementA = findElement.class_('A');
-    var thisTypeA = interfaceTypeStar(elementA);
+    var thisTypeA = interfaceTypeNone(elementA);
 
     // method(1);
     {
@@ -6998,7 +6994,7 @@ class D extends A<bool> with B<int> implements C<double> {}
     {
       var expectedType = aElement.instantiate(
         typeArguments: [typeProvider.boolType],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
 
       TypeName superClass = dNode.extendsClause!.superclass;
@@ -7012,7 +7008,7 @@ class D extends A<bool> with B<int> implements C<double> {}
     {
       var expectedType = bElement.instantiate(
         typeArguments: [typeProvider.intType],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
 
       TypeName mixinType = dNode.withClause!.mixinTypes[0];
@@ -7026,7 +7022,7 @@ class D extends A<bool> with B<int> implements C<double> {}
     {
       var expectedType = cElement.instantiate(
         typeArguments: [typeProvider.doubleType],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
 
       TypeName implementedType = dNode.implementsClause!.interfaces[0];
@@ -7067,7 +7063,7 @@ class D = A<bool> with B<int> implements C<double>;
     {
       var expectedType = aElement.instantiate(
         typeArguments: [typeProvider.boolType],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
 
       TypeName superClass = dNode.superclass;
@@ -7081,7 +7077,7 @@ class D = A<bool> with B<int> implements C<double>;
     {
       var expectedType = bElement.instantiate(
         typeArguments: [typeProvider.intType],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
 
       TypeName mixinType = dNode.withClause.mixinTypes[0];
@@ -7095,7 +7091,7 @@ class D = A<bool> with B<int> implements C<double>;
     {
       var expectedType = cElement.instantiate(
         typeArguments: [typeProvider.doubleType],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
 
       TypeName interfaceType = dNode.implementsClause!.interfaces[0];
@@ -7407,7 +7403,7 @@ class C<T> {
 
       VariableDeclaration bNode = bDeclaration.fields.variables[0];
       expect(bNode.declaredElement, same(bElement));
-      expect(bElement.type, typeParameterTypeStar(tElement));
+      expect(bElement.type, typeParameterTypeNone(tElement));
       expect(bNode.name.staticElement, same(bElement));
       expect(bNode.name.staticType, isNull);
     }
@@ -7647,7 +7643,7 @@ typedef int F<T>(bool a, T b);
         name: 'b',
         offset: 27,
         kind: ParameterKind.REQUIRED,
-        type: typeParameterTypeStar(aliasElement.typeParameters[0]));
+        type: typeParameterTypeNone(aliasElement.typeParameters[0]));
   }
 
   test_top_typeParameter() async {
@@ -7673,7 +7669,7 @@ class C<T extends A, U extends List<A>, V> {}
       expect(tNode.declaredElement, same(cElement.typeParameters[0]));
 
       var bound = tNode.bound as TypeName;
-      expect(bound.type, interfaceTypeStar(aElement));
+      expect(bound.type, interfaceTypeNone(aElement));
 
       var boundIdentifier = bound.name as SimpleIdentifier;
       expect(boundIdentifier.staticElement, same(aElement));
@@ -7683,8 +7679,8 @@ class C<T extends A, U extends List<A>, V> {}
     {
       var listElement = typeProvider.listElement;
       var listOfA = listElement.instantiate(
-        typeArguments: [interfaceTypeStar(aElement)],
-        nullabilitySuffix: NullabilitySuffix.star,
+        typeArguments: [interfaceTypeNone(aElement)],
+        nullabilitySuffix: NullabilitySuffix.none,
       );
 
       TypeParameter uNode = cNode.typeParameters!.typeParameters[1];
@@ -7698,7 +7694,7 @@ class C<T extends A, U extends List<A>, V> {}
       expect(listIdentifier.staticType, isNull);
 
       var aTypeName = bound.typeArguments!.arguments[0] as TypeName;
-      expect(aTypeName.type, interfaceTypeStar(aElement));
+      expect(aTypeName.type, interfaceTypeNone(aElement));
 
       var aIdentifier = aTypeName.name as SimpleIdentifier;
       expect(aIdentifier.staticElement, same(aElement));
@@ -7745,7 +7741,7 @@ void main() {
       var exceptionNode = catchClause.exceptionParameter as SimpleIdentifier;
       var exceptionElement =
           exceptionNode.staticElement as LocalVariableElement;
-      expect(exceptionElement.type, DynamicTypeImpl.instance);
+      expect(exceptionElement.type, typeProvider.objectType);
 
       var stackNode = catchClause.stackTraceParameter as SimpleIdentifier;
       var stackElement = stackNode.staticElement as LocalVariableElement;
@@ -7757,7 +7753,7 @@ void main() {
       var exceptionIdentifier =
           exceptionStatement.expression as SimpleIdentifier;
       expect(exceptionIdentifier.staticElement, same(exceptionElement));
-      expect(exceptionIdentifier.staticType, DynamicTypeImpl.instance);
+      expect(exceptionIdentifier.staticType, typeProvider.objectType);
 
       var stackStatement = catchStatements[1] as ExpressionStatement;
       var stackIdentifier = stackStatement.expression as SimpleIdentifier;
@@ -7805,7 +7801,7 @@ void main() {
       var exceptionNode = catchClause.exceptionParameter as SimpleIdentifier;
       var exceptionElement =
           exceptionNode.staticElement as LocalVariableElement;
-      expect(exceptionElement.type, DynamicTypeImpl.instance);
+      expect(exceptionElement.type, typeProvider.objectType);
     }
 
     // on int catch (e)
@@ -8206,7 +8202,7 @@ main() {
     var statement = statements[0] as ExpressionStatement;
 
     var creation = statement.expression as InstanceCreationExpression;
-    expect(creation.staticType, interfaceTypeStar(randomElement));
+    expect(creation.staticType, interfaceTypeNone(randomElement));
 
     ConstructorName constructorName = creation.constructorName;
 

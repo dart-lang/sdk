@@ -177,8 +177,15 @@ abstract class AbstractAnalysisServer {
           CompletionLibrariesWorker(declarationsTracker);
     }
 
-    contextManager = ContextManagerImpl(resourceProvider, sdkManager,
-        analyzedFilesGlobs, instrumentationService);
+    contextManager = ContextManagerImpl(
+      resourceProvider,
+      sdkManager,
+      byteStore,
+      analysisPerformanceLogger,
+      analysisDriverScheduler,
+      analyzedFilesGlobs,
+      instrumentationService,
+    );
     searchEngine = SearchEngineImpl(driverMap.values);
   }
 
@@ -217,6 +224,7 @@ abstract class AbstractAnalysisServer {
   }
 
   void addContextsToDeclarationsTracker() {
+    declarationsTracker?.discardContexts();
     for (var driver in driverMap.values) {
       declarationsTracker?.addContext(driver.analysisContext);
       driver.resetUriResolution();
@@ -408,11 +416,6 @@ abstract class AbstractAnalysisServer {
     /*StackTrace*/ stackTrace, {
     bool fatal = false,
   });
-
-  void updateContextInDeclarationsTracker(nd.AnalysisDriver driver) {
-    declarationsTracker?.discardContext(driver.analysisContext);
-    declarationsTracker?.addContext(driver.analysisContext);
-  }
 
   /// Return the path to the location of the byte store on disk, or `null` if
   /// there is no on-disk byte store.

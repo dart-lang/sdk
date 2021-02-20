@@ -505,6 +505,20 @@ abstract class VmServiceInterface {
   Future<AllocationProfile> getAllocationProfile(String isolateId,
       {bool? reset, bool? gc});
 
+  /// The `getAllocationTraces` RPC allows for the retrieval of allocation
+  /// traces for objects of a specific set of types (see
+  /// [setTraceClassAllocation]). Only samples collected in the time range
+  /// `[timeOriginMicros, timeOriginMicros + timeExtentMicros]` will be
+  /// reported.
+  ///
+  /// If `classId` is provided, only traces for allocations with the matching
+  /// `classId` will be reported.
+  ///
+  /// If the profiler is disabled, an RPC error response will be returned.
+  ///
+  /// If isolateId refers to an isolate which has exited, then the Collected
+  /// Sentinel is returned.
+  ///
   /// See [CpuSamples].
   Future<CpuSamples> getAllocationTraces(
     String isolateId, {
@@ -1061,6 +1075,16 @@ abstract class VmServiceInterface {
   /// returned.
   Future<Success> setName(String isolateId, String name);
 
+  /// The `setTraceClassAllocation` RPC allows for enabling or disabling
+  /// allocation tracing for a specific type of object. Allocation traces can be
+  /// retrieved with the `getAllocationTraces` RPC.
+  ///
+  /// If `enable` is true, allocations of objects of the class represented by
+  /// `classId` will be traced.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [Success].
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
@@ -1574,12 +1598,25 @@ class VmServerConnection {
   }
 }
 
+class _OutstandingRequest<T> {
+  _OutstandingRequest(this.method);
+  static int _idCounter = 0;
+  final String id = '${_idCounter++}';
+  final String method;
+  final StackTrace _stackTrace = StackTrace.current;
+  final Completer<T> _completer = Completer<T>();
+
+  Future<T> get future => _completer.future;
+
+  void complete(T value) => _completer.complete(value);
+  void completeError(Object error) =>
+      _completer.completeError(error, _stackTrace);
+}
+
 class VmService implements VmServiceInterface {
   late final StreamSubscription _streamSub;
   late final Function _writeMessage;
-  int _id = 0;
-  Map<String, Completer> _completers = {};
-  Map<String, String> _methodCalls = {};
+  final Map<String, _OutstandingRequest> _outstandingRequests = {};
   Map<String, ServiceCallback> _services = {};
   late final Log _log;
 
@@ -2019,12 +2056,14 @@ class VmService implements VmServiceInterface {
 
   Future<void> dispose() async {
     await _streamSub.cancel();
-    _completers.forEach((id, c) {
-      final method = _methodCalls[id];
-      return c.completeError(RPCError(
-          method, RPCError.kServerError, 'Service connection disposed'));
+    _outstandingRequests.forEach((id, request) {
+      request._completer.completeError(RPCError(
+        request.method,
+        RPCError.kServerError,
+        'Service connection disposed',
+      ));
     });
-    _completers.clear();
+    _outstandingRequests.clear();
     if (_disposeHandler != null) {
       await _disposeHandler!();
     }
@@ -2035,21 +2074,19 @@ class VmService implements VmServiceInterface {
 
   Future get onDone => _onDoneCompleter.future;
 
-  Future<T> _call<T>(String method, [Map args = const {}]) {
-    String id = '${++_id}';
-    Completer<T> completer = Completer<T>();
-    _completers[id] = completer;
-    _methodCalls[id] = method;
+  Future<T> _call<T>(String method, [Map args = const {}]) async {
+    final request = _OutstandingRequest(method);
+    _outstandingRequests[request.id] = request;
     Map m = {
       'jsonrpc': '2.0',
-      'id': id,
+      'id': request.id,
       'method': method,
       'params': args,
     };
     String message = jsonEncode(m);
     _onSend.add(message);
     _writeMessage(message);
-    return completer.future;
+    return await request.future as T;
   }
 
   /// Register a service for invocation.
@@ -2119,22 +2156,21 @@ class VmService implements VmServiceInterface {
   }
 
   void _processResponse(Map<String, dynamic> json) {
-    Completer? completer = _completers.remove(json['id']);
-    String methodName = _methodCalls.remove(json['id'])!;
-    List<String> returnTypes = _methodReturnTypes[methodName] ?? [];
-    if (completer == null) {
+    final request = _outstandingRequests.remove(json['id']);
+    if (request == null) {
       _log.severe('unmatched request response: ${jsonEncode(json)}');
     } else if (json['error'] != null) {
-      completer.completeError(RPCError.parse(methodName, json['error']));
+      request.completeError(RPCError.parse(request.method, json['error']));
     } else {
       Map<String, dynamic> result = json['result'] as Map<String, dynamic>;
       String type = result['type'];
       if (type == 'Sentinel') {
-        completer.completeError(SentinelException.parse(methodName, result));
+        request.completeError(SentinelException.parse(request.method, result));
       } else if (_typeFactories[type] == null) {
-        completer.complete(Response.parse(result));
+        request.complete(Response.parse(result));
       } else {
-        completer.complete(createServiceObject(result, returnTypes));
+        List<String> returnTypes = _methodReturnTypes[request.method] ?? [];
+        request.complete(createServiceObject(result, returnTypes));
       }
     }
   }
@@ -6645,8 +6681,7 @@ class ScriptRef extends ObjRef {
 /// line number followed by `(tokenPos, columnNumber)` pairs:
 ///
 /// ```
-/// [
-/// ```lineNumber, (tokenPos, columnNumber)*]
+/// [lineNumber, (tokenPos, columnNumber)*]
 /// ```
 ///
 /// The `tokenPos` is an arbitrary integer value that is used to represent a
@@ -6656,10 +6691,7 @@ class ScriptRef extends ObjRef {
 /// For example, a `tokenPosTable` with the value...
 ///
 /// ```
-/// [
-/// ```[
-/// ```1, 100, 5, 101, 8],[
-/// ```2, 102, 7]]
+/// [[1, 100, 5, 101, 8],[2, 102, 7]]
 /// ```
 ///
 /// ...encodes the mapping:

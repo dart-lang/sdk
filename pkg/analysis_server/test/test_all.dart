@@ -11,7 +11,6 @@ import 'benchmarks_test.dart' as benchmarks;
 import 'channel/test_all.dart' as channel;
 import 'client/test_all.dart' as client;
 import 'completion_test.dart' as completion;
-import 'context_manager_test.dart' as context_manager;
 import 'domain_analysis_test.dart' as domain_analysis;
 import 'domain_completion_test.dart' as domain_completion;
 import 'domain_diagnostic_test.dart' as domain_experimental;
@@ -39,7 +38,6 @@ void main() {
     channel.main();
     client.main();
     completion.main();
-    context_manager.main();
     domain_analysis.main();
     domain_completion.main();
     domain_edit_dartfix.main();

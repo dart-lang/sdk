@@ -266,7 +266,7 @@ class A {
     assertValidId(result2.id);
 
     // Wait for all processing to be complete
-    await analysisHandler.server.analysisDriverScheduler.waitForIdle();
+    await analysisHandler.server.onAnalysisComplete;
     await pumpEventQueue();
 
     // Assert that first request has been aborted
@@ -304,7 +304,7 @@ class A {
     assertValidId(completionId);
 
     // Wait for all processing to be complete
-    await analysisHandler.server.analysisDriverScheduler.waitForIdle();
+    await analysisHandler.server.onAnalysisComplete;
     await pumpEventQueue();
 
     // Assert that request has been aborted

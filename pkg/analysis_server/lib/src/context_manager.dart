@@ -5,17 +5,18 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
+import 'dart:io';
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/context/context_root.dart';
-import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -25,11 +26,8 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
-import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:analyzer/src/source/path_filter.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/glob.dart';
-import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
@@ -44,153 +42,6 @@ import 'package:yaml/yaml.dart';
 /// it and re-enable it everywhere.
 /// Not private to enable testing.
 var experimentalEnableBazelWatching = false;
-
-/// An indication of which files have been added, changed, removed, or deleted.
-///
-/// No file should be added to the change set more than once, either with the
-/// same or a different kind of change. It does not make sense, for example,
-/// for a file to be both added and removed.
-class ChangeSet {
-  /// A list containing paths of added files.
-  final List<String> addedFiles = [];
-
-  /// A list containing paths of changed files.
-  final List<String> changedFiles = [];
-
-  /// A list containing paths of removed files.
-  final List<String> removedFiles = [];
-
-  /// Record that the file with the specified [path] has been added.
-  void addedSource(String path) {
-    addedFiles.add(path);
-  }
-
-  /// Record that the file with the specified [path] has been removed.
-  void removedSource(String path) {
-    removedFiles.add(path);
-  }
-}
-
-/// Information tracked by the [ContextManager] for each context.
-class ContextInfo {
-  /// The [Folder] for which this information object is created.
-  final Folder folder;
-
-  /// The [PathFilter] used to filter sources from being analyzed.
-  final PathFilter pathFilter;
-
-  /// The enclosed pubspec-based contexts.
-  final List<ContextInfo> children = <ContextInfo>[];
-
-  /// The [ContextInfo] that encloses this one, or `null` if this is the virtual
-  /// [ContextInfo] object that acts as the ancestor of all other [ContextInfo]
-  /// objects.
-  ContextInfo parent;
-
-  /// The package description file path for this context.
-  String packageDescriptionPath;
-
-  /// The folder disposition for this context.
-  final FolderDisposition disposition;
-
-  /// Paths to files which determine the folder disposition and package map.
-  ///
-  /// TODO(paulberry): if any of these files are outside of [folder], they won't
-  /// be watched for changes.  I believe the use case for watching these files
-  /// is no longer relevant.
-  Set<String> _dependencies = <String>{};
-
-  /// The analysis driver that was created for the [folder].
-  AnalysisDriver analysisDriver;
-
-  /// Map from full path to the [Source] object, for each source that has been
-  /// added to the context.
-  Map<String, Source> sources = HashMap<String, Source>();
-
-  ContextInfo(ContextManagerImpl contextManager, this.parent, this.folder,
-      File packagespecFile, this.disposition)
-      : pathFilter = PathFilter(
-            folder.path, null, contextManager.resourceProvider.pathContext) {
-    packageDescriptionPath = packagespecFile.path;
-    parent.children.add(this);
-  }
-
-  /// Create the virtual [ContextInfo] which acts as an ancestor to all other
-  /// [ContextInfo]s.
-  ContextInfo._root()
-      : folder = null,
-        pathFilter = null,
-        disposition = null;
-
-  /// Iterate through all [children] and their children, recursively.
-  Iterable<ContextInfo> get descendants sync* {
-    for (var child in children) {
-      yield child;
-      yield* child.descendants;
-    }
-  }
-
-  /// Returns `true` if this is a "top level" context, meaning that the folder
-  /// associated with it is not contained within any other folders that have an
-  /// associated context.
-  bool get isTopLevel => parent.parent == null;
-
-  /// Returns `true` if [path] is excluded, as it is in one of the children.
-  bool excludes(String path) {
-    return children.any((child) {
-      return child.folder.contains(path);
-    });
-  }
-
-  /// Returns `true` if [resource] is excluded, as it is in one of the children.
-  bool excludesResource(Resource resource) => excludes(resource.path);
-
-  /// Return the first [ContextInfo] in [children] whose associated folder is or
-  /// contains [path].  If there is no such [ContextInfo], return `null`.
-  ContextInfo findChildInfoFor(String path) {
-    for (var info in children) {
-      if (info.folder.isOrContains(path)) {
-        return info;
-      }
-    }
-    return null;
-  }
-
-  /// Determine if the given [path] is one of the dependencies most recently
-  /// passed to [setDependencies].
-  bool hasDependency(String path) => _dependencies.contains(path);
-
-  /// Returns `true` if  [path] should be ignored.
-  bool ignored(String path) => pathFilter.ignored(path);
-
-  /// Update the set of dependencies for this context.
-  void setDependencies(Iterable<String> newDependencies) {
-    _dependencies = newDependencies.toSet();
-  }
-
-  /// Return `true` if the given [path] is managed by this context or by
-  /// any of its children.
-  bool _managesOrHasChildThatManages(String path) {
-    if (parent == null) {
-      for (var child in children) {
-        if (child._managesOrHasChildThatManages(path)) {
-          return true;
-        }
-      }
-      return false;
-    } else {
-      if (!folder.isOrContains(path)) {
-        return false;
-      }
-      for (var child in children) {
-        if (child._managesOrHasChildThatManages(path)) {
-          return true;
-        }
-      }
-      return !pathFilter.ignored(path);
-    }
-  }
-}
 
 /// Class that maintains a mapping from included/excluded paths to a set of
 /// folders that should correspond to analysis contexts.
@@ -224,16 +75,10 @@ abstract class ContextManager {
   /// to [setRoots].
   List<String> get includedPaths;
 
-  /// Like [getDriverFor], but returns the [Folder] which allows plugins to
-  /// create & manage their own tree of drivers just like using [getDriverFor].
-  ///
-  /// This folder should be the root of analysis context, not just the
-  /// containing folder of the path (like basename), as this is NOT just a file
-  /// API.
-  ///
-  /// This exists at least temporarily, for plugin support until the new API is
-  /// ready.
-  Folder getContextFolderFor(String path);
+  /// Return the existing analysis context that should be used to analyze the
+  /// given [path], or `null` if the [path] is not analyzed in any of the
+  /// created analysis contexts.
+  DriverBasedAnalysisContext getContextFor(String path);
 
   /// Return the [AnalysisDriver] for the "innermost" context whose associated
   /// folder is or contains the given path.  ("innermost" refers to the nesting
@@ -244,32 +89,19 @@ abstract class ContextManager {
   /// If no driver contains the given path, `null` is returned.
   AnalysisDriver getDriverFor(String path);
 
-  /// Return a list of all of the analysis drivers reachable from the given
-  /// [analysisRoot] (the driver associated with [analysisRoot] and all of its
-  /// descendants).
-  List<AnalysisDriver> getDriversInAnalysisRoot(Folder analysisRoot);
-
   /// Determine whether the given [path], when interpreted relative to innermost
   /// context root, contains a folder whose name starts with '.'.
+  ///
+  /// TODO(scheglov) Remove it, just [isInAnalysisRoot] should be enough.
   bool isContainedInDotFolder(String path);
-
-  /// Return `true` if the given [path] is ignored by a [ContextInfo] whose
-  /// folder contains it.
-  bool isIgnored(String path);
 
   /// Return `true` if the given absolute [path] is in one of the current
   /// root folders and is not excluded.
   bool isInAnalysisRoot(String path);
 
-  /// Return the number of contexts reachable from the given [analysisRoot] (the
-  /// context associated with [analysisRoot] and all of its descendants).
-  int numberOfContextsInAnalysisRoot(Folder analysisRoot);
-
   /// Rebuild the set of contexts from scratch based on the data last sent to
-  /// [setRoots]. Only contexts contained in the given list of analysis [roots]
-  /// will be rebuilt, unless the list is `null`, in which case every context
-  /// will be rebuilt.
-  void refresh(List<Resource> roots);
+  /// [setRoots].
+  void refresh();
 
   /// Change the set of paths which should be used as starting points to
   /// determine the context directories.
@@ -288,34 +120,23 @@ abstract class ContextManagerCallbacks {
   /// Return the notification manager associated with the server.
   AbstractNotificationManager get notificationManager;
 
-  /// Create and return a new analysis driver rooted at the given [folder].
-  AnalysisDriver addAnalysisDriver(Folder folder, ContextRoot contextRoot);
-
   /// Called after contexts are rebuilt, such as after recovering from a watcher
   /// failure.
-  void afterContextRefresh();
+  void afterContextsCreated();
 
   /// An [event] was processed, so analysis state might be different now.
   void afterWatchEvent(WatchEvent event);
 
-  /// Called when analysis options or URI resolution in the [driver] are
-  /// changed.
-  void analysisOptionsUpdated(AnalysisDriver driver);
-
-  /// Called when the set of files associated with a context have changed (or
-  /// some of those files have been modified).  [changeSet] is the set of
-  /// changes that need to be applied to the context.
-  void applyChangesToContext(Folder contextFolder, ChangeSet changeSet);
-
-  /// The given [file] was removed from the folder analyzed in the [driver].
-  void applyFileRemoved(AnalysisDriver driver, String file);
+  /// The given [file] was removed.
+  void applyFileRemoved(String file);
 
   /// Sent the given watch [event] to any interested plugins.
   void broadcastWatchEvent(WatchEvent event);
 
-  /// Create and return a context builder that can be used to create a context
-  /// for the files in the given [folder].
-  ContextBuilder createContextBuilder(Folder folder);
+  /// Add listeners to the [driver]. This must be the only listener.
+  ///
+  /// TODO(scheglov) Just pass results in here?
+  void listenAnalysisDriver(AnalysisDriver driver);
 
   /// Remove the context associated with the given [folder].  [flushedFiles] is
   /// a list of the files which will be "orphaned" by removing this context
@@ -348,6 +169,18 @@ class ContextManagerImpl implements ContextManager {
   /// particular context.
   final DartSdkManager sdkManager;
 
+  /// The storage for cached results.
+  final ByteStore _byteStore;
+
+  /// The logger used to create analysis contexts.
+  final PerformanceLog _performanceLog;
+
+  /// The scheduler used to create analysis contexts, and report status.
+  final AnalysisDriverScheduler _scheduler;
+
+  /// The current set of analysis contexts.
+  AnalysisContextCollectionImpl _collection;
+
   /// The context used to work with file system paths.
   pathos.Context pathContext;
 
@@ -370,10 +203,6 @@ class ContextManagerImpl implements ContextManager {
   @override
   ContextManagerCallbacks callbacks;
 
-  /// Virtual [ContextInfo] which acts as the ancestor of all other
-  /// [ContextInfo]s.
-  final ContextInfo rootInfo = ContextInfo._root();
-
   @override
   final Map<Folder, AnalysisDriver> driverMap =
       HashMap<Folder, AnalysisDriver>();
@@ -391,6 +220,9 @@ class ContextManagerImpl implements ContextManager {
   ContextManagerImpl(
     this.resourceProvider,
     this.sdkManager,
+    this._byteStore,
+    this._performanceLog,
+    this._scheduler,
     this.analyzedFilesGlobs,
     this._instrumentationService,
   ) {
@@ -398,313 +230,50 @@ class ContextManagerImpl implements ContextManager {
   }
 
   @override
-  Folder getContextFolderFor(String path) {
-    return _getInnermostContextInfoFor(path)?.folder;
-  }
-
-  /// For testing: get the [ContextInfo] object for the given [folder], if any.
-  ContextInfo getContextInfoFor(Folder folder) {
-    var info = _getInnermostContextInfoFor(folder.path);
-    if (info != null && folder == info.folder) {
-      return info;
+  DriverBasedAnalysisContext getContextFor(String path) {
+    try {
+      return _collection?.contextFor(path);
+    } on StateError {
+      return null;
     }
-    return null;
   }
 
   @override
   AnalysisDriver getDriverFor(String path) {
-    return _getInnermostContextInfoFor(path)?.analysisDriver;
-  }
-
-  @override
-  List<AnalysisDriver> getDriversInAnalysisRoot(Folder analysisRoot) {
-    var drivers = <AnalysisDriver>[];
-    void addContextAndDescendants(ContextInfo info) {
-      drivers.add(info.analysisDriver);
-      info.children.forEach(addContextAndDescendants);
-    }
-
-    var innermostContainingInfo =
-        _getInnermostContextInfoFor(analysisRoot.path);
-    if (innermostContainingInfo != null) {
-      if (analysisRoot == innermostContainingInfo.folder) {
-        addContextAndDescendants(innermostContainingInfo);
-      } else {
-        for (var info in innermostContainingInfo.children) {
-          if (analysisRoot.isOrContains(info.folder.path)) {
-            addContextAndDescendants(info);
-          }
-        }
-      }
-    }
-    return drivers;
+    return getContextFor(path)?.driver;
   }
 
   /// Determine whether the given [path], when interpreted relative to innermost
   /// context root, contains a folder whose name starts with '.'.
   @override
   bool isContainedInDotFolder(String path) {
-    var info = _getInnermostContextInfoFor(path);
-    return info != null && _isContainedInDotFolder(info.folder.path, path);
-  }
-
-  @override
-  bool isIgnored(String path) {
-    var info = rootInfo;
-    do {
-      info = info.findChildInfoFor(path);
-      if (info == null) {
-        return false;
-      }
-      if (info.ignored(path)) {
-        return true;
-      }
-    } while (true);
-  }
-
-  @override
-  bool isInAnalysisRoot(String path) {
-    // check if excluded
-    if (_isExcluded(path)) {
-      return false;
-    }
-    // check if in one of the roots
-    for (var info in rootInfo.children) {
-      if (info.folder.contains(path)) {
+    for (var analysisContext in _collection.contexts) {
+      var contextImpl = analysisContext as DriverBasedAnalysisContext;
+      if (_isContainedInDotFolder(contextImpl.contextRoot.root.path, path)) {
         return true;
       }
     }
-    // no
     return false;
   }
 
   @override
-  int numberOfContextsInAnalysisRoot(Folder analysisRoot) {
-    var count = 0;
-    void addContextAndDescendants(ContextInfo info) {
-      count++;
-      info.children.forEach(addContextAndDescendants);
-    }
-
-    var innermostContainingInfo =
-        _getInnermostContextInfoFor(analysisRoot.path);
-    if (innermostContainingInfo != null) {
-      if (analysisRoot == innermostContainingInfo.folder) {
-        addContextAndDescendants(innermostContainingInfo);
-      } else {
-        for (var info in innermostContainingInfo.children) {
-          if (analysisRoot.isOrContains(info.folder.path)) {
-            addContextAndDescendants(info);
-          }
-        }
-      }
-    }
-    return count;
-  }
-
-  /// Process [options] for the given context [info].
-  void processOptionsForDriver(
-      ContextInfo info, AnalysisOptionsImpl analysisOptions, YamlMap options) {
-    if (options == null) {
-      return;
-    }
-
-    // Check for embedded options.
-    var embeddedOptions = _getEmbeddedOptions(info);
-    if (embeddedOptions != null) {
-      options = Merger().merge(embeddedOptions, options);
-    }
-
-    applyToAnalysisOptions(analysisOptions, options);
-
-    if (analysisOptions.excludePatterns != null) {
-      // Set ignore patterns.
-      setIgnorePatternsForContext(info, analysisOptions.excludePatterns);
-    }
+  bool isInAnalysisRoot(String path) {
+    return _collection.contexts.any(
+      (context) => context.contextRoot.isAnalyzed(path),
+    );
   }
 
   @override
-  void refresh(List<Resource> roots) {
-    // Destroy old contexts
-    var contextInfos = rootInfo.descendants.toList();
-    if (roots == null) {
-      contextInfos.forEach(_destroyContext);
-    } else {
-      roots.forEach((Resource resource) {
-        contextInfos.forEach((ContextInfo contextInfo) {
-          if (resource is Folder &&
-              resource.isOrContains(contextInfo.folder.path)) {
-            _destroyContext(contextInfo);
-          }
-        });
-      });
-    }
-
-    // Rebuild contexts based on the data last sent to setRoots().
-    setRoots(includedPaths, excludedPaths);
-
-    callbacks.afterContextRefresh();
-  }
-
-  /// Sets the [ignorePatterns] for the context having info [info].
-  void setIgnorePatternsForContext(
-      ContextInfo info, List<String> ignorePatterns) {
-    info.pathFilter.setIgnorePatterns(ignorePatterns);
+  void refresh() {
+    _createAnalysisContexts();
   }
 
   @override
   void setRoots(List<String> includedPaths, List<String> excludedPaths) {
-    var contextInfos = rootInfo.descendants.toList();
-    // included
-    var includedFolders = <Folder>[];
-    {
-      // Sort paths to ensure that outer roots are handled before inner roots,
-      // so we can correctly ignore inner roots, which are already managed
-      // by outer roots.
-      var uniqueIncludedPaths = LinkedHashSet<String>.from(includedPaths);
-      var sortedIncludedPaths = uniqueIncludedPaths.toList();
-      sortedIncludedPaths.sort((a, b) => a.length - b.length);
-      // Convert paths to folders.
-      for (var path in sortedIncludedPaths) {
-        var resource = resourceProvider.getResource(path);
-        if (resource is Folder) {
-          includedFolders.add(resource);
-        } else if (!resource.exists) {
-          // Non-existent resources are ignored.  TODO(paulberry): we should set
-          // up a watcher to ensure that if the resource appears later, we will
-          // begin analyzing it.
-        } else {
-          // TODO(scheglov) implemented separate files analysis
-          throw UnimplementedError('$path is not a folder. '
-              'Only support for folder analysis is implemented currently.');
-        }
-      }
-    }
     this.includedPaths = includedPaths;
-    // excluded
-    var oldExcludedPaths = this.excludedPaths;
     this.excludedPaths = excludedPaths;
-    // destroy old contexts
-    for (var contextInfo in contextInfos) {
-      var isIncluded = includedFolders.any((folder) {
-        return folder.isOrContains(contextInfo.folder.path);
-      });
-      if (!isIncluded) {
-        _destroyContext(contextInfo);
-      }
-    }
-    // create new contexts
-    for (var includedFolder in includedFolders) {
-      var includedPath = includedFolder.path;
-      var isManaged = rootInfo._managesOrHasChildThatManages(includedPath);
-      if (!isManaged) {
-        var parent = _getParentForNewContext(includedPath);
-        changeSubscriptions[includedFolder] = includedFolder.changes
-            .listen(_handleWatchEvent, onError: _handleWatchInterruption);
-        _createContexts(parent, includedFolder, excludedPaths, false);
-      }
-    }
-    // remove newly excluded sources
-    for (var info in rootInfo.descendants) {
-      // prepare excluded sources
-      Map<String, Source> excludedSources = HashMap<String, Source>();
-      info.sources.forEach((String path, Source source) {
-        if (_isExcludedBy(excludedPaths, path) &&
-            !_isExcludedBy(oldExcludedPaths, path)) {
-          excludedSources[path] = source;
-        }
-      });
-      // apply exclusion
-      var changeSet = ChangeSet();
-      excludedSources.forEach((String path, Source source) {
-        info.sources.remove(path);
-        changeSet.removedSource(path);
-      });
-      callbacks.applyChangesToContext(info.folder, changeSet);
-    }
-    // add previously excluded sources
-    for (var info in rootInfo.descendants) {
-      var changeSet = ChangeSet();
-      _addPreviouslyExcludedSources(
-          info, changeSet, info.folder, oldExcludedPaths);
-      callbacks.applyChangesToContext(info.folder, changeSet);
-    }
-  }
 
-  /// Recursively adds all Dart and HTML files to the [changeSet].
-  void _addPreviouslyExcludedSources(ContextInfo info, ChangeSet changeSet,
-      Folder folder, List<String> oldExcludedPaths) {
-    if (info.excludesResource(folder)) {
-      return;
-    }
-    List<Resource> children;
-    try {
-      children = folder.getChildren();
-    } on FileSystemException {
-      // The folder no longer exists, or cannot be read, to there's nothing to
-      // do.
-      return;
-    }
-    for (var child in children) {
-      var path = child.path;
-      // Path is being ignored.
-      if (info.ignored(path)) {
-        continue;
-      }
-      // add files, recurse into folders
-      if (child is File) {
-        // ignore if should not be analyzed at all
-        if (!_shouldFileBeAnalyzed(child)) {
-          continue;
-        }
-        // ignore if was not excluded
-        var wasExcluded = _isExcludedBy(oldExcludedPaths, path) &&
-            !_isExcludedBy(excludedPaths, path);
-        if (!wasExcluded) {
-          continue;
-        }
-        // do add the file
-        var source = createSourceInContext(info.analysisDriver, child);
-        changeSet.addedSource(child.path);
-        info.sources[path] = source;
-      } else if (child is Folder) {
-        _addPreviouslyExcludedSources(info, changeSet, child, oldExcludedPaths);
-      }
-    }
-  }
-
-  /// Recursively adds all Dart and HTML files to the [changeSet].
-  void _addSourceFiles(ChangeSet changeSet, Folder folder, ContextInfo info) {
-    if (info.excludesResource(folder) ||
-        folder.shortName.startsWith('.') ||
-        _isInTopLevelDocDir(info.folder.path, folder.path)) {
-      return;
-    }
-    List<Resource> children;
-    try {
-      children = folder.getChildren();
-    } on FileSystemException {
-      // The directory either doesn't exist or cannot be read. Either way, there
-      // are no children that need to be added.
-      return;
-    }
-    for (var child in children) {
-      var path = child.path;
-      // ignore excluded files or folders
-      if (_isExcluded(path) || info.excludes(path) || info.ignored(path)) {
-        continue;
-      }
-      // add files, recurse into folders
-      if (child is File) {
-        if (_shouldFileBeAnalyzed(child)) {
-          var source = createSourceInContext(info.analysisDriver, child);
-          changeSet.addedSource(child.path);
-          info.sources[path] = source;
-        }
-      } else if (child is Folder) {
-        _addSourceFiles(changeSet, child, info);
-      }
-    }
+    _createAnalysisContexts();
   }
 
   /// Use the given analysis [driver] to analyze the content of the analysis
@@ -839,115 +408,20 @@ class ContextManagerImpl implements ContextManager {
         convertedErrors ?? <protocol.AnalysisError>[]);
   }
 
-  void _checkForAnalysisOptionsUpdate(String path, ContextInfo info) {
-    if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
-      var driver = info.analysisDriver;
-      if (driver == null) {
-        // I suspect that this happens as a result of a race condition: server
-        // has determined that the file (at [path]) is in a context, but hasn't
-        // yet created a driver for that context.
-        return;
-      }
-      // TODO(brianwilkerson) Set exclusion patterns.
-      _analyzeAnalysisOptionsFile(driver, path);
-      _updateAnalysisOptions(info);
-    }
-  }
-
-  void _checkForDataFileUpdate(String path, ContextInfo info) {
+  void _checkForDataFileUpdate(String path) {
     if (_isDataFile(path)) {
-      var driver = info.analysisDriver;
-      if (driver == null) {
-        // I suspect that this happens as a result of a race condition: server
-        // has determined that the file (at [path]) is in a context, but hasn't
-        // yet created a driver for that context.
-        return;
-      }
+      var context = getContextFor(path);
+      var driver = context.driver;
       _analyzeDataFile(driver, path);
     }
   }
 
-  void _checkForManifestUpdate(String path, ContextInfo info) {
+  void _checkForManifestUpdate(String path) {
     if (_isManifest(path)) {
-      var driver = info.analysisDriver;
-      if (driver == null) {
-        // I suspect that this happens as a result of a race condition: server
-        // has determined that the file (at [path]) is in a context, but hasn't
-        // yet created a driver for that context.
-        return;
-      }
+      var context = getContextFor(path);
+      var driver = context.driver;
       _analyzeManifestFile(driver, path);
     }
-  }
-
-  void _checkForPackagespecUpdate(String path, ContextInfo info) {
-    // Check to see if this is `.dart_tool/package_config.json` or `.packages`
-    // file for this context and if so, update the context's source factory.
-    if (_isPackageConfigJsonFilePath(path) || _isDotPackagesFilePath(path)) {
-      var driver = info.analysisDriver;
-      if (driver == null) {
-        // I suspect that this happens as a result of a race condition: server
-        // has determined that the file (at [path]) is in a context, but hasn't
-        // yet created a driver for that context.
-        return;
-      }
-
-      _updateAnalysisOptions(info);
-      final optionsFile = info?.analysisDriver?.contextRoot?.optionsFilePath;
-      if (optionsFile != null) {
-        _analyzeAnalysisOptionsFile(driver, optionsFile);
-      }
-    }
-  }
-
-  void _checkForPubspecUpdate(String path, ContextInfo info) {
-    if (_isPubspec(path)) {
-      var driver = info.analysisDriver;
-      if (driver == null) {
-        // I suspect that this happens as a result of a race condition: server
-        // has determined that the file (at [path]) is in a context, but hasn't
-        // yet created a driver for that context.
-        return;
-      }
-      _analyzePubspecFile(driver, path);
-      _updateAnalysisOptions(info);
-    }
-  }
-
-  /// Compute the set of files that are being flushed, this is defined as
-  /// the set of sources in the removed context (context.sources), that are
-  /// orphaned by this context being removed (no other context includes this
-  /// file.)
-  List<String> _computeFlushedFiles(ContextInfo info) {
-    var flushedFiles = info.analysisDriver.addedFiles.toSet();
-    for (var contextInfo in rootInfo.descendants) {
-      var other = contextInfo.analysisDriver;
-      if (other != info.analysisDriver) {
-        flushedFiles.removeAll(other.addedFiles);
-      }
-    }
-    return flushedFiles.toList(growable: false);
-  }
-
-  /// Compute the appropriate [FolderDisposition] for [folder].  Use
-  /// [addDependency] to indicate which files needed to be consulted in order to
-  /// figure out the [FolderDisposition]; these dependencies will be watched in
-  /// order to determine when it is necessary to call this function again.
-  ///
-  /// TODO(paulberry): use [addDependency] for tracking all folder disposition
-  /// dependencies (currently we only use it to track "pub list" dependencies).
-  FolderDisposition _computeFolderDisposition(Folder folder,
-      void Function(String path) addDependency, File packagespecFile) {
-    // Try .packages first.
-    if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
-      var packages = parsePackagesFile(
-        resourceProvider,
-        packagespecFile,
-      );
-      return PackagesFileDisposition(packages);
-    }
-
-    return NoPackageFolderDisposition();
   }
 
   /// Compute line information for the given [content].
@@ -956,270 +430,98 @@ class ContextManagerImpl implements ContextManager {
     return LineInfo(lineStarts);
   }
 
-  /// Create an object that can be used to find and read the analysis options
-  /// file for code being analyzed using the given [packages].
-  AnalysisOptionsProvider _createAnalysisOptionsProvider(Packages packages) {
-    var packageMap = <String, List<Folder>>{};
-    if (packages != null) {
-      for (var package in packages.packages) {
-        packageMap[package.name] = [package.libFolder];
+  void _createAnalysisContexts() {
+    if (_collection != null) {
+      for (var analysisContext in _collection.contexts) {
+        var contextImpl = analysisContext as DriverBasedAnalysisContext;
+        _destroyContext(contextImpl);
       }
     }
 
-    var resolvers = <UriResolver>[
-      ResourceUriResolver(resourceProvider),
-      PackageMapUriResolver(resourceProvider, packageMap),
-    ];
-    var sourceFactory = SourceFactory(resolvers);
-    return AnalysisOptionsProvider(sourceFactory);
-  }
-
-  /// Create a new empty context associated with [folder], having parent
-  /// [parent] and using [packagesFile] to resolve package URI's.
-  ContextInfo _createContext(ContextInfo parent, Folder folder,
-      List<String> excludedPaths, File packagesFile) {
-    var dependencies = <String>[];
-    var disposition =
-        _computeFolderDisposition(folder, dependencies.add, packagesFile);
-    var info = ContextInfo(this, parent, folder, packagesFile, disposition);
-
-    File optionsFile;
-    YamlMap optionMap;
-    try {
-      var provider = _createAnalysisOptionsProvider(disposition.packages);
-      optionsFile = provider.getOptionsFile(info.folder);
-      if (optionsFile != null) {
-        optionMap = provider.getOptionsFromFile(optionsFile);
-      }
-    } catch (_) {
-      // Parse errors are reported elsewhere.
-    }
-    var options = AnalysisOptionsImpl();
-    applyToAnalysisOptions(options, optionMap);
-
-    info.setDependencies(dependencies);
-    var includedPath = folder.path;
-    var containedExcludedPaths = excludedPaths
-        .where((String excludedPath) =>
-            pathContext.isWithin(includedPath, excludedPath))
-        .toList();
-    processOptionsForDriver(info, options, optionMap);
-    var contextRoot = ContextRoot(folder.path, containedExcludedPaths,
-        pathContext: pathContext);
-    if (optionsFile != null) {
-      contextRoot.optionsFilePath = optionsFile.path;
-    }
-    info.analysisDriver = callbacks.addAnalysisDriver(folder, contextRoot);
-    _watchBazelFilesIfNeeded(folder, info.analysisDriver);
-    if (optionsFile != null) {
-      _analyzeAnalysisOptionsFile(info.analysisDriver, optionsFile.path);
-    }
-    var dataFile =
-        folder.getChildAssumingFolder('lib').getChildAssumingFile(dataFileName);
-    if (dataFile.exists) {
-      _analyzeDataFile(info.analysisDriver, dataFile.path);
-    }
-    var pubspecFile = folder.getChildAssumingFile(PUBSPEC_NAME);
-    if (pubspecFile.exists) {
-      _analyzePubspecFile(info.analysisDriver, pubspecFile.path);
-    }
-
-    void checkManifestFilesIn(Folder folder) {
-      // Don't traverse into dot directories.
-      if (folder.shortName.startsWith('.')) {
-        return;
-      }
-
-      for (var child in folder.getChildren()) {
-        if (child is File) {
-          if (child.shortName == MANIFEST_NAME &&
-              !excludedPaths.contains(child.path)) {
-            _analyzeManifestFile(info.analysisDriver, child.path);
-          }
-        } else if (child is Folder) {
-          if (!excludedPaths.contains(child.path)) {
-            checkManifestFilesIn(child);
-          }
-        }
-      }
-    }
-
-    checkManifestFilesIn(folder);
-    return info;
-  }
-
-  /// Potentially create a new context associated with the given [folder].
-  ///
-  /// If there are subfolders with 'pubspec.yaml' files, separate contexts are
-  /// created for them and excluded from the context associated with the
-  /// [folder].
-  ///
-  /// If [withPackageSpecOnly] is `true`, a context will be created only if
-  /// there is a 'pubspec.yaml' or '.packages' file in the [folder].
-  ///
-  /// [parent] should be the parent of any contexts that are created.
-  void _createContexts(ContextInfo parent, Folder folder,
-      List<String> excludedPaths, bool withPackageSpecOnly) {
-    if (_isExcluded(folder.path) || folder.shortName.startsWith('.')) {
-      return;
-    }
-    // Decide whether a context needs to be created for [folder] here, and if
-    // so, create it.
-    var packageSpec = _findPackageSpecFile(folder);
-    var createContext = packageSpec.exists || !withPackageSpecOnly;
-    if (withPackageSpecOnly &&
-        packageSpec.exists &&
-        parent != null &&
-        parent.ignored(packageSpec.path)) {
-      // Don't create a context if the package spec is required and ignored.
-      createContext = false;
-    }
-    if (createContext) {
-      parent = _createContext(parent, folder, excludedPaths, packageSpec);
-    }
-
-    // Try to find subfolders with pubspecs or .packages files.
-    try {
-      for (var child in folder.getChildren()) {
-        if (child is Folder) {
-          if (!parent.ignored(child.path)) {
-            _createContexts(parent, child, excludedPaths, true);
-          }
-        }
-      }
-    } on FileSystemException {
-      // The directory either doesn't exist or cannot be read. Either way, there
-      // are no subfolders that need to be added.
-    }
-
-    if (createContext) {
-      // Now that the child contexts have been created, add the sources that
-      // don't belong to the children.
-      var changeSet = ChangeSet();
-      _addSourceFiles(changeSet, folder, parent);
-      callbacks.applyChangesToContext(folder, changeSet);
-    }
-  }
-
-  /// Set up a [SourceFactory] that resolves packages as appropriate for the
-  /// given [folder].
-  SourceFactory _createSourceFactory(Folder folder) {
-    var builder = callbacks.createContextBuilder(folder);
-    var workspace = ContextBuilder.createWorkspace(
+    _collection = AnalysisContextCollectionImpl(
+      includedPaths: includedPaths,
+      excludedPaths: excludedPaths,
+      byteStore: _byteStore,
+      drainStreams: false,
+      enableIndex: true,
+      performanceLog: _performanceLog,
       resourceProvider: resourceProvider,
-      options: builder.builderOptions,
-      rootPath: folder.path,
-      lookForBazelBuildFileSubstitutes: false,
+      scheduler: _scheduler,
+      sdkPath: sdkManager.defaultSdkDirectory,
     );
-    return builder.createSourceFactory(folder.path, workspace);
+
+    for (var context in _collection.contexts) {
+      var contextImpl = context as DriverBasedAnalysisContext;
+      var driver = contextImpl.driver;
+
+      callbacks.listenAnalysisDriver(driver);
+
+      var rootFolder = contextImpl.contextRoot.root;
+      driverMap[rootFolder] = driver;
+
+      changeSubscriptions[rootFolder] = rootFolder.changes
+          .listen(_handleWatchEvent, onError: _handleWatchInterruption);
+
+      _watchBazelFilesIfNeeded(rootFolder, driver);
+
+      for (var file in contextImpl.contextRoot.analyzedFiles()) {
+        if (_isContainedInDotFolder(contextImpl.contextRoot.root.path, file)) {
+          continue;
+        }
+        driver.addFile(file);
+      }
+
+      var optionsFile = context.contextRoot.optionsFile;
+      if (optionsFile != null) {
+        _analyzeAnalysisOptionsFile(driver, optionsFile.path);
+      }
+
+      var dataFile = rootFolder
+          .getChildAssumingFolder('lib')
+          .getChildAssumingFile(dataFileName);
+      if (dataFile.exists) {
+        _analyzeDataFile(driver, dataFile.path);
+      }
+
+      var pubspecFile = rootFolder.getChildAssumingFile(PUBSPEC_NAME);
+      if (pubspecFile.exists) {
+        _analyzePubspecFile(driver, pubspecFile.path);
+      }
+
+      void checkManifestFilesIn(Folder folder) {
+        // Don't traverse into dot directories.
+        if (folder.shortName.startsWith('.')) {
+          return;
+        }
+
+        for (var child in folder.getChildren()) {
+          if (child is File) {
+            if (child.shortName == MANIFEST_NAME &&
+                !excludedPaths.contains(child.path)) {
+              _analyzeManifestFile(driver, child.path);
+            }
+          } else if (child is Folder) {
+            if (!excludedPaths.contains(child.path)) {
+              checkManifestFilesIn(child);
+            }
+          }
+        }
+      }
+
+      checkManifestFilesIn(rootFolder);
+    }
+
+    callbacks.afterContextsCreated();
   }
 
   /// Clean up and destroy the context associated with the given folder.
-  void _destroyContext(ContextInfo info) {
-    changeSubscriptions.remove(info.folder)?.cancel();
-    bazelSubscriptions.remove(info.folder)?.cancel();
-    callbacks.removeContext(info.folder, _computeFlushedFiles(info));
-    var wasRemoved = info.parent.children.remove(info);
-    assert(wasRemoved);
-  }
+  void _destroyContext(DriverBasedAnalysisContext context) {
+    var rootFolder = context.contextRoot.root;
+    changeSubscriptions.remove(rootFolder)?.cancel();
+    bazelSubscriptions.remove(rootFolder)?.cancel();
 
-  /// Extract a new [packagespecFile]-based context from [oldInfo].
-  void _extractContext(ContextInfo oldInfo, File packagespecFile) {
-    var newFolder = packagespecFile.parent2;
-    var newInfo =
-        _createContext(oldInfo, newFolder, excludedPaths, packagespecFile);
-    // prepare sources to extract
-    Map<String, Source> extractedSources = HashMap<String, Source>();
-    oldInfo.sources.forEach((path, source) {
-      if (newFolder.contains(path)) {
-        extractedSources[path] = source;
-      }
-    });
-    // update new context
-    {
-      var changeSet = ChangeSet();
-      extractedSources.forEach((path, source) {
-        newInfo.sources[path] = source;
-        changeSet.addedSource(path);
-      });
-      callbacks.applyChangesToContext(newFolder, changeSet);
-    }
-    // update old context
-    {
-      var changeSet = ChangeSet();
-      extractedSources.forEach((path, source) {
-        oldInfo.sources.remove(path);
-        changeSet.removedSource(path);
-      });
-      callbacks.applyChangesToContext(oldInfo.folder, changeSet);
-    }
-    // TODO(paulberry): every context that was previously a child of oldInfo is
-    // is still a child of oldInfo.  This is wrong--some of them ought to be
-    // adopted by newInfo now.
-  }
-
-  /// Find the file that should be used to determine whether a context needs to
-  /// be created here--this is either the ".packages" file or the "pubspec.yaml"
-  /// file.
-  File _findPackageSpecFile(Folder folder) {
-    // Decide whether a context needs to be created for [folder] here, and if
-    // so, create it.
-    File packageSpec;
-
-    // Start by looking for .packages.
-    packageSpec = folder.getChild(PACKAGE_SPEC_NAME);
-
-    // Fall back to looking for a pubspec.
-    if (packageSpec == null || !packageSpec.exists) {
-      packageSpec = folder.getChild(PUBSPEC_NAME);
-    }
-    return packageSpec;
-  }
-
-  /// Get analysis options inherited from an `_embedder.yaml` (deprecated)
-  /// and/or a package specified configuration.  If more than one
-  /// `_embedder.yaml` is associated with the given context, the embedder is
-  /// skipped.
-  ///
-  /// Returns null if there are no embedded/configured options.
-  YamlMap _getEmbeddedOptions(ContextInfo info) {
-    Map embeddedOptions;
-    var locator = info.disposition.getEmbedderLocator(resourceProvider);
-    var maps = locator.embedderYamls.values;
-    if (maps.length == 1) {
-      embeddedOptions = maps.first;
-    }
-    return embeddedOptions;
-  }
-
-  /// Return the [ContextInfo] for the "innermost" context whose associated
-  /// folder is or contains the given path.  ("innermost" refers to the nesting
-  /// of contexts, so if there is a context for path /foo and a context for
-  /// path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
-  /// the context for /foo/bar.)
-  ///
-  /// If no context contains the given path, `null` is returned.
-  ContextInfo _getInnermostContextInfoFor(String path) {
-    var info = rootInfo.findChildInfoFor(path);
-    if (info == null) {
-      return null;
-    }
-    while (true) {
-      var childInfo = info.findChildInfoFor(path);
-      if (childInfo == null) {
-        return info;
-      }
-      info = childInfo;
-    }
-  }
-
-  /// Return the parent for a new [ContextInfo] with the given [path] folder.
-  ContextInfo _getParentForNewContext(String path) {
-    var parent = _getInnermostContextInfoFor(path);
-    if (parent != null) {
-      return parent;
-    }
-    return rootInfo;
+    var flushedFiles = context.driver.addedFiles.toList();
+    callbacks.removeContext(rootFolder, flushedFiles);
   }
 
   /// Establishes watch(es) for the Bazel generated files provided in
@@ -1277,129 +579,48 @@ class ContextManagerImpl implements ContextManager {
     // that's the only context that's watching the file).
     var path = event.path;
     var type = event.type;
-    var info = _getInnermostContextInfoFor(path);
-    if (info == null) {
-      // This event doesn't apply to any context.  This could happen due to a
-      // race condition (e.g. a context was removed while one of its events was
-      // in the event loop).  The event is inapplicable now, so just ignore it.
+
+    _instrumentationService.logWatchEvent('<unknown>', path, type.toString());
+
+    if (_isPackageConfigJsonFilePath(path) ||
+        _isDotPackagesFilePath(path) ||
+        _isPubspec(path) ||
+        AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
+      _createAnalysisContexts();
       return;
     }
-    _instrumentationService.logWatchEvent(
-        info.folder.path, path, type.toString());
-    // First handle changes that affect folderDisposition (since these need to
-    // be processed regardless of whether they are part of an excluded/ignored
-    // path).
-    if (info.hasDependency(path)) {
-      _recomputeFolderDisposition(info);
-    }
 
-    _checkForPackagespecUpdate(path, info);
-
-    // maybe excluded globally
-    if (_isExcluded(path) ||
-        _isContainedInDotFolder(info.folder.path, path,
-            exclude: {'.dart_tool'}) ||
-        _isInTopLevelDocDir(info.folder.path, path)) {
-      return;
-    }
-    // maybe excluded from the context, so other context will handle it
-    if (info.excludes(path)) {
-      return;
-    }
-    // handle the change
-    switch (type) {
-      case ChangeType.ADD:
-        var resource = resourceProvider.getResource(path);
-
-        var directoryPath = pathContext.dirname(path);
-
-        // Check to see if we need to create a new context.
-        if (info.isTopLevel) {
-          // Only create a new context if this is not the same directory
-          // described by our info object.
-          if (info.folder.path != directoryPath) {
-            if (_isPubspec(path)) {
-              // Check for a sibling .packages file.
-              if (!resourceProvider
-                  .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
-                  .exists) {
-                _extractContext(info, resource);
-                return;
-              }
+    if (path.endsWith('.dart')) {
+      for (var analysisContext_ in _collection.contexts) {
+        var analysisContext = analysisContext_ as DriverBasedAnalysisContext;
+        switch (type) {
+          case ChangeType.ADD:
+            // TODO(scheglov) Why not `isInAnalysisRoot()`?
+            if (_isContainedInDotFolder(
+                analysisContext.contextRoot.root.path, path)) {
+              return;
             }
-            if (_isDotPackagesFilePath(path)) {
-              // Check for a sibling pubspec.yaml file.
-              if (!resourceProvider
-                  .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
-                  .exists) {
-                _extractContext(info, resource);
-                return;
-              }
-            }
-          }
-        }
-
-        // If the file went away and was replaced by a folder before we
-        // had a chance to process the event, resource might be a Folder. In
-        // that case don't add it.
-        if (resource is File) {
-          if (_shouldFileBeAnalyzed(resource)) {
-            info.analysisDriver.addFile(path);
-          }
-        }
-        break;
-      case ChangeType.REMOVE:
-        // If package spec info is removed, check to see if we can merge
-        // contexts. Note that it's important to verify that there is NEITHER a
-        // .packages nor a lingering pubspec.yaml before merging.
-        if (!info.isTopLevel) {
-          var directoryPath = pathContext.dirname(path);
-
-          // Only merge if this is the same directory described by our info
-          // object.
-          if (info.folder.path == directoryPath) {
-            if (_isPubspec(path)) {
-              // Check for a sibling .packages file.
-              if (!resourceProvider
-                  .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
-                  .exists) {
-                _mergeContext(info);
-                return;
-              }
-            }
-            if (_isDotPackagesFilePath(path)) {
-              // Check for a sibling pubspec.yaml file.
-              if (!resourceProvider
-                  .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
-                  .exists) {
-                _mergeContext(info);
-                return;
-              }
-            }
-          }
-        }
-
-        var resource = resourceProvider.getResource(path);
-        if (resource is File &&
-            _shouldFileBeAnalyzed(resource, mustExist: false)) {
-          callbacks.applyFileRemoved(info.analysisDriver, path);
-        }
-        break;
-      case ChangeType.MODIFY:
-        var resource = resourceProvider.getResource(path);
-        if (resource is File) {
-          if (_shouldFileBeAnalyzed(resource)) {
-            for (var driver in driverMap.values) {
-              driver.changeFile(path);
+            analysisContext.driver.addFile(path);
+            break;
+          case ChangeType.MODIFY:
+            analysisContext.driver.changeFile(path);
+            break;
+          case ChangeType.REMOVE:
+            analysisContext.driver.removeFile(path);
+            // TODO(scheglov) Why not `isInAnalysisRoot()`?
+            // TODO(scheglov) Why not always?
+            var resource = resourceProvider.getResource(path);
+            if (resource is File &&
+                _shouldFileBeAnalyzed(resource, mustExist: false)) {
+              callbacks.applyFileRemoved(path);
             }
             break;
-          }
         }
+      }
     }
-    _checkForAnalysisOptionsUpdate(path, info);
-    _checkForDataFileUpdate(path, info);
-    _checkForPubspecUpdate(path, info);
-    _checkForManifestUpdate(path, info);
+
+    _checkForManifestUpdate(path);
+    _checkForDataFileUpdate(path);
   }
 
   /// On windows, the directory watcher may overflow, and we must recover.
@@ -1408,7 +629,7 @@ class ContextManagerImpl implements ContextManager {
     AnalysisEngine.instance.instrumentationService
         .logError('Watcher error; refreshing contexts.\n$error\n$stackTrace');
     // TODO(mfairhurst): Optimize this, or perhaps be less complete.
-    refresh(null);
+    refresh();
   }
 
   /// Determine whether the given [path], when interpreted relative to the
@@ -1438,31 +659,6 @@ class ContextManagerImpl implements ContextManager {
     return pathContext.basename(path) == PACKAGE_SPEC_NAME;
   }
 
-  /// Returns `true` if the given [path] is excluded by [excludedPaths].
-  bool _isExcluded(String path) => _isExcludedBy(excludedPaths, path);
-
-  /// Returns `true` if the given [path] is excluded by [excludedPaths].
-  bool _isExcludedBy(List<String> excludedPaths, String path) {
-    return excludedPaths.any((excludedPath) {
-      if (pathContext.isWithin(excludedPath, path)) {
-        return true;
-      }
-      return path == excludedPath;
-    });
-  }
-
-  /// Determine whether the given [path] is in the direct 'doc' folder of the
-  /// context root [root].
-  bool _isInTopLevelDocDir(String root, String path) {
-    var rootPrefix = root + pathContext.separator;
-    if (path.startsWith(rootPrefix)) {
-      var suffix = path.substring(rootPrefix.length);
-      return suffix == DOC_DIR_NAME ||
-          suffix.startsWith(DOC_DIR_NAME + pathContext.separator);
-    }
-    return false;
-  }
-
   bool _isManifest(String path) => pathContext.basename(path) == MANIFEST_NAME;
 
   bool _isPackageConfigJsonFilePath(String path) {
@@ -1474,39 +670,10 @@ class ContextManagerImpl implements ContextManager {
 
   bool _isPubspec(String path) => pathContext.basename(path) == PUBSPEC_NAME;
 
-  /// Merges [info] context into its parent.
-  void _mergeContext(ContextInfo info) {
-    // destroy the context
-    _destroyContext(info);
-    // add files to the parent context
-    var parentInfo = info.parent;
-    if (parentInfo != null) {
-      parentInfo.children.remove(info);
-      var changeSet = ChangeSet();
-      info.sources.forEach((path, source) {
-        parentInfo.sources[path] = source;
-        changeSet.addedSource(path);
-      });
-      callbacks.applyChangesToContext(parentInfo.folder, changeSet);
-    }
-  }
-
   /// Read the contents of the file at the given [path], or throw an exception
   /// if the contents cannot be read.
   String _readFile(String path) {
     return resourceProvider.getFile(path).readAsStringSync();
-  }
-
-  /// Recompute the [FolderDisposition] for the context described by [info],
-  /// and update the client appropriately.
-  void _recomputeFolderDisposition(ContextInfo info) {
-    // TODO(paulberry): when computePackageMap is changed into an
-    // asynchronous API call, we'll want to suspend analysis for this context
-    // while we're rerunning "pub list", since any analysis we complete while
-    // "pub list" is in progress is just going to get thrown away anyhow.
-    var dependencies = <String>[];
-    info.setDependencies(dependencies);
-    _updateContextPackageUriResolver(info.folder);
   }
 
   /// Return `true` if the given [file] should be analyzed.
@@ -1523,39 +690,6 @@ class ContextManagerImpl implements ContextManager {
       }
     }
     return false;
-  }
-
-  void _updateAnalysisOptions(ContextInfo info) {
-    var driver = info.analysisDriver;
-    var contextRoot = info.folder.path;
-    var builder = callbacks.createContextBuilder(info.folder);
-    var workspace = ContextBuilder.createWorkspace(
-      resourceProvider: resourceProvider,
-      options: builder.builderOptions,
-      rootPath: contextRoot,
-      lookForBazelBuildFileSubstitutes: false,
-    );
-    var options = builder.getAnalysisOptions(contextRoot, workspace,
-        contextRoot: driver.contextRoot);
-    var packages = ContextBuilder.createPackageMap(
-      resourceProvider: builder.resourceProvider,
-      options: builder.builderOptions,
-      rootPath: contextRoot,
-    );
-    var factory = builder.createSourceFactory(contextRoot, workspace);
-    driver.configure(
-      analysisOptions: options,
-      packages: packages,
-      sourceFactory: factory,
-    );
-    callbacks.analysisOptionsUpdated(driver);
-  }
-
-  void _updateContextPackageUriResolver(Folder contextFolder) {
-    var info = getContextInfoFor(contextFolder);
-    var driver = info.analysisDriver;
-    var sourceFactory = _createSourceFactory(contextFolder);
-    driver.configure(sourceFactory: sourceFactory);
   }
 
   /// Listens to files generated by Bazel that were found or searched for.
@@ -1586,85 +720,6 @@ class ContextManagerImpl implements ContextManager {
     }
     var uri = driver.sourceFactory.restoreUri(source);
     return file.createSource(uri);
-  }
-}
-
-/// An instance of the class [FolderDisposition] represents the information
-/// gathered by the [ContextManagerImpl] to determine how to create an analysis
-/// driver for a given folder.
-///
-/// Note: [ContextManagerImpl] may use equality testing and hash codes to
-/// determine when two folders should share the same context, so derived classes
-/// may need to override operator== and hashCode() if object identity is
-/// insufficient.
-///
-/// TODO(paulberry): consider adding a flag to indicate that it is not necessary
-/// to recurse into the given folder looking for additional contexts to create
-/// or files to analyze (this could help avoid unnecessarily weighing down the
-/// system with file watchers).
-abstract class FolderDisposition {
-  /// If this [FolderDisposition] was created based on a package root
-  /// folder, the absolute path to that folder.  Otherwise `null`.
-  String get packageRoot;
-
-  /// If contexts governed by this [FolderDisposition] should resolve packages
-  /// using the ".packages" file mechanism (DEP 5), retrieve the [Packages]
-  /// object that resulted from parsing the ".packages" file.
-  Packages get packages;
-
-  /// Return the locator used to locate the _embedder.yaml file used to
-  /// configure the SDK. The [resourceProvider] is used to access the file
-  /// system in cases where that is necessary.
-  EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider);
-}
-
-/// Concrete [FolderDisposition] object indicating that the context for a given
-/// folder should not resolve "package:" URIs at all.
-class NoPackageFolderDisposition extends FolderDisposition {
-  @override
-  final String packageRoot;
-
-  NoPackageFolderDisposition({this.packageRoot});
-
-  @override
-  Packages get packages => null;
-
-  @override
-  EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) =>
-      EmbedderYamlLocator(null);
-}
-
-/// Concrete [FolderDisposition] object indicating that the context for a given
-/// folder should resolve packages using a ".packages" file.
-class PackagesFileDisposition extends FolderDisposition {
-  @override
-  final Packages packages;
-
-  Map<String, List<Folder>> packageMap;
-
-  EmbedderYamlLocator _embedderLocator;
-
-  PackagesFileDisposition(this.packages);
-
-  @override
-  String get packageRoot => null;
-
-  Map<String, List<Folder>> buildPackageMap(ResourceProvider resourceProvider) {
-    if (packageMap == null) {
-      packageMap = <String, List<Folder>>{};
-      if (packages != null) {
-        for (var package in packages.packages) {
-          packageMap[package.name] = [package.libFolder];
-        }
-      }
-    }
-    return packageMap;
-  }
-
-  @override
-  EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) {
-    _embedderLocator ??= EmbedderYamlLocator(buildPackageMap(resourceProvider));
-    return _embedderLocator;
   }
 }
 
