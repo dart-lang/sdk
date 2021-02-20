@@ -36,6 +36,7 @@ import 'package:analyzer/src/source/path_filter.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
@@ -495,11 +496,12 @@ class Driver with HasContextMixin implements CommandLineStarter {
     } else {
       var directory = io.Directory(filePath);
       if (directory.existsSync()) {
+        var pathContext = resourceProvider.pathContext;
         for (var entry
             in directory.listSync(recursive: true, followLinks: false)) {
           var relative = path.relative(entry.path, from: directory.path);
-          if ((AnalysisEngine.isDartFileName(entry.path) ||
-                  AnalysisEngine.isManifestFileName(entry.path)) &&
+          if ((file_paths.isDart(pathContext, entry.path) ||
+                  file_paths.isAndroidManifestXml(pathContext, entry.path)) &&
               entry is io.File &&
               !pathFilter.ignored(entry.path) &&
               !_isInHiddenDir(relative)) {

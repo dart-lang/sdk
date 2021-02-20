@@ -27,6 +27,7 @@ import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
@@ -147,21 +148,6 @@ abstract class ContextManagerCallbacks {
 /// Class that maintains a mapping from included/excluded paths to a set of
 /// folders that should correspond to analysis contexts.
 class ContextManagerImpl implements ContextManager {
-  /// The name of the data file used to specify data-driven fixes.
-  static const String dataFileName = 'fix_data.yaml';
-
-  /// The name of the `doc` directory.
-  static const String DOC_DIR_NAME = 'doc';
-
-  /// File name of Android manifest files.
-  static const String MANIFEST_NAME = 'AndroidManifest.xml';
-
-  /// File name of pubspec files.
-  static const String PUBSPEC_NAME = 'pubspec.yaml';
-
-  /// File name of package spec files.
-  static const String PACKAGE_SPEC_NAME = '.packages';
-
   /// The [ResourceProvider] using which paths are converted into [Resource]s.
   final ResourceProvider resourceProvider;
 
@@ -409,7 +395,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   void _checkForDataFileUpdate(String path) {
-    if (_isDataFile(path)) {
+    if (file_paths.isFixDataYaml(pathContext, path)) {
       var context = getContextFor(path);
       var driver = context.driver;
       _analyzeDataFile(driver, path);
@@ -417,7 +403,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   void _checkForManifestUpdate(String path) {
-    if (_isManifest(path)) {
+    if (file_paths.isAndroidManifestXml(pathContext, path)) {
       var context = getContextFor(path);
       var driver = context.driver;
       _analyzeManifestFile(driver, path);
@@ -478,12 +464,12 @@ class ContextManagerImpl implements ContextManager {
 
       var dataFile = rootFolder
           .getChildAssumingFolder('lib')
-          .getChildAssumingFile(dataFileName);
+          .getChildAssumingFile(file_paths.fixDataYaml);
       if (dataFile.exists) {
         _analyzeDataFile(driver, dataFile.path);
       }
 
-      var pubspecFile = rootFolder.getChildAssumingFile(PUBSPEC_NAME);
+      var pubspecFile = rootFolder.getChildAssumingFile(file_paths.pubspecYaml);
       if (pubspecFile.exists) {
         _analyzePubspecFile(driver, pubspecFile.path);
       }
@@ -496,7 +482,7 @@ class ContextManagerImpl implements ContextManager {
 
         for (var child in folder.getChildren()) {
           if (child is File) {
-            if (child.shortName == MANIFEST_NAME &&
+            if (file_paths.isAndroidManifestXml(pathContext, child.path) &&
                 !excludedPaths.contains(child.path)) {
               _analyzeManifestFile(driver, child.path);
             }
@@ -582,15 +568,16 @@ class ContextManagerImpl implements ContextManager {
 
     _instrumentationService.logWatchEvent('<unknown>', path, type.toString());
 
-    if (_isPackageConfigJsonFilePath(path) ||
-        _isDotPackagesFilePath(path) ||
-        _isPubspec(path) ||
-        AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
+    if (file_paths.isAnalysisOptionsYaml(pathContext, path) ||
+        file_paths.isDotPackages(pathContext, path) ||
+        file_paths.isPackageConfigJson(pathContext, path) ||
+        file_paths.isPubspecYaml(pathContext, path) ||
+        false) {
       _createAnalysisContexts();
       return;
     }
 
-    if (path.endsWith('.dart')) {
+    if (file_paths.isDart(pathContext, path)) {
       for (var analysisContext_ in _collection.contexts) {
         var analysisContext = analysisContext_ as DriverBasedAnalysisContext;
         switch (type) {
@@ -650,25 +637,6 @@ class ContextManagerImpl implements ContextManager {
     }
     return false;
   }
-
-  /// Return `true` if the [path] appears to be the name of the data file used
-  /// to specify data-driven fixes.
-  bool _isDataFile(String path) => pathContext.basename(path) == dataFileName;
-
-  bool _isDotPackagesFilePath(String path) {
-    return pathContext.basename(path) == PACKAGE_SPEC_NAME;
-  }
-
-  bool _isManifest(String path) => pathContext.basename(path) == MANIFEST_NAME;
-
-  bool _isPackageConfigJsonFilePath(String path) {
-    var components = pathContext.split(path);
-    return components.length > 2 &&
-        components[components.length - 1] == 'package_config.json' &&
-        components[components.length - 2] == '.dart_tool';
-  }
-
-  bool _isPubspec(String path) => pathContext.basename(path) == PUBSPEC_NAME;
 
   /// Read the contents of the file at the given [path], or throw an exception
   /// if the contents cannot be read.

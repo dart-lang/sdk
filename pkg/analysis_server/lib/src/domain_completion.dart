@@ -24,6 +24,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -152,7 +153,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   /// given [offset].
   YamlCompletionResults computeYamlSuggestions(String file, int offset) {
     var provider = server.resourceProvider;
-    if (AnalysisEngine.isAnalysisOptionsFileName(file)) {
+    if (file_paths.isAnalysisOptionsYaml(provider.pathContext, file)) {
       var generator = AnalysisOptionsGenerator(provider);
       return generator.getSuggestions(file, offset);
     }

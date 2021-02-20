@@ -15,7 +15,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:path/path.dart' as pathos;
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
@@ -141,16 +140,6 @@ class AnalysisEngine {
   @deprecated
   void processRequiredPlugins() {}
 
-  /// Return `true` if the given [fileName] is an analysis options file.
-  static bool isAnalysisOptionsFileName(String? fileName,
-      [pathos.Context? context]) {
-    if (fileName == null) {
-      return false;
-    }
-    String basename = (context ?? pathos.posix).basename(fileName);
-    return basename == ANALYSIS_OPTIONS_YAML_FILE;
-  }
-
   /// Return `true` if the given [fileName] is assumed to contain Dart source
   /// code.
   static bool isDartFileName(String? fileName) {
@@ -159,14 +148,6 @@ class AnalysisEngine {
     }
     String extension = FileNameUtilities.getExtension(fileName).toLowerCase();
     return extension == SUFFIX_DART;
-  }
-
-  /// Return `true` if the given [fileName] is AndroidManifest.xml.
-  static bool isManifestFileName(String? fileName) {
-    if (fileName == null) {
-      return false;
-    }
-    return fileName.endsWith(AnalysisEngine.ANDROID_MANIFEST_FILE);
   }
 }
 
