@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // VMOptions=--long-ssl-cert-evaluation
+// OtherResources=localhost.key
+// OtherResources=localhost.crt
 
 // This test verifies that lost of connection during handshake doesn't cause
 // vm crashes.
