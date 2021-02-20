@@ -31,6 +31,8 @@ void VirtualMemory::Init() {
   page_size_ = CalculatePageSize();
 }
 
+void VirtualMemory::Cleanup() {}
+
 bool VirtualMemory::DualMappingEnabled() {
   return false;
 }
@@ -80,11 +82,11 @@ VirtualMemory::~VirtualMemory() {
   }
 }
 
-void VirtualMemory::FreeSubSegment(void* address,
-                                   intptr_t size) {
+bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
   if (VirtualFree(address, size, MEM_DECOMMIT) == 0) {
     FATAL1("VirtualFree failed: Error code %d\n", GetLastError());
   }
+  return true;
 }
 
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
