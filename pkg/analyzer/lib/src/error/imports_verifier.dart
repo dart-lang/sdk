@@ -414,15 +414,18 @@ class ImportsVerifier {
         _unusedImports.isEmpty && _unusedShownNamesMap.isEmpty;
 
     // Process import prefixes.
-    usedElements.prefixMap
-        .forEach((PrefixElement prefix, List<Element> elements) {
+    for (var entry in usedElements.prefixMap.entries) {
       if (everythingIsKnownToBeUsed()) {
         return;
       }
+      var prefix = entry.key;
+      var importDirectives = _prefixElementMap[prefix];
+      if (importDirectives == null) {
+        continue;
+      }
+      var elements = entry.value;
       // Find import directives using namespaces.
-      for (var importDirective
-          in _prefixElementMap[prefix] ?? <ImportDirective>[]) {
-        var namespace = _computeNamespace(importDirective);
+      for (var importDirective in importDirectives) {
         if (elements.isEmpty) {
           // [prefix] and [elements] were added to [usedElements.prefixMap] but
           // [elements] is empty, so the prefix was referenced incorrectly.
@@ -430,14 +433,19 @@ class ImportsVerifier {
           // shouldn't confuse by also reporting an unused prefix.
           _unusedImports.remove(importDirective);
         }
+        var namespace = _computeNamespace(importDirective);
+        if (namespace == null) {
+          continue;
+        }
         for (var element in elements) {
-          if (namespace?.getPrefixed(prefix.name, element.name!) != null) {
+          if (namespace.getPrefixed(prefix.name, element.name!) != null) {
             _unusedImports.remove(importDirective);
             _removeFromUnusedShownNamesMap(element, importDirective);
           }
         }
       }
-    });
+    }
+
     // Process top-level elements.
     for (Element element in usedElements.elements) {
       if (everythingIsKnownToBeUsed()) {
@@ -460,10 +468,13 @@ class ImportsVerifier {
       // Find import directives using namespaces.
       for (ImportDirective importDirective in _allImports) {
         var namespace = _computeNamespace(importDirective);
+        if (namespace == null) {
+          continue;
+        }
         var prefix = importDirective.prefix?.name;
         var elementName = extensionElement.name!;
         if (prefix == null) {
-          if (namespace?.get(elementName) == extensionElement) {
+          if (namespace.get(elementName) == extensionElement) {
             _unusedImports.remove(importDirective);
             _removeFromUnusedShownNamesMap(extensionElement, importDirective);
           }
@@ -471,7 +482,7 @@ class ImportsVerifier {
           // An extension might be used solely because one or more instance
           // members are referenced, which does not require explicit use of the
           // prefix. We still indicate that the import directive is used.
-          if (namespace?.getPrefixed(prefix, elementName) == extensionElement) {
+          if (namespace.getPrefixed(prefix, elementName) == extensionElement) {
             _unusedImports.remove(importDirective);
             _removeFromUnusedShownNamesMap(extensionElement, importDirective);
           }
