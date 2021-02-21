@@ -392,11 +392,6 @@ OldPage* PageSpace::AllocateLargePage(intptr_t size, OldPage::PageType type) {
   if (page == nullptr) {
     IncreaseCapacityInWordsLocked(-page_size_in_words);
     return nullptr;
-  } else {
-    intptr_t actual_size_in_words = page->memory_->size() >> kWordSizeLog2;
-    if (actual_size_in_words != page_size_in_words) {
-      IncreaseCapacityInWordsLocked(actual_size_in_words - page_size_in_words);
-    }
   }
   if (is_exec) {
     AddExecPageLocked(page);

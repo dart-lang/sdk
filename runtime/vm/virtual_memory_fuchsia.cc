@@ -51,8 +51,6 @@ void VirtualMemory::Init() {
   page_size_ = CalculatePageSize();
 }
 
-void VirtualMemory::Cleanup() {}
-
 static void Unmap(zx_handle_t vmar, uword start, uword end) {
   ASSERT(start <= end);
   const uword size = end - start;
@@ -176,11 +174,10 @@ VirtualMemory::~VirtualMemory() {
   }
 }
 
-bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
+void VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
   const uword start = reinterpret_cast<uword>(address);
   Unmap(zx_vmar_root_self(), start, start + size);
   LOG_INFO("zx_vmar_unmap(0x%p, 0x%lx) success\n", address, size);
-  return true;
 }
 
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {

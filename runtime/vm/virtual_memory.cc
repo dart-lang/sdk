@@ -19,13 +19,12 @@ void VirtualMemory::Truncate(intptr_t new_size) {
   ASSERT(new_size <= size());
   if (reserved_.size() ==
       region_.size()) {  // Don't create holes in reservation.
-    if (FreeSubSegment(reinterpret_cast<void*>(start() + new_size),
-                       size() - new_size)) {
-      reserved_.set_size(new_size);
-      if (AliasOffset() != 0) {
-        FreeSubSegment(reinterpret_cast<void*>(alias_.start() + new_size),
-                       alias_.size() - new_size);
-      }
+    FreeSubSegment(reinterpret_cast<void*>(start() + new_size),
+                   size() - new_size);
+    reserved_.set_size(new_size);
+    if (AliasOffset() != 0) {
+      FreeSubSegment(reinterpret_cast<void*>(alias_.start() + new_size),
+                     alias_.size() - new_size);
     }
   }
   region_.Subregion(region_, 0, new_size);

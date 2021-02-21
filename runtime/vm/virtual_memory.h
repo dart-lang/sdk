@@ -32,7 +32,6 @@ class VirtualMemory {
   intptr_t AliasOffset() const { return alias_.start() - region_.start(); }
 
   static void Init();
-  static void Cleanup();
 
   // Returns true if dual mapping is enabled.
   static bool DualMappingEnabled();
@@ -88,7 +87,7 @@ class VirtualMemory {
 
   // Free a sub segment. On operating systems that support it this
   // can give back the virtual memory to the system. Returns true on success.
-  static bool FreeSubSegment(void* address, intptr_t size);
+  static void FreeSubSegment(void* address, intptr_t size);
 
   // These constructors are only used internally when reserving new virtual
   // spaces. They do not reserve any virtual address space on their own.
