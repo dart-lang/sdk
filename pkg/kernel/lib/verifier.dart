@@ -841,19 +841,21 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           " ${node.classNode.typeParameters.length} parameters.");
     }
     if (node.classNode.isAnonymousMixin) {
+      bool isOk = false;
       if (currentParent is FunctionNode) {
         TreeNode? functionNodeParent = currentParent!.parent;
-        if (functionNodeParent is Constructor ||
-            functionNodeParent is Procedure &&
-                functionNodeParent.kind == ProcedureKind.Factory) {
-          if (functionNodeParent!.parent == node.classNode) {
+        if (functionNodeParent is Constructor) {
+          if (functionNodeParent.parent == node.classNode) {
             // We only allow references to anonymous mixins in types as the
             // return type of its own constructor.
-            return;
+            isOk = true;
           }
         }
       }
-      problem(currentParent, "Type $node references an anonymous mixin class.");
+      if (!isOk) {
+        problem(
+            currentParent, "Type $node references an anonymous mixin class.");
+      }
     }
     defaultDartType(node);
   }

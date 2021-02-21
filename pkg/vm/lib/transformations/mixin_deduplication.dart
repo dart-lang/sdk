@@ -35,10 +35,6 @@ void transformComponent(Component component) {
   // TODO(dartbug.com/39375): Remove this extra O(N) pass over the AST if the
   // CFE decides to consistently let the interface target point to the mixin
   // class (instead of mixin application).
-  //
-  // Types could also contain references to removed mixin applications due to
-  // LUB algorithm in CFE (calculating static type of a conditional expression)
-  // and type inference which can spread types and produce derived types.
   component.libraries.forEach(referenceUpdater.visitLibrary);
 }
 
@@ -160,16 +156,8 @@ class DeduplicateMixinsTransformer extends RemovingTransformer {
 /// classes. Updates interface targets and types.
 class ReferenceUpdater extends RecursiveVisitor {
   final DeduplicateMixinsTransformer transformer;
-  final _visitedConstants = new Set<Constant>.identity();
 
   ReferenceUpdater(this.transformer);
-
-  @override
-  visitLibrary(Library node) {
-    super.visitLibrary(node);
-    // Avoid accumulating too many constants in case of huge programs.
-    _visitedConstants.clear();
-  }
 
   @override
   void visitProcedure(Procedure node) {
@@ -235,35 +223,6 @@ class ReferenceUpdater extends RecursiveVisitor {
           .single;
     } else {
       throw 'Hit unexpected interface target which is not a Field/Procedure';
-    }
-  }
-
-  @override
-  visitInterfaceType(InterfaceType node) {
-    node.className = _updateClassReference(node.className);
-    super.visitInterfaceType(node);
-  }
-
-  Reference _updateClassReference(Reference classRef) {
-    final Class c = classRef.asClass;
-    if (c.isAnonymousMixin) {
-      final Class? replacement = transformer._duplicatedMixins[c];
-      if (replacement != null) {
-        return replacement.reference;
-      }
-    }
-    return classRef;
-  }
-
-  @override
-  defaultConstantReference(Constant node) {
-    // By default, RecursiveVisitor stops at constants. We need to go deeper
-    // into constants in order to update types which are only referenced from
-    // constants. However, constants are DAGs and not trees, so visiting
-    // the same constant multiple times should be avoided to prevent
-    // exponential running time.
-    if (_visitedConstants.add(node)) {
-      node.accept(this);
     }
   }
 

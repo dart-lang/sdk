@@ -10652,7 +10652,7 @@ class NullType extends DartType {
 }
 
 class InterfaceType extends DartType {
-  Reference className;
+  final Reference className;
 
   @override
   final Nullability declaredNullability;
