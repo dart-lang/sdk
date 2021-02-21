@@ -69,8 +69,7 @@ void main() async {
 
   group('precompiler-trace', () {
     test('basic-parsing', () async {
-      await withFlag('basic-parsing', testSource, '--trace_precompiler_to',
-          (json) async {
+      await withFlag(testSource, '--trace_precompiler_to', (json) async {
         final jsonRaw = await loadJson(File(json));
         final callGraph = loadTrace(jsonRaw);
         callGraph.computeDominators();
@@ -102,9 +101,7 @@ void main() async {
     });
 
     test('collapse-by-package', () async {
-      await withFlag(
-          'collapse-by-package', testSource, '--trace_precompiler_to',
-          (json) async {
+      await withFlag(testSource, '--trace_precompiler_to', (json) async {
         final jsonRaw = await loadJson(File(json));
         final callGraph = loadTrace(jsonRaw).collapse(NodeType.packageNode);
 

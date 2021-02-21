@@ -1499,18 +1499,28 @@ class CodeSerializationCluster : public SerializationCluster {
   struct CodeOrderInfo {
     CodePtr code;
     intptr_t order;
+    intptr_t original_index;
   };
 
+  // We sort code objects in such a way that code objects with the same
+  // instructions are grouped together. To make sorting more stable between
+  // similar programs we also sort them further by their original indices -
+  // this helps to stabilize output of --print-instructions-sizes-to which uses
+  // the name of the first code object (among those pointing to the same
+  // instruction objects).
   static int CompareCodeOrderInfo(CodeOrderInfo const* a,
                                   CodeOrderInfo const* b) {
     if (a->order < b->order) return -1;
     if (a->order > b->order) return 1;
+    if (a->original_index < b->original_index) return -1;
+    if (a->original_index > b->original_index) return 1;
     return 0;
   }
 
   static void Insert(GrowableArray<CodeOrderInfo>* order_list,
                      IntMap<intptr_t>* order_map,
-                     CodePtr code) {
+                     CodePtr code,
+                     intptr_t original_index) {
     InstructionsPtr instr = code->untag()->instructions_;
     intptr_t key = static_cast<intptr_t>(instr);
     intptr_t order;
@@ -1523,6 +1533,7 @@ class CodeSerializationCluster : public SerializationCluster {
     CodeOrderInfo info;
     info.code = code;
     info.order = order;
+    info.original_index = original_index;
     order_list->Add(info);
   }
 
@@ -1530,7 +1541,7 @@ class CodeSerializationCluster : public SerializationCluster {
     GrowableArray<CodeOrderInfo> order_list;
     IntMap<intptr_t> order_map;
     for (intptr_t i = 0; i < codes->length(); i++) {
-      Insert(&order_list, &order_map, (*codes)[i]);
+      Insert(&order_list, &order_map, (*codes)[i], i);
     }
     order_list.Sort(CompareCodeOrderInfo);
     ASSERT(order_list.length() == codes->length());
@@ -1543,7 +1554,7 @@ class CodeSerializationCluster : public SerializationCluster {
     GrowableArray<CodeOrderInfo> order_list;
     IntMap<intptr_t> order_map;
     for (intptr_t i = 0; i < codes->length(); i++) {
-      Insert(&order_list, &order_map, (*codes)[i]->ptr());
+      Insert(&order_list, &order_map, (*codes)[i]->ptr(), i);
     }
     order_list.Sort(CompareCodeOrderInfo);
     ASSERT(order_list.length() == codes->length());
@@ -5030,11 +5041,14 @@ class VMSerializationRoots : public SerializationRoots {
       // Error, CallSiteData has no class object.
       if (cid != kErrorCid && cid != kCallSiteDataCid) {
         ASSERT(table->HasValidClassAt(cid));
-        s->AddBaseObject(table->At(cid), "Class");
+        s->AddBaseObject(
+            table->At(cid), "Class",
+            Class::Handle(table->At(cid))
+                .NameCString(Object::NameVisibility::kInternalName));
       }
     }
-    s->AddBaseObject(table->At(kDynamicCid), "Class");
-    s->AddBaseObject(table->At(kVoidCid), "Class");
+    s->AddBaseObject(table->At(kDynamicCid), "Class", "dynamic");
+    s->AddBaseObject(table->At(kVoidCid), "Class", "void");
 
     if (!Snapshot::IncludesCode(s->kind())) {
       for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
