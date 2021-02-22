@@ -10,6 +10,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dart_style/src/cli/format_command.dart';
+import 'package:meta/meta.dart';
 import 'package:nnbd_migration/migration_cli.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:pub/pub.dart';
@@ -112,22 +113,30 @@ class DartdevRunner extends CommandRunner<int> {
   String get invocation =>
       'dart [<vm-flags>] <command|dart-file> [<arguments>]';
 
+  @visibleForTesting
+  Analytics get analytics => _analytics;
+  Analytics _analytics;
+
   @override
   Future<int> runCommand(ArgResults topLevelResults) async {
     final stopwatch = Stopwatch()..start();
     // The Analytics instance used to report information back to Google Analytics;
     // see lib/src/analytics.dart.
-    final analytics = createAnalyticsInstance(!topLevelResults['analytics']);
+    _analytics = createAnalyticsInstance(
+      topLevelResults.wasParsed('analytics')
+          ? !topLevelResults['analytics']
+          : false,
+    );
 
     // If we have not printed the analyticsNoticeOnFirstRunMessage to stdout,
     // the user is on a terminal, and the machine is not a bot, then print the
     // disclosure and set analytics.disclosureShownOnTerminal to true.
     if (analytics is DartdevAnalytics &&
-        !analytics.disclosureShownOnTerminal &&
+        !(analytics as DartdevAnalytics).disclosureShownOnTerminal &&
         io.stdout.hasTerminal &&
         !isBot()) {
       print(analyticsNoticeOnFirstRunMessage);
-      analytics.disclosureShownOnTerminal = true;
+      (analytics as DartdevAnalytics).disclosureShownOnTerminal = true;
     }
 
     // When `--disable-analytics` or `--enable-analytics` are called we perform
