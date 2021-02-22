@@ -37,6 +37,8 @@ import '../problems.dart' show unhandled;
 
 import '../scope.dart';
 
+import '../source/source_library_builder.dart';
+
 import 'builder.dart';
 import 'builtin_type_declaration_builder.dart';
 import 'class_builder.dart';
@@ -140,7 +142,9 @@ class NamedTypeBuilder extends TypeBuilder {
       return;
     } else if (member is TypeDeclarationBuilder) {
       declaration = member.origin;
-      if (!declaration.isExtension) {
+      if (!declaration.isExtension ||
+          library is SourceLibraryBuilder &&
+              library.enableExtensionTypesInLibrary) {
         return;
       }
     }

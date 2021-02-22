@@ -299,6 +299,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool _enableTripleShiftInLibrary;
   bool _enableExtensionMethodsInLibrary;
   bool _enableGenericMetadataInLibrary;
+  bool _enableExtensionTypesInLibrary;
 
   bool get enableVarianceInLibrary =>
       _enableVarianceInLibrary ??= loader.target.isExperimentEnabledInLibrary(
@@ -336,6 +337,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool get enableGenericMetadataInLibrary => _enableGenericMetadataInLibrary ??=
       loader.target.isExperimentEnabledInLibrary(
           ExperimentalFlag.genericMetadata, _packageUri ?? importUri);
+
+  bool get enableExtensionTypesInLibrary => _enableExtensionTypesInLibrary ??=
+      loader.target.isExperimentEnabledInLibrary(
+          ExperimentalFlag.extensionTypes, _packageUri ?? importUri);
 
   void updateLibraryNNBDSettings() {
     library.isNonNullableByDefault = isNonNullableByDefault;

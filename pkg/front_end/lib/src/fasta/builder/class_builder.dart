@@ -593,7 +593,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           null);
     }
 
-    // arguments.length == typeVariables.length
+    assert(arguments.length == typeVariablesCount);
     List<DartType> result =
         new List<DartType>.filled(arguments.length, null, growable: true);
     for (int i = 0; i < result.length; ++i) {

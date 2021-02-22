@@ -62,6 +62,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   /// `true` if we are in the type of an as expression.
   bool get inIsOrAsOperatorType;
 
+  bool get enableExtensionTypesInLibrary;
+
   scopeLookup(Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder prefix});
 
