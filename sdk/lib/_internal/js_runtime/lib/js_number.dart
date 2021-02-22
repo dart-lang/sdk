@@ -404,6 +404,9 @@ class JSNumber extends Interceptor implements double {
     return _shrOtherPositive(other);
   }
 
+  num operator >>>(num other) =>
+    throw UnimplementedError('int.>>> is not implemented yet');
+
   num _shrOtherPositive(num other) {
     return JS('num', '#', this) > 0
         ? _shrBothPositive(other)
