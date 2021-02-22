@@ -10,8 +10,8 @@ library from "org-dartlang-test:///lib.dart" as lib {
 }
 library from "org-dartlang-test:///libExporter.dart" as lib2 {
 additionalExports = (lib::libField,
-  lib::requireStuffFromLibExporter,
-  lib::libField)
+  lib::libField,
+  lib::requireStuffFromLibExporter)
 
   export "org-dartlang-test:///lib.dart";
 

@@ -37,14 +37,12 @@ main() {
   List<int> writtenBytesFieldOriginal = serialize(lib1, lib2);
   // Canonical names are now set: Verify that the field is marked as such,
   // canonical-name-wise.
-  String getterCanonicalName = '${field.getterCanonicalName}';
-  if (field.getterCanonicalName.parent.name != "@getters") {
-    throw "Expected @getters parent, but had "
+  if (field.getterCanonicalName.parent.name != "@fields") {
+    throw "Expected @fields parent, but had "
         "${field.getterCanonicalName.parent.name}";
   }
-  String setterCanonicalName = '${field.setterCanonicalName}';
-  if (field.setterCanonicalName.parent.name != "@setters") {
-    throw "Expected @setters parent, but had "
+  if (field.setterCanonicalName.parent.name != "@=fields") {
+    throw "Expected @=fields parent, but had "
         "${field.setterCanonicalName.parent.name}";
   }
 
@@ -82,17 +80,9 @@ main() {
     throw "Expected @getters parent, but had "
         "${getter.canonicalName.parent.name}";
   }
-  if ('${getter.canonicalName}' != getterCanonicalName) {
-    throw "Unexpected getter canonical name. "
-        "Expected $getterCanonicalName, actual ${getter.canonicalName}.";
-  }
   if (setter.canonicalName.parent.name != "@setters") {
     throw "Expected @setters parent, but had "
         "${setter.canonicalName.parent.name}";
-  }
-  if ('${setter.canonicalName}' != setterCanonicalName) {
-    throw "Unexpected setter canonical name. "
-        "Expected $setterCanonicalName, actual ${setter.canonicalName}.";
   }
 
   // Replace getter/setter with field.
@@ -111,12 +101,12 @@ main() {
   List<int> writtenBytesFieldNew = serialize(lib1, lib2);
   // Canonical names are now set: Verify that the field is marked as such,
   // canonical-name-wise.
-  if (fieldReplacement.getterCanonicalName.parent.name != "@getters") {
-    throw "Expected @getters parent, but had "
+  if (fieldReplacement.getterCanonicalName.parent.name != "@fields") {
+    throw "Expected @fields parent, but had "
         "${fieldReplacement.getterCanonicalName.parent.name}";
   }
-  if (fieldReplacement.setterCanonicalName.parent.name != "@setters") {
-    throw "Expected @setters parent, but had "
+  if (fieldReplacement.setterCanonicalName.parent.name != "@=fields") {
+    throw "Expected @=fields parent, but had "
         "${fieldReplacement.setterCanonicalName.parent.name}";
   }
 
