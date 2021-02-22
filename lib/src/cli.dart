@@ -100,7 +100,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
 
   var lints = options['rules'];
   if (lints is Iterable<String> && lints.isNotEmpty) {
-    var rules = <LintRule?>[];
+    var rules = <LintRule>[];
     for (var lint in lints) {
       var rule = Registry.ruleRegistry[lint];
       if (rule == null) {
@@ -110,7 +110,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
       rules.add(rule);
     }
 
-    lintOptions.enabledLints = rules as Iterable<LintRule>;
+    lintOptions.enabledLints = rules;
   }
 
   var customSdk = options['dart-sdk'];

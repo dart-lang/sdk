@@ -42,4 +42,5 @@ final _client = http.Client();
 
 Future<String> getBody(String url) async => (await getResponse(url)).body;
 
-Future<http.Response> getResponse(String url) async => _client.get(Uri.parse(url));
+Future<http.Response> getResponse(String url) async =>
+    _client.get(Uri.parse(url));
