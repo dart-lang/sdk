@@ -12,6 +12,7 @@ const _currentVersion = '2.13.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
+  EnableString.const_functions: ExperimentalFeatures.const_functions,
   EnableString.constant_update_2018: ExperimentalFeatures.constant_update_2018,
   EnableString.control_flow_collections:
       ExperimentalFeatures.control_flow_collections,
@@ -31,6 +32,9 @@ final _knownFeatures = <String, ExperimentalFeature>{
 /// Constant strings for enabling each of the currently known experimental
 /// flags.
 class EnableString {
+  /// String to enable the experiment "const-functions"
+  static const String const_functions = 'const-functions';
+
   /// String to enable the experiment "constant-update-2018"
   static const String constant_update_2018 = 'constant-update-2018';
 
@@ -69,8 +73,19 @@ class EnableString {
 }
 
 class ExperimentalFeatures {
-  static final constant_update_2018 = ExperimentalFeature(
+  static final const_functions = ExperimentalFeature(
     index: 0,
+    enableString: EnableString.const_functions,
+    isEnabledByDefault: IsEnabledByDefault.const_functions,
+    isExpired: IsExpired.const_functions,
+    documentation:
+        'Allow more of the Dart language to be executed in const expressions.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final constant_update_2018 = ExperimentalFeature(
+    index: 1,
     enableString: EnableString.constant_update_2018,
     isEnabledByDefault: IsEnabledByDefault.constant_update_2018,
     isExpired: IsExpired.constant_update_2018,
@@ -80,7 +95,7 @@ class ExperimentalFeatures {
   );
 
   static final control_flow_collections = ExperimentalFeature(
-    index: 1,
+    index: 2,
     enableString: EnableString.control_flow_collections,
     isEnabledByDefault: IsEnabledByDefault.control_flow_collections,
     isExpired: IsExpired.control_flow_collections,
@@ -90,7 +105,7 @@ class ExperimentalFeatures {
   );
 
   static final extension_methods = ExperimentalFeature(
-    index: 2,
+    index: 3,
     enableString: EnableString.extension_methods,
     isEnabledByDefault: IsEnabledByDefault.extension_methods,
     isExpired: IsExpired.extension_methods,
@@ -100,7 +115,7 @@ class ExperimentalFeatures {
   );
 
   static final extension_types = ExperimentalFeature(
-    index: 3,
+    index: 4,
     enableString: EnableString.extension_types,
     isEnabledByDefault: IsEnabledByDefault.extension_types,
     isExpired: IsExpired.extension_types,
@@ -110,7 +125,7 @@ class ExperimentalFeatures {
   );
 
   static final generic_metadata = ExperimentalFeature(
-    index: 4,
+    index: 5,
     enableString: EnableString.generic_metadata,
     isEnabledByDefault: IsEnabledByDefault.generic_metadata,
     isExpired: IsExpired.generic_metadata,
@@ -121,7 +136,7 @@ class ExperimentalFeatures {
   );
 
   static final non_nullable = ExperimentalFeature(
-    index: 5,
+    index: 6,
     enableString: EnableString.non_nullable,
     isEnabledByDefault: IsEnabledByDefault.non_nullable,
     isExpired: IsExpired.non_nullable,
@@ -131,7 +146,7 @@ class ExperimentalFeatures {
   );
 
   static final nonfunction_type_aliases = ExperimentalFeature(
-    index: 6,
+    index: 7,
     enableString: EnableString.nonfunction_type_aliases,
     isEnabledByDefault: IsEnabledByDefault.nonfunction_type_aliases,
     isExpired: IsExpired.nonfunction_type_aliases,
@@ -141,7 +156,7 @@ class ExperimentalFeatures {
   );
 
   static final set_literals = ExperimentalFeature(
-    index: 7,
+    index: 8,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -151,7 +166,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 8,
+    index: 9,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -161,7 +176,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 9,
+    index: 10,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -171,7 +186,7 @@ class ExperimentalFeatures {
   );
 
   static final value_class = ExperimentalFeature(
-    index: 10,
+    index: 11,
     enableString: EnableString.value_class,
     isEnabledByDefault: IsEnabledByDefault.value_class,
     isExpired: IsExpired.value_class,
@@ -181,7 +196,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 11,
+    index: 12,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -194,6 +209,9 @@ class ExperimentalFeatures {
 /// Constant bools indicating whether each experimental flag is currently
 /// enabled by default.
 class IsEnabledByDefault {
+  /// Default state of the experiment "const-functions"
+  static const bool const_functions = false;
+
   /// Default state of the experiment "constant-update-2018"
   static const bool constant_update_2018 = true;
 
@@ -235,6 +253,9 @@ class IsEnabledByDefault {
 /// expired (meaning its enable/disable status can no longer be altered from the
 /// value in [IsEnabledByDefault]).
 class IsExpired {
+  /// Expiration status of the experiment "const-functions"
+  static const bool const_functions = false;
+
   /// Expiration status of the experiment "constant-update-2018"
   static const bool constant_update_2018 = true;
 
@@ -273,6 +294,9 @@ class IsExpired {
 }
 
 mixin _CurrentState {
+  /// Current state for the flag "const-functions"
+  bool get const_functions => isEnabled(ExperimentalFeatures.const_functions);
+
   /// Current state for the flag "constant-update-2018"
   bool get constant_update_2018 =>
       isEnabled(ExperimentalFeatures.constant_update_2018);

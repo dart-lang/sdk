@@ -50,7 +50,7 @@ worlds:
     expectedLibraryCount: 4
 
   - entry: main.dart
-    errors: true
+    errors: false
     worldType: updated
     expectInitializeFromDill: false
     invalidate:

@@ -31,18 +31,6 @@ abstract class _Class1&Super&Mixin1 extends self::Super implements opt2::Mixin1 
   synthetic constructor •() → self::_Class1&Super&Mixin1*
     : super self::Super::•()
     ;
-  abstract member-signature get /* from org-dartlang-testcase:///opt_out_lib.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method /* from org-dartlang-testcase:///opt_out_lib.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method /* from org-dartlang-testcase:///opt_out_lib.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method /* from org-dartlang-testcase:///opt_out_lib.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method /* from org-dartlang-testcase:///opt_out_lib.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator /* from org-dartlang-testcase:///opt_out_lib.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get /* from org-dartlang-testcase:///opt_out_lib.dart */ hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method /* from org-dartlang-testcase:///opt_out_lib.dart */ toString() → core::String*; -> core::Object::toString
-  abstract member-signature method /* from org-dartlang-testcase:///opt_out_lib.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get /* from org-dartlang-testcase:///opt_out_lib.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract member-signature get /* from org-dartlang-testcase:///opt_out_lib.dart */ getter() → opt::A*; -> opt::Interface1::getter
-  abstract member-signature set /* from org-dartlang-testcase:///opt_out_lib.dart */ setter(opt::C* c) → void; -> opt::Interface1::setter
 }
 class Class1 extends self::_Class1&Super&Mixin1 {
   synthetic constructor •() → self::Class1*

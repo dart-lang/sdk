@@ -5196,7 +5196,7 @@ class InstanceInvocation extends InvocationExpression {
 
   InstanceInvocation(InstanceAccessKind kind, Expression receiver, Name name,
       Arguments arguments,
-      {required Member interfaceTarget, required FunctionType functionType})
+      {required Procedure interfaceTarget, required FunctionType functionType})
       : this.byReference(kind, receiver, name, arguments,
             interfaceTargetReference:
                 getNonNullableMemberReferenceGetter(interfaceTarget),
@@ -5214,9 +5214,9 @@ class InstanceInvocation extends InvocationExpression {
     arguments.parent = this;
   }
 
-  Member get interfaceTarget => interfaceTargetReference.asMember;
+  Procedure get interfaceTarget => interfaceTargetReference.asProcedure;
 
-  void set interfaceTarget(Member target) {
+  void set interfaceTarget(Procedure target) {
     interfaceTargetReference = getNonNullableMemberReferenceGetter(target);
   }
 

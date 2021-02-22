@@ -63,7 +63,7 @@ class _LintConfig implements LintConfig {
   @override
   final ruleConfigs = <RuleConfig>[];
 
-  void addAsListOrString(Object value, List<String> list) {
+  void addAsListOrString(Object? value, List<String> list) {
     if (value is List) {
       value.forEach((v) => list.add(v));
     } else if (value is String) {

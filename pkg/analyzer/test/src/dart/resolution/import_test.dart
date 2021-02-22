@@ -13,10 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class ImportDirectiveResolutionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+class ImportDirectiveResolutionTest extends PubPackageResolutionTest {
   test_configurations_default() async {
     newFile('$testPackageLibPath/a.dart', content: 'class A {}');
     newFile('$testPackageLibPath/a_html.dart', content: 'class A {}');

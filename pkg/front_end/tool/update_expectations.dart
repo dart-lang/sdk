@@ -7,9 +7,9 @@
 import 'fasta.dart' as fasta;
 
 const List<String> standardSuites = <String>[
-  'strong',
-  'outline',
   'weak',
+  'outline',
+  'strong',
   'text_serialization',
   'textual_outline',
 ];
@@ -21,7 +21,7 @@ const List<String> specialSuites = <String>[
 
 Future<void> runStandardSuites([List<String> args]) async {
   // Assert that 'strong' is the first suite - we use the assumption below.
-  assert(standardSuites.first == 'strong', "Suite 'strong' most be the first.");
+  assert(standardSuites.first == 'weak', "Suite 'weak' most be the first.");
   bool first = true;
   for (String suite in standardSuites) {
     List<String> tests = args == null
