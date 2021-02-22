@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dartdev/dartdev.dart';
 import 'package:dartdev/src/analytics.dart';
 import 'package:test/test.dart';
 
@@ -19,6 +20,24 @@ List<Map> extractAnalytics(ProcessResult result) {
 
 void main() {
   group('DisabledAnalytics', disabledAnalyticsObject);
+
+  group('VM -> CLI --analytics flag smoke test:', () {
+    final command = DartdevRunner(['--analytics']);
+    test('--analytics', () {
+      command.runCommand(command.parse(['--analytics']));
+      expect(command.analytics is! DisabledAnalytics, true);
+    });
+
+    test('--no-analytics', () {
+      command.runCommand(command.parse(['--no-analytics']));
+      expect(command.analytics is DisabledAnalytics, true);
+    });
+
+    test('No flag', () {
+      command.runCommand(command.parse([]));
+      expect(command.analytics is! DisabledAnalytics, true);
+    });
+  });
 
   test('Analytics control smoke test', () {
     final p = project(logAnalytics: true);
