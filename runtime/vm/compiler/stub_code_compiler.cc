@@ -796,6 +796,19 @@ void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub(
   GenerateRangeError(assembler, /*with_fpu_regs=*/true);
 }
 
+void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
+    Assembler* assembler) {
+  __ Breakpoint();  // Marker stub.
+}
+
+void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
+  __ Breakpoint();  // Marker stub.
+}
+
+void StubCodeCompiler::GenerateUnknownDartCodeStub(Assembler* assembler) {
+  __ Breakpoint();  // Marker stub.
+}
+
 }  // namespace compiler
 
 }  // namespace dart

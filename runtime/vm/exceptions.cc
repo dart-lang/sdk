@@ -35,7 +35,7 @@ class StackTraceBuilder : public ValueObject {
   StackTraceBuilder() {}
   virtual ~StackTraceBuilder() {}
 
-  virtual void AddFrame(const Object& code, const Smi& offset) = 0;
+  virtual void AddFrame(const Object& code, uword pc_offset) = 0;
 };
 
 class PreallocatedStackTraceBuilder : public StackTraceBuilder {
@@ -50,7 +50,7 @@ class PreallocatedStackTraceBuilder : public StackTraceBuilder {
   }
   ~PreallocatedStackTraceBuilder() {}
 
-  virtual void AddFrame(const Object& code, const Smi& offset);
+  void AddFrame(const Object& code, uword pc_offset) override;
 
  private:
   static const int kNumTopframes = StackTrace::kPreallocatedStackdepth / 2;
@@ -63,11 +63,10 @@ class PreallocatedStackTraceBuilder : public StackTraceBuilder {
 };
 
 void PreallocatedStackTraceBuilder::AddFrame(const Object& code,
-                                             const Smi& offset) {
+                                             uword pc_offset) {
   if (cur_index_ >= StackTrace::kPreallocatedStackdepth) {
     // The number of frames is overflowing the preallocated stack trace object.
     Object& frame_code = Object::Handle();
-    Smi& frame_offset = Smi::Handle();
     intptr_t start = StackTrace::kPreallocatedStackdepth - (kNumTopframes - 1);
     intptr_t null_slot = start - 2;
     // We are going to drop one frame.
@@ -80,20 +79,19 @@ void PreallocatedStackTraceBuilder::AddFrame(const Object& code,
       dropped_frames_++;
     }
     // Encode the number of dropped frames into the pc offset.
-    frame_offset = Smi::New(dropped_frames_);
-    stacktrace_.SetPcOffsetAtFrame(null_slot, frame_offset);
+    stacktrace_.SetPcOffsetAtFrame(null_slot, dropped_frames_);
     // Move frames one slot down so that we can accommodate the new frame.
     for (intptr_t i = start; i < StackTrace::kPreallocatedStackdepth; i++) {
       intptr_t prev = (i - 1);
       frame_code = stacktrace_.CodeAtFrame(i);
-      frame_offset = stacktrace_.PcOffsetAtFrame(i);
+      const uword frame_offset = stacktrace_.PcOffsetAtFrame(i);
       stacktrace_.SetCodeAtFrame(prev, frame_code);
       stacktrace_.SetPcOffsetAtFrame(prev, frame_offset);
     }
     cur_index_ = (StackTrace::kPreallocatedStackdepth - 1);
   }
   stacktrace_.SetCodeAtFrame(cur_index_, code);
-  stacktrace_.SetPcOffsetAtFrame(cur_index_, offset);
+  stacktrace_.SetPcOffsetAtFrame(cur_index_, pc_offset);
   cur_index_ += 1;
 }
 
@@ -104,15 +102,14 @@ static void BuildStackTrace(StackTraceBuilder* builder) {
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle();
-  Smi& offset = Smi::Handle();
   for (; frame != NULL; frame = frames.NextFrame()) {
     if (!frame->IsDartFrame()) {
       continue;
     }
     code = frame->LookupDartCode();
     ASSERT(code.ContainsInstructionAt(frame->pc()));
-    offset = Smi::New(frame->pc() - code.PayloadStart());
-    builder->AddFrame(code, offset);
+    const uword pc_offset = frame->pc() - code.PayloadStart();
+    builder->AddFrame(code, pc_offset);
   }
 }
 

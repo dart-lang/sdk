@@ -5970,6 +5970,7 @@ class Code : public Object {
   uword PayloadStart() const { return PayloadStartOf(ptr()); }
   static uword PayloadStartOf(const CodePtr code) {
 #if defined(DART_PRECOMPILED_RUNTIME)
+    if (IsUnknownDartCode(code)) return 0;
     const uword entry_offset = HasMonomorphicEntry(code)
                                    ? Instructions::kPolymorphicEntryOffsetAOT
                                    : 0;
@@ -6015,9 +6016,10 @@ class Code : public Object {
   }
 
   // Returns the size of [instructions()].
-  intptr_t Size() const { return PayloadSizeOf(ptr()); }
-  static intptr_t PayloadSizeOf(const CodePtr code) {
+  uword Size() const { return PayloadSizeOf(ptr()); }
+  static uword PayloadSizeOf(const CodePtr code) {
 #if defined(DART_PRECOMPILED_RUNTIME)
+    if (IsUnknownDartCode(code)) return kUwordMax;
     return code->untag()->instructions_length_;
 #else
     return Instructions::Size(InstructionsOf(code));
@@ -6347,6 +6349,11 @@ class Code : public Object {
   bool IsTypeTestStubCode() const;
   bool IsFunctionCode() const;
 
+  // Returns true if this Code object represents
+  // Dart function code without any additional information.
+  bool IsUnknownDartCode() const { return IsUnknownDartCode(ptr()); }
+  static bool IsUnknownDartCode(CodePtr code);
+
   void DisableDartCode() const;
 
   void DisableStubCode() const;
@@ -6370,6 +6377,11 @@ class Code : public Object {
   void set_object_pool(ObjectPoolPtr object_pool) const {
     untag()->set_object_pool(object_pool);
   }
+
+  // Returns true if given Code object can be omitted from
+  // the AOT snapshot (when corresponding instructions are
+  // included).
+  bool CanBeOmittedFromAOTSnapshot() const;
 
  private:
   void set_state_bits(intptr_t bits) const;
@@ -10803,9 +10815,9 @@ class StackTrace : public Instance {
   ObjectPtr CodeAtFrame(intptr_t frame_index) const;
   void SetCodeAtFrame(intptr_t frame_index, const Object& code) const;
 
-  ArrayPtr pc_offset_array() const { return untag()->pc_offset_array(); }
-  SmiPtr PcOffsetAtFrame(intptr_t frame_index) const;
-  void SetPcOffsetAtFrame(intptr_t frame_index, const Smi& pc_offset) const;
+  TypedDataPtr pc_offset_array() const { return untag()->pc_offset_array(); }
+  uword PcOffsetAtFrame(intptr_t frame_index) const;
+  void SetPcOffsetAtFrame(intptr_t frame_index, uword pc_offset) const;
 
   bool skip_sync_start_in_parent_stack() const;
   void set_skip_sync_start_in_parent_stack(bool value) const;
@@ -10828,18 +10840,18 @@ class StackTrace : public Instance {
     return RoundedAllocationSize(sizeof(UntaggedStackTrace));
   }
   static StackTracePtr New(const Array& code_array,
-                           const Array& pc_offset_array,
+                           const TypedData& pc_offset_array,
                            Heap::Space space = Heap::kNew);
 
   static StackTracePtr New(const Array& code_array,
-                           const Array& pc_offset_array,
+                           const TypedData& pc_offset_array,
                            const StackTrace& async_link,
                            bool skip_sync_start_in_parent_stack,
                            Heap::Space space = Heap::kNew);
 
  private:
   void set_code_array(const Array& code_array) const;
-  void set_pc_offset_array(const Array& pc_offset_array) const;
+  void set_pc_offset_array(const TypedData& pc_offset_array) const;
   bool expand_inlined() const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(StackTrace, Instance);
