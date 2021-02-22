@@ -16,10 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class PrefixElementTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+class PrefixElementTest extends PubPackageResolutionTest {
   test_scope_lookup() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 var foo = 0;
