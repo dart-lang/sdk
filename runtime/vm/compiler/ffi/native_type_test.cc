@@ -14,9 +14,10 @@ namespace ffi {
 
 const NativeCompoundType& RunStructTest(dart::Zone* zone,
                                         const char* name,
-                                        const NativeTypes& member_types) {
+                                        const NativeTypes& member_types,
+                                        intptr_t packing = kMaxInt32) {
   const auto& struct_type =
-      NativeCompoundType::FromNativeTypes(zone, member_types);
+      NativeCompoundType::FromNativeTypes(zone, member_types, packing);
 
   const char* test_result = struct_type.ToCString(zone, /*multi_line=*/true);
 
@@ -194,6 +195,23 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_floatarray) {
   EXPECT(struct_type.ContainsOnlyFloats(Range::StartAndEnd(0, 8)));
   EXPECT_EQ(16 / compiler::target::kWordSize,
             struct_type.NumberOfWordSizeChunksOnlyFloat());
+}
+
+UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_packed) {
+  const auto& uint8_type = *new (Z) NativePrimitiveType(kUint8);
+  const auto& uint16_type = *new (Z) NativePrimitiveType(kUint16);
+
+  auto& members = *new (Z) NativeTypes(Z, 2);
+  members.Add(&uint8_type);
+  members.Add(&uint16_type);
+  const intptr_t packing = 1;
+
+  const auto& struct_type =
+      NativeCompoundType::FromNativeTypes(Z, members, packing);
+
+  // Should be 3 bytes on every platform.
+  EXPECT_EQ(3, struct_type.SizeInBytes());
+  EXPECT(struct_type.ContainsUnalignedMembers());
 }
 
 }  // namespace ffi

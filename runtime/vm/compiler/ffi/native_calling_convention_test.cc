@@ -398,6 +398,77 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct8bytesx1) {
   RunSignatureTest(Z, "struct8bytesx1", arguments, struct_type);
 }
 
+// The struct is only 8 bytes with packing enabled.
+//
+// Many calling conventions pass this struct in single registers or less
+// stack slots because of this.
+//
+// Non-windows x64 passes this struct on the stack instead of in a single
+// CPU register, because it contains a mis-aligned member.
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct8bytesPackedx10) {
+  const auto& int8_type = *new (Z) NativePrimitiveType(kInt8);
+  const auto& int32_type = *new (Z) NativePrimitiveType(kInt32);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 5);
+  member_types.Add(&int8_type);
+  member_types.Add(&int32_type);
+  member_types.Add(&int8_type);
+  member_types.Add(&int8_type);
+  member_types.Add(&int8_type);
+  const auto& struct_type =
+      NativeCompoundType::FromNativeTypes(Z, member_types, /*packing=*/1);
+  EXPECT_EQ(8, struct_type.SizeInBytes());
+  EXPECT(struct_type.ContainsUnalignedMembers());
+
+  auto& arguments = *new (Z) NativeTypes(Z, 10);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+
+  RunSignatureTest(Z, "struct8bytesPackedx10", arguments, struct_type);
+}
+
+// Without packing, this would be a 16 byte struct. However, because of packing
+// it's 9 bytes.
+//
+// #pragma pack(push,1)
+// typedef struct  {
+//   int8_t a0;
+//   double a1
+// } StructPacked;
+// #pragma pack(pop)
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_structPacked) {
+  const auto& int8_type = *new (Z) NativePrimitiveType(kInt8);
+  const auto& double_type = *new (Z) NativePrimitiveType(kDouble);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 2);
+  member_types.Add(&int8_type);
+  member_types.Add(&double_type);
+  const auto& struct_type =
+      NativeCompoundType::FromNativeTypes(Z, member_types, /*packing=*/1);
+  EXPECT_EQ(9, struct_type.SizeInBytes());
+  EXPECT(struct_type.ContainsUnalignedMembers());
+
+  auto& arguments = *new (Z) NativeTypes(Z, 11);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&int8_type);    // Backfilling int registers.
+  arguments.Add(&double_type);  // Backfilling float registers.
+
+  RunSignatureTest(Z, "structPacked", arguments, struct_type);
+}
+
 }  // namespace ffi
 }  // namespace compiler
 }  // namespace dart

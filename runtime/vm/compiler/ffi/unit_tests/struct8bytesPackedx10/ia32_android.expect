@@ -1,0 +1,12 @@
+S+4 Compound(size: 8)
+S+12 Compound(size: 8)
+S+20 Compound(size: 8)
+S+28 Compound(size: 8)
+S+36 Compound(size: 8)
+S+44 Compound(size: 8)
+S+52 Compound(size: 8)
+S+60 Compound(size: 8)
+S+68 Compound(size: 8)
+S+76 Compound(size: 8)
+=>
+P(S+0 uint32, ret:eax uint32) Compound(size: 8)

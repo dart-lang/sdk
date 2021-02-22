@@ -164,7 +164,8 @@ static bool ContainsHomogenuousFloatsInternal(const NativeTypes& types);
 // pkg/vm/lib/transformations/ffi_definitions.dart:_calculateStructLayout.
 NativeCompoundType& NativeCompoundType::FromNativeTypes(
     Zone* zone,
-    const NativeTypes& members) {
+    const NativeTypes& members,
+    intptr_t member_packing) {
   intptr_t offset = 0;
 
   const intptr_t kAtLeast1ByteAligned = 1;
@@ -195,8 +196,13 @@ NativeCompoundType& NativeCompoundType::FromNativeTypes(
   for (intptr_t i = 0; i < members.length(); i++) {
     const NativeType& member = *members[i];
     const intptr_t member_size = member.SizeInBytes();
-    const intptr_t member_align_field = member.AlignmentInBytesField();
-    const intptr_t member_align_stack = member.AlignmentInBytesStack();
+    const intptr_t member_align_field =
+        Utils::Minimum(member.AlignmentInBytesField(), member_packing);
+    intptr_t member_align_stack = member.AlignmentInBytesStack();
+    if (member_align_stack > member_packing &&
+        member_packing < compiler::target::kWordSize) {
+      member_align_stack = compiler::target::kWordSize;
+    }
     offset = Utils::RoundUp(offset, member_align_field);
     member_offsets.Add(offset);
     offset += member_size;
@@ -709,6 +715,29 @@ intptr_t NativeCompoundType::NumberOfWordSizeChunksNotOnlyFloat() const {
   return total_chunks - NumberOfWordSizeChunksOnlyFloat();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+bool NativePrimitiveType::ContainsUnalignedMembers() const {
+  return false;
+}
+
+bool NativeArrayType::ContainsUnalignedMembers() const {
+  return element_type_.ContainsUnalignedMembers();
+}
+
+bool NativeCompoundType::ContainsUnalignedMembers() const {
+  for (intptr_t i = 0; i < members_.length(); i++) {
+    const auto& member = *members_.At(i);
+    const intptr_t member_offset = member_offsets_.At(i);
+    const intptr_t member_alignment = member.AlignmentInBytesField();
+    if (member_offset % member_alignment != 0) {
+      return true;
+    }
+    if (member.ContainsUnalignedMembers()) {
+      return true;
+    }
+  }
+  return false;
+}
 
 static void ContainsHomogenuousFloatsRecursive(const NativeTypes& types,
                                                bool* only_float,
