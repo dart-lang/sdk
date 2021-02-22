@@ -6087,12 +6087,14 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
 
   for (SerializationCluster* cluster : canonical_clusters) {
     cluster->WriteAndMeasureAlloc(this);
+    bytes_heap_allocated_ += cluster->target_memory_size();
 #if defined(DEBUG)
     Write<int32_t>(next_ref_index_);
 #endif
   }
   for (SerializationCluster* cluster : clusters) {
     cluster->WriteAndMeasureAlloc(this);
+    bytes_heap_allocated_ += cluster->target_memory_size();
 #if defined(DEBUG)
     Write<int32_t>(next_ref_index_);
 #endif
@@ -6961,11 +6963,7 @@ FullSnapshotWriter::FullSnapshotWriter(
       vm_isolate_snapshot_size_(0),
       isolate_snapshot_size_(0),
       vm_image_writer_(vm_image_writer),
-      isolate_image_writer_(isolate_image_writer),
-      clustered_vm_size_(0),
-      clustered_isolate_size_(0),
-      mapped_data_size_(0),
-      mapped_text_size_(0) {
+      isolate_image_writer_(isolate_image_writer) {
   ASSERT(isolate_group() != NULL);
   ASSERT(heap() != NULL);
   ObjectStore* object_store = isolate_group()->object_store();
@@ -6999,6 +6997,7 @@ ZoneGrowableArray<Object*>* FullSnapshotWriter::WriteVMSnapshot() {
   ZoneGrowableArray<Object*>* objects = serializer.Serialize(&roots);
   serializer.FillHeader(serializer.kind());
   clustered_vm_size_ = serializer.bytes_written();
+  heap_vm_size_ = serializer.bytes_heap_allocated();
 
   if (Snapshot::IncludesCode(kind_)) {
     vm_image_writer_->SetProfileWriter(profile_writer_);
@@ -7043,6 +7042,7 @@ void FullSnapshotWriter::WriteProgramSnapshot(
   }
   serializer.FillHeader(serializer.kind());
   clustered_isolate_size_ = serializer.bytes_written();
+  heap_isolate_size_ = serializer.bytes_heap_allocated();
 
   if (Snapshot::IncludesCode(kind_)) {
     isolate_image_writer_->SetProfileWriter(profile_writer_);
@@ -7120,6 +7120,9 @@ void FullSnapshotWriter::WriteFullSnapshot(
     OS::Print("Total(CodeSize): %" Pd "\n",
               clustered_vm_size_ + clustered_isolate_size_ + mapped_data_size_ +
                   mapped_text_size_);
+    OS::Print("VMIsolate(HeapSize): %" Pd "\n", heap_vm_size_);
+    OS::Print("Isolate(HeapSize): %" Pd "\n", heap_isolate_size_);
+    OS::Print("Total(HeapSize): %" Pd "\n", heap_vm_size_ + heap_isolate_size_);
   }
 
 #if defined(DART_PRECOMPILER)
