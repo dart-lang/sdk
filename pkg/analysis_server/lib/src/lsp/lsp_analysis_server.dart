@@ -26,6 +26,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/notification_manager.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
+import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -774,10 +775,6 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   LspServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
   @override
-  LspNotificationManager get notificationManager =>
-      analysisServer.notificationManager;
-
-  @override
   void afterContextsCreated() {
     analysisServer.addContextsToDeclarationsTracker();
   }
@@ -861,6 +858,13 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
     analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
+  }
+
+  @override
+  void recordAnalysisErrors(String path, List<protocol.AnalysisError> errors) {
+    filesToFlush.add(path);
+    analysisServer.notificationManager
+        .recordAnalysisErrors(NotificationManager.serverId, path, errors);
   }
 
   bool _shouldSendDiagnostic(AnalysisError error) =>

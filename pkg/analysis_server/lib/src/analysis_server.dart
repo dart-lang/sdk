@@ -632,8 +632,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
-  @override
-  NotificationManager get notificationManager =>
+  NotificationManager get _notificationManager =>
       analysisServer.notificationManager;
 
   @override
@@ -675,7 +674,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       var path = result.path;
       filesToFlush.add(path);
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
-        notificationManager.recordAnalysisErrors(NotificationManager.serverId,
+        _notificationManager.recordAnalysisErrors(NotificationManager.serverId,
             path, server.doAnalysisError_listFromEngine(result));
       }
       var unit = result.unit;
@@ -683,7 +682,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.HIGHLIGHTS, path)) {
           _runDelayed(() {
-            notificationManager.recordHighlightRegions(
+            _notificationManager.recordHighlightRegions(
                 NotificationManager.serverId,
                 path,
                 _computeHighlightRegions(unit));
@@ -692,7 +691,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.NAVIGATION, path)) {
           _runDelayed(() {
-            notificationManager.recordNavigationParams(
+            _notificationManager.recordNavigationParams(
                 NotificationManager.serverId,
                 path,
                 _computeNavigationParams(path, unit));
@@ -701,7 +700,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.OCCURRENCES, path)) {
           _runDelayed(() {
-            notificationManager.recordOccurrences(
+            _notificationManager.recordOccurrences(
                 NotificationManager.serverId, path, _computeOccurrences(unit));
           });
         }
@@ -751,6 +750,13 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
     analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
+  }
+
+  @override
+  void recordAnalysisErrors(String path, List<AnalysisError> errors) {
+    filesToFlush.add(path);
+    _notificationManager.recordAnalysisErrors(
+        NotificationManager.serverId, path, errors);
   }
 
   List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
