@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This test contains a test case for each kind of error that can arise from an
-// expression being nullable, for which we wish to report "why not promoted"
-// errors.
+// This test contains a test case for each condition that can lead to the front
+// end's `NullableMethodCallError`, for which we wish to report "why not
+// promoted" context information.
 
 class C {
   int? i;

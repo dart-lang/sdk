@@ -4736,7 +4736,8 @@ class InferenceVisitor
               propertyName.text, receiverType, inferrer.isNonNullableByDefault),
           read.fileOffset,
           propertyName.text.length,
-          context: inferrer.getWhyNotPromotedContext(receiver, read));
+          context: inferrer.getWhyNotPromotedContext(
+              receiver, inferrer.flowAnalysis?.whyNotPromoted(receiver), read));
     }
     return readResult;
   }
