@@ -40,7 +40,7 @@ class PluginWatcherTest with ResourceProviderMixin {
     var pkg1Path = newFolder('/pkg1').path;
     newFile('/pkg1/lib/test1.dart');
     newFile('/pkg2/lib/pkg2.dart');
-    newFile('/pkg2/pubspec.yaml', content: 'name: pkg2');
+    newPubspecYamlFile('/pkg2', 'name: pkg2');
     newFile(
         '/pkg2/${PluginLocator.toolsFolderName}/${PluginLocator.defaultPluginFolderName}/bin/plugin.dart');
 

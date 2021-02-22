@@ -343,10 +343,10 @@ class DeprecatedMemberUse_GnWorkspaceTest extends ContextResolutionTest {
   }
 
   test_differentPackage() async {
-    newFile('$workspaceRootPath/my/pubspec.yaml');
+    newPubspecYamlFile('$workspaceRootPath/my', '');
     newFile('$workspaceRootPath/my/BUILD.gn');
 
-    newFile('$workspaceRootPath/aaa/pubspec.yaml');
+    newPubspecYamlFile('$workspaceRootPath/aaa', '');
     newFile('$workspaceRootPath/aaa/BUILD.gn');
 
     _writeWorkspacePackagesFile({
@@ -369,7 +369,7 @@ void f(A a) {}
   }
 
   test_samePackage() async {
-    newFile('$workspaceRootPath/my/pubspec.yaml');
+    newPubspecYamlFile('$workspaceRootPath/my', '');
     newFile('$workspaceRootPath/my/BUILD.gn');
 
     _writeWorkspacePackagesFile({
@@ -422,7 +422,7 @@ class DeprecatedMemberUse_PackageBuildWorkspaceTest
         ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
     );
 
-    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
+    newPubspecYamlFile(testPackageRootPath, 'name: test');
     _newTestPackageGeneratedFile(
       packageName: 'aaa',
       pathInLib: 'a.dart',
@@ -452,7 +452,7 @@ void f(A a) {}
 class A {}
 ''');
 
-    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
+    newPubspecYamlFile(testPackageRootPath, 'name: test');
     _createTestPackageBuildMarker();
 
     await assertErrorsInCode(r'''
@@ -1466,7 +1466,7 @@ void f(A a) {}
 class DeprecatedMemberUseFromSamePackage_PackageBuildWorkspaceTest
     extends _PackageBuildWorkspaceBase {
   test_generated() async {
-    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
+    newPubspecYamlFile(testPackageRootPath, 'name: test');
 
     _newTestPackageGeneratedFile(
       packageName: 'test',
@@ -1487,7 +1487,7 @@ void f(A a) {}
   }
 
   test_lib() async {
-    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
+    newPubspecYamlFile(testPackageRootPath, 'name: test');
     _createTestPackageBuildMarker();
 
     newFile('$testPackageLibPath/a.dart', content: r'''

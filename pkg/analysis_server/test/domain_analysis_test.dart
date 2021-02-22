@@ -58,7 +58,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_setAnalysisRoots_included_newFolder() async {
-    newFile('/project/pubspec.yaml', content: 'name: project');
+    newPubspecYamlFile('/project', 'name: project');
     var file = newFile('/project/bin/test.dart', content: 'main() {}').path;
     var response = testSetAnalysisRoots([projectPath], []);
     var serverRef = server;

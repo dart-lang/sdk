@@ -329,10 +329,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   }
 
   void writeTestPackagePubspecYamlFile(PubspecYamlFileConfig config) {
-    newFile(
-      '$testPackageRootPath/pubspec.yaml',
-      content: config.toContent(),
-    );
+    newPubspecYamlFile(testPackageRootPath, config.toContent());
   }
 }
 

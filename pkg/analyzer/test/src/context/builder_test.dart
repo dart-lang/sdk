@@ -395,14 +395,14 @@ b:${resourceProvider.pathContext.toUri(packageB)}
   void test_createWorkspace_hasPackagesFile_hasDartToolAndPubspec() {
     newFile('/workspace/.packages');
     newFolder('/workspace/.dart_tool/build/generated/project/lib');
-    newFile('/workspace/pubspec.yaml', content: 'name: project');
+    newPubspecYamlFile('/workspace', 'name: project');
     Workspace workspace = _createWorkspace('/workspace/project/lib/lib.dart');
     expect(workspace, TypeMatcher<PackageBuildWorkspace>());
   }
 
   void test_createWorkspace_hasPackagesFile_hasPubspec() {
     newFile('/workspace/.packages');
-    newFile('/workspace/pubspec.yaml', content: 'name: project');
+    newPubspecYamlFile('/workspace', 'name: project');
     Workspace workspace = _createWorkspace('/workspace/project/lib/lib.dart');
     expect(workspace, TypeMatcher<PubWorkspace>());
   }
@@ -422,7 +422,7 @@ b:${resourceProvider.pathContext.toUri(packageB)}
 
   void test_createWorkspace_noPackagesFile_hasDartToolAndPubspec() {
     newFolder('/workspace/.dart_tool/build/generated/project/lib');
-    newFile('/workspace/pubspec.yaml', content: 'name: project');
+    newPubspecYamlFile('/workspace', 'name: project');
     Workspace workspace = _createWorkspace('/workspace/project/lib/lib.dart');
     expect(workspace, TypeMatcher<PackageBuildWorkspace>());
   }
@@ -440,7 +440,7 @@ b:${resourceProvider.pathContext.toUri(packageB)}
   }
 
   void test_createWorkspace_noPackagesFile_hasPubspec() {
-    newFile('/workspace/pubspec.yaml', content: 'name: project');
+    newPubspecYamlFile('/workspace', 'name: project');
     Workspace workspace = _createWorkspace('/workspace/project/lib/lib.dart');
     expect(workspace, TypeMatcher<PubWorkspace>());
   }

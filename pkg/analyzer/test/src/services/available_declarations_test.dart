@@ -115,14 +115,14 @@ class AvailableDeclarationsTest extends _Base {
   test_changesStream_noDuplicates() async {
     newFile('/home/aaa/lib/a.dart', content: 'class A {}');
 
-    newFile('/home/bbb/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/bbb', r'''
 dependencies:
   aaa: any
 ''');
     addDotPackagesDependency('/home/bbb/.packages', 'aaa', '/home/aaa');
     newFile('/home/bbb/lib/b.dart', content: 'class B {}');
 
-    newFile('/home/ccc/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/ccc', r'''
 dependencies:
   aaa: any
 ''');
@@ -553,7 +553,7 @@ part of 'a.dart';
     var testPath = convertPath('/home/test');
     var filePath = convertPath('/packages/aaa/lib/a.dart');
 
-    newFile('/home/test/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/test', r'''
 name: test
 dependencies:
   aaa: any
@@ -3123,7 +3123,7 @@ part of 'a.dart';
     newFile('/home/ccc/lib/c.dart', content: 'class C {}');
     newFile('/home/ccc/lib/src/c2.dart', content: 'class C2 {}');
 
-    newFile('/home/test/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/test', r'''
 name: test
 dependencies:
   aaa: any
@@ -3135,7 +3135,7 @@ dev_dependencies:
     newFile('/home/test/bin/t3.dart', content: 'class T3 {}');
     newFile('/home/test/test/t4.dart', content: 'class T4 {}');
 
-    newFile('/home/test/samples/basic/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/test/samples/basic', r'''
 name: test
 dependencies:
   ccc: any

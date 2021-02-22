@@ -68,7 +68,7 @@ analyzer:
 ''');
     }
     if (analyzeWithNnbd) {
-      newFile('$testRoot/pubspec.yaml', content: '''
+      newPubspecYamlFile(testRoot, '''
 name: tests
 version: 1.0.0
 environment:

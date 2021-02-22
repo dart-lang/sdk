@@ -508,7 +508,7 @@ class PluginManagerTest with ResourceProviderMixin {
           buffer.writeln('  $dependency: any');
         }
       }
-      newFile('$packageRoot/pubspec.yaml', content: buffer.toString());
+      newPubspecYamlFile(packageRoot, buffer.toString());
       return packageRoot;
     }
 

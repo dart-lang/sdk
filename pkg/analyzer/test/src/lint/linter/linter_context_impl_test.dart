@@ -463,7 +463,7 @@ var x = 42;
 @reflectiveTest
 class PubDependencyTest extends AbstractLinterContextTest {
   test_dependencies() async {
-    newFile('$testPackageRootPath/pubspec.yaml', content: '''
+    newPubspecYamlFile(testPackageRootPath, '''
 name: test
 
 dependencies:
