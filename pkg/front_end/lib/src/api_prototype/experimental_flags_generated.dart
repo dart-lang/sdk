@@ -141,6 +141,7 @@ const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     const AllowedExperimentalFlags(sdkDefaultExperiments: {
   ExperimentalFlag.nonNullable,
+  ExperimentalFlag.tripleShift,
 }, sdkLibraryExperiments: {}, packageExperiments: {
   "async": {
     ExperimentalFlag.nonNullable,

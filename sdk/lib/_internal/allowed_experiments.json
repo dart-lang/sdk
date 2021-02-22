@@ -1,13 +1,17 @@
 {
   "version": 1,
   "experimentSets": {
+    "sdkExperiments": [
+      "non-nullable",
+      "triple-shift"
+    ],
     "nullSafety": [
       "non-nullable"
     ]
   },
   "sdk": {
     "default": {
-      "experimentSet": "nullSafety"
+      "experimentSet": "sdkExperiments"
     },
     "_example_libraries": {
       "ui": {

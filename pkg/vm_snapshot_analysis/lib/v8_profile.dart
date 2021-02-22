@@ -398,11 +398,8 @@ class _ProgramInfoBuilder {
   ProgramInfoNode createInfoNodeFor(Node node) {
     switch (node.type) {
       case 'Code':
-        var owner = node['owner_'];
+        var owner = node[':owner_'] ?? node['owner_'];
         if (owner.type != 'Type') {
-          if (owner.type == 'WeakSerializationReference') {
-            owner = node[':owner_'];
-          }
           final ownerNode =
               owner.type == 'Null' ? program.stubs : getInfoNodeFor(owner);
           if (owner.type == 'Function') {
@@ -437,13 +434,15 @@ class _ProgramInfoBuilder {
         return getInfoNodeFor(node['patched_class_']);
 
       case 'Class':
+        // Default to root node. Some builtin classes (void, dynamic) don't have
+        // any information about their library written out.
+        var ownerNode = program.root;
         if (node['library_'] != null) {
-          return makeInfoNode(node.index,
-              name: node.name,
-              parent: getInfoNodeFor(node['library_']) ?? program.root,
-              type: NodeType.classNode);
+          ownerNode = getInfoNodeFor(node['library_']) ?? ownerNode;
         }
-        break;
+
+        return makeInfoNode(node.index,
+            name: node.name, parent: ownerNode, type: NodeType.classNode);
 
       case 'Library':
         // Create fake owner node for the package which contains this library.

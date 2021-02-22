@@ -20,11 +20,25 @@ final dart2native = () {
   return path.canonicalize(dart2native);
 }();
 
-Future withFlag(String prefix, Map<String, String> source, String flag,
-    Future Function(String sizesJson) f) {
-  return withTempDir(prefix, (dir) async {
-    final outputBinary = path.join(dir, 'output.exe');
-    final sizesJson = path.join(dir, 'sizes.json');
+class AotSnapshot {
+  final String outputBinary;
+  final String sizesJson;
+
+  AotSnapshot({this.outputBinary, this.sizesJson});
+}
+
+Future withFlag(
+    Map<String, String> source, String flag, Future Function(String) f) {
+  return withFlagImpl(source, flag, (info) => f(info.sizesJson));
+}
+
+Future withFlagImpl(
+    Map<String, String> source, String flag, Future Function(AotSnapshot) f) {
+  return withTempDir((dir) async {
+    final snapshot = AotSnapshot(
+      outputBinary: path.join(dir, 'output.exe'),
+      sizesJson: path.join(dir, 'sizes.json'),
+    );
     final packages = path.join(dir, '.packages');
     final mainDart = path.join(dir, 'main.dart');
 
@@ -41,12 +55,17 @@ import 'package:input/input.dart' as input;
 void main(List<String> args) => input.main(args);
 ''');
 
+    final extraGenSnapshotOptions = [
+      '--dwarf-stack-traces',
+      if (flag != null) '$flag=${snapshot.sizesJson}',
+    ];
+
     // Compile input.dart to native and output instruction sizes.
     final result = await Process.run(dart2native, [
       '-o',
-      outputBinary,
+      snapshot.outputBinary,
       '--packages=$packages',
-      '--extra-gen-snapshot-options=--dwarf-stack-traces,$flag=$sizesJson',
+      '--extra-gen-snapshot-options=${extraGenSnapshotOptions.join(',')}',
       mainDart,
     ]);
 
@@ -56,18 +75,20 @@ Compilation completed successfully.
 stdout: ${result.stdout}
 stderr: ${result.stderr}
 ''');
-    expect(File(outputBinary).existsSync(), isTrue,
+    expect(File(snapshot.outputBinary).existsSync(), isTrue,
         reason: 'Output binary exists');
-    expect(File(sizesJson).existsSync(), isTrue,
-        reason: 'Instruction sizes output exists');
+    if (flag != null) {
+      expect(File(snapshot.sizesJson).existsSync(), isTrue,
+          reason: 'Instruction sizes output exists');
+    }
 
-    await f(sizesJson);
+    await f(snapshot);
   });
 }
 
-Future withTempDir(String prefix, Future Function(String dir) f) async {
+Future withTempDir(Future Function(String dir) f) async {
   final tempDir =
-      Directory.systemTemp.createTempSync('instruction-sizes-test-${prefix}');
+      Directory.systemTemp.createTempSync('instruction-sizes-test-');
   try {
     await f(tempDir.path);
   } finally {

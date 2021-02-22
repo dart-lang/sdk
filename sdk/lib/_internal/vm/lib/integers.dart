@@ -105,6 +105,9 @@ abstract class _IntegerImplementation implements int {
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator >>(int other) => other._shrFromInteger(this);
+  @pragma("vm:never-inline")
+  int operator >>>(int other) =>
+    throw UnimplementedError('int.>>> is not implemented yet');
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")

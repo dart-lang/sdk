@@ -52,7 +52,7 @@ p {
 
 pre {
   margin: 0;
-  font-family: 'Source Code Pro', monospace;
+  font-family: 'Roboto Mono', monospace;
   font-size: 15px;
 }
 
@@ -441,7 +441,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
               element('link', {
                 'rel': 'stylesheet',
                 'href':
-                    'https://fonts.googleapis.com/css?family=Source+Code+Pro|Roboto:500,400italic,300,400',
+                    'https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&family=Roboto:ital,wght@0,300;0,400;0,700;1,400&display=swap',
                 'type': 'text/css'
               });
               element('style', {}, () {

@@ -4,14 +4,13 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
-import 'package:analysis_server/src/context_manager.dart'
-    show ContextManagerImpl;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:path/path.dart' show dirname, join;
 
 /// Finds the nearest ancestor to [filePath] that contains a pubspec/.packages/build file.
@@ -20,9 +19,9 @@ String _findProjectFolder(ResourceProvider resourceProvider, String filePath) {
   var folder = dirname(filePath);
   while (folder != dirname(folder)) {
     final pubspec =
-        resourceProvider.getFile(join(folder, ContextManagerImpl.PUBSPEC_NAME));
-    final packages = resourceProvider
-        .getFile(join(folder, ContextManagerImpl.PACKAGE_SPEC_NAME));
+        resourceProvider.getFile(join(folder, file_paths.pubspecYaml));
+    final packages =
+        resourceProvider.getFile(join(folder, file_paths.dotPackages));
     final build = resourceProvider.getFile(join(folder, 'BUILD'));
 
     if (pubspec.exists || packages.exists || build.exists) {

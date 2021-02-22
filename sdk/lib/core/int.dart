@@ -105,6 +105,17 @@ abstract class int extends num {
   /// It is an error if [shiftAmount] is negative.
   int operator >>(int shiftAmount);
 
+  /// Bitwise unsigned right shift by [shiftAmount] bits.
+  ///
+  /// NOT IMPLEMENTED YET.
+  ///
+  /// The least significant [shiftAmount] bits are dropped,
+  /// the remaining bits (if any) are shifted down,
+  /// and zero-bits are shifted in as the new most signficant bits.
+  ///
+  /// The [shiftAmount] must be non-negative.
+  int operator >>>(int shiftAmount);
+
   /// Returns this integer to the power of [exponent] modulo [modulus].
   ///
   /// The [exponent] must be non-negative and [modulus] must be

@@ -7,33 +7,15 @@ library;
 // const int unaryPlus = +2;
 //                       ^
 //
-// pkg/front_end/testcases/general/constants/number_folds.dart:6:30: Error: The operator '>>>' isn't defined for the class 'int'.
-// Try correcting the operator to an existing operator, or defining a '>>>' operator.
-// const int shiftNegative2 = 2 >>> -1;
-//                              ^^^
-//
 // pkg/front_end/testcases/general/constants/number_folds.dart:9:23: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
 // const int divZero = 2 / 0;
 //                       ^
-//
-// pkg/front_end/testcases/general/constants/number_folds.dart:27:29: Error: The operator '>>>' isn't defined for the class 'int'.
-// Try correcting the operator to an existing operator, or defining a '>>>' operator.
-// const int binaryShift2 = 84 >>> 1;
-//                             ^^^
-//
-// pkg/front_end/testcases/general/constants/number_folds.dart:28:29: Error: The operator '>>>' isn't defined for the class 'int'.
-// Try correcting the operator to an existing operator, or defining a '>>>' operator.
-// const int binaryShift3 = 21 >>> 64;
-//                             ^^^
 //
 import self as self;
 import "dart:core" as core;
 
 static const field core::int* shiftNegative1 = 2.{core::int::<<}(1.{core::int::unary-}());
-static const field core::int* shiftNegative2 = invalid-expression "pkg/front_end/testcases/general/constants/number_folds.dart:6:30: Error: The operator '>>>' isn't defined for the class 'int'.
-Try correcting the operator to an existing operator, or defining a '>>>' operator.
-const int shiftNegative2 = 2 >>> -1;
-                             ^^^" as{TypeError,ForDynamic} core::int*;
+static const field core::int* shiftNegative2 = 2.{core::int::>>>}(1.{core::int::unary-}());
 static const field core::int* shiftNegative3 = 2.{core::int::>>}(1.{core::int::unary-}());
 static const field core::int* modZero = 2.{core::num::%}(0);
 static const field core::int* divZero = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/constants/number_folds.dart:9:23: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
@@ -55,14 +37,8 @@ static const field core::int* binaryOr = 32.{core::int::|}(10);
 static const field core::int* binaryAnd = 63.{core::int::&}(106);
 static const field core::int* binaryXor = 63.{core::int::^}(21);
 static const field core::int* binaryShift1 = 21.{core::int::<<}(1);
-static const field core::int* binaryShift2 = invalid-expression "pkg/front_end/testcases/general/constants/number_folds.dart:27:29: Error: The operator '>>>' isn't defined for the class 'int'.
-Try correcting the operator to an existing operator, or defining a '>>>' operator.
-const int binaryShift2 = 84 >>> 1;
-                            ^^^" as{TypeError,ForDynamic} core::int*;
-static const field core::int* binaryShift3 = invalid-expression "pkg/front_end/testcases/general/constants/number_folds.dart:28:29: Error: The operator '>>>' isn't defined for the class 'int'.
-Try correcting the operator to an existing operator, or defining a '>>>' operator.
-const int binaryShift3 = 21 >>> 64;
-                            ^^^" as{TypeError,ForDynamic} core::int*;
+static const field core::int* binaryShift2 = 84.{core::int::>>>}(1);
+static const field core::int* binaryShift3 = 21.{core::int::>>>}(64);
 static const field core::int* binaryShift4 = 84.{core::int::>>}(1);
 static const field core::bool* binaryLess = 42.{core::num::<}(42);
 static const field core::bool* binaryLessEqual = 42.{core::num::<=}(42);
@@ -79,6 +55,7 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:5:33 -> IntConstant(-1)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:6:34 -> IntConstant(-1)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:7:33 -> IntConstant(-1)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:9:23 -> DoubleConstant(Infinity)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:11:24 -> IntConstant(-2)
@@ -93,6 +70,8 @@ Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:21:25 -
 Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:22:26 -> IntConstant(42)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:23:26 -> IntConstant(42)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:24:29 -> IntConstant(42)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:27:29 -> IntConstant(42)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:28:29 -> IntConstant(0)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:30:29 -> IntConstant(42)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:31:28 -> BoolConstant(false)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:32:33 -> BoolConstant(true)
@@ -101,4 +80,4 @@ Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:34:31 -
 Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:36:36 -> IntConstant(42)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:39:27 -> DoubleConstant(NaN)
 Evaluated: StaticGet @ org-dartlang-testcase:///number_folds.dart:40:42 -> DoubleConstant(NaN)
-Extra constant evaluation: evaluated: 37, effectively constant: 23
+Extra constant evaluation: evaluated: 38, effectively constant: 26

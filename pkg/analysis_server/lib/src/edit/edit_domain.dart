@@ -54,6 +54,7 @@ import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/manifest/manifest_values.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:dart_style/dart_style.dart';
@@ -780,14 +781,14 @@ length: $length
   /// Compute and return the fixes associated with server-generated errors.
   Future<List<AnalysisErrorFixes>> _computeServerErrorFixes(
       Request request, String file, int offset) async {
-    var context = server.resourceProvider.pathContext;
+    var pathContext = server.resourceProvider.pathContext;
     if (AnalysisEngine.isDartFileName(file)) {
       return _computeDartFixes(request, file, offset);
-    } else if (AnalysisEngine.isAnalysisOptionsFileName(file, context)) {
+    } else if (file_paths.isAnalysisOptionsYaml(pathContext, file)) {
       return _computeAnalysisOptionsFixes(file, offset);
-    } else if (context.basename(file) == 'pubspec.yaml') {
+    } else if (file_paths.isPubspecYaml(pathContext, file)) {
       return _computePubspecFixes(file, offset);
-    } else if (context.basename(file) == 'manifest.xml') {
+    } else if (pathContext.basename(file) == 'manifest.xml') {
       // TODO(brianwilkerson) Do we need to check more than the file name?
       return _computeManifestFixes(file, offset);
     }

@@ -1310,7 +1310,7 @@ void f(A a) {}
 
   void _assertFlushedResults(List<String> paths) {
     var convertedPaths = paths.map(convertPath).toList();
-    expect(flushResults, convertedPaths);
+    expect(flushResults, unorderedEquals(convertedPaths));
     flushResults.clear();
   }
 

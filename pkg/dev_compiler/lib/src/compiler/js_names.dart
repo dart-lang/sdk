@@ -399,6 +399,7 @@ final friendlyNameForDartOperator = {
   '&': 'bitAnd',
   '<<': 'leftShift',
   '>>': 'rightShift',
+  '>>>': 'tripleShift',
   '~': 'bitNot',
   // These ones are always renamed, hence the choice of `_` to avoid conflict
   // with Dart names. See _emitMemberName.
