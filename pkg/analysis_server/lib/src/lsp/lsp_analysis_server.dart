@@ -768,6 +768,9 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   /// The [ResourceProvider] by which paths are converted into [Resource]s.
   final ResourceProvider resourceProvider;
 
+  /// The set of files for which notifications were sent.
+  final Set<String> filesToFlush = {};
+
   LspServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
   @override
@@ -780,6 +783,14 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
+  void afterContextsDestroyed() {
+    for (var file in filesToFlush) {
+      analysisServer.publishDiagnostics(file, []);
+    }
+    filesToFlush.clear();
+  }
+
+  @override
   void afterWatchEvent(WatchEvent event) {
     // TODO: implement afterWatchEvent
   }
@@ -787,6 +798,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void applyFileRemoved(String file) {
     analysisServer.publishDiagnostics(file, []);
+    filesToFlush.remove(file);
   }
 
   @override
@@ -808,6 +820,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
             []);
     analysisDriver.results.listen((result) {
       var path = result.path;
+      filesToFlush.add(path);
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
         final serverErrors = protocol.mapEngineErrors(
             result,
@@ -848,15 +861,6 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
     analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
-  }
-
-  @override
-  void removeContext(Folder folder, List<String> flushedFiles) {
-    var driver = analysisServer.driverMap.remove(folder);
-    // Flush any errors for these files that the client may be displaying.
-    flushedFiles
-        ?.forEach((path) => analysisServer.publishDiagnostics(path, const []));
-    driver.dispose();
   }
 
   bool _shouldSendDiagnostic(AnalysisError error) =>

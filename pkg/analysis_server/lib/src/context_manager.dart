@@ -121,9 +121,13 @@ abstract class ContextManagerCallbacks {
   /// Return the notification manager associated with the server.
   AbstractNotificationManager get notificationManager;
 
-  /// Called after contexts are rebuilt, such as after recovering from a watcher
-  /// failure.
+  /// Called after analysis contexts are created, usually when new analysis
+  /// roots are set, or after detecting a change that required rebuilding
+  /// the set of analysis contexts.
   void afterContextsCreated();
+
+  /// Called after analysis contexts are destroyed.
+  void afterContextsDestroyed();
 
   /// An [event] was processed, so analysis state might be different now.
   void afterWatchEvent(WatchEvent event);
@@ -138,11 +142,6 @@ abstract class ContextManagerCallbacks {
   ///
   /// TODO(scheglov) Just pass results in here?
   void listenAnalysisDriver(AnalysisDriver driver);
-
-  /// Remove the context associated with the given [folder].  [flushedFiles] is
-  /// a list of the files which will be "orphaned" by removing this context
-  /// (they will no longer be analyzed by any context).
-  void removeContext(Folder folder, List<String> flushedFiles);
 }
 
 /// Class that maintains a mapping from included/excluded paths to a set of
@@ -417,12 +416,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   void _createAnalysisContexts() {
-    if (_collection != null) {
-      for (var analysisContext in _collection.contexts) {
-        var contextImpl = analysisContext as DriverBasedAnalysisContext;
-        _destroyContext(contextImpl);
-      }
-    }
+    _destroyAnalysisContexts();
 
     _collection = AnalysisContextCollectionImpl(
       includedPaths: includedPaths,
@@ -501,13 +495,23 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /// Clean up and destroy the context associated with the given folder.
-  void _destroyContext(DriverBasedAnalysisContext context) {
+  void _destroyAnalysisContext(DriverBasedAnalysisContext context) {
+    context.driver.dispose();
+
     var rootFolder = context.contextRoot.root;
     changeSubscriptions.remove(rootFolder)?.cancel();
     bazelSubscriptions.remove(rootFolder)?.cancel();
+    driverMap.remove(rootFolder);
+  }
 
-    var flushedFiles = context.driver.addedFiles.toList();
-    callbacks.removeContext(rootFolder, flushedFiles);
+  void _destroyAnalysisContexts() {
+    if (_collection != null) {
+      for (var analysisContext in _collection.contexts) {
+        var contextImpl = analysisContext as DriverBasedAnalysisContext;
+        _destroyAnalysisContext(contextImpl);
+      }
+      callbacks.afterContextsDestroyed();
+    }
   }
 
   /// Establishes watch(es) for the Bazel generated files provided in

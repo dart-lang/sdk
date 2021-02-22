@@ -632,6 +632,9 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   /// The [ResourceProvider] by which paths are converted into [Resource]s.
   final ResourceProvider resourceProvider;
 
+  /// The set of files for which notifications were sent.
+  final Set<String> filesToFlush = {};
+
   ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
   @override
@@ -645,6 +648,15 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
+  void afterContextsDestroyed() {
+    sendAnalysisNotificationFlushResults(
+      analysisServer,
+      filesToFlush.toList(),
+    );
+    filesToFlush.clear();
+  }
+
+  @override
   void afterWatchEvent(WatchEvent event) {
     analysisServer._onAnalysisSetChangedController.add(null);
   }
@@ -652,6 +664,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void applyFileRemoved(String file) {
     sendAnalysisNotificationFlushResults(analysisServer, [file]);
+    filesToFlush.remove(file);
   }
 
   @override
@@ -666,6 +679,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisDriver.results.listen((result) {
       var notificationManager = analysisServer.notificationManager;
       var path = result.path;
+      filesToFlush.add(path);
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
         if (notificationManager != null) {
           notificationManager.recordAnalysisErrors(NotificationManager.serverId,
@@ -770,13 +784,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
     analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
-  }
-
-  @override
-  void removeContext(Folder folder, List<String> flushedFiles) {
-    sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
-    var driver = analysisServer.driverMap.remove(folder);
-    driver?.dispose();
   }
 
   List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
