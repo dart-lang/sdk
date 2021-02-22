@@ -55,18 +55,6 @@ f(p) {p as N;}''', [
     ]);
   }
 
-  @FailingTest(reason: 'Different approach to MockSdk')
-  test_dart() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-import 'dart:async2';
-
-Future v;
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 44, 6),
-    ]);
-  }
-
   test_extends() async {
     newFile("$testPackageLibPath/lib1.dart", content: '''
 library lib1;
@@ -174,6 +162,30 @@ import 'lib1.dart';
 import 'lib2.dart';
 g() { N.FOO; }''', [
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 46, 1),
+    ]);
+  }
+
+  test_systemLibrary_nonSystemLibrary() async {
+    // From the spec, "a declaration from a non-system library shadows
+    // declarations from system libraries."
+    newFile('$testPackageLibPath/a.dart', content: '''
+class StreamController {}
+''');
+    await assertNoErrorsInCode('''
+import 'dart:async'; // ignore: unused_import
+import 'a.dart';
+
+StreamController s = StreamController();
+''');
+  }
+
+  test_systemLibrary_systemLibrary() async {
+    await assertErrorsInCode('''
+import 'dart:html';
+import 'dart:io';
+g(File f) {}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 40, 4),
     ]);
   }
 
