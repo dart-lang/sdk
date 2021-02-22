@@ -24,9 +24,14 @@ VM_UNIT_TEST_CASE(AllocateVirtualMemory) {
       VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, "test");
   EXPECT(vm != NULL);
   EXPECT(vm->address() != NULL);
-  EXPECT_EQ(kVirtualMemoryBlockSize, vm->size());
   EXPECT_EQ(vm->start(), reinterpret_cast<uword>(vm->address()));
+#if defined(DART_COMPRESSED_POINTERS)
+  EXPECT_EQ(kOldPageSize, vm->size());
+  EXPECT_EQ(vm->start() + kOldPageSize, vm->end());
+#else
+  EXPECT_EQ(kVirtualMemoryBlockSize, vm->size());
   EXPECT_EQ(vm->start() + kVirtualMemoryBlockSize, vm->end());
+#endif  // defined(DART_COMPRESSED_POINTERS)
   EXPECT(vm->Contains(vm->start()));
   EXPECT(vm->Contains(vm->start() + 1));
   EXPECT(vm->Contains(vm->start() + kVirtualMemoryBlockSize - 1));

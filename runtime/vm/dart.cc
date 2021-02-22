@@ -673,6 +673,7 @@ char* Dart::Cleanup() {
   IsolateGroupReloadContext::SetFileModifiedCallback(NULL);
   Service::SetEmbedderStreamCallbacks(NULL, NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  VirtualMemory::Cleanup();
   return NULL;
 }
 
