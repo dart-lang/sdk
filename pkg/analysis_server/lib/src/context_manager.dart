@@ -243,7 +243,12 @@ class ContextManagerImpl implements ContextManager {
 
   @override
   bool isInAnalysisRoot(String path) {
-    return _collection.contexts.any(
+    var collection = _collection;
+    if (collection == null) {
+      return false;
+    }
+
+    return collection.contexts.any(
       (context) => context.contextRoot.isAnalyzed(path),
     );
   }
