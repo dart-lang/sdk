@@ -19,6 +19,7 @@ aa
 aaa
 abc
 abcompile
+adaptor
 adopted
 albeit
 allocations
@@ -42,6 +43,7 @@ auth
 authority
 autobianchi
 automatic
+axis
 b0x
 b1x
 b2x
