@@ -305,10 +305,8 @@ class TypeInferrerImpl implements TypeInferrer {
   /// Computes a list of context messages explaining why [receiver] was not
   /// promoted, to be used when reporting an error for a larger expression
   /// containing [receiver].  [expression] is the containing expression.
-  List<LocatedMessage> getWhyNotPromotedContext(
-      Expression receiver, Expression expression) {
-    Map<DartType, NonPromotionReason> whyNotPromoted =
-        flowAnalysis?.whyNotPromoted(receiver);
+  List<LocatedMessage> getWhyNotPromotedContext(Expression receiver,
+      Map<DartType, NonPromotionReason> whyNotPromoted, Expression expression) {
     List<LocatedMessage> context;
     if (whyNotPromoted != null && whyNotPromoted.isNotEmpty) {
       _WhyNotPromotedVisitor whyNotPromotedVisitor =
@@ -2755,12 +2753,22 @@ class TypeInferrerImpl implements TypeInferrer {
           implicitInvocationPropertyName: name);
 
       if (!isTopLevel && target.isNullable) {
+        // Handles cases like:
+        //   C? c;
+        //   c();
+        // where there is an extension on C defined as:
+        //   extension on C {
+        //     void Function() get call => () {};
+        //   }
+        List<LocatedMessage> context = getWhyNotPromotedContext(
+            receiver, flowAnalysis?.whyNotPromoted(receiver), staticInvocation);
         result = wrapExpressionInferenceResultInProblem(
             result,
             templateNullableExpressionCallError.withArguments(
                 receiverType, isNonNullableByDefault),
             fileOffset,
-            noLength);
+            noLength,
+            context: context);
       }
 
       return result;
@@ -2780,13 +2788,23 @@ class TypeInferrerImpl implements TypeInferrer {
 
       Expression replacement = result.applyResult(staticInvocation);
       if (!isTopLevel && target.isNullable) {
+        List<LocatedMessage> context = getWhyNotPromotedContext(
+            receiver, flowAnalysis?.whyNotPromoted(receiver), staticInvocation);
         if (isImplicitCall) {
+          // Handles cases like:
+          //   int? i;
+          //   i();
+          // where there is an extension:
+          //   extension on int {
+          //     void call() {}
+          //   }
           replacement = helper.wrapInProblem(
               replacement,
               templateNullableExpressionCallError.withArguments(
                   receiverType, isNonNullableByDefault),
               fileOffset,
-              noLength);
+              noLength,
+              context: context);
         } else {
           // Handles cases like:
           //   int? i;
@@ -2801,7 +2819,7 @@ class TypeInferrerImpl implements TypeInferrer {
                   name.text, receiverType, isNonNullableByDefault),
               fileOffset,
               name.text.length,
-              context: getWhyNotPromotedContext(receiver, staticInvocation));
+              context: context);
         }
       }
       return createNullAwareExpressionInferenceResult(
@@ -2865,13 +2883,19 @@ class TypeInferrerImpl implements TypeInferrer {
     }
     Expression replacement = result.applyResult(expression);
     if (!isTopLevel && target.isNullableCallFunction) {
+      List<LocatedMessage> context = getWhyNotPromotedContext(
+          receiver, flowAnalysis?.whyNotPromoted(receiver), expression);
       if (isImplicitCall) {
+        // Handles cases like:
+        //   void Function()? f;
+        //   f();
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableExpressionCallError.withArguments(
                 receiverType, isNonNullableByDefault),
             fileOffset,
-            noLength);
+            noLength,
+            context: context);
       } else {
         // Handles cases like:
         //   void Function()? f;
@@ -2882,7 +2906,7 @@ class TypeInferrerImpl implements TypeInferrer {
                 callName.text, receiverType, isNonNullableByDefault),
             fileOffset,
             callName.text.length,
-            context: getWhyNotPromotedContext(receiver, expression));
+            context: context);
       }
     }
     // TODO(johnniwinther): Check that type arguments against the bounds.
@@ -3031,13 +3055,23 @@ class TypeInferrerImpl implements TypeInferrer {
 
     replacement = result.applyResult(replacement);
     if (!isTopLevel && target.isNullable) {
+      List<LocatedMessage> context = getWhyNotPromotedContext(
+          receiver, flowAnalysis?.whyNotPromoted(receiver), expression);
       if (isImplicitCall) {
+        // Handles cases like:
+        //   C? c;
+        //   c();
+        // Where C is defined as:
+        //   class C {
+        //     void call();
+        //   }
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableExpressionCallError.withArguments(
                 receiverType, isNonNullableByDefault),
             fileOffset,
-            noLength);
+            noLength,
+            context: context);
       } else {
         // Handles cases like:
         //   int? i;
@@ -3048,7 +3082,7 @@ class TypeInferrerImpl implements TypeInferrer {
                 methodName.text, receiverType, isNonNullableByDefault),
             fileOffset,
             methodName.text.length,
-            context: getWhyNotPromotedContext(receiver, expression));
+            context: context);
       }
     }
 
@@ -3172,12 +3206,22 @@ class TypeInferrerImpl implements TypeInferrer {
     }
 
     if (!isTopLevel && target.isNullable) {
+      // Handles cases like:
+      //   C? c;
+      //   c.foo();
+      // Where C is defined as:
+      //   class C {
+      //     void Function() get foo => () {};
+      //   }
+      List<LocatedMessage> context = getWhyNotPromotedContext(receiver,
+          flowAnalysis?.whyNotPromoted(receiver), invocationResult.expression);
       invocationResult = wrapExpressionInferenceResultInProblem(
           invocationResult,
           templateNullableExpressionCallError.withArguments(
               receiverType, isNonNullableByDefault),
           fileOffset,
-          noLength);
+          noLength,
+          context: context);
     }
 
     if (!library.loader.target.backendTarget.supportsExplicitGetterCalls) {
@@ -3274,6 +3318,14 @@ class TypeInferrerImpl implements TypeInferrer {
       receiver = _hoist(receiver, receiverType, hoistedExpressions);
     }
 
+    Map<DartType, NonPromotionReason> whyNotPromotedInfo;
+    if (!isTopLevel && target.isNullable) {
+      // We won't report the error until later (after we have an
+      // invocationResult), but we need to gather "why not promoted" info now,
+      // before we tell flow analysis about the property get.
+      whyNotPromotedInfo = flowAnalysis?.whyNotPromoted(receiver);
+    }
+
     Name originalName = field.name;
     Expression originalReceiver = receiver;
     Member originalTarget = field;
@@ -3297,6 +3349,8 @@ class TypeInferrerImpl implements TypeInferrer {
           kind, originalReceiver, originalName,
           resultType: calleeType, interfaceTarget: originalTarget)
         ..fileOffset = fileOffset;
+      flowAnalysis.propertyGet(
+          originalPropertyGet, originalReceiver, originalName.name);
     } else {
       originalPropertyGet =
           new PropertyGet(originalReceiver, originalName, originalTarget)
@@ -3343,12 +3397,25 @@ class TypeInferrerImpl implements TypeInferrer {
     }
 
     if (!isTopLevel && target.isNullable) {
+      // Handles cases like:
+      //   C? c;
+      //   c.foo();
+      // Where C is defined as:
+      //   class C {
+      //     void Function() foo;
+      //     C(this.foo);
+      //   }
+      // TODO(paulberry): would it be better to report NullableMethodCallError
+      // in this scenario?
+      List<LocatedMessage> context = getWhyNotPromotedContext(
+          receiver, whyNotPromotedInfo, invocationResult.expression);
       invocationResult = wrapExpressionInferenceResultInProblem(
           invocationResult,
           templateNullableExpressionCallError.withArguments(
               receiverType, isNonNullableByDefault),
           fileOffset,
-          noLength);
+          noLength,
+          context: context);
     }
 
     if (!library.loader.target.backendTarget.supportsExplicitGetterCalls) {
