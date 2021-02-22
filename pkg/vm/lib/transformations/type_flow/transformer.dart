@@ -1324,7 +1324,12 @@ class _TreeShakerPass2 extends RemovingTransformer {
     if (!shaker.isMemberUsed(node) && !_preserveSpecialMember(node)) {
       // Ensure that kernel file writer will not be able to
       // write a dangling reference to the deleted member.
-      node.reference.canonicalName = null;
+      if (node is Field) {
+        node.getterCanonicalName?.reference = null;
+        node.setterCanonicalName?.reference = null;
+      } else {
+        node.canonicalName?.reference = null;
+      }
       Statistics.membersDropped++;
       return removalSentinel;
     }
