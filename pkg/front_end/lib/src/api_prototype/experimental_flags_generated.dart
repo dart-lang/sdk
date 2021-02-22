@@ -13,6 +13,7 @@ part of 'experimental_flags.dart';
 
 enum ExperimentalFlag {
   alternativeInvalidationStrategy,
+  constFunctions,
   constantUpdate2018,
   controlFlowCollections,
   extensionMethods,
@@ -29,6 +30,7 @@ enum ExperimentalFlag {
 
 const Version enableAlternativeInvalidationStrategyVersion =
     const Version(2, 13);
+const Version enableConstFunctionsVersion = const Version(2, 13);
 const Version enableConstantUpdate2018Version = const Version(2, 0);
 const Version enableControlFlowCollectionsVersion = const Version(2, 0);
 const Version enableExtensionMethodsVersion = const Version(2, 6);
@@ -46,6 +48,8 @@ ExperimentalFlag parseExperimentalFlag(String flag) {
   switch (flag) {
     case "alternative-invalidation-strategy":
       return ExperimentalFlag.alternativeInvalidationStrategy;
+    case "const-functions":
+      return ExperimentalFlag.constFunctions;
     case "constant-update-2018":
       return ExperimentalFlag.constantUpdate2018;
     case "control-flow-collections":
@@ -76,6 +80,7 @@ ExperimentalFlag parseExperimentalFlag(String flag) {
 
 const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.alternativeInvalidationStrategy: false,
+  ExperimentalFlag.constFunctions: false,
   ExperimentalFlag.constantUpdate2018: true,
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.extensionMethods: true,
@@ -92,6 +97,7 @@ const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
 
 const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
   ExperimentalFlag.alternativeInvalidationStrategy: false,
+  ExperimentalFlag.constFunctions: false,
   ExperimentalFlag.constantUpdate2018: true,
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.extensionMethods: false,
@@ -108,6 +114,7 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
 
 const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
   ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 13),
+  ExperimentalFlag.constFunctions: const Version(2, 13),
   ExperimentalFlag.constantUpdate2018: const Version(2, 0),
   ExperimentalFlag.controlFlowCollections: const Version(2, 0),
   ExperimentalFlag.extensionMethods: const Version(2, 6),
@@ -124,6 +131,7 @@ const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
 
 const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
   ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 13),
+  ExperimentalFlag.constFunctions: const Version(2, 13),
   ExperimentalFlag.constantUpdate2018: const Version(2, 0),
   ExperimentalFlag.controlFlowCollections: const Version(2, 0),
   ExperimentalFlag.extensionMethods: const Version(2, 6),
