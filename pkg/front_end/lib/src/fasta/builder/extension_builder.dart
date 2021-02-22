@@ -6,20 +6,23 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/type_algebra.dart';
 
-import '../fasta_codes.dart' show templateInternalProblemNotFoundIn;
+import '../fasta_codes.dart'
+    show templateInternalProblemNotFoundIn, templateTypeArgumentMismatch;
 import '../scope.dart';
+import '../source/source_library_builder.dart';
 import '../problems.dart';
 import '../util/helpers.dart';
 
 import 'builder.dart';
+import 'declaration_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
-import 'declaration_builder.dart';
 
 abstract class ExtensionBuilder implements DeclarationBuilder {
   List<TypeVariableBuilder> get typeParameters;
@@ -86,14 +89,82 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
       [bool notInstanceContext]) {
-    throw new UnsupportedError("ExtensionBuilder.buildType is not supported.");
+    if (library is SourceLibraryBuilder &&
+        library.enableExtensionTypesInLibrary) {
+      return buildTypesWithBuiltArguments(
+          library,
+          nullabilityBuilder.build(library),
+          buildTypeArguments(library, arguments, notInstanceContext));
+    } else {
+      throw new UnsupportedError("ExtensionBuilder.buildType is not supported"
+          "in library '${library.importUri}'.");
+    }
   }
 
   @override
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
-    throw new UnsupportedError("ExtensionBuilder.buildTypesWithBuiltArguments "
-        "is not supported.");
+    if (library is SourceLibraryBuilder &&
+        library.enableExtensionTypesInLibrary) {
+      // TODO(dmitryas): Build the extension type rather than the on-type.
+      DartType builtOnType = onType.build(library);
+      if (typeParameters != null) {
+        List<TypeParameter> typeParameterNodes = <TypeParameter>[];
+        for (TypeVariableBuilder typeParameter in typeParameters) {
+          typeParameterNodes.add(typeParameter.parameter);
+        }
+        builtOnType = Substitution.fromPairs(typeParameterNodes, arguments)
+            .substituteType(builtOnType);
+      }
+      return builtOnType;
+    } else {
+      throw new UnsupportedError(
+          "ExtensionBuilder.buildTypesWithBuiltArguments "
+          "is not supported in library '${library.importUri}'.");
+    }
+  }
+
+  @override
+  int get typeVariablesCount => typeParameters?.length ?? 0;
+
+  List<DartType> buildTypeArguments(
+      LibraryBuilder library, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
+    if (arguments == null && typeParameters == null) {
+      return <DartType>[];
+    }
+
+    if (arguments == null && typeParameters != null) {
+      List<DartType> result = new List<DartType>.filled(
+          typeParameters.length, null,
+          growable: true);
+      for (int i = 0; i < result.length; ++i) {
+        result[i] = typeParameters[i].defaultType.build(library);
+      }
+      if (library is SourceLibraryBuilder) {
+        library.inferredTypes.addAll(result);
+      }
+      return result;
+    }
+
+    if (arguments != null && arguments.length != typeVariablesCount) {
+      // That should be caught and reported as a compile-time error earlier.
+      return unhandled(
+          templateTypeArgumentMismatch
+              .withArguments(typeVariablesCount)
+              .message,
+          "buildTypeArguments",
+          -1,
+          null);
+    }
+
+    assert(arguments.length == typeVariablesCount);
+    List<DartType> result =
+        new List<DartType>.filled(arguments.length, null, growable: true);
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = arguments[i].build(library);
+    }
+    return result;
   }
 
   @override

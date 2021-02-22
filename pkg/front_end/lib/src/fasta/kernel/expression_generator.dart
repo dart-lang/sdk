@@ -2975,7 +2975,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
   @override
   TypeBuilder buildTypeWithResolvedArguments(
       NullabilityBuilder nullabilityBuilder, List<UnresolvedType> arguments) {
-    if (declaration.isExtension) {
+    if (declaration.isExtension && !_helper.enableExtensionTypesInLibrary) {
       // Extension declarations cannot be used as types.
       return super
           .buildTypeWithResolvedArguments(nullabilityBuilder, arguments);

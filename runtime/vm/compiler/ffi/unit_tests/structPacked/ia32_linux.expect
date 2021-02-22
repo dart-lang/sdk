@@ -1,0 +1,6 @@
+S+4 Compound(size: 9)
+S+16 Compound(size: 9)
+S+28 int32[int8]
+S+32 double
+=>
+P(S+0 uint32, ret:eax uint32) Compound(size: 9)

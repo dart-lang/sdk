@@ -2835,10 +2835,18 @@ COMPILE_ASSERT(sizeof(UntaggedFloat64x2) == 24);
 // Define an aliases for intptr_t.
 #if defined(ARCH_IS_32_BIT)
 #define kIntPtrCid kTypedDataInt32ArrayCid
+#define GetIntPtr GetInt32
 #define SetIntPtr SetInt32
+#define kUintPtrCid kTypedDataUint32ArrayCid
+#define GetUintPtr GetUint32
+#define SetUintPtr SetUint32
 #elif defined(ARCH_IS_64_BIT)
 #define kIntPtrCid kTypedDataInt64ArrayCid
+#define GetIntPtr GetInt64
 #define SetIntPtr SetInt64
+#define kUintPtrCid kTypedDataUint64ArrayCid
+#define GetUintPtr GetUint64
+#define SetUintPtr SetUint64
 #else
 #error Architecture is not 32-bit or 64-bit.
 #endif  // ARCH_IS_32_BIT
@@ -2917,7 +2925,8 @@ class UntaggedStackTrace : public UntaggedInstance {
                 async_link);  // Link to parent async stack trace.
   POINTER_FIELD(ArrayPtr,
                 code_array);  // Code object for each frame in the stack trace.
-  POINTER_FIELD(ArrayPtr, pc_offset_array);  // Offset of PC for each frame.
+  POINTER_FIELD(TypedDataPtr, pc_offset_array);  // Offset of PC for each frame.
+
   VISIT_TO(ObjectPtr, pc_offset_array)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 

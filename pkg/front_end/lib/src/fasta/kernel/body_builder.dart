@@ -442,6 +442,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   DartType get implicitTypeArgument => const ImplicitTypeArgument();
 
+  @override
+  bool get enableExtensionTypesInLibrary {
+    return libraryBuilder.enableExtensionTypesInLibrary;
+  }
+
   void _enterLocalState({bool inLateLocalInitializer: false}) {
     _localInitializerState =
         _localInitializerState.prepend(inLateLocalInitializer);

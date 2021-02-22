@@ -135,13 +135,19 @@ class BinaryBuilder {
   /// will not be resolved correctly.
   bool _disableLazyClassReading = false;
 
+  /// When creating lists that *might* be growable, use this boolean as the
+  /// setting to pass to `growable` so the dill can be loaded in a more compact
+  /// manner if the caller knows that the growability isn't needed.
+  final bool useGrowableLists;
+
   /// Note that [disableLazyClassReading] is incompatible
   /// with checkCanonicalNames on readComponent.
   BinaryBuilder(this._bytes,
       {this.filename,
       bool disableLazyReading = false,
       bool disableLazyClassReading = false,
-      bool alwaysCreateNewNamedNodes})
+      bool alwaysCreateNewNamedNodes,
+      this.useGrowableLists = true})
       : _disableLazyReading = disableLazyReading,
         _disableLazyClassReading = disableLazyReading ||
             disableLazyClassReading ||
@@ -377,7 +383,7 @@ class BinaryBuilder {
       final Constant key = readConstantReference();
       final Constant value = readConstantReference();
       return new ConstantMapEntry(key, value);
-    }, growable: true);
+    }, growable: useGrowableLists);
     return new MapConstant(keyType, valueType, entries);
   }
 
@@ -438,7 +444,7 @@ class BinaryBuilder {
   List<Constant> _readConstantReferenceList() {
     final int length = readUInt30();
     return new List<Constant>.generate(length, (_) => readConstantReference(),
-        growable: true);
+        growable: useGrowableLists);
   }
 
   Uri readUriReference() {
@@ -452,7 +458,7 @@ class BinaryBuilder {
   List<String> readStringReferenceList() {
     int length = readUInt30();
     return new List<String>.generate(length, (_) => readStringReference(),
-        growable: true);
+        growable: useGrowableLists);
   }
 
   String readStringOrNullIfEmpty() {
@@ -476,7 +482,7 @@ class BinaryBuilder {
     if (length == 0) return const <Expression>[];
     return new List<Expression>.generate(
         length, (_) => readExpression()..parent = parent,
-        growable: true);
+        growable: useGrowableLists);
   }
 
   void _fillTreeNodeList(
@@ -672,8 +678,6 @@ class BinaryBuilder {
       for (CanonicalName child in parentChildren) {
         if (child.name != '@methods' &&
             child.name != '@typedefs' &&
-            child.name != '@fields' &&
-            child.name != '@=fields' &&
             child.name != '@getters' &&
             child.name != '@setters' &&
             child.name != '@factories' &&
@@ -874,7 +878,7 @@ class BinaryBuilder {
     int length = readUInt30();
     if (length == 0) return null;
     return new List<String>.generate(length, (_) => readString(),
-        growable: true);
+        growable: useGrowableLists);
   }
 
   /// Read the uri-to-source part of the binary.
@@ -1201,8 +1205,13 @@ class BinaryBuilder {
 
   List<Combinator> readCombinatorList() {
     int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      return const [];
+    }
     return new List<Combinator>.generate(length, (_) => readCombinator(),
-        growable: true);
+        growable: useGrowableLists);
   }
 
   void _readLibraryParts(Library library) {
@@ -1785,8 +1794,13 @@ class BinaryBuilder {
 
   List<Expression> readExpressionList() {
     int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      return const [];
+    }
     return new List<Expression>.generate(length, (_) => readExpression(),
-        growable: true);
+        growable: useGrowableLists);
   }
 
   Expression readExpressionOption() {
@@ -2248,9 +2262,17 @@ class BinaryBuilder {
       fieldValues[fieldRef] = value;
     }
     int assertCount = readUInt30();
-    List<AssertStatement> asserts = new List<AssertStatement>.generate(
-        assertCount, (_) => readStatement(),
-        growable: false);
+    List<AssertStatement> asserts;
+
+    if (!useGrowableLists && assertCount == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      asserts = const [];
+    } else {
+      asserts = new List<AssertStatement>.generate(
+          assertCount, (_) => readStatement(),
+          growable: false);
+    }
     List<Expression> unusedArguments = readExpressionList();
     return new InstanceCreation(
         classReference, typeArguments, fieldValues, asserts, unusedArguments)
@@ -2410,7 +2432,7 @@ class BinaryBuilder {
 
   Expression _readBlockExpression() {
     int stackHeight = variableStack.length;
-    List<Statement> statements = readStatementList();
+    List<Statement> statements = readStatementListAlwaysGrowable();
     Expression value = readExpression();
     variableStack.length = stackHeight;
     return new BlockExpression(new Block(statements), value);
@@ -2432,7 +2454,7 @@ class BinaryBuilder {
   List<MapEntry> readMapEntryList() {
     int length = readUInt30();
     return new List<MapEntry>.generate(length, (_) => readMapEntry(),
-        growable: true);
+        growable: useGrowableLists);
   }
 
   MapEntry readMapEntry() {
@@ -2440,6 +2462,17 @@ class BinaryBuilder {
   }
 
   List<Statement> readStatementList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      return const [];
+    }
+    return new List<Statement>.generate(length, (_) => readStatement(),
+        growable: useGrowableLists);
+  }
+
+  List<Statement> readStatementListAlwaysGrowable() {
     int length = readUInt30();
     return new List<Statement>.generate(length, (_) => readStatement(),
         growable: true);
@@ -2579,11 +2612,18 @@ class BinaryBuilder {
     int offset = readOffset();
     Expression expression = readExpression();
     int count = readUInt30();
-    List<SwitchCase> cases = new List<SwitchCase>.generate(
-        count,
-        (_) => new SwitchCase(<Expression>[], <int>[], dummyStatement,
-            isDefault: false),
-        growable: true);
+    List<SwitchCase> cases;
+    if (!useGrowableLists && count == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      cases = const [];
+    } else {
+      cases = new List<SwitchCase>.generate(
+          count,
+          (_) => new SwitchCase(<Expression>[], <int>[], dummyStatement,
+              isDefault: false),
+          growable: useGrowableLists);
+    }
     switchCaseStack.addAll(cases);
     for (int i = 0; i < cases.length; ++i) {
       _readSwitchCaseInto(cases[i]);
@@ -2659,7 +2699,13 @@ class BinaryBuilder {
 
   List<Catch> readCatchList() {
     int length = readUInt30();
-    return new List<Catch>.generate(length, (_) => readCatch(), growable: true);
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      return const [];
+    }
+    return new List<Catch>.generate(length, (_) => readCatch(),
+        growable: useGrowableLists);
   }
 
   Catch readCatch() {
@@ -2678,7 +2724,7 @@ class BinaryBuilder {
     int stackHeight = variableStack.length;
     int offset = readOffset();
     int endOffset = readOffset();
-    List<Statement> body = readStatementList();
+    List<Statement> body = readStatementListAlwaysGrowable();
     variableStack.length = stackHeight;
     return new Block(body)
       ..fileOffset = offset
@@ -2687,7 +2733,7 @@ class BinaryBuilder {
 
   AssertBlock _readAssertBlock() {
     int stackHeight = variableStack.length;
-    List<Statement> body = readStatementList();
+    List<Statement> body = readStatementListAlwaysGrowable();
     variableStack.length = stackHeight;
     return new AssertBlock(body);
   }
@@ -2708,20 +2754,35 @@ class BinaryBuilder {
 
   List<Supertype> readSupertypeList() {
     int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      return const [];
+    }
     return new List<Supertype>.generate(length, (_) => readSupertype(),
-        growable: true);
+        growable: useGrowableLists);
   }
 
   List<DartType> readDartTypeList() {
     int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      return const [];
+    }
     return new List<DartType>.generate(length, (_) => readDartType(),
-        growable: true);
+        growable: useGrowableLists);
   }
 
   List<NamedType> readNamedTypeList() {
     int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      return const [];
+    }
     return new List<NamedType>.generate(length, (_) => readNamedType(),
-        growable: true);
+        growable: useGrowableLists);
   }
 
   NamedType readNamedType() {
@@ -2868,7 +2929,7 @@ class BinaryBuilder {
     if (list == null) {
       list = new List<TypeParameter>.generate(
           length, (_) => new TypeParameter(null, null)..parent = parent,
-          growable: true);
+          growable: useGrowableLists);
     } else if (list.length != length) {
       list.length = length;
       for (int i = 0; i < length; ++i) {
@@ -2907,9 +2968,14 @@ class BinaryBuilder {
 
   List<NamedExpression> readNamedExpressionList() {
     int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      return const [];
+    }
     return new List<NamedExpression>.generate(
         length, (_) => readNamedExpression(),
-        growable: true);
+        growable: useGrowableLists);
   }
 
   NamedExpression readNamedExpression() {
@@ -2918,9 +2984,14 @@ class BinaryBuilder {
 
   List<VariableDeclaration> readAndPushVariableDeclarationList() {
     int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      return const [];
+    }
     return new List<VariableDeclaration>.generate(
         length, (_) => readAndPushVariableDeclaration(),
-        growable: true);
+        growable: useGrowableLists);
   }
 
   VariableDeclaration readAndPushVariableDeclarationOption() {

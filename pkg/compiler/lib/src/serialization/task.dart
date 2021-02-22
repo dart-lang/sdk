@@ -128,7 +128,9 @@ class SerializationTask extends CompilerTask {
       api.Input<List<int>> dillInput = await _provider
           .readFromUri(_options.entryPoint, inputKind: api.InputKind.binary);
       ir.Component component = new ir.Component();
-      new ir.BinaryBuilder(dillInput.data).readComponent(component);
+      // Not using growable lists saves memory.
+      new ir.BinaryBuilder(dillInput.data, useGrowableLists: false)
+          .readComponent(component);
       return component;
     });
   }

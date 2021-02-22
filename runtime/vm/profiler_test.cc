@@ -2288,7 +2288,7 @@ static void InsertFakeSample(SampleBuffer* sample_buffer, uword* pc_offsets) {
 static uword FindPCForTokenPosition(const Code& code, TokenPosition tp) {
   GrowableArray<const Function*> functions;
   GrowableArray<TokenPosition> token_positions;
-  for (intptr_t pc_offset = 0; pc_offset < code.Size(); pc_offset++) {
+  for (uword pc_offset = 0; pc_offset < code.Size(); pc_offset++) {
     code.GetInlinedFunctionsAtInstruction(pc_offset, &functions,
                                           &token_positions);
     if (token_positions[0] == tp) {

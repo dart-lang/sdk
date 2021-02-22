@@ -97,6 +97,9 @@ class NativeType : public ZoneAllocated {
   virtual bool ContainsOnlyFloats(Range range) const = 0;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+  // True iff any members are misaligned recursively due to packing.
+  virtual bool ContainsUnalignedMembers() const = 0;
+
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
   // NativeTypes which are available as unboxed Representations.
   virtual bool IsExpressibleAsRepresentation() const { return false; }
@@ -185,6 +188,8 @@ class NativePrimitiveType : public NativeType {
   virtual bool ContainsOnlyFloats(Range range) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+  virtual bool ContainsUnalignedMembers() const;
+
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
   virtual bool IsExpressibleAsRepresentation() const;
   virtual Representation AsRepresentation() const;
@@ -234,6 +239,8 @@ class NativeArrayType : public NativeType {
   virtual bool ContainsOnlyFloats(Range range) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+  virtual bool ContainsUnalignedMembers() const;
+
   virtual bool Equals(const NativeType& other) const;
 
   virtual void PrintTo(BaseTextBuffer* f,
@@ -255,8 +262,10 @@ using NativeTypes = ZoneGrowableArray<const NativeType*>;
 // TODO(dartbug.com/38491): Support unions.
 class NativeCompoundType : public NativeType {
  public:
-  static NativeCompoundType& FromNativeTypes(Zone* zone,
-                                             const NativeTypes& members);
+  static NativeCompoundType& FromNativeTypes(
+      Zone* zone,
+      const NativeTypes& members,
+      intptr_t member_packing = kMaxInt32);
 
   const NativeTypes& members() const { return members_; }
   const ZoneGrowableArray<intptr_t>& member_offsets() const {
@@ -288,6 +297,8 @@ class NativeCompoundType : public NativeType {
   // Useful for determining whether struct is passed in FP registers on x64.
   intptr_t NumberOfWordSizeChunksNotOnlyFloat() const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  virtual bool ContainsUnalignedMembers() const;
 
   // Whether this type has only same-size floating point members.
   //

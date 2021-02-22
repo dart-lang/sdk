@@ -30,9 +30,14 @@ import 'ast.dart';
 ///         "@constructors"
 ///         Qualified name
 ///
-///      Field:
+///      Field or the implicit getter of a field:
 ///         Canonical name of enclosing class or library
-///         "@fields"
+///         "@getters"
+///         Qualified name
+///
+///      Implicit setter of a field:
+///         Canonical name of enclosing class or library
+///         "@setters"
 ///         Qualified name
 ///
 ///      Typedef:
@@ -132,11 +137,11 @@ class CanonicalName {
   }
 
   CanonicalName getChildFromField(Field field) {
-    return getChild('@fields').getChildFromQualifiedName(field.name!);
+    return getChild('@getters').getChildFromQualifiedName(field.name!);
   }
 
   CanonicalName getChildFromFieldSetter(Field field) {
-    return getChild('@=fields').getChildFromQualifiedName(field.name!);
+    return getChild('@setters').getChildFromQualifiedName(field.name!);
   }
 
   CanonicalName getChildFromConstructor(Constructor constructor) {
@@ -151,11 +156,11 @@ class CanonicalName {
   }
 
   CanonicalName getChildFromFieldWithName(Name name) {
-    return getChild('@fields').getChildFromQualifiedName(name);
+    return getChild('@getters').getChildFromQualifiedName(name);
   }
 
   CanonicalName getChildFromFieldSetterWithName(Name name) {
-    return getChild('@=fields').getChildFromQualifiedName(name);
+    return getChild('@setters').getChildFromQualifiedName(name);
   }
 
   CanonicalName getChildFromTypedef(Typedef typedef_) {

@@ -132,9 +132,8 @@ void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
     const Code& caller_code,
     const Object& data,
     const Code& target) {
-  ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    BareSwitchableCallPattern call(return_address, caller_code);
+    BareSwitchableCallPattern call(return_address);
     call.SetData(data);
     call.SetTarget(target);
   } else {
@@ -146,9 +145,8 @@ void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
 
 uword CodePatcher::GetSwitchableCallTargetEntryAt(uword return_address,
                                                   const Code& caller_code) {
-  ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    BareSwitchableCallPattern call(return_address, caller_code);
+    BareSwitchableCallPattern call(return_address);
     return call.target_entry();
   } else {
     SwitchableCallPattern call(return_address, caller_code);
@@ -158,9 +156,8 @@ uword CodePatcher::GetSwitchableCallTargetEntryAt(uword return_address,
 
 ObjectPtr CodePatcher::GetSwitchableCallDataAt(uword return_address,
                                                const Code& caller_code) {
-  ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    BareSwitchableCallPattern call(return_address, caller_code);
+    BareSwitchableCallPattern call(return_address);
     return call.data();
   } else {
     SwitchableCallPattern call(return_address, caller_code);

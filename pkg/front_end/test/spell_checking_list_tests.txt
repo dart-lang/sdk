@@ -11,7 +11,10 @@
 
 a0x
 a1x
+a2i
 a2x
+a3i
+a4i
 aa
 aaa
 abc

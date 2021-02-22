@@ -141,7 +141,7 @@ class ArgumentAllocator : public ValueObject {
   const NativeLocation& AllocateCompound(
       const NativeCompoundType& payload_type) {
     const intptr_t size = payload_type.SizeInBytes();
-    if (size <= 16 && size > 0) {
+    if (size <= 16 && size > 0 && !payload_type.ContainsUnalignedMembers()) {
       intptr_t required_regs =
           payload_type.NumberOfWordSizeChunksNotOnlyFloat();
       intptr_t required_xmm_regs =
@@ -516,7 +516,7 @@ static const NativeLocation& CompoundResultLocation(
     Zone* zone,
     const NativeCompoundType& payload_type) {
   const intptr_t size = payload_type.SizeInBytes();
-  if (size <= 16 && size > 0) {
+  if (size <= 16 && size > 0 && !payload_type.ContainsUnalignedMembers()) {
     // Allocate the same as argument, but use return registers instead of
     // argument registers.
     NativeLocations& multiple_locations =

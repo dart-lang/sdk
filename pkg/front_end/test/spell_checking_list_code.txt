@@ -492,6 +492,7 @@ goto
 gotos
 gradually
 graphs
+growability
 gt
 guarantee
 guarded
@@ -676,6 +677,7 @@ macos
 maintaining
 mangled
 manipulation
+manner
 markdown
 masking
 masks

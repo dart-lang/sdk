@@ -5460,6 +5460,7 @@ class FunctionInvocation extends InvocationExpression {
 /// An invocation of a local function declaration.
 class LocalFunctionInvocation extends InvocationExpression {
   /// The variable declaration for the function declaration.
+  // TODO(johnniwinther): Should this be the `FunctionDeclaration` instead?
   VariableDeclaration variable;
 
   @override

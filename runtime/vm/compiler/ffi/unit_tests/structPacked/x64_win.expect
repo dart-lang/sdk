@@ -1,0 +1,6 @@
+P(rdx int64) Compound(size: 9)
+P(r8 int64) Compound(size: 9)
+r9 int8
+S+0 double
+=>
+P(rcx int64, ret:rax int64) Compound(size: 9)

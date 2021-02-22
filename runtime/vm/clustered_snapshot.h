@@ -245,6 +245,7 @@ class Serializer : public ThreadStackResource {
 
   NonStreamingWriteStream* stream() { return stream_; }
   intptr_t bytes_written() { return stream_->bytes_written(); }
+  intptr_t bytes_heap_allocated() { return bytes_heap_allocated_; }
 
   void FlushBytesWrittenToRoot();
   void TraceStartWritingObject(const char* type, ObjectPtr obj, StringPtr name);
@@ -445,6 +446,7 @@ class Serializer : public ThreadStackResource {
   FieldTable* initial_field_table_;
 
   intptr_t dispatch_table_size_ = 0;
+  intptr_t bytes_heap_allocated_ = 0;
 
   // True if writing VM snapshot, false for Isolate snapshot.
   bool vm_;
@@ -716,10 +718,12 @@ class FullSnapshotWriter {
   ImageWriter* isolate_image_writer_;
 
   // Stats for benchmarking.
-  intptr_t clustered_vm_size_;
-  intptr_t clustered_isolate_size_;
-  intptr_t mapped_data_size_;
-  intptr_t mapped_text_size_;
+  intptr_t clustered_vm_size_ = 0;
+  intptr_t clustered_isolate_size_ = 0;
+  intptr_t mapped_data_size_ = 0;
+  intptr_t mapped_text_size_ = 0;
+  intptr_t heap_vm_size_ = 0;
+  intptr_t heap_isolate_size_ = 0;
 
   V8SnapshotProfileWriter* profile_writer_ = nullptr;
 

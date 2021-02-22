@@ -1,0 +1,6 @@
+M(r0 int64, r1 int64) Compound(size: 9)
+M(r2 int64, r3 int64) Compound(size: 9)
+r4 int8
+v0 double
+=>
+M(r0 int64, r1 int64) Compound(size: 9)

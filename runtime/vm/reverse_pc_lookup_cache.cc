@@ -10,9 +10,9 @@
 
 namespace dart {
 
-CodePtr ReversePc::Lookup(IsolateGroup* group,
-                          uword pc,
-                          bool is_return_address) {
+CodePtr ReversePc::LookupInGroup(IsolateGroup* group,
+                                 uword pc,
+                                 bool is_return_address) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   // This can run in the middle of GC and must not allocate handles.
   NoSafepointScope no_safepoint;
@@ -65,6 +65,37 @@ CodePtr ReversePc::Lookup(IsolateGroup* group,
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   return Code::null();
+}
+
+CodePtr ReversePc::Lookup(IsolateGroup* group,
+                          uword pc,
+                          bool is_return_address) {
+  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+  NoSafepointScope no_safepoint;
+
+  CodePtr code = LookupInGroup(group, pc, is_return_address);
+  if (code == Code::null()) {
+    code = LookupInGroup(Dart::vm_isolate_group(), pc, is_return_address);
+  }
+  return code;
+}
+
+CompressedStackMapsPtr ReversePc::FindCompressedStackMaps(
+    IsolateGroup* group,
+    uword pc,
+    bool is_return_address,
+    uword* code_start) {
+  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+  NoSafepointScope no_safepoint;
+
+  CodePtr code = Lookup(group, pc, is_return_address);
+  if (code != Code::null()) {
+    *code_start = Code::PayloadStartOf(code);
+    return code->untag()->compressed_stackmaps();
+  }
+
+  *code_start = 0;
+  return CompressedStackMaps::null();
 }
 
 }  // namespace dart
