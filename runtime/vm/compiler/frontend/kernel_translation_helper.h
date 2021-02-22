@@ -101,6 +101,7 @@ class TranslationHelper {
   bool IsLibrary(NameIndex name);
   bool IsClass(NameIndex name);
   bool IsMember(NameIndex name);
+  bool IsField(NameIndex name);
   bool IsConstructor(NameIndex name);
   bool IsProcedure(NameIndex name);
   bool IsMethod(NameIndex name);
@@ -163,10 +164,8 @@ class TranslationHelper {
   virtual LibraryPtr LookupLibraryByKernelLibrary(NameIndex library);
   virtual ClassPtr LookupClassByKernelClass(NameIndex klass);
 
-  FieldPtr LookupFieldByKernelGetterOrSetter(NameIndex field,
-                                             bool required = true);
-  FunctionPtr LookupStaticMethodByKernelProcedure(NameIndex procedure,
-                                                  bool required = true);
+  FieldPtr LookupFieldByKernelField(NameIndex field);
+  FunctionPtr LookupStaticMethodByKernelProcedure(NameIndex procedure);
   FunctionPtr LookupConstructorByKernelConstructor(NameIndex constructor);
   FunctionPtr LookupConstructorByKernelConstructor(const Class& owner,
                                                    NameIndex constructor);

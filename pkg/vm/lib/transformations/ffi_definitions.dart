@@ -510,29 +510,17 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
   List<Procedure> _generateMethodsForField(Field field, NativeTypeCfe type,
       Map<Abi, int> offsets, IndexedClass indexedClass) {
-    // TODO(johnniwinther): Avoid passing [indexedClass]. When compiling
-    // incrementally, [field] should already carry the references from
-    // [indexedClass].
     final getterStatement = type.generateGetterStatement(
         field.type, field.fileOffset, offsets, this);
-    Reference getterReference =
-        indexedClass?.lookupGetterReference(field.name) ??
-            field.getterReference;
-    assert(getterReference == field.getterReference,
-        "Unexpected getter reference for ${field}, found $getterReference.");
     final Procedure getter = Procedure(field.name, ProcedureKind.Getter,
         FunctionNode(getterStatement, returnType: field.type),
-        fileUri: field.fileUri, reference: getterReference)
+        fileUri: field.fileUri,
+        reference: indexedClass?.lookupGetterReference(field.name))
       ..fileOffset = field.fileOffset
       ..isNonNullableByDefault = field.isNonNullableByDefault;
 
     Procedure setter = null;
     if (!field.isFinal) {
-      Reference setterReference =
-          indexedClass?.lookupSetterReference(field.name) ??
-              field.setterReference;
-      assert(setterReference == field.setterReference,
-          "Unexpected setter reference for ${field}, found $setterReference.");
       final VariableDeclaration argument =
           VariableDeclaration('#v', type: field.type)
             ..fileOffset = field.fileOffset;
@@ -544,7 +532,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           FunctionNode(setterStatement,
               returnType: VoidType(), positionalParameters: [argument]),
           fileUri: field.fileUri,
-          reference: setterReference)
+          reference: indexedClass?.lookupSetterReference(field.name))
         ..fileOffset = field.fileOffset
         ..isNonNullableByDefault = field.isNonNullableByDefault;
     }

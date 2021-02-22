@@ -264,8 +264,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       Field& field = Field::Handle(Z);
       Instance& constant = Instance::Handle(Z);
       for (intptr_t j = 0; j < number_of_fields; ++j) {
-        field = H.LookupFieldByKernelGetterOrSetter(
-            reader.ReadCanonicalNameReference());
+        field = H.LookupFieldByKernelField(reader.ReadCanonicalNameReference());
         // Recurse into lazily evaluating all "sub" constants
         // needed to evaluate the current constant.
         const intptr_t entry_offset = reader.ReadUInt();

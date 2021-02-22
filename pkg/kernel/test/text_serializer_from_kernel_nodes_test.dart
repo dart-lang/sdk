@@ -133,7 +133,7 @@ void test() {
           name: '/* suppose top-level: dynamic field; */ field;',
           node: new ExpressionStatement(new StaticGet(field)),
           expectation: ''
-              '(expr (get-static "package:foo/bar.dart::@getters::field"))',
+              '(expr (get-static "package:foo/bar.dart::@fields::field"))',
           makeSerializationState: () => new SerializationState(null),
           makeDeserializationState: () =>
               new DeserializationState(null, component.root),
@@ -151,7 +151,7 @@ void test() {
           name: '/* suppose top-level: dynamic field; */ field;',
           node: new ExpressionStatement(new StaticGet(field)),
           expectation: ''
-              '(expr (get-static "package:foo/bar.dart::@getters::field"))',
+              '(expr (get-static "package:foo/bar.dart::@fields::field"))',
           makeSerializationState: () => new SerializationState(null),
           makeDeserializationState: () =>
               new DeserializationState(null, component.root),
@@ -171,7 +171,7 @@ void test() {
               new ExpressionStatement(new StaticSet(field, new IntLiteral(1))),
           expectation: ''
               '(expr'
-              ' (set-static "package:foo/bar.dart::@setters::field" (int 1)))',
+              ' (set-static "package:foo/bar.dart::@=fields::field" (int 1)))',
           makeSerializationState: () => new SerializationState(null),
           makeDeserializationState: () =>
               new DeserializationState(null, component.root),
