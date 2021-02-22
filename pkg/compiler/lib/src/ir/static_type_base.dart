@@ -236,4 +236,56 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType>
     // TODO(johnniwinther): Include interface exactness where applicable.
     return node.getStaticType(staticTypeContext);
   }
+
+  @override
+  ir.DartType visitEqualsNull(ir.EqualsNull node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitEqualsCall(ir.EqualsCall node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitDynamicInvocation(ir.DynamicInvocation node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitFunctionInvocation(ir.FunctionInvocation node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitInstanceInvocation(ir.InstanceInvocation node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitFunctionTearOff(ir.FunctionTearOff node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitInstanceTearOff(ir.InstanceTearOff node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitDynamicGet(ir.DynamicGet node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitInstanceGet(ir.InstanceGet node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitDynamicSet(ir.DynamicSet node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitInstanceSet(ir.InstanceSet node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitStaticTearOff(ir.StaticTearOff node) =>
+      node.getStaticType(staticTypeContext);
 }
