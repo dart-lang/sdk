@@ -43,6 +43,7 @@ class ContextBuilderImpl implements ContextBuilder {
       DeclaredVariables? declaredVariables,
       bool drainStreams = true,
       bool enableIndex = false,
+      FileContentOverlay? fileContentOverlay,
       List<String>? librarySummaryPaths,
       PerformanceLog? performanceLog,
       bool retainDataForTesting = false,
@@ -54,7 +55,7 @@ class ContextBuilderImpl implements ContextBuilder {
     ArgumentError.checkNotNull(sdkPath, 'sdkPath');
 
     byteStore ??= MemoryByteStore();
-    var fileContentOverlay = FileContentOverlay();
+    fileContentOverlay ??= FileContentOverlay();
     performanceLog ??= PerformanceLog(StringBuffer());
 
     DartSdkManager sdkManager = DartSdkManager(sdkPath);
