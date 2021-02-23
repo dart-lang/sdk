@@ -50,6 +50,12 @@
 #    eventual removal from this file. If this field is omitted, then 'expired'
 #    is considered to be false.
 #
+# 4. validation: (optional string)
+#    If provided this should be a program that prints "feature enabled" on
+#    stdout if the feature is enabled, and throws or fails to compile otherwise.
+#    The intended use for this is to be able to run generic tests for each
+#    experiment.
+#
 # Using the above fields, experiments pass through several states:
 #
 # Disabled:
@@ -102,6 +108,13 @@ current-version: '2.13.0'
 features:
   triple-shift:
     help: "Triple-shift operator"
+    validation: |
+      class A {
+        operator>>>(int k) => 42;
+      }
+      void main() {
+        if ((A() >>> 1) == 42) print('feature enabled');
+      }
 
   variance:
     help: "Sound variance"
@@ -134,6 +147,11 @@ features:
     help: "Non Nullable by default"
     experimentalReleaseVersion: '2.10.0'
     enabledIn: '2.12.0'
+    validation: |
+      void main() {
+        int? a = null;
+        print('feature enabled');
+      }
 
   extension-methods:
     help: "Extension Methods"

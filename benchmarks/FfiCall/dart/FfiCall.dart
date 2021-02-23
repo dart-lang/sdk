@@ -15,6 +15,9 @@ import 'package:benchmark_harness/benchmark_harness.dart';
 
 import 'dlopen_helper.dart';
 
+// Number of benchmark iterations per function.
+const N = 1000;
+
 //
 // Trampoline functions.
 //
@@ -725,256 +728,230 @@ Object doCall20Handle(
 // Benchmark fixtures.
 //
 
-// Number of repeats: 1000
-//  * CPU: Intel(R) Xeon(R) Gold 6154
-//    * Architecture: x64
-//      * 200 - 1100 us
-const N = 1000;
+abstract class FfiBenchmarkBase extends BenchmarkBase {
+  FfiBenchmarkBase(String name) : super(name);
 
-class Uint8x01 extends BenchmarkBase {
+  void expectEquals(actual, expected) {
+    if (actual != expected) {
+      throw Exception('$name: Unexpected result: $actual, expected $expected');
+    }
+  }
+
+  void expectApprox(actual, expected) {
+    if (0.999 * expected > actual || actual > 1.001 * expected) {
+      throw Exception('$name: Unexpected result: $actual, expected $expected');
+    }
+  }
+
+  void expectIdentical(actual, expected) {
+    if (!identical(actual, expected)) {
+      throw Exception('$name: Unexpected result: $actual, expected $expected');
+    }
+  }
+}
+
+class Uint8x01 extends FfiBenchmarkBase {
   Uint8x01() : super('FfiCall.Uint8x01');
 
   @override
   void run() {
     final int x = doCall1Uint8(N);
-    if (x != N * 17 + N * 42) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (17 + 42));
   }
 }
 
-class Uint16x01 extends BenchmarkBase {
+class Uint16x01 extends FfiBenchmarkBase {
   Uint16x01() : super('FfiCall.Uint16x01');
 
   @override
   void run() {
     final int x = doCall1Uint16(N);
-    if (x != N * 17 + N * 42) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (17 + 42));
   }
 }
 
-class Uint32x01 extends BenchmarkBase {
+class Uint32x01 extends FfiBenchmarkBase {
   Uint32x01() : super('FfiCall.Uint32x01');
 
   @override
   void run() {
     final int x = doCall1Uint32(N);
-    if (x != N * (N - 1) / 2 + N * 42) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (N - 1) / 2 + N * 42);
   }
 }
 
-class Uint64x01 extends BenchmarkBase {
+class Uint64x01 extends FfiBenchmarkBase {
   Uint64x01() : super('FfiCall.Uint64x01');
 
   @override
   void run() {
     final int x = doCall1Uint64(N);
-    if (x != N * (N - 1) / 2 + N * 42) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (N - 1) / 2 + N * 42);
   }
 }
 
-class Int8x01 extends BenchmarkBase {
+class Int8x01 extends FfiBenchmarkBase {
   Int8x01() : super('FfiCall.Int8x01');
 
   @override
   void run() {
     final int x = doCall1Int8(N);
-    if (x != N * 17 + N * 42) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (17 + 42));
   }
 }
 
-class Int16x01 extends BenchmarkBase {
+class Int16x01 extends FfiBenchmarkBase {
   Int16x01() : super('FfiCall.Int16x01');
 
   @override
   void run() {
     final int x = doCall1Int16(N);
-    if (x != N * 17 + N * 42) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (17 + 42));
   }
 }
 
-class Int32x01 extends BenchmarkBase {
+class Int32x01 extends FfiBenchmarkBase {
   Int32x01() : super('FfiCall.Int32x01');
 
   @override
   void run() {
     final int x = doCall1Int32(N);
-    if (x != N * (N - 1) / 2 + N * 42) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (N - 1) / 2 + N * 42);
   }
 }
 
-class Int32x02 extends BenchmarkBase {
+class Int32x02 extends FfiBenchmarkBase {
   Int32x02() : super('FfiCall.Int32x02');
 
   @override
   void run() {
     final int x = doCall2Int32(N);
-    if (x != N * (N - 1) * 2 / 2) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (N - 1) * 2 / 2);
   }
 }
 
-class Int32x04 extends BenchmarkBase {
+class Int32x04 extends FfiBenchmarkBase {
   Int32x04() : super('FfiCall.Int32x04');
 
   @override
   void run() {
     final int x = doCall4Int32(N);
-    if (x != N * (N - 1) * 4 / 2) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (N - 1) * 4 / 2);
   }
 }
 
-class Int32x10 extends BenchmarkBase {
+class Int32x10 extends FfiBenchmarkBase {
   Int32x10() : super('FfiCall.Int32x10');
 
   @override
   void run() {
     final int x = doCall10Int32(N);
-    if (x != N * (N - 1) * 10 / 2) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (N - 1) * 10 / 2);
   }
 }
 
-class Int32x20 extends BenchmarkBase {
+class Int32x20 extends FfiBenchmarkBase {
   Int32x20() : super('FfiCall.Int32x20');
 
   @override
   void run() {
     final int x = doCall20Int32(N);
-    if (x != N * (N - 1) * 20 / 2) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (N - 1) * 20 / 2);
   }
 }
 
-class Int64x01 extends BenchmarkBase {
+class Int64x01 extends FfiBenchmarkBase {
   Int64x01() : super('FfiCall.Int64x01');
 
   @override
   void run() {
     final int x = doCall1Int64(N);
-    if (x != N * (N - 1) / 2 + N * 42) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (N - 1) / 2 + N * 42);
   }
 }
 
-class Int64x02 extends BenchmarkBase {
+class Int64x02 extends FfiBenchmarkBase {
   Int64x02() : super('FfiCall.Int64x02');
 
   @override
   void run() {
     final int x = doCall2Int64(N);
-    if (x != N * (N - 1) * 2 / 2) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (N - 1) * 2 / 2);
   }
 }
 
-class Int64x04 extends BenchmarkBase {
+class Int64x04 extends FfiBenchmarkBase {
   Int64x04() : super('FfiCall.Int64x04');
 
   @override
   void run() {
     final int x = doCall4Int64(N);
-    if (x != N * (N - 1) * 4 / 2) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (N - 1) * 4 / 2);
   }
 }
 
-class Int64x10 extends BenchmarkBase {
+class Int64x10 extends FfiBenchmarkBase {
   Int64x10() : super('FfiCall.Int64x10');
 
   @override
   void run() {
     final int x = doCall10Int64(N);
-    if (x != N * (N - 1) * 10 / 2) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (N - 1) * 10 / 2);
   }
 }
 
-class Int64x20 extends BenchmarkBase {
+class Int64x20 extends FfiBenchmarkBase {
   Int64x20() : super('FfiCall.Int64x20');
 
   @override
   void run() {
     final int x = doCall20Int64(N);
-    if (x != N * (N - 1) * 20 / 2) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, N * (N - 1) * 20 / 2);
   }
 }
 
-class Int64Mintx01 extends BenchmarkBase {
+class Int64Mintx01 extends FfiBenchmarkBase {
   Int64Mintx01() : super('FfiCall.Int64Mintx01');
 
   @override
   void run() {
     final int x = doCall1Int64Mint(N);
-    if (x != 0x7FFFFFFF00000000 + N * 42) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x, 0x7FFFFFFF00000000 + N * 42);
   }
 }
 
-class Floatx01 extends BenchmarkBase {
+class Floatx01 extends FfiBenchmarkBase {
   Floatx01() : super('FfiCall.Floatx01');
 
   @override
   void run() {
     final double x = doCall1Float(N);
-    final double expected = N * (17.0 + 42);
-    if (0.999 * expected > x || x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x, expected $expected');
-    }
+    expectApprox(x, N * (17.0 + 42.0));
   }
 }
 
-class Floatx02 extends BenchmarkBase {
+class Floatx02 extends FfiBenchmarkBase {
   Floatx02() : super('FfiCall.Floatx02');
 
   @override
   void run() {
     final double x = doCall2Float(N);
-    final double expected = N * (1.0 + 2.0);
-    if (0.999 * expected > x || x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x, expected $expected');
-    }
+    expectApprox(x, N * (1.0 + 2.0));
   }
 }
 
-class Floatx04 extends BenchmarkBase {
+class Floatx04 extends FfiBenchmarkBase {
   Floatx04() : super('FfiCall.Floatx04');
 
   @override
   void run() {
     final double x = doCall4Float(N);
     final double expected = N * (1.0 + 2.0 + 3.0 + 4.0);
-    if (0.999 * expected > x || x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x, expected $expected');
-    }
+    expectApprox(x, expected);
   }
 }
 
-class Floatx10 extends BenchmarkBase {
+class Floatx10 extends FfiBenchmarkBase {
   Floatx10() : super('FfiCall.Floatx10');
 
   @override
@@ -982,13 +959,11 @@ class Floatx10 extends BenchmarkBase {
     final double x = doCall10Float(N);
     final double expected =
         N * (1.0 + 2.0 + 3.0 + 4.0 + 5.0 + 6.0 + 7.0 + 8.0 + 9.0 + 10.0);
-    if (0.999 * expected > x || x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x, expected $expected');
-    }
+    expectApprox(x, expected);
   }
 }
 
-class Floatx20 extends BenchmarkBase {
+class Floatx20 extends FfiBenchmarkBase {
   Floatx20() : super('FfiCall.Floatx20');
 
   @override
@@ -1015,52 +990,44 @@ class Floatx20 extends BenchmarkBase {
             18.0 +
             19.0 +
             20.0);
-    if (0.999 * expected > x || x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x, expected $expected');
-    }
+    expectApprox(x, expected);
   }
 }
 
-class Doublex01 extends BenchmarkBase {
+class Doublex01 extends FfiBenchmarkBase {
   Doublex01() : super('FfiCall.Doublex01');
 
   @override
   void run() {
     final double x = doCall1Double(N);
     final double expected = N * (17.0 + 42.0);
-    if (0.999 * expected > x || x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x, expected $expected');
-    }
+    expectApprox(x, expected);
   }
 }
 
-class Doublex02 extends BenchmarkBase {
+class Doublex02 extends FfiBenchmarkBase {
   Doublex02() : super('FfiCall.Doublex02');
 
   @override
   void run() {
     final double x = doCall2Double(N);
     final double expected = N * (1.0 + 2.0);
-    if (0.999 * expected > x || x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x, expected $expected');
-    }
+    expectApprox(x, expected);
   }
 }
 
-class Doublex04 extends BenchmarkBase {
+class Doublex04 extends FfiBenchmarkBase {
   Doublex04() : super('FfiCall.Doublex04');
 
   @override
   void run() {
     final double x = doCall4Double(N);
     final double expected = N * (1.0 + 2.0 + 3.0 + 4.0);
-    if (0.999 * expected > x || x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x, expected $expected');
-    }
+    expectApprox(x, expected);
   }
 }
 
-class Doublex10 extends BenchmarkBase {
+class Doublex10 extends FfiBenchmarkBase {
   Doublex10() : super('FfiCall.Doublex10');
 
   @override
@@ -1068,13 +1035,11 @@ class Doublex10 extends BenchmarkBase {
     final double x = doCall10Double(N);
     final double expected =
         N * (1.0 + 2.0 + 3.0 + 4.0 + 5.0 + 6.0 + 7.0 + 8.0 + 9.0 + 10.0);
-    if (0.999 * expected > x || x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x, expected $expected');
-    }
+    expectApprox(x, expected);
   }
 }
 
-class Doublex20 extends BenchmarkBase {
+class Doublex20 extends FfiBenchmarkBase {
   Doublex20() : super('FfiCall.Doublex20');
 
   @override
@@ -1101,13 +1066,11 @@ class Doublex20 extends BenchmarkBase {
             18.0 +
             19.0 +
             20.0);
-    if (0.999 * expected > x || x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x, expected $expected');
-    }
+    expectApprox(x, expected);
   }
 }
 
-class PointerUint8x01 extends BenchmarkBase {
+class PointerUint8x01 extends FfiBenchmarkBase {
   PointerUint8x01() : super('FfiCall.PointerUint8x01');
 
   Pointer<Uint8> pointer = nullptr;
@@ -1119,13 +1082,11 @@ class PointerUint8x01 extends BenchmarkBase {
   @override
   void run() {
     final Pointer<Uint8> x = doCall1PointerUint8(N, pointer);
-    if (x.address != pointer.address + N) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectApprox(x.address, pointer.address + N);
   }
 }
 
-class PointerUint8x02 extends BenchmarkBase {
+class PointerUint8x02 extends FfiBenchmarkBase {
   PointerUint8x02() : super('FfiCall.PointerUint8x02');
 
   Pointer<Uint8> pointer = nullptr;
@@ -1145,13 +1106,11 @@ class PointerUint8x02 extends BenchmarkBase {
   @override
   void run() {
     final Pointer<Uint8> x = doCall2PointerUint8(N, pointer, pointer2);
-    if (x.address != pointer.address + N * sizeOf<Uint8>()) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x.address, pointer.address + N * sizeOf<Uint8>());
   }
 }
 
-class PointerUint8x04 extends BenchmarkBase {
+class PointerUint8x04 extends FfiBenchmarkBase {
   PointerUint8x04() : super('FfiCall.PointerUint8x04');
 
   Pointer<Uint8> pointer = nullptr;
@@ -1176,13 +1135,11 @@ class PointerUint8x04 extends BenchmarkBase {
   void run() {
     final Pointer<Uint8> x =
         doCall4PointerUint8(N, pointer, pointer2, pointer3, pointer4);
-    if (x.address != pointer.address + N * sizeOf<Uint8>()) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x.address, pointer.address + N * sizeOf<Uint8>());
   }
 }
 
-class PointerUint8x10 extends BenchmarkBase {
+class PointerUint8x10 extends FfiBenchmarkBase {
   PointerUint8x10() : super('FfiCall.PointerUint8x10');
 
   Pointer<Uint8> pointer = nullptr;
@@ -1229,13 +1186,11 @@ class PointerUint8x10 extends BenchmarkBase {
         pointer8,
         pointer9,
         pointer10);
-    if (x.address != pointer.address + N * sizeOf<Uint8>()) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x.address, pointer.address + N * sizeOf<Uint8>());
   }
 }
 
-class PointerUint8x20 extends BenchmarkBase {
+class PointerUint8x20 extends FfiBenchmarkBase {
   PointerUint8x20() : super('FfiCall.PointerUint8x20');
 
   Pointer<Uint8> pointer = nullptr;
@@ -1312,9 +1267,7 @@ class PointerUint8x20 extends BenchmarkBase {
         pointer18,
         pointer19,
         pointer20);
-    if (x.address != pointer.address + N * sizeOf<Uint8>()) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectEquals(x.address, pointer.address + N * sizeOf<Uint8>());
   }
 }
 
@@ -1323,7 +1276,7 @@ class MyClass {
   MyClass(this.a);
 }
 
-class Handlex01 extends BenchmarkBase {
+class Handlex01 extends FfiBenchmarkBase {
   Handlex01() : super('FfiCall.Handlex01');
 
   @override
@@ -1331,13 +1284,11 @@ class Handlex01 extends BenchmarkBase {
     final p1 = MyClass(123);
     final x = doCall1Handle(N, p1);
 
-    if (!identical(p1, x)) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectIdentical(x, p1);
   }
 }
 
-class Handlex02 extends BenchmarkBase {
+class Handlex02 extends FfiBenchmarkBase {
   Handlex02() : super('FfiCall.Handlex02');
 
   @override
@@ -1346,13 +1297,11 @@ class Handlex02 extends BenchmarkBase {
     final p2 = MyClass(2);
     final x = doCall2Handle(N, p1, p2);
 
-    if (!identical(p1, x)) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectIdentical(x, p1);
   }
 }
 
-class Handlex04 extends BenchmarkBase {
+class Handlex04 extends FfiBenchmarkBase {
   Handlex04() : super('FfiCall.Handlex04');
 
   @override
@@ -1363,13 +1312,11 @@ class Handlex04 extends BenchmarkBase {
     final p4 = MyClass(4);
     final x = doCall4Handle(N, p1, p2, p3, p4);
 
-    if (!identical(p1, x)) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectIdentical(x, p1);
   }
 }
 
-class Handlex10 extends BenchmarkBase {
+class Handlex10 extends FfiBenchmarkBase {
   Handlex10() : super('FfiCall.Handlex10');
 
   @override
@@ -1386,13 +1333,11 @@ class Handlex10 extends BenchmarkBase {
     final p10 = MyClass(10);
     final x = doCall10Handle(N, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10);
 
-    if (!identical(p1, x)) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectIdentical(x, p1);
   }
 }
 
-class Handlex20 extends BenchmarkBase {
+class Handlex20 extends FfiBenchmarkBase {
   Handlex20() : super('FfiCall.Handlex20');
 
   @override
@@ -1420,9 +1365,7 @@ class Handlex20 extends BenchmarkBase {
     final x = doCall20Handle(N, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11,
         p12, p13, p14, p15, p16, p17, p18, p19, p20);
 
-    if (!identical(p1, x)) {
-      throw Exception('$name: Unexpected result: $x');
-    }
+    expectIdentical(p1, x);
   }
 }
 
