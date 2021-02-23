@@ -26,6 +26,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/notification_manager.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
+import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -768,15 +769,22 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   /// The [ResourceProvider] by which paths are converted into [Resource]s.
   final ResourceProvider resourceProvider;
 
-  LspServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
+  /// The set of files for which notifications were sent.
+  final Set<String> filesToFlush = {};
 
-  @override
-  LspNotificationManager get notificationManager =>
-      analysisServer.notificationManager;
+  LspServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
   @override
   void afterContextsCreated() {
     analysisServer.addContextsToDeclarationsTracker();
+  }
+
+  @override
+  void afterContextsDestroyed() {
+    for (var file in filesToFlush) {
+      analysisServer.publishDiagnostics(file, []);
+    }
+    filesToFlush.clear();
   }
 
   @override
@@ -787,6 +795,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void applyFileRemoved(String file) {
     analysisServer.publishDiagnostics(file, []);
+    filesToFlush.remove(file);
   }
 
   @override
@@ -808,6 +817,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
             []);
     analysisDriver.results.listen((result) {
       var path = result.path;
+      filesToFlush.add(path);
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
         final serverErrors = protocol.mapEngineErrors(
             result,
@@ -851,12 +861,10 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void removeContext(Folder folder, List<String> flushedFiles) {
-    var driver = analysisServer.driverMap.remove(folder);
-    // Flush any errors for these files that the client may be displaying.
-    flushedFiles
-        ?.forEach((path) => analysisServer.publishDiagnostics(path, const []));
-    driver.dispose();
+  void recordAnalysisErrors(String path, List<protocol.AnalysisError> errors) {
+    filesToFlush.add(path);
+    analysisServer.notificationManager
+        .recordAnalysisErrors(NotificationManager.serverId, path, errors);
   }
 
   bool _shouldSendDiagnostic(AnalysisError error) =>

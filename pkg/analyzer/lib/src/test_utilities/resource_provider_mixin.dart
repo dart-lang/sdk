@@ -5,6 +5,7 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 
 /// A mixin for test classes that adds a [ResourceProvider] and utility methods
 /// for manipulating the file system. The utility methods all take a posix style
@@ -68,6 +69,11 @@ mixin ResourceProviderMixin {
   File newPackagesFile(String directoryPath) {
     String path = join(directoryPath, ContextLocatorImpl.DOT_PACKAGES_NAME);
     return newFile(path);
+  }
+
+  File newPubspecYamlFile(String directoryPath, String content) {
+    String path = join(directoryPath, file_paths.pubspecYaml);
+    return newFile(path, content: content);
   }
 
   Uri toUri(String path) {

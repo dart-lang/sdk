@@ -16,7 +16,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
-import 'package:analysis_server/src/computer/new_notifications.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_analytics.dart';
@@ -379,9 +378,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// projects/contexts support.
   void setAnalysisRoots(String requestId, List<String> includedPaths,
       List<String> excludedPaths) {
-    if (notificationManager != null) {
-      notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
-    }
+    notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
     try {
       contextManager.setRoots(includedPaths, excludedPaths);
     } on UnimplementedError catch (e) {
@@ -393,9 +390,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Implementation for `analysis.setSubscriptions`.
   void setAnalysisSubscriptions(
       Map<AnalysisService, Set<String>> subscriptions) {
-    if (notificationManager != null) {
-      notificationManager.setSubscriptions(subscriptions);
-    }
+    notificationManager.setSubscriptions(subscriptions);
     analysisServices = subscriptions;
     _sendSubscriptions(analysis: true);
   }
@@ -632,16 +627,27 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   /// The [ResourceProvider] by which paths are converted into [Resource]s.
   final ResourceProvider resourceProvider;
 
+  /// The set of files for which notifications were sent.
+  final Set<String> filesToFlush = {};
+
   ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
-  @override
-  NotificationManager get notificationManager =>
+  NotificationManager get _notificationManager =>
       analysisServer.notificationManager;
 
   @override
   void afterContextsCreated() {
     analysisServer.addContextsToDeclarationsTracker();
     analysisServer._sendSubscriptions(analysis: true, flutter: true);
+  }
+
+  @override
+  void afterContextsDestroyed() {
+    sendAnalysisNotificationFlushResults(
+      analysisServer,
+      filesToFlush.toList(),
+    );
+    filesToFlush.clear();
   }
 
   @override
@@ -652,6 +658,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void applyFileRemoved(String file) {
     sendAnalysisNotificationFlushResults(analysisServer, [file]);
+    filesToFlush.remove(file);
   }
 
   @override
@@ -664,46 +671,39 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void listenAnalysisDriver(nd.AnalysisDriver analysisDriver) {
     analysisDriver.results.listen((result) {
-      var notificationManager = analysisServer.notificationManager;
       var path = result.path;
+      filesToFlush.add(path);
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
-        if (notificationManager != null) {
-          notificationManager.recordAnalysisErrors(NotificationManager.serverId,
-              path, server.doAnalysisError_listFromEngine(result));
-        } else {
-          new_sendErrorNotification(analysisServer, result);
-        }
+        _notificationManager.recordAnalysisErrors(NotificationManager.serverId,
+            path, server.doAnalysisError_listFromEngine(result));
       }
       var unit = result.unit;
       if (unit != null) {
-        if (notificationManager != null) {
-          if (analysisServer._hasAnalysisServiceSubscription(
-              AnalysisService.HIGHLIGHTS, path)) {
-            _runDelayed(() {
-              notificationManager.recordHighlightRegions(
-                  NotificationManager.serverId,
-                  path,
-                  _computeHighlightRegions(unit));
-            });
-          }
-          if (analysisServer._hasAnalysisServiceSubscription(
-              AnalysisService.NAVIGATION, path)) {
-            _runDelayed(() {
-              notificationManager.recordNavigationParams(
-                  NotificationManager.serverId,
-                  path,
-                  _computeNavigationParams(path, unit));
-            });
-          }
-          if (analysisServer._hasAnalysisServiceSubscription(
-              AnalysisService.OCCURRENCES, path)) {
-            _runDelayed(() {
-              notificationManager.recordOccurrences(
-                  NotificationManager.serverId,
-                  path,
-                  _computeOccurrences(unit));
-            });
-          }
+        if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.HIGHLIGHTS, path)) {
+          _runDelayed(() {
+            _notificationManager.recordHighlightRegions(
+                NotificationManager.serverId,
+                path,
+                _computeHighlightRegions(unit));
+          });
+        }
+        if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.NAVIGATION, path)) {
+          _runDelayed(() {
+            _notificationManager.recordNavigationParams(
+                NotificationManager.serverId,
+                path,
+                _computeNavigationParams(path, unit));
+          });
+        }
+        if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.OCCURRENCES, path)) {
+          _runDelayed(() {
+            _notificationManager.recordOccurrences(
+                NotificationManager.serverId, path, _computeOccurrences(unit));
+          });
+        }
 //          if (analysisServer._hasAnalysisServiceSubscription(
 //              AnalysisService.OUTLINE, path)) {
 //            _runDelayed(() {
@@ -713,26 +713,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 //                  path, _computeOutlineParams(path, unit, result.lineInfo));
 //            });
 //          }
-        } else {
-          if (analysisServer._hasAnalysisServiceSubscription(
-              AnalysisService.HIGHLIGHTS, path)) {
-            _runDelayed(() {
-              sendAnalysisNotificationHighlights(analysisServer, path, unit);
-            });
-          }
-          if (analysisServer._hasAnalysisServiceSubscription(
-              AnalysisService.NAVIGATION, path)) {
-            _runDelayed(() {
-              new_sendDartNotificationNavigation(analysisServer, result);
-            });
-          }
-          if (analysisServer._hasAnalysisServiceSubscription(
-              AnalysisService.OCCURRENCES, path)) {
-            _runDelayed(() {
-              new_sendDartNotificationOccurrences(analysisServer, result);
-            });
-          }
-        }
         if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.CLOSING_LABELS, path)) {
           _runDelayed(() {
@@ -773,10 +753,10 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void removeContext(Folder folder, List<String> flushedFiles) {
-    sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
-    var driver = analysisServer.driverMap.remove(folder);
-    driver?.dispose();
+  void recordAnalysisErrors(String path, List<AnalysisError> errors) {
+    filesToFlush.add(path);
+    _notificationManager.recordAnalysisErrors(
+        NotificationManager.serverId, path, errors);
   }
 
   List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {

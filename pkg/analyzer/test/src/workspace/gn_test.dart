@@ -158,7 +158,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
   void test_find_withRoot() {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
-    newFile('/workspace/some/code/pubspec.yaml');
+    newPubspecYamlFile('/workspace/some/code', '');
     String buildDir = convertPath('out/debug-x87_128');
     newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     newFile(
@@ -171,7 +171,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
   void test_packages() {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
-    newFile('/workspace/some/code/pubspec.yaml');
+    newPubspecYamlFile('/workspace/some/code', '');
     String buildDir = convertPath('out/debug-x87_128');
     newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     String packageLocation = convertPath('/workspace/this/is/the/package');
@@ -200,7 +200,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
   void test_packages_absoluteBuildDir() {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
-    newFile('/workspace/some/code/pubspec.yaml');
+    newPubspecYamlFile('/workspace/some/code', '');
     String buildDir = convertPath('/workspace/out/debug-x87_128');
     newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     String packageLocation = convertPath('/workspace/this/is/the/package');
@@ -229,7 +229,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
   void test_packages_fallbackBuildDir() {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
-    newFile('/workspace/some/code/pubspec.yaml');
+    newPubspecYamlFile('/workspace/some/code', '');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
     newFile(
@@ -256,7 +256,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
   void test_packages_fallbackBuildDirWithUselessConfig() {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
-    newFile('/workspace/some/code/pubspec.yaml');
+    newPubspecYamlFile('/workspace/some/code', '');
     newFile('/workspace/.fx-build-dir', content: '');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
@@ -284,7 +284,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
   void test_packages_multipleCandidates() {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
-    newFile('/workspace/some/code/pubspec.yaml');
+    newPubspecYamlFile('/workspace/some/code', '');
     String buildDir = convertPath('out/release-y22_256');
     newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     String packageLocation = convertPath('/workspace/this/is/the/package');
@@ -329,7 +329,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
   void test_packages_multipleFiles() {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
-    newFile('/workspace/some/code/pubspec.yaml');
+    newPubspecYamlFile('/workspace/some/code', '');
     String buildDir = convertPath('out/debug-x87_128');
     newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     String packageOneLocation = convertPath('/workspace/this/is/the/package');

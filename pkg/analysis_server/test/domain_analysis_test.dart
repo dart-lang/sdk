@@ -58,7 +58,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_setAnalysisRoots_included_newFolder() async {
-    newFile('/project/pubspec.yaml', content: 'name: project');
+    newPubspecYamlFile('/project', 'name: project');
     var file = newFile('/project/bin/test.dart', content: 'main() {}').path;
     var response = testSetAnalysisRoots([projectPath], []);
     var serverRef = server;
@@ -342,6 +342,7 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
     if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
       var decoded = AnalysisFlushResultsParams.fromNotification(notification);
       flushResults.addAll(decoded.files);
+      decoded.files.forEach(filesErrors.remove);
     }
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = AnalysisErrorsParams.fromNotification(notification);
@@ -397,7 +398,7 @@ analyzer:
       notAnalyzed: [options_path],
     );
 
-    // Add a non-Dart file that we know how to analyze.
+    // Add 'analysis_options.yaml' that has an error.
     newFile(options_path, content: '''
 analyzer:
   error:
@@ -645,6 +646,7 @@ dependencies: true
   }
 
   Future<void> test_fileSystem_changeFile_analysisOptions() async {
+    var options_path = '$testPackageRootPath/analysis_options.yaml';
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
     var c_path = '$testPackageLibPath/c.dart';
@@ -652,7 +654,7 @@ dependencies: true
     _createFilesWithErrors([a_path, b_path, c_path]);
 
     // Exclude b.dart from analysis.
-    newFile('$testPackageRootPath/analysis_options.yaml', content: r'''
+    newFile(options_path, content: r'''
 analyzer:
   exclude:
     - lib/b.dart
@@ -668,7 +670,7 @@ analyzer:
     );
 
     // Exclude c.dart from analysis.
-    newFile('$testPackageRootPath/analysis_options.yaml', content: r'''
+    newFile(options_path, content: r'''
 analyzer:
   exclude:
     - lib/c.dart
@@ -678,9 +680,10 @@ analyzer:
     await server.onAnalysisComplete;
 
     // Errors for all files were flushed, a.dart and b.dart analyzed.
-    _assertFlushedResults([a_path, c_path]);
+    _assertFlushedResults([options_path, a_path, c_path]);
     _assertAnalyzedFiles(
       hasErrors: [a_path, b_path],
+      noErrors: [options_path],
       notAnalyzed: [c_path],
     );
   }
@@ -710,7 +713,7 @@ analyzer:
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
-    // An error was reports.
+    // An error was reported.
     assertHasErrors(path);
   }
 
@@ -896,13 +899,14 @@ void f(A a) {}
   }
 
   Future<void> test_fileSystem_deleteFile_analysisOptions() async {
+    var options_path = '$testPackageRootPath/analysis_options.yaml';
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
     _createFilesWithErrors([a_path, b_path]);
 
     // Exclude b.dart from analysis.
-    newFile('$testPackageRootPath/analysis_options.yaml', content: r'''
+    newFile(options_path, content: r'''
 analyzer:
   exclude:
     - lib/b.dart
@@ -918,17 +922,44 @@ analyzer:
     );
 
     // Delete the options file.
-    deleteFile('$testPackageRootPath/analysis_options.yaml');
+    deleteFile(options_path);
 
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
     // Errors for a.dart were flushed, a.dart and b.dart analyzed.
-    _assertFlushedResults([a_path]);
+    _assertFlushedResults([options_path, a_path]);
     _assertAnalyzedFiles(
       hasErrors: [a_path, b_path],
-      notAnalyzed: [],
+      notAnalyzed: [options_path],
     );
+  }
+
+  Future<void> test_fileSystem_deleteFile_androidManifestXml() async {
+    var path = '$testPackageRootPath/AndroidManifest.xml';
+
+    newFile('$testPackageLibPath/a.dart', content: '');
+
+    // Has an error - no touch screen.
+    newFile(path, content: '<manifest/>');
+
+    newFile('$testPackageRootPath/analysis_options.yaml', content: '''
+analyzer:
+  optional-checks:
+    chrome-os-manifest-checks: true
+''');
+
+    setRoots(included: [workspaceRootPath], excluded: []);
+
+    // An error was reported.
+    _assertAnalyzedFiles(hasErrors: [path], notAnalyzed: []);
+
+    // Delete the file.
+    deleteFile(path);
+    await pumpEventQueue();
+
+    // We received a flush notification.
+    _assertAnalyzedFiles(hasErrors: [], notAnalyzed: [path]);
   }
 
   Future<void> test_fileSystem_deleteFile_dart() async {
@@ -941,7 +972,6 @@ analyzer:
 
     // a.dart was analyzed
     assertHasErrors(a_path);
-    forgetReceivedErrors();
 
     deleteFile(a_path);
     await pumpEventQueue();
@@ -1023,6 +1053,33 @@ void f(A a) {}
 
     // errors are not reported for packages
     assertNoErrorsNotification(a_path);
+  }
+
+  Future<void> test_fileSystem_deleteFile_fixDataYaml() async {
+    var path = '$testPackageLibPath/fix_data.yaml';
+
+    newFile('$testPackageLibPath/a.dart', content: '');
+
+    // Make sure that it is a package.
+    writePackageConfig(
+      '$testPackageRootPath/.dart_tool/package_config.json',
+      PackageConfigFileBuilder(),
+    );
+
+    // This file has an error.
+    newFile(path, content: '0: 1');
+
+    setRoots(included: [workspaceRootPath], excluded: []);
+
+    // The file was analyzed.
+    _assertAnalyzedFiles(hasErrors: [path], notAnalyzed: []);
+
+    // Delete the file.
+    deleteFile(path);
+    await pumpEventQueue();
+
+    // We received a flush notification.
+    _assertAnalyzedFiles(hasErrors: [], notAnalyzed: [path]);
   }
 
   Future<void> test_fileSystem_deleteFile_packageConfigJsonFile() async {
@@ -1295,10 +1352,15 @@ void f(A a) {}
 
   void _assertAnalyzedFiles({
     @required List<String> hasErrors,
+    List<String> noErrors = const [],
     @required List<String> notAnalyzed,
   }) {
     for (var path in hasErrors) {
       assertHasErrors(path);
+    }
+
+    for (var path in noErrors) {
+      assertNoErrors(path);
     }
 
     for (var path in notAnalyzed) {

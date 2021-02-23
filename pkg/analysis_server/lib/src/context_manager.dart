@@ -5,9 +5,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
-import 'dart:io';
 
-import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -118,12 +116,13 @@ abstract class ContextManager {
 /// operations return data structures describing how context state should be
 /// modified.
 abstract class ContextManagerCallbacks {
-  /// Return the notification manager associated with the server.
-  AbstractNotificationManager get notificationManager;
-
-  /// Called after contexts are rebuilt, such as after recovering from a watcher
-  /// failure.
+  /// Called after analysis contexts are created, usually when new analysis
+  /// roots are set, or after detecting a change that required rebuilding
+  /// the set of analysis contexts.
   void afterContextsCreated();
+
+  /// Called after analysis contexts are destroyed.
+  void afterContextsDestroyed();
 
   /// An [event] was processed, so analysis state might be different now.
   void afterWatchEvent(WatchEvent event);
@@ -139,10 +138,8 @@ abstract class ContextManagerCallbacks {
   /// TODO(scheglov) Just pass results in here?
   void listenAnalysisDriver(AnalysisDriver driver);
 
-  /// Remove the context associated with the given [folder].  [flushedFiles] is
-  /// a list of the files which will be "orphaned" by removing this context
-  /// (they will no longer be analyzed by any context).
-  void removeContext(Folder folder, List<String> flushedFiles);
+  /// Record error information for the file with the given [path].
+  void recordAnalysisErrors(String path, List<protocol.AnalysisError> errors);
 }
 
 /// Class that maintains a mapping from included/excluded paths to a set of
@@ -244,7 +241,12 @@ class ContextManagerImpl implements ContextManager {
 
   @override
   bool isInAnalysisRoot(String path) {
-    return _collection.contexts.any(
+    var collection = _collection;
+    if (collection == null) {
+      return false;
+    }
+
+    return collection.contexts.any(
       (context) => context.contextRoot.isAnalyzed(path),
     );
   }
@@ -265,7 +267,7 @@ class ContextManagerImpl implements ContextManager {
   /// Use the given analysis [driver] to analyze the content of the analysis
   /// options file at the given [path].
   void _analyzeAnalysisOptionsFile(AnalysisDriver driver, String path) {
-    List<protocol.AnalysisError> convertedErrors;
+    var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var content = _readFile(path);
       var lineInfo = _computeLineInfo(content);
@@ -280,16 +282,13 @@ class ContextManagerImpl implements ContextManager {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
     }
-    callbacks.notificationManager.recordAnalysisErrors(
-        NotificationManager.serverId,
-        path,
-        convertedErrors ?? <protocol.AnalysisError>[]);
+    callbacks.recordAnalysisErrors(path, convertedErrors);
   }
 
   /// Use the given analysis [driver] to analyze the content of the
   /// data file at the given [path].
   void _analyzeDataFile(AnalysisDriver driver, String path) {
-    List<protocol.AnalysisError> convertedErrors;
+    var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var file = resourceProvider.getFile(path);
       var packageName = file.parent2.parent2.shortName;
@@ -305,16 +304,13 @@ class ContextManagerImpl implements ContextManager {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
     }
-    callbacks.notificationManager.recordAnalysisErrors(
-        NotificationManager.serverId,
-        path,
-        convertedErrors ?? const <protocol.AnalysisError>[]);
+    callbacks.recordAnalysisErrors(path, convertedErrors);
   }
 
   /// Use the given analysis [driver] to analyze the content of the
   /// AndroidManifest file at the given [path].
   void _analyzeManifestFile(AnalysisDriver driver, String path) {
-    List<protocol.AnalysisError> convertedErrors;
+    var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var content = _readFile(path);
       var validator =
@@ -329,16 +325,13 @@ class ContextManagerImpl implements ContextManager {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
     }
-    callbacks.notificationManager.recordAnalysisErrors(
-        NotificationManager.serverId,
-        path,
-        convertedErrors ?? <protocol.AnalysisError>[]);
+    callbacks.recordAnalysisErrors(path, convertedErrors);
   }
 
   /// Use the given analysis [driver] to analyze the content of the pubspec file
   /// at the given [path].
   void _analyzePubspecFile(AnalysisDriver driver, String path) {
-    List<protocol.AnalysisError> convertedErrors;
+    var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var content = _readFile(path);
       var node = loadYamlNode(content);
@@ -388,10 +381,7 @@ class ContextManagerImpl implements ContextManager {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
     }
-    callbacks.notificationManager.recordAnalysisErrors(
-        NotificationManager.serverId,
-        path,
-        convertedErrors ?? <protocol.AnalysisError>[]);
+    callbacks.recordAnalysisErrors(path, convertedErrors);
   }
 
   void _checkForDataFileUpdate(String path) {
@@ -417,12 +407,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   void _createAnalysisContexts() {
-    if (_collection != null) {
-      for (var analysisContext in _collection.contexts) {
-        var contextImpl = analysisContext as DriverBasedAnalysisContext;
-        _destroyContext(contextImpl);
-      }
-    }
+    _destroyAnalysisContexts();
 
     _collection = AnalysisContextCollectionImpl(
       includedPaths: includedPaths,
@@ -501,13 +486,23 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /// Clean up and destroy the context associated with the given folder.
-  void _destroyContext(DriverBasedAnalysisContext context) {
+  void _destroyAnalysisContext(DriverBasedAnalysisContext context) {
+    context.driver.dispose();
+
     var rootFolder = context.contextRoot.root;
     changeSubscriptions.remove(rootFolder)?.cancel();
     bazelSubscriptions.remove(rootFolder)?.cancel();
+    driverMap.remove(rootFolder);
+  }
 
-    var flushedFiles = context.driver.addedFiles.toList();
-    callbacks.removeContext(rootFolder, flushedFiles);
+  void _destroyAnalysisContexts() {
+    if (_collection != null) {
+      for (var analysisContext in _collection.contexts) {
+        var contextImpl = analysisContext as DriverBasedAnalysisContext;
+        _destroyAnalysisContext(contextImpl);
+      }
+      callbacks.afterContextsDestroyed();
+    }
   }
 
   /// Establishes watch(es) for the Bazel generated files provided in
@@ -594,20 +589,21 @@ class ContextManagerImpl implements ContextManager {
             break;
           case ChangeType.REMOVE:
             analysisContext.driver.removeFile(path);
-            // TODO(scheglov) Why not `isInAnalysisRoot()`?
-            // TODO(scheglov) Why not always?
-            var resource = resourceProvider.getResource(path);
-            if (resource is File &&
-                _shouldFileBeAnalyzed(resource, mustExist: false)) {
-              callbacks.applyFileRemoved(path);
-            }
             break;
         }
       }
     }
 
-    _checkForManifestUpdate(path);
-    _checkForDataFileUpdate(path);
+    switch (type) {
+      case ChangeType.ADD:
+      case ChangeType.MODIFY:
+        _checkForManifestUpdate(path);
+        _checkForDataFileUpdate(path);
+        break;
+      case ChangeType.REMOVE:
+        callbacks.applyFileRemoved(path);
+        break;
+    }
   }
 
   /// On windows, the directory watcher may overflow, and we must recover.
@@ -642,22 +638,6 @@ class ContextManagerImpl implements ContextManager {
   /// if the contents cannot be read.
   String _readFile(String path) {
     return resourceProvider.getFile(path).readAsStringSync();
-  }
-
-  /// Return `true` if the given [file] should be analyzed.
-  bool _shouldFileBeAnalyzed(File file, {bool mustExist = true}) {
-    for (var glob in analyzedFilesGlobs) {
-      if (glob.matches(file.path)) {
-        // Emacs creates dummy links to track the fact that a file is open for
-        // editing and has unsaved changes (e.g. having unsaved changes to
-        // 'foo.dart' causes a link '.#foo.dart' to be created, which points to
-        // the non-existent file 'username@hostname.pid'. To avoid these dummy
-        // links causing the analyzer to thrash, just ignore links to
-        // non-existent files.
-        return !mustExist || file.exists;
-      }
-    }
-    return false;
   }
 
   /// Listens to files generated by Bazel that were found or searched for.

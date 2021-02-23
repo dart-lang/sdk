@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-02-19T10:27:13.251974",
+  "generated": "2021-02-22T14:34:08.519603",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -214,7 +214,7 @@
       "name": "dart_internal",
       "rootUri": "../pkg/dart_internal",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "dart_style",

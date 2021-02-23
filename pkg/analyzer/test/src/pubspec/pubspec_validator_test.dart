@@ -298,7 +298,7 @@ dependencies:
 
   test_dependencyPath_noVersion_valid() {
     newFolder('/foo');
-    newFile('/foo/pubspec.yaml', content: '''
+    newPubspecYamlFile('/foo', '''
 name: foo
 ''');
     assertNoErrors('''
@@ -321,7 +321,7 @@ dependencies:
 
   test_dependencyPath_pubspecExists() {
     newFolder('/foo');
-    newFile('/foo/pubspec.yaml', content: '''
+    newPubspecYamlFile('/foo', '''
 name: foo
 ''');
     assertNoErrors('''
@@ -334,7 +334,7 @@ dependencies:
 
   test_dependencyPath_valid_absolute() {
     newFolder('/foo');
-    newFile('/foo/pubspec.yaml', content: '''
+    newPubspecYamlFile('/foo', '''
 name: foo
 ''');
     assertNoErrors('''
@@ -347,7 +347,7 @@ dependencies:
 
   test_dependencyPath_valid_relative() {
     newFolder('/foo');
-    newFile('/foo/pubspec.yaml', content: '''
+    newPubspecYamlFile('/foo', '''
 name: foo
 ''');
     assertNoErrors('''
@@ -360,7 +360,7 @@ dependencies:
 
   test_dependencyPath_version_error() {
     newFolder('/foo');
-    newFile('/foo/pubspec.yaml', content: '''
+    newPubspecYamlFile('/foo', '''
 name: foo
 ''');
     assertErrors('''
@@ -374,7 +374,7 @@ dependencies:
 
   test_dependencyPath_version_valid() {
     newFolder('/foo');
-    newFile('/foo/pubspec.yaml', content: '''
+    newPubspecYamlFile('/foo', '''
 name: foo
 ''');
     assertNoErrors('''
@@ -442,7 +442,7 @@ dev_dependencies:
 
   test_devDependencyPathExists() {
     newFolder('/foo');
-    newFile('/foo/pubspec.yaml', content: '''
+    newPubspecYamlFile('/foo', '''
 name: foo
 ''');
     assertNoErrors('''
@@ -507,7 +507,7 @@ name: sample
 
   test_pathNotPosix_error() {
     newFolder('/foo');
-    newFile('/foo/pubspec.yaml', content: '''
+    newPubspecYamlFile('/foo', '''
 name: foo
 ''');
     assertErrors(r'''

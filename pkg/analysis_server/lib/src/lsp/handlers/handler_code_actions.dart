@@ -15,7 +15,6 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Position;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
@@ -26,7 +25,6 @@ import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:collection/collection.dart' show groupBy;
 
 class CodeActionHandler extends MessageHandler<CodeActionParams,
@@ -172,26 +170,6 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     );
   }
 
-  /// Creates a CodeAction command to apply a particular fix for all instances of
-  /// a specific error in the file for [path].
-  CodeAction _createFixAllCommand(Fix fix, Diagnostic diagnostic, String path) {
-    final title = 'Apply all: ${fix.change.message}';
-    return CodeAction(
-      title: title,
-      kind: CodeActionKind.QuickFix,
-      diagnostics: [diagnostic],
-      command: Command(
-        command: Commands.fixAllOfErrorCodeInFile,
-        title: title,
-        arguments: [
-          diagnostic.code,
-          path,
-          server.getVersionedDocumentIdentifier(path).version
-        ],
-      ),
-    );
-  }
-
   /// Dedupes/merges actions that have the same title, selecting the one nearest [pos].
   ///
   /// If actions perform the same edit/command, their diagnostics will be merged
@@ -312,7 +290,6 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   ) async {
     final lineInfo = unit.lineInfo;
     final codeActions = <CodeAction>[];
-    final fixAllCodeActions = <CodeAction>[];
     final fixContributor = DartFixContributor();
 
     try {
@@ -322,13 +299,6 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         errorCodeCounts[error.errorCode] =
             (errorCodeCounts[error.errorCode] ?? 0) + 1;
       }
-
-      // Because an error code may appear multiple times, cache the possible fixes
-      // as we discover them to avoid re-computing them for a given diagnostic.
-      final possibleFixesForErrorCode = <ErrorCode, Set<FixKind>>{};
-      final workspace = DartChangeWorkspace(server.currentSessions);
-      final processor =
-          BulkFixProcessor(server.instrumentationService, workspace);
 
       for (final error in unit.errors) {
         // Server lineNumber is one-based so subtract one.
@@ -358,34 +328,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           codeActions.addAll(
             fixes.map((fix) => _createFixAction(fix, diagnostic)),
           );
-
-          // Only consider an apply-all if there's more than one of these errors.
-          if (errorCodeCounts[error.errorCode] > 1) {
-            // Find out which fixes the bulk processor can handle.
-            possibleFixesForErrorCode[error.errorCode] ??=
-                processor.producableFixesForError(unit, error).toSet();
-
-            // Get the intersection of single-fix kinds we created and those
-            // the bulk processor can handle.
-            final possibleFixes = possibleFixesForErrorCode[error.errorCode]
-                .intersection(fixes.map((f) => f.kind).toSet())
-                  // Exclude data-driven fixes as they're more likely to apply
-                  // different fixes for the same error/fix kind that users
-                  // might not expect.
-                  ..remove(DartFixKind.DATA_DRIVEN);
-
-            // Until we can apply a specific fix, only include apply-all when
-            // there's exactly one.
-            if (possibleFixes.length == 1) {
-              fixAllCodeActions.addAll(fixes.map(
-                  (fix) => _createFixAllCommand(fix, diagnostic, unit.path)));
-            }
-          }
         }
       }
-
-      // Append all fix-alls to the very end.
-      codeActions.addAll(fixAllCodeActions);
 
       final dedupedActions = _dedupeActions(codeActions, range.start);
 

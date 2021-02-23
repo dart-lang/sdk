@@ -151,7 +151,7 @@ print(1)
 aaa:${toUri('/aaa/lib')}
 bbb:${toUri('/bbb/lib')}
 ''');
-    newFile('/aaa/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/aaa', r'''
 dependencies:
   bbb: any
 ''');

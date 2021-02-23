@@ -79,7 +79,7 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
     projectPath = convertPath('/home');
     testFile = convertPath('/home/test/lib/test.dart');
 
-    newFile('/home/test/pubspec.yaml', content: '');
+    newPubspecYamlFile('/home/test', '');
     newFile('/home/test/.packages', content: '''
 test:${toUri('/home/test/lib')}
 ''');

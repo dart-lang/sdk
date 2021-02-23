@@ -908,6 +908,8 @@ class DocumentFragment {
 }
 
 dynamic JS(a, b, c, d) {}
+
+class File {}
 ''',
     )
   ],
