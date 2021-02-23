@@ -10800,6 +10800,8 @@ class TransferableTypedData : public Instance {
   friend class Class;
 };
 
+class DebuggerStackTrace;
+
 // Internal stacktrace object used in exceptions for printing stack traces.
 class StackTrace : public Instance {
  public:
@@ -10856,7 +10858,7 @@ class StackTrace : public Instance {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(StackTrace, Instance);
   friend class Class;
-  friend class Debugger;
+  friend class DebuggerStackTrace;
 };
 
 class RegExpFlags {

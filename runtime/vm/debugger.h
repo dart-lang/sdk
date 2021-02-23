@@ -167,6 +167,9 @@ class BreakpointLocation {
   Breakpoint* breakpoints() const { return this->conditions_; }
   void set_breakpoints(Breakpoint* head) { this->conditions_ = head; }
 
+  // Finds the breakpoint we hit at |location|.
+  Breakpoint* FindHitBreakpoint(ActivationFrame* top_frame);
+
   ScriptPtr script_;
   StringPtr url_;
   TokenPosition token_pos_;
@@ -432,14 +435,33 @@ class DebuggerStackTrace : public ZoneAllocated {
 
   ActivationFrame* GetHandlerFrame(const Instance& exc_obj) const;
 
+  static DebuggerStackTrace* CollectAwaiterReturn();
+  static DebuggerStackTrace* Collect();
+  // Returns a debugger stack trace corresponding to a dart.core.StackTrace.
+  // Frames corresponding to invisible functions are omitted. It is not valid
+  // to query local variables in the returned stack.
+  static DebuggerStackTrace* From(const class StackTrace& ex_trace);
+
  private:
   void AddActivation(ActivationFrame* frame);
   void AddMarker(ActivationFrame::Kind marker);
   void AddAsyncCausalFrame(uword pc, const Code& code);
 
+  void AppendCodeFrames(Thread* thread,
+                        Isolate* isolate,
+                        Zone* zone,
+                        StackFrame* frame,
+                        Code* code,
+                        Code* inlined_code,
+                        Array* deopt_frame);
+
+  static DebuggerStackTrace* CollectAsyncCausal();
+  static DebuggerStackTrace* CollectAsyncLazy();
+
   ZoneGrowableArray<ActivationFrame*> trace_;
 
   friend class Debugger;
+
   DISALLOW_COPY_AND_ASSIGN(DebuggerStackTrace);
 };
 
@@ -549,21 +571,10 @@ class Debugger {
   // The trace returned by StackTrace may have been cached; it is suitable for
   // use when stepping, but otherwise may be out of sync with the current stack.
   DebuggerStackTrace* StackTrace();
-  DebuggerStackTrace* CurrentStackTrace();
 
   DebuggerStackTrace* AsyncCausalStackTrace();
-  DebuggerStackTrace* CurrentAsyncCausalStackTrace();
 
   DebuggerStackTrace* AwaiterStackTrace();
-  DebuggerStackTrace* CurrentAwaiterStackTrace();
-
-  // Returns a debugger stack trace corresponding to a dart.core.StackTrace.
-  // Frames corresponding to invisible functions are omitted. It is not valid
-  // to query local variables in the returned stack.
-  DebuggerStackTrace* StackTraceFrom(const class StackTrace& dart_stacktrace);
-
-  // Utility functions.
-  static const char* QualifiedFunctionName(const Function& func);
 
   // Pause execution for a breakpoint.  Called from generated code.
   ErrorPtr PauseBreakpoint();
@@ -590,6 +601,8 @@ class Debugger {
   void PrintSettingsToJSONObject(JSONObject* jsobj) const;
 
   static bool IsDebuggable(const Function& func);
+
+  // IsolateGroupDebugger::
   static bool IsDebugging(Thread* thread, const Function& func);
 
   intptr_t limitBreakpointId() { return next_id_; }
@@ -597,40 +610,28 @@ class Debugger {
   // Callback to the debugger to continue frame rewind, post-deoptimization.
   void RewindPostDeopt();
 
-  DebuggerStackTrace* CollectAwaiterReturnStackTrace();
-
  private:
   ErrorPtr PauseRequest(ServiceEvent::EventKind kind);
-
-  // Finds the breakpoint we hit at |location|.
-  Breakpoint* FindHitBreakpoint(BreakpointLocation* location,
-                                ActivationFrame* top_frame);
 
   // Will return false if we are not at an await.
   bool SetupStepOverAsyncSuspension(const char** error);
 
   bool NeedsIsolateEvents();
   bool NeedsDebugEvents();
-  void InvokeEventHandler(ServiceEvent* event);
 
   void SendBreakpointEvent(ServiceEvent::EventKind kind, Breakpoint* bpt);
 
-  bool IsAtAsyncJump(ActivationFrame* top_frame);
+  // IsolateGroupDebugger::
   void FindCompiledFunctions(const Script& script,
                              TokenPosition start_pos,
                              TokenPosition end_pos,
                              GrowableObjectArray* code_function_list);
+  // IsolateGroupDebugger::
   bool FindBestFit(const Script& script,
                    TokenPosition token_pos,
                    TokenPosition last_token_pos,
                    Function* best_fit);
-  FunctionPtr FindInnermostClosure(const Function& function,
-                                   TokenPosition token_pos);
-  TokenPosition ResolveBreakpointPos(const Function& func,
-                                     TokenPosition requested_token_pos,
-                                     TokenPosition last_token_pos,
-                                     intptr_t requested_column,
-                                     TokenPosition exact_token_pos);
+  // IsolateGroupDebugger::
   void DeoptimizeWorld();
   void NotifySingleStepping(bool value) const;
   BreakpointLocation* SetCodeBreakpoints(const Script& script,
@@ -669,36 +670,6 @@ class Debugger {
   void PrintBreakpointsListToJSONArray(BreakpointLocation* sbpt,
                                        JSONArray* jsarr) const;
 
-  ActivationFrame* TopDartFrame() const;
-  static ActivationFrame* CollectDartFrame(
-      Isolate* isolate,
-      uword pc,
-      StackFrame* frame,
-      const Code& code,
-      const Array& deopt_frame,
-      intptr_t deopt_frame_offset,
-      ActivationFrame::Kind kind = ActivationFrame::kRegular);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  static ArrayPtr DeoptimizeToArray(Thread* thread,
-                                    StackFrame* frame,
-                                    const Code& code);
-  TokenPosition FindExactTokenPosition(const Script& script,
-                                       TokenPosition start_of_line,
-                                       intptr_t column_number);
-#endif
-  // Appends at least one stack frame. Multiple frames will be appended
-  // if |code| at the frame's pc contains inlined functions.
-  static void AppendCodeFrames(Thread* thread,
-                               Isolate* isolate,
-                               Zone* zone,
-                               DebuggerStackTrace* stack_trace,
-                               StackFrame* frame,
-                               Code* code,
-                               Code* inlined_code,
-                               Array* deopt_frame);
-  static DebuggerStackTrace* CollectStackTrace();
-  static DebuggerStackTrace* CollectAsyncCausalStackTrace();
-  static DebuggerStackTrace* CollectAsyncLazyStackTrace();
   void SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt);
 
   intptr_t nextId() { return next_id_++; }
@@ -717,9 +688,6 @@ class Debugger {
                         DebuggerStackTrace* async_causal_stack_trace,
                         DebuggerStackTrace* awaiter_stack_trace);
   void ClearCachedStackTraces();
-
-  // Can we rewind to the indicated frame?
-  bool CanRewindFrame(intptr_t frame_index, const char** error) const;
 
   void RewindToFrame(intptr_t frame_index);
   void RewindToUnoptimizedFrame(StackFrame* frame, const Code& code);

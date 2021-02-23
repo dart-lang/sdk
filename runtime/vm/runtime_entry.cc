@@ -2607,7 +2607,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       }
     }
     if (FLAG_stress_async_stacks) {
-      isolate->debugger()->CollectAwaiterReturnStackTrace();
+      DebuggerStackTrace::CollectAwaiterReturn();
     }
   }
   if (do_gc) {
