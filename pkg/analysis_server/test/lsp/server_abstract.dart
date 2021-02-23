@@ -271,6 +271,16 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  TextDocumentClientCapabilities withCompletionItemInsertReplaceSupport(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'completion': {
+        'completionItem': {'insertReplaceSupport': true}
+      }
+    });
+  }
+
   TextDocumentClientCapabilities withCompletionItemKinds(
     TextDocumentClientCapabilities source,
     List<CompletionItemKind> kinds,
@@ -1495,6 +1505,25 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(Method.shutdown, null);
     return expectSuccessfulResponseTo(request, (result) => result);
   }
+
+  /// Creates a [TextEdit] using the `insert` range of a [InsertReplaceEdit].
+  TextEdit textEditForInsert(Either2<TextEdit, InsertReplaceEdit> edit) =>
+      edit.map(
+        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
+        (e) => TextEdit(range: e.insert, newText: e.newText),
+      );
+
+  /// Creates a [TextEdit] using the `replace` range of a [InsertReplaceEdit].
+  TextEdit textEditForReplace(Either2<TextEdit, InsertReplaceEdit> edit) =>
+      edit.map(
+        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
+        (e) => TextEdit(range: e.replace, newText: e.newText),
+      );
+
+  TextEdit toTextEdit(Either2<TextEdit, InsertReplaceEdit> edit) => edit.map(
+        (e) => e,
+        (_) => throw 'Expected TextEdit, got InsertReplaceEdit',
+      );
 
   WorkspaceFolder toWorkspaceFolder(Uri uri) {
     return WorkspaceFolder(

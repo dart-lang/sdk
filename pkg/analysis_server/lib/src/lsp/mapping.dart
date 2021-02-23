@@ -220,6 +220,7 @@ lsp.CompletionItem declarationToCompletionItem(
   server.LineInfo lineInfo,
   dec.Declaration declaration,
   int replacementOffset,
+  int insertLength,
   int replacementLength, {
   @required bool includeCommitCharacters,
   @required bool completeFunctionCalls,
@@ -341,6 +342,7 @@ lsp.CompletionItem declarationToCompletionItem(
         libId: includedSuggestionSet.id,
         displayUri: includedSuggestionSet.displayUri ?? library.uri?.toString(),
         rOffset: replacementOffset,
+        iLength: insertLength,
         rLength: replacementLength),
   );
 }
@@ -816,6 +818,7 @@ lsp.CompletionItem toCompletionItem(
   server.LineInfo lineInfo,
   server.CompletionSuggestion suggestion,
   int replacementOffset,
+  int insertLength,
   int replacementLength, {
   @required bool includeCommitCharacters,
   @required bool completeFunctionCalls,
@@ -860,6 +863,8 @@ lsp.CompletionItem toCompletionItem(
   final formats = completionCapabilities?.completionItem?.documentationFormat;
   final supportsSnippets =
       completionCapabilities?.completionItem?.snippetSupport == true;
+  final supportsInsertReplace =
+      completionCapabilities?.completionItem?.insertReplaceSupport == true;
 
   final completionKind = suggestion.element != null
       ? elementKindToCompletionItemKind(
@@ -917,10 +922,20 @@ lsp.CompletionItem toCompletionItem(
     insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
         ? insertTextFormat
         : null, // Defaults to PlainText if not supplied
-    textEdit: lsp.TextEdit(
-      range: toRange(lineInfo, replacementOffset, replacementLength),
-      newText: insertText,
-    ),
+    textEdit: supportsInsertReplace
+        ? Either2<TextEdit, InsertReplaceEdit>.t2(
+            InsertReplaceEdit(
+              insert: toRange(lineInfo, replacementOffset, insertLength),
+              replace: toRange(lineInfo, replacementOffset, replacementLength),
+              newText: insertText,
+            ),
+          )
+        : Either2<TextEdit, InsertReplaceEdit>.t1(
+            TextEdit(
+              range: toRange(lineInfo, replacementOffset, replacementLength),
+              newText: insertText,
+            ),
+          ),
   );
 }
 

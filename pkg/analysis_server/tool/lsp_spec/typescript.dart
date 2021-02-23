@@ -90,7 +90,6 @@ String getImprovedType(String interfaceName, String fieldName) {
     'CompletionItem': {
       'kind': 'CompletionItemKind',
       'data': 'CompletionItemResolutionInfo',
-      'textEdit': 'TextEdit',
     },
     'CallHierarchyItem': {
       'data': 'object',

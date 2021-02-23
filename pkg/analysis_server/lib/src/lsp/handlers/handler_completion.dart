@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
@@ -183,6 +184,17 @@ class CompletionHandler
     return alreadyImportedSymbols;
   }
 
+  /// The insert length is the shorter of the replacementLength or the
+  /// difference between the replacementOffset and the caret position.
+  int _computeInsertLength(
+      int offset, int replacementOffset, int replacementLength) {
+    final insertLength =
+        math.min(offset - replacementOffset, replacementLength);
+    assert(insertLength >= 0);
+    assert(insertLength <= replacementLength);
+    return insertLength;
+  }
+
   String _createImportedSymbolKey(String name, Uri declaringUri) =>
       '$name/$declaringUri';
 
@@ -205,6 +217,7 @@ class CompletionHandler
       completionCapabilities,
       clientSupportedCompletionKinds,
       lineInfo,
+      offset,
       pluginResults,
     ).toList());
   }
@@ -252,6 +265,12 @@ class CompletionHandler
           completionRequest,
         );
 
+        final insertLength = _computeInsertLength(
+          offset,
+          completionRequest.replacementOffset,
+          completionRequest.replacementLength,
+        );
+
         if (token.isCancellationRequested) {
           return cancelled();
         }
@@ -264,6 +283,7 @@ class CompletionHandler
                 unit.lineInfo,
                 item,
                 completionRequest.replacementOffset,
+                insertLength,
                 completionRequest.replacementLength,
                 // TODO(dantup): Including commit characters in every completion
                 // increases the payload size. The LSP spec is ambigious
@@ -358,6 +378,7 @@ class CompletionHandler
                     unit.lineInfo,
                     item,
                     completionRequest.replacementOffset,
+                    insertLength,
                     completionRequest.replacementLength,
                     // TODO(dantup): Including commit characters in every completion
                     // increases the payload size. The LSP spec is ambigious
@@ -401,6 +422,11 @@ class CompletionHandler
     CancellationToken token,
   ) async {
     final suggestions = generator.getSuggestions(path, offset);
+    final insertLength = _computeInsertLength(
+      offset,
+      suggestions.replacementOffset,
+      suggestions.replacementLength,
+    );
     final completionItems = suggestions.suggestions
         .map(
           (item) => toCompletionItem(
@@ -409,6 +435,7 @@ class CompletionHandler
             lineInfo,
             item,
             suggestions.replacementOffset,
+            insertLength,
             suggestions.replacementLength,
             includeCommitCharacters: false,
             completeFunctionCalls: false,
@@ -422,6 +449,7 @@ class CompletionHandler
     CompletionClientCapabilities completionCapabilities,
     HashSet<CompletionItemKind> clientSupportedCompletionKinds,
     LineInfo lineInfo,
+    int offset,
     List<plugin.CompletionGetSuggestionsResult> pluginResults,
   ) {
     return pluginResults.expand((result) {
@@ -432,6 +460,11 @@ class CompletionHandler
           lineInfo,
           item,
           result.replacementOffset,
+          _computeInsertLength(
+            offset,
+            result.replacementOffset,
+            result.replacementLength,
+          ),
           result.replacementLength,
           // Plugins cannot currently contribute commit characters and we should
           // not assume that the Dart ones would be correct for all of their
