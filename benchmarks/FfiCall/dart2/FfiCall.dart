@@ -210,11 +210,11 @@ final function1Double = ffiTestFunctions
 
 typedef NativeFunction2Double = Double Function(Double, Double);
 final function2Double = ffiTestFunctions
-    .lookupFunction<NativeFunction2Double, Function2double>('Function1Double');
+    .lookupFunction<NativeFunction2Double, Function2double>('Function2Double');
 
 typedef NativeFunction4Double = Double Function(Double, Double, Double, Double);
 final function4Double = ffiTestFunctions
-    .lookupFunction<NativeFunction4Double, Function4double>('Function1Double');
+    .lookupFunction<NativeFunction4Double, Function4double>('Function4Double');
 
 typedef NativeFunction10Double = Double Function(Double, Double, Double, Double,
     Double, Double, Double, Double, Double, Double);
@@ -943,9 +943,9 @@ class Floatx01 extends BenchmarkBase {
   @override
   void run() {
     final double x = doCall1Float(N);
-    final double expected = N * (N - 1) / 2 + N * 42;
-    if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x');
+    final double expected = N * (17.0 + 42);
+    if (0.999 * expected > x || x > 1.001 * expected) {
+      throw Exception('$name: Unexpected result: $x, expected $expected');
     }
   }
 }
@@ -956,9 +956,9 @@ class Floatx02 extends BenchmarkBase {
   @override
   void run() {
     final double x = doCall2Float(N);
-    final double expected = N * 55.0;
-    if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x');
+    final double expected = N * (1.0 + 2.0);
+    if (0.999 * expected > x || x > 1.001 * expected) {
+      throw Exception('$name: Unexpected result: $x, expected $expected');
     }
   }
 }
@@ -969,9 +969,9 @@ class Floatx04 extends BenchmarkBase {
   @override
   void run() {
     final double x = doCall4Float(N);
-    final double expected = N * 55.0;
-    if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x');
+    final double expected = N * (1.0 + 2.0 + 3.0 + 4.0);
+    if (0.999 * expected > x || x > 1.001 * expected) {
+      throw Exception('$name: Unexpected result: $x, expected $expected');
     }
   }
 }
@@ -982,9 +982,10 @@ class Floatx10 extends BenchmarkBase {
   @override
   void run() {
     final double x = doCall10Float(N);
-    final double expected = N * 55.0;
-    if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x');
+    final double expected =
+        N * (1.0 + 2.0 + 3.0 + 4.0 + 5.0 + 6.0 + 7.0 + 8.0 + 9.0 + 10.0);
+    if (0.999 * expected > x || x > 1.001 * expected) {
+      throw Exception('$name: Unexpected result: $x, expected $expected');
     }
   }
 }
@@ -995,9 +996,29 @@ class Floatx20 extends BenchmarkBase {
   @override
   void run() {
     final double x = doCall20Float(N);
-    final double expected = N * 220.0;
-    if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x');
+    final double expected = N *
+        (1.0 +
+            2.0 +
+            3.0 +
+            4.0 +
+            5.0 +
+            6.0 +
+            7.0 +
+            8.0 +
+            9.0 +
+            10.0 +
+            11.0 +
+            12.0 +
+            13.0 +
+            14.0 +
+            15.0 +
+            16.0 +
+            17.0 +
+            18.0 +
+            19.0 +
+            20.0);
+    if (0.999 * expected > x || x > 1.001 * expected) {
+      throw Exception('$name: Unexpected result: $x, expected $expected');
     }
   }
 }
@@ -1008,9 +1029,9 @@ class Doublex01 extends BenchmarkBase {
   @override
   void run() {
     final double x = doCall1Double(N);
-    final double expected = N * (N - 1) / 2 + N * 42;
-    if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x');
+    final double expected = N * (17.0 + 42.0);
+    if (0.999 * expected > x || x > 1.001 * expected) {
+      throw Exception('$name: Unexpected result: $x, expected $expected');
     }
   }
 }
@@ -1021,9 +1042,9 @@ class Doublex02 extends BenchmarkBase {
   @override
   void run() {
     final double x = doCall2Double(N);
-    final double expected = N * 55.0;
-    if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x');
+    final double expected = N * (1.0 + 2.0);
+    if (0.999 * expected > x || x > 1.001 * expected) {
+      throw Exception('$name: Unexpected result: $x, expected $expected');
     }
   }
 }
@@ -1034,9 +1055,9 @@ class Doublex04 extends BenchmarkBase {
   @override
   void run() {
     final double x = doCall4Double(N);
-    final double expected = N * 55.0;
-    if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x');
+    final double expected = N * (1.0 + 2.0 + 3.0 + 4.0);
+    if (0.999 * expected > x || x > 1.001 * expected) {
+      throw Exception('$name: Unexpected result: $x, expected $expected');
     }
   }
 }
@@ -1047,9 +1068,10 @@ class Doublex10 extends BenchmarkBase {
   @override
   void run() {
     final double x = doCall10Double(N);
-    final double expected = N * 55.0;
-    if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x');
+    final double expected =
+        N * (1.0 + 2.0 + 3.0 + 4.0 + 5.0 + 6.0 + 7.0 + 8.0 + 9.0 + 10.0);
+    if (0.999 * expected > x || x > 1.001 * expected) {
+      throw Exception('$name: Unexpected result: $x, expected $expected');
     }
   }
 }
@@ -1060,9 +1082,29 @@ class Doublex20 extends BenchmarkBase {
   @override
   void run() {
     final double x = doCall20Double(N);
-    final double expected = N * 220.0;
-    if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception('$name: Unexpected result: $x');
+    final double expected = N *
+        (1.0 +
+            2.0 +
+            3.0 +
+            4.0 +
+            5.0 +
+            6.0 +
+            7.0 +
+            8.0 +
+            9.0 +
+            10.0 +
+            11.0 +
+            12.0 +
+            13.0 +
+            14.0 +
+            15.0 +
+            16.0 +
+            17.0 +
+            18.0 +
+            19.0 +
+            20.0);
+    if (0.999 * expected > x || x > 1.001 * expected) {
+      throw Exception('$name: Unexpected result: $x, expected $expected');
     }
   }
 }
