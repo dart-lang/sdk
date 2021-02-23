@@ -270,7 +270,7 @@ bool Debugger::NeedsDebugEvents() {
   return FLAG_warn_on_pause_with_no_debugger || Service::debug_stream.enabled();
 }
 
-void Debugger::InvokeEventHandler(ServiceEvent* event) {
+static void InvokeEventHandler(ServiceEvent* event) {
   ASSERT(!event->IsPause());  // For pause events, call Pause instead.
   Service::HandleEvent(event);
 }
@@ -290,12 +290,12 @@ ErrorPtr Debugger::PauseRequest(ServiceEvent::EventKind kind) {
     return Thread::Current()->StealStickyError();
   }
   ServiceEvent event(isolate_, kind);
-  DebuggerStackTrace* trace = CollectStackTrace();
+  DebuggerStackTrace* trace = DebuggerStackTrace::Collect();
   if (trace->Length() > 0) {
     event.set_top_frame(trace->FrameAt(0));
   }
-  CacheStackTraces(trace, CollectAsyncCausalStackTrace(),
-                   CollectAwaiterReturnStackTrace());
+  CacheStackTraces(trace, DebuggerStackTrace::CollectAsyncCausal(),
+                   DebuggerStackTrace::CollectAwaiterReturn());
   resume_action_ = kContinue;
   Pause(&event);
   HandleSteppingRequest(trace);
@@ -378,7 +378,7 @@ Breakpoint* BreakpointLocation::AddPerClosure(Debugger* dbg,
   return bpt;
 }
 
-const char* Debugger::QualifiedFunctionName(const Function& func) {
+static const char* QualifiedFunctionName(const Function& func) {
   const String& func_name = String::Handle(func.name());
   Class& func_class = Class::Handle(func.Owner());
   String& class_name = String::Handle(func_class.Name());
@@ -504,7 +504,7 @@ ActivationFrame::Relation ActivationFrame::CompareTo(uword other_fp) const {
 }
 
 StringPtr ActivationFrame::QualifiedFunctionName() {
-  return String::New(Debugger::QualifiedFunctionName(function()));
+  return String::New(::dart::QualifiedFunctionName(function()));
 }
 
 StringPtr ActivationFrame::SourceUrl() {
@@ -1568,6 +1568,9 @@ void Debugger::Shutdown() {
   }
 }
 
+static ActivationFrame* TopDartFrame();
+static bool IsAtAsyncJump(ActivationFrame* top_frame);
+
 bool Debugger::SetupStepOverAsyncSuspension(const char** error) {
   ActivationFrame* top_frame = TopDartFrame();
   if (!IsAtAsyncJump(top_frame)) {
@@ -1591,6 +1594,8 @@ bool Debugger::SetupStepOverAsyncSuspension(const char** error) {
   }
   return true;
 }
+
+static bool CanRewindFrame(intptr_t frame_index, const char** error);
 
 bool Debugger::SetResumeAction(ResumeAction action,
                                intptr_t frame_index,
@@ -1714,13 +1719,14 @@ void Debugger::NotifySingleStepping(bool value) const {
   isolate_->set_single_step(value);
 }
 
-ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
-                                            uword pc,
-                                            StackFrame* frame,
-                                            const Code& code,
-                                            const Array& deopt_frame,
-                                            intptr_t deopt_frame_offset,
-                                            ActivationFrame::Kind kind) {
+static ActivationFrame* CollectDartFrame(
+    Isolate* isolate,
+    uword pc,
+    StackFrame* frame,
+    const Code& code,
+    const Array& deopt_frame,
+    intptr_t deopt_frame_offset,
+    ActivationFrame::Kind kind = ActivationFrame::kRegular) {
   ASSERT(code.ContainsInstructionAt(pc));
   ActivationFrame* activation =
       new ActivationFrame(pc, frame->fp(), frame->sp(), code, deopt_frame,
@@ -1734,9 +1740,9 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-ArrayPtr Debugger::DeoptimizeToArray(Thread* thread,
-                                     StackFrame* frame,
-                                     const Code& code) {
+static ArrayPtr DeoptimizeToArray(Thread* thread,
+                                  StackFrame* frame,
+                                  const Code& code) {
   ASSERT(code.is_optimized() && !code.is_force_optimized());
   Isolate* isolate = thread->isolate();
   // Create the DeoptContext for this deoptimization.
@@ -1757,7 +1763,7 @@ ArrayPtr Debugger::DeoptimizeToArray(Thread* thread,
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-DebuggerStackTrace* Debugger::CollectStackTrace() {
+DebuggerStackTrace* DebuggerStackTrace::Collect() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -1778,21 +1784,22 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
     }
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
-      AppendCodeFrames(thread, isolate, zone, stack_trace, frame, &code,
-                       &inlined_code, &deopt_frame);
+      stack_trace->AppendCodeFrames(thread, isolate, zone, frame, &code,
+                                    &inlined_code, &deopt_frame);
     }
   }
   return stack_trace;
 }
 
-void Debugger::AppendCodeFrames(Thread* thread,
-                                Isolate* isolate,
-                                Zone* zone,
-                                DebuggerStackTrace* stack_trace,
-                                StackFrame* frame,
-                                Code* code,
-                                Code* inlined_code,
-                                Array* deopt_frame) {
+// Appends at least one stack frame. Multiple frames will be appended
+// if |code| at the frame's pc contains inlined functions.
+void DebuggerStackTrace::AppendCodeFrames(Thread* thread,
+                                          Isolate* isolate,
+                                          Zone* zone,
+                                          StackFrame* frame,
+                                          Code* code,
+                                          Code* inlined_code,
+                                          Array* deopt_frame) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (code->is_optimized()) {
     if (code->is_force_optimized()) {
@@ -1817,20 +1824,19 @@ void Debugger::AppendCodeFrames(Thread* thread,
                      function.ToFullyQualifiedCString());
       }
       intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
-      stack_trace->AddActivation(CollectDartFrame(isolate, it.pc(), frame,
-                                                  *inlined_code, *deopt_frame,
-                                                  deopt_frame_offset));
+      AddActivation(CollectDartFrame(isolate, it.pc(), frame, *inlined_code,
+                                     *deopt_frame, deopt_frame_offset));
     }
     return;
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  stack_trace->AddActivation(CollectDartFrame(isolate, frame->pc(), frame,
-                                              *code, Object::null_array(), 0));
+  AddActivation(CollectDartFrame(isolate, frame->pc(), frame, *code,
+                                 Object::null_array(), 0));
 }
 
-DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
+DebuggerStackTrace* DebuggerStackTrace::CollectAsyncCausal() {
   if (FLAG_lazy_async_stacks) {
-    return CollectAsyncLazyStackTrace();
+    return CollectAsyncLazy();
   }
   if (!FLAG_causal_async_stacks) {
     return nullptr;
@@ -1838,7 +1844,7 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
   UNREACHABLE();  //  FLAG_causal_async_stacks is deprecated.
 }
 
-DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
+DebuggerStackTrace* DebuggerStackTrace::CollectAsyncLazy() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -1858,8 +1864,8 @@ DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
 
   std::function<void(StackFrame*)> on_sync_frame = [&](StackFrame* frame) {
     code = frame->LookupDartCode();
-    AppendCodeFrames(thread, isolate, zone, stack_trace, frame, &code,
-                     &inlined_code, &deopt_frame);
+    stack_trace->AppendCodeFrames(thread, isolate, zone, frame, &code,
+                                  &inlined_code, &deopt_frame);
   };
 
   StackTraceUtils::CollectFramesLazy(thread, code_array, &pc_offset_array,
@@ -1906,7 +1912,7 @@ DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
   return stack_trace;
 }
 
-DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
+DebuggerStackTrace* DebuggerStackTrace::CollectAwaiterReturn() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   // Causal async stacks are not supported in the AOT runtime.
   ASSERT(!FLAG_async_debugger);
@@ -2066,7 +2072,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
-ActivationFrame* Debugger::TopDartFrame() const {
+static ActivationFrame* TopDartFrame() {
   StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
@@ -2085,32 +2091,22 @@ ActivationFrame* Debugger::TopDartFrame() const {
 }
 
 DebuggerStackTrace* Debugger::StackTrace() {
-  return (stack_trace_ != NULL) ? stack_trace_ : CollectStackTrace();
-}
-
-DebuggerStackTrace* Debugger::CurrentStackTrace() {
-  return CollectStackTrace();
+  return (stack_trace_ != NULL) ? stack_trace_ : DebuggerStackTrace::Collect();
 }
 
 DebuggerStackTrace* Debugger::AsyncCausalStackTrace() {
-  return (async_causal_stack_trace_ != NULL) ? async_causal_stack_trace_
-                                             : CollectAsyncCausalStackTrace();
-}
-
-DebuggerStackTrace* Debugger::CurrentAsyncCausalStackTrace() {
-  return CollectAsyncCausalStackTrace();
+  return (async_causal_stack_trace_ != NULL)
+             ? async_causal_stack_trace_
+             : DebuggerStackTrace::CollectAsyncCausal();
 }
 
 DebuggerStackTrace* Debugger::AwaiterStackTrace() {
-  return (awaiter_stack_trace_ != NULL) ? awaiter_stack_trace_
-                                        : CollectAwaiterReturnStackTrace();
+  return (awaiter_stack_trace_ != NULL)
+             ? awaiter_stack_trace_
+             : DebuggerStackTrace::CollectAwaiterReturn();
 }
 
-DebuggerStackTrace* Debugger::CurrentAwaiterStackTrace() {
-  return CollectAwaiterReturnStackTrace();
-}
-
-DebuggerStackTrace* Debugger::StackTraceFrom(const class StackTrace& ex_trace) {
+DebuggerStackTrace* DebuggerStackTrace::From(const class StackTrace& ex_trace) {
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   Function& function = Function::Handle();
   Object& code_object = Object::Handle();
@@ -2209,7 +2205,7 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
 
 void Debugger::PauseException(const Instance& exc) {
   if (FLAG_stress_async_stacks) {
-    CollectAwaiterReturnStackTrace();
+    DebuggerStackTrace::CollectAwaiterReturn();
   }
   // We ignore this exception event when the VM is executing code invoked
   // by the debugger to evaluate variables values, when we see a nested
@@ -2219,8 +2215,9 @@ void Debugger::PauseException(const Instance& exc) {
       (exc_pause_info_ == kNoPauseOnExceptions)) {
     return;
   }
-  DebuggerStackTrace* awaiter_stack_trace = CollectAwaiterReturnStackTrace();
-  DebuggerStackTrace* stack_trace = CollectStackTrace();
+  DebuggerStackTrace* awaiter_stack_trace =
+      DebuggerStackTrace::CollectAwaiterReturn();
+  DebuggerStackTrace* stack_trace = DebuggerStackTrace::Collect();
   if (awaiter_stack_trace != NULL) {
     if (!ShouldPauseOnException(awaiter_stack_trace, exc)) {
       return;
@@ -2235,8 +2232,8 @@ void Debugger::PauseException(const Instance& exc) {
   if (stack_trace->Length() > 0) {
     event.set_top_frame(stack_trace->FrameAt(0));
   }
-  CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace(),
-                   CollectAwaiterReturnStackTrace());
+  CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncCausal(),
+                   DebuggerStackTrace::CollectAwaiterReturn());
   Pause(&event);
   HandleSteppingRequest(stack_trace_);  // we may get a rewind request
   ClearCachedStackTraces();
@@ -2342,11 +2339,11 @@ static void RefineBreakpointPos(const Script& script,
 // algorithm, which would be simpler.  I believe that it only needs
 // two passes to support the recursive try-the-whole-function case.
 // Rewrite this later, once there are more tests in place.
-TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
-                                             TokenPosition requested_token_pos,
-                                             TokenPosition last_token_pos,
-                                             intptr_t requested_column,
-                                             TokenPosition exact_token_pos) {
+static TokenPosition ResolveBreakpointPos(const Function& func,
+                                          TokenPosition requested_token_pos,
+                                          TokenPosition last_token_pos,
+                                          intptr_t requested_column,
+                                          TokenPosition exact_token_pos) {
   ASSERT(!func.HasOptimizedCode());
 
   requested_token_pos =
@@ -2776,6 +2773,12 @@ BreakpointLocation* Debugger::SetCodeBreakpoints(
   }
   return loc;
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static TokenPosition FindExactTokenPosition(const Script& script,
+                                            TokenPosition start_of_line,
+                                            intptr_t column_number);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
                                             TokenPosition token_pos,
@@ -3281,8 +3284,8 @@ static intptr_t FindNextRewindFrameIndex(DebuggerStackTrace* stack,
   return -1;
 }
 
-// Can the top frame be rewound?
-bool Debugger::CanRewindFrame(intptr_t frame_index, const char** error) const {
+// Can we rewind to the indicated frame?
+static bool CanRewindFrame(intptr_t frame_index, const char** error) {
   // check rewind pc is found
   DebuggerStackTrace* stack = Isolate::Current()->debugger()->StackTrace();
   intptr_t num_frames = stack->Length();
@@ -3539,7 +3542,7 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt) {
   Pause(&event);
 }
 
-bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
+static bool IsAtAsyncJump(ActivationFrame* top_frame) {
   Zone* zone = Thread::Current()->zone();
   Object& closure_or_null =
       Object::Handle(zone, top_frame->GetAsyncOperation());
@@ -3683,8 +3686,9 @@ ErrorPtr Debugger::PauseStepping() {
                  frame->pc() - frame->code().PayloadStart());
   }
 
-  CacheStackTraces(CollectStackTrace(), CollectAsyncCausalStackTrace(),
-                   CollectAwaiterReturnStackTrace());
+  CacheStackTraces(DebuggerStackTrace::Collect(),
+                   DebuggerStackTrace::CollectAsyncCausal(),
+                   DebuggerStackTrace::CollectAwaiterReturn());
   if (SteppedForSyntheticAsyncBreakpoint()) {
     CleanupSyntheticAsyncBreakpoint();
   }
@@ -3703,27 +3707,31 @@ ErrorPtr Debugger::PauseBreakpoint() {
   if (ignore_breakpoints_ || IsPaused()) {
     return Error::null();
   }
-  DebuggerStackTrace* stack_trace = CollectStackTrace();
+  DebuggerStackTrace* stack_trace = DebuggerStackTrace::Collect();
   ASSERT(stack_trace->Length() > 0);
   ActivationFrame* top_frame = stack_trace->FrameAt(0);
-  ASSERT(top_frame != NULL);
+  ASSERT(top_frame != nullptr);
   CodeBreakpoint* cbpt = GetCodeBreakpoint(top_frame->pc());
-  ASSERT(cbpt != NULL);
+  ASSERT(cbpt != nullptr);
 
   if (!Library::Handle(top_frame->Library()).IsDebuggable()) {
     return Error::null();
   }
 
-  Breakpoint* bpt_hit = FindHitBreakpoint(cbpt->bpt_location_, top_frame);
-  if (bpt_hit == NULL) {
+  BreakpointLocation* bpt_location = cbpt->bpt_location_;
+  if (bpt_location == nullptr) {
+    return Error::null();
+  }
+  Breakpoint* bpt_hit = bpt_location->FindHitBreakpoint(top_frame);
+  if (bpt_hit == nullptr) {
     return Error::null();
   }
 
   if (bpt_hit->is_synthetic_async()) {
-    DebuggerStackTrace* stack_trace = CollectStackTrace();
+    DebuggerStackTrace* stack_trace = DebuggerStackTrace::Collect();
     ASSERT(stack_trace->Length() > 0);
-    CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace(),
-                     CollectAwaiterReturnStackTrace());
+    CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncCausal(),
+                     DebuggerStackTrace::CollectAwaiterReturn());
 
     // Hit a synthetic async breakpoint.
     if (FLAG_verbose_debug) {
@@ -3736,9 +3744,9 @@ ErrorPtr Debugger::PauseBreakpoint() {
           top_frame->pc() - top_frame->code().PayloadStart());
     }
 
-    ASSERT(synthetic_async_breakpoint_ == NULL);
+    ASSERT(synthetic_async_breakpoint_ == nullptr);
     synthetic_async_breakpoint_ = bpt_hit;
-    bpt_hit = NULL;
+    bpt_hit = nullptr;
 
     // We are at the entry of an async function.
     // We issue a step over to resume at the point after the await statement.
@@ -3760,8 +3768,8 @@ ErrorPtr Debugger::PauseBreakpoint() {
                  top_frame->pc() - top_frame->code().PayloadStart());
   }
 
-  CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace(),
-                   CollectAwaiterReturnStackTrace());
+  CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncCausal(),
+                   DebuggerStackTrace::CollectAwaiterReturn());
   SignalPausedEvent(top_frame, bpt_hit);
   // When we single step from a user breakpoint, our next stepping
   // point will be at the exact same pc.  Skip it.
@@ -3772,17 +3780,13 @@ ErrorPtr Debugger::PauseBreakpoint() {
   return Thread::Current()->StealStickyError();
 }
 
-Breakpoint* Debugger::FindHitBreakpoint(BreakpointLocation* location,
-                                        ActivationFrame* top_frame) {
-  if (location == NULL) {
-    return NULL;
-  }
+Breakpoint* BreakpointLocation::FindHitBreakpoint(ActivationFrame* top_frame) {
   // There may be more than one applicable breakpoint at this location, but we
   // will report only one as reached. If there is a single-shot breakpoint, we
   // favor it; then a closure-specific breakpoint ; then an general breakpoint.
 
   // First check for a single-shot breakpoint.
-  Breakpoint* bpt = location->breakpoints();
+  Breakpoint* bpt = breakpoints();
   while (bpt != NULL) {
     if (bpt->IsSingleShot()) {
       return bpt;
@@ -3791,7 +3795,7 @@ Breakpoint* Debugger::FindHitBreakpoint(BreakpointLocation* location,
   }
 
   // Now check for a closure-specific breakpoint.
-  bpt = location->breakpoints();
+  bpt = breakpoints();
   while (bpt != NULL) {
     if (bpt->IsPerClosure()) {
       Closure& closure = Closure::Handle(top_frame->GetClosure());
@@ -3803,7 +3807,7 @@ Breakpoint* Debugger::FindHitBreakpoint(BreakpointLocation* location,
   }
 
   // Finally, check for a general breakpoint.
-  bpt = location->breakpoints();
+  bpt = breakpoints();
   while (bpt != NULL) {
     if (bpt->IsRepeated()) {
       return bpt;
@@ -3822,10 +3826,10 @@ void Debugger::PauseDeveloper(const String& msg) {
     return;
   }
 
-  DebuggerStackTrace* stack_trace = CollectStackTrace();
+  DebuggerStackTrace* stack_trace = DebuggerStackTrace::Collect();
   ASSERT(stack_trace->Length() > 0);
-  CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace(),
-                   CollectAwaiterReturnStackTrace());
+  CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncCausal(),
+                   DebuggerStackTrace::CollectAwaiterReturn());
   // TODO(johnmccutchan): Send |msg| to Observatory.
 
   // We are in the native call to Developer_debugger.  the developer
@@ -3845,8 +3849,8 @@ void Debugger::NotifyIsolateCreated() {
 
 // Return innermost closure contained in 'function' that contains
 // the given token position.
-FunctionPtr Debugger::FindInnermostClosure(const Function& function,
-                                           TokenPosition token_pos) {
+static FunctionPtr FindInnermostClosure(const Function& function,
+                                        TokenPosition token_pos) {
   ASSERT(function.end_token_pos().IsReal());
   const TokenPosition& func_start = function.token_pos();
   auto thread = Thread::Current();
@@ -3874,9 +3878,9 @@ FunctionPtr Debugger::FindInnermostClosure(const Function& function,
 #if !defined(DART_PRECOMPILED_RUNTIME)
 // On single line of code with given column number,
 // Calculate exact tokenPosition
-TokenPosition Debugger::FindExactTokenPosition(const Script& script,
-                                               TokenPosition start_of_line,
-                                               intptr_t column_number) {
+static TokenPosition FindExactTokenPosition(const Script& script,
+                                            TokenPosition start_of_line,
+                                            intptr_t column_number) {
   intptr_t line;
   intptr_t col;
   if (script.GetTokenLocation(start_of_line, &line, &col)) {

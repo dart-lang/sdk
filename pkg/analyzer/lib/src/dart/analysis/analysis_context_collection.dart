@@ -11,6 +11,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_builder.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:cli_util/cli_util.dart';
 
@@ -50,6 +51,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       includedPaths: includedPaths,
       excludedPaths: excludedPaths,
     );
+    var fileContentOverlay = FileContentOverlay();
     for (var root in roots) {
       var contextBuilder = ContextBuilderImpl(
         resourceProvider: this.resourceProvider,
@@ -60,6 +62,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         declaredVariables: DeclaredVariables.fromMap(declaredVariables ?? {}),
         drainStreams: drainStreams,
         enableIndex: enableIndex,
+        fileContentOverlay: fileContentOverlay,
         performanceLog: performanceLog,
         retainDataForTesting: retainDataForTesting,
         sdkPath: sdkPath,
