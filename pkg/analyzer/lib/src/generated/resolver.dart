@@ -4,14 +4,17 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -47,6 +50,7 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/variable_declaration_resolver.dart';
 import 'package:analyzer/src/dart/resolver/yield_statement_resolver.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
@@ -61,6 +65,7 @@ import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/generated/type_promotion_manager.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
+import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:meta/meta.dart';
 
 /// Maintains and manages contextual type information used for
@@ -315,6 +320,7 @@ class ResolverVisitor extends ScopedVisitor {
     nullableDereferenceVerifier = NullableDereferenceVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
+      resolver: this,
     );
     boolExpressionVerifier = BoolExpressionVerifier(
       typeSystem: typeSystem,
@@ -503,6 +509,39 @@ class ResolverVisitor extends ScopedVisitor {
 
   void checkUnreachableNode(AstNode node) {
     nullSafetyDeadCodeVerifier.visitNode(node);
+  }
+
+  /// Computes the appropriate set of context messages to report along with an
+  /// error that may have occurred because [receiver] was not type promoted.
+  List<DiagnosticMessage> computeWhyNotPromotedMessages(
+      Expression? receiver, SyntacticEntity errorEntity) {
+    List<DiagnosticMessage> messages = [];
+    if (receiver != null) {
+      var whyNotPromoted = flowAnalysis?.flow?.whyNotPromoted(receiver);
+      if (whyNotPromoted != null) {
+        for (var entry in whyNotPromoted.entries) {
+          var whyNotPromotedVisitor = _WhyNotPromotedVisitor(
+              source, receiver, flowAnalysis!.dataForTesting);
+          if (typeSystem.isPotentiallyNullable(entry.key)) continue;
+          var message = entry.value.accept(whyNotPromotedVisitor);
+          if (message != null) {
+            if (flowAnalysis!.dataForTesting != null) {
+              var nonPromotionReasonText = entry.value.shortName;
+              if (whyNotPromotedVisitor.propertyReference != null) {
+                var id =
+                    computeMemberId(whyNotPromotedVisitor.propertyReference!);
+                nonPromotionReasonText += '($id)';
+              }
+              flowAnalysis!.dataForTesting!.nonPromotionReasons[errorEntity] =
+                  nonPromotionReasonText;
+            }
+            messages = [message];
+          }
+          break;
+        }
+      }
+    }
+    return messages;
   }
 
   /// Return the static element associated with the given expression whose type
@@ -3295,5 +3334,104 @@ class _SwitchExhaustiveness {
       return expression.propertyName.staticElement;
     }
     return null;
+  }
+}
+
+class _WhyNotPromotedVisitor
+    implements
+        NonPromotionReasonVisitor<DiagnosticMessage?, AstNode, Expression,
+            PromotableElement> {
+  final Source source;
+
+  final Expression _receiver;
+
+  final FlowAnalysisDataForTesting? _dataForTesting;
+
+  PropertyAccessorElement? propertyReference;
+
+  _WhyNotPromotedVisitor(this.source, this._receiver, this._dataForTesting);
+
+  @override
+  DiagnosticMessage? visitDemoteViaExplicitWrite(
+      DemoteViaExplicitWrite<PromotableElement, Expression> reason) {
+    var writeExpression = reason.writeExpression;
+    if (_dataForTesting != null) {
+      _dataForTesting!.nonPromotionReasonTargets[writeExpression] =
+          reason.shortName;
+    }
+    var variableName = reason.variable.name;
+    if (variableName == null) return null;
+    return _contextMessageForWrite(variableName, writeExpression);
+  }
+
+  @override
+  DiagnosticMessage? visitDemoteViaForEachVariableWrite(
+      DemoteViaForEachVariableWrite<PromotableElement, AstNode> reason) {
+    var node = reason.node;
+    var variableName = reason.variable.name;
+    if (variableName == null) return null;
+    ForLoopParts parts;
+    if (node is ForStatement) {
+      parts = node.forLoopParts;
+    } else if (node is ForElement) {
+      parts = node.forLoopParts;
+    } else {
+      assert(false, 'Unexpected node type');
+      return null;
+    }
+    if (parts is ForEachPartsWithIdentifier) {
+      var identifier = parts.identifier;
+      if (_dataForTesting != null) {
+        _dataForTesting!.nonPromotionReasonTargets[identifier] =
+            reason.shortName;
+      }
+      return _contextMessageForWrite(variableName, identifier);
+    } else {
+      assert(false, 'Unexpected parts type');
+      return null;
+    }
+  }
+
+  @override
+  DiagnosticMessage? visitPropertyNotPromoted(PropertyNotPromoted reason) {
+    var receiver = _receiver;
+    Element? receiverElement;
+    if (receiver is SimpleIdentifier) {
+      receiverElement = receiver.staticElement;
+    } else if (receiver is PropertyAccess) {
+      receiverElement = receiver.propertyName.staticElement;
+    } else if (receiver is PrefixedIdentifier) {
+      receiverElement = receiver.identifier.staticElement;
+    } else {
+      assert(false, 'Unrecognized receiver: ${receiver.runtimeType}');
+    }
+    if (receiverElement is PropertyAccessorElement) {
+      propertyReference = receiverElement;
+      return _contextMessageForProperty(receiverElement, reason.propertyName);
+    } else {
+      assert(receiverElement == null,
+          'Unrecognized receiver element: ${receiverElement.runtimeType}');
+      return null;
+    }
+  }
+
+  DiagnosticMessageImpl _contextMessageForProperty(
+      PropertyAccessorElement property, String propertyName) {
+    return DiagnosticMessageImpl(
+        filePath: property.source.fullName,
+        message:
+            "'$propertyName' refers to a property so it could not be promoted.",
+        offset: property.nameOffset,
+        length: property.nameLength);
+  }
+
+  DiagnosticMessageImpl _contextMessageForWrite(
+      String variableName, Expression writeExpression) {
+    return DiagnosticMessageImpl(
+        filePath: source.fullName,
+        message: "Variable '$variableName' could be null due to an intervening "
+            "write.",
+        offset: writeExpression.offset,
+        length: writeExpression.length);
   }
 }

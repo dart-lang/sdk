@@ -16,7 +16,7 @@ class C2 {
 
 instance_method_invocation(C1 c) {
   if (c.bad == null) return;
-  c.bad
+  /*analyzer.notPromoted(propertyNotPromoted(member:C1.bad))*/ c.bad
       /*cfe.invoke: notPromoted(propertyNotPromoted(member:C1.bad))*/
       ();
 }
@@ -42,7 +42,7 @@ extension_invocation_method(C3 c) {
   if (c.ok == null) return;
   c.ok();
   if (c.bad == null) return;
-  c.bad
+  /*analyzer.notPromoted(propertyNotPromoted(member:C3.bad))*/ c.bad
       /*cfe.invoke: notPromoted(propertyNotPromoted(member:C3.bad))*/
       ();
 }
@@ -57,7 +57,7 @@ class C7 {
 
 instance_getter_invocation(C6 c) {
   if (c.bad == null) return;
-  c.bad
+  /*analyzer.notPromoted(propertyNotPromoted(member:C6.bad))*/ c.bad
       /*cfe.invoke: notPromoted(propertyNotPromoted(member:C6.bad))*/
       ();
 }
@@ -83,7 +83,7 @@ extension_invocation_getter(C8 c) {
   if (c.ok == null) return;
   c.ok();
   if (c.bad == null) return;
-  c.bad
+  /*analyzer.notPromoted(propertyNotPromoted(member:C8.bad))*/ c.bad
       /*cfe.invoke: notPromoted(propertyNotPromoted(member:C8.bad))*/
       ();
 }
@@ -94,7 +94,7 @@ class C11 {
 
 function_invocation(C11 c) {
   if (c.bad == null) return;
-  c.bad
+  /*analyzer.notPromoted(propertyNotPromoted(member:C11.bad))*/ c.bad
       /*cfe.invoke: notPromoted(propertyNotPromoted(member:C11.bad))*/
       ();
 }

@@ -42,17 +42,21 @@ class FunctionExpressionInvocationResolver {
       return;
     }
 
-    _nullableDereferenceVerifier.expression(function,
-        errorCode: CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE);
-
     var receiverType = function.staticType;
-    if (receiverType is FunctionType) {
-      _resolve(node, receiverType);
+    if (receiverType is InterfaceType) {
+      // Note: in this circumstance it's not necessary to call
+      // `_nullableDereferenceVerifier.expression` because
+      // `_resolveReceiverInterfaceType` calls `TypePropertyResolver.resolve`,
+      // which does the necessary null checking.
+      _resolveReceiverInterfaceType(node, function, receiverType);
       return;
     }
 
-    if (receiverType is InterfaceType) {
-      _resolveReceiverInterfaceType(node, function, receiverType);
+    _nullableDereferenceVerifier.expression(function,
+        errorCode: CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE);
+
+    if (receiverType is FunctionType) {
+      _resolve(node, receiverType);
       return;
     }
 

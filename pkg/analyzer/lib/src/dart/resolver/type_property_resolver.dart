@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,13 +12,9 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 /// Helper for resolving properties (getters, setters, or methods).
 class TypePropertyResolver {
@@ -120,35 +115,8 @@ class TypePropertyResolver {
         }
       }
 
-      List<DiagnosticMessage> messages = [];
-      if (receiver != null) {
-        var whyNotPromoted =
-            _resolver.flowAnalysis?.flow?.whyNotPromoted(receiver);
-        if (whyNotPromoted != null) {
-          for (var entry in whyNotPromoted.entries) {
-            var whyNotPromotedVisitor = _WhyNotPromotedVisitor(_resolver.source,
-                receiver, _resolver.flowAnalysis!.dataForTesting);
-            if (_typeSystem.isPotentiallyNullable(entry.key)) continue;
-            var message = entry.value.accept(whyNotPromotedVisitor);
-            if (message != null) {
-              if (_resolver.flowAnalysis!.dataForTesting != null) {
-                var nonPromotionReasonText = entry.value.shortName;
-                if (whyNotPromotedVisitor.propertyReference != null) {
-                  var id =
-                      computeMemberId(whyNotPromotedVisitor.propertyReference!);
-                  nonPromotionReasonText += '($id)';
-                }
-                _resolver.flowAnalysis!.dataForTesting!
-                        .nonPromotionReasons[nameErrorEntity] =
-                    nonPromotionReasonText;
-              }
-              messages = [message];
-            }
-            break;
-          }
-        }
-      }
-
+      List<DiagnosticMessage> messages =
+          _resolver.computeWhyNotPromotedMessages(receiver, nameErrorEntity);
       _resolver.nullableDereferenceVerifier.report(
           receiverErrorNode, receiverType,
           errorCode: errorCode, arguments: [name], messages: messages);
@@ -297,104 +265,5 @@ class TypePropertyResolver {
       setter: setter,
       needsSetterError: _needsSetterError && !_reportedSetterError,
     );
-  }
-}
-
-class _WhyNotPromotedVisitor
-    implements
-        NonPromotionReasonVisitor<DiagnosticMessage?, AstNode, Expression,
-            PromotableElement> {
-  final Source source;
-
-  final Expression _receiver;
-
-  final FlowAnalysisDataForTesting? _dataForTesting;
-
-  PropertyAccessorElement? propertyReference;
-
-  _WhyNotPromotedVisitor(this.source, this._receiver, this._dataForTesting);
-
-  @override
-  DiagnosticMessage? visitDemoteViaExplicitWrite(
-      DemoteViaExplicitWrite<PromotableElement, Expression> reason) {
-    var writeExpression = reason.writeExpression;
-    if (_dataForTesting != null) {
-      _dataForTesting!.nonPromotionReasonTargets[writeExpression] =
-          reason.shortName;
-    }
-    var variableName = reason.variable.name;
-    if (variableName == null) return null;
-    return _contextMessageForWrite(variableName, writeExpression);
-  }
-
-  @override
-  DiagnosticMessage? visitDemoteViaForEachVariableWrite(
-      DemoteViaForEachVariableWrite<PromotableElement, AstNode> reason) {
-    var node = reason.node;
-    var variableName = reason.variable.name;
-    if (variableName == null) return null;
-    ForLoopParts parts;
-    if (node is ForStatement) {
-      parts = node.forLoopParts;
-    } else if (node is ForElement) {
-      parts = node.forLoopParts;
-    } else {
-      assert(false, 'Unexpected node type');
-      return null;
-    }
-    if (parts is ForEachPartsWithIdentifier) {
-      var identifier = parts.identifier;
-      if (_dataForTesting != null) {
-        _dataForTesting!.nonPromotionReasonTargets[identifier] =
-            reason.shortName;
-      }
-      return _contextMessageForWrite(variableName, identifier);
-    } else {
-      assert(false, 'Unexpected parts type');
-      return null;
-    }
-  }
-
-  @override
-  DiagnosticMessage? visitPropertyNotPromoted(PropertyNotPromoted reason) {
-    var receiver = _receiver;
-    Element? receiverElement;
-    if (receiver is SimpleIdentifier) {
-      receiverElement = receiver.staticElement;
-    } else if (receiver is PropertyAccess) {
-      receiverElement = receiver.propertyName.staticElement;
-    } else if (receiver is PrefixedIdentifier) {
-      receiverElement = receiver.identifier.staticElement;
-    } else {
-      assert(false, 'Unrecognized receiver: ${receiver.runtimeType}');
-    }
-    if (receiverElement is PropertyAccessorElement) {
-      propertyReference = receiverElement;
-      return _contextMessageForProperty(receiverElement, reason.propertyName);
-    } else {
-      assert(receiverElement == null,
-          'Unrecognized receiver element: ${receiverElement.runtimeType}');
-      return null;
-    }
-  }
-
-  DiagnosticMessageImpl _contextMessageForProperty(
-      PropertyAccessorElement property, String propertyName) {
-    return DiagnosticMessageImpl(
-        filePath: property.source.fullName,
-        message:
-            "'$propertyName' refers to a property so it could not be promoted.",
-        offset: property.nameOffset,
-        length: property.nameLength);
-  }
-
-  DiagnosticMessageImpl _contextMessageForWrite(
-      String variableName, Expression writeExpression) {
-    return DiagnosticMessageImpl(
-        filePath: source.fullName,
-        message: "Variable '$variableName' could be null due to an intervening "
-            "write.",
-        offset: writeExpression.offset,
-        length: writeExpression.length);
   }
 }
