@@ -439,7 +439,9 @@ class ContextManagerImpl implements ContextManager {
         if (_isContainedInDotFolder(contextImpl.contextRoot.root.path, file)) {
           continue;
         }
-        driver.addFile(file);
+        if (file_paths.isDart(pathContext, file)) {
+          driver.addFile(file);
+        }
       }
 
       var optionsFile = context.contextRoot.optionsFile;
