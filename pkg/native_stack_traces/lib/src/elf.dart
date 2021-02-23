@@ -863,7 +863,6 @@ class Elf {
     if (header == null) return null;
     // At this point, the endianness and wordSize should have been set
     // during ElfHeader.fromReader.
-    assert(reader.endian != null && reader.wordSize != null);
     final programHeader = ProgramHeader.fromReader(reader, header);
     final sectionHeader = SectionHeader.fromReader(reader, header);
     final sections = <SectionHeaderEntry, Section>{};
