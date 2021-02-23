@@ -20,6 +20,7 @@ import 'package:analyzer/dart/element/element.dart'
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -35,9 +36,6 @@ Future<void> main(List<String> args) async {
   var result = parser.parse(args);
 
   if (validArguments(parser, result)) {
-    var rootPath = result.rest[0];
-    print('Analyzing root: "$rootPath"');
-
     var provider = PhysicalResourceProvider.INSTANCE;
     var packageRoot = provider.pathContext.normalize(package_root.packageRoot);
     var generatedFilePath = provider.pathContext.join(
@@ -51,15 +49,61 @@ Future<void> main(List<String> args) async {
         'relevance_tables.g.dart');
     var generatedFile = provider.getFile(generatedFilePath);
 
+    void writeRelevanceTable(RelevanceData data, File generatedFile) {
+      var buffer = StringBuffer();
+      var writer = RelevanceTableWriter(buffer);
+      writer.write(data);
+      generatedFile.writeAsStringSync(buffer.toString());
+      DartFormat.formatFile(io.File(generatedFile.path));
+    }
+
+    if (result.wasParsed('reduceDir')) {
+      var data = RelevanceData();
+      var dir = provider.getFolder(result['reduceDir']);
+      for (var child in dir.getChildren()) {
+        if (child is File) {
+          var newData = RelevanceData.fromJson(child.readAsStringSync());
+          data.addData(newData);
+        }
+      }
+      writeRelevanceTable(data, generatedFile);
+      return;
+    }
+
+    var rootPath = result.rest[0];
+    print('Analyzing root: "$rootPath"');
+
+    File uniqueDataFile() {
+      var dataDir = result['mapDir'];
+      var baseFileName = provider.pathContext.basename(rootPath);
+      var index = 1;
+      while (index < 10000) {
+        var suffix = (index++).toString();
+        suffix = '0000'.substring(suffix.length) + suffix + '.json';
+        var fileName = baseFileName + suffix;
+        var filePath = provider.pathContext.join(dataDir, fileName);
+        var file = provider.getFile(filePath);
+        if (!file.exists) {
+          return file;
+        }
+      }
+
+      /// If there are more than 10000 directories with the same name, just
+      /// overwrite a previously generated file.
+      var fileName = baseFileName + '9999';
+      var filePath = provider.pathContext.join(dataDir, fileName);
+      return provider.getFile(filePath);
+    }
+
     var computer = RelevanceMetricsComputer();
-    var stopwatch = Stopwatch();
-    stopwatch.start();
+    var stopwatch = Stopwatch()..start();
     await computer.compute(rootPath, verbose: result['verbose']);
-    var buffer = StringBuffer();
-    var writer = RelevanceTableWriter(buffer);
-    writer.write(computer.data);
-    generatedFile.writeAsStringSync(buffer.toString());
-    DartFormat.formatFile(io.File(generatedFile.path));
+    if (result.wasParsed('mapDir')) {
+      var dataFile = uniqueDataFile();
+      dataFile.writeAsStringSync(computer.data.toJson());
+    } else {
+      writeRelevanceTable(computer.data, generatedFile);
+    }
     stopwatch.stop();
 
     var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
@@ -74,6 +118,18 @@ ArgParser createArgParser() {
     'help',
     abbr: 'h',
     help: 'Print this help message.',
+    negatable: false,
+  );
+  parser.addOption(
+    'mapDir',
+    help: 'The absolute path of the directory to which the relevance data will '
+        'be written. Using this option will prevent the relevance table from '
+        'being written.',
+  );
+  parser.addOption(
+    'reduceDir',
+    help: 'The absolute path of the directory from which the relevance data '
+        'will be read.',
   );
   parser.addFlag(
     'verbose',
@@ -103,17 +159,32 @@ bool validArguments(ArgParser parser, ArgResults result) {
   if (result.wasParsed('help')) {
     printUsage(parser);
     return false;
+  } else if (result.wasParsed('reduceDir')) {
+    if (result.rest.isNotEmpty) {
+      printUsage(parser,
+          error: 'A package path is not allowed in reduce mode.');
+      return false;
+    }
+    return validateDir(parser, result['reduceDir']);
   } else if (result.rest.length != 1) {
     printUsage(parser, error: 'No package path specified.');
     return false;
   }
-  var rootPath = result.rest[0];
-  if (!PhysicalResourceProvider.INSTANCE.pathContext.isAbsolute(rootPath)) {
-    printUsage(parser, error: 'The package path must be an absolute path.');
+  if (result.wasParsed('mapDir')) {
+    return validateDir(parser, result['mapDir']);
+  }
+  return validateDir(parser, result.rest[0]);
+}
+
+/// Return `true` if the [dirPath] is an absolute path to a directory that
+/// exists.
+bool validateDir(ArgParser parser, String dirPath) {
+  if (!PhysicalResourceProvider.INSTANCE.pathContext.isAbsolute(dirPath)) {
+    printUsage(parser, error: 'The path "$dirPath" must be an absolute path.');
     return false;
   }
-  if (!io.Directory(rootPath).existsSync()) {
-    printUsage(parser, error: 'The directory "$rootPath" does not exist.');
+  if (!io.Directory(dirPath).existsSync()) {
+    printUsage(parser, error: 'The directory "$dirPath" does not exist.');
     return false;
   }
   return true;
@@ -130,10 +201,11 @@ class RelevanceData {
   /// Initialize a newly created set of relevance data based on the content of
   /// the JSON encoded string.
   RelevanceData.fromJson(String encoded) {
-    var map = json.decode(encoded) as Map<String, Map<String, String>>;
+    var map = json.decode(encoded) as Map<String, dynamic>;
     for (var contextEntry in map.entries) {
       var contextMap = byKind.putIfAbsent(contextEntry.key, () => {});
-      for (var kindEntry in contextEntry.value.entries) {
+      for (var kindEntry
+          in (contextEntry.value as Map<String, dynamic>).entries) {
         _Kind kind;
         var key = kindEntry.key;
         if (key.startsWith('e')) {
@@ -143,7 +215,7 @@ class RelevanceData {
         } else {
           throw StateError('Invalid initial character in unique key "$key"');
         }
-        contextMap[kind] = int.parse(kindEntry.value);
+        contextMap[kind] = int.parse(kindEntry.value as String);
       }
     }
   }
@@ -158,11 +230,6 @@ class RelevanceData {
         contextMap[kind] = (contextMap[kind] ?? 0) + kindEntry.value;
       }
     }
-  }
-
-  /// Add the data from the given relevance [data] to this set of data.
-  void addDataFrom(RelevanceData data) {
-    _addToMap(byKind, data.byKind);
   }
 
   /// Record that an element of the given [kind] was found in the given
@@ -191,17 +258,6 @@ class RelevanceData {
       map[contextEntry.key] = kindMap;
     }
     return json.encode(map);
-  }
-
-  /// Add the data in the [source] map to the [target] map.
-  void _addToMap<K>(Map<K, Map<K, int>> target, Map<K, Map<K, int>> source) {
-    for (var outerEntry in source.entries) {
-      var innerTarget = target.putIfAbsent(outerEntry.key, () => {});
-      for (var innerEntry in outerEntry.value.entries) {
-        var innerKey = innerEntry.key;
-        innerTarget[innerKey] = (innerTarget[innerKey] ?? 0) + innerEntry.value;
-      }
-    }
   }
 }
 
