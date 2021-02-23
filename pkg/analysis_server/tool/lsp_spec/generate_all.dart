@@ -261,10 +261,13 @@ List<AstNode> getCustomClasses() {
     interface(
       'DartCompletionItemResolutionInfo',
       [
+        // These fields have short-ish names because they're on the payload
+        // for all suggestion-set backed completions.
         field('libId', type: 'number'),
         field('displayUri', type: 'string'),
-        field('rOffset', type: 'number'),
-        field('rLength', type: 'number'),
+        field('rOffset', type: 'number'), // replacementOffset
+        field('iLength', type: 'number'), // insertLength
+        field('rLength', type: 'number'), // replacementLength
       ],
       baseType: 'CompletionItemResolutionInfo',
     ),

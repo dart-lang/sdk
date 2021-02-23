@@ -6144,8 +6144,17 @@ class CompletionItem implements ToJsonable {
     final insertTextMode = json['insertTextMode'] != null
         ? InsertTextMode.fromJson(json['insertTextMode'])
         : null;
-    final textEdit =
-        json['textEdit'] != null ? TextEdit.fromJson(json['textEdit']) : null;
+    final textEdit = TextEdit.canParse(json['textEdit'], nullLspJsonReporter)
+        ? Either2<TextEdit, InsertReplaceEdit>.t1(json['textEdit'] != null
+            ? TextEdit.fromJson(json['textEdit'])
+            : null)
+        : (InsertReplaceEdit.canParse(json['textEdit'], nullLspJsonReporter)
+            ? Either2<TextEdit, InsertReplaceEdit>.t2(json['textEdit'] != null
+                ? InsertReplaceEdit.fromJson(json['textEdit'])
+                : null)
+            : (json['textEdit'] == null
+                ? null
+                : (throw '''${json['textEdit']} was not one of (TextEdit, InsertReplaceEdit)''')));
     final additionalTextEdits = json['additionalTextEdits']
         ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
         ?.cast<TextEdit>()
@@ -6282,7 +6291,7 @@ class CompletionItem implements ToJsonable {
   /// must be a prefix of the edit's replace range, that means it must be
   /// contained and starting at the same position.
   ///  @since 3.16.0 additional type `InsertReplaceEdit`
-  final TextEdit textEdit;
+  final Either2<TextEdit, InsertReplaceEdit> textEdit;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -6321,7 +6330,7 @@ class CompletionItem implements ToJsonable {
       __result['insertTextMode'] = insertTextMode.toJson();
     }
     if (textEdit != null) {
-      __result['textEdit'] = textEdit.toJson();
+      __result['textEdit'] = textEdit;
     }
     if (additionalTextEdits != null) {
       __result['additionalTextEdits'] = additionalTextEdits;
@@ -6468,8 +6477,10 @@ class CompletionItem implements ToJsonable {
       reporter.push('textEdit');
       try {
         if (obj['textEdit'] != null &&
-            !(TextEdit.canParse(obj['textEdit'], reporter))) {
-          reporter.reportError('must be of type TextEdit');
+            !((TextEdit.canParse(obj['textEdit'], reporter) ||
+                InsertReplaceEdit.canParse(obj['textEdit'], reporter)))) {
+          reporter.reportError(
+              'must be of type Either2<TextEdit, InsertReplaceEdit>');
           return false;
         }
       } finally {

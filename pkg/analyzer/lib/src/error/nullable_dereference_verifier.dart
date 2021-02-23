@@ -11,17 +11,23 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for checking potentially nullable dereferences.
 class NullableDereferenceVerifier {
   final TypeSystemImpl _typeSystem;
   final ErrorReporter _errorReporter;
 
+  /// The resolver driving this participant.
+  final ResolverVisitor _resolver;
+
   NullableDereferenceVerifier({
     required TypeSystemImpl typeSystem,
     required ErrorReporter errorReporter,
+    required ResolverVisitor resolver,
   })   : _typeSystem = typeSystem,
-        _errorReporter = errorReporter;
+        _errorReporter = errorReporter,
+        _resolver = resolver;
 
   bool expression(Expression expression,
       {DartType? type, ErrorCode? errorCode}) {
@@ -59,7 +65,11 @@ class NullableDereferenceVerifier {
       return false;
     }
 
-    report(errorNode, receiverType, errorCode: errorCode);
+    List<DiagnosticMessage>? messages;
+    if (errorNode is Expression) {
+      messages = _resolver.computeWhyNotPromotedMessages(errorNode, errorNode);
+    }
+    report(errorNode, receiverType, errorCode: errorCode, messages: messages);
     return true;
   }
 }

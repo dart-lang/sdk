@@ -240,6 +240,19 @@ class FlowAnalysisHelper {
     flow!.finish();
   }
 
+  /// Transfers any test data that was recorded for [oldNode] so that it is now
+  /// associated with [newNode].  We need to do this when doing AST rewriting,
+  /// so that test data can be found using the rewritten tree.
+  void transferTestData(AstNode oldNode, AstNode newNode) {
+    var dataForTesting = this.dataForTesting;
+    if (dataForTesting != null) {
+      var oldNonPromotionReasons = dataForTesting.nonPromotionReasons[oldNode];
+      if (oldNonPromotionReasons != null) {
+        dataForTesting.nonPromotionReasons[newNode] = oldNonPromotionReasons;
+      }
+    }
+  }
+
   void variableDeclarationList(VariableDeclarationList node) {
     if (flow != null) {
       var variables = node.variables;

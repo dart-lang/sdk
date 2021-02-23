@@ -752,6 +752,8 @@ class MethodInvocationResolver {
           node.methodName,
         );
       }
+      _resolver.flowAnalysis?.flow
+          ?.propertyGet(functionExpression, target, node.methodName.name);
       functionExpression.staticType = targetType;
     }
 
@@ -763,6 +765,7 @@ class MethodInvocationResolver {
     NodeReplacer.replace(node, invocation);
     node.setProperty(_rewriteResultKey, invocation);
     InferenceContext.setTypeFromNode(invocation, node);
+    _resolver.flowAnalysis?.transferTestData(node, invocation);
   }
 
   void _setDynamicResolution(MethodInvocation node,

@@ -106,8 +106,19 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
     List<String> expectCompletions,
     String verifyEditsFor,
     String expectedContent,
+    String expectedContentIfInserting,
+    bool verifyInsertReplaceRanges = false,
   }) async {
-    await initialize();
+    // If verifyInsertReplaceRanges is true, we need both expected contents.
+    assert(verifyInsertReplaceRanges == false ||
+        (expectedContent != null && expectedContentIfInserting != null));
+
+    final textDocCapabilities = verifyInsertReplaceRanges
+        ? withCompletionItemInsertReplaceSupport(
+            emptyTextDocumentClientCapabilities)
+        : emptyTextDocumentClientCapabilities;
+
+    await initialize(textDocumentCapabilities: textDocCapabilities);
     await openFile(fileUri, withoutMarkers(content));
     final res = await getCompletion(fileUri, positionFromMarker(content));
 
@@ -125,8 +136,27 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
       final item = res.singleWhere((c) => c.label == verifyEditsFor);
       expect(item.insertTextFormat, isNull);
       expect(item.insertText, isNull);
-      final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
-      expect(updated, equals(expectedContent));
+
+      if (verifyInsertReplaceRanges) {
+        // Replacing.
+        final replaced = applyTextEdits(
+          withoutMarkers(content),
+          [textEditForReplace(item.textEdit)],
+        );
+        expect(replaced, equals(expectedContent));
+        // Inserting.
+        final inserted = applyTextEdits(
+          withoutMarkers(content),
+          [textEditForInsert(item.textEdit)],
+        );
+        expect(inserted, equals(expectedContentIfInserting));
+      } else {
+        final updated = applyTextEdits(
+          withoutMarkers(content),
+          [toTextEdit(item.textEdit)],
+        );
+        expect(updated, equals(expectedContent));
+      }
     }
   }
 }
@@ -220,6 +250,40 @@ transforms:''';
 @reflectiveTest
 class PubspecCompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
+  Future<void> test_insertReplaceRanges() async {
+    final content = '''
+name: foo
+version: 1.0.0
+
+environment:
+  s^dk
+''';
+    final expectedReplaced = '''
+name: foo
+version: 1.0.0
+
+environment:
+  sdk: 
+''';
+    final expectedInserted = '''
+name: foo
+version: 1.0.0
+
+environment:
+  sdk: dk
+''';
+
+    await verifyCompletions(
+      pubspecFileUri,
+      content,
+      expectCompletions: ['sdk: '],
+      verifyEditsFor: 'sdk: ',
+      verifyInsertReplaceRanges: true,
+      expectedContent: expectedReplaced,
+      expectedContentIfInserting: expectedInserted,
+    );
+  }
+
   Future<void> test_nested() async {
     final content = '''
 name: foo
