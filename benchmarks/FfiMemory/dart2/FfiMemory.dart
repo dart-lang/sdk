@@ -12,6 +12,7 @@
 // @dart=2.9
 
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
@@ -23,6 +24,12 @@ import 'package:benchmark_harness/benchmark_harness.dart';
 void doStoreInt8(Pointer<Int8> pointer, int length) {
   for (int i = 0; i < length; i++) {
     pointer[i] = 1;
+  }
+}
+
+void doStoreInt8TypedData(Int8List typedData, int length) {
+  for (int i = 0; i < length; i++) {
+    typedData[i] = 1;
   }
 }
 
@@ -101,6 +108,14 @@ int doLoadInt8(Pointer<Int8> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
     x += pointer[i];
+  }
+  return x;
+}
+
+int doLoadInt8TypedData(Int8List typedData, int length) {
+  int x = 0;
+  for (int i = 0; i < length; i++) {
+    x += typedData[i];
   }
   return x;
 }
@@ -222,6 +237,60 @@ class PointerInt8 extends BenchmarkBase {
     final int x = doLoadInt8(pointer, N);
     if (x != N) {
       throw Exception('$name: Unexpected result: $x');
+    }
+  }
+}
+
+class PointerInt8TypedDataNew extends BenchmarkBase {
+  Pointer<Int8> pointer;
+  PointerInt8TypedDataNew() : super('FfiMemory.PointerInt8TypedDataNew');
+
+  @override
+  void setup() {
+    pointer = calloc(N);
+  }
+
+  @override
+  void teardown() {
+    calloc.free(pointer);
+    pointer = null;
+  }
+
+  @override
+  void run() {
+    final typedData = pointer.asTypedList(N);
+    doStoreInt8TypedData(typedData, N);
+    final int x = doLoadInt8TypedData(typedData, N);
+    if (x != N) {
+      throw Exception('$name: Unexpected result: $x, expected $N');
+    }
+  }
+}
+
+class PointerInt8TypedDataReuse extends BenchmarkBase {
+  Pointer<Int8> pointer;
+  Int8List typedData;
+  PointerInt8TypedDataReuse() : super('FfiMemory.PointerInt8TypedDataReuse');
+
+  @override
+  void setup() {
+    pointer = calloc(N);
+    typedData = pointer.asTypedList(N);
+  }
+
+  @override
+  void teardown() {
+    calloc.free(pointer);
+    pointer = null;
+    typedData = null;
+  }
+
+  @override
+  void run() {
+    doStoreInt8TypedData(typedData, N);
+    final int x = doLoadInt8TypedData(typedData, N);
+    if (x != N) {
+      throw Exception('$name: Unexpected result: $x, expected $N');
     }
   }
 }
@@ -451,6 +520,8 @@ class PointerInt64Mint extends BenchmarkBase {
 void main() {
   final benchmarks = [
     () => PointerInt8(),
+    () => PointerInt8TypedDataNew(),
+    () => PointerInt8TypedDataReuse(),
     () => PointerUint8(),
     () => PointerInt16(),
     () => PointerUint16(),

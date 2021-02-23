@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- Stable null safe version of package.
+
+## 0.4.0-nullsafety
+
+- Unstable null safe version of package.
+
 ## 0.3.8
 
 - Support columns when present in line number programs.
