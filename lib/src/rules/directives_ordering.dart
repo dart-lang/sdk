@@ -132,8 +132,6 @@ bool _isDartDirective(NamespaceDirective node) {
 
 bool _isExportDirective(Directive node) => node is ExportDirective;
 
-bool _isImportDirective(Directive node) => node is ImportDirective;
-
 bool _isNotDartDirective(NamespaceDirective node) => !_isDartDirective(node);
 
 bool _isPackageDirective(NamespaceDirective node) {
@@ -360,12 +358,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   Iterable<ExportDirective> _getExportDirectives(CompilationUnit node) =>
-      node.directives
-          .where(_isExportDirective)
-          .map((e) => e as ExportDirective);
+      node.directives.whereType<ExportDirective>();
 
   Iterable<ImportDirective> _getImportDirectives(CompilationUnit node) =>
-      node.directives
-          .where(_isImportDirective)
-          .map((e) => e as ImportDirective);
+      node.directives.whereType<ImportDirective>();
 }

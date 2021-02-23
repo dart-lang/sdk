@@ -88,12 +88,18 @@ class TestedExpressions {
       return _contradictions;
     }
 
-    final binaryExpression = testingExpression is BinaryExpression
-        ? testingExpression as BinaryExpression
-        : null;
-    var facts = binaryExpression != null
-        ? [binaryExpression.leftOperand, binaryExpression.rightOperand]
-        : [testingExpression];
+    var testingExpression = this.testingExpression;
+
+    final binaryExpression =
+        testingExpression is BinaryExpression ? testingExpression : null;
+
+    Iterable<Expression> facts;
+    if (testingExpression is BinaryExpression) {
+      facts = [testingExpression.leftOperand, testingExpression.rightOperand];
+    } else {
+      facts = [testingExpression];
+    }
+
     _contradictions = _findContradictoryComparisons(
         LinkedHashSet.from(facts),
         binaryExpression != null
@@ -126,15 +132,16 @@ class TestedExpressions {
         comparisons.whereType<BinaryExpression>().toSet();
     final contradictions = LinkedHashSet<ContradictoryComparisons>.identity();
 
+    var testingExpression = this.testingExpression;
     if (testingExpression is SimpleIdentifier) {
-      final identifier = testingExpression as SimpleIdentifier;
       bool sameIdentifier(n) =>
-          n is SimpleIdentifier && identifier.staticElement == n.staticElement;
+          n is SimpleIdentifier &&
+          testingExpression.staticElement == n.staticElement;
       if (negations.any(sameIdentifier)) {
         final otherIdentifier =
             negations.firstWhere(sameIdentifier) as SimpleIdentifier?;
         contradictions
-            .add(ContradictoryComparisons(otherIdentifier, identifier));
+            .add(ContradictoryComparisons(otherIdentifier, testingExpression));
       }
     }
 

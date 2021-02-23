@@ -92,10 +92,11 @@ bool _isDefaultFormalParameterWithoutDefaultValueReassigned(
     _isFormalParameterReassigned(parameter, assignment);
 
 bool _isFormalParameterReassigned(
-        FormalParameter parameter, AssignmentExpression assignment) =>
-    assignment.leftHandSide is SimpleIdentifier &&
-    (assignment.leftHandSide as SimpleIdentifier).staticElement ==
-        parameter.declaredElement;
+    FormalParameter parameter, AssignmentExpression assignment) {
+  var leftHandSide = assignment.leftHandSide;
+  return leftHandSide is SimpleIdentifier &&
+      leftHandSide.staticElement == parameter.declaredElement;
+}
 
 bool _preOrPostFixExpressionMutation(FormalParameter parameter, AstNode n) =>
     n is PrefixExpression &&
