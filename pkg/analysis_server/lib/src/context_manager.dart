@@ -261,7 +261,7 @@ class ContextManagerImpl implements ContextManager {
 
   /// Use the given analysis [driver] to analyze the content of the analysis
   /// options file at the given [path].
-  void _analyzeAnalysisOptionsFile(AnalysisDriver driver, String path) {
+  void _analyzeAnalysisOptionsYaml(AnalysisDriver driver, String path) {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var content = _readFile(path);
@@ -281,8 +281,29 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /// Use the given analysis [driver] to analyze the content of the
+  /// AndroidManifest file at the given [path].
+  void _analyzeAndroidManifestXml(AnalysisDriver driver, String path) {
+    var convertedErrors = const <protocol.AnalysisError>[];
+    try {
+      var content = _readFile(path);
+      var validator =
+          ManifestValidator(resourceProvider.getFile(path).createSource());
+      var lineInfo = _computeLineInfo(content);
+      var errors = validator.validate(
+          content, driver.analysisOptions.chromeOsManifestChecks);
+      var converter = AnalyzerConverter();
+      convertedErrors = converter.convertAnalysisErrors(errors,
+          lineInfo: lineInfo, options: driver.analysisOptions);
+    } catch (exception) {
+      // If the file cannot be analyzed, fall through to clear any previous
+      // errors.
+    }
+    callbacks.recordAnalysisErrors(path, convertedErrors);
+  }
+
+  /// Use the given analysis [driver] to analyze the content of the
   /// data file at the given [path].
-  void _analyzeDataFile(AnalysisDriver driver, String path) {
+  void _analyzeFixDataYaml(AnalysisDriver driver, String path) {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var file = resourceProvider.getFile(path);
@@ -302,30 +323,9 @@ class ContextManagerImpl implements ContextManager {
     callbacks.recordAnalysisErrors(path, convertedErrors);
   }
 
-  /// Use the given analysis [driver] to analyze the content of the
-  /// AndroidManifest file at the given [path].
-  void _analyzeManifestFile(AnalysisDriver driver, String path) {
-    var convertedErrors = const <protocol.AnalysisError>[];
-    try {
-      var content = _readFile(path);
-      var validator =
-          ManifestValidator(resourceProvider.getFile(path).createSource());
-      var lineInfo = _computeLineInfo(content);
-      var errors = validator.validate(
-          content, driver.analysisOptions.chromeOsManifestChecks);
-      var converter = AnalyzerConverter();
-      convertedErrors = converter.convertAnalysisErrors(errors,
-          lineInfo: lineInfo, options: driver.analysisOptions);
-    } catch (exception) {
-      // If the file cannot be analyzed, fall through to clear any previous
-      // errors.
-    }
-    callbacks.recordAnalysisErrors(path, convertedErrors);
-  }
-
   /// Use the given analysis [driver] to analyze the content of the pubspec file
   /// at the given [path].
-  void _analyzePubspecFile(AnalysisDriver driver, String path) {
+  void _analyzePubspecYaml(AnalysisDriver driver, String path) {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var content = _readFile(path);
@@ -379,19 +379,19 @@ class ContextManagerImpl implements ContextManager {
     callbacks.recordAnalysisErrors(path, convertedErrors);
   }
 
-  void _checkForDataFileUpdate(String path) {
-    if (file_paths.isFixDataYaml(pathContext, path)) {
-      var context = getContextFor(path);
-      var driver = context.driver;
-      _analyzeDataFile(driver, path);
-    }
-  }
-
-  void _checkForManifestUpdate(String path) {
+  void _checkForAndroidManifestXmlUpdate(String path) {
     if (file_paths.isAndroidManifestXml(pathContext, path)) {
       var context = getContextFor(path);
       var driver = context.driver;
-      _analyzeManifestFile(driver, path);
+      _analyzeAndroidManifestXml(driver, path);
+    }
+  }
+
+  void _checkForFixDataYamlUpdate(String path) {
+    if (file_paths.isFixDataYaml(pathContext, path)) {
+      var context = getContextFor(path);
+      var driver = context.driver;
+      _analyzeFixDataYaml(driver, path);
     }
   }
 
@@ -441,19 +441,19 @@ class ContextManagerImpl implements ContextManager {
 
       var optionsFile = context.contextRoot.optionsFile;
       if (optionsFile != null) {
-        _analyzeAnalysisOptionsFile(driver, optionsFile.path);
+        _analyzeAnalysisOptionsYaml(driver, optionsFile.path);
       }
 
-      var dataFile = rootFolder
+      var fixDataYamlFile = rootFolder
           .getChildAssumingFolder('lib')
           .getChildAssumingFile(file_paths.fixDataYaml);
-      if (dataFile.exists) {
-        _analyzeDataFile(driver, dataFile.path);
+      if (fixDataYamlFile.exists) {
+        _analyzeFixDataYaml(driver, fixDataYamlFile.path);
       }
 
       var pubspecFile = rootFolder.getChildAssumingFile(file_paths.pubspecYaml);
       if (pubspecFile.exists) {
-        _analyzePubspecFile(driver, pubspecFile.path);
+        _analyzePubspecYaml(driver, pubspecFile.path);
       }
 
       void checkManifestFilesIn(Folder folder) {
@@ -466,7 +466,7 @@ class ContextManagerImpl implements ContextManager {
           if (child is File) {
             if (file_paths.isAndroidManifestXml(pathContext, child.path) &&
                 !excludedPaths.contains(child.path)) {
-              _analyzeManifestFile(driver, child.path);
+              _analyzeAndroidManifestXml(driver, child.path);
             }
           } else if (child is Folder) {
             if (!excludedPaths.contains(child.path)) {
@@ -594,8 +594,8 @@ class ContextManagerImpl implements ContextManager {
     switch (type) {
       case ChangeType.ADD:
       case ChangeType.MODIFY:
-        _checkForManifestUpdate(path);
-        _checkForDataFileUpdate(path);
+        _checkForAndroidManifestXmlUpdate(path);
+        _checkForFixDataYamlUpdate(path);
         break;
       case ChangeType.REMOVE:
         callbacks.applyFileRemoved(path);
