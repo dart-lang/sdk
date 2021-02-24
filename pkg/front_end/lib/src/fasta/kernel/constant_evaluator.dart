@@ -84,12 +84,14 @@ Component transformComponent(
     {bool evaluateAnnotations,
     bool desugarSets,
     bool enableTripleShift,
+    bool enableConstFunctions,
     bool errorOnUnevaluatedConstant,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy}) {
   assert(evaluateAnnotations != null);
   assert(desugarSets != null);
   assert(enableTripleShift != null);
+  assert(enableConstFunctions != null);
   assert(errorOnUnevaluatedConstant != null);
   coreTypes ??= new CoreTypes(component);
   hierarchy ??= new ClassHierarchy(component, coreTypes);
@@ -100,6 +102,7 @@ Component transformComponent(
   transformLibraries(component.libraries, backend, environmentDefines,
       typeEnvironment, errorReporter, evaluationMode,
       enableTripleShift: enableTripleShift,
+      enableConstFunctions: enableConstFunctions,
       errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
       evaluateAnnotations: evaluateAnnotations);
   return component;
@@ -114,15 +117,18 @@ ConstantCoverage transformLibraries(
     EvaluationMode evaluationMode,
     {bool evaluateAnnotations,
     bool enableTripleShift,
+    bool enableConstFunctions,
     bool errorOnUnevaluatedConstant}) {
   assert(evaluateAnnotations != null);
   assert(enableTripleShift != null);
+  assert(enableConstFunctions != null);
   assert(errorOnUnevaluatedConstant != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
       evaluateAnnotations,
       enableTripleShift,
+      enableConstFunctions,
       errorOnUnevaluatedConstant,
       typeEnvironment,
       errorReporter,
@@ -142,15 +148,18 @@ void transformProcedure(
     EvaluationMode evaluationMode,
     {bool evaluateAnnotations: true,
     bool enableTripleShift: false,
+    bool enableConstFunctions: false,
     bool errorOnUnevaluatedConstant: false}) {
   assert(evaluateAnnotations != null);
   assert(enableTripleShift != null);
+  assert(enableConstFunctions != null);
   assert(errorOnUnevaluatedConstant != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
       evaluateAnnotations,
       enableTripleShift,
+      enableConstFunctions,
       errorOnUnevaluatedConstant,
       typeEnvironment,
       errorReporter,
@@ -335,6 +344,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
   final bool evaluateAnnotations;
   final bool enableTripleShift;
+  final bool enableConstFunctions;
   final bool errorOnUnevaluatedConstant;
 
   ConstantsTransformer(
@@ -342,6 +352,7 @@ class ConstantsTransformer extends RemovingTransformer {
       Map<String, String> environmentDefines,
       this.evaluateAnnotations,
       this.enableTripleShift,
+      this.enableConstFunctions,
       this.errorOnUnevaluatedConstant,
       this.typeEnvironment,
       ErrorReporter errorReporter,
@@ -349,6 +360,7 @@ class ConstantsTransformer extends RemovingTransformer {
       : constantEvaluator = new ConstantEvaluator(
             backend, environmentDefines, typeEnvironment, errorReporter,
             enableTripleShift: enableTripleShift,
+            enableConstFunctions: enableConstFunctions,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
             evaluationMode: evaluationMode);
 
@@ -812,6 +824,7 @@ class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
   final EvaluationMode evaluationMode;
 
   final bool enableTripleShift;
+  final bool enableConstFunctions;
 
   final bool Function(DartType) isInstantiated =
       new IsInstantiatedVisitor().isInstantiated;
@@ -846,6 +859,7 @@ class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
       this.errorReporter,
       {this.enableTripleShift = false,
+      this.enableConstFunctions = false,
       this.errorOnUnevaluatedConstant = false,
       this.evaluationMode: EvaluationMode.weak})
       : numberSemantics = backend.numberSemantics,
