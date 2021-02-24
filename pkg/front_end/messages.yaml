@@ -4263,6 +4263,11 @@ FfiExtendsOrImplementsSealedClass:
   template: "Class '#name' cannot be extended or implemented."
   external: test/ffi_test.dart
 
+FfiSizeAnnotation:
+  # Used by dart:ffi
+  template: "Field '#name' must have exactly one 'Array' annotation."
+  external: test/ffi_test.dart
+
 FfiStructGeneric:
   # Used by dart:ffi
   template: "Struct '#name' should not be generic."

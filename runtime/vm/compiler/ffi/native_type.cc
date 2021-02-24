@@ -161,7 +161,7 @@ intptr_t NativePrimitiveType::AlignmentInBytesField() const {
 static bool ContainsHomogenuousFloatsInternal(const NativeTypes& types);
 
 // Keep consistent with
-// pkg/vm/lib/transformations/ffi_definitions.dart:_calculateStructLayout.
+// pkg/vm/lib/transformations/ffi_definitions.dart:StructLayout:_calculateLayout.
 NativeCompoundType& NativeCompoundType::FromNativeTypes(
     Zone* zone,
     const NativeTypes& members,
@@ -420,8 +420,28 @@ NativeType& NativeType::FromAbstractType(Zone* zone, const AbstractType& type) {
       field_native_types.Add(&field_native_type);
     } else {
       // Inline array.
-      // TODO(http://dartbug.com/35763): Implement this.
-      UNIMPLEMENTED();
+      const auto& struct_layout_array_class =
+          Class::Handle(zone, field_instance.clazz());
+      ASSERT(String::Handle(zone, struct_layout_array_class.UserVisibleName())
+                 .Equals(Symbols::FfiStructLayoutArray()));
+      const auto& struct_layout_array_fields =
+          Array::Handle(zone, struct_layout_array_class.fields());
+      ASSERT(struct_layout_array_fields.Length() == 2);
+      const auto& element_type_field =
+          Field::Handle(zone, Field::RawCast(struct_layout_array_fields.At(0)));
+      ASSERT(String::Handle(zone, element_type_field.UserVisibleName())
+                 .Equals(Symbols::FfiElementType()));
+      field_type ^= field_instance.GetField(element_type_field);
+      const auto& length_field =
+          Field::Handle(zone, Field::RawCast(struct_layout_array_fields.At(1)));
+      ASSERT(String::Handle(zone, length_field.UserVisibleName())
+                 .Equals(Symbols::Length()));
+      const auto& length = Smi::Handle(
+          zone, Smi::RawCast(field_instance.GetField(length_field)));
+      const auto& element_type = NativeType::FromAbstractType(zone, field_type);
+      const auto& field_native_type =
+          *new (zone) NativeArrayType(element_type, length.AsInt64Value());
+      field_native_types.Add(&field_native_type);
     }
   }
 

@@ -290,6 +290,26 @@ Test alignment and padding of nested struct with 32 byte int."""),
 Test alignment and padding of nested struct with 64 byte int."""),
   FunctionType(List.filled(4, structNestedEvenBigger), double_, """
 Return big irregular struct as smoke test."""),
+  FunctionType(List.filled(4, structInlineArray), int32, """
+Simple struct with inline array."""),
+  FunctionType(List.filled(4, structInlineArrayIrregular), int32, """
+Irregular struct with inline array."""),
+  FunctionType(
+      [structInlineArray100Bytes],
+      int32,
+      """
+Regular larger struct with inline array."""),
+  FunctionType(List.filled(5, struct16bytesFloatInlineNested), float, """
+Arguments in FPU registers on arm hardfp and arm64.
+5 struct arguments will exhaust available registers."""),
+  FunctionType(List.filled(5, struct32bytesDoubleInlineNested), double_, """
+Arguments in FPU registers on arm64.
+5 struct arguments will exhaust available registers."""),
+  FunctionType(List.filled(10, struct16bytesMixedInlineNested), float, """
+On x64, arguments are split over FP and int registers.
+On x64, it will exhaust the integer registers with the 6th argument.
+The rest goes on the stack.
+On arm, arguments are 4 byte aligned."""),
   FunctionType(struct1byteInt.memberTypes, struct1byteInt, """
 Smallest struct with data."""),
   FunctionType(struct3bytesInt.memberTypes, struct3bytesInt, """
@@ -387,6 +407,26 @@ On arm64, both argument and return value are passed in by pointer."""),
       """
 On arm64, both argument and return value are passed in by pointer.
 Ints exhaust registers, so that pointer is passed on stack."""),
+  FunctionType(
+      [structInlineArray],
+      structInlineArray,
+      """
+Test returning struct with inline array."""),
+  FunctionType(
+      [struct16bytesFloatInlineNested],
+      struct16bytesFloatInlineNested,
+      """
+Return value in FPU registers on arm hardfp and arm64."""),
+  FunctionType(
+      [struct32bytesDoubleInlineNested],
+      struct32bytesDoubleInlineNested,
+      """
+Return value in FPU registers on arm64."""),
+  FunctionType(
+      [struct16bytesMixedInlineNested],
+      struct16bytesMixedInlineNested,
+      """
+On x64 Linux, return value is split over FP and int registers."""),
   FunctionType(structAlignmentInt16.memberTypes, structAlignmentInt16, """
 Test alignment and padding of 16 byte int within struct."""),
   FunctionType(structAlignmentInt32.memberTypes, structAlignmentInt32, """
@@ -430,6 +470,7 @@ final structs = [
   struct7bytesInt2,
   struct8bytesInt,
   struct8bytesFloat,
+  struct8bytesFloat2,
   struct8BytesMixed,
   struct9bytesInt,
   struct9bytesInt2,
@@ -459,6 +500,13 @@ final structs = [
   structNestedBig,
   structNestedBigger,
   structNestedEvenBigger,
+  structInlineArray,
+  structInlineArrayIrregular,
+  structInlineArray100Bytes,
+  structInlineArrayBig,
+  struct16bytesFloatInlineNested,
+  struct32bytesDoubleInlineNested,
+  struct16bytesMixedInlineNested,
 ];
 
 final struct1byteInt = StructType([int8]);
@@ -471,6 +519,7 @@ final struct7bytesInt2 =
     StructType.disambiguate([int32, int16, int8], "4ByteAligned");
 final struct8bytesInt = StructType([int16, int16, int32]);
 final struct8bytesFloat = StructType([float, float]);
+final struct8bytesFloat2 = StructType([double_]);
 final struct8BytesMixed = StructType([float, int16, int16]);
 final struct9bytesInt = StructType(List.filled(9, uint8));
 final struct9bytesInt2 =
@@ -550,3 +599,38 @@ final structNestedBigger = StructType.override(
 final structNestedEvenBigger = StructType.override(
     [uint64, structNestedBigger, structNestedBigger, double_],
     "NestedIrregularEvenBigger");
+
+final structInlineArray = StructType([FixedLengthArrayType(uint8, 8)]);
+
+final structInlineArrayIrregular = StructType.override(
+    [FixedLengthArrayType(struct3bytesInt2, 2), uint8], "InlineArrayIrregular");
+
+final structInlineArray100Bytes = StructType.override(
+    [FixedLengthArrayType(uint8, 100)], "InlineArray100Bytes");
+
+final structInlineArrayBig = StructType.override(
+    [uint32, uint32, FixedLengthArrayType(uint8, 4000)], "InlineArrayBig");
+
+/// The largest homogenous float that goes into FPU registers on softfp and
+/// arm64. This time with nested structs and inline arrays.
+final struct16bytesFloatInlineNested = StructType.override([
+  StructType([float]),
+  FixedLengthArrayType(StructType([float]), 2),
+  float,
+], "Struct16BytesHomogeneousFloat2");
+
+/// The largest homogenous float that goes into FPU registers on arm64.
+/// This time with nested structs and inline arrays.
+final struct32bytesDoubleInlineNested = StructType.override([
+  StructType([double_]),
+  FixedLengthArrayType(StructType([double_]), 2),
+  double_,
+], "Struct32BytesHomogeneousDouble2");
+
+/// This struct is split over a CPU and FPU register in x64 Linux.
+/// This time with nested structs and inline arrays.
+final struct16bytesMixedInlineNested = StructType.override([
+  StructType([float]),
+  FixedLengthArrayType(StructType([float, int16, int16]), 1),
+  FixedLengthArrayType(int16, 2),
+], "Struct16BytesMixed3");

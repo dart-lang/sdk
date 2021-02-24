@@ -105,6 +105,25 @@ class Pointer<T extends NativeType> {
   Pointer<U> cast<U extends NativeType>() => Pointer.fromAddress(address);
 }
 
+@patch
+@pragma("vm:entry-point")
+class Array<T extends NativeType> {
+  @pragma("vm:entry-point")
+  final Object _typedDataBase;
+
+  @pragma("vm:entry-point")
+  final int _size;
+
+  @pragma("vm:entry-point")
+  Array._(this._typedDataBase, this._size);
+
+  _checkIndex(int index) {
+    if (index < 0 || index >= _size) {
+      throw RangeError.range(index, 0, _size);
+    }
+  }
+}
+
 /// Returns an integer encoding the ABI used for size and alignment
 /// calculations. See pkg/vm/lib/transformations/ffi.dart.
 @pragma("vm:recognized", "other")
@@ -486,6 +505,160 @@ extension DoublePointer on Pointer<Double> {
   Float64List asTypedList(int elements) => _asExternalTypedData(this, elements);
 }
 
+extension Int8Array on Array<Int8> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadInt8(_typedDataBase, index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeInt8(_typedDataBase, index, value);
+  }
+}
+
+extension Int16Array on Array<Int16> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadInt16(_typedDataBase, 2 * index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeInt16(_typedDataBase, 2 * index, value);
+  }
+}
+
+extension Int32Array on Array<Int32> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadInt32(_typedDataBase, 4 * index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeInt32(_typedDataBase, 4 * index, value);
+  }
+}
+
+extension Int64Array on Array<Int64> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadInt64(_typedDataBase, 8 * index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeInt64(_typedDataBase, 8 * index, value);
+  }
+}
+
+extension Uint8Array on Array<Uint8> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadUint8(_typedDataBase, index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeUint8(_typedDataBase, index, value);
+  }
+}
+
+extension Uint16Array on Array<Uint16> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadUint16(_typedDataBase, 2 * index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeUint16(_typedDataBase, 2 * index, value);
+  }
+}
+
+extension Uint32Array on Array<Uint32> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadUint32(_typedDataBase, 4 * index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeUint32(_typedDataBase, 4 * index, value);
+  }
+}
+
+extension Uint64Array on Array<Uint64> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadUint64(_typedDataBase, 8 * index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeUint64(_typedDataBase, 8 * index, value);
+  }
+}
+
+extension IntPtrArray on Array<IntPtr> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadIntPtr(_typedDataBase, _intPtrSize * index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeIntPtr(_typedDataBase, _intPtrSize * index, value);
+  }
+}
+
+extension FloatArray on Array<Float> {
+  @patch
+  double operator [](int index) {
+    _checkIndex(index);
+    return _loadFloat(_typedDataBase, 4 * index);
+  }
+
+  @patch
+  operator []=(int index, double value) {
+    _checkIndex(index);
+    return _storeFloat(_typedDataBase, 4 * index, value);
+  }
+}
+
+extension DoubleArray on Array<Double> {
+  @patch
+  double operator [](int index) {
+    _checkIndex(index);
+    return _loadDouble(_typedDataBase, 8 * index);
+  }
+
+  @patch
+  operator []=(int index, double value) {
+    _checkIndex(index);
+    return _storeDouble(_typedDataBase, 8 * index, value);
+  }
+}
+
 //
 // End of generated code.
 //
@@ -513,6 +686,23 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   @patch
   T operator [](int index) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+}
+
+extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
+  @patch
+  Pointer<T> operator [](int index) => _loadPointer(this, _intPtrSize * index);
+
+  @patch
+  void operator []=(int index, Pointer<T> value) =>
+      _storePointer(this, _intPtrSize * index, value);
+}
+
+extension StructArray<T extends Struct> on Array<T> {
+  @patch
+  T operator [](int index) {
+    throw ArgumentError(
+        "S ($T) should be a subtype of Struct at compile-time.");
+  }
 }
 
 extension NativePort on SendPort {

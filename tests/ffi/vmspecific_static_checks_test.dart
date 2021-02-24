@@ -622,6 +622,9 @@ T genericRef2<T extends Struct>(Pointer<T> p) => //# 1201: compile-time error
 T genericRef3<T extends Struct>(Pointer<T> p) => //# 1202: compile-time error
     p[0]; //# 1202: compile-time error
 
+T genericRef4<T extends Struct>(Array<T> p) => //# 1210: compile-time error
+    p[0]; //# 1210: compile-time error
+
 void testSizeOfGeneric() {
   int generic<T extends Pointer>() {
     int size = sizeOf<IntPtr>();
@@ -659,4 +662,23 @@ void testElementAtNativeType() {
   Pointer<NativeType> p2 = p;
   p2.elementAt(1); //# 1311: compile-time error
   calloc.free(p);
+}
+
+class TestStruct1400 extends Struct {
+  @Array(8) //# 1400: compile-time error
+  @Array(8)
+  external Array<Uint8> a0;
+}
+
+class TestStruct1401 extends Struct {
+  external Array<Uint8> a0; //# 1401: compile-time error
+
+  external Pointer<Uint8> notEmpty;
+}
+
+class TestStruct1402 extends Struct {
+  @Array(8) //# 1402: compile-time error
+  external Array<Array<Uint8>> a0; //# 1402: compile-time error
+
+  external Pointer<Uint8> notEmpty;
 }

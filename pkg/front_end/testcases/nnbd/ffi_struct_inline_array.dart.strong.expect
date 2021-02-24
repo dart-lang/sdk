@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:ffi" as ffi;
+
+import "dart:ffi";
+import "package:ffi/ffi.dart";
+
+class StructInlineArray extends ffi::Struct {
+  synthetic constructor •() → self::StructInlineArray
+    : super ffi::Struct::•()
+    ;
+  @#C2
+  external get a0() → ffi::Array<ffi::Uint8>;
+  @#C2
+  external set a0(ffi::Array<ffi::Uint8> #externalFieldValue) → void;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 8
+  #C2 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C1}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///ffi_struct_inline_array.dart:
+- _ArraySize. (from org-dartlang-sdk:///sdk/lib/ffi/ffi.dart:107:9)

@@ -212,10 +212,15 @@ class FfiTransformer extends Transformer {
   final Class allocatorClass;
   final Class nativeFunctionClass;
   final Class opaqueClass;
+  final Class cArrayClass;
+  final Class cArraySizeClass;
   final Class pointerClass;
   final Class structClass;
   final Class ffiStructLayoutClass;
   final Field ffiStructLayoutTypesField;
+  final Class ffiInlineArrayClass;
+  final Field ffiInlineArrayElementTypeField;
+  final Field ffiInlineArrayLengthField;
   final Procedure allocateMethod;
   final Procedure allocatorAllocateMethod;
   final Procedure castMethod;
@@ -224,13 +229,16 @@ class FfiTransformer extends Transformer {
   final Procedure addressGetter;
   final Procedure structPointerRef;
   final Procedure structPointerElemAt;
+  final Procedure structArrayElemAt;
   final Procedure asFunctionMethod;
   final Procedure asFunctionInternal;
   final Procedure sizeOfMethod;
   final Procedure lookupFunctionMethod;
   final Procedure fromFunctionMethod;
   final Field addressOfField;
+  final Field cArrayTypedDataBaseField;
   final Constructor structFromPointer;
+  final Constructor cArrayConstructor;
   final Procedure fromAddressInternal;
   final Procedure libraryLookupMethod;
   final Procedure abiMethod;
@@ -277,11 +285,18 @@ class FfiTransformer extends Transformer {
         allocatorClass = index.getClass('dart:ffi', 'Allocator'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
         opaqueClass = index.getClass('dart:ffi', 'Opaque'),
+        cArrayClass = index.getClass('dart:ffi', 'Array'),
+        cArraySizeClass = index.getClass('dart:ffi', '_ArraySize'),
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
         structClass = index.getClass('dart:ffi', 'Struct'),
         ffiStructLayoutClass = index.getClass('dart:ffi', '_FfiStructLayout'),
         ffiStructLayoutTypesField =
             index.getMember('dart:ffi', '_FfiStructLayout', 'fieldTypes'),
+        ffiInlineArrayClass = index.getClass('dart:ffi', '_FfiInlineArray'),
+        ffiInlineArrayElementTypeField =
+            index.getMember('dart:ffi', '_FfiInlineArray', 'elementType'),
+        ffiInlineArrayLengthField =
+            index.getMember('dart:ffi', '_FfiInlineArray', 'length'),
         allocateMethod = index.getMember('dart:ffi', 'AllocatorAlloc', 'call'),
         allocatorAllocateMethod =
             index.getMember('dart:ffi', 'Allocator', 'allocate'),
@@ -290,14 +305,18 @@ class FfiTransformer extends Transformer {
         elementAtMethod = index.getMember('dart:ffi', 'Pointer', 'elementAt'),
         addressGetter = index.getMember('dart:ffi', 'Pointer', 'get:address'),
         addressOfField = index.getMember('dart:ffi', 'Struct', '_addressOf'),
+        cArrayTypedDataBaseField =
+            index.getMember('dart:ffi', 'Array', '_typedDataBase'),
         structFromPointer =
             index.getMember('dart:ffi', 'Struct', '_fromPointer'),
+        cArrayConstructor = index.getMember('dart:ffi', 'Array', '_'),
         fromAddressInternal =
             index.getTopLevelMember('dart:ffi', '_fromAddress'),
         structPointerRef =
             index.getMember('dart:ffi', 'StructPointer', 'get:ref'),
         structPointerElemAt =
             index.getMember('dart:ffi', 'StructPointer', '[]'),
+        structArrayElemAt = index.getMember('dart:ffi', 'StructArray', '[]'),
         asFunctionMethod =
             index.getMember('dart:ffi', 'NativeFunctionPointer', 'asFunction'),
         asFunctionInternal =

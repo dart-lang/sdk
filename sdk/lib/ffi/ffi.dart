@@ -85,6 +85,28 @@ class Pointer<T extends NativeType> extends NativeType {
   }
 }
 
+/// A fixed-sized array of [T]s.
+class Array<T extends NativeType> extends NativeType {
+  /// Const constructor to specify [Array] dimensions in [Struct]s.
+  ///
+  /// ```
+  /// class MyStruct extends Struct {
+  ///   @Array(8)
+  ///   external Array<Uint8> inlineArray;
+  /// }
+  /// ```
+  ///
+  /// Do not invoke in normal code.
+  const factory Array(int dimension1) = _ArraySize<T>;
+}
+
+// TODO(http://dartbug.com/45101): Move to ffi_patch.dart.
+class _ArraySize<T extends NativeType> implements Array<T> {
+  final int dimension1;
+
+  const _ArraySize(this.dimension1);
+}
+
 /// Extension on [Pointer] specialized for the type argument [NativeFunction].
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
@@ -500,6 +522,83 @@ extension DoublePointer on Pointer<Double> {
   external Float64List asTypedList(int length);
 }
 
+/// Bounds checking indexing methods on [Array]s of [Int8].
+extension Int8Array on Array<Int8> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Int16].
+extension Int16Array on Array<Int16> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Int32].
+extension Int32Array on Array<Int32> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Int64].
+extension Int64Array on Array<Int64> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Uint8].
+extension Uint8Array on Array<Uint8> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Uint16].
+extension Uint16Array on Array<Uint16> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Uint32].
+extension Uint32Array on Array<Uint32> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Uint64].
+extension Uint64Array on Array<Uint64> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [IntPtr].
+extension IntPtrArray on Array<IntPtr> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Float].
+extension FloatArray on Array<Float> {
+  external double operator [](int index);
+
+  external void operator []=(int index, double value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Double].
+extension DoubleArray on Array<Double> {
+  external double operator [](int index);
+
+  external void operator []=(int index, double value);
+}
+
 //
 // End of generated code.
 //
@@ -553,6 +652,19 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   /// The [address] must be aligned according to the struct alignment rules of
   /// the platform.
   ///
+  /// This extension method must be invoked with a compile-time constant [T].
+  external T operator [](int index);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Pointer].
+extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
+  external Pointer<T> operator [](int index);
+
+  external void operator []=(int index, Pointer<T> value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Struct].
+extension StructArray<T extends Struct> on Array<T> {
   /// This extension method must be invoked with a compile-time constant [T].
   external T operator [](int index);
 }

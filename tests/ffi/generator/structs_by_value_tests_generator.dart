@@ -54,6 +54,17 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.coutExpression("$variableName.");
+
+      case FixedLengthArrayType:
+        final this_ = this as FixedLengthArrayType;
+        final indices = [for (var i = 0; i < this_.length; i += 1) i];
+
+        String result = '<< "["';
+        result += indices
+            .map((i) => this_.elementType.coutExpression("$variableName[$i]"))
+            .join('<< ", "');
+        result += '<< "]"';
+        return result.trimCouts();
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -90,6 +101,14 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.addToResultStatements("$variableName.");
+
+      case FixedLengthArrayType:
+        final this_ = this as FixedLengthArrayType;
+        final indices = [for (var i = 0; i < this_.length; i += 1) i];
+        return indices
+            .map((i) =>
+                this_.elementType.addToResultStatements("$variableName[$i]"))
+            .join();
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -119,6 +138,14 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.assignValueStatements(a, "$variableName.");
+
+      case FixedLengthArrayType:
+        final this_ = this as FixedLengthArrayType;
+        final indices = [for (var i = 0; i < this_.length; i += 1) i];
+        return indices
+            .map((i) =>
+                this_.elementType.assignValueStatements(a, "$variableName[$i]"))
+            .join();
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -301,6 +328,14 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.dartExpectsStatements("$expected.", "$actual.");
+
+      case FixedLengthArrayType:
+        final this_ = this as FixedLengthArrayType;
+        return """
+for(int i = 0; i < ${this_.length}; i++){
+  ${this_.elementType.dartExpectsStatements("$expected[i]", "$actual[i]")}
+}
+""";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -331,6 +366,14 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.cExpectsStatements("$expected.", "$actual.");
+
+      case FixedLengthArrayType:
+        final this_ = this as FixedLengthArrayType;
+        return """
+for(intptr_t i = 0; i < ${this_.length}; i++){
+  ${this_.elementType.cExpectsStatements("$expected[i]", "$actual[i]")}
+}
+""";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -350,6 +393,14 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.cExpectsZeroStatements("$actual.");
+
+      case FixedLengthArrayType:
+        final this_ = this as FixedLengthArrayType;
+        return """
+for(intptr_t i = 0; i < ${this_.length}; i++){
+  ${this_.elementType.cExpectsZeroStatements("$actual[i]")}
+}
+""";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -383,6 +434,10 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.firstArgumentName("$variableName.");
+
+      case FixedLengthArrayType:
+        final this_ = this as FixedLengthArrayType;
+        return this_.elementType.firstArgumentName("$variableName[0]");
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -404,7 +459,13 @@ extension on StructType {
     for (final member in members) {
       dartFields += "${member.dartStructField(nnbd)}\n\n";
     }
-    String toStringBody = members.map((m) => "\$\{${m.name}\}").join(", ");
+    String toStringBody = members.map((m) {
+      if (m.type is FixedLengthArrayType) {
+        final length = (m.type as FixedLengthArrayType).length;
+        return "\$\{[for (var i = 0; i < $length; i += 1) ${m.name}[i]]\}";
+      }
+      return "\$\{${m.name}\}";
+    }).join(", ");
     return """
     class $name extends Struct {
       $dartFields
@@ -578,7 +639,7 @@ extension on FunctionType {
       if (${arguments.firstArgumentName()} == $throwExceptionValue ||
           ${arguments.firstArgumentName()} == $returnNullValue) {
         print("throwing!");
-        throw Exception("$cName throwing on purpuse!");
+        throw Exception("$cName throwing on purpose!");
       }
 
       $copyToGlobals

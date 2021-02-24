@@ -59,6 +59,12 @@ abstract class CType {
   /// Get a size in bytes that is the same on all architectures.
   int get size;
 
+  /// All members have a floating point type.
+  bool get isOnlyFloatingPoint;
+
+  /// All members have a integer type.
+  bool get isOnlyInteger;
+
   String toString() => dartCType;
 
   const CType();
@@ -72,6 +78,8 @@ class FundamentalType extends CType {
   bool get isFloatingPoint =>
       primitive == PrimitiveType.float || primitive == PrimitiveType.double_;
   bool get isInteger => !isFloatingPoint;
+  bool get isOnlyFloatingPoint => isFloatingPoint;
+  bool get isOnlyInteger => isInteger;
   bool get isUnsigned =>
       primitive == PrimitiveType.uint8 ||
       primitive == PrimitiveType.uint16 ||
@@ -105,6 +113,9 @@ class PointerType extends CType {
   String get dartStructFieldAnnotation => "";
   bool get hasSize => false;
   int get size => throw "Size unknown";
+
+  bool get isOnlyFloatingPoint => false;
+  bool get isOnlyInteger => true;
 }
 
 /// Used to give [StructType] fields and [FunctionType] arguments names.
@@ -119,7 +130,14 @@ class Member {
     return "${type.dartStructFieldAnnotation} $modifier ${type.dartType} $name;";
   }
 
-  String get cStructField => "${type.cType} $name;";
+  String get cStructField {
+    String postFix = "";
+    if (type is FixedLengthArrayType) {
+      final length = (type as FixedLengthArrayType).length;
+      postFix = "[$length]";
+    }
+    return "${type.cType} $name$postFix;";
+  }
 
   String toString() => "$type $name";
 }
@@ -172,28 +190,16 @@ class StructType extends CType {
   bool get hasNestedStructs =>
       members.map((e) => e.type is StructType).contains(true);
 
+  bool get hasInlineArrays =>
+      members.map((e) => e.type is FixedLengthArrayType).contains(true);
+
   /// All members have the same type.
   bool get isHomogeneous => memberTypes.toSet().length == 1;
 
-  /// All members have a floating point type.
-  bool get isOnlyFloatingPoint => !memberTypes.map((e) {
-        if (e is FundamentalType) {
-          return e.isFloatingPoint;
-        }
-        if (e is StructType) {
-          return e.isOnlyFloatingPoint;
-        }
-      }).contains(false);
-
-  /// All members have a integer type.
-  bool get isOnlyInteger => !memberTypes.map((e) {
-        if (e is FundamentalType) {
-          return e.isInteger;
-        }
-        if (e is StructType) {
-          return e.isOnlyInteger;
-        }
-      }).contains(false);
+  bool get isOnlyFloatingPoint =>
+      !memberTypes.map((e) => e.isOnlyFloatingPoint).contains(false);
+  bool get isOnlyInteger =>
+      !memberTypes.map((e) => e.isOnlyInteger).contains(false);
 
   bool get isMixed => !isOnlyInteger && !isOnlyFloatingPoint;
 
@@ -207,6 +213,9 @@ class StructType extends CType {
     }
     if (hasNestedStructs) {
       result += "Nested";
+    }
+    if (hasInlineArrays) {
+      result += "InlineArray";
     }
     if (members.length == 0) {
       // No suffix.
@@ -224,6 +233,24 @@ class StructType extends CType {
     result += suffix;
     return result;
   }
+}
+
+class FixedLengthArrayType extends CType {
+  final CType elementType;
+  final int length;
+
+  FixedLengthArrayType(this.elementType, this.length);
+
+  String get cType => elementType.cType;
+  String get dartCType => "Array<${elementType.dartType}>";
+  String get dartType => "Array<${elementType.dartCType}>";
+  String get dartStructFieldAnnotation => "@Array($length)";
+
+  bool get hasSize => elementType.hasSize;
+  int get size => elementType.size * length;
+
+  bool get isOnlyFloatingPoint => elementType.isOnlyFloatingPoint;
+  bool get isOnlyInteger => elementType.isOnlyInteger;
 }
 
 class FunctionType extends CType {
@@ -253,6 +280,9 @@ class FunctionType extends CType {
 
   bool get hasSize => false;
   int get size => throw "Unknown size.";
+
+  bool get isOnlyFloatingPoint => throw "Not implemented";
+  bool get isOnlyInteger => throw "Not implemented";
 
   /// Group consecutive [arguments] by same type.
   ///
