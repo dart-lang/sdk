@@ -38,18 +38,19 @@ Future<void> main(List<String> args) async {
   if (validArguments(parser, result)) {
     var provider = PhysicalResourceProvider.INSTANCE;
     var packageRoot = provider.pathContext.normalize(package_root.packageRoot);
-    var generatedFilePath = provider.pathContext.join(
-        packageRoot,
-        'analysis_server',
-        'lib',
-        'src',
-        'services',
-        'completion',
-        'dart',
-        'relevance_tables.g.dart');
-    var generatedFile = provider.getFile(generatedFilePath);
 
-    void writeRelevanceTable(RelevanceData data, File generatedFile) {
+    void writeRelevanceTable(RelevanceData data, {String suffix = ''}) {
+      var generatedFilePath = provider.pathContext.join(
+          packageRoot,
+          'analysis_server',
+          'lib',
+          'src',
+          'services',
+          'completion',
+          'dart',
+          'relevance_tables$suffix.g.dart');
+      var generatedFile = provider.getFile(generatedFilePath);
+
       var buffer = StringBuffer();
       var writer = RelevanceTableWriter(buffer);
       writer.write(data);
@@ -60,13 +61,14 @@ Future<void> main(List<String> args) async {
     if (result.wasParsed('reduceDir')) {
       var data = RelevanceData();
       var dir = provider.getFolder(result['reduceDir']);
+      var suffix = result.rest.isNotEmpty ? result.rest[0] : '';
       for (var child in dir.getChildren()) {
         if (child is File) {
           var newData = RelevanceData.fromJson(child.readAsStringSync());
           data.addData(newData);
         }
       }
-      writeRelevanceTable(data, generatedFile);
+      writeRelevanceTable(data, suffix: suffix);
       return;
     }
 
@@ -102,7 +104,7 @@ Future<void> main(List<String> args) async {
       var dataFile = uniqueDataFile();
       dataFile.writeAsStringSync(computer.data.toJson());
     } else {
-      writeRelevanceTable(computer.data, generatedFile);
+      writeRelevanceTable(computer.data);
     }
     stopwatch.stop();
 
@@ -160,11 +162,6 @@ bool validArguments(ArgParser parser, ArgResults result) {
     printUsage(parser);
     return false;
   } else if (result.wasParsed('reduceDir')) {
-    if (result.rest.isNotEmpty) {
-      printUsage(parser,
-          error: 'A package path is not allowed in reduce mode.');
-      return false;
-    }
     return validateDir(parser, result['reduceDir']);
   } else if (result.rest.length != 1) {
     printUsage(parser, error: 'No package path specified.');
