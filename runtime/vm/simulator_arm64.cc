@@ -2573,19 +2573,11 @@ void Simulator::DecodeMiscDP1Source(Instr* instr) {
   switch (op) {
     case 4: {
       // Format(instr, "clz'sf 'rd, 'rn");
-      int64_t rd_val = 0;
-      int64_t rn_val = (instr->SFField() == 1) ? rn_val64 : rn_val32;
-      if (rn_val != 0) {
-        while (rn_val > 0) {
-          rd_val++;
-          rn_val <<= 1;
-        }
-      } else {
-        rd_val = (instr->SFField() == 1) ? 64 : 32;
-      }
       if (instr->SFField() == 1) {
+        const uint64_t rd_val = Utils::CountLeadingZeros64(rn_val64);
         set_register(instr, rd, rd_val, R31IsZR);
       } else {
+        const uint32_t rd_val = Utils::CountLeadingZeros32(rn_val32);
         set_wregister(rd, rd_val, R31IsZR);
       }
       break;

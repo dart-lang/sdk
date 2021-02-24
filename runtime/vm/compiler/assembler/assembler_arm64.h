@@ -881,6 +881,9 @@ class Assembler : public AssemblerBase {
   void clz(Register rd, Register rn) {
     EmitMiscDP1Source(CLZ, rd, rn, kEightBytes);
   }
+  void clzw(Register rd, Register rn) {
+    EmitMiscDP1Source(CLZ, rd, rn, kFourBytes);
+  }
 
   // Reverse bits.
   void rbit(Register rd, Register rn) {
