@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-02-23T11:38:53.873726",
+  "generated": "2021-02-24T07:33:35.310314",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -569,7 +569,7 @@
       "name": "shelf_packages_handler",
       "rootUri": "../third_party/pkg/shelf_packages_handler",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "shelf_proxy",
@@ -581,13 +581,13 @@
       "name": "shelf_static",
       "rootUri": "../third_party/pkg/shelf_static",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "shelf_web_socket",
       "rootUri": "../third_party/pkg/shelf_web_socket",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.12"
     },
     {
       "name": "smith",
