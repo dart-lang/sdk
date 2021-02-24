@@ -8,6 +8,9 @@ part of 'serialization.dart';
 /// convenience methods.
 abstract class AbstractDataSource extends DataSourceMixin
     implements DataSource {
+  static final List<ir.DartType> emptyListOfDartTypes =
+      List<ir.DartType>.filled(0, null, growable: false);
+
   final bool useDataKinds;
   EntityReader _entityReader = const EntityReader();
   ComponentLookup _componentLookup;
@@ -143,6 +146,7 @@ abstract class AbstractDataSource extends DataSourceMixin
   List<ir.DartType> _readDartTypeNodes(
       List<ir.TypeParameter> functionTypeVariables) {
     int count = readInt();
+    if (count == 0) return emptyListOfDartTypes;
     List<ir.DartType> types = new List<ir.DartType>.filled(count, null);
     for (int index = 0; index < count; index++) {
       types[index] = _readDartTypeNode(functionTypeVariables);
