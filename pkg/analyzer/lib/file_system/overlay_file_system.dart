@@ -395,8 +395,17 @@ abstract class _OverlayResource implements Resource {
   }
 
   @override
-  Resource resolveSymbolicLinksSync() =>
-      _OverlayResource._from(provider, _resource.resolveSymbolicLinksSync());
+  Resource resolveSymbolicLinksSync() {
+    try {
+      var resolved = _resource.resolveSymbolicLinksSync();
+      return _OverlayResource._from(provider, resolved);
+    } catch (_) {
+      if (provider.hasOverlay(path) || provider._hasOverlayIn(path)) {
+        return this;
+      }
+      rethrow;
+    }
+  }
 
   @override
   String toString() => path;
