@@ -341,6 +341,13 @@ class Reference {
     }
     return node as Typedef;
   }
+
+  Extension get asExtension {
+    if (node == null) {
+      throw '$this is not bound to an AST node. An extension was expected';
+    }
+    return node as Extension;
+  }
 }
 
 // ------------------------------------------------------------------------

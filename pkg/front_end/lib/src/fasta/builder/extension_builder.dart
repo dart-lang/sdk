@@ -6,10 +6,10 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/type_algebra.dart';
 
 import '../fasta_codes.dart'
     show templateInternalProblemNotFoundIn, templateTypeArgumentMismatch;
+import '../kernel/internal_ast.dart';
 import '../scope.dart';
 import '../source/source_library_builder.dart';
 import '../problems.dart';
@@ -106,17 +106,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
       Nullability nullability, List<DartType> arguments) {
     if (library is SourceLibraryBuilder &&
         library.enableExtensionTypesInLibrary) {
-      // TODO(dmitryas): Build the extension type rather than the on-type.
-      DartType builtOnType = onType.build(library);
-      if (typeParameters != null) {
-        List<TypeParameter> typeParameterNodes = <TypeParameter>[];
-        for (TypeVariableBuilder typeParameter in typeParameters) {
-          typeParameterNodes.add(typeParameter.parameter);
-        }
-        builtOnType = Substitution.fromPairs(typeParameterNodes, arguments)
-            .substituteType(builtOnType);
-      }
-      return builtOnType;
+      return new ExtensionType(extension, nullability, arguments);
     } else {
       throw new UnsupportedError(
           "ExtensionBuilder.buildTypesWithBuiltArguments "

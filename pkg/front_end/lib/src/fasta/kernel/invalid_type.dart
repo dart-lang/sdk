@@ -9,6 +9,8 @@ import 'package:kernel/visitor.dart';
 
 import '../type_inference/type_schema.dart';
 
+import 'internal_ast.dart';
+
 /// Check if [type] contains [InvalidType] as its part.
 ///
 /// The helper function is intended for stopping cascading errors because of
@@ -25,8 +27,16 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
 
   @override
   bool defaultDartType(DartType node, Set<TypedefType> visitedTypedefs) {
-    if (node is UnknownType) return false;
-    throw new StateError("Unhandled type ${node.runtimeType}.");
+    if (node is UnknownType) {
+      return false;
+    } else if (node is ExtensionType) {
+      for (DartType typeArgument in node.typeArguments) {
+        if (typeArgument.accept1(this, visitedTypedefs)) return true;
+      }
+      return false;
+    } else {
+      throw new StateError("Unhandled type ${node.runtimeType}.");
+    }
   }
 
   @override

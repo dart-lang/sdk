@@ -348,6 +348,14 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     return '$library::$name';
   }
 
+  String getExtensionReference(Extension node) {
+    // ignore: unnecessary_null_comparison
+    if (node == null) return '<No Extension>';
+    String name = getExtensionName(node);
+    String library = getLibraryReference(node.enclosingLibrary);
+    return '$library::$name';
+  }
+
   String getTypedefReference(Typedef node) {
     // ignore: unnecessary_null_comparison
     if (node == null) return '<No Typedef>';
@@ -968,6 +976,22 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     // ignore: unnecessary_null_comparison
     if (reference == null) return '<No Class>';
     if (reference.node != null) return getClassReference(reference.asClass);
+    if (reference.canonicalName != null) {
+      return getCanonicalNameString(reference.canonicalName!);
+    }
+    throw "Neither node nor canonical name found";
+  }
+
+  void writeExtensionReferenceFromReference(Reference reference) {
+    writeWord(getExtensionReferenceFromReference(reference));
+  }
+
+  String getExtensionReferenceFromReference(Reference reference) {
+    // ignore: unnecessary_null_comparison
+    if (reference == null) return '<No Extension>';
+    if (reference.node != null) {
+      return getExtensionReference(reference.asExtension);
+    }
     if (reference.canonicalName != null) {
       return getCanonicalNameString(reference.canonicalName!);
     }
