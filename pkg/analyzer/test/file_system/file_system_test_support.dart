@@ -30,6 +30,10 @@ abstract class FileSystemTestSupport {
   /// to work.
   String /*!*/ get tempPath;
 
+  /// Create a link from [path] to [target].
+  /// The [target] does not have to exist, can be create later, or not at all.
+  void createLink({required String path, required String target});
+
   /// Return a file accessed through the resource provider. If [exists] is
   /// `true` then the returned file will exist, otherwise it won't. If [content]
   /// is provided then the file will have the given content, otherwise it will
@@ -132,6 +136,33 @@ mixin FileTestMixin implements FileSystemTestSupport {
     File file = getFile(exists: true);
 
     expect(file.exists, isTrue);
+  }
+
+  test_exists_links_existing() {
+    var a_path = join(tempPath, 'a.dart');
+    var b_path = join(tempPath, 'b.dart');
+
+    createLink(path: b_path, target: a_path);
+    getFile(exists: true, filePath: a_path);
+
+    var a = provider.getFile(a_path);
+    var b = provider.getFile(b_path);
+
+    expect(a.exists, isTrue);
+    expect(b.exists, isTrue);
+  }
+
+  test_exists_links_notExisting() {
+    var a_path = join(tempPath, 'a.dart');
+    var b_path = join(tempPath, 'b.dart');
+
+    createLink(path: b_path, target: a_path);
+
+    var a = provider.getFile(a_path);
+    var b = provider.getFile(b_path);
+
+    expect(a.exists, isFalse);
+    expect(b.exists, isFalse);
   }
 
   test_exists_notExisting() {
@@ -458,6 +489,33 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     expect(folder1 == folder2, isTrue);
   }
 
+  test_exists_links_existing() {
+    var foo_path = join(tempPath, 'foo');
+    var bar_path = join(tempPath, 'bar');
+
+    createLink(path: bar_path, target: foo_path);
+    getFolder(exists: true, folderPath: foo_path);
+
+    var foo = provider.getFolder(foo_path);
+    var bar = provider.getFolder(bar_path);
+
+    expect(foo.exists, isTrue);
+    expect(bar.exists, isTrue);
+  }
+
+  test_exists_links_notExisting() {
+    var foo_path = join(tempPath, 'foo');
+    var bar_path = join(tempPath, 'bar');
+
+    createLink(path: bar_path, target: foo_path);
+
+    var foo = provider.getFolder(foo_path);
+    var bar = provider.getFolder(bar_path);
+
+    expect(foo.exists, isFalse);
+    expect(bar.exists, isFalse);
+  }
+
   test_getChild_doesNotExist() {
     Folder folder = getFolder(exists: true);
 
@@ -566,6 +624,68 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     expect(children[0], isFile);
     expect(children[1], isFolder);
     expect(children[2], isFile);
+  }
+
+  test_getChildren_hasLink_file() {
+    var a_path = join(tempPath, 'a.dart');
+    var b_path = join(tempPath, 'b.dart');
+
+    createLink(path: b_path, target: a_path);
+    var a = getFile(exists: true, filePath: a_path);
+
+    var children = provider.getFolder(tempPath).getChildren();
+    expect(children, hasLength(2));
+    expect(
+      children.map((e) => e.path),
+      unorderedEquals([a_path, b_path]),
+    );
+
+    var b = children.singleWhere((e) => e.path == b_path) as File;
+    expect(b.resolveSymbolicLinksSync(), a);
+  }
+
+  test_getChildren_hasLink_folder() {
+    var foo_path = join(tempPath, 'foo');
+    var bar_path = join(tempPath, 'bar');
+
+    var foo = getFolder(exists: true, folderPath: foo_path);
+    createLink(path: bar_path, target: foo_path);
+
+    var children = provider.getFolder(tempPath).getChildren();
+    expect(children, hasLength(2));
+    expect(
+      children.map((e) => e.path),
+      unorderedEquals([foo_path, bar_path]),
+    );
+
+    var b = children.singleWhere((e) => e.path == bar_path) as Folder;
+    expect(b.resolveSymbolicLinksSync(), foo);
+  }
+
+  test_getChildren_isLink() {
+    var foo_path = join(tempPath, 'foo');
+    var bar_path = join(tempPath, 'bar');
+    var foo_a_path = join(foo_path, 'a.dart');
+    var bar_a_path = join(bar_path, 'a.dart');
+    var foo_b_path = join(foo_path, 'b');
+    var bar_b_path = join(bar_path, 'b');
+
+    var foo_a = getFile(exists: true, filePath: foo_a_path);
+    var foo_b = getFolder(exists: true, folderPath: foo_b_path);
+    createLink(path: bar_path, target: foo_path);
+
+    var children = provider.getFolder(bar_path).getChildren();
+    expect(children, hasLength(2));
+    expect(
+      children.map((e) => e.path),
+      unorderedEquals([bar_a_path, bar_b_path]),
+    );
+
+    var bar_a = children.singleWhere((e) => e.path == bar_a_path) as File;
+    expect(bar_a.resolveSymbolicLinksSync(), foo_a);
+
+    var bar_b = children.singleWhere((e) => e.path == bar_b_path) as Folder;
+    expect(bar_b.resolveSymbolicLinksSync(), foo_b);
   }
 
   test_hashCode() {

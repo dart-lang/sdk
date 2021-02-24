@@ -510,7 +510,10 @@ class _MemoryFolder extends _MemoryResource implements Folder {
       : super(provider, path);
 
   @override
-  bool get exists => provider._pathToResource[path] is _MemoryFolder;
+  bool get exists {
+    var canonicalPath = provider._resolveLinks(path);
+    return provider._pathToResource[canonicalPath] is _MemoryFolder;
+  }
 
   @override
   bool get isRoot {
@@ -580,15 +583,47 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   List<Resource> getChildren() {
+    var canonicalPath = provider._resolveLinks(path);
+    if (canonicalPath != path) {
+      var target = provider.getFolder(canonicalPath);
+      var canonicalChildren = target.getChildren();
+      return canonicalChildren.map((child) {
+        var childPath = provider.pathContext.join(path, child.shortName);
+        if (child is Folder) {
+          return _MemoryFolder(provider, childPath);
+        } else {
+          return _MemoryFile(provider, childPath);
+        }
+      }).toList();
+    }
+
     if (!exists) {
       throw FileSystemException(path, 'Folder does not exist.');
     }
-    List<Resource> children = <Resource>[];
+
+    var children = <Resource>[];
+
     provider._pathToResource.forEach((resourcePath, resource) {
       if (provider.pathContext.dirname(resourcePath) == path) {
         children.add(resource);
       }
     });
+
+    provider._pathToLinkedPath.forEach((resourcePath, targetPath) {
+      if (provider.pathContext.dirname(resourcePath) == path) {
+        var target = provider.getResource(targetPath);
+        if (target is File) {
+          children.add(
+            _MemoryFile(provider, resourcePath),
+          );
+        } else if (target is Folder) {
+          children.add(
+            _MemoryFolder(provider, resourcePath),
+          );
+        }
+      }
+    });
+
     return children;
   }
 

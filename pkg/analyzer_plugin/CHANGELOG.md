@@ -1,5 +1,7 @@
-## 0.4.1-dev
+## 0.5.0-dev
 - Changed the support version range of the analyzer to `>=0.42.0 <0.43.0`.
+- Removed `Plugin.fileContentOverlay`, instead `Plugin.resourceProvider` is
+  now `OverlayResourceProvider`, and `analysis.updateContent` updates it.
 
 ## 0.4.0
 - Deprecated the class `DartChangeBuilder` and enhanced `ChangeBuilder` to be

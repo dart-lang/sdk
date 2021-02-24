@@ -52,6 +52,11 @@ abstract class BaseTest extends FileSystemTestSupport {
   @override
   MemoryResourceProvider get provider => _provider ??= createProvider();
 
+  @override
+  void createLink({required String path, required String target}) {
+    provider.newLink(path, target);
+  }
+
   /// Create the resource provider to be used by the tests. Subclasses can
   /// override this method to change the class of resource provider that is
   /// used.
@@ -252,14 +257,14 @@ class MemoryFileTest extends BaseTest with FileTestMixin {
 
   @override
   test_resolveSymbolicLinksSync_links_existing() {
-    var a = provider.convertPath('/test/lib/a.dart');
-    var b = provider.convertPath('/test/lib/b.dart');
+    var a_path = provider.convertPath('/test/lib/a.dart');
+    var b_path = provider.convertPath('/test/lib/b.dart');
 
-    provider.newLink(b, a);
-    provider.newFile(a, 'aaa');
+    provider.newLink(b_path, a_path);
+    provider.newFile(a_path, '');
 
-    var resolved = provider.getFile(b).resolveSymbolicLinksSync();
-    expect(resolved.path, a);
+    var resolved = provider.getFile(b_path).resolveSymbolicLinksSync();
+    expect(resolved.path, a_path);
   }
 
   @override

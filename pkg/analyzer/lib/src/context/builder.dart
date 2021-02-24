@@ -56,12 +56,6 @@ import 'package:yaml/yaml.dart';
 ///
 /// [1]: https://github.com/dart-lang/dart_enhancement_proposals/blob/master/Accepted/0005%20-%20Package%20Specification/DEP-pkgspec.md.
 class ContextBuilder {
-  /// A callback for when analysis drivers are created, which takes all the same
-  /// arguments as the dart analysis driver constructor so that plugins may
-  /// create their own drivers with the same tools, in theory. Here as a stopgap
-  /// until the official plugin API is complete
-  static Function? onCreateAnalysisDriver;
-
   /// The [ResourceProvider] by which paths are converted into [Resource]s.
   final ResourceProvider resourceProvider;
 
@@ -160,11 +154,6 @@ class ContextBuilder {
       ),
     );
 
-    // temporary plugin support:
-    if (onCreateAnalysisDriver != null) {
-      onCreateAnalysisDriver!(driver, analysisDriverScheduler, performanceLog,
-          resourceProvider, byteStore, fileContentOverlay, path, sf, options);
-    }
     declareVariablesInDriver(driver);
     return driver;
   }
