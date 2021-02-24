@@ -844,7 +844,10 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         }
         connecting.clear();
         addressesSubscription.cancel();
-        result.complete(socket);
+        if (!result.isCompleted) {
+          // Might be already completed via onCancel
+          result.complete(socket);
+        }
       }, error: (e, st) {
         connecting.remove(socket);
         socket.close();
@@ -864,6 +867,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         s.setHandlers();
         s.setListening(read: false, write: false);
       }
+      addressesSubscription.cancel();
       connecting.clear();
       if (!result.isCompleted) {
         error ??= createError(
