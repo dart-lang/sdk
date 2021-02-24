@@ -14,6 +14,6 @@ static method test() → dynamic {
   self::h = "hello";
   self::h.foo();
   self::foo((core::Object* x) → Null => null);
-  self::foo((core::Object* x) → <BottomType>=> throw "not implemented");
+  self::foo((core::Object* x) → Null => throw "not implemented");
 }
 static method main() → dynamic {}

@@ -2050,7 +2050,7 @@ class Field extends Member {
   DartType get getterType => type;
 
   @override
-  DartType get setterType => hasSetter ? type : const BottomType();
+  DartType get setterType => hasSetter ? type : const NeverType.nonNullable();
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
@@ -2198,10 +2198,10 @@ class Constructor extends Member {
   }
 
   @override
-  DartType get getterType => const BottomType();
+  DartType get getterType => const NeverType.nonNullable();
 
   @override
-  DartType get setterType => const BottomType();
+  DartType get setterType => const NeverType.nonNullable();
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
@@ -2369,10 +2369,10 @@ class RedirectingFactoryConstructor extends Member {
   }
 
   @override
-  DartType get getterType => const BottomType();
+  DartType get getterType => const NeverType.nonNullable();
 
   @override
-  DartType get setterType => const BottomType();
+  DartType get setterType => const NeverType.nonNullable();
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
@@ -2873,7 +2873,7 @@ class Procedure extends Member {
   DartType get setterType {
     return isSetter
         ? function!.positionalParameters[0].type
-        : const BottomType();
+        : const NeverType.nonNullable();
   }
 
   @override
@@ -3634,9 +3634,6 @@ abstract class Expression extends TreeNode {
         return new InterfaceType(
             superclass, type.nullability, upcastTypeArguments);
       }
-    } else if (type is BottomType) {
-      return context.typeEnvironment.coreTypes
-          .bottomInterfaceType(superclass, context.nonNullable);
     }
 
     // The static type of this expression is not a subtype of [superclass]. The
@@ -3701,7 +3698,7 @@ class InvalidExpression extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
-      const BottomType();
+      const NeverType.nonNullable();
 
   @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitInvalidExpression(this);
@@ -5861,7 +5858,7 @@ class MethodInvocation extends InvocationExpression {
       DartType receiverType = receiver.getStaticType(context);
       if (receiverType is FunctionType) {
         if (receiverType.typeParameters.length != arguments.types.length) {
-          return const BottomType();
+          return const NeverType.nonNullable();
         }
         return Substitution.fromPairs(
                 receiverType.typeParameters, arguments.types)
@@ -7607,7 +7604,7 @@ class Rethrow extends Expression {
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.isNonNullableByDefault
           ? const NeverType.nonNullable()
-          : const BottomType();
+          : const NeverType.legacy();
 
   @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitRethrow(this);
@@ -7651,7 +7648,7 @@ class Throw extends Expression {
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.isNonNullableByDefault
           ? const NeverType.nonNullable()
-          : const BottomType();
+          : const NeverType.legacy();
 
   @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitThrow(this);
@@ -10571,48 +10568,6 @@ class NeverType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.write("Never");
     printer.write(nullabilityToString(declaredNullability));
-  }
-}
-
-class BottomType extends DartType {
-  @override
-  final int hashCode = 514213;
-
-  const BottomType();
-
-  @override
-  R accept<R>(DartTypeVisitor<R> v) => v.visitBottomType(this);
-
-  @override
-  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
-      v.visitBottomType(this, arg);
-
-  @override
-  void visitChildren(Visitor v) {}
-
-  @override
-  bool operator ==(Object other) => equals(other, null);
-
-  @override
-  bool equals(Object other, Assumptions? assumptions) => other is BottomType;
-
-  @override
-  Nullability get declaredNullability => Nullability.nonNullable;
-
-  @override
-  Nullability get nullability => Nullability.nonNullable;
-
-  @override
-  BottomType withDeclaredNullability(Nullability declaredNullability) => this;
-
-  @override
-  String toString() {
-    return "BottomType(${toStringInternal()})";
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write("<bottom>");
   }
 }
 

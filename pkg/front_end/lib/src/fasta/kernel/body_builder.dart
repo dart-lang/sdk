@@ -6011,7 +6011,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             buildProblem(
                 message.messageObject, message.charOffset, message.length,
                 context: context),
-            type: const BottomType())
+            type: NeverType.fromNullability(libraryBuilder.nonNullable))
           ..fileOffset = offset,
         expression)
       ..fileOffset = offset;

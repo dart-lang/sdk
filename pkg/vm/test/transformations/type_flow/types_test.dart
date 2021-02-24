@@ -72,8 +72,6 @@ main() {
 
     expect(tb.fromStaticType(const NeverType.nonNullable(), false),
         equals(const EmptyType()));
-    expect(tb.fromStaticType(const BottomType(), true),
-        equals(new NullableType(const EmptyType())));
     expect(tb.fromStaticType(const DynamicType(), true),
         equals(new NullableType(const AnyType())));
     expect(tb.fromStaticType(const VoidType(), true),

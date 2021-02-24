@@ -42,12 +42,12 @@ class Class2<T extends (core::int*) →* core::String* = (core::int*) →* core:
     : self::Class2::field = field, super core::Object::•()
     ;
   method method() → dynamic {
-    invalid-type v1 = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/general/callable_type_variable.dart:25:19: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-type v1 = let final Never* #t2 = invalid-expression "pkg/front_end/testcases/general/callable_type_variable.dart:25:19: Error: Too few positional arguments: 1 required, 0 given.
     var v1 = field(); // error
                   ^" in this.{self::Class2::field}.call();
     core::String* v2 = let final core::int* #t3 = 0 in this.{self::Class2::field}.call(#t3);
     self::Class2::T* v3 = this.{self::Class2::field}.call;
-    invalid-type v4 = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/general/callable_type_variable.dart:28:24: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-type v4 = let final Never* #t4 = invalid-expression "pkg/front_end/testcases/general/callable_type_variable.dart:28:24: Error: Too few positional arguments: 1 required, 0 given.
     var v4 = field.call(); // error
                        ^" in this.{self::Class2::field}.call();
     core::String* v5 = this.{self::Class2::field}.call(0);

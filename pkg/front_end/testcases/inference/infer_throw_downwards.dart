@@ -10,7 +10,7 @@ T f<T>() => null;
 var x = throw /*@typeArgs=dynamic*/ f();
 
 void g() {
-  var /*@type=dynamic*/ x = throw /*@typeArgs=dynamic*/ f();
+  var /*@type=dynamic */ x = throw /*@typeArgs=dynamic*/ f();
 }
 
 main() {}

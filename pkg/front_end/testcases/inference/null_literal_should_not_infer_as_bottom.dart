@@ -22,7 +22,7 @@ test() {
   (/*info:DYNAMIC_INVOKE*/ h.foo());
 
   foo(/*@ returnType=Null */ (/*@ type=Object* */ x) => null);
-  foo(/*@ returnType=<BottomType> */ (/*@ type=Object* */ x) =>
+  foo(/*@ returnType=Null */ (/*@ type=Object* */ x) =>
       throw "not implemented");
 }
 

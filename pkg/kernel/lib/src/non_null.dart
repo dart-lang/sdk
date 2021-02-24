@@ -23,9 +23,6 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
   }
 
   @override
-  DartType? visitBottomType(BottomType node) => null;
-
-  @override
   DartType? visitDynamicType(DynamicType node) => null;
 
   @override

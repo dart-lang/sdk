@@ -72,10 +72,6 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   bool visitNullType(NullType node, Set<TypedefType> visitedTypedefs) => false;
 
   @override
-  bool visitBottomType(BottomType node, Set<TypedefType> visitedTypedefs) =>
-      false;
-
-  @override
   bool visitFunctionType(FunctionType node, Set<TypedefType> visitedTypedefs) {
     if (node.returnType.accept1(this, visitedTypedefs)) return true;
     for (TypeParameter typeParameter in node.typeParameters) {

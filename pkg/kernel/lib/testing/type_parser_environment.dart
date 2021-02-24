@@ -6,7 +6,6 @@
 
 import "package:kernel/ast.dart"
     show
-        BottomType,
         Class,
         Component,
         DartType,
@@ -269,10 +268,6 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       // Don't return a const object to ensure we test implementations that use
       // identical.
       return new VoidType();
-    } else if (name == "bottom") {
-      // Don't return a const object to ensure we test implementations that use
-      // identical.
-      return new BottomType();
     } else if (name == "Never") {
       // Don't return a const object to ensure we test implementations that use
       // identical.

@@ -2804,8 +2804,6 @@ class BinaryBuilder {
     switch (tag) {
       case Tag.TypedefType:
         return _readTypedefType();
-      case Tag.BottomType:
-        return _readBottomType();
       case Tag.InvalidType:
         return _readInvalidType();
       case Tag.DynamicType:
@@ -2833,10 +2831,6 @@ class BinaryBuilder {
     int nullabilityIndex = readByte();
     return new TypedefType.byReference(readTypedefReference(),
         Nullability.values[nullabilityIndex], readDartTypeList());
-  }
-
-  DartType _readBottomType() {
-    return const BottomType();
   }
 
   DartType _readInvalidType() {

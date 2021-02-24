@@ -117,12 +117,12 @@ class A extends core::Object {
     : self::A::i = i, super core::Object::•()
     ;
   constructor constructor5([core::int? i = #C1]) → self::A
-    : self::A::i = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:19:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+    : self::A::i = let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:19:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
       : this.i = i; // error
                  ^" in let core::int? #t2 = i in #t2.==(null) ?{core::int} #t2 as{TypeError,ForNonNullableByDefault} core::int : #t2{core::int}, super core::Object::•()
     ;
   constructor constructor6({core::int? i = #C1}) → self::A
-    : self::A::i = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:22:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+    : self::A::i = let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:22:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
       : this.i = i; // error
                  ^" in let core::int? #t4 = i in #t4.==(null) ?{core::int} #t4 as{TypeError,ForNonNullableByDefault} core::int : #t4{core::int}, super core::Object::•()
     ;
@@ -136,15 +136,15 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   static factory factory3([core::int i = #C1]) → self::A
-    let<BottomType> #redirecting_factory = self::A::constructor3 in invalid-expression;
+    let Never #redirecting_factory = self::A::constructor3 in invalid-expression;
   static factory factory4({core::int i = #C1}) → self::A
-    let<BottomType> #redirecting_factory = self::A::constructor4 in invalid-expression;
+    let Never #redirecting_factory = self::A::constructor4 in invalid-expression;
   static factory factory5([core::int? i = #C1]) → self::A
-    let<BottomType> #redirecting_factory = self::A::constructor5 in invalid-expression;
+    let Never #redirecting_factory = self::A::constructor5 in invalid-expression;
   static factory factory6({core::int? i = #C1}) → self::A
-    let<BottomType> #redirecting_factory = self::A::constructor6 in invalid-expression;
+    let Never #redirecting_factory = self::A::constructor6 in invalid-expression;
   static factory factory7({required core::int i = #C1}) → self::A
-    let<BottomType> #redirecting_factory = self::A::constructor7 in invalid-expression;
+    let Never #redirecting_factory = self::A::constructor7 in invalid-expression;
   static factory factory8([core::int i = #C1]) → self::A
     return new self::A::constructor3();
   static factory factory9({core::int i = #C1}) → self::A
@@ -184,12 +184,12 @@ class C extends core::Object implements self::B {
     : self::C::i = i, super core::Object::•()
     ;
   constructor constructor5([core::int? i = #C1]) → self::C
-    : self::C::i = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:85:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+    : self::C::i = let final Never #t5 = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:85:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
   C.constructor5([int? i]) : this.i = i; // error
                                       ^" in let core::int? #t6 = i in #t6.==(null) ?{core::int} #t6 as{TypeError,ForNonNullableByDefault} core::int : #t6{core::int}, super core::Object::•()
     ;
   constructor constructor6({core::int? i = #C1}) → self::C
-    : self::C::i = let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:87:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+    : self::C::i = let final Never #t7 = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:87:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
   C.constructor6({int? i}) : this.i = i; // error
                                       ^" in let core::int? #t8 = i in #t8.==(null) ?{core::int} #t8 as{TypeError,ForNonNullableByDefault} core::int : #t8{core::int}, super core::Object::•()
     ;
@@ -197,15 +197,15 @@ class C extends core::Object implements self::B {
     : self::C::i = i, super core::Object::•()
     ;
   static factory factory3([core::int i = #C1]) → self::C
-    let<BottomType> #redirecting_factory = self::C::constructor3 in invalid-expression;
+    let Never #redirecting_factory = self::C::constructor3 in invalid-expression;
   static factory factory4({core::int i = #C1}) → self::C
-    let<BottomType> #redirecting_factory = self::C::constructor4 in invalid-expression;
+    let Never #redirecting_factory = self::C::constructor4 in invalid-expression;
   static factory factory5([core::int? i = #C1]) → self::C
-    let<BottomType> #redirecting_factory = self::C::constructor5 in invalid-expression;
+    let Never #redirecting_factory = self::C::constructor5 in invalid-expression;
   static factory factory6({core::int? i = #C1}) → self::C
-    let<BottomType> #redirecting_factory = self::C::constructor6 in invalid-expression;
+    let Never #redirecting_factory = self::C::constructor6 in invalid-expression;
   static factory factory7({required core::int i = #C1}) → self::C
-    let<BottomType> #redirecting_factory = self::C::constructor7 in invalid-expression;
+    let Never #redirecting_factory = self::C::constructor7 in invalid-expression;
   static factory factory8([core::int i = #C1]) → self::C
     return new self::C::constructor3();
   static factory factory9({core::int i = #C1}) → self::C

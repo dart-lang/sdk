@@ -44,7 +44,7 @@ static method main() → dynamic {
     #t3.{core::List::[]=}(0, 87);
   } =>#t3;
   core::print(list);
-  list = let final core::List<core::int*>* #t4 = <core::int*>[let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/general/cascade.dart:26:5: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
+  list = let final core::List<core::int*>* #t4 = <core::int*>[let final Never* #t5 = invalid-expression "pkg/front_end/testcases/general/cascade.dart:26:5: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
  - 'List' is from 'dart:core'.
     [1]
     ^" in <core::int*>[1] as{TypeError} core::int*] in block {

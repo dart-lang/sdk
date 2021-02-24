@@ -46,7 +46,7 @@ static method main() → dynamic {
     if(!#t8.{core::Object::==}(null))
       #t7.{core::Set::addAll}{Invariant}(#t8);
   } =>#t7;
-  final dynamic aSetOrMap = invalid-expression "pkg/front_end/testcases/general/spread_collection.dart:21:21: Error: Not enough type information to disambiguate between literal set and literal map.
+  final Never* aSetOrMap = invalid-expression "pkg/front_end/testcases/general/spread_collection.dart:21:21: Error: Not enough type information to disambiguate between literal set and literal map.
 Try providing type arguments for the literal explicitly to disambiguate it.
   final aSetOrMap = {...foo()};
                     ^";

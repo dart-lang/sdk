@@ -537,22 +537,22 @@ Try correcting the operator to an existing operator, or defining a '+' operator.
     super.{self::A::[]}(87).call();
     self::use(super.{self::A::[]}(87).call());
     super.{self::A::m}();
-    self::use(let final<BottomType> #t33 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:146:15: Error: This expression has type 'void' and can't be used.
+    self::use(let final Never* #t33 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:146:15: Error: This expression has type 'void' and can't be used.
     use(super.m());
               ^" in super.{self::A::m}());
-    let final<BottomType> #t34 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:147:12: Error: Too many positional arguments: 0 allowed, but 1 found.
+    let final Never* #t34 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:147:12: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     super.m(87);
            ^" in super.{self::A::m}(87);
-    self::use(let final<BottomType> #t35 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:148:16: Error: Too many positional arguments: 0 allowed, but 1 found.
+    self::use(let final Never* #t35 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:148:16: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     use(super.m(87));
                ^" in super.{self::A::m}(87));
-    let final<BottomType> #t36 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:149:12: Error: Too many positional arguments: 0 allowed, but 1 found.
+    let final Never* #t36 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:149:12: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     super.n(87);
            ^" in super.{self::A::n}(87);
-    self::use(let final<BottomType> #t37 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:150:16: Error: Too many positional arguments: 0 allowed, but 1 found.
+    self::use(let final Never* #t37 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:150:16: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     use(super.n(87));
                ^" in super.{self::A::n}(87));

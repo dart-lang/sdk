@@ -228,7 +228,7 @@ class C extends core::Object {
     self::D<core::String>? b;
   }
   static factory redirect(self::A<self::A<Null>>? a) → self::C
-    let<BottomType> #redirecting_factory = self::C::internal in invalid-expression;
+    let Never #redirecting_factory = self::C::internal in invalid-expression;
   static factory fact(self::A<self::A<Null>>? a) → self::C {
     self::A<self::A<Null>>? b;
     self::D<core::String>? c;

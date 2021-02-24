@@ -105,11 +105,6 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
-  void visitBottomType(ir.BottomType node, StringBuffer sb) {
-    sb.write('<bottom>');
-  }
-
-  @override
   void visitNeverType(ir.NeverType node, StringBuffer sb) {
     sb.write('Never');
   }

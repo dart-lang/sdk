@@ -8,7 +8,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   static factory first() → self::A*
-    let<BottomType> #redirecting_factory = self::A::• in invalid-expression;
+    let Never #redirecting_factory = self::A::• in invalid-expression;
   static factory second() → self::A*
     let () →* self::A* #redirecting_factory = self::A::first in invalid-expression;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

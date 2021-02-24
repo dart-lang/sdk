@@ -844,7 +844,6 @@ class DartTypeTagger extends DartTypeVisitor<String>
   String visitInvalidType(InvalidType _) => "invalid";
   String visitDynamicType(DynamicType _) => "dynamic";
   String visitVoidType(VoidType _) => "void";
-  String visitBottomType(BottomType _) => "bottom";
   String visitFunctionType(FunctionType _) => "->";
   String visitTypeParameterType(TypeParameterType _) => "par";
   String visitInterfaceType(InterfaceType _) => "interface";
@@ -879,13 +878,6 @@ const TextSerializer<VoidType> voidTypeSerializer =
 void unwrapVoidType(VoidType type) {}
 
 VoidType wrapVoidType(void ignored) => const VoidType();
-
-const TextSerializer<BottomType> bottomTypeSerializer =
-    const Wrapped(unwrapBottomType, wrapBottomType, const Nothing());
-
-void unwrapBottomType(BottomType type) {}
-
-BottomType wrapBottomType(void ignored) => const BottomType();
 
 const TextSerializer<NeverType> neverTypeSerializer =
     const Wrapped(unwrapNeverType, wrapNeverType, const Nothing());
@@ -2190,7 +2182,6 @@ void initializeSerializers() {
     "invalid": invalidTypeSerializer,
     "dynamic": dynamicTypeSerializer,
     "void": voidTypeSerializer,
-    "bottom": bottomTypeSerializer,
     "->": functionTypeSerializer,
     "par": typeParameterTypeSerializer,
     "interface": interfaceTypeSerializer,

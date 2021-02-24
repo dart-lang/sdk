@@ -201,9 +201,6 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
   DartType? visitInvalidType(InvalidType node, int variance) => null;
 
   @override
-  DartType? visitBottomType(BottomType node, int variance) => null;
-
-  @override
   DartType? visitVoidType(VoidType node, int variance) => null;
 
   @override

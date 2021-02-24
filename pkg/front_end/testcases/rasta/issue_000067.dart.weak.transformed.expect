@@ -28,7 +28,7 @@ class C extends self::A {
   constructor •() → self::C*
     : super self::A::•() {}
   static factory bar() → self::C*
-    let<BottomType> #redirecting_factory = self::D::• in invalid-expression;
+    let Never #redirecting_factory = self::D::• in invalid-expression;
   method m() → core::int* {
     return 1;
   }

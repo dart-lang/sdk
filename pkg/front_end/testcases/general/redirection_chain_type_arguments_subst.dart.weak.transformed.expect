@@ -29,7 +29,7 @@ abstract class B<U extends core::Object* = dynamic, W extends core::Object* = dy
     : super self::A::empty()
     ;
   static factory •<U extends core::Object* = dynamic, W extends core::Object* = dynamic>() → self::B<self::B::•::U*, self::B::•::W*>*
-    let<BottomType> #redirecting_factory = self::C::• in let self::B::•::U* #typeArg0 = null in let self::B::•::W* #typeArg1 = null in let core::Map<self::B::•::U*, self::B::•::W*>* #typeArg2 = null in invalid-expression;
+    let Never #redirecting_factory = self::C::• in let self::B::•::U* #typeArg0 = null in let self::B::•::W* #typeArg1 = null in let core::Map<self::B::•::U*, self::B::•::W*>* #typeArg2 = null in invalid-expression;
 }
 class C<V extends core::Object* = dynamic, S extends core::Object* = dynamic, R extends core::Object* = dynamic> extends self::B<self::C::V*, self::C::S*> {
   constructor •() → self::C<self::C::V*, self::C::S*, self::C::R*>*

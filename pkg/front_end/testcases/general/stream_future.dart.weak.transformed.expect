@@ -102,7 +102,7 @@ static method error() → asy::Stream<FutureOr<self::Class*>*>* /* originally as
       try {
         #L3:
         {
-          if(:controller.{asy::_AsyncStarStreamController::add}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/stream_future.dart:18:9: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'FutureOr<Class>'.
+          if(:controller.{asy::_AsyncStarStreamController::add}(let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/stream_future.dart:18:9: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'FutureOr<Class>'.
  - 'Future' is from 'dart:async'.
  - 'Class' is from 'pkg/front_end/testcases/general/stream_future.dart'.
   yield returnFutureDynamic();

@@ -182,7 +182,7 @@ List<DartType> calculateBoundsInternal(
   final DartType topType = const DynamicType();
   final DartType bottomType = isNonNullableByDefault
       ? const NeverType.nonNullable()
-      : const BottomType();
+      : const NeverType.legacy();
   for (List<int> component in stronglyConnected) {
     Map<TypeParameter, DartType> upperBounds = <TypeParameter, DartType>{};
     Map<TypeParameter, DartType> lowerBounds = <TypeParameter, DartType>{};
@@ -544,7 +544,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
     if (isNonNullableByDefault) {
       return typeEnvironment.coreTypes.isBottom(node);
     } else {
-      return node is NullType || node is BottomType;
+      return node is NullType;
     }
   }
 
@@ -614,17 +614,6 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   DartType? visitTypeParameterType(TypeParameterType node, int variance) {
     // Types such as X extends Never are bottom types.
     if (isBottom(node) && flipBottom(variance)) {
-      return topType;
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  DartType? visitBottomType(BottomType node, int variance) {
-    // Bottom is always a bottom type.
-    assert(isBottom(node));
-    if (flipBottom(variance)) {
       return topType;
     } else {
       return null;
@@ -778,12 +767,6 @@ class VarianceCalculator
                   computedVariances: computedVariances)));
     }
     return result;
-  }
-
-  @override
-  int visitBottomType(BottomType node,
-      Map<TypeParameter, Map<DartType, int>> computedVariances) {
-    return Variance.unrelated;
   }
 
   @override

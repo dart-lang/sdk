@@ -38,12 +38,12 @@ static field core::Map<dynamic, core::int*>* map11;
 static field core::Map<core::int*, core::int*>* map12;
 static field core::Map<dynamic, Null>* error4;
 static field core::Map<dynamic, Null>* error5;
-static field dynamic error6;
-static field dynamic error7;
+static field Null error6;
+static field Null error7;
 static field core::Map<dynamic, Null>* error8;
 static field core::Map<dynamic, Null>* error9;
-static field dynamic error10;
-static field dynamic error11;
-static field dynamic error12;
+static field Null error10;
+static field Null error11;
+static field Null error12;
 static method main() → dynamic
   ;

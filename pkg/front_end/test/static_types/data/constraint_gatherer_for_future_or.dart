@@ -26,7 +26,7 @@ void func2() {
   void foo<S>(Future<S> bar) {}
 
   /*invoke: void*/ foo/*<dynamic>*/(
-      /*cfe.<bottom>*/ /*cfe:nnbd.Never*/
+      /*cfe.Never*/ /*cfe:nnbd.Never*/
       throw /*cfe.int*/ /*cfe:nnbd.int!*/ 42);
 }
 

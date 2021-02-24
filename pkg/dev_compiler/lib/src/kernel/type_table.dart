@@ -89,7 +89,6 @@ String _typeString(DartType type, {bool flat = false}) {
   if (type is DynamicType) return 'dynamic';
   if (type is VoidType) return 'void';
   if (type is NeverType) return 'Never$nullability';
-  if (type is BottomType) return 'bottom';
   if (type is NullType) return 'Null';
   return 'invalid';
 }

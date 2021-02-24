@@ -8,8 +8,8 @@ import 'package:kernel/type_environment.dart' as ir;
 /// Special bottom type used to signal that an expression or statement does
 /// not complete normally. This is the case for instance of throw expressions
 /// and return statements.
-class DoesNotCompleteType extends ir.BottomType {
-  const DoesNotCompleteType();
+class DoesNotCompleteType extends ir.NeverType {
+  const DoesNotCompleteType() : super.internal(ir.Nullability.nonNullable);
 
   @override
   String toString() => 'DoesNotCompleteType()';

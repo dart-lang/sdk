@@ -273,9 +273,6 @@ super method declares ${superParameter.type}
     if (receiver is InvalidType) {
       return;
     }
-    if (receiver is BottomType) {
-      return;
-    }
     if (receiver is NeverType &&
         receiver.nullability == Nullability.nonNullable) {
       return;

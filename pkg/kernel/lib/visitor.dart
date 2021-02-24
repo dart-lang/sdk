@@ -516,7 +516,6 @@ abstract class DartTypeVisitor<R> {
   R visitInvalidType(InvalidType node) => defaultDartType(node);
   R visitDynamicType(DynamicType node) => defaultDartType(node);
   R visitVoidType(VoidType node) => defaultDartType(node);
-  R visitBottomType(BottomType node) => defaultDartType(node);
   R visitInterfaceType(InterfaceType node) => defaultDartType(node);
   R visitFutureOrType(FutureOrType node) => defaultDartType(node);
   R visitFunctionType(FunctionType node) => defaultDartType(node);
@@ -532,7 +531,6 @@ abstract class DartTypeVisitor1<R, T> {
   R visitInvalidType(InvalidType node, T arg) => defaultDartType(node, arg);
   R visitDynamicType(DynamicType node, T arg) => defaultDartType(node, arg);
   R visitVoidType(VoidType node, T arg) => defaultDartType(node, arg);
-  R visitBottomType(BottomType node, T arg) => defaultDartType(node, arg);
   R visitInterfaceType(InterfaceType node, T arg) => defaultDartType(node, arg);
   R visitFutureOrType(FutureOrType node, T arg) => defaultDartType(node, arg);
   R visitFunctionType(FunctionType node, T arg) => defaultDartType(node, arg);
@@ -772,7 +770,6 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitInvalidType(InvalidType node) => defaultDartType(node);
   R visitDynamicType(DynamicType node) => defaultDartType(node);
   R visitVoidType(VoidType node) => defaultDartType(node);
-  R visitBottomType(BottomType node) => defaultDartType(node);
   R visitInterfaceType(InterfaceType node) => defaultDartType(node);
   R visitFutureOrType(FutureOrType node) => defaultDartType(node);
   R visitFunctionType(FunctionType node) => defaultDartType(node);

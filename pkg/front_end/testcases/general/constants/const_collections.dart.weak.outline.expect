@@ -257,7 +257,7 @@ const Set<String> quxWithMapSpread = {...baz, ...quux};
                                      ^";
 static const field core::Set<core::String*>* quxWithCustomIterableSpread1 = self::baz + const self::CustomIterable::•();
 static const field core::Set<core::String*>* quxWithCustomIterableSpread2 = self::baz + const self::CustomIterable::•();
-static const field core::Set<core::String*>* quxWithCustomIterableSpread3 = self::baz + const <core::String*>{let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:48:59: Error: A value of type 'CustomIterable' can't be assigned to a variable of type 'String'.
+static const field core::Set<core::String*>* quxWithCustomIterableSpread3 = self::baz + const <core::String*>{let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:48:59: Error: A value of type 'CustomIterable' can't be assigned to a variable of type 'String'.
  - 'CustomIterable' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.
 const Set<String> quxWithCustomIterableSpread3 = {...baz, customIterable};
                                                           ^" in self::customIterable as{TypeError} core::String*};

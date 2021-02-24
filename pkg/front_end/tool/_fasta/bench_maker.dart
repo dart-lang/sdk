@@ -244,11 +244,6 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
-  void visitBottomType(BottomType node, StringBuffer sb) {
-    sb.write("⊥");
-  }
-
-  @override
   void visitNeverType(NeverType node, StringBuffer sb) {
     sb.write("Never");
     writeNullability(node.nullability, sb);

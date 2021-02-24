@@ -101,7 +101,7 @@ static method foo() → asy::Stream<core::List<core::int*>*>* /* originally asyn
             return null;
           else
             [yield] null;
-          if(:controller.{asy::_AsyncStarStreamController::add}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:16:69: Error: A value of type 'MyStream<dynamic>' can't be assigned to a variable of type 'List<int>'.
+          if(:controller.{asy::_AsyncStarStreamController::add}(let final Never* #t1 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:16:69: Error: A value of type 'MyStream<dynamic>' can't be assigned to a variable of type 'List<int>'.
  - 'MyStream' is from 'pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart'.
  - 'List' is from 'dart:core'.
   yield /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic */ MyStream();
@@ -109,7 +109,7 @@ static method foo() → asy::Stream<core::List<core::int*>*>* /* originally asyn
             return null;
           else
             [yield] null;
-          if(:controller.{asy::_AsyncStarStreamController::addStream}(let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:17:64: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Stream<List<int>>'.
+          if(:controller.{asy::_AsyncStarStreamController::addStream}(let final Never* #t2 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:17:64: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Stream<List<int>>'.
  - 'List' is from 'dart:core'.
  - 'Stream' is from 'dart:async'.
   yield* /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic*/ [];
@@ -147,7 +147,7 @@ static method bar() → core::Iterable<core::Map<core::int*, core::int*>*>* /* o
           [yield] true;
         }
         {
-          :iterator.{core::_SyncIterator::_current} = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:23:63: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Map<int, int>'.
+          :iterator.{core::_SyncIterator::_current} = let final Never* #t3 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:23:63: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Map<int, int>'.
  - 'List' is from 'dart:core'.
  - 'Map' is from 'dart:core'.
   yield /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic*/ [];
@@ -155,7 +155,7 @@ static method bar() → core::Iterable<core::Map<core::int*, core::int*>*>* /* o
           [yield] true;
         }
         {
-          :iterator.{core::_SyncIterator::_yieldEachIterable} = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:24:79: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'Iterable<Map<int, int>>'.
+          :iterator.{core::_SyncIterator::_yieldEachIterable} = let final Never* #t4 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:24:79: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'Iterable<Map<int, int>>'.
  - 'Map' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   yield* /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic, dynamic */ Map();

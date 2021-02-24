@@ -35,11 +35,6 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   }
 
   @override
-  bool visitBottomType(BottomType node, DartType other) {
-    return other is BottomType;
-  }
-
-  @override
   bool visitDynamicType(DynamicType node, DartType other) {
     return equateTopTypes ? coreTypes.isTop(other) : other is DynamicType;
   }

@@ -2188,11 +2188,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitBottomType(BottomType node) {
-    writeByte(Tag.BottomType);
-  }
-
-  @override
   void visitNeverType(NeverType node) {
     writeByte(Tag.NeverType);
     writeByte(node.nullability.index);

@@ -499,7 +499,7 @@ static method controlFlow() → dynamic /* originally async */ {
               }
               try {
                 [yield] let dynamic #t45 = asy::_awaitHelper(throw "string", :async_op_then, :async_op_error, :async_op) in null;
-                _in::unsafeCast<<BottomType>>(:result);
+                _in::unsafeCast<Never*>(:result);
               }
               on core::String* catch(no-exception-var) {
               }

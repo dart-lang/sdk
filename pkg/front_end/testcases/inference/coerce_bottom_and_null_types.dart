@@ -11,7 +11,7 @@ f() {
   var /*@ type=dynamic */ c = throw 'foo';
   var /*@ type=() ->* int* */ d = /*@ returnType=int* */ () => 0;
   var /*@ type=() ->* Null */ e = /*@ returnType=Null */ () => null;
-  var /*@ type=() ->* <BottomType> */ f = /*@ returnType=<BottomType> */ () =>
+  var /*@ type=() ->* Null */ f = /*@ returnType=Null */ () =>
       throw 'foo';
   var /*@ type=() ->* int* */ g = /*@ returnType=int* */ () {
     return 0;
@@ -19,7 +19,7 @@ f() {
   var /*@ type=() ->* Null */ h = /*@ returnType=Null */ () {
     return null;
   };
-  var /*@ type=() ->* <BottomType> */ i = /*@ returnType=<BottomType> */ () {
+  var /*@ type=() ->* Null */ i = /*@ returnType=Null */ () {
     return (throw 'foo');
   };
 }

@@ -165,5 +165,5 @@ method() {
   var
       // Comment inserted to ensure whitespace between 'var' and 'bottom2'; the
       // formatter doesn't preserve the space before the annotation.
-      /*<bottom> Function()**/ bottom2 = () => throw '';
+      /*Null Function()**/ bottom2 = () => throw '';
 }

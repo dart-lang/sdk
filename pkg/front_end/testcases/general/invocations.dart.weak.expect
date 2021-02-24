@@ -55,7 +55,7 @@ static method main() → dynamic {
   invalid-expression "pkg/front_end/testcases/general/invocations.dart:10:3: Error: Getter not found: 'x'.
   x.y.z.print(\"Hello, World!\");
   ^".y.z.print("Hello, World!");
-  1.{core::num::+}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/invocations.dart:13:7: Error: This expression has type 'void' and can't be used.
+  1.{core::num::+}(let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/invocations.dart:13:7: Error: This expression has type 'void' and can't be used.
       print(\"Hello, World!\") +
       ^" in core::print("Hello, World!")).{core::num::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:14:7: Error: Method not found: 'z'.
       z(\"Hello, World!\") +

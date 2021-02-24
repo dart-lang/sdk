@@ -6,7 +6,6 @@
 
 import 'package:kernel/ast.dart'
     show
-        BottomType,
         DartType,
         DartTypeVisitor,
         DynamicType,
@@ -1035,8 +1034,6 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
   bool visitDynamicType(DynamicType node) => false;
 
   bool visitVoidType(VoidType node) => false;
-
-  bool visitBottomType(BottomType node) => false;
 
   bool visitNeverType(NeverType node) => false;
 

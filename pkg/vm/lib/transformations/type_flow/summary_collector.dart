@@ -2258,8 +2258,6 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
   @override
   TypeExpr visitVoidType(VoidType type) => new RuntimeType(type, null);
   @override
-  TypeExpr visitBottomType(BottomType type) => new RuntimeType(type, null);
-  @override
   TypeExpr visitNeverType(NeverType type) => new RuntimeType(type, null);
 
   @override

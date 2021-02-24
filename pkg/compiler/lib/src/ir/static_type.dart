@@ -228,7 +228,10 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     while (type is ir.TypeParameterType) {
       type = (type as ir.TypeParameterType).parameter.bound;
     }
-    if (type is ir.NullType) {
+    if (type is ir.NullType ||
+        type is ir.NeverType &&
+            (type.nullability == ir.Nullability.nonNullable ||
+                type.nullability == ir.Nullability.legacy)) {
       return typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, currentLibrary.nullable);
     }
@@ -236,9 +239,6 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       ir.InterfaceType upcastType = typeEnvironment.getTypeAsInstanceOf(
           type, superclass, currentLibrary, typeEnvironment.coreTypes);
       if (upcastType != null) return upcastType;
-    } else if (type is ir.BottomType) {
-      return typeEnvironment.coreTypes
-          .bottomInterfaceType(superclass, currentLibrary.nonNullable);
     }
     // TODO(johnniwinther): Should we assert that this doesn't happen?
     return typeEnvironment.coreTypes

@@ -73,33 +73,33 @@ void test() {
             ' (get-var "x^0" _)))',
         serializer: statementSerializer),
     new TestCase<Statement>(
-        name: 'let dynamic x = 42 in let Bottom x^0 = null in x;',
+        name: 'let dynamic x = 42 in let Null x^0 = null in x;',
         node: () {
           VariableDeclaration outterLetVar = new VariableDeclaration('x',
               type: const DynamicType(), initializer: new IntLiteral(42));
           VariableDeclaration innerLetVar = new VariableDeclaration('x',
-              type: const BottomType(), initializer: new NullLiteral());
+              type: const NullType(), initializer: new NullLiteral());
           return new ExpressionStatement(new Let(outterLetVar,
               new Let(innerLetVar, new VariableGet(outterLetVar))));
         }(),
         expectation: ''
             '(expr (let "x^0" () (dynamic) (int 42) ()'
-            ' (let "x^1" () (bottom) (null) ()'
+            ' (let "x^1" () (null-type) (null) ()'
             ' (get-var "x^0" _))))',
         serializer: statementSerializer),
     new TestCase<Statement>(
-        name: 'let dynamic x = 42 in let Bottom x^0 = null in x^0;',
+        name: 'let dynamic x = 42 in let Null x^0 = null in x^0;',
         node: () {
           VariableDeclaration outterLetVar = new VariableDeclaration('x',
               type: const DynamicType(), initializer: new IntLiteral(42));
           VariableDeclaration innerLetVar = new VariableDeclaration('x',
-              type: const BottomType(), initializer: new NullLiteral());
+              type: const NullType(), initializer: new NullLiteral());
           return new ExpressionStatement(new Let(outterLetVar,
               new Let(innerLetVar, new VariableGet(innerLetVar))));
         }(),
         expectation: ''
             '(expr (let "x^0" () (dynamic) (int 42) ()'
-            ' (let "x^1" () (bottom) (null) ()'
+            ' (let "x^1" () (null-type) (null) ()'
             ' (get-var "x^1" _))))',
         serializer: statementSerializer),
     () {

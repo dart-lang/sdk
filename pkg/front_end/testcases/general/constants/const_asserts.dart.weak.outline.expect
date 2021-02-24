@@ -26,7 +26,7 @@ class Foo extends core::Object /*hasConstConstructor*/  {
     : self::Foo::x = x, assert(x.{core::num::<}(0), x), super core::Object::•()
     ;
   const constructor withInvalidCondition(core::int* x) → self::Foo*
-    : self::Foo::x = x, assert(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/constants/const_asserts.dart:17:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+    : self::Foo::x = x, assert(let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/constants/const_asserts.dart:17:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
   const Foo.withInvalidCondition(this.x) : assert(x);
                                                   ^" in x as{TypeError} core::bool*), super core::Object::•()
     ;

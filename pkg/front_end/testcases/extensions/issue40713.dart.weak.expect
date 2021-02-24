@@ -32,7 +32,7 @@ static method errors() → void {
   list.safeFirst();
        ^^^^^^^^^";
   final core::List<(core::int*) →* void>* list2 = <(core::int*) →* void>[];
-  let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/extensions/issue40713.dart:24:18: Error: Too few positional arguments: 1 required, 0 given.
+  let final Never* #t1 = invalid-expression "pkg/front_end/testcases/extensions/issue40713.dart:24:18: Error: Too few positional arguments: 1 required, 0 given.
   list2.safeFirst();
                  ^" in self::SafeAccess|get#safeFirst<(core::int*) →* void>(list2).call();
 }
