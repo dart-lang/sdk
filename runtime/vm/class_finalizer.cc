@@ -436,6 +436,19 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
         if (!arguments.IsNull()) {
           type_arg = arguments.TypeAt(i);
           // The parsed type_arg may or may not be finalized.
+          if (type_arg.IsTypeRef()) {
+            // Dereferencing the TypeRef 'rotates' the cycle in the recursive
+            // type argument, so that the top level type arguments of the type
+            // do not start with a TypeRef, for better readability and possibly
+            // fewer later dereferences in various type traversal routines.
+            // This rotation is not required for correctness.
+            // The cycle containing TypeRefs always involves type arguments of
+            // the super class in the flatten argument vector, so it is safe to
+            // remove TypeRefs from type arguments corresponding to the type
+            // parameters of the type class.
+            // Such TypeRefs may appear after instantiation of types at runtime.
+            type_arg = TypeRef::Cast(type_arg).type();
+          }
         }
         full_arguments.SetTypeAt(offset + i, type_arg);
       }
