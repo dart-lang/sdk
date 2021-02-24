@@ -1914,7 +1914,8 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   }
 
   Future<ServiceObject> eval(ServiceObject target, String expression,
-      {Map<String, ServiceObject>? scope, bool disableBreakpoints: false}) {
+      {Map<String, ServiceObject>? scope,
+      bool disableBreakpoints: false}) async {
     Map params = {
       'targetId': target.id,
       'expression': expression,
@@ -1927,7 +1928,24 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       });
       params["scope"] = scopeWithIds;
     }
-    return invokeRpc('evaluate', params);
+    try {
+      return await invokeRpc('evaluate', params);
+    } on ServerRpcException catch (error) {
+      if (error.code == ServerRpcException.kExpressionCompilationError) {
+        final String details =
+            error.data != null ? error.data!["details"]?.toString() ?? "" : "";
+        Map map = {
+          'type': 'Error',
+          'message': details,
+          'kind': 'LanguageError',
+          'exception': null,
+          'stacktrace': null,
+        };
+        return ServiceObject._fromMap(null, map);
+      } else {
+        rethrow;
+      }
+    }
   }
 
   Future<ServiceObject> evalFrame(int frameIndex, String expression,
@@ -1950,9 +1968,10 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       return await invokeRpc('evaluateInFrame', params);
     } on ServerRpcException catch (error) {
       if (error.code == ServerRpcException.kExpressionCompilationError) {
+        String details = error.data?["details"].toString() ?? "";
         Map map = {
           'type': 'Error',
-          'message': error.data.toString(),
+          'message': details,
           'kind': 'LanguageError',
           'exception': null,
           'stacktrace': null,
