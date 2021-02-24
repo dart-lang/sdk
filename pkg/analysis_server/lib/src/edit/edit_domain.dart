@@ -790,7 +790,7 @@ length: $length
       return _computeAnalysisOptionsFixes(file, offset);
     } else if (file_paths.isPubspecYaml(pathContext, file)) {
       return _computePubspecFixes(file, offset);
-    } else if (pathContext.basename(file) == 'manifest.xml') {
+    } else if (file_paths.isAndroidManifestXml(pathContext, file)) {
       // TODO(brianwilkerson) Do we need to check more than the file name?
       return _computeManifestFixes(file, offset);
     }
