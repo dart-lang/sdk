@@ -210,7 +210,6 @@ codebase
 codec
 codes
 collision
-colorized
 com
 combinations
 combinator

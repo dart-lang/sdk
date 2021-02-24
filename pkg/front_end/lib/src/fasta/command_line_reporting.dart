@@ -21,7 +21,7 @@ import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
     show $CARET, $SPACE, $TAB;
 
 import 'package:_fe_analyzer_shared/src/util/colors.dart'
-    show green, magenta, red, yellow;
+    show enableColors, green, magenta, red, yellow;
 
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
@@ -34,7 +34,7 @@ import 'compiler_context.dart' show CompilerContext;
 
 import 'crash.dart' show Crash, safeToString;
 
-import 'fasta_codes.dart' show LocatedMessage, PlainAndColorizedString;
+import 'fasta_codes.dart' show LocatedMessage;
 
 import 'messages.dart' show getLocation, getSourceLine;
 
@@ -42,10 +42,10 @@ import 'problems.dart' show unhandled;
 
 const bool hideWarnings = false;
 
-/// Formats [message] as two strings that is suitable for output from a
-/// command-line tool. This includes source snippets and - in the colorized
-/// version - different colors based on [severity].
-PlainAndColorizedString format(LocatedMessage message, Severity severity,
+/// Formats [message] as a string that is suitable for output from a
+/// command-line tool. This includes source snippets and different colors based
+/// on [severity].
+String format(LocatedMessage message, Severity severity,
     {Location location, Map<Uri, Source> uriToSource}) {
   try {
     int length = message.length;
@@ -55,34 +55,34 @@ PlainAndColorizedString format(LocatedMessage message, Severity severity,
       length = 1;
     }
     String prefix = severityPrefixes[severity];
-    String messageTextTmp =
+    String messageText =
         prefix == null ? message.message : "$prefix: ${message.message}";
     if (message.tip != null) {
-      messageTextTmp += "\n${message.tip}";
+      messageText += "\n${message.tip}";
     }
-    final String messageTextPlain = messageTextTmp;
-    String messageTextColorized;
-    switch (severity) {
-      case Severity.error:
-      case Severity.internalProblem:
-        messageTextColorized = red(messageTextPlain);
-        break;
+    if (enableColors) {
+      switch (severity) {
+        case Severity.error:
+        case Severity.internalProblem:
+          messageText = red(messageText);
+          break;
 
-      case Severity.warning:
-        messageTextColorized = magenta(messageTextPlain);
-        break;
+        case Severity.warning:
+          messageText = magenta(messageText);
+          break;
 
-      case Severity.context:
-        messageTextColorized = green(messageTextPlain);
-        break;
+        case Severity.context:
+          messageText = green(messageText);
+          break;
 
-      case Severity.info:
-        messageTextColorized = yellow(messageTextPlain);
-        break;
+        case Severity.info:
+          messageText = yellow(messageText);
+          break;
 
-      case Severity.ignored:
-      default:
-        return unhandled("$severity", "format", -1, null);
+        case Severity.ignored:
+        default:
+          return unhandled("$severity", "format", -1, null);
+      }
     }
 
     if (message.uri != null) {
@@ -94,17 +94,10 @@ PlainAndColorizedString format(LocatedMessage message, Severity severity,
         location = null;
       }
       String sourceLine = getSourceLine(location, uriToSource);
-      return new PlainAndColorizedString(
-        formatErrorMessage(
-            sourceLine, location, length, path, messageTextPlain),
-        formatErrorMessage(
-            sourceLine, location, length, path, messageTextColorized),
-      );
+      return formatErrorMessage(
+          sourceLine, location, length, path, messageText);
     } else {
-      return new PlainAndColorizedString(
-        messageTextPlain,
-        messageTextColorized,
-      );
+      return messageText;
     }
   } catch (error, trace) {
     print("Crash when formatting: "

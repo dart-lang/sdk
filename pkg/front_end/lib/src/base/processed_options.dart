@@ -45,7 +45,6 @@ import '../fasta/fasta_codes.dart'
         FormattedMessage,
         LocatedMessage,
         Message,
-        PlainAndColorizedString,
         messageCantInferPackagesFromManyInputs,
         messageCantInferPackagesFromPackageUri,
         messageCompilingWithSoundNullSafety,
@@ -217,7 +216,7 @@ class ProcessedOptions {
     int offset = message.charOffset;
     Uri uri = message.uri;
     Location location = offset == -1 ? null : getLocation(uri, offset);
-    PlainAndColorizedString formatted =
+    String formatted =
         command_line_reporting.format(message, severity, location: location);
     List<FormattedMessage> formattedContext;
     if (context != null && context.isNotEmpty) {

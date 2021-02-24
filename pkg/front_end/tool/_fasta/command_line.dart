@@ -24,7 +24,6 @@ import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
-import 'package:front_end/src/api_prototype/terminal_color_support.dart';
 import 'package:front_end/src/base/nnbd_mode.dart';
 
 import 'package:front_end/src/base/processed_options.dart'
@@ -40,10 +39,9 @@ import 'package:front_end/src/base/command_line_options.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show
         Message,
-        PlainAndColorizedString,
+        templateFastaCLIArgumentRequired,
         messageFastaUsageLong,
         messageFastaUsageShort,
-        templateFastaCLIArgumentRequired,
         templateUnspecified;
 
 import 'package:front_end/src/fasta/problems.dart' show DebugAbort;
@@ -442,18 +440,10 @@ Future<T> withGlobalOptions<T>(
     problem = e;
   }
 
-  return CompilerContext.runWithOptions<T>(options, (CompilerContext c) {
+  return CompilerContext.runWithOptions<T>(options, (c) {
     if (problem != null) {
       print(computeUsage(programName, options.verbose).message);
-      PlainAndColorizedString formatted =
-          c.format(problem.message.withoutLocation(), Severity.error);
-      String formattedText;
-      if (enableColors) {
-        formattedText = formatted.colorized;
-      } else {
-        formattedText = formatted.plain;
-      }
-      print(formattedText);
+      print(c.formatWithoutLocation(problem.message, Severity.error));
       exit(1);
     }
 
