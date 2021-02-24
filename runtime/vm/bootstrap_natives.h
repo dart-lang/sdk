@@ -51,6 +51,7 @@ namespace dart {
   V(Integer_parse, 1)                                                          \
   V(Integer_shlFromInteger, 2)                                                 \
   V(Integer_shrFromInteger, 2)                                                 \
+  V(Integer_ushrFromInteger, 2)                                                \
   V(Bool_fromEnvironment, 3)                                                   \
   V(Bool_hasEnvironment, 2)                                                    \
   V(CapabilityImpl_factory, 1)                                                 \

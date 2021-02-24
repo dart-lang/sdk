@@ -2118,6 +2118,7 @@ bool BinaryInt32OpInstr::ComputeCanDeoptimize() const {
     case Token::kSHR:
       return false;
 
+    case Token::kUSHR:
     case Token::kSHL:
       // Currently only shifts by in range constant are supported, see
       // BinaryInt32OpInstr::IsSupported.
@@ -2142,6 +2143,7 @@ bool BinarySmiOpInstr::ComputeCanDeoptimize() const {
     case Token::kSHR:
       return !RangeUtils::IsPositive(right_range());
 
+    case Token::kUSHR:
     case Token::kSHL:
       return can_overflow() || !RangeUtils::IsPositive(right_range());
 
@@ -2344,8 +2346,9 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
     case Token::kTRUNCDIV:
       if (representation != kTagged) break;
       FALL_THROUGH;
-    case Token::kSHR:
     case Token::kSHL:
+    case Token::kSHR:
+    case Token::kUSHR:
       if (auto const const_def = right->definition()->AsConstant()) {
         right_range = new Range();
         const_def->InferRange(nullptr, right_range);
@@ -2365,7 +2368,8 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
       op = new BinaryInt32OpInstr(op_kind, left, right, deopt_id);
       break;
     case kUnboxedUint32:
-      if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
+      if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
+          (op_kind == Token::kUSHR)) {
         if (speculative_mode == kNotSpeculative) {
           op = new ShiftUint32OpInstr(op_kind, left, right, deopt_id,
                                       right_range);
@@ -2378,7 +2382,8 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
       }
       break;
     case kUnboxedInt64:
-      if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
+      if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
+          (op_kind == Token::kUSHR)) {
         if (speculative_mode == kNotSpeculative) {
           op = new ShiftInt64OpInstr(op_kind, left, right, deopt_id,
                                      right_range);
@@ -2631,6 +2636,12 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       }
       break;
 
+    case Token::kUSHR:
+      if (rhs >= kBitsPerInt64) {
+        return flow_graph->TryCreateConstantReplacementFor(this,
+                                                           Object::smi_zero());
+      }
+      FALL_THROUGH;
     case Token::kSHR:
       if (rhs == 0) {
         return left()->definition();

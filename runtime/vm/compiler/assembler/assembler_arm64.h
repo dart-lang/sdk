@@ -1530,6 +1530,18 @@ class Assembler : public AssemblerBase {
     LslImmediate(dst, src, kSmiTagSize);
   }
 
+  void SmiTagAndBranchIfOverflow(Register reg, Label* label) {
+    COMPILE_ASSERT(kSmiTag == 0);
+    adds(reg, reg, compiler::Operand(reg));  // SmiTag
+    // If the value doesn't fit in a smi, the tagging changes the sign,
+    // which causes the overflow flag to be set.
+    b(label, OVERFLOW);
+#if defined(DART_COMPRESSED_POINTERS)
+    cmp(reg, compiler::Operand(reg, SXTW, 0));
+    b(label, NOT_EQUAL);
+#endif  // defined(DART_COMPRESSED_POINTERS)
+  }
+
   // For ARM, the near argument is ignored.
   void BranchIfNotSmi(Register reg,
                       Label* label,

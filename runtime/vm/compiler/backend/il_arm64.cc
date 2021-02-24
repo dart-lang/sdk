@@ -3600,15 +3600,22 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ b(slow_path->entry_label(), NE);  // Overflow.
       break;
     case Token::kSHR:
+    case Token::kUSHR:
       ASSERT(result != left);
       ASSERT(result != right);
-      __ CompareImmediate(right, static_cast<int64_t>(Smi::New(Smi::kBits)));
-      __ b(slow_path->entry_label(), CS);
+      __ CompareImmediate(right, static_cast<int64_t>(Smi::New(kBitsPerInt64)));
+      __ b(slow_path->entry_label(), UNSIGNED_GREATER_EQUAL);
 
       __ SmiUntag(result, right);
       __ SmiUntag(TMP, left);
-      __ asrv(result, TMP, result);
-      __ SmiTag(result);
+      if (op_kind() == Token::kSHR) {
+        __ asrv(result, TMP, result);
+        __ SmiTag(result);
+      } else {
+        ASSERT(op_kind() == Token::kUSHR);
+        __ lsrv(result, TMP, result);
+        __ SmiTagAndBranchIfOverflow(result, slow_path->entry_label());
+      }
       break;
     default:
       UNIMPLEMENTED();
@@ -3770,10 +3777,11 @@ void CheckedSmiComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = (((op_kind() == Token::kSHL) && can_overflow()) ||
-                              (op_kind() == Token::kSHR))
-                                 ? 1
-                                 : 0;
+  const intptr_t kNumTemps =
+      (((op_kind() == Token::kSHL) && can_overflow()) ||
+       (op_kind() == Token::kSHR) || (op_kind() == Token::kUSHR))
+          ? 1
+          : 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   if (op_kind() == Token::kTRUNCDIV) {
@@ -3796,7 +3804,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, LocationRegisterOrSmiConstant(right()));
   if (((op_kind() == Token::kSHL) && can_overflow()) ||
-      (op_kind() == Token::kSHR)) {
+      (op_kind() == Token::kSHR) || (op_kind() == Token::kUSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
   }
   // We make use of 3-operand instructions by not requiring result register
@@ -3921,6 +3929,22 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ SmiTag(result);
         break;
       }
+      case Token::kUSHR: {
+        // Lsr operation masks the count to 6 bits, but
+        // unsigned shifts by >= kBitsPerInt64 are eliminated by
+        // BinaryIntegerOpInstr::Canonicalize.
+        const intptr_t kCountLimit = 0x3F;
+        intptr_t value = Smi::Cast(constant).Value();
+        ASSERT((value >= 0) && (value <= kCountLimit));
+        __ SmiUntag(left);
+        __ LsrImmediate(result, left, value);
+        if (deopt != nullptr) {
+          __ SmiTagAndBranchIfOverflow(result, deopt);
+        } else {
+          __ SmiTag(result);
+        }
+        break;
+      }
       default:
         UNREACHABLE();
         break;
@@ -3998,8 +4022,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kTRUNCDIV: {
       if (RangeUtils::CanBeZero(right_range())) {
         // Handle divide by zero in runtime.
-        __ CompareRegisters(right, ZR);
-        __ b(deopt, EQ);
+        __ cbz(deopt, right);
       }
       const Register temp = TMP2;
       __ SmiUntag(temp, left);
@@ -4022,8 +4045,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kMOD: {
       if (RangeUtils::CanBeZero(right_range())) {
         // Handle divide by zero in runtime.
-        __ CompareRegisters(right, ZR);
-        __ b(deopt, EQ);
+        __ cbz(deopt, right);
       }
       const Register temp = TMP2;
       __ SmiUntag(temp, left);
@@ -4055,11 +4077,10 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case Token::kSHR: {
       if (CanDeoptimize()) {
-        __ CompareRegisters(right, ZR);
-        __ b(deopt, LT);
+        __ tbnz(deopt, right, compiler::target::kSmiBits + kSmiTagSize);
       }
       __ SmiUntag(TMP, right);
-      // sarl operation masks the count to 6 bits.
+      // asrv operation masks the count to 6 bits.
       const intptr_t kCountLimit = 0x3F;
       if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(), kCountLimit)) {
         __ LoadImmediate(TMP2, kCountLimit);
@@ -4070,6 +4091,32 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(temp, left);
       __ asrv(result, temp, TMP);
       __ SmiTag(result);
+      break;
+    }
+    case Token::kUSHR: {
+      if (CanDeoptimize()) {
+        __ tbnz(deopt, right, compiler::target::kSmiBits + kSmiTagSize);
+      }
+      __ SmiUntag(TMP, right);
+      // lsrv operation masks the count to 6 bits.
+      const intptr_t kCountLimit = 0x3F;
+      COMPILE_ASSERT(kCountLimit + 1 == kBitsPerInt64);
+      compiler::Label done;
+      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(), kCountLimit)) {
+        __ LoadImmediate(TMP2, kCountLimit);
+        __ CompareRegisters(TMP, TMP2);
+        __ csel(result, ZR, result, GT);
+        __ b(&done, GT);
+      }
+      const Register temp = locs()->temp(0).reg();
+      __ SmiUntag(temp, left);
+      __ lsrv(result, temp, TMP);
+      if (deopt != nullptr) {
+        __ SmiTagAndBranchIfOverflow(result, deopt);
+      } else {
+        __ SmiTag(result);
+      }
+      __ Bind(&done);
       break;
     }
     case Token::kDIV: {
@@ -6144,6 +6191,11 @@ static void EmitShiftInt64ByConstant(FlowGraphCompiler* compiler,
                       Utils::Minimum<int64_t>(shift, kBitsPerWord - 1));
       break;
     }
+    case Token::kUSHR: {
+      ASSERT(shift < 64);
+      __ LsrImmediate(out, left, shift);
+      break;
+    }
     case Token::kSHL: {
       ASSERT(shift < 64);
       __ LslImmediate(out, left, shift);
@@ -6162,6 +6214,10 @@ static void EmitShiftInt64ByRegister(FlowGraphCompiler* compiler,
   switch (op_kind) {
     case Token::kSHR: {
       __ asrv(out, left, right);
+      break;
+    }
+    case Token::kUSHR: {
+      __ lsrv(out, left, right);
       break;
     }
     case Token::kSHL: {
@@ -6185,6 +6241,7 @@ static void EmitShiftUint32ByConstant(FlowGraphCompiler* compiler,
   } else {
     switch (op_kind) {
       case Token::kSHR:
+      case Token::kUSHR:
         __ LsrImmediate(out, left, shift, compiler::kFourBytes);
         break;
       case Token::kSHL:
@@ -6203,6 +6260,7 @@ static void EmitShiftUint32ByRegister(FlowGraphCompiler* compiler,
                                       Register right) {
   switch (op_kind) {
     case Token::kSHR:
+    case Token::kUSHR:
       __ lsrvw(out, left, right);
       break;
     case Token::kSHL:
@@ -6235,6 +6293,7 @@ class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
       case Token::kSHR:
         __ AsrImmediate(out, left, kBitsPerWord - 1);
         break;
+      case Token::kUSHR:
       case Token::kSHL:
         __ mov(out, ZR);
         break;

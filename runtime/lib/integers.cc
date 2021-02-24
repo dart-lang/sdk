@@ -224,6 +224,19 @@ DEFINE_NATIVE_ENTRY(Integer_shrFromInteger, 0, 2) {
   return ShiftOperationHelper(Token::kSHR, value, amount);
 }
 
+DEFINE_NATIVE_ENTRY(Integer_ushrFromInteger, 0, 2) {
+  const Integer& amount =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, value, arguments->NativeArgAt(1));
+  ASSERT(CheckInteger(amount));
+  ASSERT(CheckInteger(value));
+  if (FLAG_trace_intrinsified_natives) {
+    OS::PrintErr("Integer_ushrFromInteger: %s >>> %s\n", value.ToCString(),
+                 amount.ToCString());
+  }
+  return ShiftOperationHelper(Token::kUSHR, value, amount);
+}
+
 DEFINE_NATIVE_ENTRY(Integer_shlFromInteger, 0, 2) {
   const Integer& amount =
       Integer::CheckedHandle(zone, arguments->NativeArgAt(0));

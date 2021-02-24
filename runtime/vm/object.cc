@@ -21842,6 +21842,9 @@ IntegerPtr Integer::ShiftOp(Token::Kind kind,
       return Integer::New(Utils::ShiftLeftWithTruncation(a, b), space);
     case Token::kSHR:
       return Integer::New(a >> Utils::Minimum<int64_t>(b, Mint::kBits), space);
+    case Token::kUSHR:
+      return Integer::New(
+          (b >= kBitsPerInt64) ? 0 : static_cast<uint64_t>(a) >> b, space);
     default:
       UNIMPLEMENTED();
       return Integer::null();

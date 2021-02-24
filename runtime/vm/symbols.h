@@ -288,6 +288,7 @@ class ObjectPointerVisitor;
   V(Uint8ClampedList, "Uint8ClampedList")                                      \
   V(Uint8List, "Uint8List")                                                    \
   V(UnaryMinus, "unary-")                                                      \
+  V(UnsignedRightShiftOperator, ">>>")                                         \
   V(UnhandledException, "UnhandledException")                                  \
   V(UnlinkedCall, "UnlinkedCall")                                              \
   V(UnsafeCast, "unsafeCast")                                                  \

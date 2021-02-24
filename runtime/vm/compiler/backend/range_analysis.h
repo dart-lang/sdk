@@ -476,6 +476,11 @@ class Range : public ZoneAllocated {
                   RangeBoundary* min,
                   RangeBoundary* max);
 
+  static void Ushr(const Range* left_range,
+                   const Range* right_range,
+                   RangeBoundary* min,
+                   RangeBoundary* max);
+
   static void Shl(const Range* left_range,
                   const Range* right_range,
                   RangeBoundary* min,

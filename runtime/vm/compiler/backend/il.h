@@ -7828,6 +7828,7 @@ class BinaryInt32OpInstr : public BinaryIntegerOpInstr {
 
       case Token::kSHL:
       case Token::kSHR:
+      case Token::kUSHR:
         if (right->BindsToConstant() && right->BoundConstant().IsSmi()) {
           const intptr_t value = Smi::Cast(right->BoundConstant()).Value();
           return 0 <= value && value < kBitsPerWord;
@@ -7958,7 +7959,8 @@ class ShiftIntegerOpInstr : public BinaryIntegerOpInstr {
                       Range* right_range = nullptr)
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
         shift_range_(right_range) {
-    ASSERT((op_kind == Token::kSHR) || (op_kind == Token::kSHL));
+    ASSERT((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
+           (op_kind == Token::kUSHR));
     mark_truncating();
   }
 

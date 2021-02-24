@@ -315,6 +315,8 @@ static Token::Kind RecognizeTokenKindHelper(const String& name) {
     return Token::kSHL;
   } else if (name.ptr() == Symbols::RightShiftOperator().ptr()) {
     return Token::kSHR;
+  } else if (name.ptr() == Symbols::UnsignedRightShiftOperator().ptr()) {
+    return Token::kUSHR;
   } else if (name.ptr() == Symbols::Tilde().ptr()) {
     return Token::kBIT_NOT;
   } else if (name.ptr() == Symbols::UnaryMinus().ptr()) {

@@ -571,10 +571,11 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         return false;
       }
       break;
-    case Token::kSHR:
     case Token::kSHL:
+    case Token::kSHR:
+    case Token::kUSHR:
       if (binary_feedback.OperandsAre(kSmiCid)) {
-        // Left shift may overflow from smi into mint or big ints.
+        // Left shift may overflow from smi into mint.
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
         if (call->ic_data()->HasDeoptReason(ICData::kDeoptBinaryInt64Op)) {
@@ -638,7 +639,8 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     ReplaceCall(call, double_bin_op);
   } else if (operands_type == kMintCid) {
     if (!FlowGraphCompiler::SupportsUnboxedInt64()) return false;
-    if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
+    if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
+        (op_kind == Token::kUSHR)) {
       SpeculativeShiftInt64OpInstr* shift_op = new (Z)
           SpeculativeShiftInt64OpInstr(op_kind, new (Z) Value(left),
                                        new (Z) Value(right), call->deopt_id());
