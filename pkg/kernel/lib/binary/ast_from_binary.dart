@@ -1208,9 +1208,9 @@ class BinaryBuilder {
   List<Combinator> readCombinatorList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      return const [];
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfCombinator;
     }
     return new List<Combinator>.generate(length, (_) => readCombinator(),
         growable: useGrowableLists);
@@ -1799,7 +1799,7 @@ class BinaryBuilder {
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use a
       // constant one for the empty list.
-      return const [];
+      return emptyListOfExpression;
     }
     return new List<Expression>.generate(length, (_) => readExpression(),
         growable: useGrowableLists);
@@ -2267,9 +2267,9 @@ class BinaryBuilder {
     List<AssertStatement> asserts;
 
     if (!useGrowableLists && assertCount == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      asserts = const [];
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      asserts = emptyListOfAssertStatement;
     } else {
       asserts = new List<AssertStatement>.generate(
           assertCount, (_) => readStatement(),
@@ -2466,9 +2466,9 @@ class BinaryBuilder {
   List<Statement> readStatementList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      return const [];
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfStatement;
     }
     return new List<Statement>.generate(length, (_) => readStatement(),
         growable: useGrowableLists);
@@ -2616,9 +2616,9 @@ class BinaryBuilder {
     int count = readUInt30();
     List<SwitchCase> cases;
     if (!useGrowableLists && count == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      cases = const [];
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      cases = emptyListOfSwitchCase;
     } else {
       cases = new List<SwitchCase>.generate(
           count,
@@ -2702,9 +2702,9 @@ class BinaryBuilder {
   List<Catch> readCatchList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      return const [];
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfCatch;
     }
     return new List<Catch>.generate(length, (_) => readCatch(),
         growable: useGrowableLists);
@@ -2757,9 +2757,9 @@ class BinaryBuilder {
   List<Supertype> readSupertypeList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      return const [];
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfSupertype;
     }
     return new List<Supertype>.generate(length, (_) => readSupertype(),
         growable: useGrowableLists);
@@ -2768,9 +2768,9 @@ class BinaryBuilder {
   List<DartType> readDartTypeList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      return const [];
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfDartType;
     }
     return new List<DartType>.generate(length, (_) => readDartType(),
         growable: useGrowableLists);
@@ -2781,7 +2781,7 @@ class BinaryBuilder {
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use a
       // constant one for the empty list.
-      return const [];
+      return emptyListOfNamedType;
     }
     return new List<NamedType>.generate(length, (_) => readNamedType(),
         growable: useGrowableLists);
@@ -2971,9 +2971,9 @@ class BinaryBuilder {
   List<NamedExpression> readNamedExpressionList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      return const [];
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost-constant one for the empty list.
+      return emptyListOfNamedExpression;
     }
     return new List<NamedExpression>.generate(
         length, (_) => readNamedExpression(),
@@ -2987,9 +2987,9 @@ class BinaryBuilder {
   List<VariableDeclaration> readAndPushVariableDeclarationList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      return const [];
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfVariableDeclaration;
     }
     return new List<VariableDeclaration>.generate(
         length, (_) => readAndPushVariableDeclaration(),

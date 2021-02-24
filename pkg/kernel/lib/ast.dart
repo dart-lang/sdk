@@ -13355,6 +13355,61 @@ class Version extends Object {
   }
 }
 
+/// Almost const <NamedExpression>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<NamedExpression> emptyListOfNamedExpression =
+    List.filled(0, dummyNamedExpression, growable: false);
+
+/// Almost const <VariableDeclaration>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<VariableDeclaration> emptyListOfVariableDeclaration =
+    List.filled(0, dummyVariableDeclaration, growable: false);
+
+/// Almost const <Combinator>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Combinator> emptyListOfCombinator =
+    List.filled(0, dummyCombinator, growable: false);
+
+/// Almost const <Expression>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Expression> emptyListOfExpression =
+    List.filled(0, dummyExpression, growable: false);
+
+/// Almost const <AssertStatement>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<AssertStatement> emptyListOfAssertStatement =
+    List.filled(0, dummyAssertStatement, growable: false);
+
+/// Almost const <Statement>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Statement> emptyListOfStatement =
+    List.filled(0, dummyStatement, growable: false);
+
+/// Almost const <SwitchCase>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<SwitchCase> emptyListOfSwitchCase =
+    List.filled(0, dummySwitchCase, growable: false);
+
+/// Almost const <Catch>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Catch> emptyListOfCatch =
+    List.filled(0, dummyCatch, growable: false);
+
+/// Almost const <Supertype>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Supertype> emptyListOfSupertype =
+    List.filled(0, dummySupertype, growable: false);
+
+/// Almost const <DartType>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<DartType> emptyListOfDartType =
+    List.filled(0, dummyDartType, growable: false);
+
+/// Almost const <NamedType>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<NamedType> emptyListOfNamedType =
+    List.filled(0, dummyNamedType, growable: false);
+
 /// Non-nullable [DartType] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
