@@ -37,6 +37,9 @@ html/xhr_test/xhr: Skip # Times out.  Issue 21527
 html/js_interop_constructor_name/*: SkipByDesign # Issue 42085.
 isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
 js/instanceof_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/js_util/async_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/js_util/jsify_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/js_util/properties_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/method_call_on_object_test: SkipByDesign # Issue 42085.
 js/mock_test/*: SkipByDesign # Issue 42085.
 js/parameters_test: SkipByDesign # Issue 42085.
