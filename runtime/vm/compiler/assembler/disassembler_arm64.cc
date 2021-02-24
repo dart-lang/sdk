@@ -30,6 +30,7 @@ class ARM64Decoder : public ValueObject {
  private:
   // Bottleneck functions to print into the out_buffer.
   void Print(const char* str);
+  void PrintInt(int value);
 
   // Printing of common values.
   void PrintRegister(int reg, R31Type r31t);
@@ -77,6 +78,12 @@ void ARM64Decoder::Print(const char* str) {
     buffer_[buffer_pos_++] = cur;
     cur = *str++;
   }
+  buffer_[buffer_pos_] = '\0';
+}
+
+void ARM64Decoder::PrintInt(int value) {
+  buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                remaining_size_in_buffer(), "%d", value);
   buffer_[buffer_pos_] = '\0';
 }
 
@@ -791,6 +798,7 @@ void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
 }
 
 void ARM64Decoder::DecodeBitfield(Instr* instr) {
+  int reg_size = instr->SFField() == 0 ? 32 : 64;
   int op = instr->Bits(29, 2);
   int r_imm = instr->ImmRField();
   int s_imm = instr->ImmSField();
@@ -808,6 +816,10 @@ void ARM64Decoder::DecodeBitfield(Instr* instr) {
           break;
         }
       }
+      if (s_imm == (reg_size - 1)) {
+        Format(instr, "asr'sf 'rd, 'rn, 'immr");
+        break;
+      }
       Format(instr, "sbfm'sf 'rd, 'rn, 'immr, 'imms");
       break;
     case 1:
@@ -822,6 +834,15 @@ void ARM64Decoder::DecodeBitfield(Instr* instr) {
           Format(instr, "uxth 'rd, 'rn");
           break;
         }
+      }
+      if ((s_imm != (reg_size - 1)) && ((s_imm + 1) == r_imm)) {
+        int shift = reg_size - s_imm;
+        Format(instr, "lsl'sf 'rd, 'rn, ");
+        PrintInt(shift);
+        break;
+      } else if (s_imm == (reg_size - 1)) {
+        Format(instr, "lsr'sf 'rd, 'rn, 'immr");
+        break;
       }
       Format(instr, "ubfm'sf 'rd, 'rn, 'immr, 'imms");
       break;

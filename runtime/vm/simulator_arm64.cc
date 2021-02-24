@@ -1450,7 +1450,7 @@ void Simulator::DecodeBitfield(Instr* instr) {
   result &= mask;
   if (sign_extend) {
     int highest_bit = (s_bit - r_bit) & (bitwidth - 1);
-    int shift = bitwidth - highest_bit - 1;
+    int shift = 64 - highest_bit - 1;
     result <<= shift;
     result = static_cast<word>(result) >> shift;
   } else if (!zero_extend) {

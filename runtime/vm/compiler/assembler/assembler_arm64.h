@@ -1496,6 +1496,7 @@ class Assembler : public AssemblerBase {
                     OperandSize sz = kEightBytes) {
     const int reg_size =
         (sz == kEightBytes) ? kXRegSizeInBits : kWRegSizeInBits;
+    ASSERT((shift >= 0) && (shift < reg_size));
     ubfm(rd, rn, (reg_size - shift) % reg_size, reg_size - shift - 1, sz);
   }
   void LsrImmediate(Register rd,
@@ -1504,11 +1505,17 @@ class Assembler : public AssemblerBase {
                     OperandSize sz = kEightBytes) {
     const int reg_size =
         (sz == kEightBytes) ? kXRegSizeInBits : kWRegSizeInBits;
+    ASSERT((shift >= 0) && (shift < reg_size));
     ubfm(rd, rn, shift, reg_size - 1, sz);
   }
-  void AsrImmediate(Register rd, Register rn, int shift) {
-    const int reg_size = kXRegSizeInBits;
-    sbfm(rd, rn, shift, reg_size - 1);
+  void AsrImmediate(Register rd,
+                    Register rn,
+                    int shift,
+                    OperandSize sz = kEightBytes) {
+    const int reg_size =
+        (sz == kEightBytes) ? kXRegSizeInBits : kWRegSizeInBits;
+    ASSERT((shift >= 0) && (shift < reg_size));
+    sbfm(rd, rn, shift, reg_size - 1, sz);
   }
 
   void VRecps(VRegister vd, VRegister vn);
