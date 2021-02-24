@@ -24,7 +24,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart' show groupBy;
 
 class CodeActionHandler extends MessageHandler<CodeActionParams,
@@ -354,7 +354,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     ResolvedUnitResult unit,
   ) async {
     // The refactor actions supported are only valid for Dart files.
-    if (!AnalysisEngine.isDartFileName(path)) {
+    var pathContext = server.resourceProvider.pathContext;
+    if (!file_paths.isDart(pathContext, path)) {
       return const [];
     }
 
@@ -429,7 +430,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     String path,
   ) async {
     // The source actions supported are only valid for Dart files.
-    if (!AnalysisEngine.isDartFileName(path)) {
+    var pathContext = server.resourceProvider.pathContext;
+    if (!file_paths.isDart(pathContext, path)) {
       return const [];
     }
 

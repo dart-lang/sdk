@@ -46,8 +46,6 @@ import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
 import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer/src/generated/engine.dart' as engine;
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
@@ -498,7 +496,9 @@ class EditDomainHandler extends AbstractRequestHandler {
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }
-    if (!engine.AnalysisEngine.isDartFileName(file)) {
+
+    var pathContext = server.resourceProvider.pathContext;
+    if (!file_paths.isDart(pathContext, file)) {
       server.sendResponse(Response.fileNotAnalyzed(request, file));
       return;
     }
@@ -535,7 +535,9 @@ class EditDomainHandler extends AbstractRequestHandler {
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }
-    if (!engine.AnalysisEngine.isDartFileName(file)) {
+
+    var pathContext = server.resourceProvider.pathContext;
+    if (!file_paths.isDart(pathContext, file)) {
       server.sendResponse(Response.sortMembersInvalidFile(request));
       return;
     }
@@ -782,7 +784,7 @@ length: $length
   Future<List<AnalysisErrorFixes>> _computeServerErrorFixes(
       Request request, String file, int offset) async {
     var pathContext = server.resourceProvider.pathContext;
-    if (AnalysisEngine.isDartFileName(file)) {
+    if (file_paths.isDart(pathContext, file)) {
       return _computeDartFixes(request, file, offset);
     } else if (file_paths.isAnalysisOptionsYaml(pathContext, file)) {
       return _computeAnalysisOptionsFixes(file, offset);

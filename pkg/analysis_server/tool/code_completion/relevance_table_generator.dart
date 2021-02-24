@@ -23,7 +23,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:args/args.dart';
@@ -1477,8 +1477,9 @@ class RelevanceMetricsComputer {
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
     var context = collection.contexts[0];
+    var pathContext = context.contextRoot.resourceProvider.pathContext;
     for (var filePath in context.contextRoot.analyzedFiles()) {
-      if (AnalysisEngine.isDartFileName(filePath)) {
+      if (file_paths.isDart(pathContext, filePath)) {
         try {
           var resolvedUnitResult =
               await context.currentSession.getResolvedUnit(filePath);

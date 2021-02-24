@@ -11,7 +11,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -88,9 +87,6 @@ abstract class AnalysisContext {
 /// The entry point for the functionality provided by the analysis engine. There
 /// is a single instance of this class.
 class AnalysisEngine {
-  /// The suffix used for Dart source files.
-  static const String SUFFIX_DART = "dart";
-
   /// The file name used for analysis options files.
   static const String ANALYSIS_OPTIONS_YAML_FILE = 'analysis_options.yaml';
 
@@ -139,16 +135,6 @@ class AnalysisEngine {
   /// process any other plugins.
   @deprecated
   void processRequiredPlugins() {}
-
-  /// Return `true` if the given [fileName] is assumed to contain Dart source
-  /// code.
-  static bool isDartFileName(String? fileName) {
-    if (fileName == null) {
-      return false;
-    }
-    String extension = FileNameUtilities.getExtension(fileName).toLowerCase();
-    return extension == SUFFIX_DART;
-  }
 }
 
 /// The analysis errors and line information for the errors.

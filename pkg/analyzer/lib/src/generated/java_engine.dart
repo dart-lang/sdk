@@ -10,19 +10,6 @@ export 'package:analyzer/exception/exception.dart';
 /// A predicate is a one-argument function that returns a boolean value.
 typedef Predicate<E> = bool Function(E argument);
 
-class FileNameUtilities {
-  static String getExtension(String? fileName) {
-    if (fileName == null) {
-      return "";
-    }
-    int index = fileName.lastIndexOf('.');
-    if (index >= 0) {
-      return fileName.substring(index + 1);
-    }
-    return "";
-  }
-}
-
 class StringUtilities {
   static const String EMPTY = '';
   static const List<String> EMPTY_ARRAY = <String>[];

@@ -41,8 +41,8 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:args/args.dart';
@@ -901,8 +901,9 @@ class CompletionMetricsComputer {
 
     // Loop through each file, resolve the file and call
     // forEachExpectedCompletion
+    var pathContext = context.contextRoot.resourceProvider.pathContext;
     for (var filePath in context.contextRoot.analyzedFiles()) {
-      if (AnalysisEngine.isDartFileName(filePath)) {
+      if (file_paths.isDart(pathContext, filePath)) {
         try {
           _resolvedUnitResult =
               await context.currentSession.getResolvedUnit(filePath);
