@@ -2,22 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -136,76 +131,6 @@ class ElementFactory {
           ClassElement definingClass, String? name,
           [List<DartType> argumentTypes = const []]) =>
       constructorElement(definingClass, name, false, argumentTypes);
-
-  @deprecated
-  static EnumElementImpl enumElement(TypeProvider typeProvider, String enumName,
-      [List<String> constantNames = const []]) {
-    var typeSystem = TypeSystemImpl(
-      implicitCasts: false,
-      isNonNullableByDefault: false,
-      strictInference: false,
-      typeProvider: typeProvider,
-    );
-    //
-    // Build the enum.
-    //
-    EnumElementImpl enumElement = EnumElementImpl(enumName, -1);
-    var enumType = enumElement.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.star,
-    ) as InterfaceTypeImpl;
-    //
-    // Populate the fields.
-    //
-    List<FieldElement> fields = <FieldElement>[];
-    InterfaceType intType = typeProvider.intType;
-    InterfaceType stringType = typeProvider.stringType;
-    String indexFieldName = "index";
-    FieldElementImpl indexField = FieldElementImpl(indexFieldName, -1);
-    indexField.isFinal = true;
-    indexField.type = intType;
-    fields.add(indexField);
-    String nameFieldName = "_name";
-    FieldElementImpl nameField = FieldElementImpl(nameFieldName, -1);
-    nameField.isFinal = true;
-    nameField.type = stringType;
-    fields.add(nameField);
-    FieldElementImpl valuesField = FieldElementImpl("values", -1);
-    valuesField.isStatic = true;
-    valuesField.isConst = true;
-    valuesField.type = typeProvider.listType2(enumType);
-    fields.add(valuesField);
-    //
-    // Build the enum constants.
-    //
-    {
-      int constantCount = constantNames.length;
-      for (int i = 0; i < constantCount; i++) {
-        String constantName = constantNames[i];
-        FieldElementImpl constantElement =
-            ConstFieldElementImpl(constantName, -1);
-        constantElement.isStatic = true;
-        constantElement.isConst = true;
-        constantElement.type = enumType;
-        Map<String, DartObjectImpl> fieldMap =
-            HashMap<String, DartObjectImpl>();
-        fieldMap[indexFieldName] =
-            DartObjectImpl(typeSystem, intType, IntState(i));
-        fieldMap[nameFieldName] =
-            DartObjectImpl(typeSystem, stringType, StringState(constantName));
-        DartObjectImpl value =
-            DartObjectImpl(typeSystem, enumType, GenericState(fieldMap));
-        constantElement.evaluationResult = EvaluationResultImpl(value);
-        fields.add(constantElement);
-      }
-    }
-    //
-    // Finish building the enum.
-    //
-    enumElement.fields = fields;
-    // Client code isn't allowed to invoke the constructor, so we do not model it.
-    return enumElement;
-  }
 
   static ExportElementImpl exportFor(LibraryElement exportedLibrary,
       [List<NamespaceCombinator> combinators = const <NamespaceCombinator>[]]) {

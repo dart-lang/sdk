@@ -18,8 +18,7 @@ main() {
 }
 
 @reflectiveTest
-class InvalidLanguageOverrideGreaterTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class InvalidLanguageOverrideGreaterTest extends PubPackageResolutionTest {
   @override
   String? get testPackageLanguageVersion => null;
 

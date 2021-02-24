@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class SwitchCaseCompletesNormallyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class SwitchCaseCompletesNormallyTest extends PubPackageResolutionTest {
   test_break() async {
     await assertNoErrorsInCode(r'''
 void f(int a) {

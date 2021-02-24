@@ -94,4 +94,4 @@ var main = 0;
 
 @reflectiveTest
 class MainIsNotFunctionWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin, MainIsNotFunctionTestCases {}
+    with MainIsNotFunctionTestCases {}

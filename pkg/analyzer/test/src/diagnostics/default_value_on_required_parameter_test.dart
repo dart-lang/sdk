@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class DefaultValueOnRequiredParameterTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class DefaultValueOnRequiredParameterTest extends PubPackageResolutionTest {
   test_function_notRequired_default() async {
     await assertNoErrorsInCode('''
 void log({String message: 'no message'}) {}

@@ -140,11 +140,11 @@ vars = {
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "7e5ec82c99677a2e5b95ce296c4d68b0d3378ed8",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
-  "shelf_static_rev": "779a6e99b320ce9ed4ff6b88bd0cdc40ea5c62c4",
-  "shelf_packages_handler_tag": "2.0.0",
+  "shelf_static_rev": "bafde9eaddb5d02040a614e41deddd971b4d67e6",
+  "shelf_packages_handler_rev": "78302e67c035047e6348e692b0c1182131f0fe35",
   "shelf_proxy_tag": "0.1.0+7",
   "shelf_rev": "fa5afaa38bd51dedeeaa25b7bfd8822cabbcc57f",
-  "shelf_web_socket_rev": "dedd6040d45159bd0661eb5252c7e936d6b7514a",
+  "shelf_web_socket_rev": "091d2ed2105827b7f376668fafc88b2b8c845d71",
   "source_map_stack_trace_rev": "1c3026f69d9771acf2f8c176a1ab750463309cce",
   "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "53eb92ccfe6e64924054f83038a534b959b12b3e",
@@ -407,7 +407,7 @@ deps = {
       Var("dart_git") + "shelf.git" + "@" + Var("shelf_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_packages_handler":
       Var("dart_git") + "shelf_packages_handler.git"
-      + "@" + Var("shelf_packages_handler_tag"),
+      + "@" + Var("shelf_packages_handler_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_proxy":
       Var("dart_git") + "shelf_proxy.git" + "@" + Var("shelf_proxy_tag"),
   Var("dart_root") + "/third_party/pkg/shelf_static":

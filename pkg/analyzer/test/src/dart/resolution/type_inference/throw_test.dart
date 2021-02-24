@@ -13,8 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class ThrowWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class ThrowWithNullSafetyTest extends PubPackageResolutionTest {
   test_downward() async {
     await resolveTestCode('''
 void f() {

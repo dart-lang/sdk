@@ -216,8 +216,7 @@ class B extends A {
 }
 
 @reflectiveTest
-class MissingReturnWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class MissingReturnWithNullSafetyTest extends PubPackageResolutionTest {
   test_returnNever() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 Never foo() {

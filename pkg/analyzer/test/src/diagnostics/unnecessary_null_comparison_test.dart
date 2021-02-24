@@ -15,8 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class UnnecessaryNullComparisonFalseTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class UnnecessaryNullComparisonFalseTest extends PubPackageResolutionTest {
   test_equal_intLiteral() async {
     await assertNoErrorsInCode('''
 f(int a, int? b) {
@@ -79,8 +78,7 @@ f(int? a) {
 }
 
 @reflectiveTest
-class UnnecessaryNullComparisonTrueTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class UnnecessaryNullComparisonTrueTest extends PubPackageResolutionTest {
   test_notEqual_intLiteral() async {
     await assertNoErrorsInCode('''
 f(int a, int? b) {

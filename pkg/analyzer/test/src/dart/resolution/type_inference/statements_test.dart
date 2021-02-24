@@ -17,8 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class AssertWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class AssertWithNullSafetyTest extends PubPackageResolutionTest {
   test_downward() async {
     await resolveTestCode('''
 void f() {
@@ -31,8 +30,7 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class DoWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class DoWithNullSafetyTest extends PubPackageResolutionTest {
   test_downward() async {
     await resolveTestCode('''
 void f() {
@@ -45,8 +43,7 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class ForWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class ForWithNullSafetyTest extends PubPackageResolutionTest {
   test_awaitForIn_dynamic_downward() async {
     await resolveTestCode('''
 void f() async {
@@ -102,8 +99,7 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class IfWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class IfWithNullSafetyTest extends PubPackageResolutionTest {
   test_downward() async {
     await resolveTestCode('''
 void f() {
@@ -116,8 +112,7 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class WhileWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class WhileWithNullSafetyTest extends PubPackageResolutionTest {
   test_downward() async {
     await resolveTestCode('''
 void f() {

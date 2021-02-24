@@ -1235,6 +1235,8 @@ class KernelTarget extends TargetImplementation {
         evaluateAnnotations: true,
         enableTripleShift:
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
+        enableConstFunctions:
+            isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
 
@@ -1283,6 +1285,8 @@ class KernelTarget extends TargetImplementation {
         evaluateAnnotations: true,
         enableTripleShift:
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
+        enableConstFunctions:
+            isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
 

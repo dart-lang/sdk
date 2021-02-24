@@ -95,9 +95,7 @@ void main(args, int a, int b, {int c = 0}) {}
 @reflectiveTest
 class MainHasTooManyRequiredPositionalParametersWithNullSafetyTest
     extends PubPackageResolutionTest
-    with
-        WithNullSafetyMixin,
-        MainHasTooManyRequiredPositionalParametersTestCases {
+    with MainHasTooManyRequiredPositionalParametersTestCases {
   test_positionalRequired_3_namedRequired_1() async {
     await resolveTestCode('''
 void main(args, int a, int b, {required int c}) {}

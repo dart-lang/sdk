@@ -590,8 +590,7 @@ class B implements I<int>, J<String> {
 }
 
 @reflectiveTest
-class InvalidOverrideWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class InvalidOverrideWithNullSafetyTest extends PubPackageResolutionTest {
   test_abstract_field_covariant_inheritance() async {
     await assertNoErrorsInCode('''
 abstract class A {

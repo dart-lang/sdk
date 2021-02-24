@@ -447,6 +447,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return libraryBuilder.enableExtensionTypesInLibrary;
   }
 
+  @override
+  bool get enableConstFunctionsInLibrary {
+    return libraryBuilder.enableConstFunctionsInLibrary;
+  }
+
   void _enterLocalState({bool inLateLocalInitializer: false}) {
     _localInitializerState =
         _localInitializerState.prepend(inLateLocalInitializer);

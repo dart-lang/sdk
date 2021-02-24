@@ -18,8 +18,7 @@ main() {
 }
 
 @reflectiveTest
-class NonNullOptOutTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class NonNullOptOutTest extends PubPackageResolutionTest {
   ImportFindElement get _import_a {
     return findElement.importFind('package:test/a.dart');
   }

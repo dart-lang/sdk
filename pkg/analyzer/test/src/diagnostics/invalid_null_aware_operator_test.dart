@@ -87,8 +87,7 @@ void f(String? s) {
 }
 
 @reflectiveTest
-class InvalidNullAwareOperatorTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class InvalidNullAwareOperatorTest extends PubPackageResolutionTest {
   test_extensionOverride_assignmentExpression_indexExpression() async {
     await assertErrorsInCode('''
 extension E on int {

@@ -128,8 +128,8 @@ f() {
 }
 
 @reflectiveTest
-class AssignmentToFinalLocalWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class AssignmentToFinalLocalWithNullSafetyTest
+    extends PubPackageResolutionTest {
   test_localVariable_late() async {
     await assertNoErrorsInCode('''
 void f() {

@@ -83,8 +83,7 @@ mixin M {
 }
 
 @reflectiveTest
-class FinalNotInitializedWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class FinalNotInitializedWithNullSafetyTest extends PubPackageResolutionTest {
   test_field_abstract() async {
     await assertNoErrorsInCode('''
 abstract class A {

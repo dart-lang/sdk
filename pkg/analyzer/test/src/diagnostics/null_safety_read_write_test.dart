@@ -15,8 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class ReadWriteWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class ReadWriteWithNullSafetyTest extends PubPackageResolutionTest {
   @override
   bool get retainDataForTesting => true;
 

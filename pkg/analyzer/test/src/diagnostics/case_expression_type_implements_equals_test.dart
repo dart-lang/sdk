@@ -107,7 +107,7 @@ void f(e) {
 
 @reflectiveTest
 class CaseExpressionTypeImplementsEqualsWithNullSafetyTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_declares() async {
     await assertNoErrorsInCode(r'''
 abstract class A {

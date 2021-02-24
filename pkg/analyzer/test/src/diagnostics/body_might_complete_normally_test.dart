@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class BodyMayCompleteNormallyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class BodyMayCompleteNormallyTest extends PubPackageResolutionTest {
   test_factoryConstructor_named_blockBody() async {
     await assertErrorsInCode(r'''
 class A {

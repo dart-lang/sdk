@@ -292,6 +292,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         "'${importUri}'.");
   }
 
+  bool _enableConstFunctionsInLibrary;
   bool _enableVarianceInLibrary;
   bool _enableNonfunctionTypeAliasesInLibrary;
   bool _enableNonNullableInLibrary;
@@ -300,6 +301,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool _enableExtensionMethodsInLibrary;
   bool _enableGenericMetadataInLibrary;
   bool _enableExtensionTypesInLibrary;
+
+  bool get enableConstFunctionsInLibrary => _enableConstFunctionsInLibrary ??=
+      loader.target.isExperimentEnabledInLibrary(
+          ExperimentalFlag.constFunctions, _packageUri ?? importUri);
 
   bool get enableVarianceInLibrary =>
       _enableVarianceInLibrary ??= loader.target.isExperimentEnabledInLibrary(

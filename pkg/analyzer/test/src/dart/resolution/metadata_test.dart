@@ -295,8 +295,7 @@ class B {}
 }
 
 @reflectiveTest
-class MetadataResolutionWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class MetadataResolutionWithNullSafetyTest extends PubPackageResolutionTest {
   ImportFindElement get import_a {
     return findElement.importFind('package:test/a.dart');
   }
