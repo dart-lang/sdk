@@ -1270,7 +1270,7 @@ void BackgroundCompiler::Enable() {
   ASSERT(thread->IsMutatorThread());
   ASSERT(!thread->IsAtSafepoint());
 
-  MonitorLocker ml_done(&done_monitor_);
+  SafepointMonitorLocker ml_done(&done_monitor_);
   disabled_depth_--;
   if (disabled_depth_ < 0) {
     FATAL("Mismatched number of calls to BackgroundCompiler::Enable/Disable.");
