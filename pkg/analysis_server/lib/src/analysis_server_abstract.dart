@@ -42,7 +42,6 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
-import 'package:analyzer/src/util/glob.dart';
 
 /// Implementations of [AbstractAnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.
@@ -109,23 +108,11 @@ abstract class AbstractAnalysisServer {
   /// The set of the files that are currently priority.
   final Set<String> priorityFiles = <String>{};
 
-  final List<String> analyzableFilePatterns = <String>[
-    '**/*.${AnalysisEngine.SUFFIX_DART}',
-    '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}',
-    '**/${AnalysisEngine.FIX_DATA_FILE}',
-    '**/${AnalysisEngine.PUBSPEC_YAML_FILE}',
-    '**/${AnalysisEngine.ANDROID_MANIFEST_FILE}'
-  ];
-
   /// The [ResourceProvider] using which paths are converted into [Resource]s.
   final OverlayResourceProvider resourceProvider;
 
   /// The next modification stamp for a changed file in the [resourceProvider].
   int overlayModificationStamp = 0;
-
-  /// A list of the globs used to determine which files should be analyzed. The
-  /// list is lazily created and should be accessed using [analyzedFilesGlobs].
-  List<Glob> _analyzedFilesGlobs;
 
   AbstractAnalysisServer(
     this.options,
@@ -183,29 +170,9 @@ abstract class AbstractAnalysisServer {
       byteStore,
       analysisPerformanceLogger,
       analysisDriverScheduler,
-      analyzedFilesGlobs,
       instrumentationService,
     );
     searchEngine = SearchEngineImpl(driverMap.values);
-  }
-
-  /// Return a list of the globs used to determine which files should be
-  /// analyzed.
-  List<Glob> get analyzedFilesGlobs {
-    if (_analyzedFilesGlobs == null) {
-      _analyzedFilesGlobs = <Glob>[];
-      for (var pattern in analyzableFilePatterns) {
-        try {
-          _analyzedFilesGlobs
-              .add(Glob(resourceProvider.pathContext.separator, pattern));
-        } catch (exception, stackTrace) {
-          AnalysisEngine.instance.instrumentationService.logException(
-              CaughtException.withMessage(
-                  'Invalid glob pattern: "$pattern"', exception, stackTrace));
-        }
-      }
-    }
-    return _analyzedFilesGlobs;
   }
 
   /// The list of current analysis sessions in all contexts.

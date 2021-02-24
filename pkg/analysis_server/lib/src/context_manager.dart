@@ -26,7 +26,6 @@ import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
@@ -177,9 +176,6 @@ class ContextManagerImpl implements ContextManager {
   @override
   List<String> includedPaths = <String>[];
 
-  /// A list of the globs used to determine which files should be analyzed.
-  final List<Glob> analyzedFilesGlobs;
-
   /// The instrumentation service used to report instrumentation data.
   final InstrumentationService _instrumentationService;
 
@@ -206,7 +202,6 @@ class ContextManagerImpl implements ContextManager {
     this._byteStore,
     this._performanceLog,
     this._scheduler,
-    this.analyzedFilesGlobs,
     this._instrumentationService,
   ) {
     pathContext = resourceProvider.pathContext;
