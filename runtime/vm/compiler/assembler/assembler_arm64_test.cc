@@ -987,6 +987,35 @@ constexpr uint32_t kU32MinusOne = 0xffffffffu;
 constexpr uint32_t kU32MinInt32 = 0x80000000u;
 constexpr uint32_t kU32MaxInt32 = 0x7fffffffu;
 
+#define FOR_EACH_ASR_32_TEST_CONFIG(M)                                         \
+  M(0u, 0, 0u)                                                                 \
+  M(1u, 0, 1u)                                                                 \
+  M(kU32MaxInt32, 0, kU32MaxInt32)                                             \
+  M(kU32MinInt32, 0, kU32MinInt32)                                             \
+  M(0u, 1, 0u)                                                                 \
+  M(1u, 1, 0u)                                                                 \
+  M(4u, 1, 2u)                                                                 \
+  M(0xffffu, 1, 0x7fffu)                                                       \
+  M(0xffffffffu, 1, 0xffffffffu)                                               \
+  M(kU32MaxInt32, 1, 0x3fffffffu)                                              \
+  M(kU32MinInt32, 1, 0xc0000000u)                                              \
+  M(kU32MinusOne, 1, 0xffffffffu)                                              \
+  M(1u, 2, 0u)                                                                 \
+  M(4u, 2, 1u)                                                                 \
+  M(0xffffu, 2, 0x3fffu)                                                       \
+  M(0xffffffffu, 2, 0xffffffffu)                                               \
+  M(kU32MaxInt32, 2, 0x1fffffffu)                                              \
+  M(kU32MinInt32, 2, 0xe0000000u)                                              \
+  M(kU32MinusOne, 2, kU32MinusOne)                                             \
+  M(0u, 31, 0u)                                                                \
+  M(1u, 31, 0u)                                                                \
+  M(4u, 31, 0u)                                                                \
+  M(0xffffu, 31, 0u)                                                           \
+  M(0xffffffffu, 31, 0xffffffffu)                                              \
+  M(kU32MaxInt32, 31, 0u)                                                      \
+  M(kU32MinInt32, 31, kU32MinusOne)                                            \
+  M(kU32MinusOne, 31, kU32MinusOne)
+
 #define FOR_EACH_LSR_32_TEST_CONFIG(M)                                         \
   M(0u, 0, 0u)                                                                 \
   M(1u, 0, 1u)                                                                 \
@@ -1058,20 +1087,26 @@ constexpr uint32_t kU32MaxInt32 = 0x7fffffffu;
                               Int32Return, test->entry())));                   \
   }
 
+#define ASR_32_IMMEDIATE_TEST(val, shift, expected)                            \
+  SHIFT_32_IMMEDIATE_TEST(AsrImmediate, val, shift, expected)
+
 #define LSR_32_IMMEDIATE_TEST(val, shift, expected)                            \
   SHIFT_32_IMMEDIATE_TEST(LsrImmediate, val, shift, expected)
 
 #define LSL_32_IMMEDIATE_TEST(val, shift, expected)                            \
   SHIFT_32_IMMEDIATE_TEST(LslImmediate, val, shift, expected)
 
+FOR_EACH_ASR_32_TEST_CONFIG(ASR_32_IMMEDIATE_TEST)
 FOR_EACH_LSR_32_TEST_CONFIG(LSR_32_IMMEDIATE_TEST)
 FOR_EACH_LSL_32_TEST_CONFIG(LSL_32_IMMEDIATE_TEST)
 
 #undef LSL_32_IMMEDIATE_TEST
 #undef LSR_32_IMMEDIATE_TEST
+#undef ASR_32_IMMEDIATE_TEST
 #undef SHIFT_32_IMMEDIATE_TEST
 #undef FOR_EACH_LSL_32_TESTS_LIST
 #undef FOR_EACH_LSR_32_TESTS_LIST
+#undef FOR_EACH_ASR_32_TESTS_LIST
 
 ASSEMBLER_TEST_GENERATE(AndShiftRegs, assembler) {
   __ movz(R1, Immediate(42), 0);

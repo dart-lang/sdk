@@ -804,9 +804,11 @@ void PageSpace::VisitRememberedCards(ObjectPointerVisitor* visitor) const {
          (Thread::Current()->task_kind() == Thread::kScavengerTask));
 
   // Wait for the sweeper to finish mutating the large page list.
-  MonitorLocker ml(tasks_lock());
-  while (phase() == kSweepingLarge) {
-    ml.Wait();  // No safepoint check.
+  {
+    MonitorLocker ml(tasks_lock());
+    while (phase() == kSweepingLarge) {
+      ml.Wait();  // No safepoint check.
+    }
   }
 
   // Large pages may be added concurrently due to promotion in another scavenge

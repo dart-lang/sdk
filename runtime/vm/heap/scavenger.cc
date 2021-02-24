@@ -1710,6 +1710,7 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
 
   // Reverse the partial forwarding from the aborted scavenge. This also
   // rebuilds the remembered set.
+  heap_->WaitForSweeperTasksAtSafepoint(thread);
   Become::FollowForwardingPointers(thread);
 
   // Don't scavenge again until the next old-space GC has occurred. Prevents
