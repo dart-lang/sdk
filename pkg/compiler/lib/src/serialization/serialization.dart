@@ -33,6 +33,10 @@ part 'node_indexer.dart';
 part 'object_sink.dart';
 part 'object_source.dart';
 
+abstract class StringInterner {
+  String internString(String string);
+}
+
 /// Interface for serialization.
 abstract class DataSink {
   /// The amount of data written to this data sink.

@@ -94,11 +94,21 @@ JsClosedWorld deserializeClosedWorldFromSource(
       options, reporter, environment, abstractValueStrategy, component, source);
 }
 
+class _StringInterner implements ir.StringInterner, StringInterner {
+  Map<String, String> _map = {};
+
+  @override
+  String internString(String string) {
+    return _map[string] ??= string;
+  }
+}
+
 class SerializationTask extends CompilerTask {
   final CompilerOptions _options;
   final DiagnosticReporter _reporter;
   final api.CompilerInput _provider;
   final api.CompilerOutput _outputProvider;
+  final _stringInterner = _StringInterner();
 
   SerializationTask(this._options, this._reporter, this._provider,
       this._outputProvider, Measurer measurer)
@@ -129,7 +139,8 @@ class SerializationTask extends CompilerTask {
           .readFromUri(_options.entryPoint, inputKind: api.InputKind.binary);
       ir.Component component = new ir.Component();
       // Not using growable lists saves memory.
-      new ir.BinaryBuilder(dillInput.data, useGrowableLists: false)
+      ir.BinaryBuilder(dillInput.data,
+              useGrowableLists: false, stringInterner: _stringInterner)
           .readComponent(component);
       return component;
     });
@@ -181,7 +192,8 @@ class SerializationTask extends CompilerTask {
       api.Input<List<int>> dataInput = await _provider.readFromUri(
           _options.readClosedWorldUri,
           inputKind: api.InputKind.binary);
-      DataSource source = new BinarySourceImpl(dataInput.data);
+      DataSource source =
+          BinarySourceImpl(dataInput.data, stringInterner: _stringInterner);
       return deserializeClosedWorldFromSource(_options, _reporter, environment,
           abstractValueStrategy, component, source);
     });
@@ -210,7 +222,8 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Reading data from ${_options.readDataUri}');
       api.Input<List<int>> dataInput = await _provider
           .readFromUri(_options.readDataUri, inputKind: api.InputKind.binary);
-      DataSource source = new BinarySourceImpl(dataInput.data);
+      DataSource source =
+          BinarySourceImpl(dataInput.data, stringInterner: _stringInterner);
       return deserializeGlobalTypeInferenceResultsFromSource(_options,
           _reporter, environment, abstractValueStrategy, component, source);
     });
@@ -225,7 +238,8 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Reading data from ${_options.readDataUri}');
       api.Input<List<int>> dataInput = await _provider
           .readFromUri(_options.readDataUri, inputKind: api.InputKind.binary);
-      DataSource source = BinarySourceImpl(dataInput.data);
+      DataSource source =
+          BinarySourceImpl(dataInput.data, stringInterner: _stringInterner);
       return deserializeGlobalAnalysisFromSource(_options, _reporter,
           environment, abstractValueStrategy, component, closedWorld, source);
     });
@@ -293,7 +307,8 @@ class SerializationTask extends CompilerTask {
       Uri uri,
       api.Input<List<int>> dataInput,
       Map<MemberEntity, CodegenResult> results) {
-    DataSource source = new BinarySourceImpl(dataInput.data);
+    DataSource source =
+        BinarySourceImpl(dataInput.data, stringInterner: _stringInterner);
     backendStrategy.prepareCodegenReader(source);
     Map<MemberEntity, CodegenResult> codegenResults =
         source.readMemberMap((MemberEntity member) {

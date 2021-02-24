@@ -10,9 +10,12 @@ part of 'serialization.dart';
 class BinarySourceImpl extends AbstractDataSource {
   int _byteOffset = 0;
   final List<int> _bytes;
+  final StringInterner _stringInterner;
 
-  BinarySourceImpl(this._bytes, {bool useDataKinds: false})
-      : super(useDataKinds: useDataKinds);
+  BinarySourceImpl(this._bytes,
+      {bool useDataKinds: false, StringInterner stringInterner})
+      : _stringInterner = stringInterner,
+        super(useDataKinds: useDataKinds);
 
   @override
   void _begin(String tag) {}
@@ -27,7 +30,9 @@ class BinarySourceImpl extends AbstractDataSource {
     List<int> bytes = new Uint8List(length);
     bytes.setRange(0, bytes.length, _bytes, _byteOffset);
     _byteOffset += bytes.length;
-    return utf8.decode(bytes);
+    String string = utf8.decode(bytes);
+    if (_stringInterner == null) return string;
+    return _stringInterner.internString(string);
   }
 
   @override
