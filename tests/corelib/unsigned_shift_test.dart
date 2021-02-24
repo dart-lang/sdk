@@ -30,9 +30,14 @@ void testIntegerShifts() {
     testShift(0x55555555, i);
     testShift(0xaaaaaaaa, i);
     testShift(0x80000000, i);
+    //         .   .   .   .
+    testShift(0x7fffffffffff, i);
+    testShift(0xffffffffffff, i);
     //         .   .   .   .   .
-    testShift(0x7fffffffffffffff, i);
-    testShift(0xffffffffffffffff, i);
+    testShift(0x7ffffffffffff000, i);
+    testShift(0xfffffffffffff000, i);
+    testShift(0x7ffffffffffff000 + 0xfff, i);
+    testShift(0xfffffffffffff000 + 0xfff, i);
   }
 
   // JavaScript numbers may consider Infinity as an integer.
