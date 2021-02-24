@@ -52,6 +52,11 @@ abstract class BaseTest extends FileSystemTestSupport {
   @override
   PhysicalResourceProvider get provider => _provider ??= createProvider();
 
+  @override
+  void createLink({required String path, required String target}) {
+    io.Link(path).createSync(target);
+  }
+
   /// Create the resource provider to be used by the tests. Subclasses can
   /// override this method to change the class of resource provider that is
   /// used.

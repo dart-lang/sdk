@@ -399,5 +399,8 @@ abstract class _OverlayResource implements Resource {
       _OverlayResource._from(provider, _resource.resolveSymbolicLinksSync());
 
   @override
+  String toString() => path;
+
+  @override
   Uri toUri() => _resource.toUri();
 }
