@@ -2068,13 +2068,6 @@
           ]
         },
         {
-          "name": "check dart nnbd sdk for static errors",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "pkg/dev_compiler/tool/check_nnbd_sdk.dart"
-          ]
-        },
-        {
           "name": "ddc weak modular tests",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
@@ -2621,15 +2614,6 @@
           ]
         },
         {
-          "name": "check dart nnbd sdk for static errors",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "pkg/dev_compiler/tool/check_nnbd_sdk.dart",
-            "--target",
-            "dart2js"
-          ]
-        },
-        {
           "name": "dart2js nnbd weak d8 tests",
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-d8",
@@ -2952,22 +2936,6 @@
           "arguments": [
             "-nanalyzer-asserts-${system}",
             "co19_2"
-          ]
-        },
-        {
-          "name": "check nnbd sdk (ddc patch) for static errors",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "pkg/dev_compiler/tool/check_nnbd_sdk.dart"
-          ]
-        },
-        {
-          "name": "check nnbd sdk (dart2js patch) for static errors",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "pkg/dev_compiler/tool/check_nnbd_sdk.dart",
-            "--target",
-            "dart2js"
           ]
         }
       ]
