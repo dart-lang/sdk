@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ThrowOfInvalidTypeTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class ThrowOfInvalidTypeTest extends PubPackageResolutionTest {
   test_dynamic() async {
     await assertNoErrorsInCode('''
 f(dynamic a) {

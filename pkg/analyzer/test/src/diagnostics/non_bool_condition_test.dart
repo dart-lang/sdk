@@ -108,8 +108,7 @@ f() {
 }
 
 @reflectiveTest
-class NonBoolConditionWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class NonBoolConditionWithNullSafetyTest extends PubPackageResolutionTest {
   test_if_null() async {
     await assertErrorsInCode(r'''
 m() {

@@ -15,8 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class InvalidUseOfNeverTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class InvalidUseOfNeverTest extends PubPackageResolutionTest {
   test_binaryExpression_never_eqEq() async {
     await assertErrorsInCode(r'''
 void f(Never x) {

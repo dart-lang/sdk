@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ExportLegacySymbolTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class ExportLegacySymbolTest extends PubPackageResolutionTest {
   test_exportDartAsync() async {
     await assertNoErrorsInCode(r'''
 export 'dart:async';

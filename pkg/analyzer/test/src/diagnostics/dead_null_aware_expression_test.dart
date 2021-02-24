@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class DeadNullAwareExpressionTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class DeadNullAwareExpressionTest extends PubPackageResolutionTest {
   test_assignCompound_legacy() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.5

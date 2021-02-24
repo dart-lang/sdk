@@ -30,7 +30,7 @@ void main({int a = 0}) {}
 @reflectiveTest
 class MainHasRequiredNamedParametersWithNullSafetyTest
     extends PubPackageResolutionTest
-    with WithNullSafetyMixin, MainHasRequiredNamedParametersTestCases {
+    with MainHasRequiredNamedParametersTestCases {
   test_namedRequired() async {
     await assertErrorsInCode('''
 void main({required List<String> a}) {}

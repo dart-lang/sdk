@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class AwaitInLateLocalVariableInitializerTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class AwaitInLateLocalVariableInitializerTest extends PubPackageResolutionTest {
   static const _errorCode =
       CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER;
 

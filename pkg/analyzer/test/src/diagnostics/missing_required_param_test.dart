@@ -243,8 +243,7 @@ class C {
 }
 
 @reflectiveTest
-class MissingRequiredParamWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class MissingRequiredParamWithNullSafetyTest extends PubPackageResolutionTest {
   test_constructor_legacy_argumentGiven() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A {

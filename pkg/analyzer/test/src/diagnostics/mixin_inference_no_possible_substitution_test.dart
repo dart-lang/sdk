@@ -39,7 +39,7 @@ class X extends A<int> with M {}
 @reflectiveTest
 class MixinInferenceNoPossibleSubstitutionWithNullSafetyTest
     extends PubPackageResolutionTest
-    with WithNullSafetyMixin, MixinInferenceNoPossibleSubstitutionTestCases {
+    with MixinInferenceNoPossibleSubstitutionTestCases {
   test_valid_nonNullableMixins_legacyApplication() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A<T> {}

@@ -52,7 +52,7 @@ main() {
 
 @reflectiveTest
 class FunctionExpressionInvocationWithNullSafetyTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_call_infer_fromArguments() async {
     await assertNoErrorsInCode(r'''
 class A {

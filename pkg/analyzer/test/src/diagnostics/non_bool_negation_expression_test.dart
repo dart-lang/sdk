@@ -30,7 +30,7 @@ f() {
 
 @reflectiveTest
 class NonBoolNegationExpressionWithNullSafetyTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_null() async {
     await assertErrorsInCode(r'''
 m() {

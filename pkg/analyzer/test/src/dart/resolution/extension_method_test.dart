@@ -318,7 +318,7 @@ f(p.C c) {
 /// resolved correctly.
 @reflectiveTest
 class ExtensionMethodsDeclarationWithNullSafetyTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_this_type_interface() async {
     await assertNoErrorsInCode('''
 extension E on int {

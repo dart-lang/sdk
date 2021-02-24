@@ -727,8 +727,7 @@ main(void x) sync* {
 }
 
 @reflectiveTest
-class UseOfVoidResultTest_NonNullable extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class UseOfVoidResultTest_NonNullable extends PubPackageResolutionTest {
   test_assignment_toDynamic() async {
     await assertErrorsInCode('''
 void f(void x) {

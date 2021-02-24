@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ExternalFieldInitializerTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class ExternalFieldInitializerTest extends PubPackageResolutionTest {
   test_external_field_final_initializer() async {
     await assertErrorsInCode('''
 class A {

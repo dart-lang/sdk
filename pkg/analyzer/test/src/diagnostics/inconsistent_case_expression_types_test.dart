@@ -115,7 +115,7 @@ void f(var e) {
 
 @reflectiveTest
 class InconsistentCaseExpressionTypesWithNullSafetyTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_int_none_legacy() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 const a = 0;

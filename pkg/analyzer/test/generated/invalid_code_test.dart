@@ -404,8 +404,7 @@ class B {
 }
 
 @reflectiveTest
-class InvalidCodeWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class InvalidCodeWithNullSafetyTest extends PubPackageResolutionTest {
   test_functionExpression_emptyBody() async {
     await _assertCanBeAnalyzed(r'''
 var v = <T>();

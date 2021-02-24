@@ -25,8 +25,7 @@ class ApplyCheckElementTextReplacements {
 }
 
 @reflectiveTest
-class TopLevelInferenceErrorsTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class TopLevelInferenceErrorsTest extends PubPackageResolutionTest {
   test_initializer_additive() async {
     await _assertErrorOnlyLeft(['+', '-']);
   }
@@ -340,8 +339,7 @@ class C implements A, B {
 }
 
 @reflectiveTest
-class TopLevelInferenceTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class TopLevelInferenceTest extends PubPackageResolutionTest {
   test_initializer_additive() async {
     var library = await _encodeDecodeLibrary(r'''
 var vPlusIntInt = 1 + 2;

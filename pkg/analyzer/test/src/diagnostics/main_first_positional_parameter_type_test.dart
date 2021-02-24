@@ -74,7 +74,7 @@ void main(Object args) {}
 @reflectiveTest
 class MainFirstPositionalParameterWithNullSafetyTest
     extends PubPackageResolutionTest
-    with WithNullSafetyMixin, MainFirstPositionalParameterTestCases {
+    with MainFirstPositionalParameterTestCases {
   test_positionalRequired_listOfStringQuestion() async {
     await assertNoErrorsInCode('''
 void main(List<String?> args) {}

@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class NullNeverNotNullTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class NullNeverNotNullTest extends PubPackageResolutionTest {
   test_nullable() async {
     await assertNoErrorsInCode(r'''
 void f(int? i) {

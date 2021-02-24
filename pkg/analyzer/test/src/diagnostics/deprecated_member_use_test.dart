@@ -31,7 +31,7 @@ main() {
 @reflectiveTest
 class DeprecatedMemberUse_BasicWorkspace_WithNullSafetyTest
     extends PubPackageResolutionTest
-    with WithNullSafetyMixin, DeprecatedMemberUse_BasicWorkspaceTestCases {
+    with DeprecatedMemberUse_BasicWorkspaceTestCases {
   test_instanceCreation_namedParameter_fromLegacy() async {
     newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
 class A {

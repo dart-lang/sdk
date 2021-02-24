@@ -88,8 +88,7 @@ class B extends A {}
 
 @reflectiveTest
 class NoDefaultSuperConstructorWithNullSafetyTest
-    extends PubPackageResolutionTest
-    with NoDefaultSuperConstructorTestCases, WithNullSafetyMixin {
+    extends PubPackageResolutionTest with NoDefaultSuperConstructorTestCases {
   test_super_requiredParameter_legacySubclass_explicitConstructor() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A {

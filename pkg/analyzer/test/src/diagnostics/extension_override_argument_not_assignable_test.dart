@@ -64,7 +64,7 @@ void f(B b) {
 
 @reflectiveTest
 class ExtensionOverrideArgumentNotAssignableWithNullSafetyTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_override_onNonNullable() async {
     await assertErrorsInCode(r'''
 extension E on String {

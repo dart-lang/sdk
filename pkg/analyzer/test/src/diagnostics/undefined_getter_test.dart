@@ -387,7 +387,7 @@ class B extends A<List> {
 
 @reflectiveTest
 class UndefinedGetterWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin, UndefinedGetterTestCases {
+    with UndefinedGetterTestCases {
   test_get_from_abstract_field_final_valid() async {
     await assertNoErrorsInCode('''
 abstract class A {

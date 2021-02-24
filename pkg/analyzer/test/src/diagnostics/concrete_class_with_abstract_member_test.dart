@@ -44,7 +44,7 @@ class A implements I {
 @reflectiveTest
 class ConcreteClassWithAbstractMemberWithNullSafetyTest
     extends PubPackageResolutionTest
-    with WithNullSafetyMixin, ConcreteClassWithAbstractMemberTestCases {
+    with ConcreteClassWithAbstractMemberTestCases {
   test_abstract_field() async {
     await assertErrorsInCode('''
 class A {

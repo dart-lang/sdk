@@ -253,8 +253,7 @@ void f() {
 }
 
 @reflectiveTest
-class ConstantResolutionWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class ConstantResolutionWithNullSafetyTest extends PubPackageResolutionTest {
   test_constructor_nullSafe_fromLegacy_super() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A {

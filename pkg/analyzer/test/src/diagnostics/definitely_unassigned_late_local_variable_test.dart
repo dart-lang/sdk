@@ -14,8 +14,8 @@ main() {
 }
 
 @reflectiveTest
-class DefinitelyUnassignedLateLocalVariableTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class DefinitelyUnassignedLateLocalVariableTest
+    extends PubPackageResolutionTest {
   CompileTimeErrorCode get _errorCode {
     return CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE;
   }

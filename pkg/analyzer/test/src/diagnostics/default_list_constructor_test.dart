@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class DefaultListConstructorMismatch extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class DefaultListConstructorMismatch extends PubPackageResolutionTest {
   test_inferredType() async {
     await assertErrorsInCode('''
 List<int> v = List(5);
