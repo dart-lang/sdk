@@ -235,7 +235,7 @@ static method errors() → void /* originally async */ {
           }
           on core::Object catch(final core::Object _) {
           }
-          return let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:39:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+          return let final Never #t7 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:39:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String Function(int) x2 = (int v) /* error */ {
                             ^" in null;
         };
@@ -245,7 +245,7 @@ static method errors() → void /* originally async */ {
           }
           on core::Object catch(final core::Object _) {
           }
-          return let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:44:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+          return let final Never #t8 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:44:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String Function(int) x3 = (int v) /* error */ {
                             ^" in null;
         };
@@ -255,7 +255,7 @@ static method errors() → void /* originally async */ {
           }
           on core::Object catch(final core::Object _) {
           }
-          return let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:49:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+          return let final Never #t10 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:49:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String Function(int) x5 = (int v) /* error */ {
                             ^" in null;
         };
@@ -265,7 +265,7 @@ static method errors() → void /* originally async */ {
           }
           on core::Object catch(final core::Object _) {
           }
-          return let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:54:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+          return let final Never #t12 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:54:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String Function(int) x6 = (int v) /* error */ {
                             ^" in null;
         };
@@ -286,7 +286,7 @@ static method errors() → void /* originally async */ {
                 }
                 on core::Object catch(final core::Object _) {
                 }
-                :return_value = let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:59:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+                :return_value = let final Never #t13 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:59:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   Future<String> Function(int) y2 = (int v) async /* error */ {
                                     ^" in null;
                 break #L8;
@@ -321,7 +321,7 @@ static method errors() → void /* originally async */ {
                 }
                 on core::Object catch(final core::Object _) {
                 }
-                :return_value = let final<BottomType> #t14 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:64:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+                :return_value = let final Never #t14 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:64:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   Future<String> Function(int) y3 = (int v) async /* error */ {
                                     ^" in null;
                 break #L9;
@@ -355,7 +355,7 @@ static method errors() → void /* originally async */ {
                 }
                 on core::Object catch(final core::Object _) {
                 }
-                :return_value = let final<BottomType> #t16 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:69:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+                :return_value = let final Never #t16 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:69:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   Future<String> Function(int) y5 = (int v) async /* error */ {
                                     ^" in null;
                 break #L10;
@@ -390,7 +390,7 @@ static method errors() → void /* originally async */ {
                 }
                 on core::Object catch(final core::Object _) {
                 }
-                :return_value = let final<BottomType> #t18 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:74:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+                :return_value = let final Never #t18 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:74:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   Future<String> Function(int) y6 = (int v) async /* error */ {
                                     ^" in null;
                 break #L11;

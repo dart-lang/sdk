@@ -18,13 +18,13 @@ extension A3<X extends core::Object? = dynamic, Y extends (X%) → dynamic = (Ne
 }
 extension A4<X extends core::Object? = dynamic, Y extends (X%) → dynamic = (Never) → dynamic> on self::Foo<Y> {
 }
-static method foo1(dynamic a) → dynamic
+static method foo1(self::A1 a) → self::A1
   ;
-static method foo2(self::Foo<core::int> a, self::Foo<dynamic> ai) → self::Foo<dynamic>
+static method foo2(self::A2<core::int> a, self::A2<dynamic> ai) → self::A2<dynamic>
   ;
-static method foo3(self::Bar<core::int, (core::num) → dynamic> a, self::Bar<dynamic, (Never) → dynamic> ai) → self::Bar<dynamic, (Never) → dynamic>
+static method foo3(self::A3<core::int, (core::num) → dynamic> a, self::A3<dynamic, (Never) → dynamic> ai) → self::A3<dynamic, (Never) → dynamic>
   ;
-static method foo4(self::Foo<(core::num) → dynamic> a, self::Foo<(Never) → dynamic> ai) → self::Foo<(Never) → dynamic>
+static method foo4(self::A4<core::int, (core::num) → dynamic> a, self::A4<dynamic, (Never) → dynamic> ai) → self::A4<dynamic, (Never) → dynamic>
   ;
 static method bar() → dynamic
   ;

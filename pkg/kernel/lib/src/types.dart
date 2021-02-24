@@ -4,7 +4,6 @@
 
 import '../ast.dart'
     show
-        BottomType,
         Class,
         DartType,
         DynamicType,
@@ -95,17 +94,11 @@ class Types with StandardBounds {
       return const IsSubtypeOf.always();
     }
 
-    if (s is BottomType) {
-      return const IsSubtypeOf.always(); // Rule 3.
-    }
     if (t is DynamicType) {
       return const IsSubtypeOf.always(); // Rule 2.
     }
     if (t is VoidType) {
       return const IsSubtypeOf.always(); // Rule 2.
-    }
-    if (t is BottomType) {
-      return const IsSubtypeOf.never();
     }
     if (s is NeverType) {
       return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);

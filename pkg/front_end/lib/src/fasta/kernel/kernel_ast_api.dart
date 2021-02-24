@@ -15,7 +15,6 @@ export 'package:kernel/ast.dart'
         AssertStatement,
         AsyncMarker,
         Block,
-        BottomType,
         BreakStatement,
         Catch,
         CheckLibraryIsLoaded,

@@ -31,7 +31,6 @@ import 'package:kernel/ast.dart'
     show
         Arguments,
         AsyncMarker,
-        BottomType,
         Class,
         Component,
         DartType,
@@ -40,6 +39,7 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         Library,
         LibraryDependency,
+        NeverType,
         Nullability,
         Procedure,
         ProcedureKind,
@@ -1039,11 +1039,11 @@ class SourceLoader extends Loader {
     // bodies are correct.  It's valid to use the non-nullable types on the
     // left-hand side in both opt-in and opt-out code.
     futureOfBottom = new InterfaceType(coreTypes.futureClass,
-        Nullability.nonNullable, <DartType>[const BottomType()]);
+        Nullability.nonNullable, <DartType>[const NeverType.nonNullable()]);
     iterableOfBottom = new InterfaceType(coreTypes.iterableClass,
-        Nullability.nonNullable, <DartType>[const BottomType()]);
+        Nullability.nonNullable, <DartType>[const NeverType.nonNullable()]);
     streamOfBottom = new InterfaceType(coreTypes.streamClass,
-        Nullability.nonNullable, <DartType>[const BottomType()]);
+        Nullability.nonNullable, <DartType>[const NeverType.nonNullable()]);
 
     ticker.logMs("Computed core types");
   }

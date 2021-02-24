@@ -182,6 +182,12 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         _ensureNativeTypeValid(nativeType, node, allowStructItself: false);
 
         return _replaceRef(node);
+      } else if (target == structArrayElemAt) {
+        final DartType nativeType = node.arguments.types[0];
+
+        _ensureNativeTypeValid(nativeType, node, allowStructItself: false);
+
+        return _replaceRefArray(node);
       } else if (target == sizeOfMethod) {
         final DartType nativeType = node.arguments.types[0];
 
@@ -455,6 +461,24 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     return ConstructorInvocation(constructor, Arguments([pointer]));
   }
 
+  Expression _replaceRefArray(StaticInvocation node) {
+    final dartType = node.arguments.types[0];
+    final clazz = (dartType as InterfaceType).classNode;
+    final constructor = clazz.constructors
+        .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
+
+    final typedDataBasePrime = typedDataBaseOffset(
+        PropertyGet(NullCheck(node.arguments.positional[0]),
+            cArrayTypedDataBaseField.name, cArrayTypedDataBaseField),
+        MethodInvocation(node.arguments.positional[1], numMultiplication.name,
+            Arguments([StaticGet(clazz.fields.single)]), numMultiplication),
+        StaticGet(clazz.fields.single),
+        dartType,
+        node.fileOffset);
+
+    return ConstructorInvocation(constructor, Arguments([typedDataBasePrime]));
+  }
+
   @override
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
@@ -597,7 +621,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           : null;
     }
 
-    if (!nativeTypesClasses.contains(klass)) {
+    if (!nativeTypesClasses.contains(klass) && klass != cArrayClass) {
       for (final parent in nativeTypesClasses) {
         if (hierarchy.isSubtypeOf(klass, parent)) {
           return parent;

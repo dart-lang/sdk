@@ -2,13 +2,13 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/abstract_class_instantiation.dart:15:33: Error: The class 'C' is abstract and can't be instantiated.
-//   var /*@type=dynamic*/ x = new C();
-//                                 ^
+// pkg/front_end/testcases/inference/abstract_class_instantiation.dart:15:34: Error: The class 'C' is abstract and can't be instantiated.
+//   var /*@type=dynamic */ x = new C();
+//                                  ^
 //
-// pkg/front_end/testcases/inference/abstract_class_instantiation.dart:16:33: Error: The class 'D' is abstract and can't be instantiated.
-//   var /*@type=dynamic*/ y = new D(1);
-//                                 ^
+// pkg/front_end/testcases/inference/abstract_class_instantiation.dart:16:34: Error: The class 'D' is abstract and can't be instantiated.
+//   var /*@type=dynamic */ y = new D(1);
+//                                  ^
 //
 // pkg/front_end/testcases/inference/abstract_class_instantiation.dart:17:24: Error: The class 'D' is abstract and can't be instantiated.
 //   D<List<int>> z = new D(/*@typeArgs=dynamic*/ []);

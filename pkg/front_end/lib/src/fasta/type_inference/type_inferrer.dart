@@ -678,7 +678,9 @@ class TypeInferrerImpl implements TypeInferrer {
         // uses of type variables, for example, on static members. Once
         // that has been fixed, we should always be able to use
         // [contextType] directly here.
-        hasAnyTypeVariables(contextType) ? const BottomType() : contextType)
+        hasAnyTypeVariables(contextType)
+            ? const NeverType.nonNullable()
+            : contextType)
       ..isTypeError = true
       ..fileOffset = expression.fileOffset;
     if (contextType is! InvalidType) {
@@ -699,7 +701,9 @@ class TypeInferrerImpl implements TypeInferrer {
         // uses of type variables, for example, on static members. Once
         // that has been fixed, we should always be able to use
         // [contextType] directly here.
-        hasAnyTypeVariables(contextType) ? const BottomType() : contextType)
+        hasAnyTypeVariables(contextType)
+            ? const NeverType.nonNullable()
+            : contextType)
       ..isTypeError = true
       ..isForNonNullableByDefault = isNonNullableByDefault
       ..fileOffset = expression.fileOffset;
@@ -1750,7 +1754,7 @@ class TypeInferrerImpl implements TypeInferrer {
       assert(isTopLevel, "No initializer type provided.");
       return null;
     }
-    if (initializerType is BottomType || initializerType is NullType) {
+    if (initializerType is NullType) {
       // If the initializer type is Null or bottom, the inferred type is
       // dynamic.
       // TODO(paulberry): this rule is inherited from analyzer behavior but is

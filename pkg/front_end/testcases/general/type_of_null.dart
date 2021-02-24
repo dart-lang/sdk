@@ -11,19 +11,19 @@ Null foo() => null;
 
 main() {
   /*@ typeArgs=Null */ map(/*@ returnType=Null */ () {},
-      /*@ returnType=<BottomType> */ () => throw "hello");
-  /*@ typeArgs=Null */ map(/*@ returnType=<BottomType> */ () => throw "hello",
+      /*@ returnType=Null */ () => throw "hello");
+  /*@ typeArgs=Null */ map(/*@ returnType=Null */ () => throw "hello",
       /*@ returnType=Null */ () {});
   Null Function() f = /*@ returnType=Null */ () {};
   /*@ typeArgs=Null */ map(
-      foo, /*@ returnType=<BottomType> */ () => throw "hello");
+      foo, /*@ returnType=Null */ () => throw "hello");
   /*@ typeArgs=Null */ map(
-      /*@ returnType=<BottomType> */ () => throw "hello", foo);
+      /*@ returnType=Null */ () => throw "hello", foo);
   /*@ typeArgs=Null */ map(/*@ returnType=Null */ () {
     return null;
-  }, /*@ returnType=<BottomType> */ () => throw "hello");
+  }, /*@ returnType=Null */ () => throw "hello");
 
-  /*@ typeArgs=Null */ map(/*@ returnType=<BottomType> */ () => throw "hello",
+  /*@ typeArgs=Null */ map(/*@ returnType=Null */ () => throw "hello",
       /*@ returnType=Null */ () {
     return null;
   });

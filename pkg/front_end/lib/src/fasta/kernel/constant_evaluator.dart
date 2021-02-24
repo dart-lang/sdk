@@ -3438,9 +3438,6 @@ class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
   bool visitVoidType(VoidType node) => true;
 
   @override
-  bool visitBottomType(BottomType node) => true;
-
-  @override
   bool visitNullType(NullType node) => true;
 
   @override

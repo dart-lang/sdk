@@ -40,7 +40,7 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C10: onTimeout}))) as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
 }
 static field self::MyFuture<dynamic>* f;
-static field asy::Future<core::int*>* t1 = self::f.{self::MyFuture::then}<core::int*>((dynamic _) → asy::Future<core::int*>* => asy::Future::value<core::int*>(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/future_union_downwards.dart:21:47: Error: The argument type 'String' can't be assigned to the parameter type 'FutureOr<int>'.
+static field asy::Future<core::int*>* t1 = self::f.{self::MyFuture::then}<core::int*>((dynamic _) → asy::Future<core::int*>* => asy::Future::value<core::int*>(let final Never* #t1 = invalid-expression "pkg/front_end/testcases/inference/future_union_downwards.dart:21:47: Error: The argument type 'String' can't be assigned to the parameter type 'FutureOr<int>'.
         new /*@ typeArgs=int* */ Future.value('hi'));
                                               ^" in "hi" as{TypeError} FutureOr<core::int*>?));
 static field asy::Future<core::List<core::int*>*>* t2 = self::f.{self::MyFuture::then}<core::List<core::int*>*>((dynamic _) → core::List<core::int*>* => <core::int*>[3]);

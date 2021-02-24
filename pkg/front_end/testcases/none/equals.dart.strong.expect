@@ -194,16 +194,16 @@ static method test<T1 extends core::Function = core::Function, T2 extends (core:
   nullableTypeVariable2 != null;
   nullableTypeVariable2 == null;
   nullableTypeVariable2 != null;
-  (let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/none/equals.dart:115:26: Error: Too few positional arguments: 1 required, 0 given.
+  (let final Never #t1 = invalid-expression "pkg/front_end/testcases/none/equals.dart:115:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() == null;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type}) == null;
-  (let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/none/equals.dart:116:26: Error: Too few positional arguments: 1 required, 0 given.
+  (let final Never #t2 = invalid-expression "pkg/front_end/testcases/none/equals.dart:116:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() != null;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type}) != null;
-  (let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/none/equals.dart:117:34: Error: Too few positional arguments: 1 required, 0 given.
+  (let final Never #t3 = invalid-expression "pkg/front_end/testcases/none/equals.dart:117:34: Error: Too few positional arguments: 1 required, 0 given.
   null == nonNullableClass.method();
                                  ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type}) == null;
-  (let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/none/equals.dart:118:34: Error: Too few positional arguments: 1 required, 0 given.
+  (let final Never #t4 = invalid-expression "pkg/front_end/testcases/none/equals.dart:118:34: Error: Too few positional arguments: 1 required, 0 given.
   null != nonNullableClass.method();
                                  ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type}) != null;
   core::print("EqualsNull (constant null)");
@@ -217,24 +217,24 @@ static method test<T1 extends core::Function = core::Function, T2 extends (core:
   nullableObject != null;
   nullableObject == null;
   nullableObject != null;
-  nonNullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} (let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/none/equals.dart:134:23: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
+  nonNullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} (let final Never #t5 = invalid-expression "pkg/front_end/testcases/none/equals.dart:134:23: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nonNullableClass == nullValue;
                       ^" in (#C1) as{TypeError,ForNonNullableByDefault} self::Class<core::String>?);
-  nonNullableClass !={self::Class::==}{(self::Class<core::String>) → core::bool} (let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/none/equals.dart:135:23: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
+  nonNullableClass !={self::Class::==}{(self::Class<core::String>) → core::bool} (let final Never #t6 = invalid-expression "pkg/front_end/testcases/none/equals.dart:135:23: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nonNullableClass != nullValue;
                       ^" in (#C1) as{TypeError,ForNonNullableByDefault} self::Class<core::String>?);
   nonNullableClass == null;
   nonNullableClass != null;
-  nullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} (let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/none/equals.dart:139:20: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
+  nullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} (let final Never #t7 = invalid-expression "pkg/front_end/testcases/none/equals.dart:139:20: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nullableClass == nullValue;
                    ^" in (#C1) as{TypeError,ForNonNullableByDefault} self::Class<core::String>?);
-  nullableClass !={self::Class::==}{(self::Class<core::String>) → core::bool} (let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/none/equals.dart:140:20: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
+  nullableClass !={self::Class::==}{(self::Class<core::String>) → core::bool} (let final Never #t8 = invalid-expression "pkg/front_end/testcases/none/equals.dart:140:20: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nullableClass != nullValue;
@@ -289,16 +289,16 @@ static method test<T1 extends core::Function = core::Function, T2 extends (core:
   nullableTypeVariable2 != null;
   nullableTypeVariable2 == null;
   nullableTypeVariable2 != null;
-  (let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/none/equals.dart:204:26: Error: Too few positional arguments: 1 required, 0 given.
+  (let final Never #t9 = invalid-expression "pkg/front_end/testcases/none/equals.dart:204:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() == nullValue;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type}) == null;
-  (let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/none/equals.dart:205:26: Error: Too few positional arguments: 1 required, 0 given.
+  (let final Never #t10 = invalid-expression "pkg/front_end/testcases/none/equals.dart:205:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() != nullValue;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type}) != null;
-  (let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/none/equals.dart:206:39: Error: Too few positional arguments: 1 required, 0 given.
+  (let final Never #t11 = invalid-expression "pkg/front_end/testcases/none/equals.dart:206:39: Error: Too few positional arguments: 1 required, 0 given.
   nullValue == nonNullableClass.method();
                                       ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type}) == null;
-  (let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/none/equals.dart:207:39: Error: Too few positional arguments: 1 required, 0 given.
+  (let final Never #t12 = invalid-expression "pkg/front_end/testcases/none/equals.dart:207:39: Error: Too few positional arguments: 1 required, 0 given.
   nullValue != nonNullableClass.method();
                                       ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type}) != null;
   core::print("EqualsCall");
@@ -322,12 +322,12 @@ static method test<T1 extends core::Function = core::Function, T2 extends (core:
   nonNullableClass !={self::Class::==}{(self::Class<core::String>) → core::bool} nullTypedValue;
   nullTypedValue =={core::Object::==}{(core::Object) → core::bool} nonNullableClass;
   nullTypedValue !={core::Object::==}{(core::Object) → core::bool} nonNullableClass;
-  nonNullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} (let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/none/equals.dart:233:23: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
+  nonNullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} (let final Never #t13 = invalid-expression "pkg/front_end/testcases/none/equals.dart:233:23: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nonNullableClass == o;
                       ^" in o as{TypeError,ForNonNullableByDefault} self::Class<core::String>?);
-  nonNullableClass !={self::Class::==}{(self::Class<core::String>) → core::bool} (let final<BottomType> #t14 = invalid-expression "pkg/front_end/testcases/none/equals.dart:234:23: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
+  nonNullableClass !={self::Class::==}{(self::Class<core::String>) → core::bool} (let final Never #t14 = invalid-expression "pkg/front_end/testcases/none/equals.dart:234:23: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nonNullableClass != o;
@@ -338,12 +338,12 @@ static method test<T1 extends core::Function = core::Function, T2 extends (core:
   nullableClass !={self::Class::==}{(self::Class<core::String>) → core::bool} nullTypedValue;
   nullTypedValue =={core::Object::==}{(core::Object) → core::bool} nullableClass;
   nullTypedValue !={core::Object::==}{(core::Object) → core::bool} nullableClass;
-  nullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} (let final<BottomType> #t15 = invalid-expression "pkg/front_end/testcases/none/equals.dart:242:20: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
+  nullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} (let final Never #t15 = invalid-expression "pkg/front_end/testcases/none/equals.dart:242:20: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nullableClass == o;
                    ^" in o as{TypeError,ForNonNullableByDefault} self::Class<core::String>?);
-  nullableClass !={self::Class::==}{(self::Class<core::String>) → core::bool} (let final<BottomType> #t16 = invalid-expression "pkg/front_end/testcases/none/equals.dart:243:20: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
+  nullableClass !={self::Class::==}{(self::Class<core::String>) → core::bool} (let final Never #t16 = invalid-expression "pkg/front_end/testcases/none/equals.dart:243:20: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nullableClass != o;
@@ -446,28 +446,28 @@ static method test<T1 extends core::Function = core::Function, T2 extends (core:
   nullableTypeVariable2 !={core::Object::==}{(core::Object) → core::bool} o;
   o =={core::Object::==}{(core::Object) → core::bool} nullableTypeVariable2;
   o !={core::Object::==}{(core::Object) → core::bool} nullableTypeVariable2;
-  (let final<BottomType> #t17 = invalid-expression "pkg/front_end/testcases/none/equals.dart:355:26: Error: Too few positional arguments: 1 required, 0 given.
+  (let final Never #t17 = invalid-expression "pkg/front_end/testcases/none/equals.dart:355:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() == nullTypedValue;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type}) =={core::Object::==}{(core::Object) → core::bool} nullTypedValue;
-  (let final<BottomType> #t18 = invalid-expression "pkg/front_end/testcases/none/equals.dart:356:26: Error: Too few positional arguments: 1 required, 0 given.
+  (let final Never #t18 = invalid-expression "pkg/front_end/testcases/none/equals.dart:356:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() != nullTypedValue;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type}) !={core::Object::==}{(core::Object) → core::bool} nullTypedValue;
-  nullTypedValue =={core::Object::==}{(core::Object) → core::bool} (let final<BottomType> #t19 = invalid-expression "pkg/front_end/testcases/none/equals.dart:357:44: Error: Too few positional arguments: 1 required, 0 given.
+  nullTypedValue =={core::Object::==}{(core::Object) → core::bool} (let final Never #t19 = invalid-expression "pkg/front_end/testcases/none/equals.dart:357:44: Error: Too few positional arguments: 1 required, 0 given.
   nullTypedValue == nonNullableClass.method();
                                            ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type});
-  nullTypedValue !={core::Object::==}{(core::Object) → core::bool} (let final<BottomType> #t20 = invalid-expression "pkg/front_end/testcases/none/equals.dart:358:44: Error: Too few positional arguments: 1 required, 0 given.
+  nullTypedValue !={core::Object::==}{(core::Object) → core::bool} (let final Never #t20 = invalid-expression "pkg/front_end/testcases/none/equals.dart:358:44: Error: Too few positional arguments: 1 required, 0 given.
   nullTypedValue != nonNullableClass.method();
                                            ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type});
-  (let final<BottomType> #t21 = invalid-expression "pkg/front_end/testcases/none/equals.dart:359:26: Error: Too few positional arguments: 1 required, 0 given.
+  (let final Never #t21 = invalid-expression "pkg/front_end/testcases/none/equals.dart:359:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() == o;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type}) =={core::Object::==}{(core::Object) → core::bool} o;
-  (let final<BottomType> #t22 = invalid-expression "pkg/front_end/testcases/none/equals.dart:360:26: Error: Too few positional arguments: 1 required, 0 given.
+  (let final Never #t22 = invalid-expression "pkg/front_end/testcases/none/equals.dart:360:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() != o;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type}) !={core::Object::==}{(core::Object) → core::bool} o;
-  o =={core::Object::==}{(core::Object) → core::bool} (let final<BottomType> #t23 = invalid-expression "pkg/front_end/testcases/none/equals.dart:361:31: Error: Too few positional arguments: 1 required, 0 given.
+  o =={core::Object::==}{(core::Object) → core::bool} (let final Never #t23 = invalid-expression "pkg/front_end/testcases/none/equals.dart:361:31: Error: Too few positional arguments: 1 required, 0 given.
   o == nonNullableClass.method();
                               ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type});
-  o !={core::Object::==}{(core::Object) → core::bool} (let final<BottomType> #t24 = invalid-expression "pkg/front_end/testcases/none/equals.dart:362:31: Error: Too few positional arguments: 1 required, 0 given.
+  o !={core::Object::==}{(core::Object) → core::bool} (let final Never #t24 = invalid-expression "pkg/front_end/testcases/none/equals.dart:362:31: Error: Too few positional arguments: 1 required, 0 given.
   o != nonNullableClass.method();
                               ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type});
 }

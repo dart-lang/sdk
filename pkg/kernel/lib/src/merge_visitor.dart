@@ -219,9 +219,6 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   DartType? visitInvalidType(InvalidType a, DartType b) => null;
 
   @override
-  DartType? visitBottomType(BottomType a, DartType b) => null;
-
-  @override
   DartType? visitVoidType(VoidType a, DartType b) {
     if (b is VoidType) {
       return a;

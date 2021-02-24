@@ -93,8 +93,7 @@ CompilerOptions setupCompilerOptions(
     int nullSafety,
     List<String> experimentalFlags,
     Uri packagesUri,
-    List<String> errorsPlain,
-    List<String> errorsColorized,
+    List<String> errors,
     String invocationModes,
     String verbosityLevel) {
   final expFlags = <String>[];
@@ -114,10 +113,8 @@ CompilerOptions setupCompilerOptions(
     ..verbose = verbose
     ..omitPlatform = true
     ..explicitExperimentalFlags = parseExperimentalFlags(
-        parseExperimentalArguments(expFlags), onError: (msg) {
-      errorsPlain.add(msg);
-      errorsColorized.add(msg);
-    })
+        parseExperimentalArguments(expFlags),
+        onError: (msg) => errors.add(msg))
     ..environmentDefines = new EnvironmentMap()
     ..nnbdMode = (nullSafety == kNullSafetyOptionStrong)
         ? NnbdMode.Strong
@@ -131,8 +128,7 @@ CompilerOptions setupCompilerOptions(
           // TODO(sigmund): support emitting code with errors as long as they
           // are handled in the generated code.
           printToStdErr = false; // errors are printed by VM
-          errorsPlain.addAll(message.plainTextFormatted);
-          errorsColorized.addAll(message.ansiFormatted);
+          errors.addAll(message.plainTextFormatted);
           break;
         case Severity.warning:
           printToStdErr = true;
@@ -172,8 +168,7 @@ abstract class Compiler {
   final bool supportCodeCoverage;
   final bool supportHotReload;
 
-  final List<String> errorsPlain = <String>[];
-  final List<String> errorsColorized = <String>[];
+  final List<String> errors = <String>[];
 
   CompilerOptions options;
 
@@ -207,8 +202,7 @@ abstract class Compiler {
         nullSafety,
         experimentalFlags,
         packagesUri,
-        errorsPlain,
-        errorsColorized,
+        errors,
         invocationModes,
         verbosityLevel);
   }
@@ -218,7 +212,7 @@ abstract class Compiler {
       final CompilerResult compilerResult = await compileInternal(script);
       final Component component = compilerResult.component;
 
-      if (errorsPlain.isEmpty) {
+      if (errors.isEmpty) {
         // Record dependencies only if compilation was error free.
         _recordDependencies(isolateGroupId, component, options.packagesFileUri);
       }
@@ -339,8 +333,7 @@ class IncrementalCompilerWrapper extends Compiler {
     if (generator == null) {
       generator = new IncrementalCompiler(options, script);
     }
-    errorsPlain.clear();
-    errorsColorized.clear();
+    errors.clear();
     final component = await generator.compile(entryPoint: script);
     return new CompilerResult(component, const {},
         generator.getClassHierarchy(), generator.getCoreTypes());
@@ -616,8 +609,7 @@ Future _processExpressionCompilationRequest(request) async {
     return;
   }
 
-  compiler.errorsPlain.clear();
-  compiler.errorsColorized.clear();
+  compiler.errors.clear();
 
   CompilationResult result;
   try {
@@ -630,13 +622,10 @@ Future _processExpressionCompilationRequest(request) async {
       return;
     }
 
-    assert(compiler.errorsPlain.length == compiler.errorsColorized.length);
-    // Any error will be printed verbatim in observatory, so we always use the
-    // plain version (i.e. the one without ANSI escape codes in it).
-    if (compiler.errorsPlain.isNotEmpty) {
+    if (compiler.errors.isNotEmpty) {
       // TODO(sigmund): the compiler prints errors to the console, so we
       // shouldn't print those messages again here.
-      result = new CompilationResult.errors(compiler.errorsPlain, null);
+      result = new CompilationResult.errors(compiler.errors, null);
     } else {
       Component component = createExpressionEvaluationComponent(procedure);
       result = new CompilationResult.ok(serializeComponent(component));
@@ -822,8 +811,7 @@ Future _processLoadRequest(request) async {
       // resolve it against the working directory.
       packagesUri = Uri.directory(workingDirectory).resolveUri(packagesUri);
     }
-    final List<String> errorsPlain = <String>[];
-    final List<String> errorsColorized = <String>[];
+    final List<String> errors = <String>[];
     var options = setupCompilerOptions(
         fileSystem,
         platformKernelPath,
@@ -831,8 +819,7 @@ Future _processLoadRequest(request) async {
         nullSafety,
         experimentalFlags,
         packagesUri,
-        errorsPlain,
-        errorsColorized,
+        errors,
         invocationModes,
         verbosityLevel);
 
@@ -885,17 +872,14 @@ Future _processLoadRequest(request) async {
     CompilerResult compilerResult = await compiler.compile(script);
     Set<Library> loadedLibraries = compilerResult.loadedLibraries;
 
-    assert(compiler.errorsPlain.length == compiler.errorsColorized.length);
-    final List<String> errors =
-        enableColors ? compiler.errorsColorized : compiler.errorsPlain;
-    if (errors.isNotEmpty) {
+    if (compiler.errors.isNotEmpty) {
       if (compilerResult.component != null) {
         result = new CompilationResult.errors(
-            errors,
+            compiler.errors,
             serializeComponent(compilerResult.component,
                 filter: (lib) => !loadedLibraries.contains(lib)));
       } else {
-        result = new CompilationResult.errors(errors, null);
+        result = new CompilationResult.errors(compiler.errors, null);
       }
     } else {
       // We serialize the component excluding vm_platform.dill because the VM has

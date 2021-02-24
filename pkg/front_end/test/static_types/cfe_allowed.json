@@ -1,4 +1,7 @@
 {
+  "pkg/front_end/lib/src/api_prototype/terminal_color_support.dart": {
+    "Dynamic invocation of 'split'.": 1
+  },
   "pkg/front_end/lib/src/base/libraries_specification.dart": {
     "Dynamic invocation of 'toList'.": 1,
     "Dynamic invocation of 'map'.": 1,

@@ -13,29 +13,19 @@ var tests = <IsolateTest>[
     Class classLibrary = await root.clazz!.load() as Class;
     print(classLibrary);
     {
-      bool caughtExceptions = false;
-      try {
-        dynamic result = await classLibrary.evaluate('3 + 4');
-        print(result);
-      } on ServerRpcException catch (e) {
-        expect(e.toString(), contains('can be evaluated only'));
-        caughtExceptions = true;
-      }
-      expect(caughtExceptions, isTrue);
+      final DartError errorResult =
+          await classLibrary.evaluate('3 + 4') as DartError;
+      print(errorResult);
+      expect(errorResult.toString(), contains('can be evaluated only'));
     }
 
     Class classClass = await classLibrary.clazz!.load() as Class;
     print(classClass);
     {
-      bool caughtExceptions = false;
-      try {
-        dynamic result = await classClass.evaluate('3 + 4');
-        print(result);
-      } on ServerRpcException catch (e) {
-        expect(e.toString(), contains('can be evaluated only'));
-        caughtExceptions = true;
-      }
-      expect(caughtExceptions, isTrue);
+      final DartError errorResult =
+          await classClass.evaluate('3 + 4') as DartError;
+      print(errorResult);
+      expect(errorResult.toString(), contains('can be evaluated only'));
     }
 
     Instance someArray =

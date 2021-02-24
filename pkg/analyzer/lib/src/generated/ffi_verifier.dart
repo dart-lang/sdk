@@ -18,7 +18,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _allocatorClassName = 'Allocator';
   static const _allocateExtensionMethodName = 'call';
   static const _allocatorExtensionName = 'AllocatorAlloc';
-  static const _cArrayClassName = 'CArray';
+  static const _cArrayClassName = 'Array';
   static const _dartFfiLibraryName = 'dart.ffi';
   static const _opaqueClassName = 'Opaque';
 
@@ -159,7 +159,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (element is MethodElement) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement.isNativeStructPointerExtension ||
-          enclosingElement.isNativeStructCArrayExtension) {
+          enclosingElement.isNativeStructArrayExtension) {
         if (element.name == '[]') {
           _validateRefIndexed(node);
         }
@@ -279,7 +279,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   bool _isValidFfiNativeType(DartType? nativeType,
       {bool allowVoid = false,
       bool allowEmptyStruct = false,
-      bool allowCArray = false}) {
+      bool allowArray = false}) {
     if (nativeType is InterfaceType) {
       // Is it a primitive integer/double type (or ffi.Void if we allow it).
       final primitiveType = _primitiveNativeType(nativeType);
@@ -310,7 +310,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (nativeType.isOpaqueSubtype) {
         return true;
       }
-      if (allowCArray && nativeType.isCArray) {
+      if (allowArray && nativeType.isArray) {
         return _isValidFfiNativeType(nativeType.typeArguments.single,
             allowVoid: false, allowEmptyStruct: false);
       }
@@ -550,7 +550,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _validateAnnotations(fieldType, annotations, _PrimitiveDartType.double);
       } else if (declaredType.isPointer) {
         _validateNoAnnotations(annotations);
-      } else if (declaredType.isCArray) {
+      } else if (declaredType.isArray) {
         final typeArg = (declaredType as InterfaceType).typeArguments.single;
         if (!_isSized(typeArg)) {
           _errorReporter.reportErrorForNode(FfiCode.NON_SIZED_TYPE_ARGUMENT,
@@ -663,7 +663,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void _validateRefIndexed(IndexExpression node) {
     var targetType = node.realTarget.staticType;
     if (!_isValidFfiNativeType(targetType,
-        allowVoid: false, allowEmptyStruct: true, allowCArray: true)) {
+        allowVoid: false, allowEmptyStruct: true, allowArray: true)) {
       final AstNode errorNode = node;
       _errorReporter.reportErrorForNode(
           FfiCode.NON_CONSTANT_TYPE_ARGUMENT, errorNode, ['[]']);
@@ -714,7 +714,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       final element = annotation.element;
       return element is ConstructorElement &&
           element.ffiClass != null &&
-          element.enclosingElement.name == 'CArraySize';
+          element.enclosingElement.name == 'Array';
     }).toList();
 
     if (ffiSizeAnnotations.isEmpty) {
@@ -766,10 +766,10 @@ extension on Element? {
         element.isFfiExtension;
   }
 
-  bool get isNativeStructCArrayExtension {
+  bool get isNativeStructArrayExtension {
     final element = this;
     return element is ExtensionElement &&
-        element.name == 'StructCArray' &&
+        element.name == 'StructArray' &&
         element.isFfiExtension;
   }
 
@@ -821,7 +821,7 @@ extension on ClassElement {
         return false;
       } else if (declaredType.isStructSubtype) {
         return false;
-      } else if (declaredType.isCArray) {
+      } else if (declaredType.isArray) {
         return false;
       }
     }
@@ -840,8 +840,8 @@ extension on ExtensionElement {
 }
 
 extension on DartType {
-  /// Return `true` if this represents the class `CArray`.
-  bool get isCArray {
+  /// Return `true` if this represents the class `Array`.
+  bool get isArray {
     final self = this;
     if (self is InterfaceType) {
       final element = self.element;

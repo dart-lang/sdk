@@ -9,19 +9,19 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MissingSizeAnnotationCArray);
+    defineReflectiveTests(MissingSizeAnnotationArray);
   });
 }
 
 @reflectiveTest
-class MissingSizeAnnotationCArray extends PubPackageResolutionTest {
+class MissingSizeAnnotationArray extends PubPackageResolutionTest {
   test_one() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 
 class C extends Struct {
-  @CArraySize(8)
-  CArray<Uint8> a0;
+  @Array(8)
+  Array<Uint8> a0;
 }
 ''');
   }
@@ -31,10 +31,10 @@ class C extends Struct {
 import 'dart:ffi';
 
 class C extends Struct {
-  CArray<Uint8> a0;
+  Array<Uint8> a0;
 }
 ''', [
-      error(FfiCode.MISSING_SIZE_ANNOTATION_CARRAY, 47, 13),
+      error(FfiCode.MISSING_SIZE_ANNOTATION_CARRAY, 47, 12),
     ]);
   }
 }

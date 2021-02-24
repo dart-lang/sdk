@@ -52,19 +52,19 @@ extension Extension on self::B {
   set fooExtension = self::Extension|set#fooExtension;
 }
 static method test<T extends self::A? = self::A?>(self::A? a, self::test::T% t, dynamic d, core::int x) → dynamic {
-  let final self::A? #t1 = a in (let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:13:5: Error: Property 'foo' cannot be accessed on 'A?' because it is potentially null.
+  let final self::A? #t1 = a in (let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:13:5: Error: Property 'foo' cannot be accessed on 'A?' because it is potentially null.
  - 'A' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
 Try accessing using ?. instead.
   a.foo ??= x; // Error.
-    ^^^" in #t1.{self::A::foo}).{core::num::==}(null) ?{core::int} let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:13:5: Error: Property 'foo' cannot be accessed on 'A?' because it is potentially null.
+    ^^^" in #t1.{self::A::foo}).{core::num::==}(null) ?{core::int} let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:13:5: Error: Property 'foo' cannot be accessed on 'A?' because it is potentially null.
  - 'A' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
 Try accessing using ?. instead.
   a.foo ??= x; // Error.
     ^^^" in #t1.{self::A::foo} = x : null;
-  let final self::test::T% #t4 = t in (let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:14:5: Error: Property 'foo' cannot be accessed on 'T' because it is potentially null.
+  let final self::test::T% #t4 = t in (let final Never #t5 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:14:5: Error: Property 'foo' cannot be accessed on 'T' because it is potentially null.
 Try accessing using ?. instead.
   t.foo ??= x; // Error.
-    ^^^" in #t4.{self::A::foo}).{core::num::==}(null) ?{core::int} let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:14:5: Error: Property 'foo' cannot be accessed on 'T' because it is potentially null.
+    ^^^" in #t4.{self::A::foo}).{core::num::==}(null) ?{core::int} let final Never #t6 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:14:5: Error: Property 'foo' cannot be accessed on 'T' because it is potentially null.
 Try accessing using ?. instead.
   t.foo ??= x; // Error.
     ^^^" in #t4.{self::A::foo} = x : null;
@@ -77,11 +77,11 @@ static method Extension|set#fooExtension(lowered final self::B #this, core::int?
 static method Extension|get#barExtension(lowered final self::B #this) → self::B
   return new self::B::•();
 static method testExtension<T extends self::B? = self::B?>(self::B? b, self::testExtension::T% t, core::int x) → dynamic {
-  let final self::B? #t10 = b in (let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:28:5: Error: Property 'fooExtension' cannot be accessed on 'B?' because it is potentially null.
+  let final self::B? #t10 = b in (let final Never #t11 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:28:5: Error: Property 'fooExtension' cannot be accessed on 'B?' because it is potentially null.
  - 'B' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
 Try accessing using ?. instead.
   b.fooExtension ??= x; // Error.
-    ^^^^^^^^^^^^" in self::Extension|get#fooExtension(#t10)).{core::num::==}(null) ?{core::int} let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:28:5: Error: Property 'fooExtension' cannot be accessed on 'B?' because it is potentially null.
+    ^^^^^^^^^^^^" in self::Extension|get#fooExtension(#t10)).{core::num::==}(null) ?{core::int} let final Never #t12 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:28:5: Error: Property 'fooExtension' cannot be accessed on 'B?' because it is potentially null.
  - 'B' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
 Try accessing using ?. instead.
   b.fooExtension ??= x; // Error.

@@ -52,7 +52,7 @@ static method error() → dynamic {
       #local#isSet = true;
       return #local = #t3;
     }
-  #local#set.call((let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Late variable 'local' without initializer is definitely unassigned.
+  #local#set.call((let final Never #t4 = invalid-expression "pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Late variable 'local' without initializer is definitely unassigned.
   local += 0;
   ^^^^^" in #local#get.call()).{core::num::+}(0));
 }

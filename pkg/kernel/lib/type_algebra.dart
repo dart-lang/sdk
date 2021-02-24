@@ -338,7 +338,7 @@ class _ClassBottomSubstitution extends Substitution {
 
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
     if (parameter.parent == class_) {
-      return upperBound ? const BottomType() : const DynamicType();
+      return upperBound ? const NeverType.nonNullable() : const DynamicType();
     }
     return null;
   }
@@ -490,7 +490,6 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType visitInvalidType(InvalidType node) => node;
   DartType visitDynamicType(DynamicType node) => node;
   DartType visitVoidType(VoidType node) => node;
-  DartType visitBottomType(BottomType node) => node;
   DartType visitNeverType(NeverType node) => node;
   DartType visitNullType(NullType node) => node;
 
@@ -666,7 +665,6 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
     }
   }
 
-  bool visitBottomType(BottomType node) => false;
   bool visitNeverType(NeverType node) => false;
   bool visitNullType(NullType node) => false;
   bool visitInvalidType(InvalidType node) => false;
@@ -719,7 +717,6 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
     return visit(node.type);
   }
 
-  bool visitBottomType(BottomType node) => false;
   bool visitNeverType(NeverType node) => false;
   bool visitNullType(NullType node) => false;
   bool visitInvalidType(InvalidType node) => false;
@@ -775,7 +772,6 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
     return visit(node.type);
   }
 
-  bool visitBottomType(BottomType node) => false;
   bool visitNeverType(NeverType node) => false;
   bool visitNullType(NullType node) => false;
   bool visitInvalidType(InvalidType node) => false;
@@ -867,9 +863,6 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitBottomType(BottomType node) => true;
-
-  @override
   bool visitDynamicType(DynamicType node) => true;
 
   @override
@@ -937,9 +930,6 @@ class _NullabilityConstructorUnwrapper
     throw new UnsupportedError("Unsupported operation: "
         "_NullabilityConstructorUnwrapper(${node.runtimeType})");
   }
-
-  @override
-  DartType visitBottomType(BottomType node, CoreTypes coreTypes) => node;
 
   @override
   DartType visitDynamicType(DynamicType node, CoreTypes coreTypes) => node;
@@ -1145,9 +1135,6 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
     throw new UnsupportedError("Unsupported operation: "
         "_NullabilityMarkerDetector(${node.runtimeType})");
   }
-
-  @override
-  bool visitBottomType(BottomType node) => false;
 
   @override
   bool visitDynamicType(DynamicType node) => false;

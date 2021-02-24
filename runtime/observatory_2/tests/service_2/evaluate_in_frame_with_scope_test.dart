@@ -63,27 +63,16 @@ var tests = <IsolateTest>[
     print(result);
     expect((result as Instance).valueAsString, equals('7'));
 
-    bool didThrow = false;
-    try {
-      await lib.evaluate("x + y",
-          scope: <String, ServiceObject>{"x": lib, "y": lib});
-    } catch (e) {
-      didThrow = true;
-      expect(e.toString(),
-          contains("Cannot evaluate against a VM-internal object"));
-    }
-    expect(didThrow, isTrue);
+    DartError errorResult = await lib
+        .evaluate("x + y", scope: <String, ServiceObject>{"x": lib, "y": lib});
+    print(errorResult);
+    expect(errorResult.toString(),
+        contains("Cannot evaluate against a VM-internal object"));
 
-    didThrow = false;
-    try {
-      result = await lib.evaluate("x + y",
-          scope: <String, ServiceObject>{"not&an&identifier": thing1});
-      print(result);
-    } catch (e) {
-      didThrow = true;
-      expect(e.toString(), contains("invalid 'scope' parameter"));
-    }
-    expect(didThrow, isTrue);
+    errorResult = await lib.evaluate("x + y",
+        scope: <String, ServiceObject>{"not&an&identifier": thing1});
+    print(errorResult);
+    expect(errorResult.toString(), contains("invalid 'scope' parameter"));
   },
 ];
 

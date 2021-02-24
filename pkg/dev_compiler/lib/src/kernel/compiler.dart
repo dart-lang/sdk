@@ -2674,10 +2674,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitVoidType(VoidType type) => runtimeCall('void');
 
   @override
-  js_ast.Expression visitBottomType(BottomType type) =>
-      _emitType(const NullType());
-
-  @override
   js_ast.Expression visitNullType(NullType type) =>
       _emitInterfaceType(_coreTypes.deprecatedNullType);
 

@@ -6,6 +6,7 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
+extension_types/simple: ExpectationFileMismatchSerialized # Expected.
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
@@ -20,7 +21,7 @@ none/method_invocation: TypeCheckError
 none/operator: TypeCheckError
 none/property_get: TypeCheckError
 none/property_set: TypeCheckError
+value_class/copy_with_call_sites: RuntimeError # Expected
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected
 value_class/value_implements_non_value: RuntimeError # Expected
-value_class/copy_with_call_sites: RuntimeError # Expected

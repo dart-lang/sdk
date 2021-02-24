@@ -188,8 +188,6 @@ abstract class AbstractDataSource extends DataSourceMixin
         return const ir.VoidType();
       case DartTypeNodeKind.invalidType:
         return const ir.InvalidType();
-      case DartTypeNodeKind.bottomType:
-        return const ir.BottomType();
       case DartTypeNodeKind.doesNotComplete:
         return const DoesNotCompleteType();
       case DartTypeNodeKind.neverType:

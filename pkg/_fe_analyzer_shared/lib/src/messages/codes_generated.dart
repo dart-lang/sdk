@@ -3904,6 +3904,28 @@ Message _withArgumentsFfiNotStatic(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateFfiSizeAnnotation =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Field '#name' must have exactly one 'Array' annotation.""",
+        withArguments: _withArgumentsFfiSizeAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiSizeAnnotation =
+    const Code<Message Function(String name)>(
+  "FfiSizeAnnotation",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiSizeAnnotation(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiSizeAnnotation,
+      message: """Field '${name}' must have exactly one 'Array' annotation.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateFfiStructGeneric =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Struct '#name' should not be generic.""",

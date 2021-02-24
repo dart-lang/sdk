@@ -172,11 +172,6 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitBottomType(ir.BottomType node) {
-    return _dartTypes.bottomType();
-  }
-
-  @override
   DartType visitNeverType(ir.NeverType node) {
     return _convertNullability(_dartTypes.neverType(), node.nullability);
   }

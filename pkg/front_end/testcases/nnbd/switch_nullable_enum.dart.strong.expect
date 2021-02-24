@@ -30,7 +30,7 @@ static method method1(self::Enum? e) → core::int {
         return 0;
       }
   }
-  return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/switch_nullable_enum.dart:7:5: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+  return let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/switch_nullable_enum.dart:7:5: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
 int method1(Enum? e) {
     ^" in null;
 }

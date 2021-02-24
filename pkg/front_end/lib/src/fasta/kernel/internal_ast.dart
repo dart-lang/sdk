@@ -21,9 +21,13 @@
 /// with the same kind of root node.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
-import 'package:kernel/src/printer.dart';
+import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/src/assumptions.dart';
+import 'package:kernel/src/printer.dart';
+import 'package:kernel/src/text_util.dart';
+import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
+import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../builder/type_alias_builder.dart';
@@ -4225,4 +4229,147 @@ Expression clonePureExpression(Expression node) {
       ..fileOffset = node.fileOffset;
   }
   throw new UnsupportedError("Clone not supported for ${node.runtimeType}.");
+}
+
+class ExtensionType extends DartType {
+  final Reference extensionName;
+
+  @override
+  final Nullability declaredNullability;
+
+  final List<DartType> typeArguments;
+
+  final DartType onType;
+
+  ExtensionType(Extension extensionNode, Nullability declaredNullability,
+      [List<DartType> typeArguments])
+      : this.byReference(extensionNode.reference, declaredNullability,
+            typeArguments ?? _defaultTypeArguments(extensionNode));
+
+  ExtensionType.byReference(
+      this.extensionName, this.declaredNullability, this.typeArguments)
+      : assert(declaredNullability != null),
+        onType = _computeOnType(extensionName, typeArguments);
+
+  Extension get extensionNode => extensionName.asExtension;
+
+  @override
+  Nullability get nullability {
+    return uniteNullabilities(
+        declaredNullability, extensionNode.onType.nullability);
+  }
+
+  static List<DartType> _defaultTypeArguments(Extension extensionNode) {
+    if (extensionNode.typeParameters.length == 0) {
+      // Avoid allocating a list in this very common case.
+      return const <DartType>[];
+    } else {
+      return new List<DartType>.filled(
+          extensionNode.typeParameters.length, const DynamicType());
+    }
+  }
+
+  static DartType _computeOnType(
+      Reference extensionName, List<DartType> typeArguments) {
+    Extension extensionNode = extensionName.asExtension;
+    if (extensionNode.typeParameters.isEmpty) {
+      return extensionNode.onType;
+    } else {
+      assert(extensionNode.typeParameters.length == typeArguments.length);
+      return Substitution.fromPairs(extensionNode.typeParameters, typeArguments)
+          .substituteType(extensionNode.onType);
+    }
+  }
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) {
+    if (v is Printer) {
+      // TODO(dmitryas): Move this guarded code into Printer.visitExtensionType
+      // when it's available.
+      Printer printer = v as Printer;
+      printer.writeExtensionReferenceFromReference(extensionName);
+      if (typeArguments.isNotEmpty) {
+        printer.writeSymbol('<');
+        printer.writeList(typeArguments, printer.writeType);
+        printer.writeSymbol('>');
+        printer.state = Printer.WORD;
+      }
+      printer.writeNullability(declaredNullability);
+      // The following line is needed to supply the return value and make the
+      // compiler happy. It should go away once ExtensionType is moved to
+      // ast.dart.
+      return null;
+    } else if (v is BinaryPrinter) {
+      // TODO(dmitryas): Remove the following line and implement
+      // BinaryPrinter.visitExtensionType when it's available.
+      return onType.accept(v);
+    }
+    // TODO(dmitryas): Change this to `v.visitExtensionType(this)` when
+    // ExtensionType is moved to ast.dart.
+    return v.defaultDartType(this);
+  }
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    // TODO(dmitryas): Change this to `v.visitExtensionType(this, arg)` when
+    // ExtensionType is moved to ast.dart.
+    return v.defaultDartType(this, arg);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    // TODO(dmitryas): Uncomment the following line when ExtensionType is moved
+    // to ast.dart.
+    //extensionNode.acceptReference(v);
+    visitList(typeArguments, v);
+  }
+
+  @override
+  bool equals(Object other, Assumptions assumptions) {
+    if (identical(this, other)) return true;
+    if (other is ExtensionType) {
+      if (nullability != other.nullability) return false;
+      if (extensionName != other.extensionName) return false;
+      if (typeArguments.length != other.typeArguments.length) return false;
+      for (int i = 0; i < typeArguments.length; ++i) {
+        if (!typeArguments[i].equals(other.typeArguments[i], assumptions)) {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0x3fffffff & extensionName.hashCode;
+    for (int i = 0; i < typeArguments.length; ++i) {
+      hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
+    }
+    int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
+    return hash;
+  }
+
+  @override
+  ExtensionType withDeclaredNullability(Nullability declaredNullability) {
+    return declaredNullability == this.declaredNullability
+        ? this
+        : new ExtensionType.byReference(
+            extensionName, declaredNullability, typeArguments);
+  }
+
+  @override
+  String toString() {
+    return "ExtensionType(${toStringInternal})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExtensionName(extensionName);
+    printer.writeTypeArguments(typeArguments);
+    printer.write(nullabilityToString(declaredNullability));
+  }
 }

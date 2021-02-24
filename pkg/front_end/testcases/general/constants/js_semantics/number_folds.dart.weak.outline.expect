@@ -18,7 +18,7 @@ static const field core::int* shiftNegative1 = 2.{core::int::<<}(1.{core::int::u
 static const field core::int* shiftNegative2 = 2.{core::int::>>>}(1.{core::int::unary-}(){() →* core::int*}){(core::int*) →* core::int*};
 static const field core::int* shiftNegative3 = 2.{core::int::>>}(1.{core::int::unary-}(){() →* core::int*}){(core::int*) →* core::int*};
 static const field core::int* modZero = 2.{core::num::%}(0){(core::num*) →* core::int*};
-static const field core::int* divZero = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:9:23: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+static const field core::int* divZero = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:9:23: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
 const int divZero = 2 / 0;
                       ^" in 2.{core::num::/}(0){(core::num*) →* core::double*} as{TypeError} core::int*;
 static const field core::int* intdivZero = 2.{core::num::~/}(0){(core::num*) →* core::int*};

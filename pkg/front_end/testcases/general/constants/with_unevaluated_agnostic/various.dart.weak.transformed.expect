@@ -101,10 +101,10 @@ class Class<T extends self::A = self::A> extends core::Object /*hasConstConstruc
     : this self::Class::•(t as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class::T)
     ;
   const constructor method(self::Class::T t) → self::Class<self::Class::T>
-    : this self::Class::•(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
+    : this self::Class::•(let final Never #t1 = invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
   const Class.method(T t) : this(-t);
-                                 ^" in t.{self::A::unary-}(){() → self::A} as{TypeError,ForNonNullableByDefault} <BottomType>)
+                                 ^" in t.{self::A::unary-}(){() → self::A} as{TypeError,ForNonNullableByDefault} Never)
     ;
 }
 class Subclass<T extends self::A = self::A> extends self::Class<self::Subclass::T> /*hasConstConstructor*/  {

@@ -44,7 +44,7 @@ class FfiCode extends AnalyzerErrorCode {
    */
   static const FfiCode EXTRA_SIZE_ANNOTATION_CARRAY = FfiCode(
       name: 'EXTRA_SIZE_ANNOTATION_CARRAY',
-      message: "'CArray's must have exactly one 'CArraySize' annotation.",
+      message: "'Array's must have exactly one 'Array' annotation.",
       correction: "Try removing the extra annotation.");
 
   /**
@@ -94,10 +94,10 @@ class FfiCode extends AnalyzerErrorCode {
       name: 'INVALID_FIELD_TYPE_IN_STRUCT',
       message:
           "Fields in struct classes can't have the type '{0}'. They can only "
-          "be declared as 'int', 'double', 'CArray', 'Pointer', or subtype of "
+          "be declared as 'int', 'double', 'Array', 'Pointer', or subtype of "
           "'Struct'.",
       correction:
-          "Try using 'int', 'double', 'CArray', 'Pointer', or subtype of "
+          "Try using 'int', 'double', 'Array', 'Pointer', or subtype of "
           "'Struct'.");
 
   /**
@@ -146,8 +146,8 @@ class FfiCode extends AnalyzerErrorCode {
    */
   static const FfiCode MISSING_SIZE_ANNOTATION_CARRAY = FfiCode(
       name: 'MISSING_SIZE_ANNOTATION_CARRAY',
-      message: "'CArray's must have exactly one 'CArraySize' annotation.",
-      correction: "Try adding a 'CArraySize' annotation.");
+      message: "'Array's must have exactly one 'Array' annotation.",
+      correction: "Try adding a 'Array' annotation.");
 
   /**
    * Parameters:

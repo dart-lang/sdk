@@ -18,7 +18,7 @@ abstract class A extends core::Object /*hasConstConstructor*/  {
     : super core::Object::•()
     ;
   static factory foo() → self::A
-    let<BottomType> #redirecting_factory = self::B::• in let<BottomType> #typeArg0 = null in invalid-expression;
+    let Never #redirecting_factory = self::B::• in let Null #typeArg0 = null in invalid-expression;
 }
 static method main() → dynamic {}
 

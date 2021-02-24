@@ -135,7 +135,7 @@ static method test() → dynamic {
   }
   {
     self::V* v;
-    dynamic V = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:36:9: Error: Can't declare 'V' because it was already used in this scope.
+    dynamic V = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:36:9: Error: Can't declare 'V' because it was already used in this scope.
     var V = null;
         ^" in null;
   }

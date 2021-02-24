@@ -53,7 +53,7 @@ import "dart:core" as core;
 
 static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, core::Object o1, core::Object? o2) → dynamic {
   {
-    core::Iterator<dynamic> :sync-for-iterator = (let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:9:17: Error: The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
+    core::Iterator<dynamic> :sync-for-iterator = (let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:9:17: Error: The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
  - 'Iterable' is from 'dart:core'.
   for (int x in i2) x;
                 ^" in i2).{core::Iterable::iterator};
@@ -65,7 +65,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
   block {
     final core::List<core::int> #t2 = core::_GrowableList::•<core::int>(0);
     {
-      core::Iterator<dynamic> :sync-for-iterator = (let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:10:18: Error: The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
+      core::Iterator<dynamic> :sync-for-iterator = (let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:10:18: Error: The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
  - 'Iterable' is from 'dart:core'.
   [for (int x in i2) x];
                  ^" in i2).{core::Iterable::iterator};
@@ -76,7 +76,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
     }
   } =>#t2;
   {
-    core::Iterator<dynamic> :sync-for-iterator = (let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:12:17: Error: The type 'List<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'List<int>?' is nullable and 'Iterable<dynamic>' isn't.
+    core::Iterator<dynamic> :sync-for-iterator = (let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:12:17: Error: The type 'List<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'List<int>?' is nullable and 'Iterable<dynamic>' isn't.
  - 'List' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   for (int x in l2) x;
@@ -89,7 +89,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
   block {
     final core::List<core::int> #t5 = core::_GrowableList::•<core::int>(0);
     {
-      core::Iterator<dynamic> :sync-for-iterator = (let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:13:18: Error: The type 'List<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'List<int>?' is nullable and 'Iterable<dynamic>' isn't.
+      core::Iterator<dynamic> :sync-for-iterator = (let final Never #t6 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:13:18: Error: The type 'List<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'List<int>?' is nullable and 'Iterable<dynamic>' isn't.
  - 'List' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   [for (int x in l2) x];
@@ -101,7 +101,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
     }
   } =>#t5;
   {
-    core::Iterator<dynamic> :sync-for-iterator = (let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:15:17: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
+    core::Iterator<dynamic> :sync-for-iterator = (let final Never #t7 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:15:17: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Object' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   for (int x in o1) x;
@@ -117,7 +117,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
   block {
     final core::List<core::int> #t9 = core::_GrowableList::•<core::int>(0);
     {
-      core::Iterator<dynamic> :sync-for-iterator = (let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:16:18: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
+      core::Iterator<dynamic> :sync-for-iterator = (let final Never #t10 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:16:18: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Object' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   [for (int x in o1) x];
@@ -132,7 +132,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
     }
   } =>#t9;
   {
-    core::Iterator<dynamic> :sync-for-iterator = (let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:18:17: Error: The type 'Object?' used in the 'for' loop must implement 'Iterable<dynamic>'.
+    core::Iterator<dynamic> :sync-for-iterator = (let final Never #t12 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:18:17: Error: The type 'Object?' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Object' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   for (int x in o2) x;
@@ -148,7 +148,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
   block {
     final core::List<core::int> #t14 = core::_GrowableList::•<core::int>(0);
     {
-      core::Iterator<dynamic> :sync-for-iterator = (let final<BottomType> #t15 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:19:18: Error: The type 'Object?' used in the 'for' loop must implement 'Iterable<dynamic>'.
+      core::Iterator<dynamic> :sync-for-iterator = (let final Never #t15 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:19:18: Error: The type 'Object?' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Object' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   [for (int x in o2) x];

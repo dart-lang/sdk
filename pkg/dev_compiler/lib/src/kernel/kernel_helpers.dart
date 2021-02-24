@@ -344,8 +344,7 @@ class LabelContinueFinder extends StatementVisitor<void> {
 /// object of DartType. It doesn't introduce a run-time overhead in production
 /// code if used in an assert.
 bool isKnownDartTypeImplementor(DartType t) {
-  return t is BottomType ||
-      t is DynamicType ||
+  return t is DynamicType ||
       t is FunctionType ||
       t is FutureOrType ||
       t is InterfaceType ||

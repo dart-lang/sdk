@@ -124,7 +124,6 @@ class Tag {
 
   // Types
   static const int TypedefType = 87;
-  static const int BottomType = 89;
   static const int InvalidType = 90;
   static const int DynamicType = 91;
   static const int VoidType = 92;
@@ -173,7 +172,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 55;
+  static const int BinaryFormatVersion = 56;
 }
 
 abstract class ConstantTag {

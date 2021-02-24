@@ -56,7 +56,7 @@ class Bar<T extends asy::Stream<core::String*>* = asy::Stream<core::String*>*> e
     ;
   method foo(generic-covariant-impl self::Bar::T* t) → dynamic async {
     await for (core::String* i in t) {
-      core::int* x = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:17:44: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      core::int* x = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:17:44: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
                                            ^" in i as{TypeError} core::int*;
     }
@@ -78,7 +78,7 @@ class Baz<T extends core::Object* = dynamic, E extends asy::Stream<self::Baz::T*
     ;
   method foo(generic-covariant-impl self::Baz::S* t) → dynamic async {
     await for (self::Baz::T* i in t) {
-      core::int* x = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:25:44: Error: A value of type 'T' can't be assigned to a variable of type 'int'.
+      core::int* x = let final Never* #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:25:44: Error: A value of type 'T' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
                                            ^" in i as{TypeError} core::int*;
       self::Baz::T* y = i;
@@ -149,7 +149,7 @@ abstract class MyStream<T extends core::Object* = dynamic> extends asy::Stream<s
 static method test() → dynamic async {
   self::MyStream<self::Foo*>* myStream = self::MyStream::•<self::Foo*>();
   await for (self::Foo* x in myStream) {
-    core::String* y = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:38:45: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
+    core::String* y = let final Never* #t3 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:38:45: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart'.
     String y = /*error:INVALID_ASSIGNMENT*/ x;
                                             ^" in x as{TypeError} core::String*;
@@ -158,7 +158,7 @@ static method test() → dynamic async {
     core::String* y = x as{TypeError,ForDynamic} core::String*;
   }
   await for (final self::Foo* #t4 in myStream) {
-    core::String* x = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:45:21: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
+    core::String* x = let final Never* #t5 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:45:21: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart'.
 Try changing the type of the variable.
   await for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ myStream) {
@@ -181,7 +181,7 @@ Try changing the type of the variable.
     self::Foo* y = x;
   }
   core::Map<core::String*, self::Foo*>* map = <core::String*, self::Foo*>{};
-  await for (dynamic x in let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:66:76: Error: The type 'Map<String, Foo>' used in the 'for' loop must implement 'Stream<dynamic>'.
+  await for (dynamic x in let final Never* #t9 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:66:76: Error: The type 'Map<String, Foo>' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Map' is from 'dart:core'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart'.
  - 'Stream' is from 'dart:async'.

@@ -138,19 +138,19 @@ extension _extension#1 on core::num* {
 extension _extension#2 on core::String* {
   get call = self::_extension#2|get#call;
 }
-static field core::String* topLevel1 = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:29:18: Error: Too many positional arguments: 0 allowed, but 1 found.
+static field core::String* topLevel1 = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:29:18: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
 var topLevel1 = 1(10);
                  ^" in self::_extension#2|get#call(self::_extension#0|get#call(1)).call(10);
-static field core::String* topLevel2 = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:30:18: Error: Too many positional arguments: 0 allowed, but 1 found.
+static field core::String* topLevel2 = let final Never* #t2 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:30:18: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
 var topLevel2 = 1(\"10\");
                  ^" in self::_extension#2|get#call(self::_extension#0|get#call(1)).call("10");
-static field core::String* topLevel3 = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:31:20: Error: Too many positional arguments: 0 allowed, but 1 found.
+static field core::String* topLevel3 = let final Never* #t3 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:31:20: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
 var topLevel3 = 1.0(10);
                    ^" in self::_extension#2|get#call(self::_extension#1|get#call(1.0)).call(10);
-static field core::String* topLevel4 = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:32:20: Error: Too many positional arguments: 0 allowed, but 1 found.
+static field core::String* topLevel4 = let final Never* #t4 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:32:20: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
 var topLevel4 = 1.0(\"10\");
                    ^" in self::_extension#2|get#call(self::_extension#1|get#call(1.0)).call("10");
@@ -176,19 +176,19 @@ static method main() → dynamic {
   self::_extension#2|get#call("").call();
 }
 static method errors() → dynamic {
-  let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:39:4: Error: Too many positional arguments: 0 allowed, but 1 found.
+  let final Never* #t5 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:39:4: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
   1(10);
    ^" in self::_extension#2|get#call(self::_extension#0|get#call(1)).call(10);
-  let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:40:4: Error: Too many positional arguments: 0 allowed, but 1 found.
+  let final Never* #t6 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:40:4: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
   1(\"10\");
    ^" in self::_extension#2|get#call(self::_extension#0|get#call(1)).call("10");
-  let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:41:6: Error: Too many positional arguments: 0 allowed, but 1 found.
+  let final Never* #t7 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:41:6: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
   1.0(10);
      ^" in self::_extension#2|get#call(self::_extension#1|get#call(1.0)).call(10);
-  let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:42:6: Error: Too many positional arguments: 0 allowed, but 1 found.
+  let final Never* #t8 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:42:6: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
   1.0(\"10\");
      ^" in self::_extension#2|get#call(self::_extension#1|get#call(1.0)).call("10");

@@ -11,7 +11,6 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 
 import 'package:kernel/ast.dart'
     show
-        BottomType,
         Class,
         DartType,
         DartTypeVisitor,
@@ -86,11 +85,6 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         /* charOffset = */ null)
       ..bind(new VoidTypeDeclarationBuilder(
           const VoidType(), loader.coreLibrary, -1));
-  }
-
-  @override
-  TypeBuilder visitBottomType(BottomType node) {
-    throw "Not implemented";
   }
 
   @override

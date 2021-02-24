@@ -8,14 +8,14 @@ static method f() → dynamic {
   dynamic c = throw "foo";
   () →* core::int* d = () → core::int* => 0;
   () →* Null e = () → Null => null;
-  () →* <BottomType>f = () → <BottomType>=> throw "foo";
+  () →* Null f = () → Null => throw "foo";
   () →* core::int* g = () → core::int* {
     return 0;
   };
   () →* Null h = () → Null {
     return null;
   };
-  () →* <BottomType>i = () → <BottomType>{
+  () →* Null i = () → Null {
     return throw "foo";
   };
 }

@@ -1058,7 +1058,7 @@ class CoreTypes {
           klass,
           nullability,
           new List<DartType>.filled(
-              klass.typeParameters.length, const BottomType()));
+              klass.typeParameters.length, const NeverType.nonNullable()));
     }
     if (result.nullability != nullability) {
       return _bottomInterfaceTypes[klass] =
@@ -1144,8 +1144,6 @@ class CoreTypes {
       assert(type.promotedBound == null);
       return isBottom(type.parameter.bound!);
     }
-
-    if (type is BottomType) return true;
 
     return false;
   }

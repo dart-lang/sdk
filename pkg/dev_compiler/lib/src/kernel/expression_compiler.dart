@@ -9,8 +9,7 @@ import 'dart:async';
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler;
 
-import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show Code, Message, PlainAndColorizedString;
+import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Message, Code;
 
 import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/js_ast/js_ast.dart' as js_ast;
@@ -45,8 +44,8 @@ DiagnosticMessage _createInternalError(Uri uri, int line, int col, String msg) {
   return Message(Code<String>('Expression Compiler Internal error'),
           message: msg)
       .withLocation(uri, 0, 0)
-      .withFormatting(PlainAndColorizedString.plainOnly('Internal error: $msg'),
-          line, col, Severity.internalProblem, []);
+      .withFormatting(
+          'Internal error: $msg', line, col, Severity.internalProblem, []);
 }
 
 /// Dart scope

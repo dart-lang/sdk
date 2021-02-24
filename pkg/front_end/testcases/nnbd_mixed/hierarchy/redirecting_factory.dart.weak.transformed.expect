@@ -8,6 +8,6 @@ class Class extends core::Object {
     : super core::Object::•()
     ;
   static factory redirect() → self::Class
-    let<BottomType> #redirecting_factory = self::Class::• in invalid-expression;
+    let Never #redirecting_factory = self::Class::• in invalid-expression;
 }
 static method main() → dynamic {}

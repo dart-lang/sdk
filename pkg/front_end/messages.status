@@ -329,6 +329,7 @@ FfiFieldInitializer/analyzerCode: Fail
 FfiFieldNoAnnotation/analyzerCode: Fail
 FfiFieldNull/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail
+FfiSizeAnnotation/analyzerCode: Fail
 FfiStructAnnotation/analyzerCode: Fail
 FfiStructGeneric/analyzerCode: Fail
 FfiTypeInvalid/analyzerCode: Fail

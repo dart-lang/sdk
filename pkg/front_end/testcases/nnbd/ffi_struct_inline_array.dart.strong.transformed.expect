@@ -1,0 +1,53 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:typed_data" as typ;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+import "package:ffi/ffi.dart";
+
+@#C7
+class StructInlineArray extends ffi::Struct {
+  static final field core::int* #sizeOf = (#C8).{core::List::[]}(ffi::_abi())/*isLegacy*/;
+  synthetic constructor •() → self::StructInlineArray
+    : super ffi::Struct::•()
+    ;
+  @#C11
+  constructor #fromTypedDataBase(dynamic #pointer) → dynamic
+    : super ffi::Struct::_fromPointer(#pointer)
+    ;
+  @#C12
+  get a0() → ffi::Array<ffi::Uint8>
+    return new ffi::Array::_<ffi::Array<ffi::Uint8>>( block {
+      core::Object #typedDataBase = this.{ffi::Struct::_addressOf};
+      core::int #offset = (#C14).{core::List::[]}(ffi::_abi());
+    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Uint8>(#typedDataBase.{ffi::Pointer::address}.{core::num::+}(#offset)) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}.{core::num::+}(#offset), (#C8).{core::List::[]}(ffi::_abi())), #C3);
+  @#C12
+  set a0(ffi::Array<ffi::Uint8> #externalFieldValue) → void
+    return ffi::_memCopy(this.{ffi::Struct::_addressOf}, (#C14).{core::List::[]}(ffi::_abi()), #externalFieldValue.{ffi::Array::_typedDataBase}, #C13, (#C8).{core::List::[]}(ffi::_abi()));
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = "vm:ffi:struct-fields"
+  #C2 = TypeLiteralConstant(ffi::Uint8)
+  #C3 = 8
+  #C4 = ffi::_FfiInlineArray {elementType:#C2, length:#C3}
+  #C5 = <core::Type>[#C4]
+  #C6 = ffi::_FfiStructLayout {fieldTypes:#C5}
+  #C7 = core::pragma {name:#C1, options:#C6}
+  #C8 = <core::int*>[#C3, #C3, #C3]
+  #C9 = "vm:entry-point"
+  #C10 = null
+  #C11 = core::pragma {name:#C9, options:#C10}
+  #C12 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C3}
+  #C13 = 0
+  #C14 = <core::int*>[#C13, #C13, #C13]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///ffi_struct_inline_array.dart:
+- _ArraySize. (from org-dartlang-sdk:///sdk/lib/ffi/ffi.dart:107:9)

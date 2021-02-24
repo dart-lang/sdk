@@ -6,7 +6,7 @@
 /*cfe:nnbd.library: nnbd=true*/
 
 throwing() {
-  /*cfe.<bottom>*/
+  /*cfe.Never*/
   /*cfe:nnbd.Never*/
   throw
       /*cfe.String*/
@@ -16,7 +16,7 @@ throwing() {
 
 rethrowing() {
   try {} catch (_) {
-    /*cfe.<bottom>*/
+    /*cfe.Never*/
     /*cfe:nnbd.Never*/
     rethrow;
   }

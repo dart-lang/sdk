@@ -341,6 +341,13 @@ class Reference {
     }
     return node as Typedef;
   }
+
+  Extension get asExtension {
+    if (node == null) {
+      throw '$this is not bound to an AST node. An extension was expected';
+    }
+    return node as Extension;
+  }
 }
 
 // ------------------------------------------------------------------------
@@ -2043,7 +2050,7 @@ class Field extends Member {
   DartType get getterType => type;
 
   @override
-  DartType get setterType => hasSetter ? type : const BottomType();
+  DartType get setterType => hasSetter ? type : const NeverType.nonNullable();
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
@@ -2191,10 +2198,10 @@ class Constructor extends Member {
   }
 
   @override
-  DartType get getterType => const BottomType();
+  DartType get getterType => const NeverType.nonNullable();
 
   @override
-  DartType get setterType => const BottomType();
+  DartType get setterType => const NeverType.nonNullable();
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
@@ -2362,10 +2369,10 @@ class RedirectingFactoryConstructor extends Member {
   }
 
   @override
-  DartType get getterType => const BottomType();
+  DartType get getterType => const NeverType.nonNullable();
 
   @override
-  DartType get setterType => const BottomType();
+  DartType get setterType => const NeverType.nonNullable();
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
@@ -2866,7 +2873,7 @@ class Procedure extends Member {
   DartType get setterType {
     return isSetter
         ? function!.positionalParameters[0].type
-        : const BottomType();
+        : const NeverType.nonNullable();
   }
 
   @override
@@ -3627,9 +3634,6 @@ abstract class Expression extends TreeNode {
         return new InterfaceType(
             superclass, type.nullability, upcastTypeArguments);
       }
-    } else if (type is BottomType) {
-      return context.typeEnvironment.coreTypes
-          .bottomInterfaceType(superclass, context.nonNullable);
     }
 
     // The static type of this expression is not a subtype of [superclass]. The
@@ -3694,7 +3698,7 @@ class InvalidExpression extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
-      const BottomType();
+      const NeverType.nonNullable();
 
   @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitInvalidExpression(this);
@@ -5854,7 +5858,7 @@ class MethodInvocation extends InvocationExpression {
       DartType receiverType = receiver.getStaticType(context);
       if (receiverType is FunctionType) {
         if (receiverType.typeParameters.length != arguments.types.length) {
-          return const BottomType();
+          return const NeverType.nonNullable();
         }
         return Substitution.fromPairs(
                 receiverType.typeParameters, arguments.types)
@@ -7600,7 +7604,7 @@ class Rethrow extends Expression {
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.isNonNullableByDefault
           ? const NeverType.nonNullable()
-          : const BottomType();
+          : const NeverType.legacy();
 
   @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitRethrow(this);
@@ -7644,7 +7648,7 @@ class Throw extends Expression {
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.isNonNullableByDefault
           ? const NeverType.nonNullable()
-          : const BottomType();
+          : const NeverType.legacy();
 
   @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitThrow(this);
@@ -10567,48 +10571,6 @@ class NeverType extends DartType {
   }
 }
 
-class BottomType extends DartType {
-  @override
-  final int hashCode = 514213;
-
-  const BottomType();
-
-  @override
-  R accept<R>(DartTypeVisitor<R> v) => v.visitBottomType(this);
-
-  @override
-  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
-      v.visitBottomType(this, arg);
-
-  @override
-  void visitChildren(Visitor v) {}
-
-  @override
-  bool operator ==(Object other) => equals(other, null);
-
-  @override
-  bool equals(Object other, Assumptions? assumptions) => other is BottomType;
-
-  @override
-  Nullability get declaredNullability => Nullability.nonNullable;
-
-  @override
-  Nullability get nullability => Nullability.nonNullable;
-
-  @override
-  BottomType withDeclaredNullability(Nullability declaredNullability) => this;
-
-  @override
-  String toString() {
-    return "BottomType(${toStringInternal()})";
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write("<bottom>");
-  }
-}
-
 class NullType extends DartType {
   @override
   final int hashCode = 415324;
@@ -13354,6 +13316,61 @@ class Version extends Object {
     return "Version(major=$major, minor=$minor)";
   }
 }
+
+/// Almost const <NamedExpression>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<NamedExpression> emptyListOfNamedExpression =
+    List.filled(0, dummyNamedExpression, growable: false);
+
+/// Almost const <VariableDeclaration>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<VariableDeclaration> emptyListOfVariableDeclaration =
+    List.filled(0, dummyVariableDeclaration, growable: false);
+
+/// Almost const <Combinator>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Combinator> emptyListOfCombinator =
+    List.filled(0, dummyCombinator, growable: false);
+
+/// Almost const <Expression>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Expression> emptyListOfExpression =
+    List.filled(0, dummyExpression, growable: false);
+
+/// Almost const <AssertStatement>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<AssertStatement> emptyListOfAssertStatement =
+    List.filled(0, dummyAssertStatement, growable: false);
+
+/// Almost const <Statement>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Statement> emptyListOfStatement =
+    List.filled(0, dummyStatement, growable: false);
+
+/// Almost const <SwitchCase>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<SwitchCase> emptyListOfSwitchCase =
+    List.filled(0, dummySwitchCase, growable: false);
+
+/// Almost const <Catch>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Catch> emptyListOfCatch =
+    List.filled(0, dummyCatch, growable: false);
+
+/// Almost const <Supertype>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Supertype> emptyListOfSupertype =
+    List.filled(0, dummySupertype, growable: false);
+
+/// Almost const <DartType>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<DartType> emptyListOfDartType =
+    List.filled(0, dummyDartType, growable: false);
+
+/// Almost const <NamedType>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<NamedType> emptyListOfNamedType =
+    List.filled(0, dummyNamedType, growable: false);
 
 /// Non-nullable [DartType] dummy value.
 ///

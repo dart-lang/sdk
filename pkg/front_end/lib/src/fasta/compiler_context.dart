@@ -8,7 +8,6 @@ library fasta.compiler_context;
 
 import 'dart:async' show Zone, runZoned;
 
-import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
@@ -80,8 +79,14 @@ class CompilerContext {
   }
 
   /// Format [message] as a text string that can be included in generated code.
-  PlainAndColorizedString format(LocatedMessage message, Severity severity) {
+  String format(LocatedMessage message, Severity severity) {
     return command_line_reporting.format(message, severity);
+  }
+
+  /// Format [message] as a text string that can be included in generated code.
+  // TODO(askesc): Remove this and direct callers directly to format.
+  String formatWithoutLocation(Message message, Severity severity) {
+    return command_line_reporting.format(message.withoutLocation(), severity);
   }
 
   // TODO(ahe): Remove this.

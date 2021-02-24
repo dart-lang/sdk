@@ -20,8 +20,8 @@ class NonSizedTypeArgument extends PubPackageResolutionTest {
 import 'dart:ffi';
 
 class C extends Struct {
-  @CArraySize(8)
-  CArray<Uint8> a0;
+  @Array(8)
+  Array<Uint8> a0;
 }
 ''');
   }
@@ -31,11 +31,11 @@ class C extends Struct {
 import 'dart:ffi';
 
 class C extends Struct {
-  @CArraySize(8)
-  CArray<CArray<Uint8>> a0;
+  @Array(8)
+  Array<Array<Uint8>> a0;
 }
 ''', [
-      error(FfiCode.NON_SIZED_TYPE_ARGUMENT, 64, 21),
+      error(FfiCode.NON_SIZED_TYPE_ARGUMENT, 59, 19),
     ]);
   }
 }

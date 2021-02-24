@@ -43,7 +43,7 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
 }
 static method main() → void {
   self::MyFuture<core::double*>* f = self::foo().{self::MyFuture::then}<core::double*>((dynamic _) → core::double* => 2.3);
-  asy::Future<core::int*>* f2 = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/future_then_upwards.dart:21:49: Error: A value of type 'MyFuture<double>' can't be assigned to a variable of type 'Future<int>'.
+  asy::Future<core::int*>* f2 = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/inference/future_then_upwards.dart:21:49: Error: A value of type 'MyFuture<double>' can't be assigned to a variable of type 'Future<int>'.
  - 'MyFuture' is from 'pkg/front_end/testcases/inference/future_then_upwards.dart'.
  - 'Future' is from 'dart:async'.
   Future<int> f2 = /*error:INVALID_ASSIGNMENT*/ f;

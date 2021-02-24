@@ -243,6 +243,36 @@ final testCases = [
           passStructNestedIrregularEvenBiggerx4, 0.0),
       passStructNestedIrregularEvenBiggerx4AfterCallback),
   CallbackTest.withCheck(
+      "PassStruct8BytesInlineArrayIntx4",
+      Pointer.fromFunction<PassStruct8BytesInlineArrayIntx4Type>(
+          passStruct8BytesInlineArrayIntx4, 0),
+      passStruct8BytesInlineArrayIntx4AfterCallback),
+  CallbackTest.withCheck(
+      "PassStructInlineArrayIrregularx4",
+      Pointer.fromFunction<PassStructInlineArrayIrregularx4Type>(
+          passStructInlineArrayIrregularx4, 0),
+      passStructInlineArrayIrregularx4AfterCallback),
+  CallbackTest.withCheck(
+      "PassStructInlineArray100Bytes",
+      Pointer.fromFunction<PassStructInlineArray100BytesType>(
+          passStructInlineArray100Bytes, 0),
+      passStructInlineArray100BytesAfterCallback),
+  CallbackTest.withCheck(
+      "PassStructStruct16BytesHomogeneousFloat2x5",
+      Pointer.fromFunction<PassStructStruct16BytesHomogeneousFloat2x5Type>(
+          passStructStruct16BytesHomogeneousFloat2x5, 0.0),
+      passStructStruct16BytesHomogeneousFloat2x5AfterCallback),
+  CallbackTest.withCheck(
+      "PassStructStruct32BytesHomogeneousDouble2x5",
+      Pointer.fromFunction<PassStructStruct32BytesHomogeneousDouble2x5Type>(
+          passStructStruct32BytesHomogeneousDouble2x5, 0.0),
+      passStructStruct32BytesHomogeneousDouble2x5AfterCallback),
+  CallbackTest.withCheck(
+      "PassStructStruct16BytesMixed3x10",
+      Pointer.fromFunction<PassStructStruct16BytesMixed3x10Type>(
+          passStructStruct16BytesMixed3x10, 0.0),
+      passStructStruct16BytesMixed3x10AfterCallback),
+  CallbackTest.withCheck(
       "ReturnStruct1ByteInt",
       Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
       returnStruct1ByteIntAfterCallback),
@@ -377,6 +407,28 @@ final testCases = [
               ReturnStructArgumentInt32x8Struct20BytesHomogeneouType>(
           returnStructArgumentInt32x8Struct20BytesHomogeneou),
       returnStructArgumentInt32x8Struct20BytesHomogeneouAfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStructArgumentStruct8BytesInlineArrayInt",
+      Pointer.fromFunction<ReturnStructArgumentStruct8BytesInlineArrayIntType>(
+          returnStructArgumentStruct8BytesInlineArrayInt),
+      returnStructArgumentStruct8BytesInlineArrayIntAfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStructArgumentStructStruct16BytesHomogeneous",
+      Pointer.fromFunction<
+              ReturnStructArgumentStructStruct16BytesHomogeneousType>(
+          returnStructArgumentStructStruct16BytesHomogeneous),
+      returnStructArgumentStructStruct16BytesHomogeneousAfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStructArgumentStructStruct32BytesHomogeneous",
+      Pointer.fromFunction<
+              ReturnStructArgumentStructStruct32BytesHomogeneousType>(
+          returnStructArgumentStructStruct32BytesHomogeneous),
+      returnStructArgumentStructStruct32BytesHomogeneousAfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStructArgumentStructStruct16BytesMixed3",
+      Pointer.fromFunction<ReturnStructArgumentStructStruct16BytesMixed3Type>(
+          returnStructArgumentStructStruct16BytesMixed3),
+      returnStructArgumentStructStruct16BytesMixed3AfterCallback),
   CallbackTest.withCheck(
       "ReturnStructAlignmentInt16",
       Pointer.fromFunction<ReturnStructAlignmentInt16Type>(
@@ -514,7 +566,7 @@ int passStruct1ByteIntx10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct1ByteIntx10 throwing on purpuse!");
+    throw Exception("PassStruct1ByteIntx10 throwing on purpose!");
   }
 
   passStruct1ByteIntx10_a0 = a0;
@@ -644,7 +696,7 @@ int passStruct3BytesHomogeneousUint8x10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct3BytesHomogeneousUint8x10 throwing on purpuse!");
+    throw Exception("PassStruct3BytesHomogeneousUint8x10 throwing on purpose!");
   }
 
   passStruct3BytesHomogeneousUint8x10_a0 = a0;
@@ -765,7 +817,7 @@ int passStruct3BytesInt2ByteAlignedx10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct3BytesInt2ByteAlignedx10 throwing on purpuse!");
+    throw Exception("PassStruct3BytesInt2ByteAlignedx10 throwing on purpose!");
   }
 
   passStruct3BytesInt2ByteAlignedx10_a0 = a0;
@@ -885,7 +937,7 @@ int passStruct4BytesHomogeneousInt16x10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct4BytesHomogeneousInt16x10 throwing on purpuse!");
+    throw Exception("PassStruct4BytesHomogeneousInt16x10 throwing on purpose!");
   }
 
   passStruct4BytesHomogeneousInt16x10_a0 = a0;
@@ -1055,7 +1107,7 @@ int passStruct7BytesHomogeneousUint8x10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct7BytesHomogeneousUint8x10 throwing on purpuse!");
+    throw Exception("PassStruct7BytesHomogeneousUint8x10 throwing on purpose!");
   }
 
   passStruct7BytesHomogeneousUint8x10_a0 = a0;
@@ -1186,7 +1238,7 @@ int passStruct7BytesInt4ByteAlignedx10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct7BytesInt4ByteAlignedx10 throwing on purpuse!");
+    throw Exception("PassStruct7BytesInt4ByteAlignedx10 throwing on purpose!");
   }
 
   passStruct7BytesInt4ByteAlignedx10_a0 = a0;
@@ -1306,7 +1358,7 @@ int passStruct8BytesIntx10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct8BytesIntx10 throwing on purpuse!");
+    throw Exception("PassStruct8BytesIntx10 throwing on purpose!");
   }
 
   passStruct8BytesIntx10_a0 = a0;
@@ -1426,7 +1478,7 @@ double passStruct8BytesHomogeneousFloatx10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct8BytesHomogeneousFloatx10 throwing on purpuse!");
+    throw Exception("PassStruct8BytesHomogeneousFloatx10 throwing on purpose!");
   }
 
   passStruct8BytesHomogeneousFloatx10_a0 = a0;
@@ -1546,7 +1598,7 @@ double passStruct8BytesMixedx10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct8BytesMixedx10 throwing on purpuse!");
+    throw Exception("PassStruct8BytesMixedx10 throwing on purpose!");
   }
 
   passStruct8BytesMixedx10_a0 = a0;
@@ -1739,7 +1791,7 @@ int passStruct9BytesHomogeneousUint8x10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct9BytesHomogeneousUint8x10 throwing on purpuse!");
+    throw Exception("PassStruct9BytesHomogeneousUint8x10 throwing on purpose!");
   }
 
   passStruct9BytesHomogeneousUint8x10_a0 = a0;
@@ -1862,7 +1914,7 @@ int passStruct9BytesInt4Or8ByteAlignedx10(
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassStruct9BytesInt4Or8ByteAlignedx10 throwing on purpuse!");
+        "PassStruct9BytesInt4Or8ByteAlignedx10 throwing on purpose!");
   }
 
   passStruct9BytesInt4Or8ByteAlignedx10_a0 = a0;
@@ -1965,7 +2017,7 @@ double passStruct12BytesHomogeneousFloatx6(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct12BytesHomogeneousFloatx6 throwing on purpuse!");
+    throw Exception("PassStruct12BytesHomogeneousFloatx6 throwing on purpose!");
   }
 
   passStruct12BytesHomogeneousFloatx6_a0 = a0;
@@ -2062,7 +2114,7 @@ double passStruct16BytesHomogeneousFloatx5(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct16BytesHomogeneousFloatx5 throwing on purpuse!");
+    throw Exception("PassStruct16BytesHomogeneousFloatx5 throwing on purpose!");
   }
 
   passStruct16BytesHomogeneousFloatx5_a0 = a0;
@@ -2169,7 +2221,7 @@ double passStruct16BytesMixedx10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct16BytesMixedx10 throwing on purpuse!");
+    throw Exception("PassStruct16BytesMixedx10 throwing on purpose!");
   }
 
   passStruct16BytesMixedx10_a0 = a0;
@@ -2301,7 +2353,7 @@ double passStruct16BytesMixed2x10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct16BytesMixed2x10 throwing on purpuse!");
+    throw Exception("PassStruct16BytesMixed2x10 throwing on purpose!");
   }
 
   passStruct16BytesMixed2x10_a0 = a0;
@@ -2421,7 +2473,7 @@ int passStruct17BytesIntx10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct17BytesIntx10 throwing on purpuse!");
+    throw Exception("PassStruct17BytesIntx10 throwing on purpose!");
   }
 
   passStruct17BytesIntx10_a0 = a0;
@@ -2713,7 +2765,7 @@ int passStruct19BytesHomogeneousUint8x10(
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassStruct19BytesHomogeneousUint8x10 throwing on purpuse!");
+        "PassStruct19BytesHomogeneousUint8x10 throwing on purpose!");
   }
 
   passStruct19BytesHomogeneousUint8x10_a0 = a0;
@@ -2866,7 +2918,7 @@ int passStruct20BytesHomogeneousInt32x10(
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassStruct20BytesHomogeneousInt32x10 throwing on purpuse!");
+        "PassStruct20BytesHomogeneousInt32x10 throwing on purpose!");
   }
 
   passStruct20BytesHomogeneousInt32x10_a0 = a0;
@@ -2932,7 +2984,7 @@ double passStruct20BytesHomogeneousFloat(Struct20BytesHomogeneousFloat a0) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct20BytesHomogeneousFloat throwing on purpuse!");
+    throw Exception("PassStruct20BytesHomogeneousFloat throwing on purpose!");
   }
 
   passStruct20BytesHomogeneousFloat_a0 = a0;
@@ -3024,7 +3076,7 @@ double passStruct32BytesHomogeneousDoublex5(
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassStruct32BytesHomogeneousDoublex5 throwing on purpuse!");
+        "PassStruct32BytesHomogeneousDoublex5 throwing on purpose!");
   }
 
   passStruct32BytesHomogeneousDoublex5_a0 = a0;
@@ -3085,7 +3137,7 @@ double passStruct40BytesHomogeneousDouble(Struct40BytesHomogeneousDouble a0) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct40BytesHomogeneousDouble throwing on purpuse!");
+    throw Exception("PassStruct40BytesHomogeneousDouble throwing on purpose!");
   }
 
   passStruct40BytesHomogeneousDouble_a0 = a0;
@@ -3266,7 +3318,7 @@ int passStruct1024BytesHomogeneousUint64(Struct1024BytesHomogeneousUint64 a0) {
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassStruct1024BytesHomogeneousUint64 throwing on purpuse!");
+        "PassStruct1024BytesHomogeneousUint64 throwing on purpose!");
   }
 
   passStruct1024BytesHomogeneousUint64_a0 = a0;
@@ -3373,7 +3425,7 @@ double passFloatStruct16BytesHomogeneousFloatFloatStruct1(
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassFloatStruct16BytesHomogeneousFloatFloatStruct1 throwing on purpuse!");
+        "PassFloatStruct16BytesHomogeneousFloatFloatStruct1 throwing on purpose!");
   }
 
   passFloatStruct16BytesHomogeneousFloatFloatStruct1_a0 = a0;
@@ -3491,7 +3543,7 @@ double passFloatStruct32BytesHomogeneousDoubleFloatStruct(
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassFloatStruct32BytesHomogeneousDoubleFloatStruct throwing on purpuse!");
+        "PassFloatStruct32BytesHomogeneousDoubleFloatStruct throwing on purpose!");
   }
 
   passFloatStruct32BytesHomogeneousDoubleFloatStruct_a0 = a0;
@@ -3593,7 +3645,7 @@ double passInt8Struct16BytesMixedInt8Struct16BytesMixedIn(
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassInt8Struct16BytesMixedInt8Struct16BytesMixedIn throwing on purpuse!");
+        "PassInt8Struct16BytesMixedInt8Struct16BytesMixedIn throwing on purpose!");
   }
 
   passInt8Struct16BytesMixedInt8Struct16BytesMixedIn_a0 = a0;
@@ -3708,7 +3760,7 @@ double passDoublex6Struct16BytesMixedx4Int32(
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassDoublex6Struct16BytesMixedx4Int32 throwing on purpuse!");
+        "PassDoublex6Struct16BytesMixedx4Int32 throwing on purpose!");
   }
 
   passDoublex6Struct16BytesMixedx4Int32_a0 = a0;
@@ -3815,7 +3867,7 @@ double passInt32x4Struct16BytesMixedx4Double(
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassInt32x4Struct16BytesMixedx4Double throwing on purpuse!");
+        "PassInt32x4Struct16BytesMixedx4Double throwing on purpose!");
   }
 
   passInt32x4Struct16BytesMixedx4Double_a0 = a0;
@@ -3898,7 +3950,7 @@ double passStruct40BytesHomogeneousDoubleStruct4BytesHomo(
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassStruct40BytesHomogeneousDoubleStruct4BytesHomo throwing on purpuse!");
+        "PassStruct40BytesHomogeneousDoubleStruct4BytesHomo throwing on purpose!");
   }
 
   passStruct40BytesHomogeneousDoubleStruct4BytesHomo_a0 = a0;
@@ -4136,7 +4188,7 @@ double passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int throwing on purpuse!");
+        "PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int throwing on purpose!");
   }
 
   passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a0 = a0;
@@ -4230,7 +4282,7 @@ int passStructAlignmentInt16(StructAlignmentInt16 a0) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStructAlignmentInt16 throwing on purpuse!");
+    throw Exception("PassStructAlignmentInt16 throwing on purpose!");
   }
 
   passStructAlignmentInt16_a0 = a0;
@@ -4283,7 +4335,7 @@ int passStructAlignmentInt32(StructAlignmentInt32 a0) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStructAlignmentInt32 throwing on purpuse!");
+    throw Exception("PassStructAlignmentInt32 throwing on purpose!");
   }
 
   passStructAlignmentInt32_a0 = a0;
@@ -4336,7 +4388,7 @@ int passStructAlignmentInt64(StructAlignmentInt64 a0) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStructAlignmentInt64 throwing on purpuse!");
+    throw Exception("PassStructAlignmentInt64 throwing on purpose!");
   }
 
   passStructAlignmentInt64_a0 = a0;
@@ -4457,7 +4509,7 @@ int passStruct8BytesNestedIntx10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct8BytesNestedIntx10 throwing on purpuse!");
+    throw Exception("PassStruct8BytesNestedIntx10 throwing on purpose!");
   }
 
   passStruct8BytesNestedIntx10_a0 = a0;
@@ -4577,7 +4629,7 @@ double passStruct8BytesNestedFloatx10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct8BytesNestedFloatx10 throwing on purpuse!");
+    throw Exception("PassStruct8BytesNestedFloatx10 throwing on purpose!");
   }
 
   passStruct8BytesNestedFloatx10_a0 = a0;
@@ -4699,7 +4751,7 @@ double passStruct8BytesNestedFloat2x10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct8BytesNestedFloat2x10 throwing on purpuse!");
+    throw Exception("PassStruct8BytesNestedFloat2x10 throwing on purpose!");
   }
 
   passStruct8BytesNestedFloat2x10_a0 = a0;
@@ -4829,7 +4881,7 @@ double passStruct8BytesNestedMixedx10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct8BytesNestedMixedx10 throwing on purpuse!");
+    throw Exception("PassStruct8BytesNestedMixedx10 throwing on purpose!");
   }
 
   passStruct8BytesNestedMixedx10_a0 = a0;
@@ -4909,7 +4961,7 @@ int passStruct16BytesNestedIntx2(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0.a0.a0 == 42 || a0.a0.a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct16BytesNestedIntx2 throwing on purpuse!");
+    throw Exception("PassStruct16BytesNestedIntx2 throwing on purpose!");
   }
 
   passStruct16BytesNestedIntx2_a0 = a0;
@@ -4997,7 +5049,7 @@ int passStruct32BytesNestedIntx2(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0.a0.a0.a0 == 42 || a0.a0.a0.a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct32BytesNestedIntx2 throwing on purpuse!");
+    throw Exception("PassStruct32BytesNestedIntx2 throwing on purpose!");
   }
 
   passStruct32BytesNestedIntx2_a0 = a0;
@@ -5058,7 +5110,7 @@ int passStructNestedIntStructAlignmentInt16(
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassStructNestedIntStructAlignmentInt16 throwing on purpuse!");
+        "PassStructNestedIntStructAlignmentInt16 throwing on purpose!");
   }
 
   passStructNestedIntStructAlignmentInt16_a0 = a0;
@@ -5118,7 +5170,7 @@ int passStructNestedIntStructAlignmentInt32(
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassStructNestedIntStructAlignmentInt32 throwing on purpuse!");
+        "PassStructNestedIntStructAlignmentInt32 throwing on purpose!");
   }
 
   passStructNestedIntStructAlignmentInt32_a0 = a0;
@@ -5178,7 +5230,7 @@ int passStructNestedIntStructAlignmentInt64(
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassStructNestedIntStructAlignmentInt64 throwing on purpuse!");
+        "PassStructNestedIntStructAlignmentInt64 throwing on purpose!");
   }
 
   passStructNestedIntStructAlignmentInt64_a0 = a0;
@@ -5380,7 +5432,7 @@ double passStructNestedIrregularEvenBiggerx4(
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassStructNestedIrregularEvenBiggerx4 throwing on purpuse!");
+        "PassStructNestedIrregularEvenBiggerx4 throwing on purpose!");
   }
 
   passStructNestedIrregularEvenBiggerx4_a0 = a0;
@@ -5401,6 +5453,710 @@ void passStructNestedIrregularEvenBiggerx4AfterCallback() {
   print("after callback result = $result");
 
   Expect.approxEquals(1572.0, result);
+}
+
+typedef PassStruct8BytesInlineArrayIntx4Type = Int32 Function(
+    Struct8BytesInlineArrayInt,
+    Struct8BytesInlineArrayInt,
+    Struct8BytesInlineArrayInt,
+    Struct8BytesInlineArrayInt);
+
+// Global variables to be able to test inputs after callback returned.
+Struct8BytesInlineArrayInt passStruct8BytesInlineArrayIntx4_a0 =
+    Struct8BytesInlineArrayInt();
+Struct8BytesInlineArrayInt passStruct8BytesInlineArrayIntx4_a1 =
+    Struct8BytesInlineArrayInt();
+Struct8BytesInlineArrayInt passStruct8BytesInlineArrayIntx4_a2 =
+    Struct8BytesInlineArrayInt();
+Struct8BytesInlineArrayInt passStruct8BytesInlineArrayIntx4_a3 =
+    Struct8BytesInlineArrayInt();
+
+// Result variable also global, so we can delete it after the callback.
+int passStruct8BytesInlineArrayIntx4Result = 0;
+
+int passStruct8BytesInlineArrayIntx4CalculateResult() {
+  int result = 0;
+
+  result += passStruct8BytesInlineArrayIntx4_a0.a0[0];
+  result += passStruct8BytesInlineArrayIntx4_a0.a0[1];
+  result += passStruct8BytesInlineArrayIntx4_a0.a0[2];
+  result += passStruct8BytesInlineArrayIntx4_a0.a0[3];
+  result += passStruct8BytesInlineArrayIntx4_a0.a0[4];
+  result += passStruct8BytesInlineArrayIntx4_a0.a0[5];
+  result += passStruct8BytesInlineArrayIntx4_a0.a0[6];
+  result += passStruct8BytesInlineArrayIntx4_a0.a0[7];
+  result += passStruct8BytesInlineArrayIntx4_a1.a0[0];
+  result += passStruct8BytesInlineArrayIntx4_a1.a0[1];
+  result += passStruct8BytesInlineArrayIntx4_a1.a0[2];
+  result += passStruct8BytesInlineArrayIntx4_a1.a0[3];
+  result += passStruct8BytesInlineArrayIntx4_a1.a0[4];
+  result += passStruct8BytesInlineArrayIntx4_a1.a0[5];
+  result += passStruct8BytesInlineArrayIntx4_a1.a0[6];
+  result += passStruct8BytesInlineArrayIntx4_a1.a0[7];
+  result += passStruct8BytesInlineArrayIntx4_a2.a0[0];
+  result += passStruct8BytesInlineArrayIntx4_a2.a0[1];
+  result += passStruct8BytesInlineArrayIntx4_a2.a0[2];
+  result += passStruct8BytesInlineArrayIntx4_a2.a0[3];
+  result += passStruct8BytesInlineArrayIntx4_a2.a0[4];
+  result += passStruct8BytesInlineArrayIntx4_a2.a0[5];
+  result += passStruct8BytesInlineArrayIntx4_a2.a0[6];
+  result += passStruct8BytesInlineArrayIntx4_a2.a0[7];
+  result += passStruct8BytesInlineArrayIntx4_a3.a0[0];
+  result += passStruct8BytesInlineArrayIntx4_a3.a0[1];
+  result += passStruct8BytesInlineArrayIntx4_a3.a0[2];
+  result += passStruct8BytesInlineArrayIntx4_a3.a0[3];
+  result += passStruct8BytesInlineArrayIntx4_a3.a0[4];
+  result += passStruct8BytesInlineArrayIntx4_a3.a0[5];
+  result += passStruct8BytesInlineArrayIntx4_a3.a0[6];
+  result += passStruct8BytesInlineArrayIntx4_a3.a0[7];
+
+  passStruct8BytesInlineArrayIntx4Result = result;
+
+  return result;
+}
+
+/// Simple struct with inline array.
+int passStruct8BytesInlineArrayIntx4(
+    Struct8BytesInlineArrayInt a0,
+    Struct8BytesInlineArrayInt a1,
+    Struct8BytesInlineArrayInt a2,
+    Struct8BytesInlineArrayInt a3) {
+  print("passStruct8BytesInlineArrayIntx4(${a0}, ${a1}, ${a2}, ${a3})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0[0] == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0[0] == 42 || a0.a0[0] == 84) {
+    print("throwing!");
+    throw Exception("PassStruct8BytesInlineArrayIntx4 throwing on purpose!");
+  }
+
+  passStruct8BytesInlineArrayIntx4_a0 = a0;
+  passStruct8BytesInlineArrayIntx4_a1 = a1;
+  passStruct8BytesInlineArrayIntx4_a2 = a2;
+  passStruct8BytesInlineArrayIntx4_a3 = a3;
+
+  final result = passStruct8BytesInlineArrayIntx4CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStruct8BytesInlineArrayIntx4AfterCallback() {
+  final result = passStruct8BytesInlineArrayIntx4CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(528, result);
+}
+
+typedef PassStructInlineArrayIrregularx4Type = Int32 Function(
+    StructInlineArrayIrregular,
+    StructInlineArrayIrregular,
+    StructInlineArrayIrregular,
+    StructInlineArrayIrregular);
+
+// Global variables to be able to test inputs after callback returned.
+StructInlineArrayIrregular passStructInlineArrayIrregularx4_a0 =
+    StructInlineArrayIrregular();
+StructInlineArrayIrregular passStructInlineArrayIrregularx4_a1 =
+    StructInlineArrayIrregular();
+StructInlineArrayIrregular passStructInlineArrayIrregularx4_a2 =
+    StructInlineArrayIrregular();
+StructInlineArrayIrregular passStructInlineArrayIrregularx4_a3 =
+    StructInlineArrayIrregular();
+
+// Result variable also global, so we can delete it after the callback.
+int passStructInlineArrayIrregularx4Result = 0;
+
+int passStructInlineArrayIrregularx4CalculateResult() {
+  int result = 0;
+
+  result += passStructInlineArrayIrregularx4_a0.a0[0].a0;
+  result += passStructInlineArrayIrregularx4_a0.a0[0].a1;
+  result += passStructInlineArrayIrregularx4_a0.a0[1].a0;
+  result += passStructInlineArrayIrregularx4_a0.a0[1].a1;
+  result += passStructInlineArrayIrregularx4_a0.a1;
+  result += passStructInlineArrayIrregularx4_a1.a0[0].a0;
+  result += passStructInlineArrayIrregularx4_a1.a0[0].a1;
+  result += passStructInlineArrayIrregularx4_a1.a0[1].a0;
+  result += passStructInlineArrayIrregularx4_a1.a0[1].a1;
+  result += passStructInlineArrayIrregularx4_a1.a1;
+  result += passStructInlineArrayIrregularx4_a2.a0[0].a0;
+  result += passStructInlineArrayIrregularx4_a2.a0[0].a1;
+  result += passStructInlineArrayIrregularx4_a2.a0[1].a0;
+  result += passStructInlineArrayIrregularx4_a2.a0[1].a1;
+  result += passStructInlineArrayIrregularx4_a2.a1;
+  result += passStructInlineArrayIrregularx4_a3.a0[0].a0;
+  result += passStructInlineArrayIrregularx4_a3.a0[0].a1;
+  result += passStructInlineArrayIrregularx4_a3.a0[1].a0;
+  result += passStructInlineArrayIrregularx4_a3.a0[1].a1;
+  result += passStructInlineArrayIrregularx4_a3.a1;
+
+  passStructInlineArrayIrregularx4Result = result;
+
+  return result;
+}
+
+/// Irregular struct with inline array.
+int passStructInlineArrayIrregularx4(
+    StructInlineArrayIrregular a0,
+    StructInlineArrayIrregular a1,
+    StructInlineArrayIrregular a2,
+    StructInlineArrayIrregular a3) {
+  print("passStructInlineArrayIrregularx4(${a0}, ${a1}, ${a2}, ${a3})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0[0].a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0[0].a0 == 42 || a0.a0[0].a0 == 84) {
+    print("throwing!");
+    throw Exception("PassStructInlineArrayIrregularx4 throwing on purpose!");
+  }
+
+  passStructInlineArrayIrregularx4_a0 = a0;
+  passStructInlineArrayIrregularx4_a1 = a1;
+  passStructInlineArrayIrregularx4_a2 = a2;
+  passStructInlineArrayIrregularx4_a3 = a3;
+
+  final result = passStructInlineArrayIrregularx4CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStructInlineArrayIrregularx4AfterCallback() {
+  final result = passStructInlineArrayIrregularx4CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(50, result);
+}
+
+typedef PassStructInlineArray100BytesType = Int32 Function(
+    StructInlineArray100Bytes);
+
+// Global variables to be able to test inputs after callback returned.
+StructInlineArray100Bytes passStructInlineArray100Bytes_a0 =
+    StructInlineArray100Bytes();
+
+// Result variable also global, so we can delete it after the callback.
+int passStructInlineArray100BytesResult = 0;
+
+int passStructInlineArray100BytesCalculateResult() {
+  int result = 0;
+
+  result += passStructInlineArray100Bytes_a0.a0[0];
+  result += passStructInlineArray100Bytes_a0.a0[1];
+  result += passStructInlineArray100Bytes_a0.a0[2];
+  result += passStructInlineArray100Bytes_a0.a0[3];
+  result += passStructInlineArray100Bytes_a0.a0[4];
+  result += passStructInlineArray100Bytes_a0.a0[5];
+  result += passStructInlineArray100Bytes_a0.a0[6];
+  result += passStructInlineArray100Bytes_a0.a0[7];
+  result += passStructInlineArray100Bytes_a0.a0[8];
+  result += passStructInlineArray100Bytes_a0.a0[9];
+  result += passStructInlineArray100Bytes_a0.a0[10];
+  result += passStructInlineArray100Bytes_a0.a0[11];
+  result += passStructInlineArray100Bytes_a0.a0[12];
+  result += passStructInlineArray100Bytes_a0.a0[13];
+  result += passStructInlineArray100Bytes_a0.a0[14];
+  result += passStructInlineArray100Bytes_a0.a0[15];
+  result += passStructInlineArray100Bytes_a0.a0[16];
+  result += passStructInlineArray100Bytes_a0.a0[17];
+  result += passStructInlineArray100Bytes_a0.a0[18];
+  result += passStructInlineArray100Bytes_a0.a0[19];
+  result += passStructInlineArray100Bytes_a0.a0[20];
+  result += passStructInlineArray100Bytes_a0.a0[21];
+  result += passStructInlineArray100Bytes_a0.a0[22];
+  result += passStructInlineArray100Bytes_a0.a0[23];
+  result += passStructInlineArray100Bytes_a0.a0[24];
+  result += passStructInlineArray100Bytes_a0.a0[25];
+  result += passStructInlineArray100Bytes_a0.a0[26];
+  result += passStructInlineArray100Bytes_a0.a0[27];
+  result += passStructInlineArray100Bytes_a0.a0[28];
+  result += passStructInlineArray100Bytes_a0.a0[29];
+  result += passStructInlineArray100Bytes_a0.a0[30];
+  result += passStructInlineArray100Bytes_a0.a0[31];
+  result += passStructInlineArray100Bytes_a0.a0[32];
+  result += passStructInlineArray100Bytes_a0.a0[33];
+  result += passStructInlineArray100Bytes_a0.a0[34];
+  result += passStructInlineArray100Bytes_a0.a0[35];
+  result += passStructInlineArray100Bytes_a0.a0[36];
+  result += passStructInlineArray100Bytes_a0.a0[37];
+  result += passStructInlineArray100Bytes_a0.a0[38];
+  result += passStructInlineArray100Bytes_a0.a0[39];
+  result += passStructInlineArray100Bytes_a0.a0[40];
+  result += passStructInlineArray100Bytes_a0.a0[41];
+  result += passStructInlineArray100Bytes_a0.a0[42];
+  result += passStructInlineArray100Bytes_a0.a0[43];
+  result += passStructInlineArray100Bytes_a0.a0[44];
+  result += passStructInlineArray100Bytes_a0.a0[45];
+  result += passStructInlineArray100Bytes_a0.a0[46];
+  result += passStructInlineArray100Bytes_a0.a0[47];
+  result += passStructInlineArray100Bytes_a0.a0[48];
+  result += passStructInlineArray100Bytes_a0.a0[49];
+  result += passStructInlineArray100Bytes_a0.a0[50];
+  result += passStructInlineArray100Bytes_a0.a0[51];
+  result += passStructInlineArray100Bytes_a0.a0[52];
+  result += passStructInlineArray100Bytes_a0.a0[53];
+  result += passStructInlineArray100Bytes_a0.a0[54];
+  result += passStructInlineArray100Bytes_a0.a0[55];
+  result += passStructInlineArray100Bytes_a0.a0[56];
+  result += passStructInlineArray100Bytes_a0.a0[57];
+  result += passStructInlineArray100Bytes_a0.a0[58];
+  result += passStructInlineArray100Bytes_a0.a0[59];
+  result += passStructInlineArray100Bytes_a0.a0[60];
+  result += passStructInlineArray100Bytes_a0.a0[61];
+  result += passStructInlineArray100Bytes_a0.a0[62];
+  result += passStructInlineArray100Bytes_a0.a0[63];
+  result += passStructInlineArray100Bytes_a0.a0[64];
+  result += passStructInlineArray100Bytes_a0.a0[65];
+  result += passStructInlineArray100Bytes_a0.a0[66];
+  result += passStructInlineArray100Bytes_a0.a0[67];
+  result += passStructInlineArray100Bytes_a0.a0[68];
+  result += passStructInlineArray100Bytes_a0.a0[69];
+  result += passStructInlineArray100Bytes_a0.a0[70];
+  result += passStructInlineArray100Bytes_a0.a0[71];
+  result += passStructInlineArray100Bytes_a0.a0[72];
+  result += passStructInlineArray100Bytes_a0.a0[73];
+  result += passStructInlineArray100Bytes_a0.a0[74];
+  result += passStructInlineArray100Bytes_a0.a0[75];
+  result += passStructInlineArray100Bytes_a0.a0[76];
+  result += passStructInlineArray100Bytes_a0.a0[77];
+  result += passStructInlineArray100Bytes_a0.a0[78];
+  result += passStructInlineArray100Bytes_a0.a0[79];
+  result += passStructInlineArray100Bytes_a0.a0[80];
+  result += passStructInlineArray100Bytes_a0.a0[81];
+  result += passStructInlineArray100Bytes_a0.a0[82];
+  result += passStructInlineArray100Bytes_a0.a0[83];
+  result += passStructInlineArray100Bytes_a0.a0[84];
+  result += passStructInlineArray100Bytes_a0.a0[85];
+  result += passStructInlineArray100Bytes_a0.a0[86];
+  result += passStructInlineArray100Bytes_a0.a0[87];
+  result += passStructInlineArray100Bytes_a0.a0[88];
+  result += passStructInlineArray100Bytes_a0.a0[89];
+  result += passStructInlineArray100Bytes_a0.a0[90];
+  result += passStructInlineArray100Bytes_a0.a0[91];
+  result += passStructInlineArray100Bytes_a0.a0[92];
+  result += passStructInlineArray100Bytes_a0.a0[93];
+  result += passStructInlineArray100Bytes_a0.a0[94];
+  result += passStructInlineArray100Bytes_a0.a0[95];
+  result += passStructInlineArray100Bytes_a0.a0[96];
+  result += passStructInlineArray100Bytes_a0.a0[97];
+  result += passStructInlineArray100Bytes_a0.a0[98];
+  result += passStructInlineArray100Bytes_a0.a0[99];
+
+  passStructInlineArray100BytesResult = result;
+
+  return result;
+}
+
+/// Regular larger struct with inline array.
+int passStructInlineArray100Bytes(StructInlineArray100Bytes a0) {
+  print("passStructInlineArray100Bytes(${a0})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0[0] == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0[0] == 42 || a0.a0[0] == 84) {
+    print("throwing!");
+    throw Exception("PassStructInlineArray100Bytes throwing on purpose!");
+  }
+
+  passStructInlineArray100Bytes_a0 = a0;
+
+  final result = passStructInlineArray100BytesCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStructInlineArray100BytesAfterCallback() {
+  final result = passStructInlineArray100BytesCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(5050, result);
+}
+
+typedef PassStructStruct16BytesHomogeneousFloat2x5Type = Float Function(
+    StructStruct16BytesHomogeneousFloat2,
+    StructStruct16BytesHomogeneousFloat2,
+    StructStruct16BytesHomogeneousFloat2,
+    StructStruct16BytesHomogeneousFloat2,
+    StructStruct16BytesHomogeneousFloat2);
+
+// Global variables to be able to test inputs after callback returned.
+StructStruct16BytesHomogeneousFloat2
+    passStructStruct16BytesHomogeneousFloat2x5_a0 =
+    StructStruct16BytesHomogeneousFloat2();
+StructStruct16BytesHomogeneousFloat2
+    passStructStruct16BytesHomogeneousFloat2x5_a1 =
+    StructStruct16BytesHomogeneousFloat2();
+StructStruct16BytesHomogeneousFloat2
+    passStructStruct16BytesHomogeneousFloat2x5_a2 =
+    StructStruct16BytesHomogeneousFloat2();
+StructStruct16BytesHomogeneousFloat2
+    passStructStruct16BytesHomogeneousFloat2x5_a3 =
+    StructStruct16BytesHomogeneousFloat2();
+StructStruct16BytesHomogeneousFloat2
+    passStructStruct16BytesHomogeneousFloat2x5_a4 =
+    StructStruct16BytesHomogeneousFloat2();
+
+// Result variable also global, so we can delete it after the callback.
+double passStructStruct16BytesHomogeneousFloat2x5Result = 0.0;
+
+double passStructStruct16BytesHomogeneousFloat2x5CalculateResult() {
+  double result = 0;
+
+  result += passStructStruct16BytesHomogeneousFloat2x5_a0.a0.a0;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a0.a1[0].a0;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a0.a1[1].a0;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a0.a2;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a1.a0.a0;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a1.a1[0].a0;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a1.a1[1].a0;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a1.a2;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a2.a0.a0;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a2.a1[0].a0;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a2.a1[1].a0;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a2.a2;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a3.a0.a0;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a3.a1[0].a0;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a3.a1[1].a0;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a3.a2;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a4.a0.a0;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a4.a1[0].a0;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a4.a1[1].a0;
+  result += passStructStruct16BytesHomogeneousFloat2x5_a4.a2;
+
+  passStructStruct16BytesHomogeneousFloat2x5Result = result;
+
+  return result;
+}
+
+/// Arguments in FPU registers on arm hardfp and arm64.
+/// 5 struct arguments will exhaust available registers.
+double passStructStruct16BytesHomogeneousFloat2x5(
+    StructStruct16BytesHomogeneousFloat2 a0,
+    StructStruct16BytesHomogeneousFloat2 a1,
+    StructStruct16BytesHomogeneousFloat2 a2,
+    StructStruct16BytesHomogeneousFloat2 a3,
+    StructStruct16BytesHomogeneousFloat2 a4) {
+  print(
+      "passStructStruct16BytesHomogeneousFloat2x5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassStructStruct16BytesHomogeneousFloat2x5 throwing on purpose!");
+  }
+
+  passStructStruct16BytesHomogeneousFloat2x5_a0 = a0;
+  passStructStruct16BytesHomogeneousFloat2x5_a1 = a1;
+  passStructStruct16BytesHomogeneousFloat2x5_a2 = a2;
+  passStructStruct16BytesHomogeneousFloat2x5_a3 = a3;
+  passStructStruct16BytesHomogeneousFloat2x5_a4 = a4;
+
+  final result = passStructStruct16BytesHomogeneousFloat2x5CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStructStruct16BytesHomogeneousFloat2x5AfterCallback() {
+  final result = passStructStruct16BytesHomogeneousFloat2x5CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(10.0, result);
+}
+
+typedef PassStructStruct32BytesHomogeneousDouble2x5Type = Double Function(
+    StructStruct32BytesHomogeneousDouble2,
+    StructStruct32BytesHomogeneousDouble2,
+    StructStruct32BytesHomogeneousDouble2,
+    StructStruct32BytesHomogeneousDouble2,
+    StructStruct32BytesHomogeneousDouble2);
+
+// Global variables to be able to test inputs after callback returned.
+StructStruct32BytesHomogeneousDouble2
+    passStructStruct32BytesHomogeneousDouble2x5_a0 =
+    StructStruct32BytesHomogeneousDouble2();
+StructStruct32BytesHomogeneousDouble2
+    passStructStruct32BytesHomogeneousDouble2x5_a1 =
+    StructStruct32BytesHomogeneousDouble2();
+StructStruct32BytesHomogeneousDouble2
+    passStructStruct32BytesHomogeneousDouble2x5_a2 =
+    StructStruct32BytesHomogeneousDouble2();
+StructStruct32BytesHomogeneousDouble2
+    passStructStruct32BytesHomogeneousDouble2x5_a3 =
+    StructStruct32BytesHomogeneousDouble2();
+StructStruct32BytesHomogeneousDouble2
+    passStructStruct32BytesHomogeneousDouble2x5_a4 =
+    StructStruct32BytesHomogeneousDouble2();
+
+// Result variable also global, so we can delete it after the callback.
+double passStructStruct32BytesHomogeneousDouble2x5Result = 0.0;
+
+double passStructStruct32BytesHomogeneousDouble2x5CalculateResult() {
+  double result = 0;
+
+  result += passStructStruct32BytesHomogeneousDouble2x5_a0.a0.a0;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a0.a1[0].a0;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a0.a1[1].a0;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a0.a2;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a1.a0.a0;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a1.a1[0].a0;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a1.a1[1].a0;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a1.a2;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a2.a0.a0;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a2.a1[0].a0;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a2.a1[1].a0;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a2.a2;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a3.a0.a0;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a3.a1[0].a0;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a3.a1[1].a0;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a3.a2;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a4.a0.a0;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a4.a1[0].a0;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a4.a1[1].a0;
+  result += passStructStruct32BytesHomogeneousDouble2x5_a4.a2;
+
+  passStructStruct32BytesHomogeneousDouble2x5Result = result;
+
+  return result;
+}
+
+/// Arguments in FPU registers on arm64.
+/// 5 struct arguments will exhaust available registers.
+double passStructStruct32BytesHomogeneousDouble2x5(
+    StructStruct32BytesHomogeneousDouble2 a0,
+    StructStruct32BytesHomogeneousDouble2 a1,
+    StructStruct32BytesHomogeneousDouble2 a2,
+    StructStruct32BytesHomogeneousDouble2 a3,
+    StructStruct32BytesHomogeneousDouble2 a4) {
+  print(
+      "passStructStruct32BytesHomogeneousDouble2x5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassStructStruct32BytesHomogeneousDouble2x5 throwing on purpose!");
+  }
+
+  passStructStruct32BytesHomogeneousDouble2x5_a0 = a0;
+  passStructStruct32BytesHomogeneousDouble2x5_a1 = a1;
+  passStructStruct32BytesHomogeneousDouble2x5_a2 = a2;
+  passStructStruct32BytesHomogeneousDouble2x5_a3 = a3;
+  passStructStruct32BytesHomogeneousDouble2x5_a4 = a4;
+
+  final result = passStructStruct32BytesHomogeneousDouble2x5CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStructStruct32BytesHomogeneousDouble2x5AfterCallback() {
+  final result = passStructStruct32BytesHomogeneousDouble2x5CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(10.0, result);
+}
+
+typedef PassStructStruct16BytesMixed3x10Type = Float Function(
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3,
+    StructStruct16BytesMixed3);
+
+// Global variables to be able to test inputs after callback returned.
+StructStruct16BytesMixed3 passStructStruct16BytesMixed3x10_a0 =
+    StructStruct16BytesMixed3();
+StructStruct16BytesMixed3 passStructStruct16BytesMixed3x10_a1 =
+    StructStruct16BytesMixed3();
+StructStruct16BytesMixed3 passStructStruct16BytesMixed3x10_a2 =
+    StructStruct16BytesMixed3();
+StructStruct16BytesMixed3 passStructStruct16BytesMixed3x10_a3 =
+    StructStruct16BytesMixed3();
+StructStruct16BytesMixed3 passStructStruct16BytesMixed3x10_a4 =
+    StructStruct16BytesMixed3();
+StructStruct16BytesMixed3 passStructStruct16BytesMixed3x10_a5 =
+    StructStruct16BytesMixed3();
+StructStruct16BytesMixed3 passStructStruct16BytesMixed3x10_a6 =
+    StructStruct16BytesMixed3();
+StructStruct16BytesMixed3 passStructStruct16BytesMixed3x10_a7 =
+    StructStruct16BytesMixed3();
+StructStruct16BytesMixed3 passStructStruct16BytesMixed3x10_a8 =
+    StructStruct16BytesMixed3();
+StructStruct16BytesMixed3 passStructStruct16BytesMixed3x10_a9 =
+    StructStruct16BytesMixed3();
+
+// Result variable also global, so we can delete it after the callback.
+double passStructStruct16BytesMixed3x10Result = 0.0;
+
+double passStructStruct16BytesMixed3x10CalculateResult() {
+  double result = 0;
+
+  result += passStructStruct16BytesMixed3x10_a0.a0.a0;
+  result += passStructStruct16BytesMixed3x10_a0.a1[0].a0;
+  result += passStructStruct16BytesMixed3x10_a0.a1[0].a1;
+  result += passStructStruct16BytesMixed3x10_a0.a1[0].a2;
+  result += passStructStruct16BytesMixed3x10_a0.a2[0];
+  result += passStructStruct16BytesMixed3x10_a0.a2[1];
+  result += passStructStruct16BytesMixed3x10_a1.a0.a0;
+  result += passStructStruct16BytesMixed3x10_a1.a1[0].a0;
+  result += passStructStruct16BytesMixed3x10_a1.a1[0].a1;
+  result += passStructStruct16BytesMixed3x10_a1.a1[0].a2;
+  result += passStructStruct16BytesMixed3x10_a1.a2[0];
+  result += passStructStruct16BytesMixed3x10_a1.a2[1];
+  result += passStructStruct16BytesMixed3x10_a2.a0.a0;
+  result += passStructStruct16BytesMixed3x10_a2.a1[0].a0;
+  result += passStructStruct16BytesMixed3x10_a2.a1[0].a1;
+  result += passStructStruct16BytesMixed3x10_a2.a1[0].a2;
+  result += passStructStruct16BytesMixed3x10_a2.a2[0];
+  result += passStructStruct16BytesMixed3x10_a2.a2[1];
+  result += passStructStruct16BytesMixed3x10_a3.a0.a0;
+  result += passStructStruct16BytesMixed3x10_a3.a1[0].a0;
+  result += passStructStruct16BytesMixed3x10_a3.a1[0].a1;
+  result += passStructStruct16BytesMixed3x10_a3.a1[0].a2;
+  result += passStructStruct16BytesMixed3x10_a3.a2[0];
+  result += passStructStruct16BytesMixed3x10_a3.a2[1];
+  result += passStructStruct16BytesMixed3x10_a4.a0.a0;
+  result += passStructStruct16BytesMixed3x10_a4.a1[0].a0;
+  result += passStructStruct16BytesMixed3x10_a4.a1[0].a1;
+  result += passStructStruct16BytesMixed3x10_a4.a1[0].a2;
+  result += passStructStruct16BytesMixed3x10_a4.a2[0];
+  result += passStructStruct16BytesMixed3x10_a4.a2[1];
+  result += passStructStruct16BytesMixed3x10_a5.a0.a0;
+  result += passStructStruct16BytesMixed3x10_a5.a1[0].a0;
+  result += passStructStruct16BytesMixed3x10_a5.a1[0].a1;
+  result += passStructStruct16BytesMixed3x10_a5.a1[0].a2;
+  result += passStructStruct16BytesMixed3x10_a5.a2[0];
+  result += passStructStruct16BytesMixed3x10_a5.a2[1];
+  result += passStructStruct16BytesMixed3x10_a6.a0.a0;
+  result += passStructStruct16BytesMixed3x10_a6.a1[0].a0;
+  result += passStructStruct16BytesMixed3x10_a6.a1[0].a1;
+  result += passStructStruct16BytesMixed3x10_a6.a1[0].a2;
+  result += passStructStruct16BytesMixed3x10_a6.a2[0];
+  result += passStructStruct16BytesMixed3x10_a6.a2[1];
+  result += passStructStruct16BytesMixed3x10_a7.a0.a0;
+  result += passStructStruct16BytesMixed3x10_a7.a1[0].a0;
+  result += passStructStruct16BytesMixed3x10_a7.a1[0].a1;
+  result += passStructStruct16BytesMixed3x10_a7.a1[0].a2;
+  result += passStructStruct16BytesMixed3x10_a7.a2[0];
+  result += passStructStruct16BytesMixed3x10_a7.a2[1];
+  result += passStructStruct16BytesMixed3x10_a8.a0.a0;
+  result += passStructStruct16BytesMixed3x10_a8.a1[0].a0;
+  result += passStructStruct16BytesMixed3x10_a8.a1[0].a1;
+  result += passStructStruct16BytesMixed3x10_a8.a1[0].a2;
+  result += passStructStruct16BytesMixed3x10_a8.a2[0];
+  result += passStructStruct16BytesMixed3x10_a8.a2[1];
+  result += passStructStruct16BytesMixed3x10_a9.a0.a0;
+  result += passStructStruct16BytesMixed3x10_a9.a1[0].a0;
+  result += passStructStruct16BytesMixed3x10_a9.a1[0].a1;
+  result += passStructStruct16BytesMixed3x10_a9.a1[0].a2;
+  result += passStructStruct16BytesMixed3x10_a9.a2[0];
+  result += passStructStruct16BytesMixed3x10_a9.a2[1];
+
+  passStructStruct16BytesMixed3x10Result = result;
+
+  return result;
+}
+
+/// On x64, arguments are split over FP and int registers.
+/// On x64, it will exhaust the integer registers with the 6th argument.
+/// The rest goes on the stack.
+/// On arm, arguments are 4 byte aligned.
+double passStructStruct16BytesMixed3x10(
+    StructStruct16BytesMixed3 a0,
+    StructStruct16BytesMixed3 a1,
+    StructStruct16BytesMixed3 a2,
+    StructStruct16BytesMixed3 a3,
+    StructStruct16BytesMixed3 a4,
+    StructStruct16BytesMixed3 a5,
+    StructStruct16BytesMixed3 a6,
+    StructStruct16BytesMixed3 a7,
+    StructStruct16BytesMixed3 a8,
+    StructStruct16BytesMixed3 a9) {
+  print(
+      "passStructStruct16BytesMixed3x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassStructStruct16BytesMixed3x10 throwing on purpose!");
+  }
+
+  passStructStruct16BytesMixed3x10_a0 = a0;
+  passStructStruct16BytesMixed3x10_a1 = a1;
+  passStructStruct16BytesMixed3x10_a2 = a2;
+  passStructStruct16BytesMixed3x10_a3 = a3;
+  passStructStruct16BytesMixed3x10_a4 = a4;
+  passStructStruct16BytesMixed3x10_a5 = a5;
+  passStructStruct16BytesMixed3x10_a6 = a6;
+  passStructStruct16BytesMixed3x10_a7 = a7;
+  passStructStruct16BytesMixed3x10_a8 = a8;
+  passStructStruct16BytesMixed3x10_a9 = a9;
+
+  final result = passStructStruct16BytesMixed3x10CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStructStruct16BytesMixed3x10AfterCallback() {
+  final result = passStructStruct16BytesMixed3x10CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(30.0, result);
 }
 
 typedef ReturnStruct1ByteIntType = Struct1ByteInt Function(Int8);
@@ -5435,7 +6191,7 @@ Struct1ByteInt returnStruct1ByteInt(int a0) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct1ByteInt throwing on purpuse!");
+    throw Exception("ReturnStruct1ByteInt throwing on purpose!");
   }
 
   returnStruct1ByteInt_a0 = a0;
@@ -5497,7 +6253,7 @@ Struct3BytesHomogeneousUint8 returnStruct3BytesHomogeneousUint8(
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct3BytesHomogeneousUint8 throwing on purpuse!");
+    throw Exception("ReturnStruct3BytesHomogeneousUint8 throwing on purpose!");
   }
 
   returnStruct3BytesHomogeneousUint8_a0 = a0;
@@ -5558,7 +6314,7 @@ Struct3BytesInt2ByteAligned returnStruct3BytesInt2ByteAligned(int a0, int a1) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct3BytesInt2ByteAligned throwing on purpuse!");
+    throw Exception("ReturnStruct3BytesInt2ByteAligned throwing on purpose!");
   }
 
   returnStruct3BytesInt2ByteAligned_a0 = a0;
@@ -5619,7 +6375,7 @@ Struct4BytesHomogeneousInt16 returnStruct4BytesHomogeneousInt16(
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct4BytesHomogeneousInt16 throwing on purpuse!");
+    throw Exception("ReturnStruct4BytesHomogeneousInt16 throwing on purpose!");
   }
 
   returnStruct4BytesHomogeneousInt16_a0 = a0;
@@ -5691,7 +6447,7 @@ Struct7BytesHomogeneousUint8 returnStruct7BytesHomogeneousUint8(
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct7BytesHomogeneousUint8 throwing on purpuse!");
+    throw Exception("ReturnStruct7BytesHomogeneousUint8 throwing on purpose!");
   }
 
   returnStruct7BytesHomogeneousUint8_a0 = a0;
@@ -5759,7 +6515,7 @@ Struct7BytesInt4ByteAligned returnStruct7BytesInt4ByteAligned(
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct7BytesInt4ByteAligned throwing on purpuse!");
+    throw Exception("ReturnStruct7BytesInt4ByteAligned throwing on purpose!");
   }
 
   returnStruct7BytesInt4ByteAligned_a0 = a0;
@@ -5820,7 +6576,7 @@ Struct8BytesInt returnStruct8BytesInt(int a0, int a1, int a2) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct8BytesInt throwing on purpuse!");
+    throw Exception("ReturnStruct8BytesInt throwing on purpose!");
   }
 
   returnStruct8BytesInt_a0 = a0;
@@ -5882,7 +6638,7 @@ Struct8BytesHomogeneousFloat returnStruct8BytesHomogeneousFloat(
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct8BytesHomogeneousFloat throwing on purpuse!");
+    throw Exception("ReturnStruct8BytesHomogeneousFloat throwing on purpose!");
   }
 
   returnStruct8BytesHomogeneousFloat_a0 = a0;
@@ -5942,7 +6698,7 @@ Struct8BytesMixed returnStruct8BytesMixed(double a0, int a1, int a2) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct8BytesMixed throwing on purpuse!");
+    throw Exception("ReturnStruct8BytesMixed throwing on purpose!");
   }
 
   returnStruct8BytesMixed_a0 = a0;
@@ -6021,7 +6777,7 @@ Struct9BytesHomogeneousUint8 returnStruct9BytesHomogeneousUint8(
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct9BytesHomogeneousUint8 throwing on purpuse!");
+    throw Exception("ReturnStruct9BytesHomogeneousUint8 throwing on purpose!");
   }
 
   returnStruct9BytesHomogeneousUint8_a0 = a0;
@@ -6091,7 +6847,7 @@ Struct9BytesInt4Or8ByteAligned returnStruct9BytesInt4Or8ByteAligned(
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "ReturnStruct9BytesInt4Or8ByteAligned throwing on purpuse!");
+        "ReturnStruct9BytesInt4Or8ByteAligned throwing on purpose!");
   }
 
   returnStruct9BytesInt4Or8ByteAligned_a0 = a0;
@@ -6155,7 +6911,7 @@ Struct12BytesHomogeneousFloat returnStruct12BytesHomogeneousFloat(
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct12BytesHomogeneousFloat throwing on purpuse!");
+    throw Exception("ReturnStruct12BytesHomogeneousFloat throwing on purpose!");
   }
 
   returnStruct12BytesHomogeneousFloat_a0 = a0;
@@ -6221,7 +6977,7 @@ Struct16BytesHomogeneousFloat returnStruct16BytesHomogeneousFloat(
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct16BytesHomogeneousFloat throwing on purpuse!");
+    throw Exception("ReturnStruct16BytesHomogeneousFloat throwing on purpose!");
   }
 
   returnStruct16BytesHomogeneousFloat_a0 = a0;
@@ -6281,7 +7037,7 @@ Struct16BytesMixed returnStruct16BytesMixed(double a0, int a1) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct16BytesMixed throwing on purpuse!");
+    throw Exception("ReturnStruct16BytesMixed throwing on purpose!");
   }
 
   returnStruct16BytesMixed_a0 = a0;
@@ -6345,7 +7101,7 @@ Struct16BytesMixed2 returnStruct16BytesMixed2(
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct16BytesMixed2 throwing on purpuse!");
+    throw Exception("ReturnStruct16BytesMixed2 throwing on purpose!");
   }
 
   returnStruct16BytesMixed2_a0 = a0;
@@ -6409,7 +7165,7 @@ Struct17BytesInt returnStruct17BytesInt(int a0, int a1, int a2) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct17BytesInt throwing on purpuse!");
+    throw Exception("ReturnStruct17BytesInt throwing on purpose!");
   }
 
   returnStruct17BytesInt_a0 = a0;
@@ -6545,7 +7301,7 @@ Struct19BytesHomogeneousUint8 returnStruct19BytesHomogeneousUint8(
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct19BytesHomogeneousUint8 throwing on purpuse!");
+    throw Exception("ReturnStruct19BytesHomogeneousUint8 throwing on purpose!");
   }
 
   returnStruct19BytesHomogeneousUint8_a0 = a0;
@@ -6630,7 +7386,7 @@ Struct20BytesHomogeneousInt32 returnStruct20BytesHomogeneousInt32(
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct20BytesHomogeneousInt32 throwing on purpuse!");
+    throw Exception("ReturnStruct20BytesHomogeneousInt32 throwing on purpose!");
   }
 
   returnStruct20BytesHomogeneousInt32_a0 = a0;
@@ -6701,7 +7457,7 @@ Struct20BytesHomogeneousFloat returnStruct20BytesHomogeneousFloat(
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct20BytesHomogeneousFloat throwing on purpuse!");
+    throw Exception("ReturnStruct20BytesHomogeneousFloat throwing on purpose!");
   }
 
   returnStruct20BytesHomogeneousFloat_a0 = a0;
@@ -6770,7 +7526,7 @@ Struct32BytesHomogeneousDouble returnStruct32BytesHomogeneousDouble(
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "ReturnStruct32BytesHomogeneousDouble throwing on purpuse!");
+        "ReturnStruct32BytesHomogeneousDouble throwing on purpose!");
   }
 
   returnStruct32BytesHomogeneousDouble_a0 = a0;
@@ -6842,7 +7598,7 @@ Struct40BytesHomogeneousDouble returnStruct40BytesHomogeneousDouble(
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "ReturnStruct40BytesHomogeneousDouble throwing on purpuse!");
+        "ReturnStruct40BytesHomogeneousDouble throwing on purpose!");
   }
 
   returnStruct40BytesHomogeneousDouble_a0 = a0;
@@ -7415,7 +8171,7 @@ Struct1024BytesHomogeneousUint64 returnStruct1024BytesHomogeneousUint64(
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "ReturnStruct1024BytesHomogeneousUint64 throwing on purpuse!");
+        "ReturnStruct1024BytesHomogeneousUint64 throwing on purpose!");
   }
 
   returnStruct1024BytesHomogeneousUint64_a0 = a0;
@@ -7596,7 +8352,7 @@ Struct1ByteInt returnStructArgumentStruct1ByteInt(Struct1ByteInt a0) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStructArgumentStruct1ByteInt throwing on purpuse!");
+    throw Exception("ReturnStructArgumentStruct1ByteInt throwing on purpose!");
   }
 
   returnStructArgumentStruct1ByteInt_a0 = a0;
@@ -7658,7 +8414,7 @@ Struct1ByteInt returnStructArgumentInt32x8Struct1ByteInt(int a0, int a1, int a2,
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "ReturnStructArgumentInt32x8Struct1ByteInt throwing on purpuse!");
+        "ReturnStructArgumentInt32x8Struct1ByteInt throwing on purpose!");
   }
 
   returnStructArgumentInt32x8Struct1ByteInt_a0 = a0;
@@ -7724,7 +8480,7 @@ Struct8BytesHomogeneousFloat returnStructArgumentStruct8BytesHomogeneousFloat(
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "ReturnStructArgumentStruct8BytesHomogeneousFloat throwing on purpuse!");
+        "ReturnStructArgumentStruct8BytesHomogeneousFloat throwing on purpose!");
   }
 
   returnStructArgumentStruct8BytesHomogeneousFloat_a0 = a0;
@@ -7782,7 +8538,7 @@ Struct20BytesHomogeneousInt32 returnStructArgumentStruct20BytesHomogeneousInt32(
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "ReturnStructArgumentStruct20BytesHomogeneousInt32 throwing on purpuse!");
+        "ReturnStructArgumentStruct20BytesHomogeneousInt32 throwing on purpose!");
   }
 
   returnStructArgumentStruct20BytesHomogeneousInt32_a0 = a0;
@@ -7860,7 +8616,7 @@ Struct20BytesHomogeneousInt32
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "ReturnStructArgumentInt32x8Struct20BytesHomogeneou throwing on purpuse!");
+        "ReturnStructArgumentInt32x8Struct20BytesHomogeneou throwing on purpose!");
   }
 
   returnStructArgumentInt32x8Struct20BytesHomogeneou_a0 = a0;
@@ -7884,6 +8640,237 @@ Struct20BytesHomogeneousInt32
 void returnStructArgumentInt32x8Struct20BytesHomogeneouAfterCallback() {
   final result =
       returnStructArgumentInt32x8Struct20BytesHomogeneouCalculateResult();
+
+  print("after callback result = $result");
+}
+
+typedef ReturnStructArgumentStruct8BytesInlineArrayIntType
+    = Struct8BytesInlineArrayInt Function(Struct8BytesInlineArrayInt);
+
+// Global variables to be able to test inputs after callback returned.
+Struct8BytesInlineArrayInt returnStructArgumentStruct8BytesInlineArrayInt_a0 =
+    Struct8BytesInlineArrayInt();
+
+// Result variable also global, so we can delete it after the callback.
+Struct8BytesInlineArrayInt
+    returnStructArgumentStruct8BytesInlineArrayIntResult =
+    Struct8BytesInlineArrayInt();
+
+Struct8BytesInlineArrayInt
+    returnStructArgumentStruct8BytesInlineArrayIntCalculateResult() {
+  Struct8BytesInlineArrayInt result =
+      returnStructArgumentStruct8BytesInlineArrayInt_a0;
+
+  returnStructArgumentStruct8BytesInlineArrayIntResult = result;
+
+  return result;
+}
+
+/// Test returning struct with inline array.
+Struct8BytesInlineArrayInt returnStructArgumentStruct8BytesInlineArrayInt(
+    Struct8BytesInlineArrayInt a0) {
+  print("returnStructArgumentStruct8BytesInlineArrayInt(${a0})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0[0] == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0[0] == 42 || a0.a0[0] == 84) {
+    print("throwing!");
+    throw Exception(
+        "ReturnStructArgumentStruct8BytesInlineArrayInt throwing on purpose!");
+  }
+
+  returnStructArgumentStruct8BytesInlineArrayInt_a0 = a0;
+
+  final result =
+      returnStructArgumentStruct8BytesInlineArrayIntCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStructArgumentStruct8BytesInlineArrayIntAfterCallback() {
+  final result =
+      returnStructArgumentStruct8BytesInlineArrayIntCalculateResult();
+
+  print("after callback result = $result");
+}
+
+typedef ReturnStructArgumentStructStruct16BytesHomogeneousType
+    = StructStruct16BytesHomogeneousFloat2 Function(
+        StructStruct16BytesHomogeneousFloat2);
+
+// Global variables to be able to test inputs after callback returned.
+StructStruct16BytesHomogeneousFloat2
+    returnStructArgumentStructStruct16BytesHomogeneous_a0 =
+    StructStruct16BytesHomogeneousFloat2();
+
+// Result variable also global, so we can delete it after the callback.
+StructStruct16BytesHomogeneousFloat2
+    returnStructArgumentStructStruct16BytesHomogeneousResult =
+    StructStruct16BytesHomogeneousFloat2();
+
+StructStruct16BytesHomogeneousFloat2
+    returnStructArgumentStructStruct16BytesHomogeneousCalculateResult() {
+  StructStruct16BytesHomogeneousFloat2 result =
+      returnStructArgumentStructStruct16BytesHomogeneous_a0;
+
+  returnStructArgumentStructStruct16BytesHomogeneousResult = result;
+
+  return result;
+}
+
+/// Return value in FPU registers on arm hardfp and arm64.
+StructStruct16BytesHomogeneousFloat2
+    returnStructArgumentStructStruct16BytesHomogeneous(
+        StructStruct16BytesHomogeneousFloat2 a0) {
+  print("returnStructArgumentStructStruct16BytesHomogeneous(${a0})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "ReturnStructArgumentStructStruct16BytesHomogeneous throwing on purpose!");
+  }
+
+  returnStructArgumentStructStruct16BytesHomogeneous_a0 = a0;
+
+  final result =
+      returnStructArgumentStructStruct16BytesHomogeneousCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStructArgumentStructStruct16BytesHomogeneousAfterCallback() {
+  final result =
+      returnStructArgumentStructStruct16BytesHomogeneousCalculateResult();
+
+  print("after callback result = $result");
+}
+
+typedef ReturnStructArgumentStructStruct32BytesHomogeneousType
+    = StructStruct32BytesHomogeneousDouble2 Function(
+        StructStruct32BytesHomogeneousDouble2);
+
+// Global variables to be able to test inputs after callback returned.
+StructStruct32BytesHomogeneousDouble2
+    returnStructArgumentStructStruct32BytesHomogeneous_a0 =
+    StructStruct32BytesHomogeneousDouble2();
+
+// Result variable also global, so we can delete it after the callback.
+StructStruct32BytesHomogeneousDouble2
+    returnStructArgumentStructStruct32BytesHomogeneousResult =
+    StructStruct32BytesHomogeneousDouble2();
+
+StructStruct32BytesHomogeneousDouble2
+    returnStructArgumentStructStruct32BytesHomogeneousCalculateResult() {
+  StructStruct32BytesHomogeneousDouble2 result =
+      returnStructArgumentStructStruct32BytesHomogeneous_a0;
+
+  returnStructArgumentStructStruct32BytesHomogeneousResult = result;
+
+  return result;
+}
+
+/// Return value in FPU registers on arm64.
+StructStruct32BytesHomogeneousDouble2
+    returnStructArgumentStructStruct32BytesHomogeneous(
+        StructStruct32BytesHomogeneousDouble2 a0) {
+  print("returnStructArgumentStructStruct32BytesHomogeneous(${a0})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "ReturnStructArgumentStructStruct32BytesHomogeneous throwing on purpose!");
+  }
+
+  returnStructArgumentStructStruct32BytesHomogeneous_a0 = a0;
+
+  final result =
+      returnStructArgumentStructStruct32BytesHomogeneousCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStructArgumentStructStruct32BytesHomogeneousAfterCallback() {
+  final result =
+      returnStructArgumentStructStruct32BytesHomogeneousCalculateResult();
+
+  print("after callback result = $result");
+}
+
+typedef ReturnStructArgumentStructStruct16BytesMixed3Type
+    = StructStruct16BytesMixed3 Function(StructStruct16BytesMixed3);
+
+// Global variables to be able to test inputs after callback returned.
+StructStruct16BytesMixed3 returnStructArgumentStructStruct16BytesMixed3_a0 =
+    StructStruct16BytesMixed3();
+
+// Result variable also global, so we can delete it after the callback.
+StructStruct16BytesMixed3 returnStructArgumentStructStruct16BytesMixed3Result =
+    StructStruct16BytesMixed3();
+
+StructStruct16BytesMixed3
+    returnStructArgumentStructStruct16BytesMixed3CalculateResult() {
+  StructStruct16BytesMixed3 result =
+      returnStructArgumentStructStruct16BytesMixed3_a0;
+
+  returnStructArgumentStructStruct16BytesMixed3Result = result;
+
+  return result;
+}
+
+/// On x64 Linux, return value is split over FP and int registers.
+StructStruct16BytesMixed3 returnStructArgumentStructStruct16BytesMixed3(
+    StructStruct16BytesMixed3 a0) {
+  print("returnStructArgumentStructStruct16BytesMixed3(${a0})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "ReturnStructArgumentStructStruct16BytesMixed3 throwing on purpose!");
+  }
+
+  returnStructArgumentStructStruct16BytesMixed3_a0 = a0;
+
+  final result = returnStructArgumentStructStruct16BytesMixed3CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStructArgumentStructStruct16BytesMixed3AfterCallback() {
+  final result = returnStructArgumentStructStruct16BytesMixed3CalculateResult();
 
   print("after callback result = $result");
 }
@@ -7925,7 +8912,7 @@ StructAlignmentInt16 returnStructAlignmentInt16(int a0, int a1, int a2) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStructAlignmentInt16 throwing on purpuse!");
+    throw Exception("ReturnStructAlignmentInt16 throwing on purpose!");
   }
 
   returnStructAlignmentInt16_a0 = a0;
@@ -7986,7 +8973,7 @@ StructAlignmentInt32 returnStructAlignmentInt32(int a0, int a1, int a2) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStructAlignmentInt32 throwing on purpuse!");
+    throw Exception("ReturnStructAlignmentInt32 throwing on purpose!");
   }
 
   returnStructAlignmentInt32_a0 = a0;
@@ -8047,7 +9034,7 @@ StructAlignmentInt64 returnStructAlignmentInt64(int a0, int a1, int a2) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStructAlignmentInt64 throwing on purpuse!");
+    throw Exception("ReturnStructAlignmentInt64 throwing on purpose!");
   }
 
   returnStructAlignmentInt64_a0 = a0;
@@ -8112,7 +9099,7 @@ Struct8BytesNestedInt returnStruct8BytesNestedInt(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct8BytesNestedInt throwing on purpuse!");
+    throw Exception("ReturnStruct8BytesNestedInt throwing on purpose!");
   }
 
   returnStruct8BytesNestedInt_a0 = a0;
@@ -8172,7 +9159,7 @@ Struct8BytesNestedFloat returnStruct8BytesNestedFloat(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct8BytesNestedFloat throwing on purpuse!");
+    throw Exception("ReturnStruct8BytesNestedFloat throwing on purpose!");
   }
 
   returnStruct8BytesNestedFloat_a0 = a0;
@@ -8233,7 +9220,7 @@ Struct8BytesNestedFloat2 returnStruct8BytesNestedFloat2(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct8BytesNestedFloat2 throwing on purpuse!");
+    throw Exception("ReturnStruct8BytesNestedFloat2 throwing on purpose!");
   }
 
   returnStruct8BytesNestedFloat2_a0 = a0;
@@ -8295,7 +9282,7 @@ Struct8BytesNestedMixed returnStruct8BytesNestedMixed(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct8BytesNestedMixed throwing on purpuse!");
+    throw Exception("ReturnStruct8BytesNestedMixed throwing on purpose!");
   }
 
   returnStruct8BytesNestedMixed_a0 = a0;
@@ -8361,7 +9348,7 @@ Struct16BytesNestedInt returnStruct16BytesNestedInt(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0.a0 == 42 || a0.a0.a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct16BytesNestedInt throwing on purpuse!");
+    throw Exception("ReturnStruct16BytesNestedInt throwing on purpose!");
   }
 
   returnStruct16BytesNestedInt_a0 = a0;
@@ -8437,7 +9424,7 @@ Struct32BytesNestedInt returnStruct32BytesNestedInt(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0.a0.a0 == 42 || a0.a0.a0.a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct32BytesNestedInt throwing on purpuse!");
+    throw Exception("ReturnStruct32BytesNestedInt throwing on purpose!");
   }
 
   returnStruct32BytesNestedInt_a0 = a0;
@@ -8506,7 +9493,7 @@ StructNestedIntStructAlignmentInt16 returnStructNestedIntStructAlignmentInt16(
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "ReturnStructNestedIntStructAlignmentInt16 throwing on purpuse!");
+        "ReturnStructNestedIntStructAlignmentInt16 throwing on purpose!");
   }
 
   returnStructNestedIntStructAlignmentInt16_a0 = a0;
@@ -8575,7 +9562,7 @@ StructNestedIntStructAlignmentInt32 returnStructNestedIntStructAlignmentInt32(
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "ReturnStructNestedIntStructAlignmentInt32 throwing on purpuse!");
+        "ReturnStructNestedIntStructAlignmentInt32 throwing on purpose!");
   }
 
   returnStructNestedIntStructAlignmentInt32_a0 = a0;
@@ -8644,7 +9631,7 @@ StructNestedIntStructAlignmentInt64 returnStructNestedIntStructAlignmentInt64(
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "ReturnStructNestedIntStructAlignmentInt64 throwing on purpuse!");
+        "ReturnStructNestedIntStructAlignmentInt64 throwing on purpose!");
   }
 
   returnStructNestedIntStructAlignmentInt64_a0 = a0;
@@ -8743,7 +9730,7 @@ StructNestedIrregularEvenBigger returnStructNestedIrregularEvenBigger(int a0,
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
-        "ReturnStructNestedIrregularEvenBigger throwing on purpuse!");
+        "ReturnStructNestedIrregularEvenBigger throwing on purpose!");
   }
 
   returnStructNestedIrregularEvenBigger_a0 = a0;

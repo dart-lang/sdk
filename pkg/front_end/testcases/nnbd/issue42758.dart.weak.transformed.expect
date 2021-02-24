@@ -149,7 +149,7 @@ static method test1(Never n1, Never? n2, Null n3) → dynamic {
   core::Map<Never, Never> m1 = block {
     final core::Map<Never, Never> #t27 = <Never, Never>{};
     {
-      core::Iterator<core::MapEntry<<BottomType>, <BottomType>>> :sync-for-iterator = (let final Never #t28 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<Never, Never>> :sync-for-iterator = (let final Never #t28 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<Never, Never> #t29 = :sync-for-iterator.{core::Iterator::current};
         #t27.{core::Map::[]=}{Invariant}(#t29.{core::MapEntry::key}, #t29.{core::MapEntry::value});
@@ -270,7 +270,7 @@ static method test2<N1 extends Never = Never, N2 extends Never? = Never?, N3 ext
   core::Map<self::test2::N1, self::test2::N1> m1 = block {
     final core::Map<self::test2::N1, self::test2::N1> #t78 = <self::test2::N1, self::test2::N1>{};
     {
-      core::Iterator<core::MapEntry<<BottomType>, <BottomType>>> :sync-for-iterator = (let final self::test2::N1 #t79 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<Never, Never>> :sync-for-iterator = (let final self::test2::N1 #t79 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<self::test2::N1, self::test2::N1> #t80 = :sync-for-iterator.{core::Iterator::current};
         #t78.{core::Map::[]=}{Invariant}(#t80.{core::MapEntry::key}, #t80.{core::MapEntry::value});

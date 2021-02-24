@@ -10,6 +10,7 @@
 # general/error_recovery/issue_39202.crash: SemiFuzzCrash # semi fuzz fails but isn't currently enabled by default.
 # regress/utf_16_le_content.crash: Crash # semi fuzz fails but isn't currently enabled by default.
 
+extension_types/simple: ExpectationFileMismatchSerialized # Expected.
 extensions/call_methods: TypeCheckError
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
@@ -77,8 +78,8 @@ general/issue38938: RuntimeError # no main and compile time errors.
 general/issue38944: RuntimeError # no main and compile time errors.
 general/issue38961: RuntimeError # no main and compile time errors.
 general/issue41210a: TypeCheckError
-general/issue41210b/issue41210: TypeCheckError
 general/issue41210b/issue41210.no_link: TypeCheckError
+general/issue41210b/issue41210: TypeCheckError
 general/micro: RuntimeError
 general/mixin_application_override: ExpectationFileMismatch # Too many errors.
 general/mixin_application_override: TypeCheckError
@@ -99,15 +100,6 @@ general/type_variable_as_super: RuntimeError
 general/unsound_promotion: TypeCheckError
 general/void_methods: RuntimeError
 general/with_dependencies/issue_43084/issue_43084: RuntimeError
-late_lowering/covariant_late_field: TypeCheckError
-nnbd/covariant_late_field: TypeCheckError
-nnbd/getter_vs_setter_type: TypeCheckError
-nnbd/issue42546: TypeCheckError
-nnbd/issue42603: TypeCheckError
-nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
-nnbd/nullable_object_access: TypeCheckError
-nnbd/nullable_receiver: TypeCheckError
-nnbd/potentially_nullable_access: TypeCheckError
 inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
 inference/downwards_inference_for_each: RuntimeError # Issue #36382
@@ -134,13 +126,22 @@ inference_new/infer_assign_to_index_upwards: TypeCheckError
 inference_new/infer_assign_to_property_custom: TypeCheckError
 inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
+late_lowering/covariant_late_field: TypeCheckError
+nnbd/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
+nnbd/getter_vs_setter_type: TypeCheckError
+nnbd/issue42546: TypeCheckError
 nnbd/issue42546: TypeCheckError
 nnbd/issue42603: TypeCheckError
+nnbd/issue42603: TypeCheckError
+nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 nnbd/nullable_object_access: TypeCheckError
+nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
+nnbd/nullable_receiver: TypeCheckError
+nnbd/potentially_nullable_access: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
 nnbd_mixed/bad_mixins: TypeCheckError
 nnbd_mixed/covariant_from_opt_in: TypeCheckError
@@ -212,6 +213,7 @@ rasta/unresolved_recovery: TypeCheckError
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_30836: RuntimeError # Issue 30836.
+regress/issue_31180: TypeCheckError
 regress/issue_31299: TypeCheckError
 regress/issue_32972: TypeCheckError
 regress/issue_33452: RuntimeError # Test has an intentional error
@@ -234,7 +236,7 @@ regress/utf_16_le_content.crash: RuntimeError
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
 set_literals/disambiguation_rule: RuntimeError
+value_class/copy_with_call_sites: RuntimeError # Expected
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected
 value_class/value_implements_non_value: RuntimeError # Expected
-value_class/copy_with_call_sites: RuntimeError # Expected

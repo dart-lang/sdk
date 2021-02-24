@@ -508,7 +508,7 @@ mixin StandardBounds {
   }
 
   DartType getNullabilityObliviousStandardLowerBoundInternal(
-      type1, type2, clientLibrary) {
+      DartType type1, DartType type2, Library clientLibrary) {
     // SLB(void, T) = SLB(T, void) = T.
     if (type1 is VoidType) {
       return type2;
@@ -534,8 +534,6 @@ mixin StandardBounds {
     }
 
     // SLB(bottom, T) = SLB(T, bottom) = bottom.
-    if (type1 is BottomType) return type1;
-    if (type2 is BottomType) return type2;
     if (type1 is NullType) return type1;
     if (type2 is NullType) return type2;
 
@@ -599,7 +597,7 @@ mixin StandardBounds {
     }
 
     // No subtype relation, so the lower bound is bottom.
-    return const BottomType();
+    return NeverType.fromNullability(clientLibrary.nonNullable);
   }
 
   /// Computes the standard upper bound of two types.
@@ -1318,8 +1316,6 @@ mixin StandardBounds {
     }
 
     // SUB(bottom, T) = SUB(T, bottom) = T.
-    if (type1 is BottomType) return type2;
-    if (type2 is BottomType) return type1;
     if (type1 is NullType) return type2;
     if (type2 is NullType) return type1;
 
@@ -1476,7 +1472,9 @@ mixin StandardBounds {
 
     // Edge case. Dart does not support functions with both optional positional
     // and named parameters. If we would synthesize that, give up.
-    if (hasPositional && hasNamed) return const BottomType();
+    if (hasPositional && hasNamed) {
+      return NeverType.fromNullability(clientLibrary.nonNullable);
+    }
 
     // Calculate the SLB of the return type.
     DartType returnType =

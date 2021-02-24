@@ -7,6 +7,7 @@
 # Kernel files are produced by compiling Dart code via Fasta.
 
 dartdevc/private_covariant: TextSerializationFailure
+extension_types/simple: ExpectationFileMismatchSerialized # Expected.
 extensions/call_methods: TypeCheckError
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
@@ -206,6 +207,7 @@ rasta/unresolved_recovery: TypeCheckError
 regress/issue_29976: RuntimeError
 regress/issue_29982: RuntimeError
 regress/issue_30836: RuntimeError
+regress/issue_31180: TypeCheckError
 regress/issue_31299: TypeCheckError
 regress/issue_32972: TypeCheckError
 regress/issue_33452: RuntimeError

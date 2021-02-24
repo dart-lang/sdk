@@ -210,7 +210,6 @@ codebase
 codec
 codes
 collision
-colorized
 com
 combinations
 combinator
@@ -862,6 +861,7 @@ pn
 pointed
 pointwise
 polluted
+polymorphism
 pool
 popped
 pos

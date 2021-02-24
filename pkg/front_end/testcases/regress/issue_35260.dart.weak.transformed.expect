@@ -19,7 +19,7 @@ import "dart:core" as core;
 class Supertype extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::Supertype::•];
   static factory •() → self::Supertype*
-    let<BottomType> #redirecting_factory = self::X::• in invalid-expression;
+    let Never #redirecting_factory = self::X::• in invalid-expression;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

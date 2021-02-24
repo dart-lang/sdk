@@ -2477,7 +2477,9 @@ class InferenceVisitor
           replacement = inferrer.helper.buildProblem(
               messageCantDisambiguateNotEnoughInformation, node.fileOffset, 1);
         }
-        return new ExpressionInferenceResult(const BottomType(), replacement);
+        return new ExpressionInferenceResult(
+            NeverType.fromNullability(inferrer.library.nonNullable),
+            replacement);
       }
       if (!canBeSet && !canBeMap) {
         Expression replacement = node;
@@ -2485,7 +2487,9 @@ class InferenceVisitor
           replacement = inferrer.helper.buildProblem(
               messageCantDisambiguateAmbiguousInformation, node.fileOffset, 1);
         }
-        return new ExpressionInferenceResult(const BottomType(), replacement);
+        return new ExpressionInferenceResult(
+            NeverType.fromNullability(inferrer.library.nonNullable),
+            replacement);
       }
       inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
           mapType,
@@ -5741,7 +5745,7 @@ class InferenceVisitor
     return new ExpressionInferenceResult(
         inferrer.isNonNullableByDefault
             ? const NeverType.nonNullable()
-            : const BottomType(),
+            : const NeverType.legacy(),
         node);
   }
 
@@ -6188,7 +6192,7 @@ class InferenceVisitor
     return new ExpressionInferenceResult(
         inferrer.isNonNullableByDefault
             ? const NeverType.nonNullable()
-            : const BottomType(),
+            : const NullType(),
         node);
   }
 

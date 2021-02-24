@@ -136,7 +136,7 @@ class EvalBoxElement extends CustomElement implements Renderable {
     var area = new TextAreaElement()
       ..classes = ['textbox']
       ..placeholder = 'evaluate an expression'
-      ..value = _expression!
+      ..value = _expression
       ..onKeyUp.where((e) => e.key == '\n').listen((e) {
         e.preventDefault();
         _run();
@@ -152,7 +152,7 @@ class EvalBoxElement extends CustomElement implements Renderable {
     var textbox = new TextInputElement()
       ..classes = ['textbox']
       ..placeholder = 'evaluate an expression'
-      ..value = _expression!
+      ..value = _expression
       ..onKeyUp.where((e) => e.key == '\n').listen((e) {
         e.preventDefault();
         _run();

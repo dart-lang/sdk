@@ -950,14 +950,14 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
   block {
     final core::List<core::int*>* #t99 = <core::int*>[];
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      #t99.{core::List::add}{Invariant}(let final<BottomType> #t100 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:87:28: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      #t99.{core::List::add}{Invariant}(let final Never* #t100 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:87:28: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>[if (oracle(\"foo\")) \"bar\"];
                            ^" in "bar" as{TypeError} core::int*);
   } =>#t99;
   block {
     final core::Set<core::int*>* #t101 = col::LinkedHashSet::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      #t101.{core::Set::add}{Invariant}(let final<BottomType> #t102 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:88:28: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      #t101.{core::Set::add}{Invariant}(let final Never* #t102 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:88:28: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>{if (oracle(\"foo\")) \"bar\", null};
                            ^" in "bar" as{TypeError} core::int*);
     #t101.{core::Set::add}{Invariant}(null);
@@ -965,7 +965,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
   block {
     final core::Map<core::String*, core::int*>* #t103 = <core::String*, core::int*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      #t103.{core::Map::[]=}{Invariant}("bar", let final<BottomType> #t104 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:89:43: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      #t103.{core::Map::[]=}{Invariant}("bar", let final Never* #t104 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:89:43: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <String, int>{if (oracle(\"foo\")) \"bar\": \"bar\", \"baz\": null};
                                           ^" in "bar" as{TypeError} core::int*);
     #t103.{core::Map::[]=}{Invariant}("baz", null);
@@ -973,14 +973,14 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
   block {
     final core::List<core::int*>* #t105 = <core::int*>[];
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      #t105.{core::List::addAll}{Invariant}(<core::int*>[let final<BottomType> #t106 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:90:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      #t105.{core::List::addAll}{Invariant}(<core::int*>[let final Never* #t106 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:90:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>[if (oracle(\"foo\")) ...[\"bar\"]];
                                ^" in "bar" as{TypeError} core::int*]);
   } =>#t105;
   block {
     final core::Set<core::int*>* #t107 = col::LinkedHashSet::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      #t107.{core::Set::addAll}{Invariant}(<core::int*>[let final<BottomType> #t108 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:91:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      #t107.{core::Set::addAll}{Invariant}(<core::int*>[let final Never* #t108 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:91:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>{if (oracle(\"foo\")) ...[\"bar\"], null};
                                ^" in "bar" as{TypeError} core::int*]);
     #t107.{core::Set::add}{Invariant}(null);
@@ -988,7 +988,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
   block {
     final core::Map<core::String*, core::int*>* #t109 = <core::String*, core::int*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      for (final core::MapEntry<core::String*, core::int*>* #t110 in <core::String*, core::int*>{"bar": let final<BottomType> #t111 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:92:47: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      for (final core::MapEntry<core::String*, core::int*>* #t110 in <core::String*, core::int*>{"bar": let final Never* #t111 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:92:47: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <String, int>{if (oracle(\"foo\")) ...{\"bar\": \"bar\"}, \"baz\": null};
                                               ^" in "bar" as{TypeError} core::int*}.{core::Map::entries})
         #t109.{core::Map::[]=}{Invariant}(#t110.{core::MapEntry::key}, #t110.{core::MapEntry::value});
@@ -1021,22 +1021,22 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
   block {
     final core::List<core::String*>* #t114 = <core::String*>[];
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      #t114.{core::List::add}{Invariant}(let final<BottomType> #t115 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:96:31: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      #t114.{core::List::add}{Invariant}(let final Never* #t115 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:96:31: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   <String>[if (oracle(\"foo\")) 42 else 3.14];
                               ^" in 42 as{TypeError} core::String*);
     else
-      #t114.{core::List::add}{Invariant}(let final<BottomType> #t116 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:96:39: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+      #t114.{core::List::add}{Invariant}(let final Never* #t116 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:96:39: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
   <String>[if (oracle(\"foo\")) 42 else 3.14];
                                       ^" in 3.14 as{TypeError} core::String*);
   } =>#t114;
   block {
     final core::Set<core::String*>* #t117 = col::LinkedHashSet::•<core::String*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      #t117.{core::Set::add}{Invariant}(let final<BottomType> #t118 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:97:31: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      #t117.{core::Set::add}{Invariant}(let final Never* #t118 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:97:31: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   <String>{if (oracle(\"foo\")) 42 else 3.14, null};
                               ^" in 42 as{TypeError} core::String*);
     else
-      #t117.{core::Set::add}{Invariant}(let final<BottomType> #t119 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:97:39: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+      #t117.{core::Set::add}{Invariant}(let final Never* #t119 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:97:39: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
   <String>{if (oracle(\"foo\")) 42 else 3.14, null};
                                       ^" in 3.14 as{TypeError} core::String*);
     #t117.{core::Set::add}{Invariant}(null);
@@ -1044,11 +1044,11 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
   block {
     final core::Map<core::String*, core::String*>* #t120 = <core::String*, core::String*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      #t120.{core::Map::[]=}{Invariant}("bar", let final<BottomType> #t121 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:98:46: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      #t120.{core::Map::[]=}{Invariant}("bar", let final Never* #t121 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:98:46: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   <String, String>{if (oracle(\"foo\")) \"bar\": 42 else \"baz\": 3.14, \"baz\": null};
                                              ^" in 42 as{TypeError} core::String*);
     else
-      #t120.{core::Map::[]=}{Invariant}("baz", let final<BottomType> #t122 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:98:61: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+      #t120.{core::Map::[]=}{Invariant}("baz", let final Never* #t122 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:98:61: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
   <String, String>{if (oracle(\"foo\")) \"bar\": 42 else \"baz\": 3.14, \"baz\": null};
                                                             ^" in 3.14 as{TypeError} core::String*);
     #t120.{core::Map::[]=}{Invariant}("baz", null);
@@ -1129,21 +1129,21 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
                                                    ^": null};
   core::List<core::int*>* list20 = block {
     final core::List<core::int*>* #t127 = <core::int*>[];
-    if(let final<BottomType> #t128 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:112:27: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+    if(let final Never* #t128 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:112:27: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
   List<int> list20 = [if (42) 42];
                           ^" in 42 as{TypeError} core::bool*)
       #t127.{core::List::add}{Invariant}(42);
   } =>#t127;
   core::Set<core::int*>* set20 = block {
     final core::Set<core::int*>* #t129 = col::LinkedHashSet::•<core::int*>();
-    if(let final<BottomType> #t130 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:113:25: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+    if(let final Never* #t130 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:113:25: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
   Set<int> set20 = {if (42) 42};
                         ^" in 42 as{TypeError} core::bool*)
       #t129.{core::Set::add}{Invariant}(42);
   } =>#t129;
   core::Map<core::int*, core::int*>* map30 = block {
     final core::Map<core::int*, core::int*>* #t131 = <core::int*, core::int*>{};
-    if(let final<BottomType> #t132 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:114:30: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+    if(let final Never* #t132 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:114:30: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
   Map<int, int> map30 = {if (42) 42: 42};
                              ^" in 42 as{TypeError} core::bool*)
       #t131.{core::Map::[]=}{Invariant}(42, 42);
@@ -1151,44 +1151,44 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
   core::List<core::String*>* list40 = block {
     final core::List<core::String*>* #t133 = <core::String*>[];
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      #t133.{core::List::add}{Invariant}(let final<BottomType> #t134 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:115:53: Error: A value of type 'bool' can't be assigned to a variable of type 'String'.
+      #t133.{core::List::add}{Invariant}(let final Never* #t134 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:115:53: Error: A value of type 'bool' can't be assigned to a variable of type 'String'.
   List<String> list40 = <String>[if (oracle(\"foo\")) true else 42];
                                                     ^" in true as{TypeError} core::String*);
     else
-      #t133.{core::List::add}{Invariant}(let final<BottomType> #t135 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:115:63: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      #t133.{core::List::add}{Invariant}(let final Never* #t135 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:115:63: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   List<String> list40 = <String>[if (oracle(\"foo\")) true else 42];
                                                               ^" in 42 as{TypeError} core::String*);
   } =>#t133;
   core::Set<core::String*>* set40 = block {
     final core::Set<core::String*>* #t136 = col::LinkedHashSet::•<core::String*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      #t136.{core::Set::add}{Invariant}(let final<BottomType> #t137 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:116:51: Error: A value of type 'bool' can't be assigned to a variable of type 'String'.
+      #t136.{core::Set::add}{Invariant}(let final Never* #t137 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:116:51: Error: A value of type 'bool' can't be assigned to a variable of type 'String'.
   Set<String> set40 = <String>{if (oracle(\"foo\")) true else 42};
                                                   ^" in true as{TypeError} core::String*);
     else
-      #t136.{core::Set::add}{Invariant}(let final<BottomType> #t138 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:116:61: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      #t136.{core::Set::add}{Invariant}(let final Never* #t138 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:116:61: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   Set<String> set40 = <String>{if (oracle(\"foo\")) true else 42};
                                                             ^" in 42 as{TypeError} core::String*);
   } =>#t136;
   core::Map<core::String*, core::int*>* map40 = block {
     final core::Map<core::String*, core::int*>* #t139 = <core::String*, core::int*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      #t139.{core::Map::[]=}{Invariant}(let final<BottomType> #t140 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:117:61: Error: A value of type 'bool' can't be assigned to a variable of type 'String'.
+      #t139.{core::Map::[]=}{Invariant}(let final Never* #t140 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:117:61: Error: A value of type 'bool' can't be assigned to a variable of type 'String'.
   Map<String, int> map40 = <String, int>{if (oracle(\"foo\")) true: 42 else 42: 42};
                                                             ^" in true as{TypeError} core::String*, 42);
     else
-      #t139.{core::Map::[]=}{Invariant}(let final<BottomType> #t141 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:117:75: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      #t139.{core::Map::[]=}{Invariant}(let final Never* #t141 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:117:75: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   Map<String, int> map40 = <String, int>{if (oracle(\"foo\")) true: 42 else 42: 42};
                                                                           ^" in 42 as{TypeError} core::String*, 42);
   } =>#t139;
   core::Map<core::int*, core::String*>* map41 = block {
     final core::Map<core::int*, core::String*>* #t142 = <core::int*, core::String*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*)
-      #t142.{core::Map::[]=}{Invariant}(42, let final<BottomType> #t143 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:118:65: Error: A value of type 'bool' can't be assigned to a variable of type 'String'.
+      #t142.{core::Map::[]=}{Invariant}(42, let final Never* #t143 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:118:65: Error: A value of type 'bool' can't be assigned to a variable of type 'String'.
   Map<int, String> map41 = <int, String>{if (oracle(\"foo\")) 42: true else 42: 42};
                                                                 ^" in true as{TypeError} core::String*);
     else
-      #t142.{core::Map::[]=}{Invariant}(42, let final<BottomType> #t144 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:118:79: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      #t142.{core::Map::[]=}{Invariant}(42, let final Never* #t144 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:118:79: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   Map<int, String> map41 = <int, String>{if (oracle(\"foo\")) 42: true else 42: 42};
                                                                               ^" in 42 as{TypeError} core::String*);
   } =>#t142;
@@ -1762,14 +1762,14 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   block {
     final core::List<core::int*>* #t259 = <core::int*>[];
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1))
-      #t259.{core::List::add}{Invariant}(let final<BottomType> #t260 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:210:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      #t259.{core::List::add}{Invariant}(let final Never* #t260 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:210:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>[for (int i = 0; oracle(\"foo\"); i++) \"bar\"];
                                             ^" in "bar" as{TypeError} core::int*);
   } =>#t259;
   block {
     final core::Set<core::int*>* #t261 = col::LinkedHashSet::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1))
-      #t261.{core::Set::add}{Invariant}(let final<BottomType> #t262 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:211:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      #t261.{core::Set::add}{Invariant}(let final Never* #t262 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:211:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>{for (int i = 0; oracle(\"foo\"); i++) \"bar\", null};
                                             ^" in "bar" as{TypeError} core::int*);
     #t261.{core::Set::add}{Invariant}(null);
@@ -1777,26 +1777,26 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   block {
     final core::Map<core::int*, core::int*>* #t263 = <core::int*, core::int*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1))
-      #t263.{core::Map::[]=}{Invariant}(let final<BottomType> #t264 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:212:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      #t263.{core::Map::[]=}{Invariant}(let final Never* #t264 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:212:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int, int>{for (int i = 0; oracle(\"foo\"); i++) \"bar\": \"bar\", \"baz\": null};
-                                                 ^" in "bar" as{TypeError} core::int*, let final<BottomType> #t265 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:212:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+                                                 ^" in "bar" as{TypeError} core::int*, let final Never* #t265 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:212:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int, int>{for (int i = 0; oracle(\"foo\"); i++) \"bar\": \"bar\", \"baz\": null};
                                                         ^" in "bar" as{TypeError} core::int*);
-    #t263.{core::Map::[]=}{Invariant}(let final<BottomType> #t266 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:212:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    #t263.{core::Map::[]=}{Invariant}(let final Never* #t266 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:212:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int, int>{for (int i = 0; oracle(\"foo\"); i++) \"bar\": \"bar\", \"baz\": null};
                                                                ^" in "baz" as{TypeError} core::int*, null);
   } =>#t263;
   block {
     final core::List<core::int*>* #t267 = <core::int*>[];
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1))
-      #t267.{core::List::addAll}{Invariant}(<core::int*>[let final<BottomType> #t268 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:213:49: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      #t267.{core::List::addAll}{Invariant}(<core::int*>[let final Never* #t268 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:213:49: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>[for (int i = 0; oracle(\"foo\"); i++) ...[\"bar\"]];
                                                 ^" in "bar" as{TypeError} core::int*]);
   } =>#t267;
   block {
     final core::Set<core::int*>* #t269 = col::LinkedHashSet::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1))
-      #t269.{core::Set::addAll}{Invariant}(<core::int*>[let final<BottomType> #t270 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:214:49: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      #t269.{core::Set::addAll}{Invariant}(<core::int*>[let final Never* #t270 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:214:49: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>{for (int i = 0; oracle(\"foo\"); i++) ...[\"bar\"], null};
                                                 ^" in "bar" as{TypeError} core::int*]);
     #t269.{core::Set::add}{Invariant}(null);
@@ -1804,13 +1804,13 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   block {
     final core::Map<core::int*, core::int*>* #t271 = <core::int*, core::int*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1))
-      for (final core::MapEntry<core::int*, core::int*>* #t272 in <core::int*, core::int*>{let final<BottomType> #t273 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:215:54: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      for (final core::MapEntry<core::int*, core::int*>* #t272 in <core::int*, core::int*>{let final Never* #t273 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:215:54: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int, int>{for (int i = 0; oracle(\"foo\"); i++) ...{\"bar\": \"bar\"}, \"baz\": null};
-                                                     ^" in "bar" as{TypeError} core::int*: let final<BottomType> #t274 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:215:61: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+                                                     ^" in "bar" as{TypeError} core::int*: let final Never* #t274 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:215:61: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int, int>{for (int i = 0; oracle(\"foo\"); i++) ...{\"bar\": \"bar\"}, \"baz\": null};
                                                             ^" in "bar" as{TypeError} core::int*}.{core::Map::entries})
         #t271.{core::Map::[]=}{Invariant}(#t272.{core::MapEntry::key}, #t272.{core::MapEntry::value});
-    #t271.{core::Map::[]=}{Invariant}(let final<BottomType> #t275 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:215:69: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    #t271.{core::Map::[]=}{Invariant}(let final Never* #t275 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:215:69: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int, int>{for (int i = 0; oracle(\"foo\"); i++) ...{\"bar\": \"bar\"}, \"baz\": null};
                                                                     ^" in "baz" as{TypeError} core::int*, null);
   } =>#t271;
@@ -1842,11 +1842,11 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
     final core::List<core::String*>* #t278 = <core::String*>[];
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1))
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        #t278.{core::List::add}{Invariant}(let final<BottomType> #t279 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:219:62: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+        #t278.{core::List::add}{Invariant}(let final Never* #t279 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:219:62: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   <String>[for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else 3.14];
                                                              ^" in 42 as{TypeError} core::String*);
       else
-        #t278.{core::List::add}{Invariant}(let final<BottomType> #t280 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:219:70: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+        #t278.{core::List::add}{Invariant}(let final Never* #t280 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:219:70: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
   <String>[for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else 3.14];
                                                                      ^" in 3.14 as{TypeError} core::String*);
   } =>#t278;
@@ -1854,11 +1854,11 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
     final core::Set<core::String*>* #t281 = col::LinkedHashSet::•<core::String*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1))
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        #t281.{core::Set::add}{Invariant}(let final<BottomType> #t282 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:220:62: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+        #t281.{core::Set::add}{Invariant}(let final Never* #t282 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:220:62: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   <String>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else 3.14, null};
                                                              ^" in 42 as{TypeError} core::String*);
       else
-        #t281.{core::Set::add}{Invariant}(let final<BottomType> #t283 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:220:70: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+        #t281.{core::Set::add}{Invariant}(let final Never* #t283 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:220:70: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
   <String>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else 3.14, null};
                                                                      ^" in 3.14 as{TypeError} core::String*);
     #t281.{core::Set::add}{Invariant}(null);
@@ -1867,11 +1867,11 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
     final core::Map<core::String*, core::String*>* #t284 = <core::String*, core::String*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1))
       if(self::oracle<dynamic>() as{TypeError,ForDynamic} core::bool*)
-        #t284.{core::Map::[]=}{Invariant}("bar", let final<BottomType> #t285 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:221:77: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+        #t284.{core::Map::[]=}{Invariant}("bar", let final Never* #t285 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:221:77: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   <String, String>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) \"bar\": 42 else \"bar\": 3.14, \"baz\": null};
                                                                             ^" in 42 as{TypeError} core::String*);
       else
-        #t284.{core::Map::[]=}{Invariant}("bar", let final<BottomType> #t286 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:221:92: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+        #t284.{core::Map::[]=}{Invariant}("bar", let final Never* #t286 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:221:92: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
   <String, String>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) \"bar\": 42 else \"bar\": 3.14, \"baz\": null};
                                                                                            ^" in 3.14 as{TypeError} core::String*);
     #t284.{core::Map::[]=}{Invariant}("baz", null);
@@ -1968,7 +1968,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   } =>#t295;
   core::List<dynamic>* list10 = block {
     final core::List<dynamic>* #t297 = <dynamic>[];
-    for (dynamic i in let final<BottomType> #t298 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:234:31: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+    for (dynamic i in let final Never* #t298 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:234:31: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   var list10 = [for (var i in \"not iterable\") i];
                               ^" in "not iterable" as{TypeError} core::Iterable<dynamic>*)
@@ -1976,7 +1976,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   } =>#t297;
   core::Set<dynamic>* set10 = block {
     final core::Set<dynamic>* #t299 = col::LinkedHashSet::•<dynamic>();
-    for (dynamic i in let final<BottomType> #t300 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:235:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+    for (dynamic i in let final Never* #t300 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:235:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   var set10 = {for (var i in \"not iterable\") i, null};
                              ^" in "not iterable" as{TypeError} core::Iterable<dynamic>*)
@@ -1985,7 +1985,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   } =>#t299;
   core::Map<core::String*, dynamic>* map10 = block {
     final core::Map<core::String*, dynamic>* #t301 = <core::String*, dynamic>{};
-    for (dynamic i in let final<BottomType> #t302 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:236:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+    for (dynamic i in let final Never* #t302 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:236:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   var map10 = {for (var i in \"not iterable\") \"bar\": i, \"baz\": null};
                              ^" in "not iterable" as{TypeError} core::Iterable<dynamic>*)
@@ -1994,18 +1994,18 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   } =>#t301;
   core::List<core::int*>* list20 = block {
     final core::List<core::int*>* #t303 = <core::int*>[];
-    for (core::int* i in <core::int*>[let final<BottomType> #t304 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:237:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    for (core::int* i in <core::int*>[let final Never* #t304 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:237:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var list20 = [for (int i in [\"not\", \"int\"]) i];
-                               ^" in "not" as{TypeError} core::int*, let final<BottomType> #t305 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:237:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+                               ^" in "not" as{TypeError} core::int*, let final Never* #t305 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:237:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var list20 = [for (int i in [\"not\", \"int\"]) i];
                                       ^" in "int" as{TypeError} core::int*])
       #t303.{core::List::add}{Invariant}(i);
   } =>#t303;
   core::Set<core::int*>* set20 = block {
     final core::Set<core::int*>* #t306 = col::LinkedHashSet::•<core::int*>();
-    for (core::int* i in <core::int*>[let final<BottomType> #t307 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:238:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    for (core::int* i in <core::int*>[let final Never* #t307 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:238:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var set20 = {for (int i in [\"not\", \"int\"]) i, null};
-                              ^" in "not" as{TypeError} core::int*, let final<BottomType> #t308 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:238:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+                              ^" in "not" as{TypeError} core::int*, let final Never* #t308 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:238:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var set20 = {for (int i in [\"not\", \"int\"]) i, null};
                                      ^" in "int" as{TypeError} core::int*])
       #t306.{core::Set::add}{Invariant}(i);
@@ -2013,9 +2013,9 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   } =>#t306;
   core::Map<core::String*, core::int*>* map20 = block {
     final core::Map<core::String*, core::int*>* #t309 = <core::String*, core::int*>{};
-    for (core::int* i in <core::int*>[let final<BottomType> #t310 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:239:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    for (core::int* i in <core::int*>[let final Never* #t310 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:239:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var map20 = {for (int i in [\"not\", \"int\"]) \"bar\": i, \"baz\": null};
-                              ^" in "not" as{TypeError} core::int*, let final<BottomType> #t311 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:239:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+                              ^" in "not" as{TypeError} core::int*, let final Never* #t311 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:239:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var map20 = {for (int i in [\"not\", \"int\"]) \"bar\": i, \"baz\": null};
                                      ^" in "int" as{TypeError} core::int*])
       #t309.{core::Map::[]=}{Invariant}("bar", i);
@@ -2023,7 +2023,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   } =>#t309;
   core::List<dynamic>* list30 = block {
     final core::List<dynamic>* #t312 = <dynamic>[];
-    await for (dynamic i in let final<BottomType> #t313 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:240:37: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+    await for (dynamic i in let final Never* #t313 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:240:37: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   var list30 = [await for (var i in \"not stream\") i];
                                     ^" in "not stream" as{TypeError} asy::Stream<dynamic>*)
@@ -2031,7 +2031,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   } =>#t312;
   core::Set<dynamic>* set30 = block {
     final core::Set<dynamic>* #t314 = col::LinkedHashSet::•<dynamic>();
-    await for (dynamic i in let final<BottomType> #t315 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:241:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+    await for (dynamic i in let final Never* #t315 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:241:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   var set30 = {await for (var i in \"not stream\") i, null};
                                    ^" in "not stream" as{TypeError} asy::Stream<dynamic>*)
@@ -2040,7 +2040,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   } =>#t314;
   core::Map<core::String*, dynamic>* map30 = block {
     final core::Map<core::String*, dynamic>* #t316 = <core::String*, dynamic>{};
-    await for (dynamic i in let final<BottomType> #t317 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:242:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+    await for (dynamic i in let final Never* #t317 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:242:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   var map30 = {await for (var i in \"not stream\") \"bar\": i, \"baz\": null};
                                    ^" in "not stream" as{TypeError} asy::Stream<dynamic>*)
@@ -2049,18 +2049,18 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   } =>#t316;
   core::List<core::int*>* list40 = block {
     final core::List<core::int*>* #t318 = <core::int*>[];
-    await for (core::int* i in asy::Stream::fromIterable<core::int*>(<core::int*>[let final<BottomType> #t319 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:243:58: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    await for (core::int* i in asy::Stream::fromIterable<core::int*>(<core::int*>[let final Never* #t319 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:243:58: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var list40 = [await for (int i in Stream.fromIterable([\"not\", \"int\"])) i];
-                                                         ^" in "not" as{TypeError} core::int*, let final<BottomType> #t320 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:243:65: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+                                                         ^" in "not" as{TypeError} core::int*, let final Never* #t320 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:243:65: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var list40 = [await for (int i in Stream.fromIterable([\"not\", \"int\"])) i];
                                                                 ^" in "int" as{TypeError} core::int*]))
       #t318.{core::List::add}{Invariant}(i);
   } =>#t318;
   core::Set<core::int*>* set40 = block {
     final core::Set<core::int*>* #t321 = col::LinkedHashSet::•<core::int*>();
-    await for (core::int* i in asy::Stream::fromIterable<core::int*>(<core::int*>[let final<BottomType> #t322 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:244:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    await for (core::int* i in asy::Stream::fromIterable<core::int*>(<core::int*>[let final Never* #t322 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:244:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var set40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) i, null};
-                                                        ^" in "not" as{TypeError} core::int*, let final<BottomType> #t323 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:244:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+                                                        ^" in "not" as{TypeError} core::int*, let final Never* #t323 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:244:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var set40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) i, null};
                                                                ^" in "int" as{TypeError} core::int*]))
       #t321.{core::Set::add}{Invariant}(i);
@@ -2068,9 +2068,9 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   } =>#t321;
   core::Map<core::String*, core::int*>* map40 = block {
     final core::Map<core::String*, core::int*>* #t324 = <core::String*, core::int*>{};
-    await for (core::int* i in asy::Stream::fromIterable<core::int*>(<core::int*>[let final<BottomType> #t325 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:245:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    await for (core::int* i in asy::Stream::fromIterable<core::int*>(<core::int*>[let final Never* #t325 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:245:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var map40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) \"bar\": i, \"baz\": null};
-                                                        ^" in "not" as{TypeError} core::int*, let final<BottomType> #t326 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:245:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+                                                        ^" in "not" as{TypeError} core::int*, let final Never* #t326 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:245:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var map40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) \"bar\": i, \"baz\": null};
                                                                ^" in "int" as{TypeError} core::int*]))
       #t324.{core::Map::[]=}{Invariant}("bar", i);
@@ -2095,14 +2095,14 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   } =>#t329;
   core::List<core::int*>* list60 = block {
     final core::List<core::int*>* #t330 = <core::int*>[];
-    for (; let final<BottomType> #t331 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:249:24: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
+    for (; let final Never* #t331 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:249:24: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
   var list60 = [for (; \"not bool\";) 42];
                        ^" in "not bool" as{TypeError} core::bool*; )
       #t330.{core::List::add}{Invariant}(42);
   } =>#t330;
   core::Set<core::int*>* set60 = block {
     final core::Set<core::int*>* #t332 = col::LinkedHashSet::•<core::int*>();
-    for (; let final<BottomType> #t333 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:250:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
+    for (; let final Never* #t333 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:250:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
   var set60 = {for (; \"not bool\";) 42, null};
                       ^" in "not bool" as{TypeError} core::bool*; )
       #t332.{core::Set::add}{Invariant}(42);
@@ -2110,7 +2110,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   } =>#t332;
   core::Map<core::String*, core::int*>* map60 = block {
     final core::Map<core::String*, core::int*>* #t334 = <core::String*, core::int*>{};
-    for (; let final<BottomType> #t335 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:251:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
+    for (; let final Never* #t335 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:251:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
   var map60 = {for (; \"not bool\";) \"bar\": 42, \"baz\": null};
                       ^" in "not bool" as{TypeError} core::bool*; )
       #t334.{core::Map::[]=}{Invariant}("bar", 42);
