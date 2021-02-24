@@ -37,4 +37,5 @@ html/custom_elements_23127_test: Skip # Issue 29922
 html/custom_elements_test: Skip # Issue 29922
 html/notification_permission_test: Skip # Issue 32002
 isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
+js/js_util/js_prefix_test: SkipByDesign # JS$ prefix not implemented on ddc.
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.

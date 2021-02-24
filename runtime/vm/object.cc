@@ -5952,6 +5952,21 @@ intptr_t TypeArguments::HashForRange(intptr_t from_index, intptr_t len) const {
     if (type.IsNull() || type.IsNullTypeRef()) {
       return 0;  // Do not cache hash, since it will still change.
     }
+    if (type.IsTypeRef()) {
+      // Unwrapping the TypeRef here cannot lead to infinite recursion, because
+      // traversal during hash computation stops at the TypeRef. Indeed,
+      // unwrapping the TypeRef does not always remove it completely, but may
+      // only rotate the cycle. The same TypeRef can be encountered when calling
+      // type.Hash() below after traversing the whole cycle. The class id of the
+      // referenced type is used and the traversal stops.
+      // By dereferencing the TypeRef, we maximize the information reflected by
+      // the hash value. Two equal vectors may have some of their type arguments
+      // 'oriented' differently, i.e. pointing to identical (TypeRef containing)
+      // cyclic type graphs, but to two different nodes in the cycle, thereby
+      // breaking the hash computation earlier for one vector and yielding two
+      // different hash values for identical type graphs.
+      type = TypeRef::Cast(type).type();
+    }
     result = CombineHashes(result, type.Hash());
   }
   result = FinalizeHash(result, kHashBits);
@@ -20515,6 +20530,10 @@ intptr_t Type::ComputeHash() const {
     // Only include hashes of type arguments corresponding to type parameters.
     // This prevents obtaining different hashes depending on the location of
     // TypeRefs in the super class type argument vector.
+    // Note that TypeRefs can also appear as type arguments corresponding to
+    // type parameters, typically after an instantiation at runtime.
+    // These are dealt with in TypeArguments::HashForRange, which is also called
+    // to compute the hash of a full standalone TypeArguments.
     const TypeArguments& type_args = TypeArguments::Handle(arguments());
     const Class& cls = Class::Handle(type_class());
     const intptr_t num_type_params = cls.NumTypeParameters();
@@ -21842,6 +21861,9 @@ IntegerPtr Integer::ShiftOp(Token::Kind kind,
       return Integer::New(Utils::ShiftLeftWithTruncation(a, b), space);
     case Token::kSHR:
       return Integer::New(a >> Utils::Minimum<int64_t>(b, Mint::kBits), space);
+    case Token::kUSHR:
+      return Integer::New(
+          (b >= kBitsPerInt64) ? 0 : static_cast<uint64_t>(a) >> b, space);
     default:
       UNIMPLEMENTED();
       return Integer::null();

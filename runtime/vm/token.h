@@ -14,7 +14,7 @@ namespace dart {
 //
 //  14  multiplicative  * / ~/ %
 //  13  additive        + -
-//  12  shift           << >>
+//  12  shift           << >> >>>
 //  11  bitwise and     &
 //  10  bitwise xor     ^
 //   9  bitwise or      |
@@ -24,7 +24,7 @@ namespace dart {
 //   5  logical or      ||
 //   4  null check      ??
 //   3  conditional     ?
-//   2  assignment      = *= /= ~/= %= += -= <<= >>= &= ^= |= ??=
+//   2  assignment      = *= /= ~/= %= += -= <<= >>= >>>= &= ^= |= ??=
 //   1  comma           ,
 
 // Token definitions.
@@ -57,6 +57,7 @@ namespace dart {
   TOK(kASSIGN_AND, "&=", 2, kNoAttribute)                                      \
   TOK(kASSIGN_SHL, "<<=", 2, kNoAttribute)                                     \
   TOK(kASSIGN_SHR, ">>=", 2, kNoAttribute)                                     \
+  TOK(kASSIGN_USHR, ">>>=", 2, kNoAttribute)                                   \
   TOK(kASSIGN_ADD, "+=", 2, kNoAttribute)                                      \
   TOK(kASSIGN_SUB, "-=", 2, kNoAttribute)                                      \
   TOK(kASSIGN_MUL, "*=", 2, kNoAttribute)                                      \
@@ -79,6 +80,7 @@ namespace dart {
   /* Shift operators. */                                                       \
   TOK(kSHL, "<<", 12, kNoAttribute)                                            \
   TOK(kSHR, ">>", 12, kNoAttribute)                                            \
+  TOK(kUSHR, ">>>", 12, kNoAttribute)                                          \
                                                                                \
   /* Additive operators. */                                                    \
   TOK(kADD, "+", 13, kNoAttribute)                                             \
@@ -285,8 +287,8 @@ class Token {
   static bool CanBeOverloaded(Kind tok) {
     ASSERT(tok < kNumTokens);
     return IsRelationalOperator(tok) || (tok == kEQ) ||
-           (tok >= kADD && tok <= kMOD) ||     // Arithmetic operations.
-           (tok >= kBIT_OR && tok <= kSHR) ||  // Bit operations.
+           (tok >= kADD && tok <= kMOD) ||      // Arithmetic operations.
+           (tok >= kBIT_OR && tok <= kUSHR) ||  // Bit operations.
            (tok == kINDEX) || (tok == kASSIGN_INDEX);
   }
 

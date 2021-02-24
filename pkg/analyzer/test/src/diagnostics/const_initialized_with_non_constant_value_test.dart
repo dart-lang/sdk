@@ -10,9 +10,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstInitializedWithNonConstantValueTest);
-    defineReflectiveTests(
-      ConstInitializedWithNonConstantValueWithNonFunctionTypeAliasesTest,
-    );
   });
 }
 
@@ -105,13 +102,7 @@ const c = a.m;
           1),
     ]);
   }
-}
 
-/// TODO(https://github.com/dart-lang/sdk/issues/44666): Combine this class
-/// with the one above it.
-@reflectiveTest
-class ConstInitializedWithNonConstantValueWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest {
   test_typeLiteral_interfaceType() async {
     await assertNoErrorsInCode(r'''
 const a = int;

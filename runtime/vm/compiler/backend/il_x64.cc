@@ -3563,7 +3563,8 @@ class CheckedSmiSlowPath : public TemplateSlowPathCode<CheckedSmiOpInstr> {
 
 LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
-  bool is_shift = (op_kind() == Token::kSHL) || (op_kind() == Token::kSHR);
+  bool is_shift = (op_kind() == Token::kSHL) || (op_kind() == Token::kSHR) ||
+                  (op_kind() == Token::kUSHR);
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = is_shift ? 1 : 0;
   LocationSummary* summary = new (zone) LocationSummary(
@@ -3576,6 +3577,7 @@ LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
     case Token::kMUL:
     case Token::kSHL:
     case Token::kSHR:
+    case Token::kUSHR:
       summary->set_out(0, Location::RequiresRegister());
       break;
     case Token::kBIT_OR:
@@ -3686,19 +3688,33 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movsxd(result, result);
 #endif
       break;
-    case Token::kSHR: {
+    case Token::kSHR:
+    case Token::kUSHR: {
       compiler::Label shift_count_ok;
       ASSERT(result != right);
       ASSERT(locs()->temp(0).reg() == RCX);
-      __ cmpq(right, compiler::Immediate(Smi::RawValue(Smi::kBits)));
+      __ cmpq(right, compiler::Immediate(Smi::RawValue(kBitsPerInt64)));
       __ j(ABOVE_EQUAL, slow_path->entry_label());
 
       __ movq(RCX, right);
       __ SmiUntag(RCX);
       __ movq(result, left);
       __ SmiUntag(result);
-      __ sarq(result, RCX);
-      __ SmiTag(result);
+      if (op_kind() == Token::kSHR) {
+        __ sarq(result, RCX);
+        __ SmiTag(result);
+      } else {
+        ASSERT(op_kind() == Token::kUSHR);
+        __ shrq(result, RCX);
+        __ SmiTag(result);
+        __ j(OVERFLOW, slow_path->entry_label());
+#if defined(DART_COMPRESSED_POINTERS)
+        const Register temp = locs()->temp(0).reg();
+        __ movsxd(temp, result);
+        __ cmpq(temp, result);
+        __ j(NOT_EQUAL, slow_path->entry_label());
+#endif  // defined(DART_COMPRESSED_POINTERS)
+      }
       break;
     }
     default:
@@ -3874,8 +3890,12 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
 
   ConstantInstr* right_constant = right()->definition()->AsConstant();
   if ((right_constant != NULL) && (op_kind() != Token::kTRUNCDIV) &&
-      (op_kind() != Token::kSHL) && (op_kind() != Token::kMUL) &&
-      (op_kind() != Token::kMOD) && CanBeImmediate(right_constant->value())) {
+      (op_kind() != Token::kSHL) &&
+#if defined(DART_COMPRESSED_POINTERS)
+      (op_kind() != Token::kUSHR) &&
+#endif
+      (op_kind() != Token::kMUL) && (op_kind() != Token::kMOD) &&
+      CanBeImmediate(right_constant->value())) {
     const intptr_t kNumTemps = 0;
     LocationSummary* summary = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -3915,7 +3935,11 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     // Will be used for sign extension and division.
     summary->set_temp(0, Location::RegisterLocation(RAX));
     return summary;
-  } else if (op_kind() == Token::kSHR) {
+  } else if ((op_kind() == Token::kSHR)
+#if !defined(DART_COMPRESSED_POINTERS)
+             || (op_kind() == Token::kUSHR)
+#endif  // !defined(DART_COMPRESSED_POINTERS)
+  ) {
     const intptr_t kNumTemps = 0;
     LocationSummary* summary = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -3923,6 +3947,22 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     summary->set_in(1, LocationFixedRegisterOrSmiConstant(right(), RCX));
     summary->set_out(0, Location::SameAsFirstInput());
     return summary;
+#if defined(DART_COMPRESSED_POINTERS)
+  } else if (op_kind() == Token::kUSHR) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary = new (zone)
+        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresRegister());
+    if ((right_constant != nullptr) &&
+        CanBeImmediate(right_constant->value())) {
+      summary->set_in(1, Location::Constant(right_constant));
+    } else {
+      summary->set_in(1, LocationFixedRegisterOrSmiConstant(right(), RCX));
+    }
+    summary->set_out(0, Location::SameAsFirstInput());
+    summary->set_temp(0, Location::RequiresRegister());
+    return summary;
+#endif  // defined(DART_COMPRESSED_POINTERS)
   } else if (op_kind() == Token::kSHL) {
     // Shift-by-1 overflow checking can use flags, otherwise we need a temp.
     const bool shiftBy1 =
@@ -4079,6 +4119,28 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ sarq(left, compiler::Immediate(
                           Utils::Minimum(value + kSmiTagSize, kCountLimit)));
         __ SmiTag(left);
+        break;
+      }
+
+      case Token::kUSHR: {
+        // shrq operation masks the count to 6 bits, but
+        // unsigned shifts by >= kBitsPerInt64 are eliminated by
+        // BinaryIntegerOpInstr::Canonicalize.
+        const intptr_t kCountLimit = 0x3F;
+        const intptr_t value = Smi::Cast(constant).Value();
+        ASSERT((value >= 0) && (value <= kCountLimit));
+        __ SmiUntag(left);
+        __ shrq(left, compiler::Immediate(value));
+        __ SmiTag(left);
+        if (deopt != nullptr) {
+          __ j(OVERFLOW, deopt);
+#if defined(DART_COMPRESSED_POINTERS)
+          const Register temp = locs()->temp(0).reg();
+          __ movsxd(temp, left);
+          __ cmpq(temp, left);
+          __ j(NOT_EQUAL, deopt);
+#endif  // defined(DART_COMPRESSED_POINTERS)
+        }
         break;
       }
 
@@ -4396,6 +4458,40 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(left);
       __ sarq(left, right);
       __ SmiTag(left);
+      break;
+    }
+    case Token::kUSHR: {
+      if (deopt != nullptr) {
+        __ CompareImmediate(right, compiler::Immediate(0));
+        __ j(LESS, deopt);
+      }
+      __ SmiUntag(right);
+      // shrq operation masks the count to 6 bits.
+      const intptr_t kCountLimit = 0x3F;
+      COMPILE_ASSERT(kCountLimit + 1 == kBitsPerInt64);
+      compiler::Label done;
+      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(), kCountLimit)) {
+        __ CompareImmediate(right, compiler::Immediate(kCountLimit));
+        compiler::Label count_ok;
+        __ j(LESS_EQUAL, &count_ok, compiler::Assembler::kNearJump);
+        __ xorq(left, left);
+        __ jmp(&done, compiler::Assembler::kNearJump);
+        __ Bind(&count_ok);
+      }
+      ASSERT(right == RCX);  // Count must be in RCX
+      __ SmiUntag(left);
+      __ shrq(left, right);
+      __ SmiTag(left);
+      if (deopt != nullptr) {
+        __ j(OVERFLOW, deopt);
+#if defined(DART_COMPRESSED_POINTERS)
+        const Register temp = locs()->temp(0).reg();
+        __ movsxd(temp, left);
+        __ cmpq(temp, left);
+        __ j(NOT_EQUAL, deopt);
+#endif  // defined(DART_COMPRESSED_POINTERS)
+      }
+      __ Bind(&done);
       break;
     }
     case Token::kDIV: {
@@ -6660,6 +6756,10 @@ static void EmitShiftInt64ByConstant(FlowGraphCompiler* compiler,
       __ sarq(left, compiler::Immediate(
                         Utils::Minimum<int64_t>(shift, kBitsPerWord - 1)));
       break;
+    case Token::kUSHR:
+      ASSERT(shift < 64);
+      __ shrq(left, compiler::Immediate(shift));
+      break;
     case Token::kSHL: {
       ASSERT(shift < 64);
       __ shlq(left, compiler::Immediate(shift));
@@ -6676,6 +6776,10 @@ static void EmitShiftInt64ByRCX(FlowGraphCompiler* compiler,
   switch (op_kind) {
     case Token::kSHR: {
       __ sarq(left, RCX);
+      break;
+    }
+    case Token::kUSHR: {
+      __ shrq(left, RCX);
       break;
     }
     case Token::kSHL: {
@@ -6697,7 +6801,8 @@ static void EmitShiftUint32ByConstant(FlowGraphCompiler* compiler,
     __ xorl(left, left);
   } else {
     switch (op_kind) {
-      case Token::kSHR: {
+      case Token::kSHR:
+      case Token::kUSHR: {
         __ shrl(left, compiler::Immediate(shift));
         break;
       }
@@ -6715,7 +6820,8 @@ static void EmitShiftUint32ByRCX(FlowGraphCompiler* compiler,
                                  Token::Kind op_kind,
                                  Register left) {
   switch (op_kind) {
-    case Token::kSHR: {
+    case Token::kSHR:
+    case Token::kUSHR: {
       __ shrl(left, RCX);
       break;
     }
@@ -6749,6 +6855,7 @@ class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
       case Token::kSHR:
         __ sarq(out, compiler::Immediate(kBitsPerInt64 - 1));
         break;
+      case Token::kUSHR:
       case Token::kSHL:
         __ xorq(out, out);
         break;

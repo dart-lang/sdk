@@ -15,9 +15,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MethodInvocationResolutionTest);
     defineReflectiveTests(MethodInvocationResolutionWithNullSafetyTest);
-    defineReflectiveTests(
-      MethodInvocationResolutionWithNonFunctionTypeAliasesTest,
-    );
   });
 }
 
@@ -2447,66 +2444,9 @@ main() {
   }
 }
 
-/// TODO(https://github.com/dart-lang/sdk/issues/44666): Combine this class
-/// with the one it extends.
-@reflectiveTest
-class MethodInvocationResolutionWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest {
-  test_hasReceiver_typeAlias_staticMethod() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  static void foo(int _) {}
-}
-
-typedef B = A;
-
-void f() {
-  B.foo(0);
-}
-''');
-
-    assertMethodInvocation(
-      findNode.methodInvocation('foo(0)'),
-      findElement.method('foo'),
-      'void Function(int)',
-    );
-
-    assertTypeAliasRef(
-      findNode.simple('B.foo'),
-      findElement.typeAlias('B'),
-    );
-  }
-
-  test_hasReceiver_typeAlias_staticMethod_generic() async {
-    await assertNoErrorsInCode(r'''
-class A<T> {
-  static void foo(int _) {}
-}
-
-typedef B<T> = A<T>;
-
-void f() {
-  B.foo(0);
-}
-''');
-
-    assertMethodInvocation(
-      findNode.methodInvocation('foo(0)'),
-      findElement.method('foo'),
-      'void Function(int)',
-    );
-
-    assertTypeAliasRef(
-      findNode.simple('B.foo'),
-      findElement.typeAlias('B'),
-    );
-  }
-}
-
 @reflectiveTest
 class MethodInvocationResolutionWithNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithNullSafetyMixin, MethodInvocationResolutionTestCases {
+    extends PubPackageResolutionTest with MethodInvocationResolutionTestCases {
   test_hasReceiver_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
@@ -2761,6 +2701,56 @@ void f(A? a) {
       typeArgumentTypes: [],
       invokeType: 'void Function()',
       type: 'void',
+    );
+  }
+
+  test_hasReceiver_typeAlias_staticMethod() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static void foo(int _) {}
+}
+
+typedef B = A;
+
+void f() {
+  B.foo(0);
+}
+''');
+
+    assertMethodInvocation(
+      findNode.methodInvocation('foo(0)'),
+      findElement.method('foo'),
+      'void Function(int)',
+    );
+
+    assertTypeAliasRef(
+      findNode.simple('B.foo'),
+      findElement.typeAlias('B'),
+    );
+  }
+
+  test_hasReceiver_typeAlias_staticMethod_generic() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  static void foo(int _) {}
+}
+
+typedef B<T> = A<T>;
+
+void f() {
+  B.foo(0);
+}
+''');
+
+    assertMethodInvocation(
+      findNode.methodInvocation('foo(0)'),
+      findElement.method('foo'),
+      'void Function(int)',
+    );
+
+    assertTypeAliasRef(
+      findNode.simple('B.foo'),
+      findElement.typeAlias('B'),
     );
   }
 

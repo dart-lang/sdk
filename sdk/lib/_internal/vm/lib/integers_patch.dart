@@ -15,8 +15,9 @@ class int {
   int _bitAndFromInteger(int other);
   int _bitOrFromInteger(int other);
   int _bitXorFromInteger(int other);
-  int _shrFromInteger(int other);
   int _shlFromInteger(int other);
+  int _shrFromInteger(int other);
+  int _ushrFromInteger(int other);
 
   static int? _tryParseSmi(String str, int first, int last) {
     assert(first <= last);

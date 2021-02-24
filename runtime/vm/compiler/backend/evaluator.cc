@@ -27,6 +27,8 @@ static IntegerPtr BinaryIntegerEvaluateRaw(const Integer& left,
     case Token::kSHL:
       FALL_THROUGH;
     case Token::kSHR:
+      FALL_THROUGH;
+    case Token::kUSHR:
       if (right.AsInt64Value() >= 0) {
         return left.ShiftOp(token_kind, right, Heap::kOld);
       }

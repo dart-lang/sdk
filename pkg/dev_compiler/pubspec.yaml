@@ -28,8 +28,6 @@ dependencies:
     path: ../vm
 
 dev_dependencies:
-  analyzer:
-    path: ../analyzer
   expect:
     path: ../expect
   js:
@@ -38,7 +36,6 @@ dev_dependencies:
     path: ../modular_test
   package_config: any
   pedantic: ^1.8.0
-  pub_semver: any
   sourcemap_testing:
     path: ../sourcemap_testing
   stack_trace: any

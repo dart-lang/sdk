@@ -22,6 +22,7 @@ main() {
     defineReflectiveTests(ErrorResolverTest);
     defineReflectiveTests(PrefixedNamespaceTest);
     defineReflectiveTests(StrictModeTest);
+    defineReflectiveTests(StrictModeWithoutNullSafetyTest);
     defineReflectiveTests(TypePropagationTest);
   });
 }
@@ -278,10 +279,60 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
 /// The class `StrictModeTest` contains tests to ensure that the correct errors
 /// and warnings are reported when the analysis engine is run in strict mode.
 @reflectiveTest
-class StrictModeTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+class StrictModeTest extends PubPackageResolutionTest with StrictModeTestCases {
+  test_conditional_isNot() async {
+    await assertNoErrorsInCode(r'''
+int f(num n) {
+  return (n is! int) ? 0 : n & 0x0F;
+}
+''');
+  }
+
+  test_conditional_or_is() async {
+    await assertNoErrorsInCode(r'''
+int f(num n) {
+  return (n is! int || n < 0) ? 0 : n & 0x0F;
+}
+''');
+  }
+
+  test_if_isNot() async {
+    await assertNoErrorsInCode(r'''
+int f(num n) {
+  if (n is! int) {
+    return 0;
+  } else {
+    return n & 0x0F;
+  }
+}
+''');
+  }
+
+  test_if_isNot_abrupt() async {
+    await assertNoErrorsInCode(r'''
+int f(num n) {
+  if (n is! int) {
+    return 0;
+  }
+  return n & 0x0F;
+}
+''');
+  }
+
+  test_if_or_is() async {
+    await assertNoErrorsInCode(r'''
+int f(num n) {
+  if (n is! int || n < 0) {
+    return 0;
+  } else {
+    return n & 0x0F;
+  }
+}
+''');
+  }
+}
+
+mixin StrictModeTestCases on PubPackageResolutionTest {
   test_assert_is() async {
     await assertErrorsInCode(r'''
 int f(num n) {
@@ -306,48 +357,27 @@ int f(num n) {
 }''');
   }
 
-  test_conditional_isNot() async {
-    await assertErrorsInCode(r'''
-int f(num n) {
-  return (n is! int) ? 0 : n & 0x0F;
-}''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 44, 1),
-    ]);
-  }
-
-  test_conditional_or_is() async {
-    await assertErrorsInCode(r'''
-int f(num n) {
-  return (n is! int || n < 0) ? 0 : n & 0x0F;
-}''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 53, 1),
-    ]);
-  }
-
   test_for() async {
-    await assertErrorsInCode(r'''
-int f(List<int> list) {
-  num sum = 0;
-  for (num i = 0; i < list.length; i++) {
+    await assertNoErrorsInCode(r'''
+void f(List<int> list) {
+  num sum = 0; // ignore: unused_local_variable
+  for (int i = 0; i < list.length; i++) {
     sum += list[i];
   }
-}''', [
-      error(HintCode.MISSING_RETURN, 4, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 3),
-    ]);
+}
+''');
   }
 
   test_forEach() async {
     await assertErrorsInCode(r'''
-int f(List<int> list) {
-  num sum = 0;
+void f(List<int> list) {
+  num sum = 0; // ignore: unused_local_variable
   for (num n in list) {
     sum += n & 0x0F;
   }
-}''', [
-      error(HintCode.MISSING_RETURN, 4, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 3),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 76, 1),
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 110, 1),
     ]);
   }
 
@@ -371,6 +401,42 @@ int f(num n) {
 }''');
   }
 
+  test_localVar() async {
+    await assertErrorsInCode(r'''
+int f() {
+  num n = 1234;
+  return n & 0x0F;
+}''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 37, 1),
+    ]);
+  }
+}
+
+/// The class `StrictModeTest` contains tests to ensure that the correct errors
+/// and warnings are reported when the analysis engine is run in strict mode.
+@reflectiveTest
+class StrictModeWithoutNullSafetyTest extends PubPackageResolutionTest
+    with StrictModeTestCases, WithoutNullSafetyMixin {
+  test_conditional_isNot() async {
+    await assertErrorsInCode(r'''
+int f(num n) {
+  return (n is! int) ? 0 : n & 0x0F;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 44, 1),
+    ]);
+  }
+
+  test_conditional_or_is() async {
+    await assertErrorsInCode(r'''
+int f(num n) {
+  return (n is! int || n < 0) ? 0 : n & 0x0F;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 53, 1),
+    ]);
+  }
+
   test_if_isNot() async {
     await assertErrorsInCode(r'''
 int f(num n) {
@@ -379,7 +445,8 @@ int f(num n) {
   } else {
     return n & 0x0F;
   }
-}''', [
+}
+''', [
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 72, 1),
     ]);
   }
@@ -391,7 +458,8 @@ int f(num n) {
     return 0;
   }
   return n & 0x0F;
-}''', [
+}
+''', [
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 63, 1),
     ]);
   }
@@ -404,27 +472,15 @@ int f(num n) {
   } else {
     return n & 0x0F;
   }
-}''', [
+}
+''', [
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 81, 1),
-    ]);
-  }
-
-  test_localVar() async {
-    await assertErrorsInCode(r'''
-int f() {
-  num n = 1234;
-  return n & 0x0F;
-}''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 37, 1),
     ]);
   }
 }
 
 @reflectiveTest
-class TypePropagationTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+class TypePropagationTest extends PubPackageResolutionTest {
   test_assignment_null() async {
     String code = r'''
 main() {
@@ -515,22 +571,23 @@ class Derived extends Base {
 }
 
 class C {
-  void f() {
-    Base x = null;
+  void f(Base x) {
+    x = Base();
     if (x is Derived) {
       print(x.y); // BAD
     }
-    x = null;
+    x = Base();
   }
 }
 
-void g() {
-  Base x = null;
+void g(Base x) {
+  x = Base();
   if (x is Derived) {
     print(x.y); // GOOD
   }
-  x = null;
-}''');
+  x = Base();
+}
+''');
   }
 
   test_objectAccessInference_disabled_for_library_prefix() async {
