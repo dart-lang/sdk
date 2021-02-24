@@ -658,19 +658,6 @@ class ContextManagerImpl implements ContextManager {
       bazelSubscriptions[folder] = _BazelWorkspaceSubscription(subscription);
     }
   }
-
-  /// Create and return a source representing the given [file] within the given
-  /// [driver].
-  static Source createSourceInContext(AnalysisDriver driver, File file) {
-    // TODO(brianwilkerson) Optimize this, by allowing support for source
-    // factories to restore URI's from a file path rather than a source.
-    var source = file.createSource();
-    if (driver == null) {
-      return source;
-    }
-    var uri = driver.sourceFactory.restoreUri(source);
-    return file.createSource(uri);
-  }
 }
 
 /// A watcher with subscription used to detect changes to some file.
