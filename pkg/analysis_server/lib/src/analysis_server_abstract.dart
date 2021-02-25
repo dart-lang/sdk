@@ -112,7 +112,12 @@ abstract class AbstractAnalysisServer {
   final OverlayResourceProvider resourceProvider;
 
   /// The next modification stamp for a changed file in the [resourceProvider].
-  int overlayModificationStamp = 0;
+  ///
+  /// This value is increased each time it is used and used instead of real
+  /// modification stamps. It's seeded with `millisecondsSinceEpoch` to reduce
+  /// the chance of colliding with values used in previous analysis sessions if
+  /// used as a cache key.
+  int overlayModificationStamp = DateTime.now().millisecondsSinceEpoch;
 
   AbstractAnalysisServer(
     this.options,
