@@ -25,6 +25,7 @@ import 'package:analyzer/src/summary/idl.dart' as idl;
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/util/comment.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:meta/meta.dart';
@@ -338,25 +339,20 @@ class DeclarationsContext {
   void _findPackages() {
     var pathContext = _tracker._resourceProvider.pathContext;
     var pubPathPrefixToPathList = <String, List<String>>{};
-    var visitedFolderPaths = <String>{};
 
-    /// TODO(scheglov) Use analyzedFiles() ?
-    void visitFolder(Folder folder) {
-      var canonicalFolderPath = folder.resolveSymbolicLinksSync().path;
-      if (!visitedFolderPaths.add(canonicalFolderPath)) {
-        return;
-      }
-
-      var buildFile = folder.getChildAssumingFile('BUILD');
-      var pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
-      if (buildFile.exists) {
-        _packages.add(_Package(folder));
-      } else if (pubspecFile.exists) {
-        var dependencies = _parsePubspecDependencies(pubspecFile);
+    for (var path in _analysisContext.contextRoot.analyzedFiles()) {
+      if (file_paths.isBazelBuild(pathContext, path)) {
+        var file = _tracker._resourceProvider.getFile(path);
+        var packageFolder = file.parent2;
+        _packages.add(_Package(packageFolder));
+      } else if (file_paths.isPubspecYaml(pathContext, path)) {
+        var file = _tracker._resourceProvider.getFile(path);
+        var dependencies = _parsePubspecDependencies(file);
         var libPaths = _resolvePackageNamesToLibPaths(dependencies.lib);
         var devPaths = _resolvePackageNamesToLibPaths(dependencies.dev);
 
-        var packagePath = folder.path;
+        var packageFolder = file.parent2;
+        var packagePath = packageFolder.path;
         pubPathPrefixToPathList[packagePath] = [
           ...libPaths,
           ...devPaths,
@@ -365,21 +361,10 @@ class DeclarationsContext {
         var libPath = pathContext.join(packagePath, 'lib');
         pubPathPrefixToPathList[libPath] = libPaths;
 
-        _packages.add(_Package(folder));
-      }
-
-      try {
-        for (var resource in folder.getChildren()) {
-          if (resource is Folder) {
-            visitFolder(resource);
-          }
-        }
-      } on FileSystemException {
-        // ignored
+        _packages.add(_Package(packageFolder));
       }
     }
 
-    visitFolder(_analysisContext.contextRoot.root);
     setDependencies(pubPathPrefixToPathList);
 
     _packages.sort((a, b) {
