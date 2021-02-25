@@ -15,6 +15,7 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:glob/glob.dart';
@@ -23,18 +24,6 @@ import 'package:yaml/yaml.dart';
 
 /// An implementation of a context locator.
 class ContextLocatorImpl implements ContextLocator {
-  /// The name of the analysis options file.
-  static const String ANALYSIS_OPTIONS_NAME = 'analysis_options.yaml';
-
-  /// The name of the `.dart_tool` directory.
-  static const String DOT_DART_TOOL_NAME = '.dart_tool';
-
-  /// The name of the packages file.
-  static const String PACKAGE_CONFIG_JSON_NAME = 'package_config.json';
-
-  /// The name of the packages file.
-  static const String DOT_PACKAGES_NAME = '.packages';
-
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
@@ -348,19 +337,19 @@ class ContextLocatorImpl implements ContextLocator {
   /// Return the analysis options file in the given [folder], or `null` if the
   /// folder does not contain an analysis options file.
   File? _getOptionsFile(Folder folder) =>
-      _getFile(folder, ANALYSIS_OPTIONS_NAME);
+      _getFile(folder, file_paths.analysisOptionsYaml);
 
   /// Return the packages file in the given [folder], or `null` if the folder
   /// does not contain a packages file.
   File? _getPackagesFile(Folder folder) {
     var file = folder
-        .getChildAssumingFolder(DOT_DART_TOOL_NAME)
-        .getChildAssumingFile(PACKAGE_CONFIG_JSON_NAME);
+        .getChildAssumingFolder(file_paths.dotDartTool)
+        .getChildAssumingFile(file_paths.packageConfigJson);
     if (file.exists) {
       return file;
     }
 
-    return _getFile(folder, DOT_PACKAGES_NAME);
+    return _getFile(folder, file_paths.dotPackages);
   }
 
   /// Add to the given lists of [folders] and [files] all of the resources in

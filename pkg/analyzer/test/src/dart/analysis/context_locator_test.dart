@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -573,9 +574,7 @@ analyzer:
 
   void test_locateRoots_options_withExclude_wholeFolder_includedOptions() {
     Folder rootFolder = newFolder('/test/root');
-    File optionsFile = newFile(
-        '/test/root/${ContextLocatorImpl.ANALYSIS_OPTIONS_NAME}',
-        content: '''
+    File optionsFile = newOptionsFile('/test/root', content: '''
 include: has_excludes.yaml
 ''');
     newFile('/test/root/has_excludes.yaml', content: '''
@@ -609,9 +608,7 @@ analyzer:
 
   void test_locateRoots_options_withExclude_wholeFolder_includedOptionsMerge() {
     Folder rootFolder = newFolder('/test/root');
-    File optionsFile = newFile(
-        '/test/root/${ContextLocatorImpl.ANALYSIS_OPTIONS_NAME}',
-        content: '''
+    File optionsFile = newOptionsFile('/test/root', content: '''
 include: has_excludes.yaml
 analyzer:
   exclude:
@@ -802,8 +799,8 @@ analyzer:
   File _newPackageConfigFile(String directoryPath) {
     String path = join(
       directoryPath,
-      ContextLocatorImpl.DOT_DART_TOOL_NAME,
-      ContextLocatorImpl.PACKAGE_CONFIG_JSON_NAME,
+      file_paths.dotDartTool,
+      file_paths.packageConfigJson,
     );
     return newFile(path);
   }

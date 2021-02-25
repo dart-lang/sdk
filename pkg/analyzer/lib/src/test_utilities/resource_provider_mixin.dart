@@ -4,7 +4,6 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 
 /// A mixin for test classes that adds a [ResourceProvider] and utility methods
@@ -62,12 +61,12 @@ mixin ResourceProviderMixin {
   }
 
   File newOptionsFile(String directoryPath, {String content = ''}) {
-    String path = join(directoryPath, ContextLocatorImpl.ANALYSIS_OPTIONS_NAME);
+    String path = join(directoryPath, file_paths.analysisOptionsYaml);
     return newFile(path, content: content);
   }
 
   File newPackagesFile(String directoryPath) {
-    String path = join(directoryPath, ContextLocatorImpl.DOT_PACKAGES_NAME);
+    String path = join(directoryPath, file_paths.dotPackages);
     return newFile(path);
   }
 

@@ -13,11 +13,17 @@ const String analysisOptionsYaml = 'analysis_options.yaml';
 /// File name of Android manifest files.
 const String androidManifestXml = 'AndroidManifest.xml';
 
+/// The name of the `.dart_tool` directory.
+const String dotDartTool = '.dart_tool';
+
 /// File name of package spec files.
 const String dotPackages = '.packages';
 
 /// The name of the data file used to specify data-driven fixes.
 const String fixDataYaml = 'fix_data.yaml';
+
+/// The name of the package config files.
+const String packageConfigJson = 'package_config.json';
 
 /// File name of pubspec files.
 const String pubspecYaml = 'pubspec.yaml';
@@ -52,8 +58,8 @@ bool isFixDataYaml(p.Context pathContext, String path) {
 bool isPackageConfigJson(p.Context pathContext, String path) {
   var components = pathContext.split(path);
   return components.length > 2 &&
-      components[components.length - 1] == 'package_config.json' &&
-      components[components.length - 2] == '.dart_tool';
+      components[components.length - 1] == packageConfigJson &&
+      components[components.length - 2] == dotDartTool;
 }
 
 /// Return `true` if [path] is a `pubspec.yaml` file.
