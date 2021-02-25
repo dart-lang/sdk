@@ -528,6 +528,38 @@ void func() {
 ''');
   }
 
+  test_resolveFile_cache() async {
+    var path = convertPath('/workspace/dart/test/lib/test.dart');
+    newFile(path, content: 'var a = 0;');
+
+    // No resolved files yet.
+    expect(fileResolver.testView!.resolvedFiles, isEmpty);
+
+    await resolveFile2(path);
+    var result1 = result;
+
+    // The file was resolved.
+    expect(fileResolver.testView!.resolvedFiles, [path]);
+
+    // Ask again, no changes, not resolved.
+    await resolveFile2(path);
+    expect(fileResolver.testView!.resolvedFiles, [path]);
+
+    // The same result was returned.
+    expect(result, same(result1));
+
+    // Change a file.
+    var a_path = convertPath('/workspace/dart/test/lib/a.dart');
+    fileResolver.changeFile(a_path);
+
+    // The was a change to a file, no matter which, resolve again.
+    await resolveFile2(path);
+    expect(fileResolver.testView!.resolvedFiles, [path, path]);
+
+    // Get should get a new result.
+    expect(result, isNot(same(result1)));
+  }
+
   test_reuse_compatibleOptions() async {
     newFile('/workspace/dart/aaa/BUILD', content: '');
     newFile('/workspace/dart/bbb/BUILD', content: '');

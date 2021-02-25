@@ -37,6 +37,20 @@ class CiderFixesComputerTest extends CiderServiceTest {
     expect(resultContent, expected);
   }
 
+  Future<void> test_cachedResolvedFiles() async {
+    await _compute(r'''
+var a = 0^ var b = 1
+''');
+
+    // Only the first fix is applied.
+    assertHasFix(DartFixKind.INSERT_SEMICOLON, r'''
+var a = 0; var b = 1
+''');
+
+    // The file was resolved only once, even though we have 2 errors.
+    expect(fileResolver.testView.resolvedFiles, [testPath]);
+  }
+
   Future<void> test_createMethod() async {
     await _compute(r'''
 class A {
