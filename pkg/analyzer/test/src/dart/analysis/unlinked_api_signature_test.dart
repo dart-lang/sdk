@@ -242,6 +242,25 @@ class B extends A {}
 ''');
   }
 
+  /// The token `static` is moving from the field declaration to the factory
+  /// constructor (its redirected constructor), so semantically its meaning
+  /// changes. But we had a bug that we put `static` into the signature
+  /// at the same position, without any separator, so failed to see the
+  /// difference.
+  test_class_factoryConstructor_empty_to_eq() {
+    assertNotSameSignature(r'''
+class A {
+  factory A();
+  static void foo<U>() {}
+}
+''', r'''
+class A {
+  factory A() =
+  static void foo<U>() {}
+}
+''');
+  }
+
   test_class_field_final_add() {
     assertNotSameSignature(r'''
 class C {

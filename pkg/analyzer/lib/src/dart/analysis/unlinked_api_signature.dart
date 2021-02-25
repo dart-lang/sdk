@@ -17,6 +17,10 @@ List<int> computeUnlinkedApiSignature(CompilationUnit unit) {
 }
 
 class _UnitApiSignatureComputer {
+  static const int _kindConstructorDeclaration = 1;
+  static const int _kindFieldDeclaration = 2;
+  static const int _kindMethodDeclaration = 3;
+
   final ApiSignature signature = ApiSignature();
 
   void addClassOrMixin(ClassOrMixinDeclaration node) {
@@ -28,12 +32,14 @@ class _UnitApiSignatureComputer {
     signature.addInt(node.members.length);
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
+        signature.addInt(_kindConstructorDeclaration);
         addTokens(member.beginToken, member.parameters.endToken);
         if (member.constKeyword != null) {
           addNodeList(member.initializers);
         }
         addNode(member.redirectedConstructor);
       } else if (member is FieldDeclaration) {
+        signature.addInt(_kindFieldDeclaration);
         var variableList = member.fields;
         addVariables(
           member,
@@ -41,6 +47,7 @@ class _UnitApiSignatureComputer {
           !member.isStatic && variableList.isFinal && hasConstConstructor,
         );
       } else if (member is MethodDeclaration) {
+        signature.addInt(_kindMethodDeclaration);
         addTokens(
           member.beginToken,
           (member.parameters ?? member.name).endToken,
@@ -48,7 +55,7 @@ class _UnitApiSignatureComputer {
         signature.addBool(member.body is EmptyFunctionBody);
         addFunctionBodyModifiers(member.body);
       } else {
-        addNode(member);
+        throw UnimplementedError('(${member.runtimeType}) $member');
       }
     }
 
