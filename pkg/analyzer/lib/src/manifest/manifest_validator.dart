@@ -5,13 +5,12 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/manifest/charcodes.dart';
+import 'package:analyzer/src/manifest/manifest_values.dart';
+import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
-
-import 'charcodes.dart';
-import 'manifest_values.dart';
-import 'manifest_warning_code.dart';
 
 /// A rudimentary parser for Android Manifest files.
 ///

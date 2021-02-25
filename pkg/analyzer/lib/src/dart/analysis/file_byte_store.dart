@@ -6,10 +6,9 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/fletcher16.dart';
 import 'package:path/path.dart';
-
-import 'byte_store.dart';
-import 'fletcher16.dart';
 
 /// The request that is sent from the main isolate to the clean-up isolate.
 class CacheCleanUpRequest {

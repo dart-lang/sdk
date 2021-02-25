@@ -26,6 +26,7 @@ analyzer:
 
 linter:
   rules:
+    - always_use_package_imports
     - avoid_unused_constructor_parameters
     - await_only_futures
     - empty_statements

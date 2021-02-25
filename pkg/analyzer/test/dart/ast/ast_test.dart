@@ -1173,6 +1173,13 @@ class SimpleIdentifierTest extends ParserTestCase {
     expect(identifier.inSetterContext(), isTrue);
   }
 
+  void test_isQualified_inConstructorName() {
+    ConstructorName constructor = AstTestFactory.constructorName(
+        AstTestFactory.typeName4('MyClass'), "test");
+    SimpleIdentifier name = constructor.name!;
+    expect(name.isQualified, isTrue);
+  }
+
   void test_isQualified_inMethodInvocation_noTarget() {
     MethodInvocation invocation = AstTestFactory.methodInvocation2(
         "test", [AstTestFactory.identifier3("arg0")]);
