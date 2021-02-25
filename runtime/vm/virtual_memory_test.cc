@@ -6,6 +6,7 @@
 #include "platform/assert.h"
 #include "vm/heap/heap.h"
 #include "vm/unit_test.h"
+#include "vm/virtual_memory_compressed.h"
 
 namespace dart {
 
@@ -26,8 +27,8 @@ VM_UNIT_TEST_CASE(AllocateVirtualMemory) {
   EXPECT(vm->address() != NULL);
   EXPECT_EQ(vm->start(), reinterpret_cast<uword>(vm->address()));
 #if defined(DART_COMPRESSED_POINTERS)
-  EXPECT_EQ(kOldPageSize, vm->size());
-  EXPECT_EQ(vm->start() + kOldPageSize, vm->end());
+  EXPECT_EQ(kCompressedHeapPageSize, vm->size());
+  EXPECT_EQ(vm->start() + kCompressedHeapPageSize, vm->end());
 #else
   EXPECT_EQ(kVirtualMemoryBlockSize, vm->size());
   EXPECT_EQ(vm->start() + kVirtualMemoryBlockSize, vm->end());
