@@ -332,10 +332,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
       // PP is untagged on ARM64.
       ASSERT(Utils::IsAligned(offset, 8));
       intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
-      const ObjectPool& pool = ObjectPool::Handle(
-          FLAG_use_bare_instructions
-              ? IsolateGroup::Current()->object_store()->global_object_pool()
-              : code.object_pool());
+      const ObjectPool& pool = ObjectPool::Handle(code.GetObjectPool());
       if (!pool.IsNull() && (index < pool.Length()) &&
           (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject)) {
         *obj = pool.ObjectAt(index);
