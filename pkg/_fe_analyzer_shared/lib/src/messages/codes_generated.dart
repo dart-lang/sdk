@@ -8928,6 +8928,13 @@ const MessageCode messageThisInNullAwareReceiver = const MessageCode(
     tip: r"""Try replacing '?.' with '.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeThisNotPromoted = messageThisNotPromoted;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageThisNotPromoted = const MessageCode("ThisNotPromoted",
+    message: r"""'this' can't be promoted.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)>
     templateThisOrSuperAccessInFieldInitializer =
     const Template<Message Function(String string)>(

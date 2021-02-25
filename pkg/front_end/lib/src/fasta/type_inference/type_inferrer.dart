@@ -5021,4 +5021,9 @@ class _WhyNotPromotedVisitor
       return null;
     }
   }
+
+  @override
+  LocatedMessage visitThisNotPromoted(ThisNotPromoted reason) {
+    return messageThisNotPromoted.withoutLocation();
+  }
 }

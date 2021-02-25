@@ -6568,8 +6568,7 @@ class InferenceVisitor
     DartType promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     if (isExtensionThis(variable)) {
-      // Don't promote the synthetic variable `#this` that we use to represent
-      // `this` inside extension methods.
+      inferrer.flowAnalysis.thisOrSuper(node);
     } else if (inferrer.isNonNullableByDefault) {
       if (node.forNullGuardedAccess) {
         DartType nonNullableType = inferrer.computeNonNullable(variable.type);
