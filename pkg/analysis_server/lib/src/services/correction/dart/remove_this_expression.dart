@@ -14,6 +14,9 @@ class RemoveThisExpression extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_THIS_EXPRESSION;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_THIS_EXPRESSION_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is ConstructorFieldInitializer) {

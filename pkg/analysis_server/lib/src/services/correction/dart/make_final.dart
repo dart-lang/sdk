@@ -15,6 +15,9 @@ class MakeFinal extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.MAKE_FINAL;
 
   @override
+  FixKind get multiFixKind => DartFixKind.MAKE_FINAL_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is SimpleIdentifier &&

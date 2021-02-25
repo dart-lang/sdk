@@ -19,6 +19,9 @@ class ConvertConditionalExpressionToIfElement extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_IF_ELEMENT;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_IF_ELEMENT_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     AstNode node = this.node.thisOrAncestorOfType<ConditionalExpression>();
     if (node == null) {

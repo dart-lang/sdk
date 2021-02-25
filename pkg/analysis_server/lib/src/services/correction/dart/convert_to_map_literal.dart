@@ -20,6 +20,9 @@ class ConvertToMapLiteral extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_MAP_LITERAL;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_MAP_LITERAL_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     //
     // Ensure that this is the default constructor defined on either `Map` or

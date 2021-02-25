@@ -19,6 +19,9 @@ class ConvertToPackageImport extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_PACKAGE_IMPORT;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_PACKAGE_IMPORT_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is StringLiteral) {

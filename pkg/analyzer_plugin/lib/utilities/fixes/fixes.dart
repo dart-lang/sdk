@@ -33,7 +33,8 @@ abstract class FixCollector {
 abstract class FixContributor {
   /// Contribute fixes for the location in the file specified by the given
   /// [request] into the given [collector].
-  Future<void> computeFixes(covariant FixesRequest request, FixCollector collector);
+  Future<void> computeFixes(
+      covariant FixesRequest request, FixCollector collector);
 }
 
 /// The information about a requested set of fixes.
@@ -105,24 +106,15 @@ class FixKind {
   /// message `"Create a component named '{0}' in '{1}'"` contains two parameters.
   final String message;
 
-  /// A human-readable description of the changes that will be applied by this
-  /// kind of 'applied together' fix.
-  final String appliedTogetherMessage;
-
   /// Initialize a newly created kind of fix to have the given [id],
-  /// [priority], [message], and optionally [canBeAppliedTogether] and
-  /// [appliedTogetherMessage].
-  const FixKind(this.id, this.priority, this.message,
-      {this.appliedTogetherMessage});
+  /// [priority], and [message].
+  const FixKind(this.id, this.priority, this.message);
 
   @override
   int get hashCode => id.hashCode;
 
   @override
   bool operator ==(o) => o is FixKind && o.id == id;
-
-  /// The change can be made with other fixes of this [FixKind].
-  bool canBeAppliedTogether() => appliedTogetherMessage != null;
 
   @override
   String toString() => id;

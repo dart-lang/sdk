@@ -12,6 +12,9 @@ class AddAwait extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_AWAIT;
 
   @override
+  FixKind get multiFixKind => DartFixKind.ADD_AWAIT_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(node.offset, 'await ');

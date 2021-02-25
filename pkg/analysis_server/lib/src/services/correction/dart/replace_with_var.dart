@@ -19,6 +19,9 @@ class ReplaceWithVar extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_WITH_VAR;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_VAR_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var type = _findType(node);
     if (type == null) {

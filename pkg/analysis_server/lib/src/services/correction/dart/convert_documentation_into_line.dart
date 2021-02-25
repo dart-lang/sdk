@@ -20,6 +20,9 @@ class ConvertDocumentationIntoLine extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_LINE_COMMENT;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_LINE_COMMENT_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var comment = node.thisOrAncestorOfType<Comment>();
     if (comment == null ||

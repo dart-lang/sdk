@@ -21,6 +21,9 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_FOR_ELEMENT;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_FOR_ELEMENT_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     //
     // Ensure that the selection is inside an invocation of Map.fromIterable.

@@ -14,6 +14,9 @@ class RemoveUnnecessaryNew extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_NEW;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_NEW_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     final instanceCreationExpression = node;
     if (instanceCreationExpression is InstanceCreationExpression) {

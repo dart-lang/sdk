@@ -14,6 +14,9 @@ class RemoveQuestionMark extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_QUESTION_MARK;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_QUESTION_MARK_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is VariableDeclaration) {

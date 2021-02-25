@@ -108,7 +108,7 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
     expect(resultCode, expected);
   }
 
-  Future<List<Fix>> getFixes() async {
+  Future<List<Fix>> getFixesForFirstError() async {
     var errors = await _computeErrors();
     expect(errors, isNotEmpty);
     String errorCode;
@@ -429,4 +429,14 @@ mixin WithNullSafetyLintMixin on AbstractContextTest {
       lints: [lintCode],
     );
   }
+}
+
+/// todo (pq): temporary
+extension FixExtension on Fix {
+  bool isFixAllFix() => kind.canBeAppliedTogether();
+}
+
+extension FixKindExtension on FixKind {
+  /// todo (pq): temporary
+  bool canBeAppliedTogether() => priority == DartFixKindPriority.IN_FILE;
 }

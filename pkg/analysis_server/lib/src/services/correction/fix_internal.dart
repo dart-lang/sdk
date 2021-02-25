@@ -233,8 +233,8 @@ class FixInFileProcessor {
       var sourceChange = fixState.builder.sourceChange;
       if (sourceChange.edits.isNotEmpty) {
         var fixKind = fixState.fixKind;
-        if (fixKind.canBeAppliedTogether() && fixState.fixCount > 1) {
-          sourceChange.message = fixKind.appliedTogetherMessage;
+        if (fixState.fixCount > 1) {
+          sourceChange.message = fixKind.message;
           fixes.add(Fix(fixKind, sourceChange));
         }
       }
@@ -267,7 +267,7 @@ class FixInFileProcessor {
       fixState.builder = localBuilder;
       // todo (pq): consider discarding the change if the producer's fixKind
       // doesn't match a previously cached one.
-      fixState.fixKind = producer.fixKind;
+      fixState.fixKind = producer.multiFixKind;
       fixState.fixCount++;
     } on ConflictingEditException {
       // If a conflicting edit was added in [compute], then the [localBuilder]
@@ -279,11 +279,14 @@ class FixInFileProcessor {
       ErrorCode errorCode, CorrectionProducerContext context) {
     var producers = <ProducerGenerator>[];
     if (errorCode is LintCode) {
-      var generators = FixProcessor.lintProducerMap[errorCode.name];
-      if (generators != null) {
-        producers.addAll(generators);
+      var fixInfos = FixProcessor.lintProducerMap2[errorCode.name] ?? [];
+      for (var fixInfo in fixInfos) {
+        if (fixInfo.canBeAppliedToFile) {
+          producers.addAll(fixInfo.generators);
+        }
       }
     } else {
+      // todo (pq): update to a new nonLintProducerMap2
       var generators = FixProcessor.nonLintProducerMap[errorCode];
       if (generators != null) {
         if (generators != null) {
@@ -775,7 +778,8 @@ class FixProcessor extends BaseProcessor {
     // todo (pq): note this is not in lintProducerMap
     LintNames.prefer_is_not_operator: [
       FixInfo(
-        canBeAppliedToFile: true,
+        // todo (pq): consider enabling
+        canBeAppliedToFile: false,
         canBeBulkApplied: true,
         generators: [
           ConvertIntoIsNot.newInstance,

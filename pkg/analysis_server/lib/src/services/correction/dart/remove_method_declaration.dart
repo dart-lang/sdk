@@ -14,6 +14,9 @@ class RemoveMethodDeclaration extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_METHOD_DECLARATION;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_METHOD_DECLARATION_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var declaration = node.thisOrAncestorOfType<MethodDeclaration>();
     if (declaration != null) {

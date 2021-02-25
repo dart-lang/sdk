@@ -21,6 +21,9 @@ class InlineTypedef extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.INLINE_TYPEDEF;
 
   @override
+  FixKind get multiFixKind => DartFixKind.INLINE_TYPEDEF_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     //
     // Extract the information needed to build the edit.

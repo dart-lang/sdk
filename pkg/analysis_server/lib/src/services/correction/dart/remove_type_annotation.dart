@@ -19,6 +19,9 @@ class RemoveTypeAnnotation extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_TYPE_ANNOTATION;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_TYPE_ANNOTATION_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     for (var node = this.node; node != null; node = node.parent) {
       if (node is DeclaredIdentifier) {

@@ -15,6 +15,9 @@ class RemoveIfNullOperator extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_IF_NULL_OPERATOR_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var expression = node.thisOrAncestorOfType<BinaryExpression>();
     if (expression == null) {

@@ -22,6 +22,9 @@ class AddTypeAnnotation extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_TYPE_ANNOTATION;
 
   @override
+  FixKind get multiFixKind => DartFixKind.ADD_TYPE_ANNOTATION_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is SimpleIdentifier) {

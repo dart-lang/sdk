@@ -15,6 +15,9 @@ class ReplaceWithIsEmpty extends CorrectionProducer {
   FixKind fixKind;
 
   @override
+  FixKind multiFixKind;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     /// Return the value of an integer literal or prefix expression with a
     /// minus and then an integer literal. For anything else, returns `null`.
@@ -56,9 +59,11 @@ class ReplaceWithIsEmpty extends CorrectionProducer {
         if (operator == TokenType.EQ_EQ || operator == TokenType.LT_EQ) {
           getter = 'isEmpty';
           fixKind = DartFixKind.REPLACE_WITH_IS_EMPTY;
+          multiFixKind = DartFixKind.REPLACE_WITH_IS_EMPTY_MULTI;
         } else if (operator == TokenType.GT || operator == TokenType.BANG_EQ) {
           getter = 'isNotEmpty';
           fixKind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
+          multiFixKind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY_MULTI;
         }
       } else if (rightValue == 1) {
         // 'length >= 1' is same as 'isNotEmpty',
@@ -66,9 +71,11 @@ class ReplaceWithIsEmpty extends CorrectionProducer {
         if (operator == TokenType.GT_EQ) {
           getter = 'isNotEmpty';
           fixKind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
+          multiFixKind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY_MULTI;
         } else if (operator == TokenType.LT) {
           getter = 'isEmpty';
           fixKind = DartFixKind.REPLACE_WITH_IS_EMPTY;
+          multiFixKind = DartFixKind.REPLACE_WITH_IS_EMPTY_MULTI;
         }
       }
     } else {
@@ -79,10 +86,12 @@ class ReplaceWithIsEmpty extends CorrectionProducer {
           if (operator == TokenType.EQ_EQ || operator == TokenType.GT_EQ) {
             getter = 'isEmpty';
             fixKind = DartFixKind.REPLACE_WITH_IS_EMPTY;
+            multiFixKind = DartFixKind.REPLACE_WITH_IS_EMPTY_MULTI;
           } else if (operator == TokenType.LT ||
               operator == TokenType.BANG_EQ) {
             getter = 'isNotEmpty';
             fixKind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
+            multiFixKind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY_MULTI;
           }
         } else if (leftValue == 1) {
           // '1 <= length' is same as 'isNotEmpty',
@@ -90,9 +99,11 @@ class ReplaceWithIsEmpty extends CorrectionProducer {
           if (operator == TokenType.LT_EQ) {
             getter = 'isNotEmpty';
             fixKind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
+            multiFixKind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY_MULTI;
           } else if (operator == TokenType.GT) {
             getter = 'isEmpty';
             fixKind = DartFixKind.REPLACE_WITH_IS_EMPTY;
+            multiFixKind = DartFixKind.REPLACE_WITH_IS_EMPTY_MULTI;
           }
         }
       }

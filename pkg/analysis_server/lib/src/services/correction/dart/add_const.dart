@@ -13,6 +13,9 @@ class AddConst extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_CONST;
 
   @override
+  FixKind get multiFixKind => DartFixKind.ADD_CONST_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is SimpleIdentifier) {

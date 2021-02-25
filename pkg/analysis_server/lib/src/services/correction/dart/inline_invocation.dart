@@ -25,6 +25,9 @@ class InlineInvocation extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.INLINE_INVOCATION;
 
   @override
+  FixKind get multiFixKind => DartFixKind.INLINE_INVOCATION_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {

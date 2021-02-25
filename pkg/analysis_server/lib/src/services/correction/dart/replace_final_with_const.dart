@@ -14,6 +14,9 @@ class ReplaceFinalWithConst extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_FINAL_WITH_CONST;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_FINAL_WITH_CONST_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     if (node is VariableDeclarationList) {
       await builder.addDartFileEdit(file, (builder) {
