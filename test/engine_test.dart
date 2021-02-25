@@ -94,15 +94,6 @@ void defineLinterEngineTests() {
         var linter = SourceLinter(LinterOptions([]))..onError(error);
         expect(linter.errors.contains(error), isTrue);
       });
-      test('pubspec visitor error handling', () {
-        var visitor = MockPubVisitor();
-        var rule = MockRule()..pubspecVisitor = visitor;
-
-        var reporter = MockReporter();
-        SourceLinter(LinterOptions([rule]), reporter: reporter)
-          ..lintPubspecSource(contents: 'author: foo');
-        expect(reporter.exceptions, hasLength(1));
-      });
     });
 
     group('main', () {

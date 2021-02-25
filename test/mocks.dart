@@ -214,7 +214,7 @@ class MockRule implements LintRule {
   AstVisitor? getVisitor() => visitor;
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => null;
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   void reportPubLint(PSNode node) {}
