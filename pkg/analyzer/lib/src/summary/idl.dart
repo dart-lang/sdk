@@ -39,9 +39,9 @@
 ///
 /// Except as otherwise noted, synthetic elements are not stored in the summary;
 /// they are re-synthesized at the time the summary is read.
-import 'base.dart' as base;
-import 'base.dart' show Id, TopLevel;
-import 'format.dart' as generated;
+import 'package:analyzer/src/summary/base.dart' as base;
+import 'package:analyzer/src/summary/base.dart' show Id, TopLevel;
+import 'package:analyzer/src/summary/format.dart' as generated;
 
 /// Annotation describing information which is not part of Dart semantics; in
 /// other words, if this information (or any information it refers to) changes,

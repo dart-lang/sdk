@@ -660,8 +660,7 @@ class _CodeGenerator {
     out();
     out("import 'package:analyzer/src/summary/api_signature.dart' as api_sig;");
     out("import 'package:analyzer/src/summary/flat_buffers.dart' as fb;");
-    out();
-    out("import 'idl.dart' as idl;");
+    out("import 'package:analyzer/src/summary/idl.dart' as idl;");
     out();
     for (idl_model.EnumDeclaration enum_ in _idl.enums.values) {
       _EnumReaderGenerator(_idl, _outBuffer, enum_).generate();

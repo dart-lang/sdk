@@ -16,8 +16,7 @@ import 'dart:convert' as convert;
 
 import 'package:analyzer/src/summary/api_signature.dart' as api_sig;
 import 'package:analyzer/src/summary/flat_buffers.dart' as fb;
-
-import 'idl.dart' as idl;
+import 'package:analyzer/src/summary/idl.dart' as idl;
 
 class _AvailableDeclarationKindReader
     extends fb.Reader<idl.AvailableDeclarationKind> {
