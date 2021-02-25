@@ -101,7 +101,7 @@ class ContextLocatorImpl implements ContextLocator {
       root.included.add(folder);
       root.excludedGlobs = _getExcludedGlobs(root);
       roots.add(root);
-      _createContextRootsIn(roots, folder, excludedFolders, root,
+      _createContextRootsIn(roots, {}, folder, excludedFolders, root,
           root.excludedGlobs, defaultOptionsFile, defaultPackagesFile);
     }
     Map<Folder, ContextRoot> rootMap = <Folder, ContextRoot>{};
@@ -140,6 +140,7 @@ class ContextLocatorImpl implements ContextLocator {
   /// search for nested context roots.
   void _createContextRoots(
       List<ContextRoot> roots,
+      Set<String> visited,
       Folder folder,
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
@@ -181,8 +182,8 @@ class ContextLocatorImpl implements ContextLocator {
       excludedGlobs = _getExcludedGlobs(root);
       root.excludedGlobs = excludedGlobs;
     }
-    _createContextRootsIn(roots, folder, excludedFolders, containingRoot,
-        excludedGlobs, optionsFile, packagesFile);
+    _createContextRootsIn(roots, visited, folder, excludedFolders,
+        containingRoot, excludedGlobs, optionsFile, packagesFile);
   }
 
   /// For each directory within the given [folder] that is neither in the list
@@ -193,6 +194,7 @@ class ContextLocatorImpl implements ContextLocator {
   /// file will be used even if there is a local version of the file.
   void _createContextRootsIn(
       List<ContextRoot> roots,
+      Set<String> visited,
       Folder folder,
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
@@ -212,6 +214,12 @@ class ContextLocatorImpl implements ContextLocator {
       return false;
     }
 
+    // Stop infinite recursion via links.
+    var canonicalFolderPath = folder.resolveSymbolicLinksSync().path;
+    if (!visited.add(canonicalFolderPath)) {
+      return;
+    }
+
     //
     // Check each of the subdirectories to see whether a context root needs to
     // be added for it.
@@ -222,8 +230,8 @@ class ContextLocatorImpl implements ContextLocator {
           if (isExcluded(child)) {
             containingRoot.excluded.add(child);
           } else {
-            _createContextRoots(roots, child, excludedFolders, containingRoot,
-                excludedGlobs, optionsFile, packagesFile);
+            _createContextRoots(roots, visited, child, excludedFolders,
+                containingRoot, excludedGlobs, optionsFile, packagesFile);
           }
         }
       }

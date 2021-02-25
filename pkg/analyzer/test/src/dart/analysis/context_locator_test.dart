@@ -42,6 +42,136 @@ class ContextLocatorImplTest with ResourceProviderMixin {
     contextLocator = ContextLocatorImpl(resourceProvider: resourceProvider);
   }
 
+  void test_locateRoots_link_file_toOutOfRoot() {
+    Folder rootFolder = newFolder('/home/test');
+    newFile('/home/test/lib/a.dart');
+    newFile('/home/b.dart');
+    resourceProvider.newLink(
+      convertPath('/home/test/lib/c.dart'),
+      convertPath('/home/b.dart'),
+    );
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, isNull);
+    expect(root.packagesFile, isNull);
+
+    _assertAnalyzedFiles(root, [
+      '/home/test/lib/a.dart',
+      '/home/test/lib/c.dart',
+    ]);
+  }
+
+  void test_locateRoots_link_file_toSiblingInRoot() {
+    Folder rootFolder = newFolder('/test');
+    newFile('/test/lib/a.dart');
+    resourceProvider.newLink(
+      convertPath('/test/lib/b.dart'),
+      convertPath('/test/lib/a.dart'),
+    );
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, isNull);
+    expect(root.packagesFile, isNull);
+
+    _assertAnalyzedFiles(root, [
+      '/test/lib/a.dart',
+      '/test/lib/b.dart',
+    ]);
+  }
+
+  void test_locateRoots_link_folder_toParentInRoot() {
+    Folder rootFolder = newFolder('/test');
+    newFile('/test/lib/a.dart');
+    resourceProvider.newLink(
+      convertPath('/test/lib/foo'),
+      convertPath('/test/lib'),
+    );
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, isNull);
+    expect(root.packagesFile, isNull);
+
+    _assertAnalyzedFiles(root, ['/test/lib/a.dart']);
+
+    _assertAnalyzed(root, [
+      '/test/lib/a.dart',
+      '/test/lib/foo/b.dart',
+    ]);
+  }
+
+  void test_locateRoots_link_folder_toParentOfRoot() {
+    Folder rootFolder = newFolder('/home/test');
+    newFile('/home/test/lib/a.dart');
+    newFile('/home/b.dart');
+    newFile('/home/other/c.dart');
+    resourceProvider.newLink(
+      convertPath('/home/test/lib/foo'),
+      convertPath('/home'),
+    );
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, isNull);
+    expect(root.packagesFile, isNull);
+
+    // The set of analyzed files includes everything in `/home`,
+    // but does not repeat `/home/test/lib/a.dart` and does not cycle.
+    _assertAnalyzedFiles(root, [
+      '/home/test/lib/a.dart',
+      '/home/test/lib/foo/b.dart',
+      '/home/test/lib/foo/other/c.dart',
+    ]);
+  }
+
+  void test_locateRoots_link_folder_toSiblingInRoot() {
+    Folder rootFolder = newFolder('/test');
+    newFile('/test/lib/a.dart');
+    newFile('/test/lib/foo/b.dart');
+    resourceProvider.newLink(
+      convertPath('/test/lib/bar'),
+      convertPath('/test/lib/foo'),
+    );
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, isNull);
+    expect(root.packagesFile, isNull);
+
+    _assertAnalyzedFiles(root, [
+      '/test/lib/a.dart',
+      '/test/lib/foo/b.dart',
+      '/test/lib/bar/b.dart',
+    ]);
+  }
+
   void test_locateRoots_multiple_dirAndNestedDir() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newOptionsFile('/test/outer');
@@ -787,6 +917,12 @@ analyzer:
       var path = convertPath(posixPath);
       expect(root.isAnalyzed(path), isTrue, reason: path);
     }
+  }
+
+  void _assertAnalyzedFiles(ContextRoot root, List<String> posixPathList) {
+    var analyzedFiles = root.analyzedFiles().toList();
+    var pathList = posixPathList.map(convertPath).toList();
+    expect(analyzedFiles, unorderedEquals(pathList));
   }
 
   void _assertNotAnalyzed(ContextRoot root, List<String> posixPathList) {
