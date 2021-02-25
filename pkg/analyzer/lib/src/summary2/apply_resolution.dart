@@ -599,13 +599,15 @@ resolution.byteOffset: ${_resolution.byteOffset}
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _assertNoLocalElements();
 
-    var element = node.declaredElement as FunctionTypeAliasElementImpl;
+    var element = node.declaredElement as TypeAliasElementImpl;
     _enclosingElements.add(element);
 
     _expectMarker(MarkerTag.FunctionTypeAlias_typeParameters);
     node.typeParameters?.accept(this);
 
-    _enclosingElements.add(element.function);
+    var function = element.aliasedElement as GenericFunctionTypeElementImpl;
+    _enclosingElements.add(function);
+
     _expectMarker(MarkerTag.FunctionTypeAlias_returnType);
     node.returnType?.accept(this);
     _expectMarker(MarkerTag.FunctionTypeAlias_parameters);
@@ -616,7 +618,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
     _typeAlias(node);
 
     _expectMarker(MarkerTag.FunctionTypeAlias_returnTypeType);
-    element.function.returnType = _nextType()!;
+    function.returnType = _nextType()!;
     _expectMarker(MarkerTag.FunctionTypeAlias_flags);
     element.isSimplyBounded = _resolution.readByte() != 0;
     element.hasSelfReference = _resolution.readByte() != 0;

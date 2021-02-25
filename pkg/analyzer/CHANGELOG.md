@@ -8,6 +8,7 @@
 * Added `ContextRoot.workspace`, deprecated `AnalysisContext.workspace`.
 * Deprecated `ElementVisitor.visitFunctionTypeAliasElement()`.
   Override `ElementVisitor.visitTypeAliasElement()` instead.
+* Deprecated `FunctionTypeAliasElement`. Use `TypeAliasElement` instead.
 
 ## 1.0.0
 * Stable null safety release.

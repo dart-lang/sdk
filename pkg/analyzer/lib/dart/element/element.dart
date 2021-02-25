@@ -1205,12 +1205,14 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
 /// when non-function type aliases are enabled by default.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TypeAliasElement instead')
 abstract class FunctionTypeAliasElement implements TypeAliasElement {
   /// Return the generic function type element representing the generic function
   /// type on the right side of the equals.
   @Deprecated('Use aliasedElement instead')
   GenericFunctionTypeElement get function;
 
+  @Deprecated('Use TypeAliasElement instead')
   @override
   FunctionType instantiate({
     required List<DartType> typeArguments,
