@@ -68,13 +68,23 @@ class ContextRootTest with ResourceProviderMixin {
     expect(contextRoot.isAnalyzed(bPath), isTrue);
   }
 
-  test_isAnalyzed_implicitlyExcluded_dot_analysisOptions() {
-    String filePath = convertPath('/test/root/lib/.analysis_options');
+  test_isAnalyzed_implicitlyExcluded_dotFile() {
+    String filePath = convertPath('/test/root/lib/.aaa');
     expect(contextRoot.isAnalyzed(filePath), isFalse);
   }
 
-  test_isAnalyzed_implicitlyExcluded_dot_packages() {
+  test_isAnalyzed_implicitlyExcluded_dotFile_dotPackages() {
     String filePath = convertPath('/test/root/lib/.packages');
+    expect(contextRoot.isAnalyzed(filePath), isFalse);
+  }
+
+  test_isAnalyzed_implicitlyExcluded_dotFolder_directParent() {
+    String filePath = convertPath('/test/root/lib/.aaa/a.dart');
+    expect(contextRoot.isAnalyzed(filePath), isFalse);
+  }
+
+  test_isAnalyzed_implicitlyExcluded_dotFolder_indirectParent() {
+    String filePath = convertPath('/test/root/lib/.aaa/bbb/a.dart');
     expect(contextRoot.isAnalyzed(filePath), isFalse);
   }
 
