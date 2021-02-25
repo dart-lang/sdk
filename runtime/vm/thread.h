@@ -267,9 +267,9 @@ class Thread : public ThreadState {
   }
 
   // Makes the current thread enter 'isolate'.
-  static bool EnterIsolate(Isolate* isolate);
+  static bool EnterIsolate(Isolate* isolate, bool is_nested_reenter = false);
   // Makes the current thread exit its isolate.
-  static void ExitIsolate();
+  static void ExitIsolate(bool is_nested_exit = false);
 
   // A VM thread other than the main mutator thread can enter an isolate as a
   // "helper" to gain limited concurrent access to the isolate. One example is

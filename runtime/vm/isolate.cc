@@ -685,13 +685,14 @@ void IsolateGroup::UnscheduleThread(Thread* thread,
   UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
 }
 
-void IsolateGroup::IncreaseMutatorCount(Isolate* mutator) {
+void IsolateGroup::IncreaseMutatorCount(Isolate* mutator,
+                                        bool is_nested_reenter) {
   ASSERT(mutator->group() == this);
 
   // If the mutator was temporarily blocked on a worker thread, we have to
   // unblock the worker thread again.
-  Thread* mutator_thread = mutator->mutator_thread();
-  if (mutator_thread != nullptr && mutator_thread->top_exit_frame_info() != 0) {
+  if (is_nested_reenter) {
+    ASSERT(mutator->mutator_thread() != nullptr);
     thread_pool()->MarkCurrentWorkerAsUnBlocked();
   }
 
@@ -712,15 +713,14 @@ void IsolateGroup::IncreaseMutatorCount(Isolate* mutator) {
   }
 }
 
-void IsolateGroup::DecreaseMutatorCount(Isolate* mutator) {
+void IsolateGroup::DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit) {
   ASSERT(mutator->group() == this);
 
   // If the mutator thread has an active stack and runs on our thread pool we
   // will mark the worker as blocked, thereby possibly spawning a new worker for
   // pending tasks (if there are any).
-  Thread* mutator_thread = mutator->mutator_thread();
-  ASSERT(mutator_thread != nullptr);
-  if (mutator_thread->top_exit_frame_info() != 0) {
+  ASSERT(mutator->mutator_thread() != nullptr);
+  if (is_nested_exit) {
     thread_pool()->MarkCurrentWorkerAsBlocked();
   }
 
@@ -3608,9 +3608,11 @@ Monitor* IsolateGroup::threads_lock() const {
   return thread_registry_->threads_lock();
 }
 
-Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
+Thread* Isolate::ScheduleThread(bool is_mutator,
+                                bool is_nested_reenter,
+                                bool bypass_safepoint) {
   if (is_mutator) {
-    group()->IncreaseMutatorCount(this);
+    group()->IncreaseMutatorCount(this, is_nested_reenter);
   }
 
   // We are about to associate the thread with an isolate group and it would
@@ -3656,6 +3658,7 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
 
 void Isolate::UnscheduleThread(Thread* thread,
                                bool is_mutator,
+                               bool is_nested_exit,
                                bool bypass_safepoint) {
   {
     // Disassociate the 'Thread' structure and unschedule the thread
@@ -3685,7 +3688,7 @@ void Isolate::UnscheduleThread(Thread* thread,
     group()->UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
   }
   if (is_mutator) {
-    group()->DecreaseMutatorCount(this);
+    group()->DecreaseMutatorCount(this, is_nested_exit);
   }
 }
 
