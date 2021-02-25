@@ -39,7 +39,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -336,7 +335,7 @@ abstract class AbstractAnalysisServer {
     return driver
         .getResult(path, sendCachedToStream: sendCachedToStream)
         .catchError((e, st) {
-      AnalysisEngine.instance.instrumentationService.logException(e, st);
+      instrumentationService.logException(e, st);
       return null;
     });
   }
@@ -351,7 +350,7 @@ abstract class AbstractAnalysisServer {
         crashReportingAttachmentsBuilder.forExceptionResult(result);
 
     // TODO(39284): should this exception be silent?
-    AnalysisEngine.instance.instrumentationService.logException(
+    instrumentationService.logException(
       SilentException.wrapInMessage(message, result.exception),
       null,
       attachments,
