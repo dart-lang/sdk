@@ -8,6 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/src/span.dart';
@@ -266,9 +267,7 @@ class PubspecValidator {
           _reportErrorForNode(reporter, pathValue(),
               PubspecWarningCode.PATH_DOES_NOT_EXIST, [pathEntry]);
         } else {
-          if (!packageFolder
-              .getChild(AnalysisEngine.PUBSPEC_YAML_FILE)
-              .exists) {
+          if (!packageFolder.getChild(file_paths.pubspecYaml).exists) {
             _reportErrorForNode(reporter, pathValue(),
                 PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST, [pathEntry]);
           }

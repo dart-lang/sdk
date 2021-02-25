@@ -11,6 +11,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
@@ -59,9 +60,9 @@ class AbstractBuildModeTest extends BaseTest {
   }) async {
     filePath = _posixToPlatformPath(filePath);
 
-    var optionsFileName = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
-    var options =
-        _posixToPlatformPath('data/options_tests_project/' + optionsFileName);
+    var options = _posixToPlatformPath(
+      'data/options_tests_project/' + file_paths.analysisOptionsYaml,
+    );
 
     var args = <String>[];
     args.add('--build-mode');
@@ -804,7 +805,7 @@ class ExitCodesTest extends BaseTest {
 
 @reflectiveTest
 class LinterTest extends BaseTest {
-  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+  String get analysisOptionsYaml => file_paths.analysisOptionsYaml;
 
   Future<void> test_containsLintRuleEntry() async {
     var options = _parseOptions('''
@@ -882,7 +883,7 @@ linter:
 
   Future<void> test_pubspec_lintsInOptions_generatedLints() async {
     await drive('data/linter_project/pubspec.yaml',
-        options: 'data/linter_project/$optionsFileName');
+        options: 'data/linter_project/$analysisOptionsYaml');
     expect(bulletToDash(outSink), contains('lint - Sort pub dependencies'));
   }
 
@@ -891,17 +892,17 @@ linter:
 
   Future<void> _runLinter_defaultLints() async {
     await drive('data/linter_project/test_file.dart',
-        options: 'data/linter_project/$optionsFileName', args: ['--lints']);
+        options: 'data/linter_project/$analysisOptionsYaml', args: ['--lints']);
   }
 
   Future<void> _runLinter_lintsInOptions() async {
     await drive('data/linter_project/test_file.dart',
-        options: 'data/linter_project/$optionsFileName', args: ['--lints']);
+        options: 'data/linter_project/$analysisOptionsYaml', args: ['--lints']);
   }
 
   Future<void> _runLinter_noLintsFlag() async {
     await drive('data/no_lints_project/test_file.dart',
-        options: 'data/no_lints_project/$optionsFileName');
+        options: 'data/no_lints_project/$analysisOptionsYaml');
   }
 }
 
@@ -909,8 +910,7 @@ linter:
 class NonDartFilesTest extends BaseTest {
   Future<void> test_analysisOptionsYaml() async {
     await withTempDirAsync((tempDir) async {
-      var filePath =
-          path.join(tempDir, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+      var filePath = path.join(tempDir, file_paths.analysisOptionsYaml);
       File(filePath).writeAsStringSync('''
 analyzer:
   string-mode: true
@@ -926,15 +926,13 @@ analyzer:
 
   Future<void> test_manifestFileChecks() async {
     await withTempDirAsync((tempDir) async {
-      var filePath =
-          path.join(tempDir, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+      var filePath = path.join(tempDir, file_paths.analysisOptionsYaml);
       File(filePath).writeAsStringSync('''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
 ''');
-      var manifestPath =
-          path.join(tempDir, AnalysisEngine.ANDROID_MANIFEST_FILE);
+      var manifestPath = path.join(tempDir, file_paths.androidManifestXml);
       File(manifestPath).writeAsStringSync('''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
@@ -953,7 +951,7 @@ analyzer:
 
   Future<void> test_pubspecYaml() async {
     await withTempDirAsync((tempDir) async {
-      var filePath = path.join(tempDir, AnalysisEngine.PUBSPEC_YAML_FILE);
+      var filePath = path.join(tempDir, file_paths.pubspecYaml);
       File(filePath).writeAsStringSync('''
 name: foo
 flutter:
@@ -972,7 +970,7 @@ flutter:
 
 @reflectiveTest
 class OptionsTest extends BaseTest {
-  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+  String get analysisOptionsYaml => file_paths.analysisOptionsYaml;
 
   List<ErrorProcessor> get processors => analysisOptions.errorProcessors;
 
@@ -981,7 +979,7 @@ class OptionsTest extends BaseTest {
 
   Future<void> test_analysisOptions_excludes() async {
     await drive('data/exclude_test_project',
-        options: 'data/exclude_test_project/$optionsFileName');
+        options: 'data/exclude_test_project/$analysisOptionsYaml');
     _expectUndefinedClassErrorsWithoutExclusions();
   }
 
@@ -990,7 +988,7 @@ class OptionsTest extends BaseTest {
     // The exclude is relative to the project, not/ the analyzed path, and it
     // has to then understand that.
     await drive('data/exclude_test_project',
-        options: 'data/exclude_test_project/$optionsFileName');
+        options: 'data/exclude_test_project/$analysisOptionsYaml');
     _expectUndefinedClassErrorsWithoutExclusions();
   }
 
@@ -1066,7 +1064,7 @@ class OptionsTest extends BaseTest {
   Future<void> test_withFlags_overrideFatalWarning() async {
     await drive('data/options_tests_project/test_file.dart',
         args: ['--fatal-warnings'],
-        options: 'data/options_tests_project/$optionsFileName');
+        options: 'data/options_tests_project/$analysisOptionsYaml');
 
     // missing_return: error
     var undefined_function = AnalysisError(
@@ -1082,7 +1080,7 @@ class OptionsTest extends BaseTest {
 
   Future<void> _driveBasic() async {
     await drive('data/options_tests_project/test_file.dart',
-        options: 'data/options_tests_project/$optionsFileName');
+        options: 'data/options_tests_project/$analysisOptionsYaml');
   }
 
   void _expectUndefinedClassErrorsWithoutExclusions() {

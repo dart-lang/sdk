@@ -7,8 +7,8 @@ import 'dart:core';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -105,7 +105,7 @@ class AnalysisOptionsProviderTest {
 
   late final AnalysisOptionsProvider provider;
 
-  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+  String get analysisOptionsYaml => file_paths.analysisOptionsYaml;
 
   void setUp() {
     var rawProvider = MemoryResourceProvider();
@@ -118,12 +118,12 @@ class AnalysisOptionsProviderTest {
 
   void test_getOptions_crawlUp_hasInFolder() {
     pathTranslator.newFolder('/foo/bar');
-    pathTranslator.newFile('/foo/$optionsFileName', r'''
+    pathTranslator.newFile('/foo/$analysisOptionsYaml', r'''
 analyzer:
   ignore:
     - foo
 ''');
-    pathTranslator.newFile('/foo/bar/$optionsFileName', r'''
+    pathTranslator.newFile('/foo/bar/$analysisOptionsYaml', r'''
 analyzer:
   ignore:
     - bar
@@ -139,12 +139,12 @@ analyzer:
 
   void test_getOptions_crawlUp_hasInParent() {
     pathTranslator.newFolder('/foo/bar/baz');
-    pathTranslator.newFile('/foo/$optionsFileName', r'''
+    pathTranslator.newFile('/foo/$analysisOptionsYaml', r'''
 analyzer:
   ignore:
     - foo
 ''');
-    pathTranslator.newFile('/foo/bar/$optionsFileName', r'''
+    pathTranslator.newFile('/foo/bar/$analysisOptionsYaml', r'''
 analyzer:
   ignore:
     - bar
@@ -165,7 +165,7 @@ analyzer:
   }
 
   void test_getOptions_empty() {
-    pathTranslator.newFile('/$optionsFileName', r'''#empty''');
+    pathTranslator.newFile('/$analysisOptionsYaml', r'''#empty''');
     YamlMap options = _getOptions('/');
     expect(options, isNotNull);
     expect(options, isEmpty);
@@ -178,7 +178,7 @@ analyzer:
     - ignoreme.dart
     - 'sdk_ext/**'
 ''');
-    pathTranslator.newFile('/$optionsFileName', r'''
+    pathTranslator.newFile('/$analysisOptionsYaml', r'''
 include: foo.include
 ''');
     YamlMap options = _getOptions('/');
@@ -196,7 +196,7 @@ include: foo.include
   }
 
   void test_getOptions_include_missing() {
-    pathTranslator.newFile('/$optionsFileName', r'''
+    pathTranslator.newFile('/$analysisOptionsYaml', r'''
 include: /foo.include
 ''');
     YamlMap options = _getOptions('/');
@@ -204,13 +204,13 @@ include: /foo.include
   }
 
   void test_getOptions_invalid() {
-    pathTranslator.newFile('/$optionsFileName', r''':''');
+    pathTranslator.newFile('/$analysisOptionsYaml', r''':''');
     YamlMap options = _getOptions('/');
     expect(options, hasLength(1));
   }
 
   void test_getOptions_simple() {
-    pathTranslator.newFile('/$optionsFileName', r'''
+    pathTranslator.newFile('/$analysisOptionsYaml', r'''
 analyzer:
   ignore:
     - ignoreme.dart

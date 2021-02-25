@@ -153,16 +153,15 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   /// given [offset].
   YamlCompletionResults computeYamlSuggestions(String file, int offset) {
     var provider = server.resourceProvider;
-    if (file_paths.isAnalysisOptionsYaml(provider.pathContext, file)) {
+    var pathContext = provider.pathContext;
+    if (file_paths.isAnalysisOptionsYaml(pathContext, file)) {
       var generator = AnalysisOptionsGenerator(provider);
       return generator.getSuggestions(file, offset);
-    }
-    var fileName = provider.pathContext.basename(file);
-    if (fileName == AnalysisEngine.PUBSPEC_YAML_FILE) {
-      var generator = PubspecGenerator(provider);
-      return generator.getSuggestions(file, offset);
-    } else if (fileName == AnalysisEngine.FIX_DATA_FILE) {
+    } else if (file_paths.isFixDataYaml(pathContext, file)) {
       var generator = FixDataGenerator(provider);
+      return generator.getSuggestions(file, offset);
+    } else if (file_paths.isPubspecYaml(pathContext, file)) {
+      var generator = PubspecGenerator(provider);
       return generator.getSuggestions(file, offset);
     }
     return const YamlCompletionResults.empty();

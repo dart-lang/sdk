@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,7 +29,7 @@ class B extends A {
   }
 
   Future<void> test_bulk_fix_override() async {
-    writeFile(sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE), '''
+    writeFile(sourcePath(file_paths.analysisOptionsYaml), '''
 linter:
   rules:
     - annotate_overrides

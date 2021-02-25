@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -32,7 +32,7 @@ class abc { // lint: not CamelCase (should get ignored though)
   }
 
   Future<void> test_simple_lint_optionsFile() async {
-    writeFile(sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE), '''
+    writeFile(sourcePath(file_paths.analysisOptionsYaml), '''
 linter:
   rules:
     - camel_case_types

@@ -5,10 +5,10 @@
 import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
@@ -22,7 +22,7 @@ class AnalysisOptionsProvider {
   AnalysisOptionsProvider([this.sourceFactory]);
 
   /// Provide the options found in
-  /// [root]/[AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE].
+  /// [root]/[file_paths.analysisOptionsYaml].
   /// Recursively merge options referenced by an include directive
   /// and remove the include directive from the resulting options map.
   /// Return an empty options map if the file does not exist.
@@ -41,8 +41,7 @@ class AnalysisOptionsProvider {
   /// then enclosing directories will be searched.
   File? getOptionsFile(Folder root) {
     for (var current in root.withAncestors) {
-      var name = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
-      var file = current.getChildAssumingFile(name);
+      var file = current.getChildAssumingFile(file_paths.analysisOptionsYaml);
       if (file.exists) {
         return file;
       }
