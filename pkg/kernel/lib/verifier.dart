@@ -645,7 +645,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "${node.runtimeType} with incompatible arguments for '${target}'.");
     }
     int expectedTypeParameters = target is Constructor
-        ? target.enclosingClass!.typeParameters.length
+        ? target.enclosingClass.typeParameters.length
         : target.function!.typeParameters.length;
     if (node.arguments.types.length != expectedTypeParameters) {
       problem(
@@ -658,7 +658,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   visitConstructorInvocation(ConstructorInvocation node) {
     checkTargetedInvocation(node.target, node);
-    if (node.target.enclosingClass!.isAbstract) {
+    if (node.target.enclosingClass.isAbstract) {
       problem(node, "ConstructorInvocation of abstract class.");
     }
     if (node.isConst && !node.target.isConst) {
