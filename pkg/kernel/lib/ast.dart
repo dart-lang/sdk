@@ -2108,6 +2108,9 @@ class Constructor extends Member {
     this.transformerFlags = transformerFlags;
   }
 
+  @override
+  Class get enclosingClass => parent as Class;
+
   static const int FlagConst = 1 << 0; // Must match serialized bit positions.
   static const int FlagExternal = 1 << 1;
   static const int FlagSynthetic = 1 << 2;
@@ -2285,6 +2288,9 @@ class RedirectingFactoryConstructor extends Member {
     this.isExternal = isExternal;
     this.transformerFlags = transformerFlags;
   }
+
+  @override
+  Class get enclosingClass => parent as Class;
 
   static const int FlagConst = 1 << 0; // Must match serialized bit positions.
   static const int FlagExternal = 1 << 1;
@@ -3365,7 +3371,7 @@ class FunctionNode extends TreeNode {
     // transformations like erasure don't work.
     List<TypeParameter> typeParametersCopy = new List<TypeParameter>.from(
         parent is Constructor
-            ? parent.enclosingClass!.typeParameters
+            ? parent.enclosingClass.typeParameters
             : typeParameters);
     return new FunctionType(
         positionalParameters.map(_getTypeOfVariable).toList(growable: false),
@@ -3405,7 +3411,7 @@ class FunctionNode extends TreeNode {
     // We need create a copy of the list of type parameters, otherwise
     // transformations like erasure don't work.
     List<TypeParameter> classTypeParametersCopy =
-        List.from(parentConstructor.enclosingClass!.typeParameters);
+        List.from(parentConstructor.enclosingClass.typeParameters);
     List<TypeParameter> typedefTypeParametersCopy =
         List.from(typedef.typeParameters);
     List<DartType> asTypeArguments =
@@ -6149,9 +6155,9 @@ class ConstructorInvocation extends InvocationExpression {
   DartType getStaticTypeInternal(StaticTypeContext context) {
     return arguments.types.isEmpty
         ? context.typeEnvironment.coreTypes
-            .rawType(target.enclosingClass!, context.nonNullable)
+            .rawType(target.enclosingClass, context.nonNullable)
         : new InterfaceType(
-            target.enclosingClass!, context.nonNullable, arguments.types);
+            target.enclosingClass, context.nonNullable, arguments.types);
   }
 
   @override
@@ -6187,7 +6193,7 @@ class ConstructorInvocation extends InvocationExpression {
 
   // TODO(dmitryas): Change the getter into a method that accepts a CoreTypes.
   InterfaceType get constructedType {
-    Class enclosingClass = target.enclosingClass!;
+    Class enclosingClass = target.enclosingClass;
     // TODO(dmitryas): Get raw type from a CoreTypes object if arguments is
     // empty.
     return arguments.types.isEmpty
@@ -6209,7 +6215,7 @@ class ConstructorInvocation extends InvocationExpression {
     } else {
       printer.write('new ');
     }
-    printer.writeClassName(target.enclosingClass!.reference);
+    printer.writeClassName(target.enclosingClass.reference);
     printer.writeTypeArguments(arguments.types);
     if (target.name!.text.isNotEmpty) {
       printer.write('.');
