@@ -338,8 +338,15 @@ class DeclarationsContext {
   void _findPackages() {
     var pathContext = _tracker._resourceProvider.pathContext;
     var pubPathPrefixToPathList = <String, List<String>>{};
+    var visitedFolderPaths = <String>{};
 
+    /// TODO(scheglov) Use analyzedFiles() ?
     void visitFolder(Folder folder) {
+      var canonicalFolderPath = folder.resolveSymbolicLinksSync().path;
+      if (!visitedFolderPaths.add(canonicalFolderPath)) {
+        return;
+      }
+
       var buildFile = folder.getChildAssumingFile('BUILD');
       var pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
       if (buildFile.exists) {

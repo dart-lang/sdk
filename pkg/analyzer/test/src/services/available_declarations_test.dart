@@ -211,10 +211,6 @@ class A {}
     expect(library.id, id);
   }
 
-  @SkippedTest(
-    issue: 'https://github.com/dart-lang/sdk/issues/44501',
-    reason: 'Actually, with fixed ResourceProvider, this test cycles',
-  )
   test_getLibrary_exportViaRecursiveLink() async {
     resourceProvider.newLink(
       convertPath('/home/test/lib/foo'),

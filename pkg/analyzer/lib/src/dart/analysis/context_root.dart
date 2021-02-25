@@ -56,13 +56,14 @@ class ContextRootImpl implements ContextRoot {
 
   @override
   Iterable<String> analyzedFiles() sync* {
+    var visitedCanonicalPaths = <String>{};
     for (String path in includedPaths) {
       if (!_isExcluded(path)) {
         Resource resource = resourceProvider.getResource(path);
         if (resource is File) {
           yield path;
         } else if (resource is Folder) {
-          yield* _includedFilesInFolder(resource);
+          yield* _includedFilesInFolder(visitedCanonicalPaths, resource);
         } else {
           Type type = resource.runtimeType;
           throw StateError('Unknown resource at path "$path" ($type)');
@@ -78,14 +79,21 @@ class ContextRootImpl implements ContextRoot {
 
   /// Return the absolute paths of all of the files that are included in the
   /// given [folder].
-  Iterable<String> _includedFilesInFolder(Folder folder) sync* {
+  Iterable<String> _includedFilesInFolder(
+    Set<String> visited,
+    Folder folder,
+  ) sync* {
     for (Resource resource in folder.getChildren()) {
       String path = resource.path;
       if (!_isExcluded(path)) {
         if (resource is File) {
           yield path;
         } else if (resource is Folder) {
-          yield* _includedFilesInFolder(resource);
+          var canonicalPath = resource.resolveSymbolicLinksSync().path;
+          if (visited.add(canonicalPath)) {
+            yield* _includedFilesInFolder(visited, resource);
+            visited.remove(canonicalPath);
+          }
         } else {
           Type type = resource.runtimeType;
           throw StateError('Unknown resource at path "$path" ($type)');

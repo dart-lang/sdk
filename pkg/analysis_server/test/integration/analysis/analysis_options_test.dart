@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,7 +24,7 @@ class OptionsIntegrationTest extends AbstractAnalysisServerIntegrationTest {
   }
 
   Future<void> test_option_warning_optionFile() async {
-    var options = sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+    var options = sourcePath(file_paths.analysisOptionsYaml);
     writeFile(options, '''
 linter:
   rules:

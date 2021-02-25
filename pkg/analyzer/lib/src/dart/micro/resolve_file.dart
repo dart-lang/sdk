@@ -22,8 +22,7 @@ import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
 import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisEngine, AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -33,6 +32,7 @@ import 'package:analyzer/src/summary2/link.dart' as link2;
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:yaml/yaml.dart';
@@ -487,8 +487,7 @@ class FileResolver {
 
   File? _findOptionsFile(Folder folder) {
     for (var current in folder.withAncestors) {
-      var name = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
-      var file = _getFile(current, name);
+      var file = _getFile(current, file_paths.analysisOptionsYaml);
       if (file != null) {
         return file;
       }

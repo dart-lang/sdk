@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -39,6 +40,136 @@ class ContextLocatorImplTest with ResourceProviderMixin {
 
   void setUp() {
     contextLocator = ContextLocatorImpl(resourceProvider: resourceProvider);
+  }
+
+  void test_locateRoots_link_file_toOutOfRoot() {
+    Folder rootFolder = newFolder('/home/test');
+    newFile('/home/test/lib/a.dart');
+    newFile('/home/b.dart');
+    resourceProvider.newLink(
+      convertPath('/home/test/lib/c.dart'),
+      convertPath('/home/b.dart'),
+    );
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, isNull);
+    expect(root.packagesFile, isNull);
+
+    _assertAnalyzedFiles(root, [
+      '/home/test/lib/a.dart',
+      '/home/test/lib/c.dart',
+    ]);
+  }
+
+  void test_locateRoots_link_file_toSiblingInRoot() {
+    Folder rootFolder = newFolder('/test');
+    newFile('/test/lib/a.dart');
+    resourceProvider.newLink(
+      convertPath('/test/lib/b.dart'),
+      convertPath('/test/lib/a.dart'),
+    );
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, isNull);
+    expect(root.packagesFile, isNull);
+
+    _assertAnalyzedFiles(root, [
+      '/test/lib/a.dart',
+      '/test/lib/b.dart',
+    ]);
+  }
+
+  void test_locateRoots_link_folder_toParentInRoot() {
+    Folder rootFolder = newFolder('/test');
+    newFile('/test/lib/a.dart');
+    resourceProvider.newLink(
+      convertPath('/test/lib/foo'),
+      convertPath('/test/lib'),
+    );
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, isNull);
+    expect(root.packagesFile, isNull);
+
+    _assertAnalyzedFiles(root, ['/test/lib/a.dart']);
+
+    _assertAnalyzed(root, [
+      '/test/lib/a.dart',
+      '/test/lib/foo/b.dart',
+    ]);
+  }
+
+  void test_locateRoots_link_folder_toParentOfRoot() {
+    Folder rootFolder = newFolder('/home/test');
+    newFile('/home/test/lib/a.dart');
+    newFile('/home/b.dart');
+    newFile('/home/other/c.dart');
+    resourceProvider.newLink(
+      convertPath('/home/test/lib/foo'),
+      convertPath('/home'),
+    );
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, isNull);
+    expect(root.packagesFile, isNull);
+
+    // The set of analyzed files includes everything in `/home`,
+    // but does not repeat `/home/test/lib/a.dart` and does not cycle.
+    _assertAnalyzedFiles(root, [
+      '/home/test/lib/a.dart',
+      '/home/test/lib/foo/b.dart',
+      '/home/test/lib/foo/other/c.dart',
+    ]);
+  }
+
+  void test_locateRoots_link_folder_toSiblingInRoot() {
+    Folder rootFolder = newFolder('/test');
+    newFile('/test/lib/a.dart');
+    newFile('/test/lib/foo/b.dart');
+    resourceProvider.newLink(
+      convertPath('/test/lib/bar'),
+      convertPath('/test/lib/foo'),
+    );
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, isNull);
+    expect(root.packagesFile, isNull);
+
+    _assertAnalyzedFiles(root, [
+      '/test/lib/a.dart',
+      '/test/lib/foo/b.dart',
+      '/test/lib/bar/b.dart',
+    ]);
   }
 
   void test_locateRoots_multiple_dirAndNestedDir() {
@@ -573,9 +704,7 @@ analyzer:
 
   void test_locateRoots_options_withExclude_wholeFolder_includedOptions() {
     Folder rootFolder = newFolder('/test/root');
-    File optionsFile = newFile(
-        '/test/root/${ContextLocatorImpl.ANALYSIS_OPTIONS_NAME}',
-        content: '''
+    File optionsFile = newOptionsFile('/test/root', content: '''
 include: has_excludes.yaml
 ''');
     newFile('/test/root/has_excludes.yaml', content: '''
@@ -609,9 +738,7 @@ analyzer:
 
   void test_locateRoots_options_withExclude_wholeFolder_includedOptionsMerge() {
     Folder rootFolder = newFolder('/test/root');
-    File optionsFile = newFile(
-        '/test/root/${ContextLocatorImpl.ANALYSIS_OPTIONS_NAME}',
-        content: '''
+    File optionsFile = newOptionsFile('/test/root', content: '''
 include: has_excludes.yaml
 analyzer:
   exclude:
@@ -792,6 +919,12 @@ analyzer:
     }
   }
 
+  void _assertAnalyzedFiles(ContextRoot root, List<String> posixPathList) {
+    var analyzedFiles = root.analyzedFiles().toList();
+    var pathList = posixPathList.map(convertPath).toList();
+    expect(analyzedFiles, unorderedEquals(pathList));
+  }
+
   void _assertNotAnalyzed(ContextRoot root, List<String> posixPathList) {
     for (var posixPath in posixPathList) {
       var path = convertPath(posixPath);
@@ -802,8 +935,8 @@ analyzer:
   File _newPackageConfigFile(String directoryPath) {
     String path = join(
       directoryPath,
-      ContextLocatorImpl.DOT_DART_TOOL_NAME,
-      ContextLocatorImpl.PACKAGE_CONFIG_JSON_NAME,
+      file_paths.dotDartTool,
+      file_paths.packageConfigJson,
     );
     return newFile(path);
   }

@@ -606,7 +606,7 @@ class ContextManagerImpl implements ContextManager {
   /// On windows, the directory watcher may overflow, and we must recover.
   void _handleWatchInterruption(dynamic error, StackTrace stackTrace) {
     // We've handled the error, so we only have to log it.
-    AnalysisEngine.instance.instrumentationService
+    _instrumentationService
         .logError('Watcher error; refreshing contexts.\n$error\n$stackTrace');
     // TODO(mfairhurst): Optimize this, or perhaps be less complete.
     refresh();

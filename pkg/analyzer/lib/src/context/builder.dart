@@ -28,6 +28,7 @@ import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
@@ -356,8 +357,7 @@ class ContextBuilder {
 
     var folder = resourceProvider.getFolder(path);
     for (var current in folder.withAncestors) {
-      var name = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
-      var file = current.getChildAssumingFile(name);
+      var file = current.getChildAssumingFile(file_paths.analysisOptionsYaml);
       if (file.exists) {
         return file;
       }

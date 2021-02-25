@@ -249,7 +249,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       }
       channel.sendResponse(Response.unknownRequest(request));
     }, (exception, stackTrace) {
-      AnalysisEngine.instance.instrumentationService.logException(
+      instrumentationService.logException(
         FatalException(
           'Failed to handle request: ${request.method}',
           exception,

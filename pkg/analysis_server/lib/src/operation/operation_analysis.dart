@@ -12,7 +12,6 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 Future<void> scheduleImplementedNotification(
@@ -32,11 +31,10 @@ Future<void> scheduleImplementedNotification(
             file, computer.classes, computer.members);
         server.sendNotification(params.toNotification());
       } catch (exception, stackTrace) {
-        AnalysisEngine.instance.instrumentationService.logException(
-            CaughtException.withMessage(
-                'Failed to send analysis.implemented notification.',
-                exception,
-                stackTrace));
+        server.instrumentationService.logException(CaughtException.withMessage(
+            'Failed to send analysis.implemented notification.',
+            exception,
+            stackTrace));
       }
     }
   }
@@ -150,8 +148,7 @@ void _sendNotification(AnalysisServer server, Function() f) {
   try {
     f();
   } catch (exception, stackTrace) {
-    AnalysisEngine.instance.instrumentationService.logException(
-        CaughtException.withMessage(
-            'Failed to send notification', exception, stackTrace));
+    server.instrumentationService.logException(CaughtException.withMessage(
+        'Failed to send notification', exception, stackTrace));
   }
 }

@@ -267,9 +267,9 @@ class Driver with HasContextMixin implements CommandLineStarter {
       }
 
       // Analyze the libraries.
+      var pathContext = resourceProvider.pathContext;
       for (var path in filesToAnalyze) {
-        var shortName = resourceProvider.pathContext.basename(path);
-        if (shortName == AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE) {
+        if (file_paths.isAnalysisOptionsYaml(pathContext, path)) {
           var file = resourceProvider.getFile(path);
           var content = file.readAsStringSync();
           var lineInfo = LineInfo.fromContent(content);
@@ -286,7 +286,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
               allResult = allResult.max(severity);
             }
           }
-        } else if (shortName == AnalysisEngine.PUBSPEC_YAML_FILE) {
+        } else if (file_paths.isPubspecYaml(pathContext, path)) {
           var errors = <AnalysisError>[];
           try {
             var file = resourceProvider.getFile(path);
@@ -309,7 +309,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
                 }
               }
               if (visitors.isNotEmpty) {
-                var sourceUri = resourceProvider.pathContext.toUri(path);
+                var sourceUri = pathContext.toUri(path);
                 var pubspecAst = Pubspec.parse(content,
                     sourceUrl: sourceUri, resourceProvider: resourceProvider);
                 var listener = RecordingErrorListener();
@@ -339,7 +339,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
           } catch (exception) {
             // If the file cannot be analyzed, ignore it.
           }
-        } else if (shortName == AnalysisEngine.ANDROID_MANIFEST_FILE) {
+        } else if (file_paths.isAndroidManifestXml(pathContext, path)) {
           try {
             var file = resourceProvider.getFile(path);
             var content = file.readAsStringSync();

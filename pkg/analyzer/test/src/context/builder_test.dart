@@ -103,8 +103,7 @@ class ContextBuilderTest with ResourceProviderMixin {
     ];
 
     String path = convertPath('/some/directory/path');
-    String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    newFile(filePath, content: '''
+    newOptionsFile(path, content: '''
 linter:
   rules:
     - mock_lint_rule
@@ -128,8 +127,7 @@ linter:
     ];
 
     String path = convertPath('/some/directory/path');
-    String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    newFile(filePath, content: '''
+    newOptionsFile(path, content: '''
 linter:
   rules:
     - mock_lint_rule
@@ -153,8 +151,7 @@ linter:
     ];
 
     String path = convertPath('/some/directory/path');
-    String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    newFile(filePath, content: '''
+    newOptionsFile(path, content: '''
 linter:
   rules:
     - mock_lint_rule
@@ -176,8 +173,7 @@ linter:
     expected.lintRules = <LintRule>[];
 
     String path = convertPath('/some/directory/path');
-    String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    newFile(filePath, content: '''
+    newOptionsFile(path, content: '''
 ''');
 
     var options = _getAnalysisOptions(builder, path);
@@ -536,8 +532,7 @@ linter:
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
     String path = convertPath('/some/directory/path');
-    String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    newFile(filePath, content: '''
+    newOptionsFile(path, content: '''
 linter:
   rules:
     - non_existent_lint_rule
@@ -554,8 +549,7 @@ linter:
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
     expected.implicitDynamic = false;
     String path = convertPath('/some/directory/path');
-    String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    newFile(filePath, content: '''
+    newOptionsFile(path, content: '''
 analyzer:
   strong-mode:
     implicit-dynamic: false
@@ -609,8 +603,7 @@ linter:
   rules:
     - mock_lint_rule2
 ''');
-    String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    newFile(filePath, content: '''
+    newOptionsFile(path, content: '''
 include: bar.yaml
 linter:
   rules:
@@ -623,8 +616,7 @@ linter:
 
   void test_getAnalysisOptions_invalid() {
     String path = convertPath('/some/directory/path');
-    String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    newFile(filePath, content: ';');
+    newOptionsFile(path, content: ';');
 
     AnalysisOptions options = _getAnalysisOptions(builder, path);
     expect(options, isNotNull);
@@ -632,8 +624,7 @@ linter:
 
   void test_getAnalysisOptions_noDefault_noOverrides() {
     String path = convertPath('/some/directory/path');
-    String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    newFile(filePath, content: '''
+    newOptionsFile(path, content: '''
 linter:
   rules:
     - non_existent_lint_rule
@@ -647,8 +638,7 @@ linter:
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
     expected.implicitDynamic = false;
     String path = convertPath('/some/directory/path');
-    String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    newFile(filePath, content: '''
+    newOptionsFile(path, content: '''
 analyzer:
   strong-mode:
     implicit-dynamic: false
@@ -660,22 +650,21 @@ analyzer:
 
   void test_getAnalysisOptions_optionsPath() {
     String path = convertPath('/some/directory/path');
-    String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    newFile(filePath, content: '''
+    String filePath = newOptionsFile(path, content: '''
 linter:
   rules:
     - empty_constructor_bodies
-''');
+''').path;
 
     ContextRoot root =
         ContextRoot(path, [], pathContext: resourceProvider.pathContext);
     _getAnalysisOptions(builder, path, contextRoot: root);
-    expect(root.optionsFilePath, equals(filePath));
+    expect(root.optionsFilePath, filePath);
   }
 
   void test_getAnalysisOptions_sdkVersionConstraint() {
     var projectPath = convertPath('/test');
-    newFile(join(projectPath, AnalysisEngine.PUBSPEC_YAML_FILE), content: '''
+    newPubspecYamlFile(projectPath, '''
 environment:
   sdk: ^2.1.0
 ''');
@@ -704,9 +693,7 @@ environment:
   void test_getOptionsFile_inParentOfRoot_new() {
     String parentPath = convertPath('/some/directory');
     String path = join(parentPath, 'path');
-    String filePath =
-        join(parentPath, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    newFile(filePath);
+    String filePath = newOptionsFile(path).path;
 
     var result = builder.getOptionsFile(path)!;
     expect(result, isNotNull);
@@ -715,8 +702,7 @@ environment:
 
   void test_getOptionsFile_inRoot_new() {
     String path = convertPath('/some/directory/path');
-    String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    newFile(filePath);
+    String filePath = newOptionsFile(path).path;
 
     var result = builder.getOptionsFile(path)!;
     expect(result, isNotNull);

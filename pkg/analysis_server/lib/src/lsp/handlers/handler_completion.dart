@@ -23,8 +23,8 @@ import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.d
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
@@ -97,7 +97,6 @@ class CompletionHandler
     return offset.mapResult((offset) async {
       Future<ErrorOr<List<CompletionItem>>> serverResultsFuture;
       final pathContext = server.resourceProvider.pathContext;
-      final filename = pathContext.basename(path.result);
       final fileExtension = pathContext.extension(path.result);
 
       if (fileExtension == '.dart' && !unit.isError) {
@@ -111,16 +110,12 @@ class CompletionHandler
         );
       } else if (fileExtension == '.yaml') {
         YamlCompletionGenerator generator;
-        switch (filename) {
-          case AnalysisEngine.PUBSPEC_YAML_FILE:
-            generator = PubspecGenerator(server.resourceProvider);
-            break;
-          case AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE:
-            generator = AnalysisOptionsGenerator(server.resourceProvider);
-            break;
-          case AnalysisEngine.FIX_DATA_FILE:
-            generator = FixDataGenerator(server.resourceProvider);
-            break;
+        if (file_paths.isAnalysisOptionsYaml(pathContext, path.result)) {
+          generator = AnalysisOptionsGenerator(server.resourceProvider);
+        } else if (file_paths.isFixDataYaml(pathContext, path.result)) {
+          generator = FixDataGenerator(server.resourceProvider);
+        } else if (file_paths.isPubspecYaml(pathContext, path.result)) {
+          generator = PubspecGenerator(server.resourceProvider);
         }
         if (generator != null) {
           serverResultsFuture = _getServerYamlItems(
