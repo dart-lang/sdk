@@ -36,6 +36,9 @@ void testIntegerShifts() {
     //         .   .   .   .   .
     testShift(0x7ffffffffffff000, i);
     testShift(0xfffffffffffff000, i);
+    // Construct the values below to get 'all ones' values on the VM without a
+    // compile-time error for roundned literals on the web. The arithmetic
+    // produces rounded values on the web, so they are effectively testing zero.
     testShift(0x7ffffffffffff000 + 0xfff, i);
     testShift(0xfffffffffffff000 + 0xfff, i);
   }
