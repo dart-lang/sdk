@@ -7,18 +7,14 @@ import 'dart:async';
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../../abstract_context.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -27,29 +23,35 @@ void main() {
 }
 
 @reflectiveTest
-class PluginWatcherTest with ResourceProviderMixin {
+class PluginWatcherTest extends AbstractContextTest {
   TestPluginManager manager;
   PluginWatcher watcher;
 
+  @override
   void setUp() {
+    super.setUp();
     manager = TestPluginManager();
     watcher = PluginWatcher(resourceProvider, manager);
   }
 
   Future<void> test_addedDriver() async {
-    var pkg1Path = newFolder('/pkg1').path;
-    newFile('/pkg1/lib/test1.dart');
-    newFile('/pkg2/lib/pkg2.dart');
-    newPubspecYamlFile('/pkg2', 'name: pkg2');
+    newPubspecYamlFile('/foo', 'name: foo');
     newFile(
-        '/pkg2/${PluginLocator.toolsFolderName}/${PluginLocator.defaultPluginFolderName}/bin/plugin.dart');
+      join('/foo', PluginLocator.toolsFolderName,
+          PluginLocator.defaultPluginFolderName, 'bin', 'plugin.dart'),
+    );
 
-    var contextRoot =
-        ContextRoot(pkg1Path, [], pathContext: resourceProvider.pathContext);
-    var driver = TestDriver(resourceProvider, contextRoot);
-    driver.analysisOptions.enabledPluginNames = ['pkg2'];
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: convertPath('/foo')),
+    );
+
+    var driver = driverFor(testPackageRootPath);
+    _analysisOptionsImpl(driver).enabledPluginNames = ['foo'];
+
     expect(manager.addedContextRoots, isEmpty);
-    watcher.addedDriver(driver, contextRoot);
+    watcher.addedDriver(driver);
+
     //
     // Test to see whether the listener was configured correctly.
     //
@@ -61,31 +63,19 @@ class PluginWatcherTest with ResourceProviderMixin {
     // Use a file that imports a package with a plugin.
     //
 //    await driver.computeResult('package:pkg2/pk2.dart');
-    //
-    // Wait until the timer associated with the driver's FileSystemState is
-    // guaranteed to have expired and the list of changed files will have been
-    // delivered.
-    //
-    await Future.delayed(Duration(seconds: 1));
+
+    await _waitForEvents();
     expect(manager.addedContextRoots, hasLength(1));
   }
 
   Future<void> test_addedDriver_missingPackage() async {
-    var pkg1Path = newFolder('/pkg1').path;
-    newFile('/pkg1/lib/test1.dart');
+    var driver = driverFor(testPackageRootPath);
+    _analysisOptionsImpl(driver).enabledPluginNames = ['noSuchPackage'];
 
-    var contextRoot =
-        ContextRoot(pkg1Path, [], pathContext: resourceProvider.pathContext);
-    var driver = TestDriver(resourceProvider, contextRoot);
-    driver.analysisOptions.enabledPluginNames = ['pkg3'];
-    watcher.addedDriver(driver, contextRoot);
+    watcher.addedDriver(driver);
     expect(manager.addedContextRoots, isEmpty);
-    //
-    // Wait until the timer associated with the driver's FileSystemState is
-    // guaranteed to have expired and the list of changed files will have been
-    // delivered.
-    //
-    await Future.delayed(Duration(seconds: 1));
+
+    await _waitForEvents();
     expect(manager.addedContextRoots, isEmpty);
   }
 
@@ -95,53 +85,23 @@ class PluginWatcherTest with ResourceProviderMixin {
   }
 
   void test_removedDriver() {
-    var pkg1Path = newFolder('/pkg1').path;
-    var contextRoot =
-        ContextRoot(pkg1Path, [], pathContext: resourceProvider.pathContext);
-    var driver = TestDriver(resourceProvider, contextRoot);
-    watcher.addedDriver(driver, contextRoot);
+    var driver = driverFor(testPackageRootPath);
+    var contextRoot = driver.analysisContext.contextRoot;
+    watcher.addedDriver(driver);
     watcher.removedDriver(driver);
     expect(manager.removedContextRoots, equals([contextRoot]));
   }
-}
 
-class TestDriver implements AnalysisDriver {
-  @override
-  final MemoryResourceProvider resourceProvider;
-
-  @override
-  SourceFactory sourceFactory;
-
-  @override
-  AnalysisSessionImpl currentSession;
-
-  @override
-  AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
-
-  final _resultController = StreamController<ResolvedUnitResult>();
-
-  TestDriver(this.resourceProvider, ContextRoot contextRoot) {
-    var pathContext = resourceProvider.pathContext;
-    var sdk = MockSdk(resourceProvider: resourceProvider);
-    var packageName = pathContext.basename(contextRoot.root);
-    var libPath = pathContext.join(contextRoot.root, 'lib');
-    sourceFactory = SourceFactory([
-      DartUriResolver(sdk),
-      PackageMapUriResolver(resourceProvider, {
-        packageName: [resourceProvider.getFolder(libPath)],
-        'pkg2': [
-          resourceProvider.getFolder(resourceProvider.convertPath('/pkg2/lib'))
-        ]
-      })
-    ]);
-    currentSession = AnalysisSessionImpl(this);
+  AnalysisOptionsImpl _analysisOptionsImpl(AnalysisDriver driver) {
+    return driver.analysisOptions as AnalysisOptionsImpl;
   }
 
-  @override
-  Stream<ResolvedUnitResult> get results => _resultController.stream;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  /// Wait until the timer associated with the driver's FileSystemState is
+  /// guaranteed to have expired and the list of changed files will have been
+  /// delivered.
+  Future<void> _waitForEvents() async {
+    await Future.delayed(Duration(seconds: 1));
+  }
 }
 
 class TestPluginManager implements PluginManager {

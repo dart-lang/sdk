@@ -21,7 +21,7 @@ import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
-import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -480,8 +480,10 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('</div>');
 
     buf.writeln(writeOption('Context location', escape(contextPath)));
-    buf.writeln(writeOption('Analysis options path',
-        escape(driver.contextRoot.optionsFilePath ?? 'none')));
+    buf.writeln(writeOption(
+        'Analysis options path',
+        escape(
+            driver.analysisContext?.contextRoot?.optionsFile?.path ?? 'none')));
     buf.writeln(
         writeOption('SDK root', escape(driver.analysisContext.sdkRoot?.path)));
 

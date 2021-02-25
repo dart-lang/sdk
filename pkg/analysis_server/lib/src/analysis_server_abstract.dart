@@ -234,10 +234,13 @@ abstract class AbstractAnalysisServer {
     if (drivers.isNotEmpty) {
       // Sort the drivers so that more deeply nested contexts will be checked
       // before enclosing contexts.
-      drivers.sort((first, second) =>
-          second.contextRoot.root.length - first.contextRoot.root.length);
+      drivers.sort((first, second) {
+        var firstRoot = first.analysisContext.contextRoot.root.path;
+        var secondRoot = second.analysisContext.contextRoot.root.path;
+        return secondRoot.length - firstRoot.length;
+      });
       var driver = drivers.firstWhere(
-          (driver) => driver.contextRoot.containsFile(path),
+          (driver) => driver.analysisContext.contextRoot.isAnalyzed(path),
           orElse: () => null);
       driver ??= drivers.firstWhere(
           (driver) => driver.knownFiles.contains(path),

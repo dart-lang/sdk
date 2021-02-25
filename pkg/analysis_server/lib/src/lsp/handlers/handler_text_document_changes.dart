@@ -135,7 +135,7 @@ class TextDocumentOpenHandler
       // analysis root. We need to register it even if we found a driver, so that if
       // the driver existed only because of another open file, it will not be removed
       // when that file is closed.
-      final analysisRoot = driver?.contextRoot?.root ??
+      final analysisRoot = driver?.analysisContext?.contextRoot?.root?.path ??
           _findProjectFolder(server.resourceProvider, path) ??
           dirname(path);
       if (analysisRoot != null) {

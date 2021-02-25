@@ -22,7 +22,7 @@ class DriverBasedUriConverter implements UriConverter {
     ResourceProvider provider = driver.resourceProvider;
     if (containingPath != null) {
       Context context = provider.pathContext;
-      String root = driver.contextRoot!.root;
+      String root = driver.analysisContext!.contextRoot.root.path;
       if (context.isWithin(root, path) &&
           context.isWithin(root, containingPath)) {
         String relativePath =

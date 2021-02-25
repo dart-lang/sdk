@@ -8,8 +8,9 @@ import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -31,8 +32,13 @@ void main() {
   });
 }
 
-ContextRoot _newContextRoot(String root, {List<String> exclude = const []}) {
-  return ContextRoot(root, exclude, pathContext: path.context);
+ContextRootImpl _newContextRoot(String root) {
+  var resourceProvider = PhysicalResourceProvider.INSTANCE;
+  return ContextRootImpl(
+    resourceProvider,
+    resourceProvider.getFolder(root),
+    BasicWorkspace.find(resourceProvider, {}, root),
+  );
 }
 
 @reflectiveTest
@@ -121,7 +127,8 @@ class DiscoveredPluginInfoTest {
   void test_addContextRoot() {
     var optionsFilePath = '/pkg1/analysis_options.yaml';
     var contextRoot1 = _newContextRoot('/pkg1');
-    contextRoot1.optionsFilePath = optionsFilePath;
+    contextRoot1.optionsFile =
+        contextRoot1.resourceProvider.getFile(optionsFilePath);
     var session = PluginSession(plugin);
     var channel = TestServerCommunicationChannel(session);
     plugin.currentSession = session;
