@@ -76,7 +76,7 @@ main() {
     await assertNoAssistAt('if (true)');
   }
 
-  Future<void> test_return() async {
+  Future<void> test_return_expression_expression() async {
     await resolveTestCode('''
 main() {
   if (true) {
@@ -91,5 +91,33 @@ main() {
   return true ? 111 : 222;
 }
 ''');
+  }
+
+  Future<void> test_return_expression_nothing() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+void f(bool c) {
+  if (c) {
+    return 111;
+  } else {
+    return;
+  }
+}
+''');
+    await assertNoAssistAt('if (c)');
+  }
+
+  Future<void> test_return_nothing_expression() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+void f(bool c) {
+  if (c) {
+    return;
+  } else {
+    return 222;
+  }
+}
+''');
+    await assertNoAssistAt('if (c)');
   }
 }
