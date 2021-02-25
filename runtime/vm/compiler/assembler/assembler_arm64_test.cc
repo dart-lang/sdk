@@ -1279,6 +1279,44 @@ ASSEMBLER_TEST_RUN(Clz, test) {
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
+ASSEMBLER_TEST_GENERATE(Clzw, assembler) {
+  Label error;
+
+  __ clzw(R1, ZR);
+  __ cmp(R1, Operand(32));
+  __ b(&error, NE);
+  __ LoadImmediate(R2, 42);
+  __ clzw(R2, R2);
+  __ cmp(R2, Operand(26));
+  __ b(&error, NE);
+  __ LoadImmediate(R0, -1);
+  __ clzw(R1, R0);
+  __ cmp(R1, Operand(0));
+  __ b(&error, NE);
+  __ add(R0, ZR, Operand(R0, LSR, 35));
+  __ clzw(R1, R0);
+  __ cmp(R1, Operand(3));
+  __ b(&error, NE);
+  __ LoadImmediate(R0, 0xFFFFFFFF0FFFFFFF);
+  __ clzw(R1, R0);
+  __ cmp(R1, Operand(4));
+  __ b(&error, NE);
+  __ LoadImmediate(R0, 0xFFFFFFFF);
+  __ clzw(R1, R0);
+  __ cmp(R1, Operand(0));
+  __ b(&error, NE);
+  __ mov(R0, ZR);
+  __ ret();
+  __ Bind(&error);
+  __ LoadImmediate(R0, 1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Clzw, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
 ASSEMBLER_TEST_GENERATE(Rbit, assembler) {
   const int64_t immediate = 0x0000000000000015;
   __ LoadImmediate(R0, immediate);
