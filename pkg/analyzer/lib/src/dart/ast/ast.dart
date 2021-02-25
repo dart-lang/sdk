@@ -8825,6 +8825,8 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
       return identical(parent.identifier, this);
     } else if (parent is PropertyAccess) {
       return identical(parent.propertyName, this);
+    } else if (parent is ConstructorName) {
+      return identical(parent.name, this);
     } else if (parent is MethodInvocation) {
       MethodInvocation invocation = parent;
       return identical(invocation.methodName, this) &&
