@@ -4,10 +4,10 @@
 
 import 'dart:io' as io;
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/context_locator.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -21,19 +21,17 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/source_resource.dart';
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
-import 'package:analyzer/src/summary2/link.dart' as summary2;
-import 'package:analyzer/src/summary2/linked_bundle_context.dart' as summary2;
-import 'package:analyzer/src/summary2/linked_element_factory.dart' as summary2;
-import 'package:analyzer/src/summary2/reference.dart' as summary2;
+import 'package:analyzer/src/summary2/bundle_reader.dart';
+import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/package_bundle_format.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer_cli/src/context_cache.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
@@ -171,16 +169,12 @@ class BuildMode with HasContextMixin {
   AnalysisOptionsImpl analysisOptions;
   Map<Uri, File> uriToFileMap;
   final List<Source> explicitSources = <Source>[];
-  final List<PackageBundle> unlinkedBundles = <PackageBundle>[];
 
   SourceFactory sourceFactory;
   DeclaredVariables declaredVariables;
   AnalysisDriver analysisDriver;
 
-  PackageBundleAssembler assembler;
-
-  final Map<String, ParsedUnitResult> inputParsedUnitResults = {};
-  summary2.LinkedElementFactory elementFactory;
+  LinkedElementFactory elementFactory;
 
   // May be null.
   final DependencyTracker dependencyTracker;
@@ -246,31 +240,20 @@ class BuildMode with HasContextMixin {
       }
 
       // Write summary.
-      assembler = PackageBundleAssembler();
       if (_shouldOutputSummary) {
         await logger.runAsync('Build and write output summary', () async {
-          // Prepare all unlinked units.
-          await logger.runAsync('Prepare unlinked units', () async {
-            for (var src in explicitSources) {
-              await _prepareUnit('${src.uri}');
-            }
-          });
-
           // Build and assemble linked libraries.
-          _computeLinkedLibraries2();
+          var bytes = _computeLinkedLibraries2();
 
           // Write the whole package bundle.
-          var bundle = assembler.assemble();
+          // TODO(scheglov) Remove support for `buildSummaryOutput`.
           if (options.buildSummaryOutput != null) {
             var file = io.File(options.buildSummaryOutput);
-            file.writeAsBytesSync(bundle.toBuffer(),
-                mode: io.FileMode.writeOnly);
+            file.writeAsBytesSync(bytes, mode: io.FileMode.writeOnly);
           }
           if (options.buildSummaryOutputSemantic != null) {
-            bundle.flushInformative();
             var file = io.File(options.buildSummaryOutputSemantic);
-            file.writeAsBytesSync(bundle.toBuffer(),
-                mode: io.FileMode.writeOnly);
+            file.writeAsBytesSync(bytes, mode: io.FileMode.writeOnly);
           }
         });
       } else {
@@ -298,16 +281,16 @@ class BuildMode with HasContextMixin {
     });
   }
 
-  /// Use [elementFactory] filled with input summaries, and link prepared
-  /// [inputParsedUnitResults] to produce linked libraries in [assembler].
-  void _computeLinkedLibraries2() {
-    logger.run('Link output summary2', () {
-      var inputLibraries = <summary2.LinkInputLibrary>[];
+  /// Use [elementFactory] filled with input summaries, and link libraries
+  /// in [explicitSources] to produce linked summary bytes.
+  Uint8List _computeLinkedLibraries2() {
+    return logger.run('Link output summary2', () {
+      var inputLibraries = <LinkInputLibrary>[];
 
       for (var librarySource in explicitSources) {
         var path = librarySource.fullName;
 
-        var parseResult = inputParsedUnitResults[path];
+        var parseResult = analysisDriver.parseFileSync(path);
         if (parseResult == null) {
           throw ArgumentError('No parsed unit for $path');
         }
@@ -318,9 +301,9 @@ class BuildMode with HasContextMixin {
           continue;
         }
 
-        var inputUnits = <summary2.LinkInputUnit>[];
+        var inputUnits = <LinkInputUnit>[];
         inputUnits.add(
-          summary2.LinkInputUnit(null, librarySource, false, unit),
+          LinkInputUnit(null, librarySource, false, unit),
         );
 
         for (var directive in unit.directives) {
@@ -330,20 +313,16 @@ class BuildMode with HasContextMixin {
 
             // Add empty synthetic units for unresolved `part` URIs.
             if (partSource == null) {
-              var unit = analysisDriver.fsState.unresolvedFile.parse();
-              inputUnits.add(
-                summary2.LinkInputUnit(partUri, null, true, unit),
-              );
               continue;
             }
 
             var partPath = partSource.fullName;
-            var partParseResult = inputParsedUnitResults[partPath];
+            var partParseResult = analysisDriver.parseFileSync(partPath);
             if (partParseResult == null) {
               throw ArgumentError('No parsed unit for part $partPath in $path');
             }
             inputUnits.add(
-              summary2.LinkInputUnit(
+              LinkInputUnit(
                 partUri,
                 partSource,
                 false,
@@ -354,12 +333,23 @@ class BuildMode with HasContextMixin {
         }
 
         inputLibraries.add(
-          summary2.LinkInputLibrary(librarySource, inputUnits),
+          LinkInputLibrary(librarySource, inputUnits),
         );
       }
 
-      var linkResult = summary2.link(elementFactory, inputLibraries);
-      assembler.setBundle2(linkResult.bundle);
+      var linkResult = link(elementFactory, inputLibraries, false);
+
+      var bundleBuilder = PackageBundleBuilder();
+      for (var library in inputLibraries) {
+        bundleBuilder.addLibrary(
+          library.uriStr,
+          library.units.map((e) => e.uriStr).toList(),
+        );
+      }
+      return bundleBuilder.finish(
+        astBytes: linkResult.astBytes,
+        resolutionBytes: linkResult.resolutionBytes,
+      );
     });
   }
 
@@ -385,7 +375,7 @@ class BuildMode with HasContextMixin {
     summaryDataStore = SummaryDataStore(<String>[]);
 
     // Adds a bundle at `path` to `summaryDataStore`.
-    PackageBundle addBundle(String path) {
+    PackageBundleReader addBundle(String path) {
       var bundle = packageBundleProvider.get(path);
       summaryDataStore.addBundle(path, bundle);
       return bundle;
@@ -450,15 +440,19 @@ class BuildMode with HasContextMixin {
       sourceFactory,
     );
 
-    elementFactory = summary2.LinkedElementFactory(
+    elementFactory = LinkedElementFactory(
       analysisContext,
       AnalysisSessionImpl(null),
-      summary2.Reference.root(),
+      Reference.root(),
     );
 
     for (var bundle in summaryDataStore.bundles) {
       elementFactory.addBundle(
-        summary2.LinkedBundleContext(elementFactory, bundle.bundle2),
+        BundleReader(
+          elementFactory: elementFactory,
+          astBytes: bundle.astBytes,
+          resolutionBytes: bundle.resolutionBytes,
+        ),
       );
     }
   }
@@ -498,22 +492,6 @@ class BuildMode with HasContextMixin {
     }
 
     return Packages.empty;
-  }
-
-  /// Ensure that the parsed unit for [absoluteUri] is available.
-  ///
-  /// If the unit is in the input [summaryDataStore], do nothing.
-  Future<void> _prepareUnit(String absoluteUri) async {
-    // Parse the source and serialize its AST.
-    var uri = Uri.parse(absoluteUri);
-    var source = sourceFactory.forUri2(uri);
-    if (!source.exists()) {
-      // TODO(paulberry): we should report a warning/error because DDC
-      // compilations are unlikely to work.
-      return;
-    }
-    var result = await analysisDriver.parseFile(source.fullName);
-    inputParsedUnitResults[result.path] = result;
   }
 
   /// Print errors for all explicit sources. If [outputPath] is supplied, output
@@ -592,9 +570,9 @@ class DirectPackageBundleProvider implements PackageBundleProvider {
   DirectPackageBundleProvider(this.resourceProvider);
 
   @override
-  PackageBundle get(String path) {
+  PackageBundleReader get(String path) {
     var bytes = io.File(path).readAsBytesSync();
-    return PackageBundle.fromBuffer(bytes);
+    return PackageBundleReader(bytes);
   }
 }
 
@@ -635,10 +613,10 @@ class ExplicitSourceResolver extends UriResolver {
   }
 }
 
-/// Provider for [PackageBundle]s by file paths.
+/// Provider for [PackageBundleReader]s by file paths.
 abstract class PackageBundleProvider {
-  /// Return the [PackageBundle] for the file with the given [path].
-  PackageBundle get(String path);
+  /// Return the [PackageBundleReader] for the file with the given [path].
+  PackageBundleReader get(String path);
 }
 
 /// Wrapper for [InSummaryUriResolver] that tracks accesses to summaries.
@@ -692,7 +670,7 @@ class WorkerInput {
 /// Value object for [WorkerPackageBundleCache].
 class WorkerPackageBundle {
   final List<int> bytes;
-  final PackageBundle bundle;
+  final PackageBundleReader bundle;
 
   WorkerPackageBundle(this.bytes, this.bundle);
 
@@ -700,7 +678,7 @@ class WorkerPackageBundle {
   int get size => bytes.length * 3;
 }
 
-/// Cache of [PackageBundle]s.
+/// Cache of [PackageBundleReader]s.
 class WorkerPackageBundleCache {
   final ResourceProvider resourceProvider;
   final PerformanceLog logger;
@@ -710,23 +688,25 @@ class WorkerPackageBundleCache {
       : _cache = Cache<WorkerInput, WorkerPackageBundle>(
             maxSizeBytes, (value) => value.size);
 
-  /// Get the [PackageBundle] from the file with the given [path] in the context
+  /// Get the [PackageBundleReader] from the file with the given [path] in the context
   /// of the given worker [inputs].
-  PackageBundle get(Map<String, WorkerInput> inputs, String path) {
+  PackageBundleReader get(Map<String, WorkerInput> inputs, String path) {
     var input = inputs[path];
 
     // The input must be not null, otherwise we're not expected to read
     // this file, but we check anyway to be safe.
     if (input == null) {
       logger.writeln('Read $path outside of the inputs.');
-      var bytes = resourceProvider.getFile(path).readAsBytesSync();
-      return PackageBundle.fromBuffer(bytes);
+      var file = resourceProvider.getFile(path);
+      var bytes = file.readAsBytesSync() as Uint8List;
+      return PackageBundleReader(bytes);
     }
 
     return _cache.get(input, () {
       logger.writeln('Read $input.');
-      var bytes = resourceProvider.getFile(path).readAsBytesSync();
-      var bundle = PackageBundle.fromBuffer(bytes);
+      var file = resourceProvider.getFile(path);
+      var bytes = file.readAsBytesSync() as Uint8List;
+      var bundle = PackageBundleReader(bytes);
       return WorkerPackageBundle(bytes, bundle);
     }).bundle;
   }
@@ -741,7 +721,7 @@ class WorkerPackageBundleProvider implements PackageBundleProvider {
   WorkerPackageBundleProvider(this.cache, this.inputs);
 
   @override
-  PackageBundle get(String path) {
+  PackageBundleReader get(String path) {
     return cache.get(inputs, path);
   }
 }

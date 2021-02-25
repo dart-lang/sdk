@@ -48,6 +48,7 @@ abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
 
     testLibrary = library_(
       uriStr: 'package:test/test.dart',
+      analysisContext: analysisContext,
       analysisSession: analysisContext.analysisSession,
       typeSystem: typeSystem,
     );
@@ -78,6 +79,7 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
 
     testLibrary = library_(
       uriStr: 'package:test/test.dart',
+      analysisContext: analysisContext,
       analysisSession: analysisContext.analysisSession,
       typeSystem: typeSystem,
     );

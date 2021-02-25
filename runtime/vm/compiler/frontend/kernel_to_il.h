@@ -80,31 +80,62 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   FlowGraph* BuildGraphOfMethodExtractor(const Function& method);
   FlowGraph* BuildGraphOfNoSuchMethodDispatcher(const Function& function);
 
-  Fragment BuildDynamicCallVarsInit(LocalVariable* closure);
+  struct ClosureCallInfo;
+
+  // Tests whether the closure function is generic and branches to the
+  // appropriate fragment.
+  Fragment TestClosureFunctionGeneric(const ClosureCallInfo& info,
+                                      Fragment generic,
+                                      Fragment not_generic);
+
+  // Tests whether the function parameter at the given index is required and
+  // branches to the appropriate fragment. Loads the parameter index to
+  // check from info.vars->current_param_index.
+  Fragment TestClosureFunctionNamedParameterRequired(
+      const ClosureCallInfo& info,
+      Fragment set,
+      Fragment not_set);
+
+  // Builds a fragment that, if there are no provided function type arguments,
+  // calculates the appropriate TAV to use instead. Stores either the provided
+  // or calculated function type arguments in vars->function_type_args.
+  Fragment BuildClosureCallDefaultTypeHandling(const ClosureCallInfo& info);
 
   // The BuildClosureCall...Check methods differs from the checks built in the
   // PrologueBuilder in that they are built for invoke field dispatchers,
   // where the ArgumentsDescriptor is known at compile time but the specific
   // closure function is retrieved at runtime.
 
-  // Builds checks that all required arguments are provided. Generates an empty
-  // fragment if null safety is not enabled.
-  Fragment BuildClosureCallHasRequiredNamedArgumentsCheck(
-      LocalVariable* closure,
-      JoinEntryInstr* nsm);
+  // Builds checks that the given named arguments have valid argument names
+  // and, in the case of null safe code, that all required named parameters
+  // are provided.
+  Fragment BuildClosureCallNamedArgumentsCheck(const ClosureCallInfo& info);
 
   // Builds checks for checking the arguments of a call are valid for the
-  // function retrieved at runtime from the closure. Checks almost all the
-  // same cases as Function::AreArgumentsValid, leaving only name checking
-  // for optional named arguments to be checked during argument type checking.
-  Fragment BuildClosureCallArgumentsValidCheck(LocalVariable* closure,
-                                               JoinEntryInstr* nsm);
+  // function retrieved at runtime from the closure.
+  Fragment BuildClosureCallArgumentsValidCheck(const ClosureCallInfo& info);
 
-  // Builds checks that the given named argument has a valid argument name.
-  // Returns the empty fragment for positional arguments.
-  Fragment BuildClosureCallNamedArgumentCheck(LocalVariable* closure,
-                                              intptr_t pos,
-                                              JoinEntryInstr* nsm);
+  // Builds checks that the type arguments of a call are consistent with the
+  // bounds of the closure function type parameters. Assumes that the closure
+  // function is generic.
+  Fragment BuildClosureCallTypeArgumentsTypeCheck(const ClosureCallInfo& info);
+
+  // Builds checks for type checking a given argument of the closure call using
+  // parameter information from the closure function retrieved at runtime.
+  //
+  // For named arguments, arg_name is a compile-time constant retrieved from
+  // the saved arguments descriptor. For positional arguments, null is passed.
+  Fragment BuildClosureCallArgumentTypeCheck(const ClosureCallInfo& info,
+                                             LocalVariable* param_index,
+                                             intptr_t arg_index,
+                                             const String& arg_name);
+
+  // Builds checks for type checking the arguments of a call using parameter
+  // information for the function retrieved at runtime from the closure.
+  Fragment BuildClosureCallArgumentTypeChecks(const ClosureCallInfo& info);
+
+  // Main entry point for building checks.
+  Fragment BuildDynamicClosureCallChecks(LocalVariable* closure);
 
   FlowGraph* BuildGraphOfInvokeFieldDispatcher(const Function& function);
   FlowGraph* BuildGraphOfFfiTrampoline(const Function& function);
@@ -120,6 +151,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   Fragment BuildTypedDataViewFactoryConstructor(const Function& function,
                                                 classid_t cid);
+  Fragment BuildTypedDataFactoryConstructor(const Function& function,
+                                            classid_t cid);
 
   Fragment EnterScope(intptr_t kernel_offset,
                       const LocalScope** scope = nullptr);
@@ -170,7 +203,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment Return(
       TokenPosition position,
       bool omit_result_type_check = false,
-      intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex);
+      intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
   void SetResultTypeForStaticCall(StaticCallInstr* call,
                                   const Function& target,
                                   intptr_t argument_count,
@@ -191,6 +224,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError(const Function& target);
   Fragment ThrowLateInitializationError(TokenPosition position,
+                                        const char* throw_method_name,
                                         const String& name);
   Fragment BuildImplicitClosureCreation(const Function& target);
 
@@ -212,9 +246,22 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                          const AbstractType& sub_type,
                          const AbstractType& super_type,
                          const String& dst_name);
+  // Assumes destination name, supertype, and subtype are the top of the stack.
+  Fragment AssertSubtype(TokenPosition position);
 
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
+
+  // Deals with StoreIndexed not working with kUnboxedFloat.
+  // TODO(dartbug.com/43448): Remove this workaround.
+  Fragment StoreIndexedTypedDataUnboxed(Representation unboxed_representation,
+                                        intptr_t index_scale,
+                                        bool index_unboxed);
+  // Deals with LoadIndexed not working with kUnboxedFloat.
+  // TODO(dartbug.com/43448): Remove this workaround.
+  Fragment LoadIndexedTypedDataUnboxed(Representation unboxed_representation,
+                                       intptr_t index_scale,
+                                       bool index_unboxed);
 
   // Truncates (instead of deoptimizing) if the origin does not fit into the
   // target representation.
@@ -230,15 +277,80 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   // Pops a Dart object and push the unboxed native version, according to the
   // semantics of FFI argument translation.
-  Fragment FfiConvertArgumentToNative(
+  //
+  // Works for FFI call arguments, and FFI callback return values.
+  Fragment FfiConvertPrimitiveToNative(
       const compiler::ffi::BaseMarshaller& marshaller,
       intptr_t arg_index,
       LocalVariable* api_local_scope);
 
-  // Reverse of 'FfiConvertArgumentToNative'.
-  Fragment FfiConvertArgumentToDart(
+  // Pops an unboxed native value, and pushes a Dart object, according to the
+  // semantics of FFI argument translation.
+  //
+  // Works for FFI call return values, and FFI callback arguments.
+  Fragment FfiConvertPrimitiveToDart(
       const compiler::ffi::BaseMarshaller& marshaller,
       intptr_t arg_index);
+
+  // We pass in `variable` instead of on top of the stack so that we can have
+  // multiple consecutive calls that keep only struct parts on the stack with
+  // no struct parts in between.
+  Fragment FfiCallConvertStructArgumentToNative(
+      LocalVariable* variable,
+      const compiler::ffi::BaseMarshaller& marshaller,
+      intptr_t arg_index);
+
+  Fragment FfiCallConvertStructReturnToDart(
+      const compiler::ffi::BaseMarshaller& marshaller,
+      intptr_t arg_index);
+
+  // We pass in multiple `definitions`, which are also expected to be the top
+  // of the stack. This eases storing each definition in the resulting struct.
+  Fragment FfiCallbackConvertStructArgumentToDart(
+      const compiler::ffi::BaseMarshaller& marshaller,
+      intptr_t arg_index,
+      ZoneGrowableArray<LocalVariable*>* definitions);
+
+  Fragment FfiCallbackConvertStructReturnToNative(
+      const compiler::ffi::CallbackMarshaller& marshaller,
+      intptr_t arg_index);
+
+  // Wraps a TypedDataBase from the stack and wraps it in a subclass of Struct.
+  Fragment WrapTypedDataBaseInStruct(const AbstractType& struct_type);
+
+  // Loads the addressOf field from a subclass of Struct.
+  Fragment LoadTypedDataBaseFromStruct();
+
+  // Breaks up a subclass of Struct in multiple definitions and puts them on
+  // the stack.
+  //
+  // Takes in the Struct as a local `variable` so that can be anywhere on the
+  // stack and this function can be called multiple times to leave only the
+  // results of this function on the stack without any Structs in between.
+  //
+  // The struct contents are heterogeneous, so pass in `representations` to
+  // know what representation to load.
+  Fragment CopyFromStructToStack(
+      LocalVariable* variable,
+      const GrowableArray<Representation>& representations);
+
+  // Copy `definitions` into TypedData.
+  //
+  // Expects the TypedData on top of the stack and `definitions` right under it.
+  //
+  // Leaves TypedData on stack.
+  //
+  // The struct contents are heterogeneous, so pass in `representations` to
+  // know what representation to load.
+  Fragment PopFromStackToTypedDataBase(
+      ZoneGrowableArray<LocalVariable*>* definitions,
+      const GrowableArray<Representation>& representations);
+
+  // Copies bytes from a TypedDataBase to the address of an kUnboxedFfiIntPtr.
+  Fragment CopyFromTypedDataBaseToUnboxedAddress(intptr_t length_in_bytes);
+
+  // Copies bytes from the address of an kUnboxedFfiIntPtr to a TypedDataBase.
+  Fragment CopyFromUnboxedAddressToTypedDataBase(intptr_t length_in_bytes);
 
   // Generates a call to `Thread::EnterApiScope`.
   Fragment EnterHandleScope();
@@ -275,6 +387,16 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   LocalVariable* LookupVariable(intptr_t kernel_offset);
 
+  // Build type argument type checks for the current function.
+  // ParsedFunction should have the following information:
+  //  - is_forwarding_stub()
+  //  - forwarding_stub_super_target()
+  // Scope should be populated with parameter variables including
+  //  - needs_type_check()
+  //  - is_explicit_covariant_parameter()
+  void BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
+                                   Fragment* implicit_checks);
+
   // Build argument type checks for the current function.
   // ParsedFunction should have the following information:
   //  - is_forwarding_stub()
@@ -282,8 +404,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Scope should be populated with parameter variables including
   //  - needs_type_check()
   //  - is_explicit_covariant_parameter()
-  void BuildArgumentTypeChecks(TypeChecksToBuild mode,
-                               Fragment* explicit_checks,
+  void BuildArgumentTypeChecks(Fragment* explicit_checks,
                                Fragment* implicit_checks,
                                Fragment* implicit_redefinitions);
 
@@ -387,19 +508,31 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // on the top of the stack. Picks a sequence that keeps unboxed values on the
   // expression stack only as needed, switching to Smis as soon as possible.
   template <typename T>
-  Fragment BuildExtractPackedFieldIntoSmi(Representation rep) {
+  Fragment BuildExtractUnboxedSlotBitFieldIntoSmi(const Slot& slot) {
+    ASSERT(RepresentationUtils::IsUnboxedInteger(slot.representation()));
     Fragment instructions;
-    // Since kBIT_AND never throws or deoptimizes, we require that the result of
-    // masking the field in place fits into a Smi, so we can use Smi operations
-    // for the shift.
-    static_assert(T::mask_in_place() <= compiler::target::kSmiMax,
-                  "Cannot fit results of masking in place into a Smi");
-    instructions += UnboxedIntConstant(T::mask_in_place(), rep);
-    instructions += BinaryIntegerOp(Token::kBIT_AND, rep);
-    // Set the range of the definition that will be used as the value in the
-    // box so that ValueFitsSmi() can return true even in unoptimized code.
-    SetConstantRangeOfCurrentDefinition(instructions, 0, T::mask_in_place());
-    instructions += Box(rep);
+    if (!Boxing::RequiresAllocation(slot.representation())) {
+      // We don't need to allocate to box this value, so it already fits in
+      // a Smi (and thus the mask must also).
+      instructions += LoadNativeField(slot);
+      instructions += Box(slot.representation());
+      instructions += IntConstant(T::mask_in_place());
+      instructions += SmiBinaryOp(Token::kBIT_AND);
+    } else {
+      // Since kBIT_AND never throws or deoptimizes, we require that the result
+      // of masking the field in place fits into a Smi, so we can use Smi
+      // operations for the shift.
+      static_assert(T::mask_in_place() <= compiler::target::kSmiMax,
+                    "Cannot fit results of masking in place into a Smi");
+      instructions += LoadNativeField(slot);
+      instructions +=
+          UnboxedIntConstant(T::mask_in_place(), slot.representation());
+      instructions += BinaryIntegerOp(Token::kBIT_AND, slot.representation());
+      // Set the range of the definition that will be used as the value in the
+      // box so that ValueFitsSmi() returns true even in unoptimized code.
+      SetConstantRangeOfCurrentDefinition(instructions, 0, T::mask_in_place());
+      instructions += Box(slot.representation());
+    }
     if (T::shift() != 0) {
       // Only add the shift operation if it's necessary.
       instructions += IntConstant(T::shift());
@@ -473,8 +606,19 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   ActiveClass active_class_;
 
+  // Cached _PrependTypeArguments.
+  Function& prepend_type_arguments_;
+
+  // Returns the function _PrependTypeArguments from dart:_internal. If the
+  // cached version is null, retrieves it and updates the cache.
+  const Function& PrependTypeArgumentsFunction();
+
   // Cached _AssertionError._throwNewNullAssertion.
-  Function* throw_new_null_assertion_ = nullptr;
+  Function& throw_new_null_assertion_;
+
+  // Returns the function _AssertionError._throwNewNullAssertion. If the
+  // cached version is null, retrieves it and updates the cache.
+  const Function& ThrowNewNullAssertionFunction();
 
   friend class BreakableBlock;
   friend class CatchBlock;

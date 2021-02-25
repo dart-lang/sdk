@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import '../ast.dart' hide MapEntry;
 import '../core_types.dart';
 import '../type_algebra.dart';
@@ -132,7 +134,7 @@ class _Norm extends ReplacementVisitor {
 
   @override
   DartType visitNeverType(NeverType node) {
-    if (node.nullability == Nullability.nullable) return coreTypes.nullType;
+    if (node.nullability == Nullability.nullable) return const NullType();
     return null;
   }
 

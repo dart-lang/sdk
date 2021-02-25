@@ -10,44 +10,20 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantMapValueFromDeferredLibraryTest);
-    defineReflectiveTests(
-        NonConstantMapValueFromDeferredLibraryTest_language24);
   });
 }
 
 @reflectiveTest
 class NonConstantMapValueFromDeferredLibraryTest
     extends PubPackageResolutionTest
-    with NonConstantMapValueFromDeferredLibraryTestCases {
-  @override
-  bool get _constant_update_2018 => true;
-}
-
-@reflectiveTest
-class NonConstantMapValueFromDeferredLibraryTest_language24
-    extends PubPackageResolutionTest
-    with NonConstantMapValueFromDeferredLibraryTestCases {
-  @override
-  bool get _constant_update_2018 => false;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: '2.4',
-    );
-  }
-}
+    with NonConstantMapValueFromDeferredLibraryTestCases {}
 
 mixin NonConstantMapValueFromDeferredLibraryTestCases
     on PubPackageResolutionTest {
-  bool get _constant_update_2018;
-
   @failingTest
   test_const_ifElement_thenTrue_elseDeferred() async {
     // reports wrong error code
-    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 const int c = 1;''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -60,29 +36,20 @@ var v = const { if (cond) 'a': 'b' else 'c' : a.c};
   }
 
   test_const_ifElement_thenTrue_thenDeferred() async {
-    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 const int c = 1;''');
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const { if (cond) 'a' : a.c};
-''',
-        _constant_update_2018
-            ? [
-                error(
-                    CompileTimeErrorCode
-                        .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
-                    85,
-                    3),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 69, 19),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
+          85, 3),
+    ]);
   }
 
   test_const_topLevel_deferred() async {
-    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 const int c = 1;''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -94,7 +61,7 @@ var v = const {'a' : a.c};
   }
 
   test_const_topLevel_deferred_nested() async {
-    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 const int c = 1;''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;

@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:front_end/src/fasta/kernel/internal_ast.dart';
 
 import 'package:kernel/ast.dart'
     show
@@ -16,6 +19,7 @@ import 'package:kernel/ast.dart'
         Member,
         NamedType,
         NeverType,
+        NullType,
         Nullability,
         Statement,
         TreeNode,
@@ -36,8 +40,6 @@ import '../../base/instrumentation.dart' show Instrumentation;
 import '../builder/constructor_builder.dart';
 
 import '../kernel/forest.dart';
-
-import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 
 import '../kernel/kernel_builder.dart'
     show ClassHierarchyBuilder, ImplicitFieldType;
@@ -271,7 +273,7 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
     } else if (isSubtypeOf(
         type, typeEnvironment.coreTypes.objectNonNullableRawType)) {
       return TypeClassification.nonNullable;
-    } else if (isSubtypeOf(type, typeEnvironment.coreTypes.nullType)) {
+    } else if (isSubtypeOf(type, const NullType())) {
       return TypeClassification.nullOrEquivalent;
     } else {
       return TypeClassification.potentiallyNullable;
@@ -281,14 +283,6 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
   @override
   DartType factor(DartType from, DartType what) {
     return factorType(typeEnvironment, from, what);
-  }
-
-  @override
-  bool isLocalVariableWithoutDeclaredType(VariableDeclaration variable) {
-    return variable is VariableDeclarationImpl &&
-        variable.parent is Statement &&
-        variable.isImplicitlyTyped &&
-        !variable.hasDeclaredInitializer;
   }
 
   @override
@@ -317,14 +311,22 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
             type.parameter, type.declaredNullability, bound);
       }
       return type;
-    } else if (type == typeEnvironment.nullType) {
+    } else if (type is NullType) {
       return const NeverType(Nullability.nonNullable);
     }
     return type.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType variableType(VariableDeclaration variable) => variable.type;
+  DartType variableType(VariableDeclaration variable) {
+    if (variable is VariableDeclarationImpl) {
+      // When late variables get lowered, their type is changed, but the
+      // original type is stored in `VariableDeclarationImpl.lateType`, so we
+      // use that if it exists.
+      return variable.lateType ?? variable.type;
+    }
+    return variable.type;
+  }
 
   @override
   DartType tryPromoteToType(DartType to, DartType from) {

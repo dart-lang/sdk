@@ -28,9 +28,9 @@ extension Extension on self::Class* {
   static method extensionStaticMethod = self::Extension|extensionStaticMethod;
 }
 @core::pragma::_("dart2js:noInline")
-static method Extension|extensionInstanceMethod(final self::Class* #this) → dynamic
+static method Extension|extensionInstanceMethod(lowered final self::Class* #this) → dynamic
   ;
-static method Extension|get#extensionInstanceMethod(final self::Class* #this) → () →* dynamic
+static method Extension|get#extensionInstanceMethod(lowered final self::Class* #this) → () →* dynamic
   return () → dynamic => self::Extension|extensionInstanceMethod(#this);
 @core::pragma::_("dart2js:noInline")
 static method Extension|extensionStaticMethod() → dynamic
@@ -40,3 +40,12 @@ static method topLevelMethod() → dynamic
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:6:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:9:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:14:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:17:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:21:2 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Extra constant evaluation: evaluated: 8, effectively constant: 5

@@ -6,7 +6,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
@@ -73,25 +72,6 @@ class FunctionTypeTest with ElementsTypesMixin {
     expect(f.parameters, parameters, reason: 'parameters');
     expect(f.returnType, returnType ?? same(dynamicType), reason: 'returnType');
     expect(f.typeFormals, typeFormals, reason: 'typeFormals');
-  }
-
-  GenericTypeAliasElementImpl genericTypeAliasElement(
-    String name, {
-    List<ParameterElement> parameters = const [],
-    DartType returnType,
-    List<TypeParameterElement> typeParameters = const [],
-    List<TypeParameterElement> innerTypeParameters = const [],
-  }) {
-    var aliasElement = GenericTypeAliasElementImpl(name, 0);
-    aliasElement.typeParameters = typeParameters;
-
-    var functionElement = GenericFunctionTypeElementImpl.forOffset(0);
-    aliasElement.function = functionElement;
-    functionElement.typeParameters = innerTypeParameters;
-    functionElement.parameters = parameters;
-    functionElement.returnType = returnType;
-
-    return aliasElement;
   }
 
   DartType listOf(DartType elementType) => listElement.instantiate(

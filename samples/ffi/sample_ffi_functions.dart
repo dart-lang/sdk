@@ -6,6 +6,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
+import 'calloc.dart';
 import 'dylib_utils.dart';
 
 typedef NativeUnaryOp = Int32 Function(Int32);
@@ -184,7 +185,7 @@ main() {
     // pass an array / pointer as argument
     Int64PointerUnOp assign1337Index1 = ffiTestFunctions
         .lookupFunction<Int64PointerUnOp, Int64PointerUnOp>("Assign1337Index1");
-    Pointer<Int64> p2 = allocate(count: 2);
+    Pointer<Int64> p2 = calloc(2);
     p2.value = 42;
     p2[1] = 1000;
     print(p2.elementAt(1).address.toRadixString(16));
@@ -200,46 +201,6 @@ main() {
   }
 
   {
-    // Passing in null for an int argument throws a null pointer exception.
-    BinaryOp sumPlus42 =
-        ffiTestFunctions.lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
-
-    int x = null;
-    try {
-      sumPlus42(43, x);
-    } on Error {
-      print('Expected exception on passing null for int');
-    }
-  }
-
-  {
-    // Passing in null for a double argument throws a null pointer exception.
-    DoubleUnaryOp times1_337Double = ffiTestFunctions
-        .lookupFunction<NativeDoubleUnaryOp, DoubleUnaryOp>("Times1_337Double");
-
-    double x = null;
-    try {
-      times1_337Double(x);
-    } on Error {
-      print('Expected exception on passing null for double');
-    }
-  }
-
-  {
-    // Passing in null for an int argument throws a null pointer exception.
-    VigesimalOp sumManyNumbers = ffiTestFunctions
-        .lookupFunction<NativeVigesimalOp, VigesimalOp>("SumManyNumbers");
-
-    int x = null;
-    try {
-      sumManyNumbers(1, 2.0, 3, 4.0, 5, 6.0, 7, 8.0, 9, 10.0, 11, 12.0, 13,
-          14.0, 15, 16.0, 17, 18.0, x, 20.0);
-    } on Error {
-      print('Expected exception on passing null for int');
-    }
-  }
-
-  {
     // Passing in nullptr for a pointer argument results in a nullptr in c.
     Int64PointerUnOp nullableInt64ElemAt1 =
         ffiTestFunctions.lookupFunction<Int64PointerUnOp, Int64PointerUnOp>(
@@ -249,11 +210,11 @@ main() {
     print(result);
     print(result.runtimeType);
 
-    Pointer<Int64> p2 = allocate(count: 2);
+    Pointer<Int64> p2 = calloc(2);
     result = nullableInt64ElemAt1(p2);
     print(result);
     print(result.runtimeType);
-    free(p2);
+    calloc.free(p2);
   }
 
   print("end main");

@@ -1,5 +1,6 @@
+library /*isNonNullableByDefault*/;
 //
-// Problems in component:
+// Problems in library:
 //
 // pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:65:9: Error: Constant evaluation error:
 //   const Class<num>(''); // error
@@ -125,7 +126,6 @@
 //   const ClassWithFunction(dynamic value) : field = value as T Function(T);
 //                                                          ^
 //
-library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
@@ -237,7 +237,7 @@ constants  {
   #C20 = self::ClassWithList<core::String*> {field:#C19}
   #C21 = tearoff self::dynamicFunction
   #C22 = self::ClassWithFunction<dynamic> {field:#C21}
-  #C23 = self::ClassWithFunction<core::Object*> {field:#C21}
+  #C23 = self::ClassWithFunction<core::Object?> {field:#C21}
   #C24 = tearoff self::objectFunction
   #C25 = self::ClassWithFunction<dynamic> {field:#C24}
   #C26 = self::ClassWithFunction<void> {field:#C24}
@@ -246,3 +246,13 @@ constants  {
   #C29 = self::ClassWithFunction<core::int*> {field:#C3}
   #C30 = self::ClassWithFunction<core::Object*> {field:#C24}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///potentially_constant_type_as.dart:
+- Class. (from org-dartlang-testcase:///potentially_constant_type_as.dart:16:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- ClassWithBound. (from org-dartlang-testcase:///potentially_constant_type_as.dart:22:9)
+- ClassWithBound.withValue (from org-dartlang-testcase:///potentially_constant_type_as.dart:24:9)
+- ClassWithList. (from org-dartlang-testcase:///potentially_constant_type_as.dart:30:9)
+- ClassWithFunction. (from org-dartlang-testcase:///potentially_constant_type_as.dart:36:9)

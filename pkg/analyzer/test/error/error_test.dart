@@ -10,7 +10,7 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../generated/parser_test.dart';
+import '../generated/parser_test_base.dart';
 
 main() {
   _analyzerRootComponents = path.split(path.fromUri(Platform.script));
@@ -39,12 +39,13 @@ class ErrorCodeValuesTest extends ParserTestCase {
             extendsClause.superclass.name.name == 'ErrorCode') {
           String className = declaration.name.name;
           for (ClassMember member in declaration.members) {
-            if (member is FieldDeclaration &&
-                member.isStatic &&
-                (member.fields.type == null ? bad() : true) &&
-                member.fields.type.toSource() == className) {
-              String fieldName = member.fields.variables[0].name.name;
-              declaredCodes.add(className + '.' + fieldName);
+            if (member is FieldDeclaration && member.isStatic) {
+              var fields = member.fields;
+              if ((fields.type == null ? bad() : true) &&
+                  fields.type.toSource() == className) {
+                String fieldName = fields.variables[0].name.name;
+                declaredCodes.add(className + '.' + fieldName);
+              }
             }
           }
         }
@@ -57,13 +58,13 @@ class ErrorCodeValuesTest extends ParserTestCase {
     List<String> listedCodes = <String>[];
     CompilationUnit listingUnit = parseFile(['lib', 'error', 'error.dart']);
     TopLevelVariableDeclaration declaration = listingUnit.declarations
+        .whereType<TopLevelVariableDeclaration>()
         .firstWhere(
             (member) =>
-                member is TopLevelVariableDeclaration &&
                 member.variables.variables[0].name.name == 'errorCodeValues',
             orElse: () => null);
     ListLiteral listLiteral = declaration.variables.variables[0].initializer;
-    for (PrefixedIdentifier element in listLiteral.elements) {
+    for (var element in listLiteral.elements.cast<PrefixedIdentifier>()) {
       listedCodes.add(element.name);
     }
     return listedCodes;

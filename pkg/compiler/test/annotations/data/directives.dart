@@ -13,6 +13,8 @@ main() {
   downcastCheck();
   parameterTrust();
   parameterCheck();
+  indexBoundsTrust();
+  indexBoundsCheck();
 }
 
 /*member: typesTrust:types:trust*/
@@ -46,3 +48,11 @@ parameterTrust() {}
 /*member: parameterCheck:parameter:check*/
 @pragma('dart2js:parameter:check')
 parameterCheck() {}
+
+/*member: indexBoundsTrust:index-bounds:trust*/
+@pragma('dart2js:index-bounds:trust')
+indexBoundsTrust() {}
+
+/*member: indexBoundsCheck:index-bounds:check*/
+@pragma('dart2js:index-bounds:check')
+indexBoundsCheck() {}

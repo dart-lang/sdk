@@ -1,6 +1,9 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 library kernel.library_index;
 
 import 'ast.dart';
@@ -22,9 +25,9 @@ class LibraryIndex {
 
   /// Indexes the libraries with the URIs given in [libraryUris].
   LibraryIndex(Component component, Iterable<String> libraryUris) {
-    var libraryUriSet = libraryUris.toSet();
-    for (var library in component.libraries) {
-      var uri = '${library.importUri}';
+    Set<String> libraryUriSet = libraryUris.toSet();
+    for (Library library in component.libraries) {
+      String uri = '${library.importUri}';
       if (libraryUriSet.contains(uri)) {
         _libraries[uri] = new _ClassTable(library);
       }
@@ -37,7 +40,7 @@ class LibraryIndex {
 
   /// Indexes `dart:` libraries.
   LibraryIndex.coreLibraries(Component component) {
-    for (var library in component.libraries) {
+    for (Library library in component.libraries) {
       if (library.importUri.scheme == 'dart') {
         _libraries['${library.importUri}'] = new _ClassTable(library);
       }
@@ -49,7 +52,7 @@ class LibraryIndex {
   /// Consider using another constructor to only index the libraries that
   /// are needed.
   LibraryIndex.all(Component component) {
-    for (var library in component.libraries) {
+    for (Library library in component.libraries) {
       _libraries['${library.importUri}'] = new _ClassTable(library);
     }
   }
@@ -139,10 +142,10 @@ class _ClassTable {
     if (_classes == null) {
       _classes = <String, _MemberTable>{};
       _classes[LibraryIndex.topLevel] = new _MemberTable.topLevel(this);
-      for (var class_ in library.classes) {
+      for (Class class_ in library.classes) {
         _classes[class_.name] = new _MemberTable.fromClass(this, class_);
       }
-      for (var extension_ in library.extensions) {
+      for (Extension extension_ in library.extensions) {
         _classes[extension_.name] =
             new _MemberTable.fromExtension(this, extension_);
       }
@@ -163,7 +166,7 @@ class _ClassTable {
   }
 
   _MemberTable _getClassIndex(String name) {
-    var indexer = classes[name];
+    _MemberTable indexer = classes[name];
     if (indexer == null) {
       throw "Class '$name' not found in $containerName";
     }
@@ -220,10 +223,10 @@ class _MemberTable {
 
   String getDisambiguatedName(Member member) {
     if (member is Procedure) {
-      if (member.isGetter) return LibraryIndex.getterPrefix + member.name.name;
-      if (member.isSetter) return LibraryIndex.setterPrefix + member.name.name;
+      if (member.isGetter) return LibraryIndex.getterPrefix + member.name.text;
+      if (member.isSetter) return LibraryIndex.setterPrefix + member.name.text;
     }
-    return member.name.name;
+    return member.name.text;
   }
 
   void addMember(Member member) {
@@ -237,17 +240,20 @@ class _MemberTable {
 
   String getDisambiguatedExtensionName(
       ExtensionMemberDescriptor extensionMember) {
-    if (extensionMember.kind == ExtensionMemberKind.TearOff)
-      return LibraryIndex.tearoffPrefix + extensionMember.name.name;
-    if (extensionMember.kind == ExtensionMemberKind.Getter)
-      return LibraryIndex.getterPrefix + extensionMember.name.name;
-    if (extensionMember.kind == ExtensionMemberKind.Setter)
-      return LibraryIndex.setterPrefix + extensionMember.name.name;
-    return extensionMember.name.name;
+    if (extensionMember.kind == ExtensionMemberKind.TearOff) {
+      return LibraryIndex.tearoffPrefix + extensionMember.name.text;
+    }
+    if (extensionMember.kind == ExtensionMemberKind.Getter) {
+      return LibraryIndex.getterPrefix + extensionMember.name.text;
+    }
+    if (extensionMember.kind == ExtensionMemberKind.Setter) {
+      return LibraryIndex.setterPrefix + extensionMember.name.text;
+    }
+    return extensionMember.name.text;
   }
 
   void addExtensionMember(ExtensionMemberDescriptor extensionMember) {
-    final replacement = extensionMember.member.node;
+    final NamedNode replacement = extensionMember.member.node;
     if (replacement is! Member) return;
     Member member = replacement;
     if (member.name.isPrivate && member.name.library != library) {
@@ -256,7 +262,7 @@ class _MemberTable {
       return;
     }
 
-    final name = getDisambiguatedExtensionName(extensionMember);
+    final String name = getDisambiguatedExtensionName(extensionMember);
     _members[name] = replacement;
   }
 
@@ -271,12 +277,12 @@ class _MemberTable {
   }
 
   Member getMember(String name) {
-    var member = members[name];
+    Member member = members[name];
     if (member == null) {
       String message = "A member with disambiguated name '$name' was not found "
           "in $containerName";
-      var getter = LibraryIndex.getterPrefix + name;
-      var setter = LibraryIndex.setterPrefix + name;
+      String getter = LibraryIndex.getterPrefix + name;
+      String setter = LibraryIndex.setterPrefix + name;
       if (members[getter] != null || members[setter] != null) {
         throw "$message. Did you mean '$getter' or '$setter'?";
       }

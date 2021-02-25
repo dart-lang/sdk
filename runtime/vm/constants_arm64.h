@@ -16,6 +16,20 @@
 
 namespace dart {
 
+// LR register should not be used directly in handwritten assembly patterns,
+// because it might contain return address. Instead use macross CLOBBERS_LR,
+// SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER,
+// RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR, SPILLS_LR_TO_FRAME,
+// RESTORES_LR_FROM_FRAME, READS_RETURN_ADDRESS_FROM_LR,
+// WRITES_RETURN_ADDRESS_TO_LR to get access to LR constant in a checked way.
+//
+// To prevent accidental use of LR constant we rename it to
+// LR_DO_NOT_USE_DIRECTLY (while keeping the code in this file and other files
+// which are permitted to access LR constant the same by defining LR as
+// LR_DO_NOT_USE_DIRECTLY). You can also use LINK_REGISTER if you need
+// to compare LR register code.
+#define LR LR_DO_NOT_USE_DIRECTLY
+
 enum Register {
   R0 = 0,
   R1 = 1,
@@ -51,6 +65,7 @@ enum Register {
   R31 = 31,  // ZR, CSP
   kNumberOfCpuRegisters = 32,
   kNoRegister = -1,
+  kNoRegister2 = -2,
 
   // These registers both use the encoding R31, but to avoid mistakes we give
   // them different values, and then translate before encoding.
@@ -62,7 +77,7 @@ enum Register {
   IP1 = R17,
   SP = R15,
   FP = R29,
-  LR = R30,
+  LR = R30,  // Note: direct access to this constant is not allowed. See above.
 };
 
 enum VRegister {
@@ -122,7 +137,6 @@ const Register DISPATCH_TABLE_REG = R21;  // Dispatch table register.
 const Register CODE_REG = R24;
 const Register FPREG = FP;          // Frame pointer register.
 const Register SPREG = R15;         // Stack pointer register.
-const Register LRREG = LR;          // Link register.
 const Register ARGS_DESC_REG = R4;  // Arguments descriptor register.
 const Register THR = R26;           // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = R19;
@@ -142,6 +156,11 @@ const Register kWriteBarrierSlotReg = R25;
 // ABI for allocation stubs.
 const Register kAllocationStubTypeArgumentsReg = R1;
 
+// Common ABI for shared slow path stubs.
+struct SharedSlowPathStubABI {
+  static const Register kResultReg = R0;
+};
+
 // ABI for instantiation stubs.
 struct InstantiationABI {
   static const Register kUninstantiatedTypeArgumentsReg = R3;
@@ -149,6 +168,31 @@ struct InstantiationABI {
   static const Register kFunctionTypeArgumentsReg = R1;
   static const Register kResultTypeArgumentsReg = R0;
   static const Register kResultTypeReg = R0;
+};
+
+// Registers in addition to those listed in TypeTestABI used inside the
+// implementation of type testing stubs that are _not_ preserved.
+struct TTSInternalRegs {
+  static const Register kInstanceTypeArgumentsReg = R7;
+  static const Register kScratchReg = R9;
+
+  static const intptr_t kInternalRegisters =
+      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
+};
+
+// Registers in addition to those listed in TypeTestABI used inside the
+// implementation of subtype test cache stubs that are _not_ preserved.
+struct STCInternalRegs {
+  static const Register kInstanceCidOrFunctionReg = R6;
+  static const Register kInstanceInstantiatorTypeArgumentsReg = R5;
+  static const Register kInstanceParentFunctionTypeArgumentsReg = R9;
+  static const Register kInstanceDelayedFunctionTypeArgumentsReg = R10;
+
+  static const intptr_t kInternalRegisters =
+      (1 << kInstanceCidOrFunctionReg) |
+      (1 << kInstanceInstantiatorTypeArgumentsReg) |
+      (1 << kInstanceParentFunctionTypeArgumentsReg) |
+      (1 << kInstanceDelayedFunctionTypeArgumentsReg);
 };
 
 // Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.
@@ -160,22 +204,44 @@ struct TypeTestABI {
   static const Register kSubtypeTestCacheReg = R3;
   static const Register kScratchReg = R4;
 
-  static const intptr_t kAbiRegisters =
-      (1 << kInstanceReg) | (1 << kDstTypeReg) |
-      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
-      (1 << kSubtypeTestCacheReg) | (1 << kScratchReg);
+  // For calls to InstanceOfStub.
+  static const Register kInstanceOfResultReg = kInstanceReg;
+  // For calls to SubtypeNTestCacheStub. Must not overlap with any other
+  // registers above, for it is also used internally as kNullReg in those stubs.
+  static const Register kSubtypeTestCacheResultReg = R7;
 
-  // For call to InstanceOfStub.
-  static const Register kResultReg = R0;
+  // Registers that need saving across SubtypeTestCacheStub calls.
+  static const intptr_t kSubtypeTestCacheStubCallerSavedRegisters =
+      1 << kSubtypeTestCacheReg;
+
+  static const intptr_t kPreservedAbiRegisters =
+      (1 << kInstanceReg) | (1 << kDstTypeReg) |
+      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg);
+
+  static const intptr_t kNonPreservedAbiRegisters =
+      TTSInternalRegs::kInternalRegisters |
+      STCInternalRegs::kInternalRegisters | (1 << kSubtypeTestCacheReg) |
+      (1 << kScratchReg) | (1 << kSubtypeTestCacheResultReg) | (1 << CODE_REG);
+
+  static const intptr_t kAbiRegisters =
+      kPreservedAbiRegisters | kNonPreservedAbiRegisters;
 };
 
-// Registers used inside the implementation of type testing stubs.
-struct TTSInternalRegs {
-  static const Register kInstanceTypeArgumentsReg = R7;
-  static const Register kScratchReg = R9;
+// Calling convention when calling AssertSubtypeStub.
+struct AssertSubtypeABI {
+  static const Register kSubTypeReg = R0;
+  static const Register kSuperTypeReg = R8;
+  static const Register kInstantiatorTypeArgumentsReg = R2;
+  static const Register kFunctionTypeArgumentsReg = R1;
+  static const Register kDstNameReg = R3;
 
-  static const intptr_t kInternalRegisters =
-      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
+  static const intptr_t kAbiRegisters =
+      (1 << kSubTypeReg) | (1 << kSuperTypeReg) |
+      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
+      (1 << kDstNameReg);
+
+  // No result register, as AssertSubtype is only run for side effect
+  // (throws if the subtype check fails).
 };
 
 // ABI for InitStaticFieldStub.
@@ -196,6 +262,11 @@ struct InitLateInstanceFieldInternalRegs {
   static const Register kFunctionReg = R0;
   static const Register kAddressReg = R3;
   static const Register kScratchReg = R4;
+};
+
+// ABI for LateInitializationError stubs.
+struct LateInitializationErrorABI {
+  static const Register kFieldReg = R9;
 };
 
 // ABI for ThrowStub.
@@ -226,6 +297,12 @@ struct AllocateMintABI {
   static const Register kTempReg = R1;
 };
 
+// ABI for Allocate<TypedData>ArrayStub.
+struct AllocateTypedDataArrayABI {
+  static const Register kLengthReg = R4;
+  static const Register kResultReg = R0;
+};
+
 // TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
 // of reusing the constants of the instantiation stubs ABI.
 
@@ -248,6 +325,8 @@ const RegList kAllCpuRegistersList = 0xFFFFFFFF;
 const RegList kAbiArgumentCpuRegs =
     R(R0) | R(R1) | R(R2) | R(R3) | R(R4) | R(R5) | R(R6) | R(R7);
 #if defined(TARGET_OS_FUCHSIA)
+// We rely on R18 not bying touched by Dart generated assembly or stubs at all.
+// We rely on that any calls into C++ also preserve R18.
 const RegList kAbiPreservedCpuRegs = R(R18) | R(R19) | R(R20) | R(R21) |
                                      R(R22) | R(R23) | R(R24) | R(R25) |
                                      R(R26) | R(R27) | R(R28);
@@ -302,6 +381,11 @@ class CallingConventions {
   static const intptr_t kArgumentRegisters = kAbiArgumentCpuRegs;
   static const Register ArgumentRegisters[];
   static const intptr_t kNumArgRegs = 8;
+  // The native ABI uses R8 to pass the pointer to the memory preallocated for
+  // struct return values. Arm64 is the only ABI in which this pointer is _not_
+  // in ArgumentRegisters[0] or on the stack.
+  static const Register kPointerToReturnStructRegisterCall = R8;
+  static const Register kPointerToReturnStructRegisterReturn = R8;
 
   static const FpuRegister FpuArgumentRegisters[];
   static const intptr_t kFpuArgumentRegisters =
@@ -318,6 +402,9 @@ class CallingConventions {
 
   // How stack arguments are aligned.
 #if defined(TARGET_OS_MACOS_IOS)
+  // > Function arguments may consume slots on the stack that are not multiples
+  // > of 8 bytes.
+  // https://developer.apple.com/documentation/xcode/writing_arm64_code_for_apple_platforms
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToValueSize;
 #else
@@ -343,10 +430,14 @@ class CallingConventions {
   static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = V0;
 
-  static constexpr Register kFirstCalleeSavedCpuReg = kAbiFirstPreservedCpuReg;
-  static constexpr Register kFirstNonArgumentRegister = R8;
-  static constexpr Register kSecondNonArgumentRegister = R9;
+  static constexpr Register kFfiAnyNonAbiRegister = R19;
+  static constexpr Register kFirstNonArgumentRegister = R9;
+  static constexpr Register kSecondNonArgumentRegister = R10;
   static constexpr Register kStackPointerRegister = SPREG;
+
+  COMPILE_ASSERT(
+      ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &
+       (kArgumentRegisters | R(kPointerToReturnStructRegisterCall))) == 0);
 };
 
 #undef R
@@ -445,64 +536,6 @@ enum Bits {
   B30 = (1 << 30),
   B31 = (1 << 31),
 };
-
-enum OperandSize {
-  kByte,
-  kUnsignedByte,
-  kHalfword,
-  kUnsignedHalfword,
-  kWord,
-  kUnsignedWord,
-  kDoubleWord,
-  kSWord,
-  kDWord,
-  kQWord,
-};
-
-static inline int Log2OperandSizeBytes(OperandSize os) {
-  switch (os) {
-    case kByte:
-    case kUnsignedByte:
-      return 0;
-    case kHalfword:
-    case kUnsignedHalfword:
-      return 1;
-    case kWord:
-    case kUnsignedWord:
-    case kSWord:
-      return 2;
-    case kDoubleWord:
-    case kDWord:
-      return 3;
-    case kQWord:
-      return 4;
-    default:
-      UNREACHABLE();
-      break;
-  }
-  return -1;
-}
-
-static inline bool IsSignedOperand(OperandSize os) {
-  switch (os) {
-    case kByte:
-    case kHalfword:
-    case kWord:
-      return true;
-    case kUnsignedByte:
-    case kUnsignedHalfword:
-    case kUnsignedWord:
-    case kDoubleWord:
-    case kSWord:
-    case kDWord:
-    case kQWord:
-      return false;
-    default:
-      UNREACHABLE();
-      break;
-  }
-  return false;
-}
 
 // Opcodes from C3
 // C3.1.
@@ -1054,6 +1087,24 @@ static inline uint64_t RepeatBitsAcrossReg(uint8_t reg_size,
   return result;
 }
 
+enum ScaleFactor {
+  TIMES_1 = 0,
+  TIMES_2 = 1,
+  TIMES_4 = 2,
+  TIMES_8 = 3,
+  TIMES_16 = 4,
+// We can't include vm/compiler/runtime_api.h, so just be explicit instead
+// of using (dart::)kWordSizeLog2.
+#if defined(TARGET_ARCH_IS_64_BIT)
+  // Used for Smi-boxed indices.
+  TIMES_HALF_WORD_SIZE = kInt64SizeLog2 - 1,
+  // Used for unboxed indices.
+  TIMES_WORD_SIZE = kInt64SizeLog2,
+#else
+#error "Unexpected word size"
+#endif
+};
+
 // The class Instr enables access to individual fields defined in the ARM
 // architecture instruction set encoding as described in figure A3-1.
 //
@@ -1068,6 +1119,8 @@ static inline uint64_t RepeatBitsAcrossReg(uint8_t reg_size,
 class Instr {
  public:
   enum { kInstrSize = 4, kInstrSizeLog2 = 2, kPCReadOffset = 8 };
+
+  enum class WideSize { k32Bits, k64Bits };
 
   static const int32_t kNopInstruction = HINT;  // hint #0 === nop.
 
@@ -1112,10 +1165,9 @@ class Instr {
                               Register rd,
                               uint16_t imm,
                               int hw,
-                              OperandSize sz) {
+                              WideSize sz) {
     ASSERT((hw >= 0) && (hw <= 3));
-    ASSERT((sz == kDoubleWord) || (sz == kWord));
-    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
+    const int32_t size = (sz == WideSize::k64Bits) ? B31 : 0;
     SetInstructionBits(op | size | (static_cast<int32_t>(rd) << kRdShift) |
                        (static_cast<int32_t>(hw) << kHWShift) |
                        (static_cast<int32_t>(imm) << kImm16Shift));
@@ -1355,7 +1407,25 @@ class Instr {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
 
-const uword kBreakInstructionFiller = 0xD4200000D4200000L;  // brk #0; brk #0
+const uint64_t kBreakInstructionFiller = 0xD4200000D4200000L;  // brk #0; brk #0
+
+struct LinkRegister {};
+
+constexpr bool operator==(Register r, LinkRegister) {
+  return r == LR;
+}
+
+constexpr bool operator!=(Register r, LinkRegister lr) {
+  return !(r == lr);
+}
+
+inline Register ConcreteRegister(LinkRegister) {
+  return LR;
+}
+
+#undef LR
+
+#define LINK_REGISTER (LinkRegister())
 
 }  // namespace dart
 

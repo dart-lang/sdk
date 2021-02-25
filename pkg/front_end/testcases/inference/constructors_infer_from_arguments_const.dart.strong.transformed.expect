@@ -26,3 +26,9 @@ constants  {
   #C1 = 42
   #C2 = self::C<core::int*> {t:#C1}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///constructors_infer_from_arguments_const.dart:
+- C. (from org-dartlang-testcase:///constructors_infer_from_arguments_const.dart:10:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

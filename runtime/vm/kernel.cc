@@ -7,7 +7,6 @@
 #include "vm/kernel.h"
 
 #include "vm/bit_vector.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/jit/compiler.h"
@@ -36,7 +35,16 @@ KernelLineStartsReader::KernelLineStartsReader(
   }
 }
 
-void KernelLineStartsReader::LocationForPosition(intptr_t position,
+int32_t KernelLineStartsReader::MaxPosition() const {
+  const intptr_t line_count = line_starts_data_.Length();
+  intptr_t current_start = 0;
+  for (intptr_t i = 0; i < line_count; i++) {
+    current_start += helper_->At(line_starts_data_, i);
+  }
+  return current_start;
+}
+
+bool KernelLineStartsReader::LocationForPosition(intptr_t position,
                                                  intptr_t* line,
                                                  intptr_t* col) const {
   intptr_t line_count = line_starts_data_.Length();
@@ -46,46 +54,43 @@ void KernelLineStartsReader::LocationForPosition(intptr_t position,
     current_start += helper_->At(line_starts_data_, i);
     if (current_start > position) {
       *line = i;
-      if (col != NULL) {
+      if (col != nullptr) {
         *col = position - previous_start + 1;
       }
-      return;
+      return true;
     }
     if (current_start == position) {
       *line = i + 1;
-      if (col != NULL) {
+      if (col != nullptr) {
         *col = 1;
       }
-      return;
+      return true;
     }
     previous_start = current_start;
   }
 
-  // If the start of any of the lines did not cross |position|,
-  // then it means the position falls on the last line.
-  *line = line_count;
-  if (col != NULL) {
-    *col = position - current_start + 1;
-  }
+  return false;
 }
 
-void KernelLineStartsReader::TokenRangeAtLine(
-    intptr_t source_length,
+bool KernelLineStartsReader::TokenRangeAtLine(
     intptr_t line_number,
     TokenPosition* first_token_index,
     TokenPosition* last_token_index) const {
-  ASSERT(line_number <= line_starts_data_.Length());
+  if (line_number < 0 || line_number > line_starts_data_.Length()) {
+    return false;
+  }
   intptr_t cumulative = 0;
   for (intptr_t i = 0; i < line_number; ++i) {
     cumulative += helper_->At(line_starts_data_, i);
   }
-  *first_token_index = dart::TokenPosition(cumulative);
+  *first_token_index = dart::TokenPosition::Deserialize(cumulative);
   if (line_number == line_starts_data_.Length()) {
-    *last_token_index = dart::TokenPosition(source_length);
+    *last_token_index = *first_token_index;
   } else {
-    *last_token_index = dart::TokenPosition(
+    *last_token_index = dart::TokenPosition::Deserialize(
         cumulative + helper_->At(line_starts_data_, line_number) - 1);
   }
+  return true;
 }
 
 int32_t KernelLineStartsReader::KernelInt8LineStartsHelper::At(
@@ -169,7 +174,7 @@ void KernelTokenPositionCollector::CollectTokenPositions(
 void KernelTokenPositionCollector::RecordTokenPosition(TokenPosition position) {
   if (record_for_script_id_ == current_script_id_ &&
       record_token_positions_into_ != NULL && position.IsReal()) {
-    record_token_positions_into_->Add(position.value());
+    record_token_positions_into_->Add(position.Serialize());
   }
 }
 
@@ -188,7 +193,7 @@ static int LowestFirst(const intptr_t* a, const intptr_t* b) {
 static ArrayPtr AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
   intptr_t size = source->length();
   if (size == 0) {
-    return Object::empty_array().raw();
+    return Object::empty_array().ptr();
   }
 
   source->Sort(LowestFirst);
@@ -206,7 +211,7 @@ static ArrayPtr AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
     smi_value = Smi::New(source->At(i));
     array_object.SetAt(i, smi_value);
   }
-  return array_object.raw();
+  return array_object.ptr();
 }
 
 static void CollectKernelDataTokenPositions(
@@ -230,71 +235,6 @@ static void CollectKernelDataTokenPositions(
   token_position_collector.CollectTokenPositions(kernel_offset);
 }
 
-static void CollectTokenPosition(TokenPosition position,
-                                 GrowableArray<intptr_t>* token_positions) {
-  if (position.IsReal()) {
-    token_positions->Add(position.value());
-  }
-}
-
-static void CollectBytecodeSourceTokenPositions(
-    const Bytecode& bytecode,
-    Zone* zone,
-    GrowableArray<intptr_t>* token_positions) {
-  BytecodeSourcePositionsIterator iter(zone, bytecode);
-  while (iter.MoveNext()) {
-    CollectTokenPosition(iter.TokenPos(), token_positions);
-  }
-}
-
-static void CollectBytecodeFunctionTokenPositions(
-    const Function& function,
-    GrowableArray<intptr_t>* token_positions) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  ASSERT(function.is_declared_in_bytecode());
-  CollectTokenPosition(function.token_pos(), token_positions);
-  CollectTokenPosition(function.end_token_pos(), token_positions);
-  if (!function.HasBytecode()) {
-    const Object& result = Object::Handle(
-        zone, BytecodeReader::ReadFunctionBytecode(thread, function));
-    if (!result.IsNull()) {
-      Exceptions::PropagateError(Error::Cast(result));
-    }
-  }
-  Bytecode& bytecode = Bytecode::Handle(zone, function.bytecode());
-  if (bytecode.IsNull()) {
-    return;
-  }
-  if (bytecode.HasSourcePositions() && !function.IsLocalFunction()) {
-    CollectBytecodeSourceTokenPositions(bytecode, zone, token_positions);
-    // Find closure functions in the object pool.
-    const ObjectPool& pool = ObjectPool::Handle(zone, bytecode.object_pool());
-    Object& object = Object::Handle(zone);
-    Function& closure = Function::Handle(zone);
-    for (intptr_t i = 0; i < pool.Length(); i++) {
-      ObjectPool::EntryType entry_type = pool.TypeAt(i);
-      if (entry_type != ObjectPool::EntryType::kTaggedObject) {
-        continue;
-      }
-      object = pool.ObjectAt(i);
-      if (object.IsFunction()) {
-        closure ^= object.raw();
-        if (closure.kind() == FunctionLayout::kClosureFunction &&
-            closure.IsLocalFunction()) {
-          CollectTokenPosition(closure.token_pos(), token_positions);
-          CollectTokenPosition(closure.end_token_pos(), token_positions);
-          bytecode = closure.bytecode();
-          ASSERT(!bytecode.IsNull());
-          ASSERT(bytecode.function() != Function::null());
-          ASSERT(bytecode.HasSourcePositions());
-          CollectBytecodeSourceTokenPositions(bytecode, zone, token_positions);
-        }
-      }
-    }
-  }
-}
-
 void CollectTokenPositionsFor(const Script& interesting_script) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -304,9 +244,9 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
 
   GrowableArray<intptr_t> token_positions(10);
 
-  Isolate* isolate = thread->isolate();
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
+  auto isolate_group = thread->isolate_group();
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      zone, isolate_group->object_store()->libraries());
   Library& lib = Library::Handle(zone);
   Object& entry = Object::Handle(zone);
   Script& entry_script = Script::Handle(zone);
@@ -324,73 +264,45 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
       data = ExternalTypedData::null();
       if (entry.IsClass()) {
         const Class& klass = Class::Cast(entry);
-        if (klass.script() == interesting_script.raw()) {
-          token_positions.Add(klass.token_pos().value());
-          token_positions.Add(klass.end_token_pos().value());
-        }
-        // If class is declared in bytecode, its members should be loaded
-        // (via class finalization) before their token positions could be
-        // collected.
-        if (klass.is_declared_in_bytecode() && !klass.is_finalized()) {
-          const Error& error =
-              Error::Handle(zone, klass.EnsureIsFinalized(thread));
-          if (!error.IsNull()) {
-            Exceptions::PropagateError(error);
-          }
+        if (klass.script() == interesting_script.ptr()) {
+          token_positions.Add(klass.token_pos().Serialize());
+          token_positions.Add(klass.end_token_pos().Serialize());
         }
         if (klass.is_finalized()) {
           temp_array = klass.fields();
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
             temp_field ^= temp_array.At(i);
-            if (!temp_field.is_declared_in_bytecode() &&
-                temp_field.kernel_offset() <= 0) {
+            if (temp_field.kernel_offset() <= 0) {
               // Skip artificially injected fields.
               continue;
             }
             entry_script = temp_field.Script();
-            if (entry_script.raw() != interesting_script.raw()) {
+            if (entry_script.ptr() != interesting_script.ptr()) {
               continue;
             }
-            if (temp_field.is_declared_in_bytecode()) {
-              token_positions.Add(temp_field.token_pos().value());
-              token_positions.Add(temp_field.end_token_pos().value());
-              if (temp_field.is_static() &&
-                  temp_field.has_nontrivial_initializer()) {
-                temp_function = temp_field.EnsureInitializerFunction();
-                CollectBytecodeFunctionTokenPositions(temp_function,
-                                                      &token_positions);
-              }
-            } else {
-              data = temp_field.KernelData();
-              CollectKernelDataTokenPositions(
-                  data, interesting_script, entry_script,
-                  temp_field.kernel_offset(),
-                  temp_field.KernelDataProgramOffset(), zone, &helper,
-                  &token_positions);
-            }
+            data = temp_field.KernelData();
+            CollectKernelDataTokenPositions(
+                data, interesting_script, entry_script,
+                temp_field.kernel_offset(),
+                temp_field.KernelDataProgramOffset(), zone, &helper,
+                &token_positions);
           }
-          temp_array = klass.functions();
+          temp_array = klass.current_functions();
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
             temp_function ^= temp_array.At(i);
             entry_script = temp_function.script();
-            if (entry_script.raw() != interesting_script.raw()) {
+            if (entry_script.ptr() != interesting_script.ptr()) {
               continue;
             }
-            if (temp_function.is_declared_in_bytecode()) {
-              CollectBytecodeFunctionTokenPositions(temp_function,
-                                                    &token_positions);
-            } else {
-              data = temp_function.KernelData();
-              CollectKernelDataTokenPositions(
-                  data, interesting_script, entry_script,
-                  temp_function.kernel_offset(),
-                  temp_function.KernelDataProgramOffset(), zone, &helper,
-                  &token_positions);
-            }
+            data = temp_function.KernelData();
+            CollectKernelDataTokenPositions(
+                data, interesting_script, entry_script,
+                temp_function.kernel_offset(),
+                temp_function.KernelDataProgramOffset(), zone, &helper,
+                &token_positions);
           }
         } else {
           // Class isn't finalized yet: read the data attached to it.
-          ASSERT(!klass.is_declared_in_bytecode());
           ASSERT(klass.kernel_offset() > 0);
           data = lib.kernel_data();
           ASSERT(!data.IsNull());
@@ -399,7 +311,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           const intptr_t class_offset = klass.kernel_offset();
 
           entry_script = klass.script();
-          if (entry_script.raw() != interesting_script.raw()) {
+          if (entry_script.ptr() != interesting_script.ptr()) {
             continue;
           }
           CollectKernelDataTokenPositions(
@@ -407,54 +319,100 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
               library_kernel_offset, zone, &helper, &token_positions);
         }
       } else if (entry.IsFunction()) {
-        temp_function ^= entry.raw();
+        temp_function ^= entry.ptr();
         entry_script = temp_function.script();
-        if (entry_script.raw() != interesting_script.raw()) {
+        if (entry_script.ptr() != interesting_script.ptr()) {
           continue;
         }
-        if (temp_function.is_declared_in_bytecode()) {
-          CollectBytecodeFunctionTokenPositions(temp_function,
-                                                &token_positions);
-        } else {
-          data = temp_function.KernelData();
-          CollectKernelDataTokenPositions(
-              data, interesting_script, entry_script,
-              temp_function.kernel_offset(),
-              temp_function.KernelDataProgramOffset(), zone, &helper,
-              &token_positions);
-        }
+        data = temp_function.KernelData();
+        CollectKernelDataTokenPositions(data, interesting_script, entry_script,
+                                        temp_function.kernel_offset(),
+                                        temp_function.KernelDataProgramOffset(),
+                                        zone, &helper, &token_positions);
       } else if (entry.IsField()) {
         const Field& field = Field::Cast(entry);
-        if (!field.is_declared_in_bytecode() && field.kernel_offset() <= 0) {
+        if (field.kernel_offset() <= 0) {
           // Skip artificially injected fields.
           continue;
         }
         entry_script = field.Script();
-        if (entry_script.raw() != interesting_script.raw()) {
+        if (entry_script.ptr() != interesting_script.ptr()) {
           continue;
         }
-        if (field.is_declared_in_bytecode()) {
-          token_positions.Add(field.token_pos().value());
-          token_positions.Add(field.end_token_pos().value());
-          if (field.is_static() && field.has_nontrivial_initializer()) {
-            temp_function = field.EnsureInitializerFunction();
-            CollectBytecodeFunctionTokenPositions(temp_function,
-                                                  &token_positions);
-          }
-        } else {
-          data = field.KernelData();
-          CollectKernelDataTokenPositions(
-              data, interesting_script, entry_script, field.kernel_offset(),
-              field.KernelDataProgramOffset(), zone, &helper, &token_positions);
-        }
+        data = field.KernelData();
+        CollectKernelDataTokenPositions(
+            data, interesting_script, entry_script, field.kernel_offset(),
+            field.KernelDataProgramOffset(), zone, &helper, &token_positions);
       }
     }
   }
 
-  Script& script = Script::Handle(zone, interesting_script.raw());
+  Script& script = Script::Handle(zone, interesting_script.ptr());
   Array& array_object = Array::Handle(zone);
   array_object = AsSortedDuplicateFreeArray(&token_positions);
   script.set_debug_positions(array_object);
+}
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+ArrayPtr CollectConstConstructorCoverageFrom(const Script& interesting_script) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  interesting_script.LookupSourceAndLineStarts(zone);
+  TranslationHelper helper(thread);
+  helper.InitFromScript(interesting_script);
+
+  ExternalTypedData& data =
+      ExternalTypedData::Handle(zone, interesting_script.constant_coverage());
+
+  KernelReaderHelper kernel_reader(zone, &helper, interesting_script, data, 0);
+
+  // Read "constant coverage constructors".
+  const intptr_t constant_coverage_constructors = kernel_reader.ReadUInt();
+  const Array& constructors =
+      Array::Handle(Array::New(constant_coverage_constructors));
+  for (intptr_t i = 0; i < constant_coverage_constructors; ++i) {
+    NameIndex kernel_name = kernel_reader.ReadCanonicalNameReference();
+    Class& klass = Class::ZoneHandle(
+        zone,
+        helper.LookupClassByKernelClass(helper.EnclosingName(kernel_name)));
+    const Function& target = Function::ZoneHandle(
+        zone, helper.LookupConstructorByKernelConstructor(klass, kernel_name));
+    constructors.SetAt(i, target);
+  }
+  return constructors.ptr();
+}
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field) {
+  ASSERT(field.is_static() && field.is_const());
+
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    TranslationHelper helper(thread);
+    Script& script = Script::Handle(zone, field.Script());
+    helper.InitFromScript(script);
+
+    const Class& owner_class = Class::Handle(zone, field.Owner());
+    ActiveClass active_class;
+    ActiveClassScope active_class_scope(&active_class, &owner_class);
+
+    KernelReaderHelper kernel_reader(
+        zone, &helper, script,
+        ExternalTypedData::Handle(zone, field.KernelData()),
+        field.KernelDataProgramOffset());
+    kernel_reader.SetOffset(field.kernel_offset());
+    ConstantReader constant_reader(&kernel_reader, &active_class);
+
+    FieldHelper field_helper(&kernel_reader);
+    field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
+    ASSERT(field_helper.IsConst());
+
+    return constant_reader.ReadConstantInitializer();
+  } else {
+    return Thread::Current()->StealStickyError();
+  }
 }
 
 class MetadataEvaluator : public KernelReaderHelper {
@@ -508,26 +466,28 @@ class MetadataEvaluator : public KernelReaderHelper {
   DISALLOW_COPY_AND_ASSIGN(MetadataEvaluator);
 };
 
-ObjectPtr EvaluateMetadata(const Field& metadata_field,
+ObjectPtr EvaluateMetadata(const Library& library,
+                           intptr_t kernel_offset,
                            bool is_annotations_offset) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
     TranslationHelper helper(thread);
-    Script& script = Script::Handle(zone, metadata_field.Script());
+    Script& script = Script::Handle(
+        zone, Class::Handle(zone, library.toplevel_class()).script());
     helper.InitFromScript(script);
 
-    const Class& owner_class = Class::Handle(zone, metadata_field.Owner());
+    const Class& owner_class = Class::Handle(zone, library.toplevel_class());
     ActiveClass active_class;
     ActiveClassScope active_class_scope(&active_class, &owner_class);
 
     MetadataEvaluator metadata_evaluator(
         zone, &helper, script,
-        ExternalTypedData::Handle(zone, metadata_field.KernelData()),
-        metadata_field.KernelDataProgramOffset(), &active_class);
+        ExternalTypedData::Handle(zone, library.kernel_data()),
+        library.kernel_offset(), &active_class);
 
-    return metadata_evaluator.EvaluateMetadata(metadata_field.kernel_offset(),
+    return metadata_evaluator.EvaluateMetadata(kernel_offset,
                                                is_annotations_offset);
 
   } else {
@@ -615,7 +575,7 @@ ObjectPtr ParameterDescriptorBuilder::BuildParameterDescriptor(
                              Object::null_instance());
     }
   }
-  return param_descriptor.raw();
+  return param_descriptor.ptr();
 }
 
 ObjectPtr BuildParameterDescriptor(const Function& function) {
@@ -626,15 +586,6 @@ ObjectPtr BuildParameterDescriptor(const Function& function) {
     TranslationHelper helper(thread);
     Script& script = Script::Handle(zone, function.script());
     helper.InitFromScript(script);
-
-    if (function.is_declared_in_bytecode()) {
-      BytecodeComponentData bytecode_component(
-          &Array::Handle(zone, helper.GetBytecodeComponent()));
-      ActiveClass active_class;
-      BytecodeReaderHelper bytecode_reader_helper(&helper, &active_class,
-                                                  &bytecode_component);
-      return bytecode_reader_helper.BuildParameterDescriptor(function);
-    }
 
     const Class& owner_class = Class::Handle(zone, function.Owner());
     ActiveClass active_class;
@@ -664,14 +615,6 @@ void ReadParameterCovariance(const Function& function,
   const auto& script = Script::Handle(zone, function.script());
   TranslationHelper translation_helper(thread);
   translation_helper.InitFromScript(script);
-
-  if (function.is_declared_in_bytecode()) {
-    BytecodeReaderHelper bytecode_reader_helper(&translation_helper, nullptr,
-                                                nullptr);
-    bytecode_reader_helper.ReadParameterCovariance(function, is_covariant,
-                                                   is_generic_covariant_impl);
-    return;
-  }
 
   KernelReaderHelper reader_helper(
       zone, &translation_helper, script,
@@ -809,55 +752,8 @@ static ProcedureAttributesMetadata ProcedureAttributesOf(
   return attrs;
 }
 
-static void BytecodeProcedureAttributesError(const Object& function_or_field,
-                                             const Object& value) {
-  FATAL3("Unexpected value of %s bytecode attribute on %s: %s",
-         Symbols::vm_procedure_attributes_metadata().ToCString(),
-         function_or_field.ToCString(), value.ToCString());
-}
-
-static ProcedureAttributesMetadata ProcedureAttributesFromBytecodeAttribute(
-    Zone* zone,
-    const Object& function_or_field) {
-  ProcedureAttributesMetadata attrs;
-  const Object& value = Object::Handle(
-      zone,
-      BytecodeReader::GetBytecodeAttribute(
-          function_or_field, Symbols::vm_procedure_attributes_metadata()));
-  if (!value.IsNull()) {
-    const intptr_t kBytecodeAttributeLength = 3;
-    int32_t elements[kBytecodeAttributeLength];
-    if (!value.IsArray()) {
-      BytecodeProcedureAttributesError(function_or_field, value);
-    }
-    const Array& array = Array::Cast(value);
-    if (array.Length() != kBytecodeAttributeLength) {
-      BytecodeProcedureAttributesError(function_or_field, value);
-    }
-    Object& element = Object::Handle(zone);
-    for (intptr_t i = 0; i < kBytecodeAttributeLength; i++) {
-      element = array.At(i);
-      if (!element.IsSmi()) {
-        BytecodeProcedureAttributesError(function_or_field, value);
-      }
-      elements[i] = Smi::Cast(element).Value();
-    }
-    attrs.InitializeFromFlags(elements[0]);
-    attrs.method_or_setter_selector_id = elements[1];
-    attrs.getter_selector_id = elements[2];
-  }
-  return attrs;
-}
-
 ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
                                                   Zone* zone) {
-  if (function.is_declared_in_bytecode()) {
-    if (function.IsImplicitGetterOrSetter()) {
-      const Field& field = Field::Handle(zone, function.accessor_field());
-      return ProcedureAttributesFromBytecodeAttribute(zone, field);
-    }
-    return ProcedureAttributesFromBytecodeAttribute(zone, function);
-  }
   const Script& script = Script::Handle(zone, function.script());
   return ProcedureAttributesOf(
       zone, script, ExternalTypedData::Handle(zone, function.KernelData()),
@@ -866,9 +762,6 @@ ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
 
 ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
                                                   Zone* zone) {
-  if (field.is_declared_in_bytecode()) {
-    return ProcedureAttributesFromBytecodeAttribute(zone, field);
-  }
   const Class& parent = Class::Handle(zone, field.Owner());
   const Script& script = Script::Handle(zone, parent.script());
   return ProcedureAttributesOf(

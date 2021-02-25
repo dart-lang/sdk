@@ -167,6 +167,7 @@ class Heap {
 
   // Initialize the heap and register it with the isolate.
   static void Init(IsolateGroup* isolate_group,
+                   bool is_vm_isolate,
                    intptr_t max_new_gen_words,
                    intptr_t max_old_gen_words);
 
@@ -299,12 +300,14 @@ class Heap {
   void PrintMemoryUsageJSON(JSONObject* jsobj) const;
 
   // The heap map contains the sizes and class ids for the objects in each page.
-  void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
-    old_space_.PrintHeapMapToJSONStream(isolate, stream);
+  void PrintHeapMapToJSONStream(IsolateGroup* isolate_group,
+                                JSONStream* stream) {
+    old_space_.PrintHeapMapToJSONStream(isolate_group, stream);
   }
 #endif  // PRODUCT
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
+  bool is_vm_isolate() const { return is_vm_isolate_; }
 
   Monitor* barrier() const { return &barrier_; }
   Monitor* barrier_done() const { return &barrier_done_; }
@@ -319,12 +322,6 @@ class Heap {
   Space SpaceForExternal(intptr_t size) const;
 
   void CollectOnNthAllocation(intptr_t num_allocations);
-
-  void MergeFrom(Heap* donor);
-
-  void SetGCEventCallback(Dart_GCEventCallback callback) {
-    gc_event_callback_ = callback;
-  }
 
  private:
   class GCStats : public ValueObject {
@@ -358,6 +355,7 @@ class Heap {
   };
 
   Heap(IsolateGroup* isolate_group,
+       bool is_vm_isolate,
        intptr_t max_new_gen_semi_words,  // Max capacity of new semi-space.
        intptr_t max_old_gen_words);
 
@@ -395,6 +393,7 @@ class Heap {
   void CollectForDebugging();
 
   IsolateGroup* isolate_group_;
+  bool is_vm_isolate_;
 
   // The different spaces used for allocation.
   Scavenger new_space_;
@@ -422,8 +421,6 @@ class Heap {
   // sensitive codepaths.
   intptr_t gc_on_nth_allocation_;
 
-  Dart_GCEventCallback gc_event_callback_;
-
   friend class Become;       // VisitObjectPointers
   friend class GCCompactor;  // VisitObjectPointers
   friend class Precompiler;  // VisitObjects
@@ -431,7 +428,7 @@ class Heap {
   friend class ServiceEvent;
   friend class Scavenger;             // VerifyGC
   friend class PageSpace;             // VerifyGC
-  friend class IsolateReloadContext;  // VisitObjects
+  friend class ProgramReloadContext;  // VisitObjects
   friend class ClassFinalizer;        // VisitObjects
   friend class HeapIterationScope;    // VisitObjects
   friend class ProgramVisitor;        // VisitObjectsImagePages

@@ -4,35 +4,30 @@
 
 #include "vm/token_position.h"
 
+#include "vm/hash.h"
 #include "vm/object.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
-TokenPosition TokenPosition::SnapshotDecode(int32_t value) {
-  return TokenPosition(static_cast<intptr_t>(value));
+intptr_t TokenPosition::Hash() const {
+  return FinalizeHash(value_, 31);
 }
 
-int32_t TokenPosition::SnapshotEncode() {
+TokenPosition TokenPosition::Deserialize(int32_t value) {
+  return TokenPosition(value);
+}
+
+int32_t TokenPosition::Serialize() const {
   return static_cast<int32_t>(value_);
 }
 
-bool TokenPosition::IsSynthetic() const {
-  if (value_ >= kMinSourcePos) {
-    return false;
-  }
-  if (value_ < kLast.value()) {
-    return true;
-  }
-  return false;
-}
-
 #define DEFINE_VALUES(name, value)                                             \
-  const TokenPosition TokenPosition::k##name = TokenPosition(value);
+  const TokenPosition TokenPosition::k##name(value);
 SENTINEL_TOKEN_DESCRIPTORS(DEFINE_VALUES);
 #undef DEFINE_VALUES
-const TokenPosition TokenPosition::kMinSource = TokenPosition(kMinSourcePos);
-
-const TokenPosition TokenPosition::kMaxSource = TokenPosition(kMaxSourcePos);
+const TokenPosition TokenPosition::kMinSource(kMinSourcePos);
+const TokenPosition TokenPosition::kMaxSource(kMaxSourcePos);
 
 const char* TokenPosition::ToCString() const {
   switch (value_) {
@@ -41,17 +36,16 @@ const char* TokenPosition::ToCString() const {
     return #name;
     SENTINEL_TOKEN_DESCRIPTORS(DEFINE_CASE);
 #undef DEFINE_CASE
-    default: {
-      Zone* zone = Thread::Current()->zone();
-      ASSERT(zone != NULL);
-      if (IsSynthetic()) {
-        // TODO(johnmccutchan): Print synthetic positions differently.
-        return FromSynthetic().ToCString();
-      } else {
-        return OS::SCreate(zone, "%d", value_);
-      }
-    }
+    default:
+      break;
   }
+  ASSERT(IsReal() || IsSynthetic());
+  ZoneTextBuffer buffer(Thread::Current()->zone());
+  if (IsSynthetic()) {
+    buffer.AddString("syn:");
+  }
+  buffer.Printf("%" Pd32 "", value_);
+  return buffer.buffer();
 }
 
 }  // namespace dart

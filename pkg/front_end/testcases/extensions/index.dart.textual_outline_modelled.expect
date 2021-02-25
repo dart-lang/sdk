@@ -1,0 +1,17 @@
+class MapLike<K, V> {
+  V get(Object key) => _map[key];
+  V put(K key, V value) => _map[key] = value;
+  final Map<K, V> _map = {};
+}
+
+expect(expected, actual) {}
+explicitInferredTypeArguments() {}
+explicitWithTypeArguments() {}
+
+extension Extension<K, V> on MapLike<K, V> {
+  V operator [](Object key) => get(key);
+  void operator []=(K key, V value) => put(key, value);
+}
+
+implicit() {}
+main() {}

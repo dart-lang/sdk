@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:async" show Future, Stream;
+// @dart = 2.9
 
 import "dart:convert" show utf8;
 
-import "dart:io" show File;
+import 'dart:io' show File, Platform;
 
 import "dart:typed_data" show Uint8List;
 
@@ -28,7 +28,7 @@ import "package:vm/target/vm.dart" show VmTarget;
 import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show CompilerOptions, InvocationMode;
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag;
@@ -72,18 +72,23 @@ class MessageTestDescription extends TestDescription {
 
 class Configuration {
   final NnbdMode nnbdMode;
+  final Set<InvocationMode> invocationModes;
 
-  const Configuration(this.nnbdMode);
+  const Configuration(this.nnbdMode, this.invocationModes);
 
   CompilerOptions apply(CompilerOptions options) {
     if (nnbdMode != null) {
-      options.experimentalFlags[ExperimentalFlag.nonNullable] = true;
+      options.explicitExperimentalFlags[ExperimentalFlag.nonNullable] = true;
       options.nnbdMode = nnbdMode;
+    } else {
+      options.explicitExperimentalFlags[ExperimentalFlag.nonNullable] = false;
     }
+    options.invocationModes = invocationModes;
     return options;
   }
 
-  static const Configuration defaultConfiguration = const Configuration(null);
+  static const Configuration defaultConfiguration =
+      const Configuration(null, const {});
 }
 
 class MessageTestSuite extends ChainContext {
@@ -97,8 +102,31 @@ class MessageTestSuite extends ChainContext {
   final BatchCompiler compiler;
 
   final bool fastOnly;
+  final bool interactive;
 
-  MessageTestSuite(this.fastOnly)
+  final Set<String> reportedWords = {};
+  final Set<String> reportedWordsDenylisted = {};
+
+  @override
+  Future<void> postRun() {
+    String dartPath = Platform.resolvedExecutable;
+    Uri suiteUri =
+        spell.repoDir.resolve("pkg/front_end/test/fasta/messages_suite.dart");
+    File suiteFile = new File.fromUri(suiteUri).absolute;
+    if (!suiteFile.existsSync()) {
+      throw "Specified suite path is invalid.";
+    }
+    String suitePath = suiteFile.path;
+    spell.spellSummarizeAndInteractiveMode(
+        reportedWords,
+        reportedWordsDenylisted,
+        [spell.Dictionaries.cfeMessages],
+        interactive,
+        '"$dartPath" "$suitePath" -DfastOnly=true -Dinteractive=true');
+    return null;
+  }
+
+  MessageTestSuite(this.fastOnly, this.interactive)
       : fileSystem = new MemoryFileSystem(Uri.parse("org-dartlang-fasta:///")),
         compiler = new BatchCompiler(null);
 
@@ -143,11 +171,11 @@ class MessageTestSuite extends ChainContext {
       Configuration configuration;
 
       Source source;
-      List<String> formatSpellingMistakes(
-          spell.SpellingResult spellResult, int offset, String message) {
+      List<String> formatSpellingMistakes(spell.SpellingResult spellResult,
+          int offset, String message, String messageForDenyListed) {
         if (source == null) {
           List<int> bytes = file.readAsBytesSync();
-          List<int> lineStarts = new List<int>();
+          List<int> lineStarts = <int>[];
           int indexOf = 0;
           while (indexOf >= 0) {
             lineStarts.add(indexOf);
@@ -156,16 +184,24 @@ class MessageTestSuite extends ChainContext {
           lineStarts.add(bytes.length);
           source = new Source(lineStarts, bytes, uri, uri);
         }
-        List<String> result = new List<String>();
+        List<String> result = <String>[];
         for (int i = 0; i < spellResult.misspelledWords.length; i++) {
           Location location = source.getLocation(
               uri, offset + spellResult.misspelledWordsOffset[i]);
+          bool denylisted = spellResult.misspelledWordsDenylisted[i];
+          String messageToUse = message;
+          if (denylisted) {
+            messageToUse = messageForDenyListed;
+            reportedWordsDenylisted.add(spellResult.misspelledWords[i]);
+          } else {
+            reportedWords.add(spellResult.misspelledWords[i]);
+          }
           result.add(command_line_reporting.formatErrorMessage(
               source.getTextLine(location.line),
               location,
               spellResult.misspelledWords[i].length,
               relativize(uri),
-              "$message: '${spellResult.misspelledWords[i]}'."));
+              "$messageToUse: '${spellResult.misspelledWords[i]}'."));
         }
         return result;
       }
@@ -186,11 +222,14 @@ class MessageTestSuite extends ChainContext {
                   spell.Dictionaries.cfeMessages
                 ]);
             if (spellingResult.misspelledWords != null) {
-              spellingMessages ??= new List<String>();
+              spellingMessages ??= <String>[];
               spellingMessages.addAll(formatSpellingMistakes(
                   spellingResult,
                   node.span.start.offset,
-                  "Template likely has the following spelling mistake"));
+                  "Template has the following word that is "
+                      "not in our dictionary",
+                  "Template has the following word that is "
+                      "on our deny-list"));
             }
             break;
 
@@ -202,11 +241,14 @@ class MessageTestSuite extends ChainContext {
                   spell.Dictionaries.cfeMessages
                 ]);
             if (spellingResult.misspelledWords != null) {
-              spellingMessages ??= new List<String>();
+              spellingMessages ??= <String>[];
               spellingMessages.addAll(formatSpellingMistakes(
                   spellingResult,
                   node.span.start.offset,
-                  "Tip likely has the following spelling mistake"));
+                  "Tip has the following word that is "
+                      "not in our dictionary",
+                  "Tip has the following word that is "
+                      "on our deny-list"));
             }
             break;
 
@@ -308,12 +350,25 @@ class MessageTestSuite extends ChainContext {
             break;
 
           case "configuration":
-            if (value == "nnbd-weak") {
-              configuration = const Configuration(NnbdMode.Weak);
-            } else if (value == "nnbd-strong") {
-              configuration = const Configuration(NnbdMode.Strong);
-            } else {
-              throw new ArgumentError("Unknown configuration '$value'.");
+            if (value is String) {
+              NnbdMode nnbdMode;
+              Set<InvocationMode> invocationModes = {};
+              for (String part in value.split(',')) {
+                if (part.isEmpty) continue;
+                if (part == "nnbd-weak") {
+                  nnbdMode = NnbdMode.Weak;
+                } else if (part == "nnbd-strong") {
+                  nnbdMode = NnbdMode.Strong;
+                } else {
+                  InvocationMode invocationMode = InvocationMode.fromName(part);
+                  if (invocationMode != null) {
+                    invocationModes.add(invocationMode);
+                  } else {
+                    throw new ArgumentError("Unknown configuration '$part'.");
+                  }
+                }
+              }
+              configuration = new Configuration(nnbdMode, invocationModes);
             }
             break;
 
@@ -704,7 +759,7 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
 
     List<DiagnosticMessage> unexpectedMessages = <DiagnosticMessage>[];
     if (example.allowMoreCodes) {
-      List<DiagnosticMessage> messagesFiltered = new List<DiagnosticMessage>();
+      List<DiagnosticMessage> messagesFiltered = <DiagnosticMessage>[];
       for (DiagnosticMessage message in messages) {
         if (getMessageCodeObject(message).name == example.expectedCode) {
           messagesFiltered.add(message);
@@ -745,7 +800,8 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
 Future<MessageTestSuite> createContext(
     Chain suite, Map<String, String> environment) async {
   final bool fastOnly = environment["fastOnly"] == "true";
-  return new MessageTestSuite(fastOnly);
+  final bool interactive = environment["interactive"] == "true";
+  return new MessageTestSuite(fastOnly, interactive);
 }
 
 String relativize(Uri uri) {

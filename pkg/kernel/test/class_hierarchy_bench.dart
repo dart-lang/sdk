@@ -2,6 +2,9 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -243,7 +246,7 @@ main(List<String> args) {
     classIds[class_] = classIds.length;
   }
 
-  List<int> depth = new List(classes.length);
+  List<int> depth = new List.filled(classes.length, null);
   for (int i = 0; i < depth.length; ++i) {
     int parentDepth = 0;
     var classNode = classes[i];

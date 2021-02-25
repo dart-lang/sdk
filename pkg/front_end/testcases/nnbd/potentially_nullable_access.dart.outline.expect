@@ -64,29 +64,29 @@ static field core::int topLevelExtensionFunctionTypeExplicitCall;
 static field () → core::int topLevelExtensionFunctionTypeTearOff;
 static field dynamic topLevelExtensionFunctionGetter;
 static field void topLevelExtensionFunctionTypeGetter;
-static method Extension|+(final self::Class #this, core::int value) → core::int
+static method Extension|+(lowered final self::Class #this, core::int value) → core::int
   ;
-static method Extension|unary-(final self::Class #this) → core::int
+static method Extension|unary-(lowered final self::Class #this) → core::int
   ;
-static method Extension|[](final self::Class #this, core::int index) → core::int
+static method Extension|[](lowered final self::Class #this, core::int index) → core::int
   ;
-static method Extension|[]=(final self::Class #this, core::int index, core::int value) → void
+static method Extension|[]=(lowered final self::Class #this, core::int index, core::int value) → void
   ;
-static method Extension|call(final self::Class #this) → core::int
+static method Extension|call(lowered final self::Class #this) → core::int
   ;
-static method Extension|get#call(final self::Class #this) → () → core::int
+static method Extension|get#call(lowered final self::Class #this) → () → core::int
   return () → core::int => self::Extension|call(#this);
-static method Extension|get#extensionProperty(final self::Class #this) → core::int
+static method Extension|get#extensionProperty(lowered final self::Class #this) → core::int
   ;
-static method Extension|set#extensionProperty(final self::Class #this, core::int value) → void
+static method Extension|set#extensionProperty(lowered final self::Class #this, core::int value) → void
   ;
-static method Extension|extensionMethod(final self::Class #this) → core::int
+static method Extension|extensionMethod(lowered final self::Class #this) → core::int
   ;
-static method Extension|get#extensionMethod(final self::Class #this) → () → core::int
+static method Extension|get#extensionMethod(lowered final self::Class #this) → () → core::int
   return () → core::int => self::Extension|extensionMethod(#this);
-static method Extension|get#extensionFunctionGetter(final self::Class #this) → core::Function
+static method Extension|get#extensionFunctionGetter(lowered final self::Class #this) → core::Function
   ;
-static method Extension|get#extensionFunctionTypeGetter(final self::Class #this) → () → void
+static method Extension|get#extensionFunctionTypeGetter(lowered final self::Class #this) → () → void
   ;
 static get nullableFunction() → core::Function?
   ;

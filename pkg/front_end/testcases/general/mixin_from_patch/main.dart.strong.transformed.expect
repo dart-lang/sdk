@@ -1,0 +1,71 @@
+library;
+import self as self;
+import "dart:test" as test;
+
+import "dart:test";
+
+static method main() → dynamic {
+  new test::Class::patched();
+  new test::Class::unpatched();
+  new test::SubClass::patched();
+  new test::SubClass::unpatched();
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/mixin_from_patch/origin_lib.dart:14:12: Error: The superclass, 'Class with Mixin', has no unnamed constructor that takes no arguments.
+//   external SubClass.patched();
+//            ^^^^^^^
+//
+import self as test;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@#C1
+class Class extends core::Object {
+  constructor _internal({core::bool value = #C2}) → test::Class
+    : super core::Object::•()
+    ;
+  @#C1
+  constructor patched() → test::Class
+    : this test::Class::_internal()
+    ;
+  constructor unpatched() → test::Class
+    : super core::Object::•()
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class _SubClass&Class&Mixin extends test::Class implements test::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor patched() → test::_SubClass&Class&Mixin
+    : super test::Class::patched()
+    ;
+  synthetic constructor unpatched() → test::_SubClass&Class&Mixin
+    : super test::Class::unpatched()
+    ;
+  synthetic constructor _internal({core::bool value = #C2}) → test::_SubClass&Class&Mixin
+    : super test::Class::_internal(value: value)
+    ;
+}
+@#C1
+class SubClass extends test::_SubClass&Class&Mixin {
+  constructor _internal() → test::SubClass
+    : super test::_SubClass&Class&Mixin::_internal(value: true)
+    ;
+  @#C1
+  constructor patched() → test::SubClass
+    : this test::SubClass::_internal()
+    ;
+  constructor unpatched() → test::SubClass
+    : super test::_SubClass&Class&Mixin::unpatched()
+    ;
+}
+
+constants  {
+  #C1 = _in::_Patch {}
+  #C2 = false
+}

@@ -35,7 +35,7 @@ namespace dart {
       return Api::NewError("%s expects argument '%s' to be of type %s.",       \
                            CURRENT_FUNC, #param, #type);                       \
     }                                                                          \
-    var ^= tmp.raw();                                                          \
+    var ^= tmp.ptr();                                                          \
   } while (0)
 
 #define CHECK_AND_CAST(type, var, param)                                       \

@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -140,15 +141,20 @@ class LegacyTypeAsserterTest {
 
   CompilationUnit _wrapExpression(Expression e, {bool nonNullable = false}) {
     return AstTestFactory.compilationUnit9(
-        declarations: [
-          AstTestFactory.functionDeclaration(
-              null,
-              null,
-              null,
-              AstTestFactory.functionExpression2(
-                  null, AstTestFactory.expressionFunctionBody(e)))
-        ],
-        featureSet: FeatureSet.forTesting(
-            additionalFeatures: nonNullable ? [Feature.non_nullable] : []));
+      declarations: [
+        AstTestFactory.functionDeclaration(
+            null,
+            null,
+            null,
+            AstTestFactory.functionExpression2(
+                null, AstTestFactory.expressionFunctionBody(e)))
+      ],
+      featureSet: nonNullable
+          ? FeatureSet.latestLanguageVersion()
+          : FeatureSet.fromEnableFlags2(
+              sdkLanguageVersion: Version.parse('2.9.0'),
+              flags: [],
+            ),
+    );
   }
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.type_builder_computer;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
@@ -21,6 +23,7 @@ import 'package:kernel/ast.dart'
         Library,
         NamedType,
         NeverType,
+        NullType,
         TreeNode,
         TypeParameter,
         TypeParameterType,
@@ -36,6 +39,7 @@ import '../builder/future_or_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
+import '../builder/null_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
@@ -101,13 +105,24 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   }
 
   @override
+  TypeBuilder visitNullType(NullType node) {
+    return new NamedTypeBuilder(
+        "Null",
+        new NullabilityBuilder.nullable(),
+        /* arguments = */ null,
+        /* fileUri = */ null,
+        /* charOffset = */ null)
+      ..bind(new NullTypeDeclarationBuilder(node, loader.coreLibrary, -1));
+  }
+
+  @override
   TypeBuilder visitInterfaceType(InterfaceType node) {
     ClassBuilder cls =
         loader.computeClassBuilderFromTargetClass(node.classNode);
     List<TypeBuilder> arguments;
     List<DartType> kernelArguments = node.typeArguments;
     if (kernelArguments.isNotEmpty) {
-      arguments = new List<TypeBuilder>(kernelArguments.length);
+      arguments = new List<TypeBuilder>.filled(kernelArguments.length, null);
       for (int i = 0; i < kernelArguments.length; i++) {
         arguments[i] = kernelArguments[i].accept(this);
       }
@@ -141,23 +156,34 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     List<TypeVariableBuilder> typeVariables = null;
     List<DartType> positionalParameters = node.positionalParameters;
     List<NamedType> namedParameters = node.namedParameters;
-    List<FormalParameterBuilder> formals = new List<FormalParameterBuilder>(
-        positionalParameters.length + namedParameters.length);
+    List<FormalParameterBuilder> formals =
+        new List<FormalParameterBuilder>.filled(
+            positionalParameters.length + namedParameters.length, null);
     for (int i = 0; i < positionalParameters.length; i++) {
       TypeBuilder type = positionalParameters[i].accept(this);
       FormalParameterKind kind = FormalParameterKind.mandatory;
       if (i >= node.requiredParameterCount) {
         kind = FormalParameterKind.optionalPositional;
       }
-      formals[i] =
-          new FormalParameterBuilder(null, 0, type, null, null, -1, null)
-            ..kind = kind;
+      formals[i] = new FormalParameterBuilder(
+          /* metadata = */ null,
+          /* modifiers = */ 0,
+          type,
+          /* name = */ null,
+          /* compilationUnit = */ null,
+          /* charOffset = */ TreeNode.noOffset)
+        ..kind = kind;
     }
     for (int i = 0; i < namedParameters.length; i++) {
       NamedType parameter = namedParameters[i];
       TypeBuilder type = parameter.type.accept(this);
       formals[i + positionalParameters.length] = new FormalParameterBuilder(
-          null, 0, type, parameter.name, null, -1, null)
+          /* metadata = */ null,
+          /* modifiers = */ 0,
+          type,
+          parameter.name,
+          /* compilationUnit = */ null,
+          /* charOffset = */ TreeNode.noOffset)
         ..kind = FormalParameterKind.optionalNamed;
     }
     return new FunctionTypeBuilder(
@@ -166,7 +192,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         formals,
         new NullabilityBuilder.fromNullability(node.nullability),
         /* fileUri = */ null,
-        /* charOffset = */ null);
+        /* charOffset = */ TreeNode.noOffset);
   }
 
   TypeBuilder visitTypeParameterType(TypeParameterType node) {

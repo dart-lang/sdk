@@ -9,12 +9,12 @@
 
 import 'dart:ffi';
 
-import 'dylib_utils.dart';
-
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
+import 'calloc.dart';
 import 'coordinate.dart';
+import 'dylib_utils.dart';
 import 'very_large_struct.dart';
 
 typedef NativeCoordinateOp = Pointer<Coordinate> Function(Pointer<Coordinate>);
@@ -33,8 +33,10 @@ void testFunctionWithStruct() {
       ffiTestFunctions.lookup("TransposeCoordinate");
   NativeCoordinateOp f1 = p1.asFunction();
 
-  Pointer<Coordinate> c1 = Coordinate.allocate(10.0, 20.0, nullptr).addressOf;
-  Pointer<Coordinate> c2 = Coordinate.allocate(42.0, 84.0, c1).addressOf;
+  Pointer<Coordinate> c1 =
+      Coordinate.allocate(calloc, 10.0, 20.0, nullptr).addressOf;
+  Pointer<Coordinate> c2 =
+      Coordinate.allocate(calloc, 42.0, 84.0, c1).addressOf;
   c1.ref.next = c2;
 
   Coordinate result = f1(c1).ref;
@@ -45,8 +47,8 @@ void testFunctionWithStruct() {
   Expect.approxEquals(42.0, result.x);
   Expect.approxEquals(84.0, result.y);
 
-  free(c1);
-  free(c2);
+  calloc.free(c1);
+  calloc.free(c2);
 }
 
 /// pass an array of structs to a c funtion
@@ -55,7 +57,7 @@ void testFunctionWithStructArray() {
       ffiTestFunctions.lookup("CoordinateElemAt1");
   NativeCoordinateOp f1 = p1.asFunction();
 
-  Coordinate c1 = allocate<Coordinate>(count: 3).ref;
+  Coordinate c1 = calloc<Coordinate>(3).ref;
   Coordinate c2 = c1.addressOf[1];
   Coordinate c3 = c1.addressOf[2];
   c1.x = 10.0;
@@ -72,7 +74,7 @@ void testFunctionWithStructArray() {
   Expect.approxEquals(20.0, result.x);
   Expect.approxEquals(20.0, result.y);
 
-  free(c1.addressOf);
+  calloc.free(c1.addressOf);
 }
 
 typedef VeryLargeStructSum = int Function(Pointer<VeryLargeStruct>);
@@ -83,7 +85,7 @@ void testFunctionWithVeryLargeStruct() {
       ffiTestFunctions.lookup("SumVeryLargeStruct");
   VeryLargeStructSum f = p1.asFunction();
 
-  VeryLargeStruct vls1 = allocate<VeryLargeStruct>(count: 2).ref;
+  VeryLargeStruct vls1 = calloc<VeryLargeStruct>(2).ref;
   VeryLargeStruct vls2 = vls1.addressOf[1];
   List<VeryLargeStruct> structs = [vls1, vls2];
   for (VeryLargeStruct struct in structs) {
@@ -114,5 +116,5 @@ void testFunctionWithVeryLargeStruct() {
   result = f(vls2.addressOf);
   Expect.equals(2048, result);
 
-  free(vls1.addressOf);
+  calloc.free(vls1.addressOf);
 }

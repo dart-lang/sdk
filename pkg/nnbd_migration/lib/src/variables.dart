@@ -62,6 +62,8 @@ class Variables {
 
   final _nullabilityHints = <Source, Map<int, HintComment>>{};
 
+  final _requiredHints = <Source, Map<int, HintComment>>{};
+
   final _unnecessaryCasts = <Source, Set<int>>{};
 
   final AlreadyMigratedCodeDecorator _alreadyMigratedCodeDecorator;
@@ -185,6 +187,12 @@ class Variables {
         {})[uniqueIdentifierForSpan(node.offset, node.end)];
   }
 
+  /// If the given [node] is preceded by a `/*required*/` hint, returns the
+  /// HintComment for it; otherwise returns `null`.  See [recordRequiredHint].
+  HintComment getRequiredHint(Source source, FormalParameter node) {
+    return (_requiredHints[source] ?? {})[node.offset];
+  }
+
   /// If the given [expression] is followed by a null check hint (`/*!*/`),
   /// returns the HintComment for it; otherwise returns `null`.  See
   /// [recordNullCheckHint].
@@ -258,6 +266,12 @@ class Variables {
         (node is FieldFormalParameter && node.parameters != null));
     (_nullabilityHints[source] ??=
         {})[uniqueIdentifierForSpan(node.offset, node.end)] = hintComment;
+  }
+
+  /// Records that the given [node] was preceded by a `/*required*/` hint.
+  void recordRequiredHint(
+      Source source, FormalParameter node, HintComment hint) {
+    (_requiredHints[source] ??= {})[node.offset] = hint;
   }
 
   /// Records that the given [expression] is followed by a null check hint
@@ -376,12 +390,12 @@ class Variables {
       element = element.declaration;
     }
 
-    if (element is FunctionTypeAliasElement) {
+    if (element is TypeAliasElement) {
       // For `typedef F<T> = Function(T)`, get the `function` which is (in this
       // case) `Function(T)`. Without this we would get `Function<T>(T)` which
       // is incorrect. This is a known issue with `.type` on typedefs in the
       // analyzer.
-      element = (element as FunctionTypeAliasElement).function;
+      element = (element as FunctionTypeAliasElement).aliasedElement;
     }
 
     var target = NullabilityNodeTarget.element(element, _getLineInfo);

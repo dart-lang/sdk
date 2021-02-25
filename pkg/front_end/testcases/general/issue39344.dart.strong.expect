@@ -91,11 +91,11 @@ class Class<T extends self::A* = self::A*> extends core::Object {
 static field core::List<self::B*>* xs;
 static field core::List<core::List<self::B*>*>* xss;
 static method main() → void {
-  self::throws(() → core::Null? {
+  self::throws(() → Null {
     new self::Class::•<self::A*>().{self::Class::method2a}(new self::B::•());
     core::print(self::xs.{core::Object::runtimeType});
   });
-  self::throws(() → core::Null? {
+  self::throws(() → Null {
     new self::Class::•<self::A*>().{self::Class::method2b}(new self::B::•());
     core::print(self::xs.{core::Object::runtimeType});
   });

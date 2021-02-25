@@ -48,7 +48,7 @@ abstract class _RectangleBase<T extends num> {
       right == other.right &&
       bottom == other.bottom;
 
-  int get hashCode => _JenkinsSmiHash.hash4(
+  int get hashCode => SystemHash.hash4(
       left.hashCode, top.hashCode, right.hashCode, bottom.hashCode);
 
   /// Computes the intersection of `this` and [other].

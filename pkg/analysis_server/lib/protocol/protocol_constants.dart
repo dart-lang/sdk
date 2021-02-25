@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.29.0';
+const String PROTOCOL_VERSION = '1.32.4';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -145,9 +145,6 @@ const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_FILE = 'file';
 const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_ID = 'id';
 const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_LABEL = 'label';
 const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_OFFSET = 'offset';
-const String COMPLETION_REQUEST_LIST_TOKEN_DETAILS =
-    'completion.listTokenDetails';
-const String COMPLETION_REQUEST_LIST_TOKEN_DETAILS_FILE = 'file';
 const String COMPLETION_REQUEST_REGISTER_LIBRARY_PATHS =
     'completion.registerLibraryPaths';
 const String COMPLETION_REQUEST_REGISTER_LIBRARY_PATHS_PATHS = 'paths';
@@ -159,13 +156,13 @@ const String COMPLETION_RESPONSE_GET_SUGGESTIONS_ID = 'id';
 const String COMPLETION_RESPONSE_GET_SUGGESTION_DETAILS_CHANGE = 'change';
 const String COMPLETION_RESPONSE_GET_SUGGESTION_DETAILS_COMPLETION =
     'completion';
-const String COMPLETION_RESPONSE_LIST_TOKEN_DETAILS_TOKENS = 'tokens';
 const String DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS = 'diagnostic.getDiagnostics';
 const String DIAGNOSTIC_REQUEST_GET_SERVER_PORT = 'diagnostic.getServerPort';
 const String DIAGNOSTIC_RESPONSE_GET_DIAGNOSTICS_CONTEXTS = 'contexts';
 const String DIAGNOSTIC_RESPONSE_GET_SERVER_PORT_PORT = 'port';
 const String EDIT_REQUEST_BULK_FIXES = 'edit.bulkFixes';
 const String EDIT_REQUEST_BULK_FIXES_INCLUDED = 'included';
+const String EDIT_REQUEST_BULK_FIXES_IN_TEST_MODE = 'inTestMode';
 const String EDIT_REQUEST_DARTFIX = 'edit.dartfix';
 const String EDIT_REQUEST_DARTFIX_EXCLUDED_FIXES = 'excludedFixes';
 const String EDIT_REQUEST_DARTFIX_INCLUDED = 'included';
@@ -222,6 +219,7 @@ const String EDIT_REQUEST_ORGANIZE_DIRECTIVES = 'edit.organizeDirectives';
 const String EDIT_REQUEST_ORGANIZE_DIRECTIVES_FILE = 'file';
 const String EDIT_REQUEST_SORT_MEMBERS = 'edit.sortMembers';
 const String EDIT_REQUEST_SORT_MEMBERS_FILE = 'file';
+const String EDIT_RESPONSE_BULK_FIXES_DETAILS = 'details';
 const String EDIT_RESPONSE_BULK_FIXES_EDITS = 'edits';
 const String EDIT_RESPONSE_DARTFIX_DETAILS = 'details';
 const String EDIT_RESPONSE_DARTFIX_EDITS = 'edits';

@@ -294,9 +294,6 @@ void DartUtils::ReadFile(uint8_t** data, intptr_t* len, void* stream) {
   }
   *len = static_cast<intptr_t>(file_len);
   *data = reinterpret_cast<uint8_t*>(malloc(*len));
-  if (*data == NULL) {
-    OUT_OF_MEMORY();
-  }
   if (!file_stream->ReadFully(*data, *len)) {
     free(*data);
     *data = NULL;
@@ -905,11 +902,10 @@ Dart_CObject* CObject::NewUint32Array(intptr_t length) {
   return cobject;
 }
 
-Dart_CObject* CObject::NewExternalUint8Array(
-    intptr_t length,
-    uint8_t* data,
-    void* peer,
-    Dart_WeakPersistentHandleFinalizer callback) {
+Dart_CObject* CObject::NewExternalUint8Array(intptr_t length,
+                                             uint8_t* data,
+                                             void* peer,
+                                             Dart_HandleFinalizer callback) {
   Dart_CObject* cobject = New(Dart_CObject_kExternalTypedData);
   cobject->value.as_external_typed_data.type = Dart_TypedData_kUint8;
   cobject->value.as_external_typed_data.length = length;
@@ -937,7 +933,7 @@ Dart_CObject* CObject::NewIOBuffer(int64_t length) {
 void CObject::FreeIOBufferData(Dart_CObject* cobject) {
   ASSERT(cobject->type == Dart_CObject_kExternalTypedData);
   cobject->value.as_external_typed_data.callback(
-      NULL, NULL, cobject->value.as_external_typed_data.peer);
+      NULL, cobject->value.as_external_typed_data.peer);
   cobject->value.as_external_typed_data.data = NULL;
 }
 

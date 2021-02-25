@@ -1522,7 +1522,7 @@ class MiniJsParser {
       }
       expectCategory(COLON);
     }
-    List statements = new List<Statement>();
+    List statements = <Statement>[];
     while (lastCategory != RBRACE &&
         lastToken != 'case' &&
         lastToken != 'default') {
@@ -1557,7 +1557,7 @@ class MiniJsParser {
     Expression key = parseExpression();
     expectCategory(RPAREN);
     expectCategory(LBRACE);
-    List<SwitchClause> clauses = new List<SwitchClause>();
+    List<SwitchClause> clauses = <SwitchClause>[];
     while (lastCategory != RBRACE) {
       clauses.add(parseSwitchClause());
     }

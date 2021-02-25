@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart'
     show EmptyStatement, Component, ReturnStatement, StaticInvocation;
 
@@ -74,7 +76,7 @@ main() {
           (await compileScript('main() => print("hi");', options: options))
               ?.component;
       var core = component.libraries.firstWhere(isDartCoreLibrary);
-      var printMember = core.members.firstWhere((m) => m.name.name == 'print');
+      var printMember = core.members.firstWhere((m) => m.name.text == 'print');
 
       // Note: summaries created by the SDK today contain empty statements as
       // method bodies.

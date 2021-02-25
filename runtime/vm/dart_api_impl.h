@@ -307,13 +307,7 @@ class Api : AllStatic {
 
   static StringPtr GetEnvironmentValue(Thread* thread, const String& name);
 
-  static bool IsFfiEnabled() {
-#if defined(TAGET_OS_FUCHSIA)
-    return false;
-#else
-    return FLAG_enable_ffi;
-#endif
-  }
+  static bool IsFfiEnabled() { return FLAG_enable_ffi; }
 
  private:
   static Dart_Handle InitNewHandle(Thread* thread, ObjectPtr raw);
@@ -353,9 +347,6 @@ class IsolateGroupSource;
 Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
                                           const char* name,
                                           char** error);
-Isolate* CreateWithinExistingIsolateGroupAOT(IsolateGroup* group,
-                                             const char* name,
-                                             char** error);
 
 }  // namespace dart.
 

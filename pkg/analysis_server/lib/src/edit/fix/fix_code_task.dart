@@ -28,7 +28,7 @@ mixin FixCodeProcessor {
     }
   }
 
-  void processPackage(Folder pkgFolder) async {
+  Future<void> processPackage(Folder pkgFolder) async {
     for (var task in _codeTasks) {
       await task.processPackage(pkgFolder);
     }

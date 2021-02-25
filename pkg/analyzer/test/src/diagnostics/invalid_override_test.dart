@@ -87,8 +87,37 @@ class B	extends A {
   int add();
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 52, 1),
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 72, 3),
+    ]);
+  }
+
+  test_method_abstractOverridesConcreteInMixin() async {
+    await assertErrorsInCode('''
+mixin M {
+  int add(int a, int b) => a + b;
+}
+class A with M {
+  int add();
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 69, 3),
+    ]);
+  }
+
+  test_method_abstractOverridesConcreteViaMixin() async {
+    await assertErrorsInCode('''
+class A {
+  int add(int a, int b) => a + b;
+}
+mixin M {
+  int add();
+}
+class B	extends A with M {}
+''', [
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 77, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1),
     ]);
   }
 
@@ -798,12 +827,14 @@ import 'a.dart';
 class C with B {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 import 'b.dart';
 
 class D extends C implements Bq {}
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 24, 8),
+    ]);
   }
 
   test_mixedInheritance_2() async {
@@ -828,7 +859,7 @@ import 'a.dart';
 class C extends B with Bq {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'b.dart';
 
 class D extends C {
@@ -836,7 +867,9 @@ class D extends C {
   set a(List<int Function(int)> _) {}
   int Function(int) m(int Function(int) x) => x;
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
   }
 
   test_setter_overrides_abstract_field_covariant_valid() async {
@@ -959,7 +992,7 @@ import 'a.dart';
 class L extends A2 implements A1 {}
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 import 'b.dart';
 
@@ -971,7 +1004,9 @@ class Y extends L {
   int? m() => 0;
   set s(int _) {}
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 24, 8),
+    ]);
   }
 
   test_viaLegacy_mixin() async {
@@ -996,7 +1031,7 @@ import 'a.dart';
 class L extends Object with A2 implements A1 {}
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 import 'b.dart';
 
@@ -1008,6 +1043,8 @@ class Y extends L {
   int? m() => 0;
   set s(int _) {}
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 24, 8),
+    ]);
   }
 }

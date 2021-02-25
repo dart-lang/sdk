@@ -1,16 +1,3 @@
-//
-// Problems in component:
-//
-// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:37:16: Error: Case expression 'D {}' does not have a primitive operator '=='.
-//  - 'D' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
-//     case const D(42): // Error: D has custom operator ==.
-//                ^
-//
-// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:39:10: Error: Case expression 'D {}' does not have a primitive operator '=='.
-//  - 'D' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
-//     case x: // Error: D has custom operator ==.
-//          ^
-//
 library /*isNonNullableByDefault*/;
 //
 // Problems in library:
@@ -31,6 +18,16 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd/switch_redesign_types.dart:30:11: Context: The switch expression is here.
 //   switch (b) {
 //           ^
+//
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:37:16: Error: Case expression 'D {}' does not have a primitive operator '=='.
+//  - 'D' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
+//     case const D(42): // Error: D has custom operator ==.
+//                ^
+//
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:39:10: Error: Case expression 'D {}' does not have a primitive operator '=='.
+//  - 'D' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
+//     case x: // Error: D has custom operator ==.
+//          ^
 //
 import self as self;
 import "dart:core" as core;
@@ -102,3 +99,12 @@ constants  {
   #C6 = 123
   #C7 = self::D {foo:#C6}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///switch_redesign_types.dart:
+- D. (from org-dartlang-testcase:///switch_redesign_types.dart:23:9)
+- B. (from org-dartlang-testcase:///switch_redesign_types.dart:15:9)
+- A. (from org-dartlang-testcase:///switch_redesign_types.dart:11:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- C. (from org-dartlang-testcase:///switch_redesign_types.dart:19:9)

@@ -1,0 +1,16 @@
+name: scrape
+description: Helper package for analyzing the syntax of Dart programs.
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: ^2.10.0
+
+dependencies:
+  args: ^1.6.0
+  analyzer:
+    path: ../analyzer
+  path: ^1.7.0
+
+dev_dependencies:
+  pedantic: ^1.9.2

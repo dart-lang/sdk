@@ -41,7 +41,6 @@ one.A a;
   }
 
   test_as_equalPrefixes_referenced() async {
-    // 18818
     newFile('$testPackageLibPath/lib1.dart', content: r'''
 class A {}
 ''');
@@ -56,9 +55,25 @@ one.B b;
 ''');
   }
 
-  @failingTest
+  test_as_equalPrefixes_referenced_via_export() async {
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
+class B {}
+''');
+    newFile('$testPackageLibPath/lib3.dart', content: r'''
+export 'lib2.dart';
+''');
+    await assertNoErrorsInCode(r'''
+import 'lib1.dart' as one;
+import 'lib3.dart' as one;
+one.A a;
+one.B b;
+''');
+  }
+
   test_as_equalPrefixes_unreferenced() async {
-    // See todo at ImportsVerifier.prefixElementMap.
     newFile('$testPackageLibPath/lib1.dart', content: r'''
 class A {}
 ''');
@@ -70,7 +85,59 @@ import 'lib1.dart' as one;
 import 'lib2.dart' as one;
 one.A a;
 ''', [
-      error(HintCode.UNUSED_IMPORT, 32, 11),
+      error(HintCode.UNUSED_IMPORT, 34, 11),
+    ]);
+  }
+
+  test_as_show_multipleElements() async {
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
+class A {}
+class B {}
+''');
+    await assertNoErrorsInCode(r'''
+import 'lib1.dart' as one show A, B;
+one.A a = one.A();
+one.B b = one.B();
+''');
+  }
+
+  test_as_showTopLevelFunction() async {
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
+class One {}
+topLevelFunction() {}
+''');
+    await assertErrorsInCode(r'''
+import 'lib1.dart' hide topLevelFunction;
+import 'lib1.dart' as one show topLevelFunction;
+class A {
+  static void x() {
+    One o;
+    one.topLevelFunction();
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 129, 1),
+    ]);
+  }
+
+  test_as_showTopLevelFunction_multipleDirectives() async {
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
+class One {}
+topLevelFunction() {}
+''');
+    await assertErrorsInCode(r'''
+import 'lib1.dart' hide topLevelFunction;
+import 'lib1.dart' as one show topLevelFunction;
+import 'lib1.dart' as two show topLevelFunction;
+class A {
+  static void x() {
+    One o;
+    one.topLevelFunction();
+    two.topLevelFunction();
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 178, 1),
     ]);
   }
 
@@ -251,6 +318,34 @@ f() {
 ''');
   }
 
+  test_extension_prefixed_isUsed() async {
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
+extension E on String {
+  String empty() => '';
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart' as lib1;
+
+f() {
+  ''.empty();
+}
+''');
+  }
+
+  test_extension_prefixed_notUsed() async {
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
+extension E on String {
+  String empty() => '';
+}
+''');
+    await assertErrorsInCode('''
+import 'lib1.dart' as lib1;
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
+    ]);
+  }
+
   test_extension_static_field() async {
     newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on String {
@@ -320,46 +415,6 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 11),
-    ]);
-  }
-
-  test_prefix_topLevelFunction() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
-class One {}
-topLevelFunction() {}
-''');
-    await assertErrorsInCode(r'''
-import 'lib1.dart' hide topLevelFunction;
-import 'lib1.dart' as one show topLevelFunction;
-class A {
-  static void x() {
-    One o;
-    one.topLevelFunction();
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 129, 1),
-    ]);
-  }
-
-  test_prefix_topLevelFunction2() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
-class One {}
-topLevelFunction() {}
-''');
-    await assertErrorsInCode(r'''
-import 'lib1.dart' hide topLevelFunction;
-import 'lib1.dart' as one show topLevelFunction;
-import 'lib1.dart' as two show topLevelFunction;
-class A {
-  static void x() {
-    One o;
-    one.topLevelFunction();
-    two.topLevelFunction();
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 178, 1),
     ]);
   }
 

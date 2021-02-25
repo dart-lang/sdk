@@ -9,7 +9,6 @@ import 'package:dartdev/src/commands/analyze.dart';
 import 'package:dartdev/src/commands/compile.dart';
 import 'package:dartdev/src/commands/create.dart';
 import 'package:dartdev/src/commands/fix.dart';
-import 'package:dartdev/src/commands/pub.dart';
 import 'package:dartdev/src/commands/run.dart';
 import 'package:dartdev/src/commands/test.dart';
 import 'package:dartdev/src/core.dart';
@@ -26,14 +25,13 @@ void main() {
 
 void _dartdevCommand() {
   void _assertDartdevCommandProperties(
-      DartdevCommand command, String name, String usagePath,
+      DartdevCommand command, String name, String expectedUsagePath,
       [int subcommandCount = 0]) {
     expect(command, isNotNull);
     expect(command.name, name);
     expect(command.description, isNotEmpty);
     expect(command.project, isNotNull);
     expect(command.argParser, isNotNull);
-    expect(command.usagePath, usagePath);
     expect(command.subcommands.length, subcommandCount);
   }
 
@@ -82,12 +80,8 @@ void _dartdevCommand() {
     _assertDartdevCommandProperties(FixCommand(), 'fix', 'fix');
   });
 
-  test('pub', () {
-    _assertDartdevCommandProperties(PubCommand(), 'pub', 'pub');
-  });
-
   test('run', () {
-    _assertDartdevCommandProperties(RunCommand(), 'run', 'run');
+    _assertDartdevCommandProperties(RunCommand(verbose: false), 'run', 'run');
   });
 
   test('test', () {

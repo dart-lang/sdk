@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/src/replacement_visitor.dart';
 
@@ -105,11 +107,11 @@ class _DemotionNullabilityNormalization extends ReplacementVisitor {
   @override
   Nullability visitNullability(DartType node) {
     if (forNonNullableByDefault) {
-      if (node.nullability == Nullability.legacy) {
+      if (node.declaredNullability == Nullability.legacy) {
         return Nullability.nonNullable;
       }
     } else {
-      if (node.nullability != Nullability.legacy) {
+      if (node.declaredNullability != Nullability.legacy) {
         return Nullability.legacy;
       }
     }

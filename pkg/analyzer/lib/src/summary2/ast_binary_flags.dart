@@ -4,6 +4,17 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 
+/// When this option enabled, when we write AST and resolution, we write
+/// into markers into the resolution stream, so when we apply resolution
+/// to AST, we can be more confident that we are reading resolution data
+/// that is expected to the AST node to which resolution is applied.
+///
+/// This might help us to track if we have a bug and think that some resolution
+/// data can be applied (because its signature is the same), when actually
+/// AST changed in ways that should make resolution incompatible (and so
+/// the resolution signature should have been different).
+bool enableDebugResolutionMarkers = false;
+
 class AstBinaryFlags {
   static final Map<Type, int> _typeBits = {};
 
@@ -13,13 +24,18 @@ class AstBinaryFlags {
     ForStatement,
   );
 
+  static final _hasConstConstructor = _checkBit(
+    0,
+    ClassDeclaration,
+  );
+
   static final _hasEqual = _checkBit(
     0,
     Configuration,
   );
 
   static final _hasInitializer = _checkBit(
-    0,
+    2,
     DefaultFormalParameter,
     VariableDeclaration,
   );
@@ -27,11 +43,19 @@ class AstBinaryFlags {
   static final _hasName = _checkBit(
     5,
     ConstructorDeclaration,
+    FieldFormalParameter,
+    FunctionTypedFormalParameter,
+    SimpleFormalParameter,
   );
 
   static final _hasNot = _checkBit(
     0,
     IsExpression,
+  );
+
+  static final _hasPrefix = _checkBit(
+    1,
+    ImportDirective,
   );
 
   static final _hasPeriod = _checkBit(
@@ -163,11 +187,6 @@ class AstBinaryFlags {
     VariableDeclarationList,
   );
 
-  static final _isMap = _checkBit(
-    1,
-    TypedLiteral,
-  );
-
   static final _isNative = _checkBit(
     8,
     MethodDeclaration,
@@ -183,8 +202,14 @@ class AstBinaryFlags {
     MethodDeclaration,
   );
 
+  static final _isPositional = _checkBit(
+    1,
+    DefaultFormalParameter,
+  );
+
   static final _isRequired = _checkBit(
     0,
+    DefaultFormalParameter,
     NormalFormalParameter,
   );
 
@@ -227,12 +252,14 @@ class AstBinaryFlags {
 
   static int encode({
     bool hasAwait = false,
+    bool hasConstConstructor = false,
     bool hasEqual = false,
     bool hasInitializer = false,
     bool hasName = false,
     bool hasNot = false,
     bool hasPeriod = false,
     bool hasPeriod2 = false,
+    bool hasPrefix = false,
     bool hasQuestion = false,
     bool hasSeparatorColon = false,
     bool hasSeparatorEquals = false,
@@ -252,10 +279,10 @@ class AstBinaryFlags {
     bool isGenerator = false,
     bool isGet = false,
     bool isLate = false,
-    bool isMap = false,
     bool isNative = false,
     bool isNew = false,
     bool isOperator = false,
+    bool isPositional = false,
     bool isRequired = false,
     bool isSet = false,
     bool isStar = false,
@@ -267,6 +294,9 @@ class AstBinaryFlags {
     var result = 0;
     if (hasAwait) {
       result |= _hasAwait;
+    }
+    if (hasConstConstructor) {
+      result |= _hasConstConstructor;
     }
     if (hasEqual) {
       result |= _hasEqual;
@@ -285,6 +315,9 @@ class AstBinaryFlags {
     }
     if (hasPeriod2) {
       result |= _hasPeriod2;
+    }
+    if (hasPrefix) {
+      result |= _hasPrefix;
     }
     if (hasQuestion) {
       result |= _hasQuestion;
@@ -343,9 +376,6 @@ class AstBinaryFlags {
     if (isLate) {
       result |= _isLate;
     }
-    if (isMap) {
-      result |= _isMap;
-    }
     if (isNative) {
       result |= _isNative;
     }
@@ -354,6 +384,9 @@ class AstBinaryFlags {
     }
     if (isOperator) {
       result |= _isOperator;
+    }
+    if (isPositional) {
+      result |= _isPositional;
     }
     if (isRequired) {
       result |= _isRequired;
@@ -383,6 +416,10 @@ class AstBinaryFlags {
     return (flags & _hasAwait) != 0;
   }
 
+  static bool hasConstConstructor(int flags) {
+    return (flags & _hasConstConstructor) != 0;
+  }
+
   static bool hasEqual(int flags) {
     return (flags & _hasEqual) != 0;
   }
@@ -405,6 +442,10 @@ class AstBinaryFlags {
 
   static bool hasPeriod2(int flags) {
     return (flags & _hasPeriod2) != 0;
+  }
+
+  static bool hasPrefix(int flags) {
+    return (flags & _hasPrefix) != 0;
   }
 
   static bool hasQuestion(int flags) {
@@ -483,10 +524,6 @@ class AstBinaryFlags {
     return (flags & _isLate) != 0;
   }
 
-  static bool isMap(int flags) {
-    return (flags & _isMap) != 0;
-  }
-
   static bool isNative(int flags) {
     return (flags & _isNative) != 0;
   }
@@ -497,6 +534,10 @@ class AstBinaryFlags {
 
   static bool isOperator(int flags) {
     return (flags & _isOperator) != 0;
+  }
+
+  static bool isPositional(int flags) {
+    return (flags & _isPositional) != 0;
   }
 
   static bool isRequired(int flags) {

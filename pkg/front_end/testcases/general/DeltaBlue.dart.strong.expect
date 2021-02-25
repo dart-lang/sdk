@@ -533,3 +533,9 @@ constants  {
   #C21 = "required"
   #C22 = self::Strength {value:#C20, name:#C21}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///DeltaBlue.dart:
+- Strength. (from org-dartlang-testcase:///DeltaBlue.dart:59:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

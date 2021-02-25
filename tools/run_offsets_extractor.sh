@@ -14,13 +14,17 @@ if ! test -f "$FILE"; then
   exit 1
 fi
 
-# We're regenerating the file, but we want to keep all the comments etc at the
-# top of the file. So just delete everything after the first "#if defined".
-LINE=$(grep "#if " "$FILE" -n | head -n 1 | sed "s/^\([0-9]*\):.*/\1/")
 TEMP="${FILE}.temp"
 TEMP_HEADER="${FILE}.header.temp"
 TEMP_JIT="${FILE}.jit.temp"
 TEMP_AOT="${FILE}.aot.temp"
+
+# Remove old temp files if the previous run was stopped prematurely.
+rm -rf "${TEMP}" "${TEMP_HEADER}" "${TEMP_JIT}" "${TEMP_AOT}"
+
+# We're regenerating the file, but we want to keep all the comments etc at the
+# top of the file. So just delete everything after the first "#if defined".
+LINE=$(grep "#if " "$FILE" -n | head -n 1 | sed "s/^\([0-9]*\):.*/\1/")
 head -n $(expr $LINE - 1) "$FILE" >"$TEMP_HEADER"
 
 # Run offsets_extractor for every architecture and append the results.

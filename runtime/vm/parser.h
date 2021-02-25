@@ -165,7 +165,6 @@ class ParsedFunction : public ZoneAllocated {
 
   void AllocateVariables();
   void AllocateIrregexpVariables(intptr_t num_stack_locals);
-  void AllocateBytecodeVariables(intptr_t num_stack_locals);
 
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
@@ -213,14 +212,6 @@ class ParsedFunction : public ZoneAllocated {
     return scope()->VariableAt(i);
   }
 
-  void SetDefaultFunctionTypeArguments(const TypeArguments& value) {
-    default_function_type_arguments_ = value.raw();
-  }
-
-  const TypeArguments& DefaultFunctionTypeArguments() const {
-    return default_function_type_arguments_;
-  }
-
   // Remembers the set of covariant parameters.
   // [covariant_parameters] is a bitvector of function.NumParameters() length.
   void SetCovariantParameters(const BitVector* covariant_parameters);
@@ -243,19 +234,25 @@ class ParsedFunction : public ZoneAllocated {
   // method.
   bool IsGenericCovariantImplParameter(intptr_t i) const;
 
-  // Variables needed for the InvokeFieldDispatcher for dynamic closure calls.
+  // Variables needed for the InvokeFieldDispatcher for dynamic closure calls,
+  // because they are both read and written to by the builders.
   struct DynamicClosureCallVars : ZoneAllocated {
+    DynamicClosureCallVars(Zone* zone, intptr_t num_named)
+        : named_argument_parameter_indices(zone, num_named) {}
+
 #define FOR_EACH_DYNAMIC_CLOSURE_CALL_VARIABLE(V)                              \
+  V(current_function, Function, CurrentFunction)                               \
+  V(current_num_processed, Smi, CurrentNumProcessed)                           \
   V(current_param_index, Smi, CurrentParamIndex)                               \
-  V(has_named_params, Bool, HasNamed)                                          \
-  V(num_fixed_params, Smi, NumFixed)                                           \
-  V(num_opt_params, Smi, NumOpt)                                               \
-  V(num_max_params, Smi, MaxParams)                                            \
-  V(parameter_names, Array, ParameterNames)
+  V(function_type_args, Dynamic, FunctionTypeArgs)
 
 #define DEFINE_FIELD(Name, _, __) LocalVariable* Name = nullptr;
     FOR_EACH_DYNAMIC_CLOSURE_CALL_VARIABLE(DEFINE_FIELD)
 #undef DEFINE_FIELD
+
+    // An array of local variables, one for each named parameter in the
+    // saved arguments descriptor.
+    ZoneGrowableArray<LocalVariable*> named_argument_parameter_indices;
   };
 
   DynamicClosureCallVars* dynamic_closure_call_vars() const {
@@ -290,8 +287,6 @@ class ParsedFunction : public ZoneAllocated {
 
   const Function* forwarding_stub_super_target_ = nullptr;
   kernel::ScopeBuildingResult* kernel_scopes_;
-
-  TypeArguments& default_function_type_arguments_;
 
   const BitVector* covariant_parameters_ = nullptr;
   const BitVector* generic_covariant_impl_parameters_ = nullptr;

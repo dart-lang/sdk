@@ -7,12 +7,12 @@ import 'dart:math' as math;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -129,10 +129,7 @@ abstract class CorrectionProducer extends SingleCorrectionProducer {
       if (assignment.rightHandSide == expression) {
         if (assignment.operator.type == TokenType.EQ) {
           // v = myFunction();
-          var lhs = assignment.leftHandSide;
-          if (lhs != null) {
-            return lhs.staticType;
-          }
+          return assignment.writeType;
         } else {
           // v += myFunction();
           var method = assignment.staticElement;
@@ -230,15 +227,23 @@ class CorrectionProducerContext {
   final ChangeWorkspace workspace;
   final DartFixContext dartFixContext;
 
+  /// A flag indicating whether the correction producers will be run in the
+  /// context of applying bulk fixes.
+  final bool applyingBulkFixes;
+
   final Diagnostic diagnostic;
+
+  final TransformOverrideSet overrideSet;
 
   AstNode _node;
 
   CorrectionProducerContext({
     @required this.resolvedResult,
     @required this.workspace,
+    this.applyingBulkFixes = false,
     this.dartFixContext,
     this.diagnostic,
+    this.overrideSet,
     this.selectionOffset = -1,
     this.selectionLength = 0,
   })  : file = resolvedResult.path,
@@ -318,6 +323,9 @@ abstract class _AbstractCorrectionProducer {
   /// Initialize a newly created producer.
   _AbstractCorrectionProducer();
 
+  /// Return `true` if the fixes are being built for the bulk-fix request.
+  bool get applyingBulkFixes => _context.applyingBulkFixes;
+
   /// The most deeply nested node that completely covers the highlight region of
   /// the diagnostic, or `null` if there is no diagnostic or if such a node does
   /// not exist.
@@ -353,6 +361,10 @@ abstract class _AbstractCorrectionProducer {
   LibraryElement get libraryElement => resolvedResult.libraryElement;
 
   AstNode get node => _context.node;
+
+  /// Return the set of overrides to be applied to the transform set when
+  /// running tests, or `null` if there are no overrides to apply.
+  TransformOverrideSet get overrideSet => _context.overrideSet;
 
   ResolvedUnitResult get resolvedResult => _context.resolvedResult;
 

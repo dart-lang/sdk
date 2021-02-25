@@ -38,12 +38,13 @@ void setup() {
   inherits(NativeB, NativeA);
   NativeA.prototype.foo = function() { return 42; };
 
-  makeA = function(){return new NativeA()};
-  makeB = function(){return new NativeB()};
+  self.makeA = function(){return new NativeA()};
+  self.makeB = function(){return new NativeB()};
 
   self.nativeConstructor(NativeA);
   self.nativeConstructor(NativeB);
 })()""");
+  applyTestExtensions(['NativeA', 'NativeB']);
 }
 
 main() {

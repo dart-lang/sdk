@@ -140,14 +140,23 @@ class KernelLineStartsReader {
     return helper_->At(line_starts_data_, index);
   }
 
-  void LocationForPosition(intptr_t position,
-                           intptr_t* line,
-                           intptr_t* col) const;
+  int32_t MaxPosition() const;
 
-  void TokenRangeAtLine(intptr_t source_length,
-                        intptr_t line_number,
-                        dart::TokenPosition* first_token_index,
-                        dart::TokenPosition* last_token_index) const;
+  // Returns whether the given offset corresponds to a valid source offset
+  // If it does, then *line and *column (if column is not nullptr) are set
+  // to the line and column the token starts at.
+  DART_WARN_UNUSED_RESULT bool LocationForPosition(
+      intptr_t position,
+      intptr_t* line,
+      intptr_t* col = nullptr) const;
+
+  // Returns whether any tokens were found for the given line. When found,
+  // *first_token_index and *last_token_index are set to the first and
+  // last token on the line, respectively.
+  DART_WARN_UNUSED_RESULT bool TokenRangeAtLine(
+      intptr_t line_number,
+      dart::TokenPosition* first_token_index,
+      dart::TokenPosition* last_token_index) const;
 
  private:
   class KernelLineStartsHelper {
@@ -195,7 +204,13 @@ class KernelLineStartsReader {
 
 void CollectTokenPositionsFor(const Script& script);
 
-ObjectPtr EvaluateMetadata(const Field& metadata_field,
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+ArrayPtr CollectConstConstructorCoverageFrom(const Script& interesting_script);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field);
+ObjectPtr EvaluateMetadata(const Library& library,
+                           intptr_t kernel_offset,
                            bool is_annotations_offset);
 ObjectPtr BuildParameterDescriptor(const Function& function);
 
@@ -213,11 +228,6 @@ void ReadParameterCovariance(const Function& function,
 // call-site: if function has no parameters or has only covariant parameters
 // as such function already checks all of its parameters.
 bool NeedsDynamicInvocationForwarder(const Function& function);
-
-// Returns a list of ParameterTypeChecks needed by a dynamic invocation
-// forwarder that targets [function]. Indices in these checks correspond to
-// bytecode frame indices.
-ArrayPtr CollectDynamicInvocationChecks(const Function& function);
 
 ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
                                                   Zone* zone);

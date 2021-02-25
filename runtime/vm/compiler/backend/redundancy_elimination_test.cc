@@ -13,7 +13,6 @@
 #include "vm/compiler/backend/loops.h"
 #include "vm/compiler/backend/type_propagator.h"
 #include "vm/compiler/compiler_pass.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
 #include "vm/flags.h"
@@ -60,35 +59,6 @@ static void FlattenScopeIntoEnvironment(FlowGraph* graph,
   }
 }
 
-#if !defined(PRODUCT)
-void PopulateEnvironmentFromBytecodeLocalVariables(
-    const Function& function,
-    FlowGraph* graph,
-    GrowableArray<LocalVariable*>* env) {
-  const auto& bytecode = Bytecode::Handle(function.bytecode());
-  ASSERT(!bytecode.IsNull());
-
-  kernel::BytecodeLocalVariablesIterator iter(Thread::Current()->zone(),
-                                              bytecode);
-  while (iter.MoveNext()) {
-    if (iter.IsVariableDeclaration() && !iter.IsCaptured()) {
-      LocalVariable* const var = new LocalVariable(
-          TokenPosition::kNoSource, TokenPosition::kNoSource,
-          String::ZoneHandle(graph->zone(), iter.Name()),
-          AbstractType::ZoneHandle(graph->zone(), iter.Type()));
-      if (iter.Index() < 0) {  // Parameter.
-        var->set_index(VariableIndex(-iter.Index() - kKBCParamEndSlotFromFp));
-      } else {
-        var->set_index(VariableIndex(-iter.Index()));
-      }
-      const intptr_t env_index = graph->EnvIndex(var);
-      env->EnsureLength(env_index + 1, nullptr);
-      (*env)[env_index] = var;
-    }
-  }
-}
-#endif
-
 // Run TryCatchAnalyzer optimization on the function foo from the given script
 // and check that the only variables from the given list are synchronized
 // on catch entry.
@@ -118,17 +88,7 @@ static void TryCatchOptimizerTest(
   auto scope = graph->parsed_function().scope();
 
   GrowableArray<LocalVariable*> env;
-  if (function.is_declared_in_bytecode()) {
-#if defined(PRODUCT)
-    // In product mode information about local variables is not retained in
-    // bytecode, so we can't find variables by names.
-    return;
-#else
-    PopulateEnvironmentFromBytecodeLocalVariables(function, graph, &env);
-#endif
-  } else {
-    FlattenScopeIntoEnvironment(graph, scope, &env);
-  }
+  FlattenScopeIntoEnvironment(graph, scope, &env);
 
   for (intptr_t i = 0; i < env.length(); i++) {
     bool found = false;
@@ -264,15 +224,16 @@ static void TestAliasingViaRedefinition(
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
 
-  const Field& field = Field::Handle(
+  const Field& original_field = Field::Handle(
       cls.LookupField(String::Handle(Symbols::New(thread, "field"))));
-  EXPECT(!field.IsNull());
+  EXPECT(!original_field.IsNull());
+  const Field& field = Field::Handle(original_field.CloneFromOriginal());
 
   const Function& blackhole =
       Function::ZoneHandle(GetFunction(lib, "blackhole"));
 
   using compiler::BlockBuilder;
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:
@@ -301,9 +262,9 @@ static void TestAliasingViaRedefinition(
     BlockBuilder builder(H.flow_graph(), b1);
     auto& slot = Slot::Get(field, &H.flow_graph()->parsed_function());
     v0 = builder.AddDefinition(
-        new AllocateObjectInstr(TokenPosition::kNoSource, cls));
+        new AllocateObjectInstr(InstructionSource(), cls));
     v1 = builder.AddDefinition(
-        new LoadFieldInstr(new Value(v0), slot, TokenPosition::kNoSource));
+        new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
     auto v2 = builder.AddDefinition(make_redefinition(&S, H.flow_graph(), v0));
     auto args = new InputsArray(2);
     args->Add(new Value(v1));
@@ -311,12 +272,12 @@ static void TestAliasingViaRedefinition(
       args->Add(new Value(v2));
     }
     call = builder.AddInstruction(new StaticCallInstr(
-        TokenPosition::kNoSource, blackhole, 0, Array::empty_array(), args,
+        InstructionSource(), blackhole, 0, Array::empty_array(), args,
         S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
     v4 = builder.AddDefinition(
-        new LoadFieldInstr(new Value(v2), slot, TokenPosition::kNoSource));
+        new LoadFieldInstr(new Value(v2), slot, InstructionSource()));
     ret = builder.AddInstruction(new ReturnInstr(
-        TokenPosition::kNoSource, new Value(v4), S.GetNextDeoptId()));
+        InstructionSource(), new Value(v4), S.GetNextDeoptId()));
   }
   H.FinishGraph();
   DominatorBasedCSE::Optimize(H.flow_graph());
@@ -350,7 +311,7 @@ static Definition* MakeCheckNull(CompilerState* S,
                                  FlowGraph* flow_graph,
                                  Definition* defn) {
   return new CheckNullInstr(new Value(defn), String::ZoneHandle(),
-                            S->GetNextDeoptId(), TokenPosition::kNoSource);
+                            S->GetNextDeoptId(), InstructionSource());
 }
 
 static Definition* MakeRedefinition(CompilerState* S,
@@ -363,7 +324,7 @@ static Definition* MakeAssertAssignable(CompilerState* S,
                                         FlowGraph* flow_graph,
                                         Definition* defn) {
   const auto& dst_type = AbstractType::ZoneHandle(Type::ObjectType());
-  return new AssertAssignableInstr(TokenPosition::kNoSource, new Value(defn),
+  return new AssertAssignableInstr(InstructionSource(), new Value(defn),
                                    new Value(flow_graph->GetConstant(dst_type)),
                                    new Value(flow_graph->constant_null()),
                                    new Value(flow_graph->constant_null()),
@@ -427,15 +388,16 @@ static void TestAliasingViaStore(
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
 
-  const Field& field = Field::Handle(
+  const Field& original_field = Field::Handle(
       cls.LookupField(String::Handle(Symbols::New(thread, "field"))));
-  EXPECT(!field.IsNull());
+  EXPECT(!original_field.IsNull());
+  const Field& field = Field::Handle(original_field.CloneFromOriginal());
 
   const Function& blackhole =
       Function::ZoneHandle(GetFunction(lib, "blackhole"));
 
   using compiler::BlockBuilder;
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:
@@ -473,36 +435,36 @@ static void TestAliasingViaStore(
     BlockBuilder builder(H.flow_graph(), b1);
     auto& slot = Slot::Get(field, &H.flow_graph()->parsed_function());
     v0 = builder.AddDefinition(
-        new AllocateObjectInstr(TokenPosition::kNoSource, cls));
+        new AllocateObjectInstr(InstructionSource(), cls));
     v5 = builder.AddDefinition(
-        new AllocateObjectInstr(TokenPosition::kNoSource, cls));
+        new AllocateObjectInstr(InstructionSource(), cls));
     if (!make_host_escape) {
-      builder.AddInstruction(new StoreInstanceFieldInstr(
-          slot, new Value(v5), new Value(v0), kEmitStoreBarrier,
-          TokenPosition::kNoSource));
+      builder.AddInstruction(
+          new StoreInstanceFieldInstr(slot, new Value(v5), new Value(v0),
+                                      kEmitStoreBarrier, InstructionSource()));
     }
     v1 = builder.AddDefinition(
-        new LoadFieldInstr(new Value(v0), slot, TokenPosition::kNoSource));
+        new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
     auto v2 = builder.AddDefinition(make_redefinition(&S, H.flow_graph(), v5));
     auto args = new InputsArray(2);
     args->Add(new Value(v1));
     if (make_it_escape) {
       auto v6 = builder.AddDefinition(
-          new LoadFieldInstr(new Value(v2), slot, TokenPosition::kNoSource));
+          new LoadFieldInstr(new Value(v2), slot, InstructionSource()));
       args->Add(new Value(v6));
     } else if (make_host_escape) {
-      builder.AddInstruction(new StoreInstanceFieldInstr(
-          slot, new Value(v2), new Value(v0), kEmitStoreBarrier,
-          TokenPosition::kNoSource));
+      builder.AddInstruction(
+          new StoreInstanceFieldInstr(slot, new Value(v2), new Value(v0),
+                                      kEmitStoreBarrier, InstructionSource()));
       args->Add(new Value(v5));
     }
     call = builder.AddInstruction(new StaticCallInstr(
-        TokenPosition::kNoSource, blackhole, 0, Array::empty_array(), args,
+        InstructionSource(), blackhole, 0, Array::empty_array(), args,
         S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
     v4 = builder.AddDefinition(
-        new LoadFieldInstr(new Value(v0), slot, TokenPosition::kNoSource));
+        new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
     ret = builder.AddInstruction(new ReturnInstr(
-        TokenPosition::kNoSource, new Value(v4), S.GetNextDeoptId()));
+        InstructionSource(), new Value(v4), S.GetNextDeoptId()));
   }
   H.FinishGraph();
   DominatorBasedCSE::Optimize(H.flow_graph());
@@ -590,7 +552,7 @@ ISOLATE_UNIT_TEST_CASE(
 // https://github.com/flutter/flutter/issues/48114.
 ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
   using compiler::BlockBuilder;
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
   FlowGraphBuilderHelper H;
 
   const auto& lib = Library::Handle(Library::TypedDataLibrary());
@@ -637,7 +599,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
 
     //   array <- StaticCall(...) {_Uint32List}
     array = builder.AddDefinition(new StaticCallInstr(
-        TokenPosition::kNoSource, function, 0, Array::empty_array(),
+        InstructionSource(), function, 0, Array::empty_array(),
         new InputsArray(), DeoptId::kNone, 0, ICData::kNoRebind));
     array->UpdateType(CompileType::FromCid(kTypedDataUint32ArrayCid));
     array->SetResultType(zone, CompileType::FromCid(kTypedDataUint32ArrayCid));
@@ -647,7 +609,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
     v1 = builder.AddDefinition(new LoadIndexedInstr(
         new Value(array), new Value(vc0), /*index_unboxed=*/false, 1,
         kTypedDataUint32ArrayCid, kAlignedAccess, DeoptId::kNone,
-        TokenPosition::kNoSource));
+        InstructionSource()));
 
     //   v2 <- LoadUntagged(array)
     //   StoreIndexed(v2, index=0, value=42)
@@ -655,17 +617,17 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
     store = builder.AddInstruction(new StoreIndexedInstr(
         new Value(v2), new Value(vc0), new Value(vc42), kNoStoreBarrier,
         /*index_unboxed=*/false, 1, kTypedDataUint32ArrayCid, kAlignedAccess,
-        DeoptId::kNone, TokenPosition::kNoSource));
+        DeoptId::kNone, InstructionSource()));
 
     //   v3 <- LoadIndexed(array)
     v3 = builder.AddDefinition(new LoadIndexedInstr(
         new Value(array), new Value(vc0), /*index_unboxed=*/false, 1,
         kTypedDataUint32ArrayCid, kAlignedAccess, DeoptId::kNone,
-        TokenPosition::kNoSource));
+        InstructionSource()));
 
     //   return v3
     ret = builder.AddInstruction(new ReturnInstr(
-        TokenPosition::kNoSource, new Value(v3), S.GetNextDeoptId()));
+        InstructionSource(), new Value(v3), S.GetNextDeoptId()));
   }
   H.FinishGraph();
 
@@ -732,7 +694,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_SingleBlock) {
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
 
-  StaticCallInstr* list_factory = nullptr;
+  AllocateTypedDataInstr* alloc_typed_data = nullptr;
   UnboxedConstantInstr* double_one = nullptr;
   StoreIndexedInstr* first_store = nullptr;
   StoreIndexedInstr* second_store = nullptr;
@@ -742,7 +704,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_SingleBlock) {
   ILMatcher cursor(flow_graph, entry);
   RELEASE_ASSERT(cursor.TryMatch(
       {
-          {kMatchAndMoveStaticCall, &list_factory},
+          {kMatchAndMoveAllocateTypedData, &alloc_typed_data},
           {kMatchAndMoveUnboxedConstant, &double_one},
           {kMatchAndMoveStoreIndexed, &first_store},
           {kMatchAndMoveStoreIndexed, &second_store},
@@ -752,8 +714,8 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_SingleBlock) {
       },
       /*insert_before=*/kMoveGlob));
 
-  EXPECT(first_store->array()->definition() == list_factory);
-  EXPECT(second_store->array()->definition() == list_factory);
+  EXPECT(first_store->array()->definition() == alloc_typed_data);
+  EXPECT(second_store->array()->definition() == alloc_typed_data);
   EXPECT(boxed_result->value()->definition() != double_one);
   EXPECT(boxed_result->value()->definition() == final_load);
 }
@@ -855,7 +817,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
 
-  StaticCallInstr* list_factory = nullptr;
+  AllocateTypedDataInstr* alloc_typed_data = nullptr;
   UnboxedConstantInstr* double_one = nullptr;
   StoreIndexedInstr* first_store = nullptr;
   StoreIndexedInstr* second_store = nullptr;
@@ -865,7 +827,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
   ILMatcher cursor(flow_graph, entry);
   RELEASE_ASSERT(cursor.TryMatch(
       {
-          {kMatchAndMoveStaticCall, &list_factory},
+          {kMatchAndMoveAllocateTypedData, &alloc_typed_data},
           kMatchAndMoveBranchTrue,
           kMatchAndMoveBranchTrue,
           kMatchAndMoveBranchFalse,
@@ -880,8 +842,8 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
       },
       /*insert_before=*/kMoveGlob));
 
-  EXPECT(first_store->array()->definition() == list_factory);
-  EXPECT(second_store->array()->definition() == list_factory);
+  EXPECT(first_store->array()->definition() == alloc_typed_data);
+  EXPECT(second_store->array()->definition() == alloc_typed_data);
   EXPECT(boxed_result->value()->definition() != double_one);
   EXPECT(boxed_result->value()->definition() == final_load);
 }
@@ -1112,6 +1074,181 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallInLoop) {
   EXPECT(load_field_before_loop->calls_initializer());
   EXPECT(!load_field_in_loop1->calls_initializer());
   EXPECT(load_field_in_loop2->calls_initializer());
+}
+
+ISOLATE_UNIT_TEST_CASE(AllocationSinking_Arrays) {
+  const char* kScript = R"(
+import 'dart:typed_data';
+
+class Vector2 {
+  final Float64List _v2storage;
+
+  @pragma('vm:prefer-inline')
+  Vector2.zero() : _v2storage = Float64List(2);
+
+  @pragma('vm:prefer-inline')
+  factory Vector2(double x, double y) => Vector2.zero()..setValues(x, y);
+
+  @pragma('vm:prefer-inline')
+  factory Vector2.copy(Vector2 other) => Vector2.zero()..setFrom(other);
+
+  @pragma('vm:prefer-inline')
+  Vector2 clone() => Vector2.copy(this);
+
+  @pragma('vm:prefer-inline')
+  void setValues(double x_, double y_) {
+    _v2storage[0] = x_;
+    _v2storage[1] = y_;
+  }
+
+  @pragma('vm:prefer-inline')
+  void setFrom(Vector2 other) {
+    final otherStorage = other._v2storage;
+    _v2storage[1] = otherStorage[1];
+    _v2storage[0] = otherStorage[0];
+  }
+
+  @pragma('vm:prefer-inline')
+  Vector2 operator +(Vector2 other) => clone()..add(other);
+
+  @pragma('vm:prefer-inline')
+  void add(Vector2 arg) {
+    final argStorage = arg._v2storage;
+    _v2storage[0] = _v2storage[0] + argStorage[0];
+    _v2storage[1] = _v2storage[1] + argStorage[1];
+  }
+
+  @pragma('vm:prefer-inline')
+  double get x => _v2storage[0];
+
+  @pragma('vm:prefer-inline')
+  double get y => _v2storage[1];
+}
+
+@pragma('vm:never-inline')
+String foo(double x) {
+  // All allocations in this function are eliminated by the compiler,
+  // except array allocation for string interpolation at the end.
+  List v1 = List.filled(2, null);
+  v1[0] = 1;
+  v1[1] = 'hi';
+  Vector2 v2 = new Vector2(1.0, 2.0);
+  Vector2 v3 = v2 + Vector2(x, x);
+  double sum = v3.x + v3.y;
+  return "v1: [${v1[0]},${v1[1]}], v2: [${v2.x},${v2.y}], v3: [${v3.x},${v3.y}], sum: $sum";
+}
+
+main() {
+  foo(42.0);
+}
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "main");
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+  ASSERT(flow_graph != nullptr);
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  /* Flow graph to match:
+
+  4:     CheckStackOverflow:8(stack=0, loop=0)
+  6:     v590 <- UnboxedConstant(#1.0) T{_Double}
+  7:     ParallelMove DS-8 <- xmm0
+  8:     v592 <- UnboxedConstant(#2.0) T{_Double}
+  9:     ParallelMove rax <- S+2, DS-7 <- xmm1
+ 10:     CheckClass:14(v2 Cids[1: _Double@0150898 etc.  cid 54])
+ 12:     v526 <- Unbox:14(v2 T{_Double}) T{_Double}
+ 14:     ParallelMove xmm3 <- xmm0
+ 14:     v352 <- BinaryDoubleOp:22(+, v590, v526) T{_Double}
+ 15:     ParallelMove DS-6 <- xmm3
+ 16:     ParallelMove xmm4 <- xmm1
+ 16:     v363 <- BinaryDoubleOp:34(+, v592, v526) T{_Double}
+ 17:     ParallelMove DS-5 <- xmm4
+ 18:     ParallelMove xmm2 <- xmm3
+ 18:     v21 <- BinaryDoubleOp:28(+, v352, v363) T{_Double}
+ 19:     ParallelMove rbx <- C, r10 <- C, DS-4 <- xmm2
+ 20:     v24 <- CreateArray:30(v0, v23) T{_List}
+ 21:     ParallelMove rcx <- rax
+ 22:     ParallelMove S-3 <- rcx
+ 22:     StoreIndexed(v24, v6, v26, NoStoreBarrier)
+ 24:     StoreIndexed(v24, v7, v7, NoStoreBarrier)
+ 26:     StoreIndexed(v24, v3, v29, NoStoreBarrier)
+ 28:     StoreIndexed(v24, v30, v8, NoStoreBarrier)
+ 30:     StoreIndexed(v24, v33, v34, NoStoreBarrier)
+ 31:     ParallelMove xmm0 <- DS-8
+ 32:     v582 <- Box(v590) T{_Double}
+ 33:     ParallelMove rdx <- rcx, rax <- rax
+ 34:     StoreIndexed(v24, v35, v582)
+ 36:     StoreIndexed(v24, v38, v29, NoStoreBarrier)
+ 37:     ParallelMove xmm0 <- DS-7
+ 38:     v584 <- Box(v592) T{_Double}
+ 39:     ParallelMove rdx <- rcx, rax <- rax
+ 40:     StoreIndexed(v24, v39, v584)
+ 42:     StoreIndexed(v24, v42, v43, NoStoreBarrier)
+ 43:     ParallelMove xmm0 <- DS-6
+ 44:     v586 <- Box(v352) T{_Double}
+ 45:     ParallelMove rdx <- rcx, rax <- rax
+ 46:     StoreIndexed(v24, v44, v586)
+ 48:     StoreIndexed(v24, v47, v29, NoStoreBarrier)
+ 49:     ParallelMove xmm0 <- DS-5
+ 50:     v588 <- Box(v363) T{_Double}
+ 51:     ParallelMove rdx <- rcx, rax <- rax
+ 52:     StoreIndexed(v24, v48, v588)
+ 54:     StoreIndexed(v24, v51, v52, NoStoreBarrier)
+ 55:     ParallelMove xmm0 <- DS-4
+ 56:     v580 <- Box(v21) T{_Double}
+ 57:     ParallelMove rdx <- rcx, rax <- rax
+ 58:     StoreIndexed(v24, v53, v580)
+ 59:     ParallelMove rax <- rcx
+ 60:     v54 <- StringInterpolate:44(v24) T{String}
+ 61:     ParallelMove rax <- rax
+ 62:     Return:48(v54)
+*/
+
+  CreateArrayInstr* create_array = nullptr;
+  StringInterpolateInstr* string_interpolate = nullptr;
+
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true,
+                   ParallelMovesHandling::kSkip);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMatchAndMoveFunctionEntry,
+      kMatchAndMoveCheckStackOverflow,
+      kMatchAndMoveUnboxedConstant,
+      kMatchAndMoveUnboxedConstant,
+      kMatchAndMoveCheckClass,
+      kMatchAndMoveUnbox,
+      kMatchAndMoveBinaryDoubleOp,
+      kMatchAndMoveBinaryDoubleOp,
+      kMatchAndMoveBinaryDoubleOp,
+      {kMatchAndMoveCreateArray, &create_array},
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveBox,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveBox,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveBox,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveBox,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveStoreIndexed,
+      kMatchAndMoveBox,
+      kMatchAndMoveStoreIndexed,
+      {kMatchAndMoveStringInterpolate, &string_interpolate},
+      kMatchReturn,
+  }));
+
+  EXPECT(string_interpolate->value()->definition() == create_array);
 }
 
 #if !defined(TARGET_ARCH_IA32)

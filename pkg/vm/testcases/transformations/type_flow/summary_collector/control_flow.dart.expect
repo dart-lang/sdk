@@ -24,17 +24,17 @@ t5 = _Call direct [dart.core::Object.] (%this)
 RESULT: _T {}?
 ------------ TestEnum.toString ------------
 %this = _Parameter #0 [_T (#lib::TestEnum)+]
-t1* = _Call direct get [#lib::TestEnum._name] (%this)
+t1* = _Call virtual get [#lib::TestEnum._name] (%this)
 RESULT: t1
 ------------ TestEnum.values ------------
 
-RESULT: _T (dart.core::_ImmutableList, const <#lib::TestEnum*>[const #lib::TestEnum{#lib::TestEnum.index: 0, #lib::TestEnum._name: TestEnum.v1}, const #lib::TestEnum{#lib::TestEnum.index: 1, #lib::TestEnum._name: TestEnum.v2}])
+RESULT: _T (dart.core::_ImmutableList, const <#lib::TestEnum*>[const #lib::TestEnum{#lib::TestEnum.index: 0, #lib::TestEnum._name: "TestEnum.v1"}, const #lib::TestEnum{#lib::TestEnum.index: 1, #lib::TestEnum._name: "TestEnum.v2"}])
 ------------ TestEnum.v1 ------------
 
-RESULT: _T (#lib::TestEnum, const #lib::TestEnum{#lib::TestEnum.index: 0, #lib::TestEnum._name: TestEnum.v1})
+RESULT: _T (#lib::TestEnum, const #lib::TestEnum{#lib::TestEnum.index: 0, #lib::TestEnum._name: "TestEnum.v1"})
 ------------ TestEnum.v2 ------------
 
-RESULT: _T (#lib::TestEnum, const #lib::TestEnum{#lib::TestEnum.index: 1, #lib::TestEnum._name: TestEnum.v2})
+RESULT: _T (#lib::TestEnum, const #lib::TestEnum{#lib::TestEnum.index: 1, #lib::TestEnum._name: "TestEnum.v2"})
 ------------ foo ------------
 %x = _Parameter #0 [_T ANY?]
 RESULT: _T {}?
@@ -115,11 +115,11 @@ RESULT: _T {}?
 %y = _Parameter #1 [_T (dart.core::String)+?]
 %z = _Parameter #2 [_T ANY?]
 t3* = _Call [dart.core::num.==] (%x, _T (dart.core::_Smi, 5))
-t4* = _Call [dart.core::String.==] (%y, _T (dart.core::_OneByteString, hi))
+t4* = _Call [dart.core::String.==] (%y, _T (dart.core::_OneByteString, "hi"))
 t5 = _Call direct [dart.core::Object.==] (%z, _T {}?)
 t6 = _Narrow (%z to _T ANY)
 t7 = _Call direct [#lib::foo] (_T (dart.core::_Smi, 5))
-t8 = _Call direct [#lib::foo] (_T (dart.core::_OneByteString, hi))
+t8 = _Call direct [#lib::foo] (_T (dart.core::_OneByteString, "hi"))
 t9 = _Call direct [#lib::foo] (t6)
 RESULT: _T {}?
 ------------ if8 ------------
@@ -129,8 +129,8 @@ t2 = _Call direct [#lib::foo] (t1)
 RESULT: _T {}?
 ------------ if9 ------------
 %x = _Parameter #0 [_T (#lib::TestEnum)+?]
-t1* = _Call [#lib::TestEnum.==] (%x, _T (#lib::TestEnum, const #lib::TestEnum{#lib::TestEnum.index: 0, #lib::TestEnum._name: TestEnum.v1}))
-t2 = _Call direct [#lib::foo] (_T (#lib::TestEnum, const #lib::TestEnum{#lib::TestEnum.index: 0, #lib::TestEnum._name: TestEnum.v1}))
+t1* = _Call [#lib::TestEnum.==] (%x, _T (#lib::TestEnum, const #lib::TestEnum{#lib::TestEnum.index: 0, #lib::TestEnum._name: "TestEnum.v1"}))
+t2 = _Call direct [#lib::foo] (_T (#lib::TestEnum, const #lib::TestEnum{#lib::TestEnum.index: 0, #lib::TestEnum._name: "TestEnum.v1"}))
 RESULT: _T {}?
 ------------ conditional1 ------------
 %cond1 = _Parameter #0 [_T (dart.core::bool)+?]
@@ -156,10 +156,11 @@ t4* = _Call direct [#lib::foo] (_T (#lib::C2))
 t5 = _TypeCheck (t4 against dart.core::bool*) (for #lib::foo(x = new #lib::C2()) as dart.core::bool*)
 t6 = _Call direct [#lib::C3.] (_T (#lib::C3))
 t7 = _Call direct [#lib::C4.] (_T (#lib::C4))
-t8* = _Call direct [#lib::foo] (_T (dart.core::_GrowableList<#lib::C4*>))
-t9 = _Call direct [#lib::foo] (_T (#lib::C3))
-t10 = _Join [dynamic] (_T (#lib::C3), t8)
-t11 = _Call direct [#lib::bar] (t10)
+t8* = _Call direct [dart.core::_GrowableList._literal2] (#lib::C4*, _T (#lib::C4), _T {})
+t9* = _Call direct [#lib::foo] (t8)
+t10 = _Call direct [#lib::foo] (_T (#lib::C3))
+t11 = _Join [dynamic] (_T (#lib::C3), t9)
+t12 = _Call direct [#lib::bar] (t11)
 RESULT: _T {}?
 ------------ loop1 ------------
 t0 = _Call direct [#lib::C1.] (_T (#lib::C1))
@@ -190,14 +191,15 @@ RESULT: _T (#lib::C2)
 ------------ loop4 ------------
 t0 = _Call direct [#lib::C1.] (_T (#lib::C1))
 t1 = _Call direct [#lib::C2.] (_T (#lib::C2))
-t2 = _Call direct [#lib::foo] (_T (#lib::C2))
-t3* = _Call get [dart.core::Iterable.iterator] (_T (dart.core::_GrowableList<dynamic?>))
-t4* = _Call [dart.core::Iterator.moveNext] (t3)
-t5 = _Narrow (t3 to _T ANY)
-t6 = _Call get [dart.core::Iterator.current] (t5)
+t2* = _Call direct [#lib::foo] (_T (#lib::C2))
+t3* = _Call direct [dart.core::_GrowableList._literal1] (dynamic?, t2)
+t4* = _Call get [dart.core::Iterable.iterator] (t3)
+t5* = _Call [dart.core::Iterator.moveNext] (t4)
+t6 = _Narrow (t4 to _T ANY)
+t7 = _Call get [dart.core::Iterator.current] (t6)
 x_0 = _Join [dynamic] (_T (#lib::C2), _T (#lib::C3))
-t8 = _Call direct [#lib::foo] (x_0)
-t9 = _Call direct [#lib::C3.] (_T (#lib::C3))
+t9 = _Call direct [#lib::foo] (x_0)
+t10 = _Call direct [#lib::C3.] (_T (#lib::C3))
 RESULT: x_0
 ------------ loop5 ------------
 t0 = _Call direct [#lib::C1.] (_T (#lib::C1))

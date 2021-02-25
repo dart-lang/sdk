@@ -17,27 +17,27 @@ const LiteralEntryInfo spreadOperator = const SpreadOperator();
 
 /// The first step when processing a `for` control flow collection entry.
 class ForCondition extends LiteralEntryInfo {
-  bool inStyle;
+  late bool inStyle;
 
   ForCondition() : super(false, 0);
 
   @override
   Token parse(Token token, Parser parser) {
-    Token next = token.next;
-    Token awaitToken;
+    Token next = token.next!;
+    Token? awaitToken;
     if (optional('await', next)) {
       awaitToken = token = next;
-      next = token.next;
+      next = token.next!;
     }
     final Token forToken = next;
     assert(optional('for', forToken));
     parser.listener.beginForControlFlow(awaitToken, forToken);
 
     token = parser.parseForLoopPartsStart(awaitToken, forToken);
-    Token identifier = token.next;
+    Token identifier = token.next!;
     token = parser.parseForLoopPartsMid(token, awaitToken, forToken);
 
-    if (optional('in', token.next) || optional(':', token.next)) {
+    if (optional('in', token.next!) || optional(':', token.next!)) {
       // Process `for ( ... in ... )`
       inStyle = true;
       token = parser.parseForInLoopPartsRest(
@@ -52,9 +52,9 @@ class ForCondition extends LiteralEntryInfo {
 
   @override
   LiteralEntryInfo computeNext(Token token) {
-    Token next = token.next;
+    Token next = token.next!;
     if (optional('for', next) ||
-        (optional('await', next) && optional('for', next.next))) {
+        (optional('await', next) && optional('for', next.next!))) {
       return new Nested(
         new ForCondition(),
         inStyle ? const ForInComplete() : const ForComplete(),
@@ -141,7 +141,7 @@ class IfCondition extends LiteralEntryInfo {
 
   @override
   Token parse(Token token, Parser parser) {
-    final Token ifToken = token.next;
+    final Token ifToken = token.next!;
     assert(optional('if', ifToken));
     parser.listener.beginIfControlFlow(ifToken);
     Token result = parser.ensureParenthesizedCondition(ifToken);
@@ -151,9 +151,9 @@ class IfCondition extends LiteralEntryInfo {
 
   @override
   LiteralEntryInfo computeNext(Token token) {
-    Token next = token.next;
+    Token next = token.next!;
     if (optional('for', next) ||
-        (optional('await', next) && optional('for', next.next))) {
+        (optional('await', next) && optional('for', next.next!))) {
       return new Nested(new ForCondition(), const IfComplete());
     } else if (optional('if', next)) {
       return new Nested(ifCondition, const IfComplete());
@@ -187,15 +187,15 @@ class IfComplete extends LiteralEntryInfo {
 
   @override
   Token parse(Token token, Parser parser) {
-    if (!optional('else', token.next)) {
+    if (!optional('else', token.next!)) {
       parser.listener.endIfControlFlow(token);
     }
     return token;
   }
 
   @override
-  LiteralEntryInfo computeNext(Token token) {
-    return optional('else', token.next) ? const IfElse() : null;
+  LiteralEntryInfo? computeNext(Token token) {
+    return optional('else', token.next!) ? const IfElse() : null;
   }
 }
 
@@ -205,7 +205,7 @@ class IfElse extends LiteralEntryInfo {
 
   @override
   Token parse(Token token, Parser parser) {
-    Token elseToken = token.next;
+    Token elseToken = token.next!;
     assert(optional('else', elseToken));
     parser.listener.handleElseControlFlow(elseToken);
     return elseToken;
@@ -214,9 +214,9 @@ class IfElse extends LiteralEntryInfo {
   @override
   LiteralEntryInfo computeNext(Token token) {
     assert(optional('else', token));
-    Token next = token.next;
+    Token next = token.next!;
     if (optional('for', next) ||
-        (optional('await', next) && optional('for', next.next))) {
+        (optional('await', next) && optional('for', next.next!))) {
       return new Nested(new ForCondition(), const IfElseComplete());
     } else if (optional('if', next)) {
       return new Nested(ifCondition, const IfElseComplete());
@@ -261,7 +261,7 @@ class SpreadOperator extends LiteralEntryInfo {
 
   @override
   Token parse(Token token, Parser parser) {
-    final Token operator = token.next;
+    final Token operator = token.next!;
     assert(optional('...', operator) || optional('...?', operator));
     token = parser.parseExpression(operator);
     parser.listener.handleSpreadExpression(operator);
@@ -270,20 +270,20 @@ class SpreadOperator extends LiteralEntryInfo {
 }
 
 class Nested extends LiteralEntryInfo {
-  LiteralEntryInfo nestedStep;
+  LiteralEntryInfo? nestedStep;
   final LiteralEntryInfo lastStep;
 
   Nested(this.nestedStep, this.lastStep) : super(false, 0);
 
   @override
-  bool get hasEntry => nestedStep.hasEntry;
+  bool get hasEntry => nestedStep!.hasEntry;
 
   @override
-  Token parse(Token token, Parser parser) => nestedStep.parse(token, parser);
+  Token parse(Token token, Parser parser) => nestedStep!.parse(token, parser);
 
   @override
   LiteralEntryInfo computeNext(Token token) {
-    nestedStep = nestedStep.computeNext(token);
+    nestedStep = nestedStep!.computeNext(token);
     return nestedStep != null ? this : lastStep;
   }
 }

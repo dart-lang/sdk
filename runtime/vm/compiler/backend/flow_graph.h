@@ -76,7 +76,7 @@ struct ConstantPoolTrait {
   }
 
   static inline bool IsKeyEqual(Pair kv, Key key) {
-    return kv->value().raw() == key.raw();
+    return kv->value().ptr() == key.ptr();
   }
 };
 
@@ -162,10 +162,6 @@ class FlowGraph : public ZoneAllocated {
   }
 
   intptr_t CurrentContextEnvIndex() const {
-    if (function().HasBytecode()) {
-      return -1;
-    }
-
     return EnvIndex(parsed_function().current_context_var());
   }
 
@@ -215,7 +211,7 @@ class FlowGraph : public ZoneAllocated {
   Instruction* CreateCheckClass(Definition* to_check,
                                 const Cids& cids,
                                 intptr_t deopt_id,
-                                TokenPosition token_pos);
+                                const InstructionSource& source);
 
   Definition* CreateCheckBound(Definition* length,
                                Definition* index,
@@ -238,11 +234,12 @@ class FlowGraph : public ZoneAllocated {
   // Return value indicates that the call needs no check at all,
   // just a null check, or a full class check.
   ToCheck CheckForInstanceCall(InstanceCallInstr* call,
-                               FunctionLayout::Kind kind) const;
+                               UntaggedFunction::Kind kind) const;
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread()->zone(); }
   Isolate* isolate() const { return thread()->isolate(); }
+  IsolateGroup* isolate_group() const { return thread()->isolate_group(); }
 
   intptr_t max_block_id() const { return max_block_id_; }
   void set_max_block_id(intptr_t id) { max_block_id_ = id; }

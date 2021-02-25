@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async' show Future;
+// @dart = 2.9
 
-import 'dart:io' show File, Platform, stdin, stdout;
+import 'dart:io' show File, Platform;
 
 import 'dart:typed_data' show Uint8List;
 
@@ -24,9 +24,11 @@ import 'package:front_end/src/fasta/command_line_reporting.dart'
 import 'package:kernel/kernel.dart';
 
 import 'package:testing/testing.dart'
-    show ChainContext, Result, Step, TestDescription;
+    show Chain, ChainContext, Result, Step, TestDescription;
 
 import 'spell_checking_utils.dart' as spell;
+
+import 'testing_utils.dart' show filterList;
 
 abstract class SpellContext extends ChainContext {
   final List<Step> steps = const <Step>[
@@ -34,8 +36,9 @@ abstract class SpellContext extends ChainContext {
   ];
 
   final bool interactive;
+  final bool onlyInGit;
 
-  SpellContext({this.interactive});
+  SpellContext({this.interactive, this.onlyInGit});
 
   // Override special handling of negative tests.
   @override
@@ -48,115 +51,31 @@ abstract class SpellContext extends ChainContext {
 
   bool get onlyDenylisted;
 
+  String get repoRelativeSuitePath;
+
   Set<String> reportedWords = {};
   Set<String> reportedWordsDenylisted = {};
 
   @override
+  Stream<TestDescription> list(Chain suite) {
+    return filterList(suite, onlyInGit, super.list(suite));
+  }
+
+  @override
   Future<void> postRun() {
-    if (reportedWordsDenylisted.isNotEmpty) {
-      print("\n\n\n");
-      print("================");
-      print("The following words was reported as used and denylisted:");
-      print("----------------");
-      for (String s in reportedWordsDenylisted) {
-        print("$s");
-      }
-      print("================");
+    String dartPath = Platform.resolvedExecutable;
+    Uri suiteUri = spell.repoDir.resolve(repoRelativeSuitePath);
+    File suiteFile = new File.fromUri(suiteUri).absolute;
+    if (!suiteFile.existsSync()) {
+      throw "Specified suite path is invalid.";
     }
-    if (reportedWords.isNotEmpty) {
-      print("\n\n\n");
-      print("================");
-      print("The following word(s) were reported as unknown:");
-      print("----------------");
-
-      spell.Dictionaries dictionaryToUse;
-      if (dictionaries.contains(spell.Dictionaries.cfeTests)) {
-        dictionaryToUse = spell.Dictionaries.cfeTests;
-      } else if (dictionaries.contains(spell.Dictionaries.cfeMessages)) {
-        dictionaryToUse = spell.Dictionaries.cfeMessages;
-      } else if (dictionaries.contains(spell.Dictionaries.cfeCode)) {
-        dictionaryToUse = spell.Dictionaries.cfeCode;
-      } else {
-        for (spell.Dictionaries dictionary in dictionaries) {
-          if (dictionaryToUse == null ||
-              dictionary.index < dictionaryToUse.index) {
-            dictionaryToUse = dictionary;
-          }
-        }
-      }
-
-      if (interactive && dictionaryToUse != null) {
-        List<String> addedWords = new List<String>();
-        for (String s in reportedWords) {
-          print("- $s");
-          stdout.write("Do you want to add the word to the dictionary "
-              "$dictionaryToUse (y/n)? ");
-          String answer = stdin.readLineSync().trim().toLowerCase();
-          bool add;
-          switch (answer) {
-            case "y":
-            case "yes":
-            case "true":
-              add = true;
-              break;
-            case "n":
-            case "no":
-            case "false":
-              add = false;
-              break;
-            default:
-              throw "Didn't understand '$answer'";
-          }
-          if (add) {
-            addedWords.add(s);
-          }
-        }
-        if (addedWords.isNotEmpty) {
-          File dictionaryFile =
-              new File.fromUri(spell.dictionaryToUri(dictionaryToUse));
-          List<String> lines = dictionaryFile.readAsLinesSync();
-          List<String> header = new List<String>();
-          List<String> sortThis = new List<String>();
-          for (String line in lines) {
-            if (line.startsWith("#")) {
-              header.add(line);
-            } else if (line.trim().isEmpty && sortThis.isEmpty) {
-              header.add(line);
-            } else if (line.trim().isNotEmpty) {
-              sortThis.add(line);
-            }
-          }
-          sortThis.addAll(addedWords);
-          sortThis.sort();
-          lines = new List<String>();
-          lines.addAll(header);
-          if (header.isEmpty || header.last.isNotEmpty) {
-            lines.add("");
-          }
-          lines.addAll(sortThis);
-          lines.add("");
-          dictionaryFile.writeAsStringSync(lines.join("\n"));
-        }
-      } else {
-        for (String s in reportedWords) {
-          print("$s");
-        }
-        if (dictionaries.isNotEmpty) {
-          print("----------------");
-          print("If the word(s) are correctly spelled please add it to one of "
-              "these files:");
-          for (spell.Dictionaries dictionary in dictionaries) {
-            print(" - ${spell.dictionaryToUri(dictionary)}");
-          }
-
-          print("");
-          print("To add words easily, try to run this script in interactive "
-              "mode via the command");
-          print("dart ${Platform.script.toFilePath()} -Dinteractive=true");
-        }
-      }
-      print("================");
-    }
+    String suitePath = suiteFile.path;
+    spell.spellSummarizeAndInteractiveMode(
+        reportedWords,
+        reportedWordsDenylisted,
+        dictionaries,
+        interactive,
+        '"$dartPath" "$suitePath" -DonlyInGit=$onlyInGit -Dinteractive=true');
     return null;
   }
 }
@@ -185,7 +104,7 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
         scanner.lineStarts, rawBytes, description.uri, description.uri);
     void addErrorMessage(
         int offset, String word, bool denylisted, List<String> alternatives) {
-      errors ??= new List<String>();
+      errors ??= <String>[];
       String message;
       if (denylisted) {
         message = "Misspelled word: '$word' has explicitly been denylisted.";

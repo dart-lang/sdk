@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test that 79cc54e51924cd5a6bdc2bd1771f2d0ee7af8899 works as intended.
 
 import 'dart:convert';
@@ -22,10 +24,11 @@ main() {
   Procedure p2 = new Procedure(new Name("p2"), ProcedureKind.Method,
       new FunctionNode(new ReturnStatement()))
     ..fileUri = uri1;
-  library1.addMember(p1);
-  library2.addMember(p2);
+  library1.addProcedure(p1);
+  library2.addProcedure(p2);
 
-  Component component = new Component(libraries: [library1, library2]);
+  Component component = new Component(libraries: [library1, library2])
+    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);
   component.uriToSource[uri1] = new Source(
       [42, 2 * 42], const Utf8Encoder().convert("source #1"), uri1, uri1);
   component.uriToSource[uri2] = new Source(
@@ -33,6 +36,7 @@ main() {
   expectSource(serialize(component), true, true);
 
   Component cPartial1 = new Component(nameRoot: component.root)
+    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak)
     ..libraries.add(library1);
   cPartial1.uriToSource[uri1] = new Source(
       [42, 2 * 42], const Utf8Encoder().convert("source #1"), uri1, uri1);
@@ -42,6 +46,7 @@ main() {
   expectSource(partial1Serialized, true, false);
 
   Component cPartial2 = new Component(nameRoot: component.root)
+    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak)
     ..libraries.add(library2);
   cPartial2.uriToSource[uri1] =
       new Source([42, 2 * 42], const <int>[], uri1, uri1);
@@ -50,7 +55,7 @@ main() {
   List<int> partial2Serialized = serialize(cPartial2);
   expectSource(partial2Serialized, false, true);
 
-  List<int> combined = new List<int>();
+  List<int> combined = <int>[];
   combined.addAll(partial1Serialized);
   combined.addAll(partial2Serialized);
   expectSource(combined, true, true);
@@ -80,7 +85,7 @@ List<int> serialize(Component c) {
   SimpleSink sink = new SimpleSink();
   BinaryPrinter printerWhole = new BinaryPrinter(sink);
   printerWhole.writeComponentFile(c);
-  List<int> result = new List<int>();
+  List<int> result = <int>[];
   for (List<int> chunk in sink.chunks) {
     result.addAll(chunk);
   }

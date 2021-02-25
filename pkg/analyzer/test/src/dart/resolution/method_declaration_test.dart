@@ -13,7 +13,8 @@ main() {
 }
 
 @reflectiveTest
-class MethodDeclarationResolutionTest extends PubPackageResolutionTest {
+class MethodDeclarationResolutionTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_formalParameterScope_defaultValue() async {
     await assertNoErrorsInCode('''
 class A {

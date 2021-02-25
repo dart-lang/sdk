@@ -6,19 +6,19 @@
 
 library type_mask_test_helper;
 
+import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld;
 
 export 'package:compiler/src/inferrer/types.dart';
 
-TypeMask simplify(TypeMask mask, CommonMasks commonMasks) {
-  if (mask is ForwardingTypeMask) {
-    return simplify(mask.forwardTo, commonMasks);
-  } else if (mask is UnionTypeMask) {
-    return UnionTypeMask.flatten(
-        mask.disjointMasks, mask.isNullable, commonMasks);
+AbstractValue simplify(AbstractValue value, AbstractValueDomain domain) {
+  if (value is ForwardingTypeMask) {
+    return simplify(value.forwardTo, domain);
+  } else if (value is UnionTypeMask) {
+    return UnionTypeMask.flatten(value.disjointMasks, value.isNullable, domain);
   } else {
-    return mask;
+    return value;
   }
 }
 

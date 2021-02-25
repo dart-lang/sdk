@@ -34,7 +34,8 @@ class B {
   String f = A().v;
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 106, 5),
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 106, 5,
+          messageContains: "'v'"),
     ]);
   }
 
@@ -174,6 +175,118 @@ class A {
 }
 ''', [
       error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 83, 1),
+    ]);
+  }
+
+  test_topLevelVariable_assignment_field() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+String top = A().f; 
+
+class A{
+  @doNotStore
+  final f = '';
+}
+''', [
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 5, messageContains: "'f'"),
+    ]);
+  }
+
+  test_topLevelVariable_assignment_functionExpression() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+@doNotStore
+String _v = '';
+
+var c = ()=> _v;
+
+String v = c();
+''', [
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 76, 2),
+    ]);
+  }
+
+  test_topLevelVariable_assignment_getter() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+String top = v; 
+
+@doNotStore
+String get v => '';
+''', [
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 1, messageContains: "'v'"),
+    ]);
+  }
+
+  test_topLevelVariable_assignment_method() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+String top = A().v(); 
+
+class A{
+  @doNotStore
+  String v() => '';
+}
+''', [
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 7, messageContains: "'v'"),
+    ]);
+  }
+
+  test_topLevelVariable_binaryExpression() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+@doNotStore
+final v = '';
+
+class A {
+  final f = v ?? v;
+}
+''', [
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 83, 1),
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 88, 1),
+    ]);
+  }
+
+  test_topLevelVariable_libraryAnnotation() async {
+    newFile('$testPackageLibPath/library.dart', content: '''
+@doNotStore
+library lib;
+
+import 'package:meta/meta.dart';
+
+final v = '';
+''');
+
+    await assertErrorsInCode('''
+import 'library.dart';
+
+class A {
+  final f = v;
+}
+''', [
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 46, 1),
+    ]);
+  }
+
+  test_topLevelVariable_ternary() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+@doNotStore
+final v = '';
+
+class A {
+  static bool c;
+  final f = c ? v : v;
+}
+''', [
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 104, 1),
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 108, 1),
     ]);
   }
 }

@@ -9,6 +9,7 @@
 library is_check_and_as_cast_test;
 
 import 'package:js/js.dart';
+import 'package:expect/expect.dart' show hasUnsoundNullSafety;
 import 'package:expect/minitest.dart';
 
 @JS()
@@ -56,6 +57,8 @@ class LiteralB {
 // Library is annotated with JS so we don't need the annotation here.
 external LiteralA get a;
 external LiteralB get b;
+
+class DartClass {}
 
 void main() {
   eval(r"""
@@ -119,4 +122,35 @@ void main() {
   expect(() => (foo as LiteralB), returnsNormally);
   expect(a is Foo, isTrue);
   expect(() => (a as Foo), returnsNormally);
+
+  // You cannot cast between JS interop objects and Dart objects, however.
+  var dartClass = DartClass();
+  expect(dartClass is Foo, isFalse);
+  expect(() => (dartClass as Foo), throws);
+  expect(dartClass is LiteralA, isFalse);
+  expect(() => (dartClass as LiteralA), throws);
+
+  expect(foo is DartClass, isFalse);
+  expect(() => (foo as DartClass), throws);
+  expect(a is DartClass, isFalse);
+  expect(() => (a as DartClass), throws);
+
+  // Test that nullability is still respected with JS types.
+  expect(foo is Foo?, isTrue);
+  expect(() => (foo as Foo?), returnsNormally);
+  Foo? nullableFoo = null;
+  expect(nullableFoo is Foo?, isTrue);
+  expect(() => (nullableFoo as Foo?), returnsNormally);
+  expect(nullableFoo is Foo, isFalse);
+  expect(() => (nullableFoo as Foo),
+      hasUnsoundNullSafety ? returnsNormally : throws);
+
+  expect(a is LiteralA?, isTrue);
+  expect(() => (a as LiteralA?), returnsNormally);
+  LiteralA? nullableA = null;
+  expect(nullableA is LiteralA?, isTrue);
+  expect(() => (nullableA as LiteralA?), returnsNormally);
+  expect(nullableA is LiteralA, isFalse);
+  expect(() => (nullableA as LiteralA),
+      hasUnsoundNullSafety ? returnsNormally : throws);
 }

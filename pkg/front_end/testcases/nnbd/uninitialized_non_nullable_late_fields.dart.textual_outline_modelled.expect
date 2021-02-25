@@ -1,0 +1,9 @@
+class A {
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  A.bar();
+  A.foo(this.x);
+  int x;
+}
+main() {}

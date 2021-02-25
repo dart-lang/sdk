@@ -121,8 +121,9 @@ class ReferenceCollector {
       }
     }
 
-    var importPrefixes = List<String>(importPrefixCount);
-    var importPrefixedReferencedNames = List<List<String>>(importPrefixCount);
+    var importPrefixes = List<String>.filled(importPrefixCount, null);
+    var importPrefixedReferencedNames =
+        List<List<String>>.filled(importPrefixCount, null);
     var importIndex = 0;
     for (var i = 0; i < _importPrefixedReferences.length; i++) {
       var import = _importPrefixedReferences[i];
@@ -213,7 +214,7 @@ class ReferenceCollector {
         assignmentType != TokenType.QUESTION_QUESTION_EQ) {
       var operatorType = operatorFromCompoundAssignment(assignmentType);
       _recordClassMemberReference(
-        targetType: node.leftHandSide.staticType,
+        targetType: node.readType,
         name: operatorType.lexeme,
       );
     }
@@ -576,12 +577,12 @@ class ReferenceCollector {
     var operator = node.operator.type;
     if (operator == TokenType.MINUS_MINUS) {
       _recordClassMemberReference(
-        targetType: node.operand.staticType,
+        targetType: node.readType,
         name: '-',
       );
     } else if (operator == TokenType.PLUS_PLUS) {
       _recordClassMemberReference(
-        targetType: node.operand.staticType,
+        targetType: node.readType,
         name: '+',
       );
     } else {

@@ -8,7 +8,6 @@ import 'dart:collection';
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/collections.dart';
@@ -25,11 +24,13 @@ import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/notification_manager.dart';
+import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart'
     show CompletionPerformance;
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -41,13 +42,13 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
-import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
+import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
@@ -116,6 +117,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   /// The set of analysis roots explicitly added to the workspace.
   final _explicitAnalysisRoots = HashSet<String>();
+
+  /// A progress reporter for analysis status.
+  ProgressReporter analyzingProgressReporter;
 
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
@@ -218,7 +222,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           result is List<dynamic> &&
           result.length == 1 &&
           result.first is Map<String, dynamic>) {
-        clientConfiguration.replace(result.first);
+        final newConfig = result.first;
+        final refreshRoots =
+            clientConfiguration.affectsAnalysisRoots(newConfig);
+
+        clientConfiguration.replace(newConfig);
+
+        if (refreshRoots) {
+          _refreshAnalysisRoots();
+        }
       }
     }
 
@@ -235,11 +247,13 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   /// Gets the version of a document known to the server, returning a
-  /// [VersionedTextDocumentIdentifier] with a version of `null` if the document
+  /// [OptionalVersionedTextDocumentIdentifier] with a version of `null` if the document
   /// version is not known.
-  VersionedTextDocumentIdentifier getVersionedDocumentIdentifier(String path) {
-    return documentVersions[path] ??
-        VersionedTextDocumentIdentifier(uri: Uri.file(path).toString());
+  OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
+      String path) {
+    return OptionalVersionedTextDocumentIdentifier(
+        uri: Uri.file(path).toString(),
+        version: documentVersions[path]?.version);
   }
 
   void handleClientConnection(
@@ -320,6 +334,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }, socketError);
   }
 
+  /// Returns `true` if the [file] with the given absolute path is included
+  /// in an analysis root and not excluded.
+  bool isAnalyzedFile(String file) {
+    return contextManager.isInAnalysisRoot(file) &&
+        // Dot folders are not analyzed (skipped over in _handleWatchEventImpl)
+        !contextManager.isContainedInDotFolder(file) &&
+        !contextManager.isIgnored(file);
+  }
+
   /// Logs the error on the client using window/logMessage.
   void logErrorToClient(String message) {
     channel.sendNotification(NotificationMessage(
@@ -332,14 +355,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Logs an exception by sending it to the client (window/logMessage) and
   /// recording it in a buffer on the server for diagnostics.
   void logException(String message, exception, stackTrace) {
+    var fullMessage = message;
     if (exception is CaughtException) {
       stackTrace ??= exception.stackTrace;
-      message = '$message: ${exception.exception}';
+      fullMessage = '$fullMessage: ${exception.exception}';
     } else if (exception != null) {
-      message = '$message: $exception';
+      fullMessage = '$fullMessage: $exception';
     }
 
-    final fullError = stackTrace == null ? message : '$message\n$stackTrace';
+    final fullError =
+        stackTrace == null ? fullMessage : '$fullMessage\n$stackTrace';
 
     // Log the full message since showMessage above may be truncated or
     // formatted badly (eg. VS Code takes the newlines out).
@@ -352,6 +377,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       stackTrace is StackTrace ? stackTrace : null,
       false,
     ));
+
+    AnalysisEngine.instance.instrumentationService.logException(
+      FatalException(
+        message,
+        exception,
+        stackTrace,
+      ),
+      null,
+      crashReportingAttachmentsBuilder.forException(exception),
+    );
   }
 
   void onOverlayCreated(String path, String content) {
@@ -390,7 +425,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     final params = PublishClosingLabelsParams(
         uri: Uri.file(path).toString(), labels: labels);
     final message = NotificationMessage(
-      method: CustomMethods.PublishClosingLabels,
+      method: CustomMethods.publishClosingLabels,
       params: params,
       jsonrpc: jsonRpcVersion,
     );
@@ -412,7 +447,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     final params = PublishFlutterOutlineParams(
         uri: Uri.file(path).toString(), outline: outline);
     final message = NotificationMessage(
-      method: CustomMethods.PublishFlutterOutline,
+      method: CustomMethods.publishFlutterOutline,
       params: params,
       jsonrpc: jsonRpcVersion,
     );
@@ -423,7 +458,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     final params =
         PublishOutlineParams(uri: Uri.file(path).toString(), outline: outline);
     final message = NotificationMessage(
-      method: CustomMethods.PublishOutline,
+      method: CustomMethods.publishOutline,
       params: params,
       jsonrpc: jsonRpcVersion,
     );
@@ -477,7 +512,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     channel.sendNotification(notification);
   }
 
-  /// Send the given [request] to the client and wait for a response.
+  /// Send the given [request] to the client and wait for a response. Completes
+  /// with the raw [ResponseMessage] which could be an error response.
   Future<ResponseMessage> sendRequest(Method method, Object params) {
     final requestId = nextRequestId++;
     final completer = Completer<ResponseMessage>();
@@ -511,12 +547,31 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
-  void sendStatusNotification(nd.AnalysisStatus status) {
-    channel.sendNotification(NotificationMessage(
-      method: CustomMethods.AnalyzerStatus,
-      params: AnalyzerStatusParams(isAnalyzing: status.isAnalyzing),
-      jsonrpc: jsonRpcVersion,
-    ));
+  Future<void> sendStatusNotification(nd.AnalysisStatus status) async {
+    // Send old custom notifications to clients that do not support $/progress.
+    // TODO(dantup): Remove this custom notification (and related classes) when
+    // it's unlikely to be in use by any clients.
+    if (clientCapabilities.window?.workDoneProgress != true) {
+      channel.sendNotification(NotificationMessage(
+        method: CustomMethods.analyzerStatus,
+        params: AnalyzerStatusParams(isAnalyzing: status.isAnalyzing),
+        jsonrpc: jsonRpcVersion,
+      ));
+      return;
+    }
+
+    if (status.isAnalyzing) {
+      analyzingProgressReporter ??=
+          ProgressReporter.serverCreated(this, analyzingProgressToken)
+            ..begin('Analyzing…');
+    } else {
+      if (analyzingProgressReporter != null) {
+        // Do not null this out until after end completes, otherwise we may try
+        // to create a new token before it's really completed.
+        await analyzingProgressReporter.end();
+        analyzingProgressReporter = null;
+      }
+    }
   }
 
   /// Returns `true` if closing labels should be sent for [file] with the given
@@ -532,12 +587,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Returns `true` if errors should be reported for [file] with the given
   /// absolute path.
   bool shouldSendErrorsNotificationFor(String file) {
-    // Errors should not be reported for things that are explicitly skipped
-    // during normal analysis (for example dot folders are skipped over in
-    // _handleWatchEventImpl).
-    return contextManager.isInAnalysisRoot(file) &&
-        !contextManager.isContainedInDotFolder(file) &&
-        !contextManager.isIgnored(file);
+    return isAnalyzedFile(file);
   }
 
   /// Returns `true` if Flutter outlines should be sent for [file] with the
@@ -564,6 +614,17 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       params: ShowMessageParams(type: type, message: message),
       jsonrpc: jsonRpcVersion,
     ));
+  }
+
+  /// Shows the user a prompt with some actions to select using ShowMessageRequest.
+  Future<MessageActionItem> showUserPrompt(
+      MessageType type, String message, List<MessageActionItem> actions) async {
+    final response = await sendRequest(
+      Method.window_showMessageRequest,
+      ShowMessageRequestParams(type: type, message: message, actions: actions),
+    );
+
+    return MessageActionItem.fromJson(response.result);
   }
 
   Future<void> shutdown() {
@@ -614,9 +675,19 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       ..addAll(_temporaryAnalysisRoots.values)
       ..toList();
 
+    final excludedPaths = clientConfiguration.analysisExcludedFolders
+        .expand((excludePath) => isAbsolute(excludePath)
+            ? [excludePath]
+            // Apply the relative path to each open workspace folder.
+            // TODO(dantup): Consider supporting per-workspace config by
+            // calling workspace/configuration whenever workspace folders change
+            // and caching the config for each one.
+            : _explicitAnalysisRoots.map((root) => join(root, excludePath)))
+        .toList();
+
     declarationsTracker?.discardContexts();
-    notificationManager.setAnalysisRoots(includedPaths.toList(), []);
-    contextManager.setRoots(includedPaths.toList(), []);
+    notificationManager.setAnalysisRoots(includedPaths.toList(), excludedPaths);
+    contextManager.setRoots(includedPaths.toList(), excludedPaths);
     addContextsToDeclarationsTracker();
   }
 
@@ -688,9 +759,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       analysisServer.notificationManager;
 
   @override
-  nd.AnalysisDriver addAnalysisDriver(
-      Folder folder, ContextRoot contextRoot, AnalysisOptions options) {
-    var builder = createContextBuilder(folder, options);
+  nd.AnalysisDriver addAnalysisDriver(Folder folder, ContextRoot contextRoot) {
+    var builder = createContextBuilder(folder);
     var analysisDriver = builder.buildDriver(contextRoot);
     final textDocumentCapabilities =
         analysisServer.clientCapabilities?.textDocument;
@@ -702,9 +772,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
         final serverErrors = protocol.mapEngineErrors(
             result,
-            result.errors
-                .where((e) => e.errorCode.type != ErrorType.TODO)
-                .toList(),
+            result.errors.where(_shouldSendDiagnostic).toList(),
             (result, error, [severity]) => toDiagnostic(
                   result,
                   error,
@@ -743,6 +811,11 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;
+  }
+
+  @override
+  void afterContextRefresh() {
+    analysisServer.addContextsToDeclarationsTracker();
   }
 
   @override
@@ -785,9 +858,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
+  ContextBuilder createContextBuilder(Folder folder) {
     var builderOptions = ContextBuilderOptions();
-    builderOptions.defaultOptions = options;
     var builder = ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
@@ -806,4 +878,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
         ?.forEach((path) => analysisServer.publishDiagnostics(path, const []));
     driver.dispose();
   }
+
+  bool _shouldSendDiagnostic(AnalysisError error) =>
+      error.errorCode.type != ErrorType.TODO ||
+      analysisServer.clientConfiguration.showTodos;
 }

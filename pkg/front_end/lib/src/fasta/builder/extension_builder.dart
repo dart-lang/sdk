@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
@@ -119,7 +121,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   Builder lookupLocalMemberByName(Name name,
       {bool setter: false, bool required: false}) {
     Builder builder =
-        lookupLocalMember(name.name, setter: setter, required: required);
+        lookupLocalMember(name.text, setter: setter, required: required);
     if (builder != null && name.isPrivate && library.library != name.library) {
       builder = null;
     }

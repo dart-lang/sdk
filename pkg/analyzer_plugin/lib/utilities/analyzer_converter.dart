@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart' as analyzer;
-import 'package:analyzer/dart/element/type.dart' as analyzer;
 import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart' as analyzer;
@@ -11,10 +10,7 @@ import 'package:analyzer/source/error_processor.dart' as analyzer;
 import 'package:analyzer/source/line_info.dart' as analyzer;
 import 'package:analyzer/src/generated/engine.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart' as analyzer;
-import 'package:analyzer/src/generated/utilities_dart.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
 /// An object used to convert between objects defined by the 'analyzer' package
 /// and those defined by the plugin protocol.
@@ -237,8 +233,13 @@ class AnalyzerConverter {
         return null;
       }
       parameters = element.parameters;
-    } else if (element is analyzer.FunctionTypeAliasElement) {
-      parameters = element.function.parameters;
+    } else if (element is analyzer.TypeAliasElement) {
+      var aliasedElement = element.aliasedElement;
+      if (aliasedElement is analyzer.GenericFunctionTypeElement) {
+        parameters = aliasedElement.parameters;
+      } else {
+        return null;
+      }
     } else {
       return null;
     }
@@ -279,9 +280,14 @@ class AnalyzerConverter {
       return type != null
           ? type.getDisplayString(withNullability: false)
           : 'dynamic';
-    } else if (element is analyzer.FunctionTypeAliasElement) {
-      var returnType = element.function.returnType;
-      return returnType.getDisplayString(withNullability: false);
+    } else if (element is analyzer.TypeAliasElement) {
+      var aliasedElement = element.aliasedElement;
+      if (aliasedElement is analyzer.GenericFunctionTypeElement) {
+        var returnType = aliasedElement.returnType;
+        return returnType.getDisplayString(withNullability: false);
+      } else {
+        return null;
+      }
     }
     return null;
   }

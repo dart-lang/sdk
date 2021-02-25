@@ -1,0 +1,18 @@
+class A {
+  int? foo;
+  A bar;
+  A(this.bar);
+}
+
+test<T extends A?>(A? a, T t, dynamic d, int x) {}
+
+class B {}
+
+extension Extension on B {
+  int? get fooExtension => null;
+  void set fooExtension(int? value) {}
+  B get barExtension => new B();
+}
+
+testExtension<T extends B?>(B? b, T t, int x) {}
+main() {}

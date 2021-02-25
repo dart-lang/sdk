@@ -16,19 +16,23 @@ typedef NativeCallbackTestFn = int Function(Pointer);
 class CallbackTest {
   final String name;
   final Pointer callback;
-  final bool skip;
+  final void Function() afterCallbackChecks;
 
-  CallbackTest(this.name, this.callback, {bool skipIf: false})
-      : skip = skipIf {}
+  CallbackTest(this.name, this.callback) : afterCallbackChecks = noChecks {}
+  CallbackTest.withCheck(this.name, this.callback, this.afterCallbackChecks) {}
 
   void run() {
-    if (skip) return;
-
     final NativeCallbackTestFn tester = ffiTestFunctions
         .lookupFunction<NativeCallbackTest, NativeCallbackTestFn>("Test$name");
+
     final int testCode = tester(callback);
+
     if (testCode != 0) {
       Expect.fail("Test $name failed.");
     }
+
+    afterCallbackChecks();
   }
 }
+
+void noChecks() {}

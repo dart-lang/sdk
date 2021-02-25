@@ -2,27 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.transform_set_literals;
 
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/ast.dart'
-    show
-        Arguments,
-        Expression,
-        InterfaceType,
-        Let,
-        Library,
-        MethodInvocation,
-        Name,
-        Procedure,
-        SetLiteral,
-        StaticInvocation,
-        TreeNode,
-        VariableDeclaration,
-        VariableGet;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:kernel/src/legacy_erasure.dart' show legacyErasure;
+
+import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'package:kernel/visitor.dart' show Transformer;
 
@@ -35,6 +27,8 @@ class SetLiteralTransformer extends Transformer {
   final CoreTypes coreTypes;
   final Procedure setFactory;
   final Procedure addMethod;
+  FunctionType _addMethodFunctionType;
+  final bool useNewMethodInvocationEncoding;
 
   /// Library that contains the transformed nodes.
   ///
@@ -55,31 +49,53 @@ class SetLiteralTransformer extends Transformer {
   SetLiteralTransformer(SourceLoader loader)
       : coreTypes = loader.coreTypes,
         setFactory = _findSetFactory(loader.coreTypes),
-        addMethod = _findAddMethod(loader.coreTypes);
+        addMethod = _findAddMethod(loader.coreTypes),
+        useNewMethodInvocationEncoding =
+            loader.target.backendTarget.supportsNewMethodInvocationEncoding {
+    _addMethodFunctionType = addMethod.getterType;
+  }
 
   TreeNode visitSetLiteral(SetLiteral node) {
     if (node.isConst) return node;
 
-    // Outermost declaration of let chain: Set<E> setVar = new Set<E>();
+    // Create the set: Set<E> setVar = new Set<E>();
+    DartType receiverType;
     VariableDeclaration setVar = new VariableDeclaration.forValue(
         new StaticInvocation(
             setFactory, new Arguments([], types: [node.typeArgument])),
-        type: new InterfaceType(coreTypes.setClass, _currentLibrary.nonNullable,
-            [node.typeArgument]));
-    // Innermost body of let chain: setVar
-    Expression setExp = new VariableGet(setVar);
-    for (int i = node.expressions.length - 1; i >= 0; i--) {
-      // let _ = setVar.add(expression) in rest
+        type: receiverType = new InterfaceType(coreTypes.setClass,
+            _currentLibrary.nonNullable, [node.typeArgument]));
+
+    // Now create a list of all statements needed.
+    List<Statement> statements = [setVar];
+    for (int i = 0; i < node.expressions.length; i++) {
       Expression entry = node.expressions[i].accept<TreeNode>(this);
-      setExp = new Let(
-          new VariableDeclaration.forValue(new MethodInvocation(
-              new VariableGet(setVar),
-              new Name("add"),
-              new Arguments([entry]),
-              addMethod)),
-          setExp);
+      Expression methodInvocation;
+      if (useNewMethodInvocationEncoding) {
+        FunctionType functionType = Substitution.fromInterfaceType(receiverType)
+            .substituteType(_addMethodFunctionType);
+        if (!_currentLibrary.isNonNullableByDefault) {
+          functionType = legacyErasure(functionType);
+        }
+        methodInvocation = new InstanceInvocation(InstanceAccessKind.Instance,
+            new VariableGet(setVar), new Name("add"), new Arguments([entry]),
+            functionType: functionType, interfaceTarget: addMethod)
+          ..fileOffset = entry.fileOffset
+          ..isInvariant = true;
+      } else {
+        methodInvocation = new MethodInvocation(new VariableGet(setVar),
+            new Name("add"), new Arguments([entry]), addMethod)
+          ..fileOffset = entry.fileOffset
+          ..isInvariant = true;
+      }
+      statements.add(new ExpressionStatement(methodInvocation)
+        ..fileOffset = methodInvocation.fileOffset);
     }
-    return new Let(setVar, setExp);
+
+    // Finally, return a BlockExpression with the statements, having the value
+    // of the (now created) set.
+    return new BlockExpression(new Block(statements), new VariableGet(setVar))
+      ..fileOffset = node.fileOffset;
   }
 
   void enterLibrary(Library library) {

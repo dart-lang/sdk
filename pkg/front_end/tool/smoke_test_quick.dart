@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 import 'dart:io' show Platform, Process, ProcessResult, exitCode;
 
 import '../test/utils/io_utils.dart' show computeRepoDir;
@@ -12,7 +14,7 @@ String get dartVm => Platform.executable;
 
 main(List<String> args) async {
   Stopwatch stopwatch = new Stopwatch()..start();
-  List<Future> futures = new List<Future>();
+  List<Future> futures = <Future>[];
   futures.add(run(
       "pkg/front_end/test/explicit_creation_test.dart", ["--front-end-only"],
       filter: false));

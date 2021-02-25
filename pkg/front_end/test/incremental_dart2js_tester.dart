@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "dart:developer";
 import 'dart:io' show Platform;
 
@@ -51,7 +53,7 @@ class Dart2jsTester {
   Map<Uri, List<int>> libToData;
   List<Uri> uris;
 
-  List<Uri> diffs = new List<Uri>();
+  List<Uri> diffs = <Uri>[];
   Set<Uri> componentUris = new Set<Uri>();
 
   Dart2jsTester(this.useExperimentalInvalidation, this.fast,
@@ -63,7 +65,7 @@ class Dart2jsTester {
       debugger();
     }
 
-    diffs = new List<Uri>();
+    diffs = <Uri>[];
     componentUris = new Set<Uri>();
 
     Stopwatch localStopwatch = new Stopwatch()..start();
@@ -176,7 +178,7 @@ class Dart2jsTester {
     stopwatch.start();
     Uri input = Platform.script.resolve("../../compiler/bin/dart2js.dart");
     CompilerOptions options = helper.getOptions();
-    options.experimentalFlags[ExperimentalFlag
+    options.explicitExperimentalFlags[ExperimentalFlag
         .alternativeInvalidationStrategy] = useExperimentalInvalidation;
     helper.TestIncrementalCompiler compiler =
         new helper.TestIncrementalCompiler(options, input);

@@ -34,7 +34,7 @@ abstract class D3 extends core::Object implements self::B, self::C {
 abstract class D4 extends core::Object implements self::C, self::B {
   synthetic constructor •() → self::D4
     ;
-  abstract forwarding-stub method method(covariant core::num a) → void;
+  abstract member-signature method method(covariant core::num a) → void; -> self::B::method
 }
 abstract class D5 extends core::Object implements self::A, self::C {
   synthetic constructor •() → self::D5

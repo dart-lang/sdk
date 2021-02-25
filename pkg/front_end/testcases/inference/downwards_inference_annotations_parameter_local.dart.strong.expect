@@ -19,10 +19,16 @@ class Foo extends core::Object /*hasConstConstructor*/  {
 }
 static method test() → void {
   function f(@#C1 dynamic x) → void {}
-  (dynamic) →* core::Null? x = (@#C1 dynamic x) → core::Null? {};
+  (dynamic) →* Null x = (@#C1 dynamic x) → Null {};
 }
 static method main() → dynamic {}
 
 constants  {
   #C1 = self::Foo {}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///downwards_inference_annotations_parameter_local.dart:
+- Foo. (from org-dartlang-testcase:///downwards_inference_annotations_parameter_local.dart:9:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

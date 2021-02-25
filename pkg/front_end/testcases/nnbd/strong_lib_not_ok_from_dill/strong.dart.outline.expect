@@ -13,6 +13,8 @@ static method main() → dynamic
 
 library;
 import self as self2;
+import "dart:core" as core;
 
+static field core::int* x;
 static method foo() → void
   ;

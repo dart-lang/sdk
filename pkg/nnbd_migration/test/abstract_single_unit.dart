@@ -30,13 +30,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   FindNode findNode;
   FindElement findElement;
 
-  /// Whether the test should perform analysis with NNBD enabled.
-  ///
-  /// `false` by default.  May be overridden in derived test classes.
-  ///
-  /// TODO(paulberry): once NNBD ships, this should no longer be needed.
-  bool get analyzeWithNnbd => false;
-
   void addTestSource(String code, [Uri uri]) {
     testCode = code;
     testSource = addSource(testFile, code, uri);
@@ -66,12 +59,20 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   @override
   void setUp() {
-    var testRoot = AbstractContextTest.testsPath;
+    var testRoot = testsPath;
     if (analyzeWithNnbd) {
-      newFile(convertPath('$testRoot/analysis_options.yaml'), content: '''
+      newFile('$testRoot/analysis_options.yaml', content: '''
 analyzer:
   enable-experiment:
     - non-nullable
+''');
+    }
+    if (analyzeWithNnbd) {
+      newFile('$testRoot/pubspec.yaml', content: '''
+name: tests
+version: 1.0.0
+environment:
+  sdk: '>=2.12.0 <3.0.0'
 ''');
     }
     super.setUp();

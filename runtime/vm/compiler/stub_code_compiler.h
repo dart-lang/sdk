@@ -9,6 +9,8 @@
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
+#include <functional>
+
 #include "vm/allocation.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/constants.h"
@@ -110,8 +112,8 @@ class StubCodeCompiler : public AllStatic {
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_IA32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 90;
-  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 134;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
   static constexpr intptr_t kNativeCallbackSharedStubSize = 140;
@@ -142,6 +144,34 @@ class StubCodeCompiler : public AllStatic {
   // InitLateFinalInstanceField stubs.
   static void GenerateInitLateInstanceFieldStub(Assembler* assembler,
                                                 bool is_final);
+
+  // Common function for generating Allocate<TypedData>Array stubs.
+  static void GenerateAllocateTypedDataArrayStub(Assembler* assembler,
+                                                 intptr_t cid);
+
+  static void GenerateSharedStubGeneric(
+      Assembler* assembler,
+      bool save_fpu_registers,
+      intptr_t self_code_stub_offset_from_thread,
+      bool allow_return,
+      std::function<void()> perform_runtime_call);
+
+  // Generates shared slow path stub which saves registers and calls
+  // [target] runtime entry.
+  // If [store_runtime_result_in_result_register], then stub puts result into
+  // SharedSlowPathStubABI::kResultReg.
+  static void GenerateSharedStub(
+      Assembler* assembler,
+      bool save_fpu_registers,
+      const RuntimeEntry* target,
+      intptr_t self_code_stub_offset_from_thread,
+      bool allow_return,
+      bool store_runtime_result_in_result_register = false);
+
+  static void GenerateLateInitializationError(Assembler* assembler,
+                                              bool with_fpu_regs);
+
+  static void GenerateRangeError(Assembler* assembler, bool with_fpu_regs);
 };
 
 }  // namespace compiler

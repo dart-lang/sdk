@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 main() {
@@ -159,9 +158,9 @@ main() {
   group('valid', () {
     void assertExperiments(
       AllowedExperiments experiments, {
-      @required List<String> sdkDefaultExperiments,
-      @required Map<String, List<String>> sdkLibraryExperiments,
-      @required Map<String, List<String>> packageExperiments,
+      required List<String> sdkDefaultExperiments,
+      required Map<String, List<String>> sdkLibraryExperiments,
+      required Map<String, List<String>> packageExperiments,
     }) {
       expect(experiments.sdkDefaultExperiments, sdkDefaultExperiments);
       expect(experiments.sdkLibraryExperiments, sdkLibraryExperiments);

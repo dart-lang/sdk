@@ -7,9 +7,9 @@ library from "package:flutter/src/widgets/framework.dart" as fra {
       ;
   }
   abstract class Widget extends fra::Bar implements wid::_HasCreationLocation /*hasConstConstructor*/  {
-    final field wid::_Location? _location /*isNullableByDefault, from null */;
-    const constructor •({wid::_Location? $creationLocationd_0dea112b090073317d4}) → fra::Widget
-      : super fra::Bar::•(), fra::Widget::_location = $creationLocationd_0dea112b090073317d4!
+    final field wid::_Location? _location /*isLegacy, from null */;
+    const constructor •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → fra::Widget
+      : super fra::Bar::•(), fra::Widget::_location = $creationLocationd_0dea112b090073317d4
       ;
   }
 }
@@ -39,7 +39,7 @@ library from "org-dartlang-test:///foo.dart" as foo {
 
   class Foo extends fra::Widget {
     final field dart.core::String name;
-    constructor •({required dart.core::String name = #C1, wid::_Location? $creationLocationd_0dea112b090073317d4}) → foo::Foo
+    constructor •({required dart.core::String name = #C1, wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo
       : foo::Foo::name = name, super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
   }

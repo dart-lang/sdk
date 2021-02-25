@@ -65,7 +65,7 @@ class DeoptimizedCodeSet : public ZoneAllocated {
     }
     NoSafepointScope no_safepoint_scope;
     for (intptr_t i = 0; i < array.Length(); i++) {
-      if (code.raw() == array.At(i)) {
+      if (code.ptr() == array.At(i)) {
         return true;
       }
     }
@@ -110,7 +110,7 @@ ProfileFunction::ProfileFunction(Kind kind,
                                  const intptr_t table_index)
     : kind_(kind),
       name_(name),
-      function_(Function::ZoneHandle(function.raw())),
+      function_(Function::ZoneHandle(function.ptr())),
       table_index_(table_index),
       profile_codes_(0),
       source_position_ticks_(0),
@@ -174,7 +174,12 @@ void ProfileFunction::TickSourcePosition(TokenPosition token_position,
   intptr_t i = 0;
   for (; i < source_position_ticks_.length(); i++) {
     ProfileFunctionSourcePosition& position = source_position_ticks_[i];
-    if (position.token_pos().value() == token_position.value()) {
+    const intptr_t cmp =
+        TokenPosition::CompareForSorting(position.token_pos(), token_position);
+    if (cmp > 0) {
+      // Found insertion point.
+      break;
+    } else if (cmp == 0) {
       if (FLAG_trace_profiler_verbose) {
         OS::PrintErr("Ticking source position %s %s\n",
                      exclusive ? "exclusive" : "inclusive",
@@ -183,9 +188,6 @@ void ProfileFunction::TickSourcePosition(TokenPosition token_position,
       // Found existing position, tick it.
       position.Tick(exclusive);
       return;
-    }
-    if (position.token_pos().value() > token_position.value()) {
-      break;
     }
   }
 
@@ -605,7 +607,7 @@ class ProfileFunctionTable : public ZoneAllocated {
     static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
     static inline bool IsKeyEqual(Pair kv, Key key) {
-      return kv->function()->raw() == key->raw();
+      return kv->function()->ptr() == key->ptr();
     }
   };
 
@@ -934,7 +936,7 @@ void ProfileCodeInlinedFunctionsCache::Add(
   if (cache_entry->inlined_functions.length() == 0) {
     *inlined_functions = NULL;
     *inlined_token_positions = NULL;
-    *token_position = cache_entry->token_position = TokenPosition();
+    *token_position = cache_entry->token_position = TokenPosition::kNoSource;
     return;
   }
 
@@ -1205,7 +1207,7 @@ class ProfileBuilder : public ValueObject {
     TokenPosition token_position = TokenPosition::kNoSource;
     Code& code = Code::ZoneHandle();
     if (profile_code->code().IsCode()) {
-      code ^= profile_code->code().raw();
+      code ^= profile_code->code().ptr();
       inlined_functions_cache_->Get(pc, code, sample, frame_index,
                                     &inlined_functions,
                                     &inlined_token_positions, &token_position);
@@ -1218,11 +1220,6 @@ class ProfileBuilder : public ValueObject {
                     (*inlined_token_positions)[i].ToCString());
         }
       }
-    } else if (profile_code->code().IsBytecode()) {
-      // No inlining in bytecode.
-      const Bytecode& bc = Bytecode::CheckedHandle(Thread::Current()->zone(),
-                                                   profile_code->code().raw());
-      token_position = bc.GetTokenIndexOfPC(pc);
     }
 
     if (code.IsNull() || (inlined_functions == NULL) ||
@@ -1409,8 +1406,8 @@ class ProfileBuilder : public ValueObject {
   }
 
   bool IsPCInDartHeap(uword pc) {
-    return vm_isolate_->heap()->CodeContains(pc) ||
-           thread_->isolate()->heap()->CodeContains(pc);
+    return vm_isolate_->group()->heap()->CodeContains(pc) ||
+           thread_->isolate()->group()->heap()->CodeContains(pc);
   }
 
   ProfileCode* FindOrRegisterNativeProfileCode(uword pc) {
@@ -1665,7 +1662,7 @@ void Profile::ProcessSampleFrameJSON(JSONArray* stack,
   Code& code = Code::ZoneHandle();
 
   if (profile_code->code().IsCode()) {
-    code ^= profile_code->code().raw();
+    code ^= profile_code->code().ptr();
     cache_->Get(pc, code, sample, frame_index, &inlined_functions,
                 &inlined_token_positions, &token_position);
     if (FLAG_trace_profiler_verbose && (inlined_functions != NULL)) {
@@ -1676,11 +1673,6 @@ void Profile::ProcessSampleFrameJSON(JSONArray* stack,
                   (*inlined_token_positions)[i].ToCString());
       }
     }
-  } else if (profile_code->code().IsBytecode()) {
-    // No inlining in bytecode.
-    const Bytecode& bc = Bytecode::CheckedHandle(Thread::Current()->zone(),
-                                                 profile_code->code().raw());
-    token_position = bc.GetTokenIndexOfPC(pc);
   }
 
   if (code.IsNull() || (inlined_functions == NULL) ||
@@ -1877,7 +1869,7 @@ class ClassAllocationSampleFilter : public SampleFilter {
                      thread_task_mask,
                      time_origin_micros,
                      time_extent_micros),
-        cls_(Class::Handle(cls.raw())) {
+        cls_(Class::Handle(cls.ptr())) {
     ASSERT(!cls_.IsNull());
   }
 

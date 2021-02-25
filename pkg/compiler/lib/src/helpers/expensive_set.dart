@@ -10,7 +10,7 @@ import 'dart:collection';
 class ExpensiveSet<E> extends SetBase<E> {
   final List _sets;
 
-  ExpensiveSet([int copies = 10]) : _sets = new List(copies) {
+  ExpensiveSet([int copies = 10]) : _sets = new List.filled(copies, null) {
     assert(copies > 0);
     for (int i = 0; i < _sets.length; i++) {
       _sets[i] = new Set<E>();

@@ -9,7 +9,17 @@ import 'never_opt_out_lib.dart';
 Never optOutNever;
 var inferredOptOutNever = optInNever;
 
+genericMethod<T>() {}
+
+class GenericClass<T> {}
+
 main() {
+  optInNever = optOutNever;
+
+  Type typeNever = Never;
+  genericMethod<Never>();
+  new GenericClass<Never>();
+
   Never localNever = null;
   Null localNull = null;
   var inferredLocalNever = optInNever;
@@ -62,6 +72,15 @@ main() {
   throws(() => optInNever = throwing());
   throws(() => inferredOptOutNever = throwing());
   throws(() => inferredLocalNever = throwing());
+
+  var boundedGenericClass = new BoundedGenericClass();
+  throws(() {
+    var boundedGenericMethodResult1 = boundedGenericMethod1();
+  });
+  var boundedGenericMethodResult2 = boundedGenericMethod2();
+
+  dynamic dyn = null;
+  optInNever = dyn;
 }
 
 class B extends A {

@@ -8,9 +8,13 @@ parser/error_recovery/issue_39033.crash:1:17: Expected a type, but got ''.
 typedef F<Glib.=
                 ^...
 
+WARNING: Reporting at eof --- see below for details.
+
 parser/error_recovery/issue_39033.crash:1:17: Expected ';' after this.
 typedef F<Glib.=
                 ^...
+
+WARNING: Reporting at eof --- see below for details.
 
 beginCompilationUnit(typedef)
   beginMetadataStar(typedef)
@@ -28,11 +32,13 @@ beginCompilationUnit(typedef)
         endTypeVariable(., 0, null, null)
         handleRecoverableError(Message[ExpectedAfterButGot, Expected '>' after this., null, {string: >}], Glib, Glib)
       endTypeVariables(<, >)
-      handleRecoverableError(Message[ExpectedType, Expected a type, but got ''., null, {token: }], , )
+      handleRecoverableError(Message[ExpectedType, Expected a type, but got ''., null, {lexeme: }], , )
+      // WARNING: Reporting at eof for .
       handleIdentifier(, typeReference)
       handleNoTypeArguments()
       handleType(, null)
       handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], , )
+      // WARNING: Reporting at eof for .
     endFunctionTypeAlias(typedef, =, ;)
   endTopLevelDeclaration()
 endCompilationUnit(1, )

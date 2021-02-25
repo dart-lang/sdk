@@ -228,6 +228,7 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
 /// Creates a Completer for an `async` function.
 ///
 /// Used as part of the runtime support for the async/await transformation.
+@pragma('dart2js:assumeDynamic') // Global type inference can't see call site.
 Completer<T> _makeAsyncAwaitCompleter<T>() {
   return new _AsyncAwaitCompleter<T>();
 }
@@ -524,6 +525,7 @@ class _AsyncStarStreamController<T> {
 /// Creates a stream controller for an `async*` function.
 ///
 /// Used as part of the runtime support for the async/await transformation.
+@pragma('dart2js:assumeDynamic') // Global type inference can't see call site.
 _makeAsyncStarStreamController<T>(_WrappedAsyncBody body) {
   return new _AsyncStarStreamController<T>(body);
 }
@@ -681,6 +683,7 @@ class _SyncStarIterator<T> implements Iterator<T> {
 /// Creates an Iterable for a `sync*` function.
 ///
 /// Used as part of the runtime support for the async/await transformation.
+@pragma('dart2js:assumeDynamic') // Global type inference can't see call site.
 _SyncStarIterable<T> _makeSyncStarIterable<T>(body) {
   return new _SyncStarIterable<T>(body);
 }

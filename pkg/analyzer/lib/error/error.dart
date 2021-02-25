@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
@@ -16,6 +17,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/manifest/manifest_warning_code.dart';
+import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 
 export 'package:_fe_analyzer_shared/src/base/errors.dart'
     show ErrorCode, ErrorSeverity, ErrorType;
@@ -63,13 +65,11 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER,
   CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER,
   CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-  CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD,
   CompileTimeErrorCode.AMBIGUOUS_EXPORT,
   CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
   CompileTimeErrorCode.AMBIGUOUS_IMPORT,
   CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH,
   CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER,
-  CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS,
   CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
   CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR,
   CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
@@ -123,7 +123,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
   CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE,
   CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
-  CompileTimeErrorCode.CONST_FORMAL_PARAMETER,
   CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
   CompileTimeErrorCode
       .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
@@ -142,7 +141,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH,
   CompileTimeErrorCode.COULD_NOT_INFER,
   CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR,
-  CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER,
   CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
   CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER,
   CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION,
@@ -150,6 +148,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
   CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
   CompileTimeErrorCode.DUPLICATE_DEFINITION,
+  CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
   CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT,
   CompileTimeErrorCode.DUPLICATE_PART,
   CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
@@ -223,11 +222,11 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC,
   CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
   CompileTimeErrorCode.INSTANTIATE_ENUM,
+  CompileTimeErrorCode.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
   CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE,
   CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
   CompileTimeErrorCode.INVALID_ANNOTATION,
   CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
-  CompileTimeErrorCode.INVALID_ANNOTATION_GETTER,
   CompileTimeErrorCode.INVALID_ASSIGNMENT,
   CompileTimeErrorCode.INVALID_CAST_FUNCTION,
   CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR,
@@ -241,6 +240,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME,
   CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
   CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS,
+  CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
   CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
@@ -261,6 +261,10 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,
   CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
   CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+  CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE,
+  CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS,
+  CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
+  CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION,
   CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP,
   CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
   CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
@@ -371,6 +375,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR,
   CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
   CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
+  CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
   CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
   CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH,
   CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
@@ -400,7 +405,15 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
   CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE,
   CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME,
+  CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
+  CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+  CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+  CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
   CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE,
+  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD,
+  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
   CompileTimeErrorCode.UNDEFINED_ANNOTATION,
   CompileTimeErrorCode.UNDEFINED_CLASS,
   CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
@@ -445,6 +458,8 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
   CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
   FfiCode.ANNOTATION_ON_POINTER_FIELD,
+  FfiCode.EMPTY_STRUCT,
+  FfiCode.EMPTY_STRUCT_WARNING,
   FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD,
   FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER,
   FfiCode.FIELD_INITIALIZER_IN_STRUCT,
@@ -458,6 +473,7 @@ const List<ErrorCode> errorCodeValues = [
   FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
   FfiCode.MUST_BE_A_SUBTYPE,
   FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
+  FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING,
   FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER,
   FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,
   FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS,
@@ -479,6 +495,7 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.DEPRECATED_MIXIN_FUNCTION,
   HintCode.DIVISION_OPTIMIZATION,
   HintCode.DUPLICATE_HIDDEN_NAME,
+  HintCode.DUPLICATE_IGNORE,
   HintCode.DUPLICATE_IMPORT,
   HintCode.DUPLICATE_SHOWN_NAME,
   HintCode.EQUAL_ELEMENTS_IN_SET,
@@ -486,16 +503,20 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
   HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
   HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
+  HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE,
   HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
   HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
   HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
   HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
   HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
   HintCode.INVALID_ANNOTATION_TARGET,
+  HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
+  HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY,
   HintCode.INVALID_FACTORY_ANNOTATION,
   HintCode.INVALID_FACTORY_METHOD_DECL,
   HintCode.INVALID_FACTORY_METHOD_IMPL,
   HintCode.INVALID_IMMUTABLE_ANNOTATION,
+  HintCode.INVALID_INTERNAL_ANNOTATION,
   HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN,
   HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS,
   HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
@@ -512,6 +533,7 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM,
   HintCode.INVALID_REQUIRED_POSITIONAL_PARAM,
   HintCode.INVALID_SEALED_ANNOTATION,
+  HintCode.INVALID_USE_OF_INTERNAL_MEMBER,
   HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
   HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
   HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
@@ -528,14 +550,17 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.NULL_AWARE_BEFORE_OPERATOR,
   HintCode.NULL_AWARE_IN_CONDITION,
   HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR,
+  HintCode.NULL_CHECK_ALWAYS_FAILS,
   HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
-  HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
   HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD,
   HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
   HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
   HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER,
   HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT,
   HintCode.RECEIVER_OF_TYPE_NEVER,
+  HintCode.RETURN_OF_DO_NOT_STORE,
+  HintCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
+  HintCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
   HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT,
   HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE,
   HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT,
@@ -553,7 +578,9 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.TYPE_CHECK_IS_NULL,
   HintCode.UNDEFINED_HIDDEN_NAME,
   HintCode.UNDEFINED_SHOWN_NAME,
+  HintCode.UNIGNORABLE_IGNORE,
   HintCode.UNNECESSARY_CAST,
+  HintCode.UNNECESSARY_IGNORE,
   HintCode.UNNECESSARY_NO_SUCH_METHOD,
   HintCode.UNNECESSARY_NULL_COMPARISON_FALSE,
   HintCode.UNNECESSARY_NULL_COMPARISON_TRUE,
@@ -597,6 +624,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT,
   ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
   ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+  ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT,
   ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
   ParserErrorCode.CATCH_SYNTAX,
   ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS,
@@ -632,6 +660,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.EXPECTED_CLASS_MEMBER,
   ParserErrorCode.EXPECTED_ELSE_OR_COMMA,
   ParserErrorCode.EXPECTED_EXECUTABLE,
+  ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD,
   ParserErrorCode.EXPECTED_INSTEAD,
   ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL,
   ParserErrorCode.EXPECTED_STRING_LITERAL,
@@ -783,6 +812,9 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.WITH_BEFORE_EXTENDS,
   ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
   ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
+  PubspecWarningCode.INVALID_DEPENDENCY,
+  PubspecWarningCode.PATH_DOES_NOT_EXIST,
+  PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST,
   ScannerErrorCode.EXPECTED_TOKEN,
   ScannerErrorCode.ILLEGAL_CHARACTER,
   ScannerErrorCode.MISSING_DIGIT,
@@ -810,7 +842,7 @@ const List<ErrorCode> errorCodeValues = [
 
 /// The lazy initialized map from [ErrorCode.uniqueName] to the [ErrorCode]
 /// instance.
-HashMap<String, ErrorCode> _uniqueNameToCodeMap;
+/*late final*/ HashMap<String, ErrorCode> _uniqueNameToCodeMap;
 
 /// Return the [ErrorCode] with the given [uniqueName], or `null` if not
 /// found.
@@ -907,6 +939,27 @@ class AnalysisError implements Diagnostic {
         filePath: source?.fullName,
         length: length,
         message: message,
+        offset: offset);
+    _contextMessages = contextMessages;
+  }
+
+  /// Initialize a newly created analysis error. The error is associated with
+  /// the given [source] and is located at the given [offset] with the given
+  /// [length]. The error will have the given [errorCode] and the map  of
+  /// [arguments] will be used to complete the message and correction. If any
+  /// [contextMessages] are provided, they will be recorded with the error.
+  AnalysisError.withNamedArguments(this.source, int offset, int length,
+      this.errorCode, Map<String, dynamic> arguments,
+      {List<DiagnosticMessage> contextMessages = const []}) {
+    String messageText = applyArgumentsToTemplate(errorCode.message, arguments);
+    String correctionTemplate = errorCode.correction;
+    if (correctionTemplate != null) {
+      _correction = applyArgumentsToTemplate(correctionTemplate, arguments);
+    }
+    _problemMessage = DiagnosticMessageImpl(
+        filePath: source?.fullName,
+        length: length,
+        message: messageText,
         offset: offset);
     _contextMessages = contextMessages;
   }

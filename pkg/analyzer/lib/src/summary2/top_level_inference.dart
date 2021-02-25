@@ -9,17 +9,14 @@ import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/summary2/ast_resolver.dart';
-import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
+import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
 import 'package:meta/meta.dart';
 
@@ -160,7 +157,8 @@ class _ConstructorInferenceNode extends _InferenceNode {
             _parameters.add(parameterNode);
             _fields.add(fieldElement);
           } else {
-            LazyAst.setType(parameterNode, DynamicTypeImpl.instance);
+            (parameterElement as ParameterElementImpl).type =
+                DynamicTypeImpl.instance;
           }
         }
       }
@@ -180,7 +178,6 @@ class _ConstructorInferenceNode extends _InferenceNode {
     for (var i = 0; i < _parameters.length; ++i) {
       var parameter = _parameters[i];
       var type = _fields[i].type;
-      LazyAst.setType(parameter, type);
       (parameter.declaredElement as ParameterElementImpl).type = type;
     }
     isEvaluated = true;
@@ -190,7 +187,8 @@ class _ConstructorInferenceNode extends _InferenceNode {
   void markCircular(List<_InferenceNode> cycle) {
     for (var i = 0; i < _parameters.length; ++i) {
       var parameterNode = _parameters[i];
-      LazyAst.setType(parameterNode, DynamicTypeImpl.instance);
+      (parameterNode.declaredElement as ParameterElementImpl).type =
+          DynamicTypeImpl.instance;
     }
     isEvaluated = true;
   }
@@ -323,8 +321,11 @@ class _InitializerInference {
   void _addVariableNode(PropertyInducingElement element) {
     if (element.isSynthetic) return;
 
-    VariableDeclaration node = _getLinkedNode(element);
-    if (LazyAst.getType(node) != null) return;
+    var node = _getLinkedNode(element) as VariableDeclaration;
+    var variableList = node.parent as VariableDeclarationList;
+    if (variableList.type != null) {
+      return;
+    }
 
     if (node.initializer != null) {
       var inferenceNode =
@@ -333,7 +334,7 @@ class _InitializerInference {
       (element as PropertyInducingElementImpl).typeInference =
           _PropertyInducingElementTypeInference(inferenceNode);
     } else {
-      LazyAst.setType(node, DynamicTypeImpl.instance);
+      (element as PropertyInducingElementImpl).type = DynamicTypeImpl.instance;
     }
   }
 }
@@ -383,6 +384,10 @@ class _VariableInferenceNode extends _InferenceNode {
     return false;
   }
 
+  PropertyInducingElementImpl get _elementImpl {
+    return _node.declaredElement as PropertyInducingElementImpl;
+  }
+
   @override
   List<_InferenceNode> computeDependencies() {
     _resolveInitializer(forDependencies: true);
@@ -402,7 +407,7 @@ class _VariableInferenceNode extends _InferenceNode {
     for (var node in dependencies) {
       if (node is _VariableInferenceNode &&
           node.isImplicitlyTypedInstanceField) {
-        LazyAst.setType(_node, DynamicTypeImpl.instance);
+        _elementImpl.type = DynamicTypeImpl.instance;
         isEvaluated = true;
         return const <_InferenceNode>[];
       }
@@ -415,10 +420,10 @@ class _VariableInferenceNode extends _InferenceNode {
   void evaluate() {
     _resolveInitializer(forDependencies: false);
 
-    if (LazyAst.getType(_node) == null) {
+    if (!_elementImpl.hasTypeInferred) {
       var initializerType = _node.initializer.staticType;
       initializerType = _refineType(initializerType);
-      LazyAst.setType(_node, initializerType);
+      _elementImpl.type = initializerType;
     }
 
     isEvaluated = true;
@@ -426,19 +431,16 @@ class _VariableInferenceNode extends _InferenceNode {
 
   @override
   void markCircular(List<_InferenceNode> cycle) {
-    LazyAst.setType(_node, DynamicTypeImpl.instance);
+    _elementImpl.type = DynamicTypeImpl.instance;
 
     var cycleNames = <String>{};
     for (var inferenceNode in cycle) {
       cycleNames.add(inferenceNode.displayName);
     }
 
-    LazyAst.setTypeInferenceError(
-      _node,
-      TopLevelInferenceErrorBuilder(
-        kind: TopLevelInferenceErrorKind.dependencyCycle,
-        arguments: cycleNames.toList(),
-      ),
+    _elementImpl.typeInferenceError = TopLevelInferenceError(
+      kind: TopLevelInferenceErrorKind.dependencyCycle,
+      arguments: cycleNames.toList(),
     );
 
     isEvaluated = true;
@@ -450,7 +452,7 @@ class _VariableInferenceNode extends _InferenceNode {
     }
 
     if (_typeSystem.isNonNullableByDefault) {
-      return nonNullifyType(_typeSystem, type);
+      return _typeSystem.nonNullifyLegacy(type);
     } else {
       if (type.isBottom) {
         return DynamicTypeImpl.instance;

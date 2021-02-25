@@ -27,8 +27,6 @@ class NamedParametersAggregatedTests {
   // Expect compile-time error as no default values
   // are allowed in closure type.
   void InstallCallback(void cb({String msg : null})) {
-  //                            ^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER
   //                                       ^
   // [analyzer] SYNTACTIC_ERROR.DEFAULT_VALUE_IN_FUNCTION_TYPE
   // [cfe] Can't have a default value in a function type.
@@ -39,8 +37,9 @@ class NamedParametersAggregatedTests {
 main() {
   // Expect compile-time error due to missing comma in function definition.
   NamedParametersAggregatedTests.f_missing_comma(10, 25);
-  //                                            ^^^^^^^^
+  //                                                 ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  //                                            ^^^^^^^^
   // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 
   // Expect compile-time error due to duplicate named argument.

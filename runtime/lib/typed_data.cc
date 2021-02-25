@@ -108,7 +108,7 @@ static BoolPtr CopyData(const Instance& dst,
     TypedData::Copy<DstType, SrcType>(dst_array, dst_offset_in_bytes, src_array,
                                       src_offset_in_bytes, length_in_bytes);
   }
-  return Bool::True().raw();
+  return Bool::True().ptr();
 }
 
 static bool IsClamped(intptr_t cid) {
@@ -174,8 +174,23 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 0, 7) {
     }
   }
   UNREACHABLE();
-  return Bool::False().raw();
+  return Bool::False().ptr();
 }
+
+// Native methods for typed data allocation are recognized and implemented
+// in FlowGraphBuilder::BuildGraphOfRecognizedMethod.
+// These bodies exist only to assert that they are not used.
+#define TYPED_DATA_NEW(name)                                                   \
+  DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 0, 2) {                          \
+    UNREACHABLE();                                                             \
+    return Object::null();                                                     \
+  }
+
+#define TYPED_DATA_NEW_NATIVE(name) TYPED_DATA_NEW(name)
+
+CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
+#undef TYPED_DATA_NEW_NATIVE
+#undef TYPED_DATA_NEW
 
 // We check the length parameter against a possible maximum length for the
 // array based on available physical addressable memory on the system.
@@ -188,28 +203,6 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 0, 7) {
 // into a _Smi.
 //
 // Argument 0 is type arguments and is ignored.
-#define TYPED_DATA_NEW(name)                                                   \
-  DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 0, 2) {                          \
-    GET_NON_NULL_NATIVE_ARGUMENT(Integer, length, arguments->NativeArgAt(1));  \
-    const intptr_t cid = kTypedData##name##Cid;                                \
-    const intptr_t max = TypedData::MaxElements(cid);                          \
-    const int64_t len = length.AsInt64Value();                                 \
-    if (len < 0) {                                                             \
-      Exceptions::ThrowRangeError("length", length, 0, max);                   \
-    } else if (len > max) {                                                    \
-      const Instance& exception = Instance::Handle(                            \
-          zone, thread->isolate()->object_store()->out_of_memory());           \
-      Exceptions::Throw(thread, exception);                                    \
-    }                                                                          \
-    return TypedData::New(cid, static_cast<intptr_t>(len));                    \
-  }
-
-#define TYPED_DATA_NEW_NATIVE(name) TYPED_DATA_NEW(name)
-
-CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
-#undef TYPED_DATA_NEW_NATIVE
-#undef TYPED_DATA_NEW
-
 #define TYPED_DATA_VIEW_NEW(native_name, cid)                                  \
   DEFINE_NATIVE_ENTRY(native_name, 0, 4) {                                     \
     GET_NON_NULL_NATIVE_ARGUMENT(TypedDataBase, typed_data,                    \

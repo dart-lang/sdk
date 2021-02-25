@@ -82,7 +82,7 @@ bindCall(obj, name) {
 ///
 /// We need to apply the type arguments both to the function, as well as its
 /// associated function type.
-gbind(f, @rest List typeArgs) {
+gbind(f, @rest List<Object> typeArgs) {
   GenericFunctionType type = JS('!', '#[#]', f, _runtimeType);
   type.checkBounds(typeArgs);
   // Create a JS wrapper function that will also pass the type arguments, and
@@ -665,7 +665,7 @@ constList(elements, elementType) => JS('', '''(() => {
   let value = map.get($elementType);
   if (value) return value;
 
-  ${getGenericClass(JSArray)}($elementType).unmodifiable($elements);
+  ${getGenericClassStatic<JSArray>()}($elementType).unmodifiable($elements);
   map.set($elementType, elements);
   return elements;
 })()''');
@@ -759,11 +759,34 @@ _canonicalMember(obj, name) {
   return name;
 }
 
+/// A map from libraries to a set of import prefixes that have been loaded.
+///
+/// Used to validate deferred library conventions.
+final deferredImports = JS<Object>('!', 'new Map()');
+
 /// Emulates the implicit "loadLibrary" function provided by a deferred library.
 ///
-/// Libraries are not actually deferred in DDC, so this just returns a future
-/// that completes immediately.
-Future loadLibrary() => Future.value();
+/// Libraries are not actually deferred in DDC, so this just records the import
+/// for runtime validation, then returns a future that completes immediately.
+Future loadLibrary(
+    @notNull String enclosingLibrary, @notNull String importPrefix) {
+  var result = JS('', '#.get(#)', deferredImports, enclosingLibrary);
+  if (JS<bool>('', '# === void 0', result)) {
+    JS('', '#.set(#, # = new Set())', deferredImports, enclosingLibrary,
+        result);
+  }
+  JS('', '#.add(#)', result, importPrefix);
+  return Future.value();
+}
+
+void checkDeferredIsLoaded(
+    @notNull String enclosingLibrary, @notNull String importPrefix) {
+  var loaded = JS('', '#.get(#)', deferredImports, enclosingLibrary);
+  if (JS<bool>('', '# === void 0', loaded) ||
+      JS<bool>('', '!#.has(#)', loaded, importPrefix)) {
+    throwDeferredIsLoadedError(enclosingLibrary, importPrefix);
+  }
+}
 
 /// Defines lazy statics.
 ///
@@ -785,22 +808,38 @@ void defineLazy(to, from, bool useOldSemantics) {
 // performance in other projects (e.g. webcomponents.js ShadowDOM polyfill).
 defineLazyField(to, name, desc) => JS('', '''(() => {
   const initializer = $desc.get;
+  const final = $desc.set == null;
+  // Tracks if the initializer has been called.
+  let initialized = false;
   let init = initializer;
   let value = null;
-  let executed = false;
+  // Tracks if these local variables have been saved so they can be restored
+  // after a hot restart.
+  let savedLocals = false;
   $desc.get = function() {
     if (init == null) return value;
-    if (!executed) {
+    if (final && initialized) $throwLateInitializationError($name);
+    if (!savedLocals) {
       // Record the field on first execution so we can reset it later if
       // needed (hot restart).
       $_resetFields.push(() => {
         init = initializer;
         value = null;
-        executed = false;
+        savedLocals = false;
+        initialized = false;
       });
-      executed = true;
+      savedLocals = true;
     }
-    value = init();
+    // Must set before calling init in case it is recursive.
+    initialized = true;
+    try {
+      value = init();
+    } catch (e) {
+      // Reset to false so the initializer can be executed again if the
+      // exception was caught.
+      initialized = false;
+      throw e;
+    }
     init = null;
     return value;
   };
@@ -809,7 +848,7 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
     $desc.set = function(x) {
       init = null;
       value = x;
-      // executed is dead since init is set to null
+      // savedLocals and initialized are dead since init is set to null
     };
   }
   return ${defineProperty(to, name, desc)};
@@ -854,3 +893,17 @@ defineLazyFieldOld(to, name, desc) => JS('', '''(() => {
   }
   return ${defineProperty(to, name, desc)};
 })()''');
+
+checkNativeNonNull(dynamic variable) {
+  if (_nativeNonNullAsserts && variable == null) {
+    // TODO(srujzs): Add link/patch for instructions to disable in internal
+    // build systems.
+    throw TypeErrorImpl('''
+      Unexpected null value encountered in Dart web platform libraries.
+      This may be a bug in the Dart SDK APIs. If you would like to report a bug
+      or disable this error, you can use the following instructions:
+      https://github.com/dart-lang/sdk/tree/master/sdk/lib/html/doc/NATIVE_NULL_ASSERTIONS.md
+    ''');
+  }
+  return variable;
+}

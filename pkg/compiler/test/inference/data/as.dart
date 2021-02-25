@@ -36,7 +36,7 @@ _asIntWithNegative(/*[subclass=JSInt]*/ o) => o as int;
 /*member: asIntWithNegative:[null]*/
 asIntWithNegative() {
   _asIntWithNegative(0);
-  _asIntWithNegative(/*invoke: [exact=JSUInt31]*/ -1);
+  _asIntWithNegative(-1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ _asIntOfMinusOne(/*[subclass=JSInt]*/ o) => o as int;
 
 /*member: asIntOfMinusOne:[null]*/
 asIntOfMinusOne() {
-  _asIntOfMinusOne(/*invoke: [exact=JSUInt31]*/ -1);
+  _asIntOfMinusOne(-1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

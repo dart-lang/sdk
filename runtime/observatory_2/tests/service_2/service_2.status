@@ -1,0 +1,77 @@
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+# Flaky failures
+dds_log_history_size_gigantic_test: Pass, Slow # Involves processing lots of logs
+field_script_test: Pass, RuntimeError
+get_allocation_samples_test: Pass, RuntimeError # Inconsistent stack trace
+get_isolate_rpc_test: Pass, RuntimeError # Issue 29324
+isolate_lifecycle_test: Pass, RuntimeError # Issue 24174
+pause_on_exceptions_test: Pass, RuntimeError # Issue 33049
+pause_on_start_and_exit_with_child_test: Pass, RuntimeError # Issue 33049
+reload_sources_test: Pass, Slow # Reload is slow on the bots
+valid_source_locations_test: Pass, Slow # Generally slow, even in release-x64.
+
+[ $arch == arm ]
+process_service_test: Pass, Fail # Issue 24344
+
+# Test uses service API and relies on correct class names
+[ $builder_tag == obfuscated ]
+dominator_tree_vm_test: SkipByDesign
+dominator_tree_vm_with_double_field_test: SkipByDesign
+
+# Tests with known analyzer issues
+[ $compiler == dart2analyzer ]
+developer_extension_test: SkipByDesign
+get_isolate_after_language_error_test: SkipByDesign
+
+# The _1 versions of this test can be slow due to stress testing flags.
+[ $mode == debug ]
+async_generator_breakpoint_test: Pass, Slow
+
+# Service protocol is not supported in product mode.
+[ $mode == product ]
+*: SkipByDesign
+
+[ $system == android ]
+string_escaping_test: Skip # Issue http://dartbug.com/42094
+
+[ $system == windows ]
+*: Slow
+async_generator_breakpoint_test: Skip # Issue 29145
+dev_fs_http_put_weird_char_test: Skip # Windows disallows carriage returns in paths
+dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
+
+[ $compiler == none && $runtime == vm ]
+evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
+evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
+
+[ $compiler == none && $runtime == vm && $system == fuchsia ]
+*: Skip # Not yet triaged.
+
+[ $mode == debug && $system == windows ]
+dds_log_history_size_gigantic_test: Skip # Too slow: dartbug.com/41825
+
+[ $mode == debug && $system == windows && $checked ]
+async_scope_test: Pass, Slow
+
+[ $mode == debug && ($arch == simarm || $arch == simarm64) ]
+*: SkipSlow
+
+# These tests are slow on simulators.
+[ $arch == simarm || $arch == simarm64 ]
+*: Pass, Slow
+
+# All tests use dart:io
+[ $compiler == dart2js || $browser ]
+*: SkipByDesign
+
+[ $compiler == dartk || $compiler == dartkp ]
+rewind_test: Pass, Slow
+
+[ $system != linux || $arch != ia32 && $arch != x64 ]
+get_native_allocation_samples_test: Skip # Unsupported.
+
+# Skip all service tests because random reloads interfere.
+[ $hot_reload || $hot_reload_rollback ]
+*: SkipByDesign # The service tests should run without being reloaded.

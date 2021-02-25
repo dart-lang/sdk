@@ -22,7 +22,7 @@ void bar(int i) {}
 void main() {
   new Class<dynamic>().test(true, bar, "dynamic");
   new Class<Object>().test(true, bar, "Object");
-  new Class<Null>().test(isStrongMode, bar, "Null");
+  new Class<Null>().test(hasSoundNullSafety, bar, "Null");
   new Class<Never>().test(false, bar, "Never");
   new Class<int>().test(false, bar, "int");
   new Class<bool>().test(true, bar, "bool");

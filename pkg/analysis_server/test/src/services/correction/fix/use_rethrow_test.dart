@@ -24,7 +24,7 @@ class UseRethrowTest extends FixProcessorLintTest {
   String get lintCode => LintNames.use_rethrow_when_possible;
 
   Future<void> test_rethrow() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void bad1() {
   try {} catch (e) {
     throw e;

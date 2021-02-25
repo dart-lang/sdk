@@ -39,8 +39,7 @@ void f(A a) {
 
     assertSimpleIdentifier(
       propertyAccess.propertyName,
-      readElement: findElement.getter('foo'),
-      writeElement: null,
+      element: findElement.getter('foo'),
       type: 'int',
     );
   }
@@ -74,11 +73,13 @@ void f(A a) {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertPropertyAccess2(
-      propertyAccess,
-      element: findElement.setter('foo'),
-      type: 'num',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertPropertyAccess2(
+        propertyAccess,
+        element: findElement.setter('foo'),
+        type: 'num',
+      );
+    }
   }
 
   test_extensionOverride_write() async {
@@ -106,17 +107,30 @@ void f(A a) {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertPropertyAccess2(
-      propertyAccess,
-      element: findElement.setter('foo'),
-      type: 'int',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertPropertyAccess2(
+        propertyAccess,
+        element: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       propertyAccess.propertyName,
-      readElement: null,
-      writeElement: findElement.setter('foo'),
-      type: 'int',
+    );
+  }
+
+  test_functionType_call_read() async {
+    await assertNoErrorsInCode('''
+void f(int Function(String) a) {
+  (a).call;
+}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('call;'),
+      element: null,
+      type: 'int Function(String)',
     );
   }
 
@@ -140,8 +154,7 @@ void f() {
 
     assertSimpleIdentifier(
       propertyAccess.propertyName,
-      readElement: findElement.getter('foo'),
-      writeElement: null,
+      element: findElement.getter('foo'),
       type: 'int',
     );
   }
@@ -172,11 +185,13 @@ void f() {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertPropertyAccess2(
-      propertyAccess,
-      element: findElement.setter('foo'),
-      type: 'int',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertPropertyAccess2(
+        propertyAccess,
+        element: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
   }
 
   test_instanceCreation_write() async {
@@ -202,17 +217,52 @@ void f() {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertPropertyAccess2(
-      propertyAccess,
-      element: findElement.setter('foo'),
-      type: 'int',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertPropertyAccess2(
+        propertyAccess,
+        element: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       propertyAccess.propertyName,
-      readElement: null,
-      writeElement: findElement.setter('foo'),
-      type: 'int',
+    );
+  }
+
+  test_invalid_inDefaultValue_nullAware() async {
+    await assertInvalidTestCode('''
+void f({a = b?.foo}) {}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('?.foo'),
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
+  test_invalid_inDefaultValue_nullAware2() async {
+    await assertInvalidTestCode('''
+typedef void F({a = b?.foo});
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('?.foo'),
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
+  test_invalid_inDefaultValue_nullAware_cascade() async {
+    await assertInvalidTestCode('''
+void f({a = b?..foo}) {}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('?..foo'),
+      element: null,
+      type: 'dynamic',
     );
   }
 
@@ -238,8 +288,7 @@ void f(A a) {
 
     assertSimpleIdentifier(
       propertyAccess.propertyName,
-      readElement: findElement.getter('foo'),
-      writeElement: null,
+      element: findElement.getter('foo'),
       type: 'int',
     );
   }
@@ -273,11 +322,13 @@ void f() {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertPropertyAccess2(
-      propertyAccess,
-      element: findElement.setter('foo'),
-      type: 'num',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertPropertyAccess2(
+        propertyAccess,
+        element: findElement.setter('foo'),
+        type: 'num',
+      );
+    }
   }
 
   test_ofExtension_write() async {
@@ -305,17 +356,16 @@ void f() {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertPropertyAccess2(
-      propertyAccess,
-      element: findElement.setter('foo'),
-      type: 'int',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertPropertyAccess2(
+        propertyAccess,
+        element: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       propertyAccess.propertyName,
-      readElement: null,
-      writeElement: findElement.setter('foo'),
-      type: 'int',
     );
   }
 
@@ -345,8 +395,7 @@ class B extends A {
 
     assertSimpleIdentifier(
       propertyAccess.propertyName,
-      readElement: findElement.getter('foo'),
-      writeElement: null,
+      element: findElement.getter('foo'),
       type: 'int',
     );
   }
@@ -379,21 +428,20 @@ class B extends A {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertPropertyAccess2(
-      propertyAccess,
-      element: findElement.setter('foo'),
-      type: 'int',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertPropertyAccess2(
+        propertyAccess,
+        element: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
 
     assertSuperExpression(
       propertyAccess.target,
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       propertyAccess.propertyName,
-      readElement: findElement.getter('foo'),
-      writeElement: findElement.setter('foo'),
-      type: 'int',
     );
   }
 
@@ -422,21 +470,75 @@ class B extends A {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertPropertyAccess2(
-      propertyAccess,
-      element: findElement.setter('foo'),
-      type: 'int',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertPropertyAccess2(
+        propertyAccess,
+        element: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
 
     assertSuperExpression(
       propertyAccess.target,
     );
 
+    assertSimpleIdentifierAssignmentTarget(
+      propertyAccess.propertyName,
+    );
+  }
+
+  test_targetTypeParameter_dynamicBounded() async {
+    await assertNoErrorsInCode('''
+class A<T extends dynamic> {
+  void f(T t) {
+    (t).foo;
+  }
+}
+''');
+
+    var propertyAccess = findNode.propertyAccess('.foo');
+    assertPropertyAccess2(
+      propertyAccess,
+      element: null,
+      type: 'dynamic',
+    );
+
     assertSimpleIdentifier(
       propertyAccess.propertyName,
-      readElement: null,
-      writeElement: findElement.setter('foo'),
-      type: 'int',
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
+  test_targetTypeParameter_noBound() async {
+    await resolveTestCode('''
+class C<T> {
+  void f(T t) {
+    (t).foo;
+  }
+}
+''');
+    assertErrorsInResult(expectedErrorsByNullability(
+      nullable: [
+        error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+            33, 3),
+      ],
+      legacy: [
+        error(CompileTimeErrorCode.UNDEFINED_GETTER, 37, 3),
+      ],
+    ));
+
+    var propertyAccess = findNode.propertyAccess('.foo');
+    assertPropertyAccess2(
+      propertyAccess,
+      element: null,
+      type: 'dynamic',
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      element: null,
+      type: 'dynamic',
     );
   }
 
@@ -489,7 +591,7 @@ class A {
   int get bar => 0;
 }
 
-main(A? a) {
+void f(A? a) {
   a?..foo..bar;
 }
 ''');
@@ -588,8 +690,7 @@ main() {
 
     assertSimpleIdentifier(
       findNode.simple('foo?'),
-      readElement: findElement.topGet('foo'),
-      writeElement: null,
+      element: findElement.topGet('foo'),
       type: 'A?',
     );
 

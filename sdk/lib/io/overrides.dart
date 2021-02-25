@@ -8,12 +8,12 @@ final _ioOverridesToken = new Object();
 
 const _asyncRunZoned = runZoned;
 
-/// This class facilitates overriding various APIs of dart:io with mock
+/// Facilities for overriding various APIs of `dart:io` with mock
 /// implementations.
 ///
 /// This abstract base class should be extended with overrides for the
 /// operations needed to construct mocks. The implementations in this base class
-/// default to the actual dart:io implementation. For example:
+/// default to the actual `dart:io` implementation. For example:
 ///
 /// ```
 /// class MyDirectory implements Directory {
@@ -22,7 +22,7 @@ const _asyncRunZoned = runZoned;
 ///   ...
 /// }
 ///
-/// main() {
+/// void main() {
 ///   IOOverrides.runZoned(() {
 ///     ...
 ///     // Operations will use MyDirectory instead of dart:io's Directory
@@ -40,16 +40,16 @@ abstract class IOOverrides {
 
   /// The [IOOverrides] to use in the root [Zone].
   ///
-  /// These are the [IOOverrides] that will be used in the root Zone, and in
-  /// Zone's that do not set [IOOverrides] and whose ancestors up to the root
-  /// Zone do not set [IOOverrides].
+  /// These are the [IOOverrides] that will be used in the root [Zone], and in
+  /// [Zone]'s that do not set [IOOverrides] and whose ancestors up to the root
+  /// [Zone] also do not set [IOOverrides].
   static set global(IOOverrides? overrides) {
     _global = overrides;
   }
 
   /// Runs [body] in a fresh [Zone] using the provided overrides.
   ///
-  /// See the documentation on the corresponding methods of IOOverrides for
+  /// See the documentation on the corresponding methods of [IOOverrides] for
   /// information about what the optional arguments do.
   static R runZoned<R>(R body(),
       {
@@ -282,7 +282,7 @@ abstract class IOOverrides {
   /// When this override is installed, this functions overrides the behavior of
   /// `ServerSocket.bind(...)`.
   Future<ServerSocket> serverSocketBind(address, int port,
-      {int backlog: 0, bool v6Only: false, bool shared: false}) {
+      {int backlog = 0, bool v6Only = false, bool shared = false}) {
     return ServerSocket._bind(address, port,
         backlog: backlog, v6Only: v6Only, shared: shared);
   }
@@ -499,9 +499,10 @@ class _IOOverridesScope extends IOOverrides {
   }
 
   // ServerSocket
+
   @override
   Future<ServerSocket> serverSocketBind(address, int port,
-      {int backlog: 0, bool v6Only: false, bool shared: false}) {
+      {int backlog = 0, bool v6Only = false, bool shared = false}) {
     if (_serverSocketBind != null) {
       return _serverSocketBind!(address, port,
           backlog: backlog, v6Only: v6Only, shared: shared);

@@ -1,6 +1,9 @@
 #!/usr/bin/env dart
 
 /// Generates the repo's ".dart_tool/package_config.json" file.
+
+// @dart = 2.9
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -20,9 +23,13 @@ void main(List<String> args) {
     packageDirectory('runtime/observatory'),
     packageDirectory(
         'runtime/observatory/tests/service/observatory_test_package'),
+    packageDirectory('runtime/observatory_2'),
+    packageDirectory(
+        'runtime/observatory_2/tests/service_2/observatory_test_package_2'),
     packageDirectory('sdk/lib/_internal/sdk_library_metadata'),
     packageDirectory('sdk/lib/_internal/js_runtime'),
     packageDirectory('third_party/pkg/protobuf/protobuf'),
+    packageDirectory('tools/package_deps'),
   ];
 
   var cfePackageDirs = [
@@ -85,20 +92,13 @@ Iterable<Map<String, String>> makePackageConfigs(
     var version = pubspecLanguageVersion(packageDir);
     var hasLibDirectory = Directory(p.join(packageDir, 'lib')).existsSync();
 
-    // TODO(rnystrom): Currently, the pre-built SDK does not allow language
-    // version 2.9.0. Until that's fixed, if we see that version, just write
-    // no version at all so that implementations use the current language
-    // version.
-    if (version.toString() == '2.9.0') version = null;
-
     yield {
       'name': p.basename(packageDir),
       'rootUri': p
           .toUri(p.relative(packageDir, from: p.dirname(configFilePath)))
           .toString(),
       if (hasLibDirectory) 'packageUri': 'lib/',
-      if (version != null)
-        'languageVersion': '${version.major}.${version.minor}'
+      'languageVersion': '${version.major}.${version.minor}'
     };
   }
 }
@@ -152,18 +152,29 @@ Iterable<String> listSubdirectories(String packagesDir) sync* {
 /// Returns `null` if there is no pubspec or no SDK constraint.
 Version pubspecLanguageVersion(String packageDir) {
   var pubspecFile = File(p.join(packageDir, 'pubspec.yaml'));
+  var relative = p.relative(packageDir, from: repoRoot);
 
-  if (!pubspecFile.existsSync()) return null;
+  if (!pubspecFile.existsSync()) {
+    print("Error: Missing pubspec for $relative.");
+    exit(1);
+  }
 
   var pubspec =
       loadYaml(pubspecFile.readAsStringSync()) as Map<dynamic, dynamic>;
-  if (!pubspec.containsKey('environment')) return null;
+  if (!pubspec.containsKey('environment')) {
+    print("Error: Pubspec for $relative has no SDK constraint.");
+    exit(1);
+  }
 
   var environment = pubspec['environment'] as Map<dynamic, dynamic>;
-  if (!environment.containsKey('sdk')) return null;
+  if (!environment.containsKey('sdk')) {
+    print("Error: Pubspec for $relative has no SDK constraint.");
+    exit(1);
+  }
 
   var sdkConstraint = VersionConstraint.parse(environment['sdk'] as String);
   if (sdkConstraint is VersionRange) return sdkConstraint.min;
 
-  return null;
+  print("Error: SDK constraint $relative is not a version range.");
+  exit(1);
 }

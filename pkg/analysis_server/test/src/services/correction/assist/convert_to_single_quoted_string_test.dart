@@ -21,7 +21,7 @@ class ConvertToSingleQuotedStringTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING;
 
   Future<void> test_one_embeddedTarget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print("a'b'c");
 }
@@ -30,7 +30,7 @@ main() {
   }
 
   Future<void> test_one_enclosingTarget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print('abc');
 }
@@ -39,7 +39,7 @@ main() {
   }
 
   Future<void> test_one_interpolation() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 main() {
   var b = 'b';
   var c = 'c';
@@ -55,8 +55,18 @@ main() {
 ''');
   }
 
+  Future<void> test_one_interpolation_unterminated() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode(r'''
+void f(int a) {
+  "$a
+}
+''');
+    await assertNoAssistAt('"');
+  }
+
   Future<void> test_one_raw() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print(r"abc");
 }
@@ -69,7 +79,7 @@ main() {
   }
 
   Future<void> test_one_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print("abc");
 }
@@ -84,7 +94,7 @@ main() {
   Future<void> test_one_simple_noAssistWithLint() async {
     createAnalysisOptionsFile(lints: [LintNames.prefer_single_quotes]);
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print("abc");
 }
@@ -92,8 +102,18 @@ main() {
     await assertNoAssist();
   }
 
+  Future<void> test_one_simple_unterminated_empty() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+void f() {
+  "
+}
+''');
+    await assertNoAssistAt('"');
+  }
+
   Future<void> test_three_embeddedTarget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print("""a''\'bc""");
 }
@@ -102,7 +122,7 @@ main() {
   }
 
   Future<void> test_three_enclosingTarget() async {
-    await resolveTestUnit("""
+    await resolveTestCode("""
 main() {
   print('''abc''');
 }
@@ -111,7 +131,7 @@ main() {
   }
 
   Future<void> test_three_interpolation() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 main() {
   var b = 'b';
   var c = 'c';
@@ -128,7 +148,7 @@ main() {
   }
 
   Future<void> test_three_raw() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print(r"""abc""");
 }
@@ -141,7 +161,7 @@ main() {
   }
 
   Future<void> test_three_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print("""abc""");
 }

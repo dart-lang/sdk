@@ -164,6 +164,29 @@ analyzer:
     expect(errors, isNull);
   }
 
+  Future<void> test_dataFile() async {
+    var filePath = join(projectPath, 'lib', 'fix_data.yaml');
+    var dataFile = newFile(filePath, content: '''
+version: 1
+transforms:
+''').path;
+
+    var request =
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+    handleSuccessfulRequest(request);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+    //
+    // Verify the error result.
+    //
+    var errors = filesErrors[dataFile];
+    expect(errors, hasLength(1));
+    var error = errors[0];
+    expect(error.location.file, filePath);
+    expect(error.severity, AnalysisErrorSeverity.ERROR);
+    expect(error.type, AnalysisErrorType.COMPILE_TIME_ERROR);
+  }
+
   Future<void> test_dotFolder_priority() async {
     // Files inside dotFolders should not generate error notifications even
     // if they are added to priority (priority affects only priority, not what
@@ -180,7 +203,7 @@ analyzer:
 
     // Add to priority files and give chance for the file to be analyzed (if
     // it would).
-    await setPriorityFiles([brokenFile]);
+    setPriorityFiles([brokenFile]);
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
 
@@ -451,6 +474,54 @@ version: 1.3.2
     modifyFile(pubspecFile, '''
 name: sample
 version: 1.3.2
+''');
+    await waitForTasksFinished();
+    await pumpEventQueue();
+
+    errors = filesErrors[pubspecFile];
+    expect(errors, hasLength(0));
+  }
+
+  Future<void> test_pubspecFile_lint() async {
+    var optionsPath = join(projectPath, 'analysis_options.yaml');
+    newFile(optionsPath, content: '''
+linter:
+  rules:
+    - sort_pub_dependencies
+''');
+
+    var filePath = join(projectPath, 'pubspec.yaml');
+    var pubspecFile = newFile(filePath, content: '''
+name: sample
+
+dependencies:
+  b: any
+  a: any
+''').path;
+
+    var setRootsRequest =
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+    handleSuccessfulRequest(setRootsRequest);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+    //
+    // Verify the error result.
+    //
+    var errors = filesErrors[pubspecFile];
+    expect(errors, hasLength(1));
+    var error = errors[0];
+    expect(error.location.file, filePath);
+    expect(error.severity, AnalysisErrorSeverity.INFO);
+    expect(error.type, AnalysisErrorType.LINT);
+    //
+    // Fix the error and verify the new results.
+    //
+    modifyFile(pubspecFile, '''
+name: sample
+
+dependencies:
+  a: any
+  b: any
 ''');
     await waitForTasksFinished();
     await pumpEventQueue();

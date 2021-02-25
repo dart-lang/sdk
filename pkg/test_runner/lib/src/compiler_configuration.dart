@@ -25,12 +25,28 @@ List<String> _replaceDartFiles(List<String> list, String replacement) {
 /// list allows the result of calling this to be spread into another list.
 List<String> _experimentsArgument(
     TestConfiguration configuration, TestFile testFile) {
-  if (configuration.experiments.isEmpty && testFile.experiments.isEmpty) {
+  var experiments = {
+    ...configuration.experiments,
+    ...testFile.experiments,
+  };
+  if (experiments.isEmpty) {
     return const [];
   }
 
-  var experiments = {...configuration.experiments, ...testFile.experiments};
-  return ["--enable-experiment=${experiments.join(',')}"];
+  return ['--enable-experiment=${experiments.join(',')}'];
+}
+
+List<String> _nnbdModeArgument(TestConfiguration configuration) {
+  switch (configuration.nnbdMode) {
+    case NnbdMode.legacy:
+      return [];
+    case NnbdMode.strong:
+      return ['--sound-null-safety'];
+    case NnbdMode.weak:
+      return ['--no-sound-null-safety'];
+  }
+
+  throw 'unreachable';
 }
 
 /// Grouping of a command with its expected result.
@@ -82,7 +98,6 @@ abstract class CompilerConfiguration {
         return AppJitCompilerConfiguration(configuration);
 
       case Compiler.dartk:
-      case Compiler.dartkb:
         if (configuration.architecture == Architecture.simarm ||
             configuration.architecture == Architecture.simarm64 ||
             configuration.system == System.android) {
@@ -175,6 +190,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       else if (_configuration.hotReloadRollback)
         '--hot-reload-rollback-test-mode',
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -221,6 +237,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...args
     ];
   }
@@ -245,6 +262,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       else if (_configuration.hotReloadRollback)
         '--hot-reload-rollback-test-mode',
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -426,13 +444,18 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...testFile.dart2jsOptions,
+      ..._nnbdModeArgument(_configuration),
       ...args
     ];
   }
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    var compilerArguments = [...arguments, ..._configuration.dart2jsOptions];
+    var compilerArguments = [
+      ...arguments,
+      ..._configuration.dart2jsOptions,
+      ..._nnbdModeArgument(_configuration),
+    ];
 
     // TODO(athom): input filename extraction is copied from DDC. Maybe this
     // should be passed to computeCompilationArtifact, instead?
@@ -534,29 +557,36 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     args.addAll(options);
     args.addAll(_configuration.sharedOptions);
 
+    bool d8Runtime = _configuration.runtime == Runtime.d8;
+
     args.addAll([
       "--ignore-unrecognized-flags",
       "--no-summarize",
+      if (d8Runtime) "--modules=legacy",
       "-o",
       outputFile,
       inputFile,
     ]);
 
-    // Link to the summaries for the available packages, so that they don't
-    // get recompiled into the test's own module.
-    var packageSummaryDir =
-        _configuration.nnbdMode == NnbdMode.strong ? 'pkg_sound' : 'pkg_kernel';
-    for (var package in testPackages) {
-      args.add("-s");
+    if (!d8Runtime) {
+      // TODO(sigmund): allow caching of shared packages in legacy mode too.
+      // Link to the summaries for the available packages, so that they don't
+      // get recompiled into the test's own module.
+      var packageSummaryDir = _configuration.nnbdMode == NnbdMode.strong
+          ? 'pkg_sound'
+          : 'pkg_kernel';
+      for (var package in testPackages) {
+        args.add("-s");
 
-      // Since the summaries for the packages are not near the tests, we give
-      // dartdevc explicit module paths for each one. When the test is run, we
-      // will tell require.js where to find each package's compiled JS.
-      var summary = Path(_configuration.buildDirectory)
-          .append("/gen/utils/dartdevc/$packageSummaryDir/$package.dill")
-          .absolute
-          .toNativePath();
-      args.add("$summary=$package");
+        // Since the summaries for the packages are not near the tests, we give
+        // dartdevc explicit module paths for each one. When the test is run, we
+        // will tell require.js where to find each package's compiled JS.
+        var summary = Path(_configuration.buildDirectory)
+            .append("/gen/utils/dartdevc/$packageSummaryDir/$package.dill")
+            .absolute
+            .toNativePath();
+        args.add("$summary=$package");
+      }
     }
 
     var inputDir = Path(inputFile).append("..").canonicalize().toNativePath();
@@ -575,12 +605,80 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     // computeCompilerArguments() to here seems hacky. Is there a cleaner way?
     var sharedOptions = arguments.sublist(0, arguments.length - 1);
     var inputFile = arguments.last;
-    var inputFilename = Uri.file(inputFile).pathSegments.last;
-    var outputFile = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
+    var inputUri = Uri.file(inputFile);
+    var inputFilename = inputUri.pathSegments.last;
+    var moduleName =
+        inputFilename.substring(0, inputFilename.length - ".dart".length);
+    var outputFile = "$tempDir/$moduleName.js";
+    var runFile = outputFile;
+
+    if (_configuration.runtime == Runtime.d8) {
+      // TODO(sigmund): ddc should have a flag to emit an entrypoint file like
+      // the one below, otherwise it is succeptible to break, for example, if
+      // library naming conventions were to change in the future.
+      runFile = "$tempDir/$moduleName.d8.js";
+      var nonNullAsserts = arguments.contains('--null-assertions');
+      var nativeNonNullAsserts = arguments.contains('--native-null-assertions');
+      var weakNullSafetyErrors =
+          arguments.contains('--weak-null-safety-errors');
+      var soundNullSafety = _configuration.nnbdMode == NnbdMode.strong;
+      var weakNullSafetyWarnings = !(weakNullSafetyErrors || soundNullSafety);
+      var repositoryUri = Uri.directory(Repository.dir.toNativePath());
+      var dartLibraryPath = repositoryUri
+          .resolve('pkg/dev_compiler/lib/js/legacy/dart_library.js')
+          .path;
+      var sdkJsDir = Uri.directory(_configuration.buildDirectory)
+          .resolve('gen/utils/dartdevc/');
+      var sdkJsPath = soundNullSafety
+          ? 'sound/legacy/dart_sdk.js'
+          : 'kernel/legacy/dart_sdk.js';
+      var libraryName = inputUri.path
+          .substring(repositoryUri.path.length)
+          .replaceAll("/", "__")
+          .replaceAll("-", "_")
+          .replaceAll(".dart", "");
+
+      // Note: this assumes that d8 is invoked with the dart2js d8.js preamble.
+      // TODO(sigmund): to support other runtimes like js-shell, we may want to
+      // remove the `load` statements here and instead provide those files
+      // through the runtime command-line arguments.
+      File(runFile).writeAsStringSync('''
+        load("$dartLibraryPath");
+        load("$sdkJsDir/$sdkJsPath");
+        load("$outputFile");
+
+        let sdk = dart_library.import("dart_sdk");
+        sdk.dart.weakNullSafetyWarnings($weakNullSafetyWarnings);
+        sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
+        sdk.dart.nonNullAsserts($nonNullAsserts);
+        sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
+
+        // Invoke main through the d8 preamble to ensure the code is running
+        // within the fake event loop.
+        self.dartMainRunner(function () {
+          dart_library.start("$moduleName", "$libraryName");
+        });
+      '''
+          .replaceAll("\n        ", "\n"));
+    }
 
     return CommandArtifact([
       _createCommand(inputFile, outputFile, sharedOptions, environmentOverrides)
-    ], outputFile, "application/javascript");
+    ], runFile, "application/javascript");
+  }
+
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      TestFile testFile,
+      List<String> vmOptions,
+      List<String> originalArguments,
+      CommandArtifact artifact) {
+    var sdkDir = _useSdk
+        ? Uri.directory(_configuration.buildDirectory).resolve('dart-sdk/')
+        : Uri.directory(Repository.dir.toNativePath()).resolve('sdk/');
+    var preambleDir = sdkDir.resolve('lib/_internal/js_runtime/lib/preambles/');
+    return runtimeConfiguration.dart2jsPreambles(preambleDir)
+      ..add(artifact.filename);
   }
 }
 
@@ -729,9 +827,14 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   static const String ndkPath = "third_party/android_tools/ndk";
   String get abiTriple => _isArm || _isArmX64
       ? "arm-linux-androideabi"
-      : _isArm64 ? "aarch64-linux-android" : null;
-  String get host =>
-      Platform.isLinux ? "linux" : Platform.isMacOS ? "darwin" : null;
+      : _isArm64
+          ? "aarch64-linux-android"
+          : null;
+  String get host => Platform.isLinux
+      ? "linux"
+      : Platform.isMacOS
+          ? "darwin"
+          : null;
 
   Command computeAssembleCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
@@ -853,6 +956,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -900,6 +1004,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -917,6 +1022,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -958,7 +1064,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
       "ffi_2",
       "language_2",
       "lib_2",
-      "service",
+      "service_2",
       "standalone_2"
     };
 
@@ -1054,9 +1160,6 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 }
 
 abstract class VMKernelCompilerMixin {
-  static final noCausalAsyncStacksRegExp =
-      RegExp('--no[_-]causal[_-]async[_-]stacks');
-
   TestConfiguration get _configuration;
 
   bool get _useSdk;
@@ -1086,8 +1189,6 @@ abstract class VMKernelCompilerMixin {
 
     var isProductMode = _configuration.configuration.mode == Mode.product;
 
-    var causalAsyncStacks = !arguments.any(noCausalAsyncStacksRegExp.hasMatch);
-
     var args = [
       _isAot ? '--aot' : '--no-aot',
       '--platform=$vmPlatform',
@@ -1099,11 +1200,11 @@ abstract class VMKernelCompilerMixin {
           name.startsWith('--packages=') ||
           name.startsWith('--enable-experiment=')),
       '-Ddart.vm.product=$isProductMode',
-      '-Ddart.developer.causal_async_stacks=$causalAsyncStacks',
       if (_enableAsserts ||
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))
         '--enable-asserts',
+      ..._nnbdModeArgument(_configuration),
       ..._configuration.genKernelOptions,
     ];
 
@@ -1157,6 +1258,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 
     var compilerArguments = [
       '--verify',
+      '--skip-platform-verification',
       "-o",
       outputFileName,
       "--platform",

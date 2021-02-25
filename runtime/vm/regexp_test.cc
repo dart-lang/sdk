@@ -64,9 +64,7 @@ ISOLATE_UNIT_TEST_CASE(RegExp_TwoByteString) {
   EXPECT_EQ(3, smi_2.Value());
 }
 
-static void NoopFinalizer(void* isolate_callback_data,
-                          Dart_WeakPersistentHandle handle,
-                          void* peer) {}
+static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
 
 ISOLATE_UNIT_TEST_CASE(RegExp_ExternalOneByteString) {
   uint8_t chars[] = {'a', 'b', 'c', 'b', 'a'};

@@ -8,8 +8,10 @@ environment:
 dependencies:
   _fe_analyzer_shared:
     path: ../_fe_analyzer_shared
-  analyzer: any
-  analyzer_plugin: any
+  analyzer:
+    path: ../analyzer
+  analyzer_plugin:
+    path: ../analyzer_plugin
   args: any
   cli_util: any
   collection: any
@@ -19,21 +21,22 @@ dependencies:
   html: any
   intl: any
   linter: any
-  meta: any
+  meta:
+    path: ../meta
   stream_channel: any
   telemetry:
     path: ../telemetry
   test: any
   path: any
-  tflite_native: any
   watcher: any
   yaml: any
 
 dev_dependencies:
-  analysis_tool: any
+  analyzer_utilities:
+    path: ../analyzer_utilities
   http: any
   logging: any
   matcher: any
   mockito: any
-  pedantic: ^1.8.0
+  pedantic: ^1.9.0
   test_reflective_loader: any

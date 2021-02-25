@@ -1,0 +1,15 @@
+M(v0 float, v1 float, v2 float, v3 float) Compound(size: 16)
+v4 float
+S+0 Compound(size: 16)
+S+16 Compound(size: 16)
+S+32 Compound(size: 16)
+S+48 Compound(size: 16)
+S+64 Compound(size: 16)
+S+80 Compound(size: 16)
+S+96 Compound(size: 16)
+S+112 Compound(size: 16)
+S+128 float
+r0 int8
+S+136 Compound(size: 16)
+=>
+M(v0 float, v1 float, v2 float, v3 float) Compound(size: 16)

@@ -1,0 +1,7 @@
+import 'dart:async';
+
+extension Extension<T> on Stream<T> {
+  StreamSubscription<T> call(Function onData) {}
+}
+
+void main() {}

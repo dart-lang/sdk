@@ -318,8 +318,8 @@ main() {
 class A {
   var fff;
 }
-main() {
-  A a;
+
+void f(A a) {
   a.fff = 1;
 }
 ''');
@@ -471,7 +471,7 @@ main() {
 
   Future<void> test_bad_statements_exit_notAllExecutionFlows() async {
     await indexTestUnit('''
-main(int p) {
+void f(int p) {
 // start
   if (p == 0) {
     return;
@@ -704,7 +704,7 @@ class A {
 
   Future<void> test_canExtractGetter_false_hasParameters() async {
     await indexTestUnit('''
-main(int p) {
+void f(int p) {
   int a = p + 1;
 }
 ''');
@@ -718,7 +718,7 @@ main(int p) {
   Future<void> test_canExtractGetter_false_returnNotUsed_assignment() async {
     await indexTestUnit('''
 var topVar = 0;
-f(int p) {
+void f(int p) {
   topVar = 5;
 }
 ''');
@@ -897,7 +897,7 @@ class A {
 
   Future<void> test_closure_atArgumentName() async {
     await indexTestUnit('''
-void process({int fff(int x)}) {}
+void process({int fff(int x)?}) {}
 class C {
   main() {
     process(fff: (int x) => x * 2);
@@ -907,7 +907,7 @@ class C {
     _createRefactoring(findOffset('ff: (int x)'), 0);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-void process({int fff(int x)}) {}
+void process({int fff(int x)?}) {}
 class C {
   main() {
     process(fff: res);
@@ -960,7 +960,7 @@ main() {
   Future<void> test_closure_bad_referencesParameter() async {
     await indexTestUnit('''
 process(f(x)) {}
-main(int k) {
+void f(int k) {
   process((x) => x * k);
 }
 ''');
@@ -1114,7 +1114,7 @@ main() {
   Future<void> test_names_singleExpression() async {
     await indexTestUnit('''
 class TreeItem {}
-TreeItem getSelectedItem() => null;
+TreeItem getSelectedItem() => throw 0;
 process(my) {}
 main() {
   process(getSelectedItem()); // marker
@@ -1203,7 +1203,7 @@ main() {
 
   Future<void> test_returnType_statements_nullMix() async {
     await indexTestUnit('''
-main(bool p) {
+f(bool p) {
 // start
   if (p) {
     return 42;
@@ -1291,7 +1291,7 @@ String res(String s) => s..length;
 
   Future<void> test_singleExpression_coveringExpression() async {
     await indexTestUnit('''
-main(int n) {
+void f(int n) {
   var v = new FooBar(n);
 }
 
@@ -1301,7 +1301,7 @@ class FooBar {
 ''');
     _createRefactoringForStringOffset('Bar(n);');
     return _assertSuccessfulRefactoring('''
-main(int n) {
+void f(int n) {
   var v = res(n);
 }
 
@@ -1535,7 +1535,7 @@ class A {
   Future<void> test_singleExpression_parameter_functionTypeAlias() async {
     await indexTestUnit('''
 typedef R Foo<S, R>(S s);
-void main(Foo<String, int> foo, String s) {
+void f(Foo<String, int> foo, String s) {
   int a = foo(s);
 }
 ''');
@@ -1543,7 +1543,7 @@ void main(Foo<String, int> foo, String s) {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 typedef R Foo<S, R>(S s);
-void main(Foo<String, int> foo, String s) {
+void f(Foo<String, int> foo, String s) {
   int a = res(foo, s);
 }
 
@@ -1575,17 +1575,17 @@ Completer<int> res() => newCompleter();
   Future<void> test_singleExpression_returnTypeGeneric() async {
     await indexTestUnit('''
 main() {
-  var v = new List<String>();
+  var v = <String>[];
 }
 ''');
-    _createRefactoringForString('new List<String>()');
+    _createRefactoringForString('<String>[]');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 main() {
   var v = res();
 }
 
-List<String> res() => new List<String>();
+List<String> res() => <String>[];
 ''');
   }
 
@@ -2298,7 +2298,7 @@ void res() {
 
   Future<void> test_statements_exit_throws() async {
     await indexTestUnit('''
-main(int p) {
+void f(int p) {
 // start
   if (p == 0) {
     return;
@@ -2376,7 +2376,7 @@ Future<int> res() async {
   Future<void> test_statements_hasAwait_forEach() async {
     await indexTestUnit('''
 import 'dart:async';
-Stream<int> getValueStream() => null;
+Stream<int> getValueStream() => throw 0;
 main() async {
 // start
   int sum = 0;
@@ -2391,7 +2391,7 @@ main() async {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'dart:async';
-Stream<int> getValueStream() => null;
+Stream<int> getValueStream() => throw 0;
 main() async {
 // start
   int sum = await res();
@@ -2672,7 +2672,7 @@ int res() {
 
   Future<void> test_statements_return_multiple_ifElse() async {
     await indexTestUnit('''
-num main(bool b) {
+num f(bool b) {
 // start
   if (b) {
     return 1;
@@ -2685,7 +2685,7 @@ num main(bool b) {
     _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-num main(bool b) {
+num f(bool b) {
 // start
   return res(b);
 // end
@@ -2703,7 +2703,7 @@ num res(bool b) {
 
   Future<void> test_statements_return_multiple_ifThen() async {
     await indexTestUnit('''
-num main(bool b) {
+num f(bool b) {
 // start
   if (b) {
     return 1;
@@ -2715,7 +2715,7 @@ num main(bool b) {
     _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-num main(bool b) {
+num f(bool b) {
 // start
   return res(b);
 // end
@@ -2761,7 +2761,7 @@ int res() {
 
   Future<void> test_statements_return_multiple_interfaceFunction() async {
     await indexTestUnit('''
-main(bool b) {
+f(bool b) {
 // start
   if (b) {
     return 1;
@@ -2773,7 +2773,7 @@ main(bool b) {
     _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main(bool b) {
+f(bool b) {
 // start
   return res(b);
 // end
@@ -2791,7 +2791,7 @@ Object res(bool b) {
   Future<void>
       test_statements_return_multiple_sameElementDifferentTypeArgs() async {
     await indexTestUnit('''
-main(bool b) {
+f(bool b) {
 // start
   if (b) {
     print(true);
@@ -2806,7 +2806,7 @@ main(bool b) {
     _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main(bool b) {
+f(bool b) {
 // start
   return res(b);
 // end
@@ -2923,7 +2923,8 @@ Completer<int> newCompleter() => null;
   }
 
   void _createRefactoringForStartEndComments() {
-    var offset = findEnd('// start') + '\n'.length;
+    final eol = testCode.contains('\r\n') ? '\r\n' : '\r';
+    var offset = findEnd('// start') + eol.length;
     var end = findOffset('// end');
     _createRefactoring(offset, end - offset);
   }

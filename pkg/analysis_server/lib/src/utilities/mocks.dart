@@ -128,7 +128,7 @@ class MockServerChannel implements ServerCommunicationChannel {
 }
 
 class ServerError implements Exception {
-  final message;
+  final String message;
 
   ServerError(this.message);
 

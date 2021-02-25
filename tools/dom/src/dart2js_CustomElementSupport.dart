@@ -81,7 +81,7 @@ Function _registerCustomElement(context, document, String tag, [Map? options]) {
   //    ...
   //    var e = document.createElement('x-foo');
 
-  var extendsTagName = '';
+  String? extendsTagName = '';
   Type? type;
   if (options != null) {
     extendsTagName = options['extends'];

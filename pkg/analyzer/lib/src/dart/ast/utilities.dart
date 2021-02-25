@@ -603,7 +603,7 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNode(node.name),
           cloneNode(node.typeParameters),
           cloneToken(node.equals),
-          cloneNode(node.functionType),
+          cloneNode(node.type),
           cloneToken(node.semicolon));
 
   @override
@@ -1745,7 +1745,7 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.name, other.name) &&
         isEqualNodes(node.typeParameters, other.typeParameters) &&
         isEqualTokens(node.equals, other.equals) &&
-        isEqualNodes(node.functionType, other.functionType);
+        isEqualNodes(node.type, other.type);
   }
 
   @override
@@ -3298,14 +3298,15 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitGenericTypeAlias(GenericTypeAlias node) {
+    var nodeImpl = node as GenericTypeAliasImpl;
     if (identical(node.name, _oldNode)) {
       node.name = _newNode as SimpleIdentifier;
       return true;
     } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
+      nodeImpl.typeParameters = _newNode as TypeParameterList;
       return true;
-    } else if (identical(node.functionType, _oldNode)) {
-      node.functionType = _newNode as GenericFunctionType;
+    } else if (identical(node.type, _oldNode)) {
+      nodeImpl.type = _newNode as TypeAnnotation;
       return true;
     } else if (_replaceInList(node.metadata)) {
       return true;
@@ -4664,7 +4665,7 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualNodes(node.name, toNode.name),
         _isEqualNodes(node.typeParameters, toNode.typeParameters),
         _isEqualTokens(node.equals, toNode.equals),
-        _isEqualNodes(node.functionType, toNode.functionType),
+        _isEqualNodes(node.type, toNode.type),
         _isEqualTokens(node.semicolon, toNode.semicolon))) {
       return true;
     }
@@ -4738,7 +4739,6 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.leftBracket, toNode.leftBracket),
         _isEqualNodes(node.index, toNode.index),
         _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
-      toNode.auxiliaryElements = node.auxiliaryElements;
       toNode.staticElement = node.staticElement;
       toNode.staticType = node.staticType;
       return true;
@@ -5136,7 +5136,6 @@ class ResolutionCopier implements AstVisitor<bool> {
     if (_isEqualTokens(node.token, toNode.token)) {
       toNode.staticElement = node.staticElement;
       toNode.staticType = node.staticType;
-      toNode.auxiliaryElements = node.auxiliaryElements;
       (toNode as SimpleIdentifierImpl).tearOffTypeArgumentTypes =
           node.tearOffTypeArgumentTypes;
       return true;

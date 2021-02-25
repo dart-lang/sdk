@@ -164,11 +164,10 @@ class BaseFlowGraphBuilder {
   Fragment LoadField(const Field& field, bool calls_initializer);
   Fragment LoadNativeField(const Slot& native_field,
                            bool calls_initializer = false);
-  Fragment LoadIndexed(intptr_t index_scale);
-  // Takes a [class_id] valid for StoreIndexed.
-  Fragment LoadIndexedTypedData(classid_t class_id,
-                                intptr_t index_scale,
-                                bool index_unboxed);
+  // Pass true for index_unboxed if indexing into external typed data.
+  Fragment LoadIndexed(classid_t class_id,
+                       intptr_t index_scale = compiler::target::kWordSize,
+                       bool index_unboxed = false);
 
   Fragment LoadUntagged(intptr_t offset);
   Fragment StoreUntagged(intptr_t offset);
@@ -183,12 +182,15 @@ class BaseFlowGraphBuilder {
   void SetTempIndex(Definition* definition);
 
   Fragment LoadLocal(LocalVariable* variable);
+  Fragment StoreLocal(LocalVariable* variable) {
+    return StoreLocal(TokenPosition::kNoSource, variable);
+  }
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
   Fragment StoreLocalRaw(TokenPosition position, LocalVariable* variable);
   Fragment LoadContextAt(int depth);
   Fragment GuardFieldLength(const Field& field, intptr_t deopt_id);
   Fragment GuardFieldClass(const Field& field, intptr_t deopt_id);
-  const Field& MayCloneField(const Field& field);
+  static const Field& MayCloneField(Zone* zone, const Field& field);
   Fragment StoreInstanceField(
       TokenPosition position,
       const Slot& field,
@@ -242,8 +244,8 @@ class BaseFlowGraphBuilder {
   //       goto B3
   //     B3:
   //       LoadLocal(t)
-  //
-  LocalVariable* MakeTemporary();
+  LocalVariable* MakeTemporary(const char* suffix = nullptr);
+  Fragment DropTemporary(LocalVariable** temp);
 
   InputsArray* GetArguments(int count);
 
@@ -285,7 +287,7 @@ class BaseFlowGraphBuilder {
                                TargetEntryInstr** otherwise_entry);
   Fragment Return(
       TokenPosition position,
-      intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex);
+      intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
   Fragment CheckStackOverflow(TokenPosition position,
                               intptr_t stack_depth,
                               intptr_t loop_depth);
@@ -333,8 +335,10 @@ class BaseFlowGraphBuilder {
   Fragment AllocateClosure(TokenPosition position,
                            const Function& closure_function);
   Fragment CreateArray();
+  Fragment AllocateTypedData(TokenPosition position, classid_t class_id);
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);
+  Fragment InstantiateDynamicTypeArguments();
   Fragment LoadClassId();
 
   // Returns true if we are building a graph for inlining of a call site that
@@ -461,7 +465,6 @@ class BaseFlowGraphBuilder {
   const Array& saved_args_desc_array_;
 
   friend class StreamingFlowGraphBuilder;
-  friend class BytecodeFlowGraphBuilder;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BaseFlowGraphBuilder);

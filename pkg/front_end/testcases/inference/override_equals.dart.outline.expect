@@ -6,7 +6,7 @@ class NullEquality extends core::Object {
   synthetic constructor •() → self::NullEquality*
     ;
   @core::override
-  operator ==(core::Object* other) → core::Null?
+  operator ==(core::Object* other) → Null
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -28,3 +28,8 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///override_equals.dart:9:4 -> InstanceConstant(const _Override{})
+Extra constant evaluation: evaluated: 1, effectively constant: 1

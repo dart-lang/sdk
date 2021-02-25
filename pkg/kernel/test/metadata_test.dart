@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -25,8 +27,11 @@ class Metadata {
   Member get member => _memberRef?.asMember;
 
   Metadata.forNode(TreeNode n)
-      : this(n.leakingDebugToString(),
-            getMemberReference(getMemberForMetadata(n)), getTypeForMetadata(n));
+      : this(
+            n.leakingDebugToString(),
+            // Refers to the member, not about the function => use getter.
+            getMemberReferenceGetter(getMemberForMetadata(n)),
+            getTypeForMetadata(n));
 
   Metadata(this.string, this._memberRef, this.type);
 }

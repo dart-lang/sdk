@@ -4,10 +4,14 @@
 
 class A {
   void f(Object x) {}
+
+  void g(Object x, String y) {}
 }
 
 class B {
   void f(String x) {}
+
+  void g(String x, Object y) {}
 }
 
 class C extends A implements B {
@@ -18,6 +22,13 @@ class C extends A implements B {
     //         ^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] A value of type 'Object' can't be assigned to a variable of type 'String'.
+  }
+
+  // No combined signature.
+  void g(x, y) {
+    // ^
+    // [analyzer] COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+    // [cfe] Can't infer types for 'g' as the overridden members don't have a combined signature.
   }
 }
 

@@ -1,0 +1,106 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef fType = ({required i: core::int}) → core::int;
+typedef gType = ({i: core::int}) → core::int;
+typedef bigType = ({required i1: core::int, required i10: core::int, required i11: core::int, required i12: core::int, required i13: core::int, required i14: core::int, required i15: core::int, required i16: core::int, required i17: core::int, required i18: core::int, required i19: core::int, required i2: core::int, required i20: core::int, required i21: core::int, required i22: core::int, required i23: core::int, required i24: core::int, required i25: core::int, required i26: core::int, required i27: core::int, required i28: core::int, required i29: core::int, required i3: core::int, required i30: core::int, required i31: core::int, required i32: core::int, required i33: core::int, required i34: core::int, required i35: core::int, required i36: core::int, required i37: core::int, required i38: core::int, required i39: core::int, required i4: core::int, required i40: core::int, required i41: core::int, required i42: core::int, required i43: core::int, required i44: core::int, required i45: core::int, required i46: core::int, required i47: core::int, required i48: core::int, required i49: core::int, required i5: core::int, required i50: core::int, required i51: core::int, required i52: core::int, required i53: core::int, required i54: core::int, required i55: core::int, required i56: core::int, required i57: core::int, required i58: core::int, required i59: core::int, required i6: core::int, required i60: core::int, required i61: core::int, required i62: core::int, required i63: core::int, required i64: core::int, required i65: core::int, required i66: core::int, required i67: core::int, required i68: core::int, required i69: core::int, required i7: core::int, required i70: core::int, required i8: core::int, required i9: core::int}) → core::int;
+typedef func = (core::Object) → self::B;
+typedef t1 = (core::int, self::B, core::Map<core::int, core::num>, dynamic, {required ob: self::B, required obool: core::bool, required ol: core::List<core::num>, required ox: dynamic}) → self::B;
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class A1 extends core::Object {
+  synthetic constructor •() → self::A1
+    : super core::Object::•()
+    ;
+}
+class A2 extends core::Object {
+  synthetic constructor •() → self::A2
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object implements self::A, self::A1, self::A2 {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object implements self::B {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+class D extends core::Object implements self::C {
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+}
+static field core::bool inStrongMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static const field core::bool f_is_fType = #C1;
+static const field core::bool f_is_gType = #C2;
+static const field core::bool g_is_fType = #C1;
+static const field core::bool g_is_gType = #C1;
+static const field core::bool f_is_bigType = #C2;
+static const field core::bool f1_is_t1 = #C2;
+static const field core::bool f2_is_t1 = #C2;
+static const field core::bool f3_is_t1 = #C2;
+static const field core::bool f4_is_t1 = #C2;
+static const field core::bool f5_is_t1 = #C1;
+static method f({required core::int i = #C3}) → core::int {
+  return i.{core::num::+}(1);
+}
+static method g({core::int i = #C4}) → core::int {
+  return i.{core::num::+}(1);
+}
+static method f1(core::int i, self::B b, core::Map<core::int, core::num> m, dynamic x, {required dynamic extraParam = #C3, required core::bool obool = #C3, required dynamic ox = #C3, required self::D ob = #C3, required core::List<core::num>? ol = #C3}) → self::B
+  return new self::B::•();
+static method f2(core::int i, self::D b, core::Map<core::int, core::int> m, (core::Object) → self::B x, {required (core::Object) → self::B ox = #C3, required self::D ob = #C3, required core::List<core::int> ol = #C3, required core::bool obool = #C3}) → self::D
+  return new self::D::•();
+static method f3(core::num i, self::A b, core::Map<core::Object, core::Object> m, dynamic x, {required dynamic ox = #C3, required dynamic extraParam = #C3, required self::A2 ob = #C3, required core::List<dynamic> ol = #C3, required core::Object obool = #C3}) → self::C
+  return new self::C::•();
+static method f4(core::num i, self::A b, core::Map<core::Object, core::Object> m, dynamic x, {required dynamic ox = #C3, required self::A2 ob = #C3, required core::List<dynamic> ol = #C3, required core::bool obool = #C3, required self::A xx = #C3, required self::B yy = #C3}) → self::C
+  return new self::C::•();
+static method f5(core::int i, self::A b, core::Map<core::Object, core::Object> m, dynamic x, {required dynamic ox = #C3, required self::B ob = #C3, required core::List<dynamic> ol = #C3, required dynamic obool = #C3}) → self::C
+  return new self::C::•();
+static method main() → dynamic {
+  self::expect(true, #C1);
+  self::expect((#C5) is{ForNonNullableByDefault} ({required i: core::int}) → core::int, #C1);
+  self::expect(!self::inStrongMode, #C2);
+  self::expect((#C5) is{ForNonNullableByDefault} ({i: core::int}) → core::int, #C2);
+  self::expect(true, #C1);
+  self::expect((#C6) is{ForNonNullableByDefault} ({required i: core::int}) → core::int, #C1);
+  self::expect(true, #C1);
+  self::expect((#C6) is{ForNonNullableByDefault} ({i: core::int}) → core::int, #C1);
+  self::expect(false, #C2);
+  self::expect((#C5) is{ForNonNullableByDefault} ({required i1: core::int, required i10: core::int, required i11: core::int, required i12: core::int, required i13: core::int, required i14: core::int, required i15: core::int, required i16: core::int, required i17: core::int, required i18: core::int, required i19: core::int, required i2: core::int, required i20: core::int, required i21: core::int, required i22: core::int, required i23: core::int, required i24: core::int, required i25: core::int, required i26: core::int, required i27: core::int, required i28: core::int, required i29: core::int, required i3: core::int, required i30: core::int, required i31: core::int, required i32: core::int, required i33: core::int, required i34: core::int, required i35: core::int, required i36: core::int, required i37: core::int, required i38: core::int, required i39: core::int, required i4: core::int, required i40: core::int, required i41: core::int, required i42: core::int, required i43: core::int, required i44: core::int, required i45: core::int, required i46: core::int, required i47: core::int, required i48: core::int, required i49: core::int, required i5: core::int, required i50: core::int, required i51: core::int, required i52: core::int, required i53: core::int, required i54: core::int, required i55: core::int, required i56: core::int, required i57: core::int, required i58: core::int, required i59: core::int, required i6: core::int, required i60: core::int, required i61: core::int, required i62: core::int, required i63: core::int, required i64: core::int, required i65: core::int, required i66: core::int, required i67: core::int, required i68: core::int, required i69: core::int, required i7: core::int, required i70: core::int, required i8: core::int, required i9: core::int}) → core::int, #C2);
+  self::expect(false, #C2);
+  self::expect((#C7) is{ForNonNullableByDefault} (core::int, self::B, core::Map<core::int, core::num>, dynamic, {required ob: self::B, required obool: core::bool, required ol: core::List<core::num>, required ox: dynamic}) → self::B, #C2);
+  self::expect(false, #C2);
+  self::expect((#C8) is{ForNonNullableByDefault} (core::int, self::B, core::Map<core::int, core::num>, dynamic, {required ob: self::B, required obool: core::bool, required ol: core::List<core::num>, required ox: dynamic}) → self::B, #C2);
+  self::expect(!self::inStrongMode, #C2);
+  self::expect((#C9) is{ForNonNullableByDefault} (core::int, self::B, core::Map<core::int, core::num>, dynamic, {required ob: self::B, required obool: core::bool, required ol: core::List<core::num>, required ox: dynamic}) → self::B, #C2);
+  self::expect(!self::inStrongMode, #C2);
+  self::expect((#C10) is{ForNonNullableByDefault} (core::int, self::B, core::Map<core::int, core::num>, dynamic, {required ob: self::B, required obool: core::bool, required ol: core::List<core::num>, required ox: dynamic}) → self::B, #C2);
+  self::expect(true, #C1);
+  self::expect((#C11) is{ForNonNullableByDefault} (core::int, self::B, core::Map<core::int, core::num>, dynamic, {required ob: self::B, required obool: core::bool, required ol: core::List<core::num>, required ox: dynamic}) → self::B, #C1);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = true
+  #C2 = false
+  #C3 = null
+  #C4 = 1
+  #C5 = tearoff self::f
+  #C6 = tearoff self::g
+  #C7 = tearoff self::f1
+  #C8 = tearoff self::f2
+  #C9 = tearoff self::f3
+  #C10 = tearoff self::f4
+  #C11 = tearoff self::f5
+}

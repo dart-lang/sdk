@@ -5,7 +5,7 @@
 // Test error thrown when a function is called with the wrong args.
 
 import "package:expect/expect.dart";
-import "dart:wasm";
+import "package:wasm/wasm.dart";
 import "dart:typed_data";
 
 void main() {
@@ -20,10 +20,10 @@ void main() {
     0x7e, 0x0b,
   ]);
 
-  var inst = WasmModule(data).instantiate(WasmImports());
-  var fn = inst.lookupFunction<Int64 Function(Int64)>("square");
+  var inst = WasmModule(data).instantiate().build();
+  var fn = inst.lookupFunction("square");
 
-  Expect.throwsArgumentError(() => fn.call([]));
-  Expect.throwsArgumentError(() => fn.call([1, 2, 3]));
-  Expect.throwsArgumentError(() => fn.call([1.23]));
+  Expect.throwsArgumentError(() => fn());
+  Expect.throwsArgumentError(() => fn(1, 2, 3));
+  Expect.throwsArgumentError(() => fn(1.23));
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:io';
@@ -14,6 +16,7 @@ import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide MapEntry;
+import 'package:kernel/ast.dart' show NonNullableByDefaultCompiledMode;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
 import 'package:path/path.dart' as p;
@@ -246,7 +249,7 @@ Future<CompilerResult> _compile(List<String> args,
     fe.printDiagnosticMessage(message, print);
   }
 
-  var experiments = fe.parseExperimentalFlags(options.experiments,
+  var explicitExperimentalFlags = fe.parseExperimentalFlags(options.experiments,
       onError: stderr.writeln, onWarning: print);
 
   var trackWidgetCreation =
@@ -273,7 +276,7 @@ Future<CompilerResult> _compile(List<String> args,
             trackWidgetCreation: trackWidgetCreation,
             enableNullSafety: options.enableNullSafety)),
         fileSystem: fileSystem,
-        experiments: experiments,
+        explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
         nnbdMode:
             options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
@@ -312,7 +315,7 @@ Future<CompilerResult> _compile(List<String> args,
             trackWidgetCreation: trackWidgetCreation,
             enableNullSafety: options.enableNullSafety)),
         fileSystem: fileSystem,
-        experiments: experiments,
+        explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
         trackNeededDillLibraries: recordUsedInputs,
         nnbdMode:
@@ -347,7 +350,8 @@ Future<CompilerResult> _compile(List<String> args,
   var component = result.component;
   var librariesFromDill = result.computeLibrariesFromDill();
   var compiledLibraries =
-      Component(nameRoot: component.root, uriToSource: component.uriToSource);
+      Component(nameRoot: component.root, uriToSource: component.uriToSource)
+        ..setMainMethodAndMode(null, false, component.mode);
   for (var lib in component.libraries) {
     if (!librariesFromDill.contains(lib)) compiledLibraries.libraries.add(lib);
   }
@@ -704,7 +708,11 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
 ModuleMetadata _emitMetadata(js_ast.Program program, Component component,
     String sourceMapUri, String moduleUri) {
   var metadata = ModuleMetadata(
-      program.name, loadFunctionName(program.name), sourceMapUri, moduleUri);
+      program.name,
+      loadFunctionName(program.name),
+      sourceMapUri,
+      moduleUri,
+      component.mode == NonNullableByDefaultCompiledMode.Strong);
 
   for (var lib in component.libraries) {
     metadata.addLibrary(LibraryMetadata(

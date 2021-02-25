@@ -8,60 +8,235 @@ typedef R ZoneCallback<R>();
 typedef R ZoneUnaryCallback<R, T>(T arg);
 typedef R ZoneBinaryCallback<R, T1, T2>(T1 arg1, T2 arg2);
 
+/// The type of a custom [Zone.handleUncaughtError] implementation function.
+///
+/// Receives the [Zone] that the handler was registered on as [self],
+/// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
+/// and the current zone where the error was uncaught as [zone],
+/// which will have [self] as a parent zone.
+///
+/// The [error] and [stackTrace] are the error and stack trace that
+/// was uncaught in [zone].
 typedef HandleUncaughtErrorHandler = void Function(Zone self,
     ZoneDelegate parent, Zone zone, Object error, StackTrace stackTrace);
+
+/// The type of a custom [Zone.run] implementation function.
+///
+/// Receives the [Zone] that the handler was registered on as [self],
+/// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
+/// and the current zone where the error was uncaught as [zone],
+/// which will have [self] as a parent zone.
+///
+/// The function [f] is the function which was passed to the
+/// [Zone.run] of [zone].
+///
+/// The default behavior of [Zone.run] is
+/// to call [f] in the current zone, [zone].
+/// A custom handler can do things before, after or instead of
+/// calling [f].
 typedef RunHandler = R Function<R>(
     Zone self, ZoneDelegate parent, Zone zone, R Function() f);
+
+/// The type of a custom [Zone.runUnary] implementation function.
+///
+/// Receives the [Zone] that the handler was registered on as [self],
+/// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
+/// and the current zone where the error was uncaught as [zone],
+/// which will have [self] as a parent zone.
+///
+/// The function [f] and value [arg] are the function and argument
+/// which was passed to the [Zone.runUnary] of [zone].
+///
+/// The default behavior of [Zone.runUnary] is
+/// to call [f] with argument [arg] in the current zone, [zone].
+/// A custom handler can do things before, after or instead of
+/// calling [f].
 typedef RunUnaryHandler = R Function<R, T>(
     Zone self, ZoneDelegate parent, Zone zone, R Function(T arg) f, T arg);
+
+/// The type of a custom [Zone.runBinary] implementation function.
+///
+/// Receives the [Zone] that the handler was registered on as [self],
+/// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
+/// and the current zone where the error was uncaught as [zone],
+/// which will have [self] as a parent zone.
+///
+/// The function [f] and values [arg1] and [arg2] are the function and arguments
+/// which was passed to the [Zone.runBinary] of [zone].
+///
+/// The default behavior of [Zone.runUnary] is
+/// to call [f] with arguments [arg1] and [arg2] in the current zone, [zone].
+/// A custom handler can do things before, after or instead of
+/// calling [f].
 typedef RunBinaryHandler = R Function<R, T1, T2>(Zone self, ZoneDelegate parent,
     Zone zone, R Function(T1 arg1, T2 arg2) f, T1 arg1, T2 arg2);
+
+/// The type of a custom [Zone.registerCallback] implementation function.
+///
+/// Receives the [Zone] that the handler was registered on as [self],
+/// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
+/// and the current zone where the error was uncaught as [zone],
+/// which will have [self] as a parent zone.
+///
+/// The function [f] is the function which was passed to the
+/// [Zone.registerCallback] of [zone].
+///
+/// The handler should return either the function [f]
+/// or another function replacing [f],
+/// typically by wrapping [f] in a function
+/// which does something extra before and after invoking [f]
 typedef RegisterCallbackHandler = ZoneCallback<R> Function<R>(
     Zone self, ZoneDelegate parent, Zone zone, R Function() f);
+
+/// The type of a custom [Zone.registerUnary] implementation function.
+///
+/// Receives the [Zone] that the handler was registered on as [self],
+/// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
+/// and the current zone where the error was uncaught as [zone],
+/// which will have [self] as a parent zone.
+///
+/// The function [f] is the function which was passed to the
+/// which was passed to the [Zone.registerUnary] of [zone].
+///
+/// The handler should return either the function [f]
+/// or another function replacing [f],
+/// typically by wrapping [f] in a function
+/// which does something extra before and after invoking [f]
 typedef RegisterUnaryCallbackHandler = ZoneUnaryCallback<R, T> Function<R, T>(
     Zone self, ZoneDelegate parent, Zone zone, R Function(T arg) f);
+
+/// The type of a custom [Zone.registerBinary] implementation function.
+///
+/// Receives the [Zone] that the handler was registered on as [self],
+/// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
+/// and the current zone where the error was uncaught as [zone],
+/// which will have [self] as a parent zone.
+///
+/// The function [f] is the function which was passed to the
+/// which was passed to the [Zone.registerBinary] of [zone].
+///
+/// The handler should return either the function [f]
+/// or another function replacing [f],
+/// typically by wrapping [f] in a function
+/// which does something extra before and after invoking [f]
 typedef RegisterBinaryCallbackHandler
     = ZoneBinaryCallback<R, T1, T2> Function<R, T1, T2>(Zone self,
         ZoneDelegate parent, Zone zone, R Function(T1 arg1, T2 arg2) f);
+
+/// The type of a custom [Zone.errorCallback] implementation function.
+///
+/// Receives the [Zone] that the handler was registered on as [self],
+/// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
+/// and the current zone where the error was uncaught as [zone],
+/// which will have [self] as a parent zone.
+///
+/// The [error] and [stackTrace] are the error and stack trace
+/// passed to [Zone.errorCallback] of [zone].
+///
+/// The function should return either `null` if it doesn't want
+/// to replace the original error and stack trace,
+/// or an [AsyncError] containg a replacement error and stack trace
+/// which will be used to replace the originals.
 typedef AsyncError? ErrorCallbackHandler(Zone self, ZoneDelegate parent,
     Zone zone, Object error, StackTrace? stackTrace);
+
+/// The type of a custom [Zone.scheduleMicrotask] implementation function.
+///
+/// Receives the [Zone] that the handler was registered on as [self],
+/// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
+/// and the current zone where the error was uncaught as [zone],
+/// which will have [self] as a parent zone.
+///
+/// The function [f] is the function which was
+/// passed to [Zone.scheduleMicrotask] of [zone].
+///
+/// The custom handler can choose to replace the function [f]
+/// with one that does something before, after or instead of calling [f],
+/// and then call `parent.scheduleMicrotask(zone, replacement)`.
+/// or it can implement its own microtask scheduling queue, which typically
+/// still depends on `parent.scheduleMicrotask` to as a way to get started.
 typedef void ScheduleMicrotaskHandler(
     Zone self, ZoneDelegate parent, Zone zone, void f());
+
+/// The type of a custom [Zone.createTimer] implementation function.
+///
+/// Receives the [Zone] that the handler was registered on as [self],
+/// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
+/// and the current zone where the error was uncaught as [zone],
+/// which will have [self] as a parent zone.
+///
+/// The callback function [f] and [duration] are the ones which were
+/// passed to [Zone.createTimer] of [zone]
+/// (possibly through the [Timer] constructor).
+///
+/// The custom handler can choose to replace the function [f]
+/// with one that does something before, after or instead of calling [f],
+/// and then call `parent.createTimer(zone, replacement)`.
+/// or it can implement its own timer queue, which typically
+/// still depends on `parent.createTimer` to as a way to get started.
+///
+/// The function should return a [Timer] object which can be used
+/// to inspect and control the scheduled timer callback.
 typedef Timer CreateTimerHandler(
     Zone self, ZoneDelegate parent, Zone zone, Duration duration, void f());
+
+/// The type of a custom [Zone.createPeriodicTimer] implementation function.
+///
+/// Receives the [Zone] that the handler was registered on as [self],
+/// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
+/// and the current zone where the error was uncaught as [zone],
+/// which will have [self] as a parent zone.
+///
+/// The callback function [f] and [duration] are the ones which were
+/// passed to [Zone.createPeriodicTimer] of [zone]
+/// (possibly through the [Timer.periodic] constructor).
+///
+/// The custom handler can choose to replace the function [f]
+/// with one that does something before, after or instead of calling [f],
+/// and then call `parent.createTimer(zone, replacement)`.
+/// or it can implement its own timer queue, which typically
+/// still depends on `parent.createTimer` to as a way to get started.
+///
+/// The function should return a [Timer] object which can be used
+/// to inspect and control the scheduled timer callbacks.
 typedef Timer CreatePeriodicTimerHandler(Zone self, ZoneDelegate parent,
     Zone zone, Duration period, void f(Timer timer));
+
+/// The type of a custom [Zone.print] implementation function.
+///
+/// Receives the [Zone] that the handler was registered on as [self],
+/// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
+/// and the current zone where the error was uncaught as [zone],
+/// which will have [self] as a parent zone.
+///
+/// The string [line] is the one which was passed to [Zone.print] of [zone],
+/// (possibly through the global [print] function).
+///
+/// The custom handler can intercept print operations and
+/// redirect them to other targets than the console.
 typedef void PrintHandler(
     Zone self, ZoneDelegate parent, Zone zone, String line);
+
+/// The type of a custom [Zone.fork] implementation function.
+///
+/// Receives the [Zone] that the handler was registered on as [self],
+/// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
+/// and the current zone where the error was uncaught as [zone],
+/// which will have [self] as a parent zone.
+///
+/// The handler should create a new zone with [zone] as its
+/// immediate parent zone.
+///
+/// The [specification] and [zoneValues] are the ones which were
+/// passed to [Zone.fork] of [zone]. They specify the custom zone
+/// handlers and zone variables that the new zone should have.
+///
+/// The custom handler can change the specification or zone
+/// values before calling `parent.fork(zone, specification, zoneValues)`,
+/// but it has to call the [parent]'s [ZoneDelegate.fork] in order
+/// to create a valid [Zone] object.
 typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
     ZoneSpecification? specification, Map<Object?, Object?>? zoneValues);
-
-/** Pair of error and stack trace. Returned by [Zone.errorCallback]. */
-class AsyncError implements Error {
-  final Object error;
-  final StackTrace stackTrace;
-
-  AsyncError(this.error, StackTrace? stackTrace)
-      : stackTrace = stackTrace ?? defaultStackTrace(error) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
-  }
-
-  /// A default stack trace for an error.
-  ///
-  /// If [error] is an [Error] and it has an [Error.stackTrace],
-  /// that stack trace is returned.
-  /// If not, the [StackTrace.empty] default stack trace is returned.
-  static StackTrace defaultStackTrace(Object error) {
-    if (error is Error) {
-      var stackTrace = error.stackTrace;
-      if (stackTrace != null) return stackTrace;
-    }
-    return StackTrace.empty;
-  }
-
-  String toString() => '$error';
-}
 
 class _ZoneFunction<T extends Function> {
   final _Zone zone;
@@ -105,29 +280,33 @@ class _RegisterBinaryZoneFunction {
   const _RegisterBinaryZoneFunction(this.zone, this.function);
 }
 
-/**
- * This class provides the specification for a forked zone.
- *
- * When forking a new zone (see [Zone.fork]) one can override the default
- * behavior of the zone by providing callbacks. These callbacks must be
- * given in an instance of this class.
- *
- * Handlers have the same signature as the same-named methods on [Zone] but
- * receive three additional arguments:
- *
- *   1. the zone the handlers are attached to (the "self" zone).
- *   2. a [ZoneDelegate] to the parent zone.
- *   3. the zone that first received the request (before the request was
- *     bubbled up).
- *
- * Handlers can either stop propagation the request (by simply not calling the
- * parent handler), or forward to the parent zone, potentially modifying the
- * arguments on the way.
- */
+/// A parameter object with custom zone function handlers for [Zone.fork].
+///
+/// A zone specification is a parameter object passed to [Zone.fork]
+/// and any underlying [ForkHandler] custom implementations.
+/// The individual handlers, if set to a non-null value,
+/// will be the implementation of the correpsonding [Zone] methods
+/// for a forked zone created using this zone specification.
+///
+/// Handlers have the same signature as the same-named methods on [Zone],
+/// but receive three additional arguments:
+///
+///   1. The zone the handlers are attached to (the "self" zone).
+///      This is the zone created by [Zone.fork] where the handler is
+///      passed as part of the zone delegation.
+///   2. A [ZoneDelegate] to the parent zone.
+///   3. The "current" zone at the time the request was made.
+///      The self zone is always a parent zone of the current zone.
+///
+/// Handlers can either stop propagating the request (by simply not calling the
+/// parent handler), or forward to the parent zone, potentially modifying the
+/// arguments on the way.
 abstract class ZoneSpecification {
-  /**
-   * Creates a specification with the provided handlers.
-   */
+  /// Creates a specification with the provided handlers.
+  ///
+  /// If the [handleUncaughtError] is provided, the new zone will be a new
+  /// "error zone" which will prevent errors from flowing into other
+  /// error zones (see [errorZone], [sameErrorZone]).
   const factory ZoneSpecification(
       {HandleUncaughtErrorHandler? handleUncaughtError,
       RunHandler? run,
@@ -143,10 +322,12 @@ abstract class ZoneSpecification {
       PrintHandler? print,
       ForkHandler? fork}) = _ZoneSpecification;
 
-  /**
-   * Creates a specification from [other] with the provided handlers overriding
-   * the ones in [other].
-   */
+  /// Creates a specification from [other] and provided handlers.
+  ///
+  /// The created zone specification has the handlers of [other]
+  /// and any individually provided handlers.
+  /// If a handler is provided both through [other] and individually,
+  /// the individually provided handler overries the one from [other].
   factory ZoneSpecification.from(ZoneSpecification other,
       {HandleUncaughtErrorHandler? handleUncaughtError,
       RunHandler? run,
@@ -179,28 +360,51 @@ abstract class ZoneSpecification {
         fork: fork ?? other.fork);
   }
 
+  /// A custom [Zone.handleUncaughtError] implementation for a new zone.
   HandleUncaughtErrorHandler? get handleUncaughtError;
+
+  /// A custom [Zone.run] implementation for a new zone.
   RunHandler? get run;
+
+  /// A custom [Zone.runUnary] implementation for a new zone.
   RunUnaryHandler? get runUnary;
+
+  /// A custom [Zone.runBinary] implementation for a new zone.
   RunBinaryHandler? get runBinary;
+
+  /// A custom [Zone.registerCallback] implementation for a new zone.
   RegisterCallbackHandler? get registerCallback;
+
+  /// A custom [Zone.registerUnaryCallback] implementation for a new zone.
   RegisterUnaryCallbackHandler? get registerUnaryCallback;
+
+  /// A custom [Zone.registerBinaryCallback] implementation for a new zone.
   RegisterBinaryCallbackHandler? get registerBinaryCallback;
+
+  /// A custom [Zone.errorCallback] implementation for a new zone.
   ErrorCallbackHandler? get errorCallback;
+
+  /// A custom [Zone.scheduleMicrotask] implementation for a new zone.
   ScheduleMicrotaskHandler? get scheduleMicrotask;
+
+  /// A custom [Zone.createTimer] implementation for a new zone.
   CreateTimerHandler? get createTimer;
+
+  /// A custom [Zone.createPeriodicTimer] implementation for a new zone.
   CreatePeriodicTimerHandler? get createPeriodicTimer;
+
+  /// A custom [Zone.print] implementation for a new zone.
   PrintHandler? get print;
+
+  /// A custom [Zone.handleUncaughtError] implementation for a new zone.
   ForkHandler? get fork;
 }
 
-/**
- * Internal [ZoneSpecification] class.
- *
- * The implementation wants to rely on the fact that the getters cannot change
- * dynamically. We thus require users to go through the redirecting
- * [ZoneSpecification] constructor which instantiates this class.
- */
+/// Internal [ZoneSpecification] class.
+///
+/// The implementation wants to rely on the fact that the getters cannot change
+/// dynamically. We thus require users to go through the redirecting
+/// [ZoneSpecification] constructor which instantiates this class.
 class _ZoneSpecification implements ZoneSpecification {
   const _ZoneSpecification(
       {this.handleUncaughtError,
@@ -232,482 +436,452 @@ class _ZoneSpecification implements ZoneSpecification {
   final ForkHandler? fork;
 }
 
-/**
- * An adapted view of the parent zone.
- *
- * This class allows the implementation of a zone method to invoke methods on
- * the parent zone while retaining knowledge of the originating zone.
- *
- * Custom zones (created through [Zone.fork] or [runZoned]) can provide
- * implementations of most methods of zones. This is similar to overriding
- * methods on [Zone], except that this mechanism doesn't require subclassing.
- *
- * A custom zone function (provided through a [ZoneSpecification]) typically
- * records or wraps its parameters and then delegates the operation to its
- * parent zone using the provided [ZoneDelegate].
- *
- * While zones have access to their parent zone (through [Zone.parent]) it is
- * recommended to call the methods on the provided parent delegate for two
- * reasons:
- * 1. the delegate methods take an additional `zone` argument which is the
- *   zone the action has been initiated in.
- * 2. delegate calls are more efficient, since the implementation knows how
- *   to skip zones that would just delegate to their parents.
- */
+/// An adapted view of the parent zone.
+///
+/// This class allows the implementation of a zone method to invoke methods on
+/// the parent zone while retaining knowledge of the originating zone.
+///
+/// Custom zones (created through [Zone.fork] or [runZoned]) can provide
+/// implementations of most methods of zones. This is similar to overriding
+/// methods on [Zone], except that this mechanism doesn't require subclassing.
+///
+/// A custom zone function (provided through a [ZoneSpecification]) typically
+/// records or wraps its parameters and then delegates the operation to its
+/// parent zone using the provided [ZoneDelegate].
+///
+/// While zones have access to their parent zone (through [Zone.parent]) it is
+/// recommended to call the methods on the provided parent delegate for two
+/// reasons:
+/// 1. the delegate methods take an additional `zone` argument which is the
+///   zone the action has been initiated in.
+/// 2. delegate calls are more efficient, since the implementation knows how
+///   to skip zones that would just delegate to their parents.
 abstract class ZoneDelegate {
+  // Invoke the [HandleUncaughtErrorHandler] of the zone with a current zone.
   void handleUncaughtError(Zone zone, Object error, StackTrace stackTrace);
+
+  // Invokes the [RunHandler] of the zone with a current zone.
   R run<R>(Zone zone, R f());
+
+  // Invokes the [RunUnaryHandler] of the zone with a current zone.
   R runUnary<R, T>(Zone zone, R f(T arg), T arg);
+
+  // Invokes the [RunBinaryHandler] of the zone with a current zone.
   R runBinary<R, T1, T2>(Zone zone, R f(T1 arg1, T2 arg2), T1 arg1, T2 arg2);
+
+  // Invokes the [RegisterCallbackHandler] of the zone with a current zone.
   ZoneCallback<R> registerCallback<R>(Zone zone, R f());
+
+  // Invokes the [RegisterUnaryHandler] of the zone with a current zone.
   ZoneUnaryCallback<R, T> registerUnaryCallback<R, T>(Zone zone, R f(T arg));
+
+  // Invokes the [RegisterBinaryHandler] of the zone with a current zone.
   ZoneBinaryCallback<R, T1, T2> registerBinaryCallback<R, T1, T2>(
       Zone zone, R f(T1 arg1, T2 arg2));
+
+  // Invokes the [ErrorCallbackHandler] of the zone with a current zone.
   AsyncError? errorCallback(Zone zone, Object error, StackTrace? stackTrace);
+
+  // Invokes the [ScheduleMicrotaskHandler] of the zone with a current zone.
   void scheduleMicrotask(Zone zone, void f());
+
+  // Invokes the [CreateTimerHandler] of the zone with a current zone.
   Timer createTimer(Zone zone, Duration duration, void f());
+
+  // Invokes the [CreatePeriodicTimerHandler] of the zone with a current zone.
   Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer));
+
+  // Invokes the [PrintHandler] of the zone with a current zone.
   void print(Zone zone, String line);
+
+  // Invokes the [ForkHandler] of the zone with a current zone.
   Zone fork(Zone zone, ZoneSpecification? specification, Map? zoneValues);
 }
 
-/**
- * A zone represents an environment that remains stable across asynchronous
- * calls.
- *
- * Code is always executed in the context of a zone, available as
- * [Zone.current]. The initial `main` function runs in the context of the
- * default zone ([Zone.root]). Code can be run in a different zone using either
- * [runZoned], to create a new zone, or [Zone.run] to run code in the context of
- * an existing zone likely created using [Zone.fork].
- *
- * Developers can create a new zone that overrides some of the functionality of
- * an existing zone. For example, custom zones can replace of modify the
- * behavior of `print`, timers, microtasks or how uncaught errors are handled.
- *
- * The [Zone] class is not subclassable, but users can provide custom zones by
- * forking an existing zone (usually [Zone.current]) with a [ZoneSpecification].
- * This is similar to creating a new class that extends the base `Zone` class
- * and that overrides some methods, except without actually creating a new
- * class. Instead the overriding methods are provided as functions that
- * explicitly take the equivalent of their own class, the "super" class and the
- * `this` object as parameters.
- *
- * Asynchronous callbacks always run in the context of the zone where they were
- * scheduled. This is implemented using two steps:
- * 1. the callback is first registered using one of [registerCallback],
- *   [registerUnaryCallback], or [registerBinaryCallback]. This allows the zone
- *   to record that a callback exists and potentially modify it (by returning a
- *   different callback). The code doing the registration (e.g., `Future.then`)
- *   also remembers the current zone so that it can later run the callback in
- *   that zone.
- * 2. At a later point the registered callback is run in the remembered zone.
- *
- * This is all handled internally by the platform code and most users don't need
- * to worry about it. However, developers of new asynchronous operations,
- * provided by the underlying system or through native extensions, must follow
- * the protocol to be zone compatible.
- *
- * For convenience, zones provide [bindCallback] (and the corresponding
- * [bindUnaryCallback] and [bindBinaryCallback]) to make it easier to respect
- * the zone contract: these functions first invoke the corresponding `register`
- * functions and then wrap the returned function so that it runs in the current
- * zone when it is later asynchronously invoked.
- *
- * Similarly, zones provide [bindCallbackGuarded] (and the corresponding
- * [bindUnaryCallbackGuarded] and [bindBinaryCallbackGuarded]), when the
- * callback should be invoked through [Zone.runGuarded].
- */
+/// A zone represents an environment that remains stable across asynchronous
+/// calls.
+///
+/// Code is always executed in the context of a zone, available as
+/// [Zone.current]. The initial `main` function runs in the context of the
+/// default zone ([Zone.root]). Code can be run in a different zone using either
+/// [runZoned], to create a new zone, or [Zone.run] to run code in the context of
+/// an existing zone which was created earlier using [Zone.fork].
+///
+/// Developers can create a new zone that overrides some of the functionality of
+/// an existing zone. For example, custom zones can replace of modify the
+/// behavior of `print`, timers, microtasks or how uncaught errors are handled.
+///
+/// The [Zone] class is not subclassable, but users can provide custom zones by
+/// forking an existing zone (usually [Zone.current]) with a [ZoneSpecification].
+/// This is similar to creating a new class that extends the base `Zone` class
+/// and that overrides some methods, except without actually creating a new
+/// class. Instead the overriding methods are provided as functions that
+/// explicitly take the equivalent of their own class, the "super" class and the
+/// `this` object as parameters.
+///
+/// Asynchronous callbacks always run in the context of the zone where they were
+/// scheduled. This is implemented using two steps:
+/// 1. the callback is first registered using one of [registerCallback],
+///   [registerUnaryCallback], or [registerBinaryCallback]. This allows the zone
+///   to record that a callback exists and potentially modify it (by returning a
+///   different callback). The code doing the registration (e.g., `Future.then`)
+///   also remembers the current zone so that it can later run the callback in
+///   that zone.
+/// 2. At a later point the registered callback is run in the remembered zone,
+///    using one of [run], [runUnary] or [runBinary].
+///
+/// This is all handled internally by the platform code and most users don't need
+/// to worry about it. However, developers of new asynchronous operations,
+/// provided by the underlying system or through native extensions, must follow
+/// the protocol to be zone compatible.
+///
+/// For convenience, zones provide [bindCallback] (and the corresponding
+/// [bindUnaryCallback] and [bindBinaryCallback]) to make it easier to respect
+/// the zone contract: these functions first invoke the corresponding `register`
+/// functions and then wrap the returned function so that it runs in the current
+/// zone when it is later asynchronously invoked.
+///
+/// Similarly, zones provide [bindCallbackGuarded] (and the corresponding
+/// [bindUnaryCallbackGuarded] and [bindBinaryCallbackGuarded]), when the
+/// callback should be invoked through [Zone.runGuarded].
 abstract class Zone {
   // Private constructor so that it is not possible instantiate a Zone class.
   Zone._();
 
-  /**
-   * The root zone.
-   *
-   * All isolate entry functions (`main` or spawned functions) start running in
-   * the root zone (that is, [Zone.current] is identical to [Zone.root] when the
-   * entry function is called). If no custom zone is created, the rest of the
-   * program always runs in the root zone.
-   *
-   * The root zone implements the default behavior of all zone operations.
-   * Many methods, like [registerCallback] do the bare minimum required of the
-   * function, and are only provided as a hook for custom zones. Others, like
-   * [scheduleMicrotask], interact with the underlying system to implement the
-   * desired behavior.
-   */
+  /// The root zone.
+  ///
+  /// All isolate entry functions (`main` or spawned functions) start running in
+  /// the root zone (that is, [Zone.current] is identical to [Zone.root] when the
+  /// entry function is called). If no custom zone is created, the rest of the
+  /// program always runs in the root zone.
+  ///
+  /// The root zone implements the default behavior of all zone operations.
+  /// Many methods, like [registerCallback] do the bare minimum required of the
+  /// function, and are only provided as a hook for custom zones. Others, like
+  /// [scheduleMicrotask], interact with the underlying system to implement the
+  /// desired behavior.
   static const Zone root = _rootZone;
 
-  /** The currently running zone. */
+  /// The currently running zone.
   static _Zone _current = _rootZone;
 
-  /** The zone that is currently active. */
+  /// The zone that is currently active.
   static Zone get current => _current;
 
-  /**
-   * Handles uncaught asynchronous errors.
-   *
-   * There are two kind of asynchronous errors that are handled by this
-   * function:
-   * 1. Uncaught errors that were thrown in asynchronous callbacks, for example,
-   *   a `throw` in the function passed to [Timer.run].
-   * 2. Asynchronous errors that are pushed through [Future] and [Stream]
-   *   chains, but for which no child registered an error handler.
-   *   Most asynchronous classes, like [Future] or [Stream] push errors to their
-   *   listeners. Errors are propagated this way until either a listener handles
-   *   the error (for example with [Future.catchError]), or no listener is
-   *   available anymore. In the latter case, futures and streams invoke the
-   *   zone's [handleUncaughtError].
-   *
-   * By default, when handled by the root zone, uncaught asynchronous errors are
-   * treated like uncaught synchronous exceptions.
-   */
+  /// Handles uncaught asynchronous errors.
+  ///
+  /// There are two kind of asynchronous errors that are handled by this
+  /// function:
+  /// 1. Uncaught errors that were thrown in asynchronous callbacks, for example,
+  ///   a `throw` in the function passed to [Timer.run].
+  /// 2. Asynchronous errors that are pushed through [Future] and [Stream]
+  ///   chains, but for which nobody registered an error handler.
+  ///   Most asynchronous classes, like [Future] or [Stream] push errors to their
+  ///   listeners. Errors are propagated this way until either a listener handles
+  ///   the error (for example with [Future.catchError]), or no listener is
+  ///   available anymore. In the latter case, futures and streams invoke the
+  ///   zone's [handleUncaughtError].
+  ///
+  /// By default, when handled by the root zone, uncaught asynchronous errors are
+  /// treated like uncaught synchronous exceptions.
   void handleUncaughtError(Object error, StackTrace stackTrace);
 
-  /**
-   * The parent zone of the this zone.
-   *
-   * Is `null` if `this` is the [root] zone.
-   *
-   * Zones are created by [fork] on an existing zone, or by [runZoned] which
-   * forks the [current] zone. The new zone's parent zone is the zone it was
-   * forked from.
-   */
+  /// The parent zone of the this zone.
+  ///
+  /// Is `null` if `this` is the [root] zone.
+  ///
+  /// Zones are created by [fork] on an existing zone, or by [runZoned] which
+  /// forks the [current] zone. The new zone's parent zone is the zone it was
+  /// forked from.
   Zone? get parent;
 
-  /**
-   * The error zone is the one that is responsible for dealing with uncaught
-   * errors.
-   *
-   * This is the closest parent zone of this zone that provides a
-   * [handleUncaughtError] method.
-   *
-   * Asynchronous errors never cross zone boundaries between zones with
-   * different error handlers.
-   *
-   * Example:
-   * ```
-   * import 'dart:async';
-   *
-   * main() {
-   *   var future;
-   *   runZoned(() {
-   *     // The asynchronous error is caught by the custom zone which prints
-   *     // 'asynchronous error'.
-   *     future = Future.error("asynchronous error");
-   *   }, onError: (e) { print(e); });  // Creates a zone with an error handler.
-   *   // The following `catchError` handler is never invoked, because the
-   *   // custom zone created by the call to `runZoned` provides an
-   *   // error handler.
-   *   future.catchError((e) { throw "is never reached"; });
-   * }
-   * ```
-   *
-   * Note that errors cannot enter a child zone with a different error handler
-   * either:
-   * ```
-   * import 'dart:async';
-   *
-   * main() {
-   *   runZoned(() {
-   *     // The following asynchronous error is *not* caught by the `catchError`
-   *     // in the nested zone, since errors are not to cross zone boundaries
-   *     // with different error handlers.
-   *     // Instead the error is handled by the current error handler,
-   *     // printing "Caught by outer zone: asynchronous error".
-   *     var future = Future.error("asynchronous error");
-   *     runZoned(() {
-   *       future.catchError((e) { throw "is never reached"; });
-   *     }, onError: (e) { throw "is never reached"; });
-   *   }, onError: (e) { print("Caught by outer zone: $e"); });
-   * }
-   * ```
-   */
+  /// The error zone is responsible for dealing with uncaught errors.
+  ///
+  /// This is the closest parent zone of this zone that provides a
+  /// [handleUncaughtError] method.
+  ///
+  /// Asynchronous errors never cross zone boundaries between zones with
+  /// different error handlers.
+  ///
+  /// Example:
+  /// ```
+  /// import 'dart:async';
+  ///
+  /// main() {
+  ///   var future;
+  ///   runZoned(() {
+  ///     // The asynchronous error is caught by the custom zone which prints
+  ///     // 'asynchronous error'.
+  ///     future = Future.error("asynchronous error");
+  ///   }, onError: (e) { print(e); });  // Creates a zone with an error handler.
+  ///   // The following `catchError` handler is never invoked, because the
+  ///   // custom zone created by the call to `runZoned` provides an
+  ///   // error handler.
+  ///   future.catchError((e) { throw "is never reached"; });
+  /// }
+  /// ```
+  ///
+  /// Note that errors cannot enter a child zone with a different error handler
+  /// either:
+  /// ```
+  /// import 'dart:async';
+  ///
+  /// main() {
+  ///   runZoned(() {
+  ///     // The following asynchronous error is *not* caught by the `catchError`
+  ///     // in the nested zone, since errors are not to cross zone boundaries
+  ///     // with different error handlers.
+  ///     // Instead the error is handled by the current error handler,
+  ///     // printing "Caught by outer zone: asynchronous error".
+  ///     var future = Future.error("asynchronous error");
+  ///     runZoned(() {
+  ///       future.catchError((e) { throw "is never reached"; });
+  ///     }, onError: (e) { throw "is never reached"; });
+  ///   }, onError: (e) { print("Caught by outer zone: $e"); });
+  /// }
+  /// ```
   Zone get errorZone;
 
-  /**
-   * Returns true if `this` and [otherZone] are in the same error zone.
-   *
-   * Two zones are in the same error zone if they have the same [errorZone].
-   */
+  /// Whether this zone and [otherZone] are in the same error zone.
+  ///
+  /// Two zones are in the same error zone if they have the same [errorZone].
   bool inSameErrorZone(Zone otherZone);
 
-  /**
-   * Creates a new zone as a child of `this`.
-   *
-   * The new zone uses the closures in the given [specification] to override
-   * the current's zone behavior. All specification entries that are `null`
-   * inherit the behavior from the parent zone (`this`).
-   *
-   * The new zone inherits the stored values (accessed through [operator []])
-   * of this zone and updates them with values from [zoneValues], which either
-   * adds new values or overrides existing ones.
-   *
-   * Note that the fork operation is interceptible. A zone can thus change
-   * the zone specification (or zone values), giving the forking zone full
-   * control over the child zone.
-   */
+  /// Creates a new zone as a child zone of this zone.
+  ///
+  /// The new zone uses the closures in the given [specification] to override
+  /// the current's zone behavior. All specification entries that are `null`
+  /// inherit the behavior from the parent zone (`this`).
+  ///
+  /// The new zone inherits the stored values (accessed through [operator []])
+  /// of this zone and updates them with values from [zoneValues], which either
+  /// adds new values or overrides existing ones.
+  ///
+  /// Note that the fork operation is interceptible. A zone can thus change
+  /// the zone specification (or zone values), giving the forking zone full
+  /// control over the child zone.
   Zone fork(
       {ZoneSpecification? specification, Map<Object?, Object?>? zoneValues});
 
-  /**
-   * Executes [action] in this zone.
-   *
-   * By default (as implemented in the [root] zone), runs [action]
-   * with [current] set to this zone.
-   *
-   * If [action] throws, the synchronous exception is not caught by the zone's
-   * error handler. Use [runGuarded] to achieve that.
-   *
-   * Since the root zone is the only zone that can modify the value of
-   * [current], custom zones intercepting run should always delegate to their
-   * parent zone. They may take actions before and after the call.
-   */
+  /// Executes [action] in this zone.
+  ///
+  /// By default (as implemented in the [root] zone), runs [action]
+  /// with [current] set to this zone.
+  ///
+  /// If [action] throws, the synchronous exception is not caught by the zone's
+  /// error handler. Use [runGuarded] to achieve that.
+  ///
+  /// Since the root zone is the only zone that can modify the value of
+  /// [current], custom zones intercepting run should always delegate to their
+  /// parent zone. They may take actions before and after the call.
   R run<R>(R action());
 
-  /**
-   * Executes the given [action] with [argument] in this zone.
-   *
-   * As [run] except that [action] is called with one [argument] instead of
-   * none.
-   */
+  /// Executes the given [action] with [argument] in this zone.
+  ///
+  /// As [run] except that [action] is called with one [argument] instead of
+  /// none.
   R runUnary<R, T>(R action(T argument), T argument);
 
-  /**
-   * Executes the given [action] with [argument1] and [argument2] in this
-   * zone.
-   *
-   * As [run] except that [action] is called with two arguments instead of none.
-   */
+  /// Executes the given [action] with [argument1] and [argument2] in this
+  /// zone.
+  ///
+  /// As [run] except that [action] is called with two arguments instead of none.
   R runBinary<R, T1, T2>(
       R action(T1 argument1, T2 argument2), T1 argument1, T2 argument2);
 
-  /**
-   * Executes the given [action] in this zone and catches synchronous
-   * errors.
-   *
-   * This function is equivalent to:
-   * ```
-   * try {
-   *   this.run(action);
-   * } catch (e, s) {
-   *   this.handleUncaughtError(e, s);
-   * }
-   * ```
-   *
-   * See [run].
-   */
+  /// Executes the given [action] in this zone and catches synchronous
+  /// errors.
+  ///
+  /// This function is equivalent to:
+  /// ```
+  /// try {
+  ///   this.run(action);
+  /// } catch (e, s) {
+  ///   this.handleUncaughtError(e, s);
+  /// }
+  /// ```
+  ///
+  /// See [run].
   void runGuarded(void action());
 
-  /**
-   * Executes the given [action] with [argument] in this zone and
-   * catches synchronous errors.
-   *
-   * See [runGuarded].
-   */
+  /// Executes the given [action] with [argument] in this zone and
+  /// catches synchronous errors.
+  ///
+  /// See [runGuarded].
   void runUnaryGuarded<T>(void action(T argument), T argument);
 
-  /**
-   * Executes the given [action] with [argument1] and [argument2] in this
-   * zone and catches synchronous errors.
-   *
-   * See [runGuarded].
-   */
+  /// Executes the given [action] with [argument1] and [argument2] in this
+  /// zone and catches synchronous errors.
+  ///
+  /// See [runGuarded].
   void runBinaryGuarded<T1, T2>(
       void action(T1 argument1, T2 argument2), T1 argument1, T2 argument2);
 
-  /**
-   * Registers the given callback in this zone.
-   *
-   * When implementing an asynchronous primitive that uses callbacks, the
-   * callback must be registered using [registerCallback] at the point where the
-   * user provides the callback. This allows zones to record other information
-   * that they need at the same time, perhaps even wrapping the callback, so
-   * that the callback is prepared when it is later run in the same zones
-   * (using [run]). For example, a zone may decide
-   * to store the stack trace (at the time of the registration) with the
-   * callback.
-   *
-   * Returns the callback that should be used in place of the provided
-   * [callback]. Frequently zones simply return the original callback.
-   *
-   * Custom zones may intercept this operation. The default implementation in
-   * [Zone.root] returns the original callback unchanged.
-   */
+  /// Registers the given callback in this zone.
+  ///
+  /// When implementing an asynchronous primitive that uses callbacks, the
+  /// callback must be registered using [registerCallback] at the point where the
+  /// user provides the callback. This allows zones to record other information
+  /// that they need at the same time, perhaps even wrapping the callback, so
+  /// that the callback is prepared when it is later run in the same zones
+  /// (using [run]). For example, a zone may decide
+  /// to store the stack trace (at the time of the registration) with the
+  /// callback.
+  ///
+  /// Returns the callback that should be used in place of the provided
+  /// [callback]. Frequently zones simply return the original callback.
+  ///
+  /// Custom zones may intercept this operation. The default implementation in
+  /// [Zone.root] returns the original callback unchanged.
   ZoneCallback<R> registerCallback<R>(R callback());
 
-  /**
-   * Registers the given callback in this zone.
-   *
-   * Similar to [registerCallback] but with a unary callback.
-   */
+  /// Registers the given callback in this zone.
+  ///
+  /// Similar to [registerCallback] but with a unary callback.
   ZoneUnaryCallback<R, T> registerUnaryCallback<R, T>(R callback(T arg));
 
-  /**
-   * Registers the given callback in this zone.
-   *
-   * Similar to [registerCallback] but with a unary callback.
-   */
+  /// Registers the given callback in this zone.
+  ///
+  /// Similar to [registerCallback] but with a unary callback.
   ZoneBinaryCallback<R, T1, T2> registerBinaryCallback<R, T1, T2>(
       R callback(T1 arg1, T2 arg2));
 
-  /**
-   *  Registers the provided [callback] and returns a function that will
-   *  execute in this zone.
-   *
-   *  Equivalent to:
-   *
-   *      ZoneCallback registered = this.registerCallback(callback);
-   *      return () => this.run(registered);
-   *
-   */
+  /// Registers the provided [callback] and returns a function that will
+  /// execute in this zone.
+  ///
+  /// Equivalent to:
+  /// ```dart
+  /// ZoneCallback registered = this.registerCallback(callback);
+  /// return () => this.run(registered);
+  /// ```
   ZoneCallback<R> bindCallback<R>(R callback());
 
-  /**
-   *  Registers the provided [callback] and returns a function that will
-   *  execute in this zone.
-   *
-   *  Equivalent to:
-   *
-   *      ZoneCallback registered = this.registerUnaryCallback(callback);
-   *      return (arg) => thin.runUnary(registered, arg);
-   */
+  /// Registers the provided [callback] and returns a function that will
+  /// execute in this zone.
+  ///
+  /// Equivalent to:
+  /// ```dart
+  /// ZoneCallback registered = this.registerUnaryCallback(callback);
+  /// return (arg) => thin.runUnary(registered, arg);
+  /// ```
   ZoneUnaryCallback<R, T> bindUnaryCallback<R, T>(R callback(T argument));
 
-  /**
-   *  Registers the provided [callback] and returns a function that will
-   *  execute in this zone.
-   *
-   *  Equivalent to:
-   *
-   *      ZoneCallback registered = registerBinaryCallback(callback);
-   *      return (arg1, arg2) => thin.runBinary(registered, arg1, arg2);
-   */
+  /// Registers the provided [callback] and returns a function that will
+  /// execute in this zone.
+  ///
+  /// Equivalent to:
+  /// ```dart
+  /// ZoneCallback registered = registerBinaryCallback(callback);
+  /// return (arg1, arg2) => thin.runBinary(registered, arg1, arg2);
+  /// ```
   ZoneBinaryCallback<R, T1, T2> bindBinaryCallback<R, T1, T2>(
       R callback(T1 argument1, T2 argument2));
 
-  /**
-   * Registers the provided [callback] and returns a function that will
-   * execute in this zone.
-   *
-   * When the function executes, errors are caught and treated as uncaught
-   * errors.
-   *
-   * Equivalent to:
-   *
-   *     ZoneCallback registered = this.registerCallback(callback);
-   *     return () => this.runGuarded(registered);
-   *
-   */
+  /// Registers the provided [callback] and returns a function that will
+  /// execute in this zone.
+  ///
+  /// When the function executes, errors are caught and treated as uncaught
+  /// errors.
+  ///
+  /// Equivalent to:
+  /// ```dart
+  /// ZoneCallback registered = this.registerCallback(callback);
+  /// return () => this.runGuarded(registered);
+  /// ```
   void Function() bindCallbackGuarded(void Function() callback);
 
-  /**
-   * Registers the provided [callback] and returns a function that will
-   * execute in this zone.
-   *
-   * When the function executes, errors are caught and treated as uncaught
-   * errors.
-   *
-   * Equivalent to:
-   *
-   *     ZoneCallback registered = this.registerUnaryCallback(callback);
-   *     return (arg) => this.runUnaryGuarded(registered, arg);
-   */
+  /// Registers the provided [callback] and returns a function that will
+  /// execute in this zone.
+  ///
+  /// When the function executes, errors are caught and treated as uncaught
+  /// errors.
+  ///
+  /// Equivalent to:
+  /// ```dart
+  /// ZoneCallback registered = this.registerUnaryCallback(callback);
+  /// return (arg) => this.runUnaryGuarded(registered, arg);
+  /// ```
   void Function(T) bindUnaryCallbackGuarded<T>(void callback(T argument));
 
-  /**
-   *  Registers the provided [callback] and returns a function that will
-   *  execute in this zone.
-   *
-   *  Equivalent to:
-   *
-   *      ZoneCallback registered = registerBinaryCallback(callback);
-   *      return (arg1, arg2) => this.runBinaryGuarded(registered, arg1, arg2);
-   */
+  ///  Registers the provided [callback] and returns a function that will
+  ///  execute in this zone.
+  ///
+  ///  Equivalent to:
+  /// ```dart
+  ///  ZoneCallback registered = registerBinaryCallback(callback);
+  ///  return (arg1, arg2) => this.runBinaryGuarded(registered, arg1, arg2);
+  /// ```
   void Function(T1, T2) bindBinaryCallbackGuarded<T1, T2>(
       void callback(T1 argument1, T2 argument2));
 
-  /**
-   * Intercepts errors when added programmatically to a `Future` or `Stream`.
-   *
-   * When calling [Completer.completeError], [StreamController.addError],
-   * or some [Future] constructors, the current zone is allowed to intercept
-   * and replace the error.
-   *
-   * Future constructors invoke this function when the error is received
-   * directly, for example with [Future.error], or when the error is caught
-   * synchronously, for example with [Future.sync].
-   *
-   * There is no guarantee that an error is only sent through [errorCallback]
-   * once. Libraries that use intermediate controllers or completers might
-   * end up invoking [errorCallback] multiple times.
-   *
-   * Returns `null` if no replacement is desired. Otherwise returns an instance
-   * of [AsyncError] holding the new pair of error and stack trace.
-   *
-   * Although not recommended, the returned instance may have its `error` member
-   * ([AsyncError.error]) be equal to `null` in which case the error should be
-   * replaced by a [NullThrownError].
-   *
-   * Custom zones may intercept this operation.
-   *
-   * Implementations of a new asynchronous primitive that converts synchronous
-   * errors to asynchronous errors rarely need to invoke [errorCallback], since
-   * errors are usually reported through future completers or stream
-   * controllers.
-   */
+  /// Intercepts errors when added programmatically to a [Future] or [Stream].
+  ///
+  /// When calling [Completer.completeError], [StreamController.addError],
+  /// or some [Future] constructors, the current zone is allowed to intercept
+  /// and replace the error.
+  ///
+  /// Future constructors invoke this function when the error is received
+  /// directly, for example with [Future.error], or when the error is caught
+  /// synchronously, for example with [Future.sync].
+  ///
+  /// There is no guarantee that an error is only sent through [errorCallback]
+  /// once. Libraries that use intermediate controllers or completers might
+  /// end up invoking [errorCallback] multiple times.
+  ///
+  /// Returns `null` if no replacement is desired. Otherwise returns an instance
+  /// of [AsyncError] holding the new pair of error and stack trace.
+  ///
+  /// Custom zones may intercept this operation.
+  ///
+  /// Implementations of a new asynchronous primitive that converts synchronous
+  /// errors to asynchronous errors rarely need to invoke [errorCallback], since
+  /// errors are usually reported through future completers or stream
+  /// controllers.
   AsyncError? errorCallback(Object error, StackTrace? stackTrace);
 
-  /**
-   * Runs [callback] asynchronously in this zone.
-   *
-   * The global `scheduleMicrotask` delegates to the current zone's
-   * [scheduleMicrotask]. The root zone's implementation interacts with the
-   * underlying system to schedule the given callback as a microtask.
-   *
-   * Custom zones may intercept this operation (for example to wrap the given
-   * [callback]).
-   */
+  /// Runs [callback] asynchronously in this zone.
+  ///
+  /// The global `scheduleMicrotask` delegates to the [current] zone's
+  /// [scheduleMicrotask]. The root zone's implementation interacts with the
+  /// underlying system to schedule the given callback as a microtask.
+  ///
+  /// Custom zones may intercept this operation (for example to wrap the given
+  /// [callback]), or to implement their own microtask scheduler.
+  /// In the latter case, they will usually still use the parent zone's
+  /// [ZoneDelegate.scheduleMicrotask] to attach themselves to the existing
+  /// event loop.
   void scheduleMicrotask(void Function() callback);
 
-  /**
-   * Creates a Timer where the callback is executed in this zone.
-   */
+  /// Creates a [Timer] where the callback is executed in this zone.
   Timer createTimer(Duration duration, void Function() callback);
 
-  /**
-   * Creates a periodic Timer where the callback is executed in this zone.
-   */
+  /// Creates a periodic [Timer] where the callback is executed in this zone.
   Timer createPeriodicTimer(Duration period, void callback(Timer timer));
 
-  /**
-   * Prints the given [line].
-   *
-   * The global `print` function delegates to the current zone's [print]
-   * function which makes it possible to intercept printing.
-   *
-   * Example:
-   * ```
-   * import 'dart:async';
-   *
-   * main() {
-   *   runZoned(() {
-   *     // Ends up printing: "Intercepted: in zone".
-   *     print("in zone");
-   *   }, zoneSpecification: new ZoneSpecification(
-   *       print: (Zone self, ZoneDelegate parent, Zone zone, String line) {
-   *     parent.print(zone, "Intercepted: $line");
-   *   }));
-   * }
-   * ```
-   */
+  /// Prints the given [line].
+  ///
+  /// The global `print` function delegates to the current zone's [print]
+  /// function which makes it possible to intercept printing.
+  ///
+  /// Example:
+  /// ```
+  /// import 'dart:async';
+  ///
+  /// main() {
+  ///   runZoned(() {
+  ///     // Ends up printing: "Intercepted: in zone".
+  ///     print("in zone");
+  ///   }, zoneSpecification: new ZoneSpecification(
+  ///       print: (Zone self, ZoneDelegate parent, Zone zone, String line) {
+  ///     parent.print(zone, "Intercepted: $line");
+  ///   }));
+  /// }
+  /// ```
   void print(String line);
 
-  /**
-   * Call to enter the Zone.
-   *
-   * The previous current zone is returned.
-   */
+  /// Call to enter the [Zone].
+  ///
+  /// The previous current zone is returned.
   static _Zone _enter(_Zone zone) {
     assert(!identical(zone, _current));
     _Zone previous = _current;
@@ -715,27 +889,23 @@ abstract class Zone {
     return previous;
   }
 
-  /**
-   * Call to leave the Zone.
-   *
-   * The previous Zone must be provided as `previous`.
-   */
+  /// Call to leave the [Zone].
+  ///
+  /// The previous [Zone] must be provided as `previous`.
   static void _leave(_Zone previous) {
     assert(previous != null);
     Zone._current = previous;
   }
 
-  /**
-   * Retrieves the zone-value associated with [key].
-   *
-   * If this zone does not contain the value looks up the same key in the
-   * parent zone. If the [key] is not found returns `null`.
-   *
-   * Any object can be used as key, as long as it has compatible `operator ==`
-   * and `hashCode` implementations.
-   * By controlling access to the key, a zone can grant or deny access to the
-   * zone value.
-   */
+  /// Retrieves the zone-value associated with [key].
+  ///
+  /// If this zone does not contain the value looks up the same key in the
+  /// parent zone. If the [key] is not found returns `null`.
+  ///
+  /// Any object can be used as key, as long as it has compatible `operator ==`
+  /// and `hashCode` implementations.
+  /// By controlling access to the key, a zone can grant or deny access to the
+  /// zone value.
   dynamic operator [](Object? key);
 }
 
@@ -795,8 +965,7 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   AsyncError? errorCallback(Zone zone, Object error, StackTrace? stackTrace) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
+    checkNotNullable(error, "error");
     var implementation = _delegationTarget._errorCallback;
     _Zone implZone = implementation.zone;
     if (identical(implZone, _rootZone)) return null;
@@ -842,9 +1011,7 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 }
 
-/**
- * Base class for Zone implementations.
- */
+/// Base class for Zone implementations.
 abstract class _Zone implements Zone {
   const _Zone();
 
@@ -984,12 +1151,10 @@ class _CustomZone extends _Zone {
     }
   }
 
-  /**
-   * The closest error-handling zone.
-   *
-   * Returns `this` if `this` has an error-handler. Otherwise returns the
-   * parent's error-zone.
-   */
+  /// The closest error-handling zone.
+  ///
+  /// Returns this zone if it has an error-handler. Otherwise returns the
+  /// parent's error-zone.
   Zone get errorZone => _handleUncaughtError.zone;
 
   void runGuarded(void f()) {
@@ -1130,8 +1295,7 @@ class _CustomZone extends _Zone {
   }
 
   AsyncError? errorCallback(Object error, StackTrace? stackTrace) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
+    checkNotNullable(error, "error");
     var implementation = this._errorCallback;
     final _Zone implementationZone = implementation.zone;
     if (identical(implementationZone, _rootZone)) return null;
@@ -1356,12 +1520,10 @@ class _RootZone extends _Zone {
   // It's a lie, but the root zone never uses the parent delegate.
   ZoneDelegate get _parentDelegate => _delegate;
 
-  /**
-   * The closest error-handling zone.
-   *
-   * Returns `this` if `this` has an error-handler. Otherwise returns the
-   * parent's error-zone.
-   */
+  /// The closest error-handling zone.
+  ///
+  /// Returns `this` if `this` has an error-handler. Otherwise returns the
+  /// parent's error-zone.
   Zone get errorZone => this;
 
   // Zone interface.
@@ -1485,54 +1647,52 @@ class _RootZone extends _Zone {
 
 const _Zone _rootZone = const _RootZone();
 
-/**
- * Runs [body] in its own zone.
- *
- * Creates a new zone using [Zone.fork] based on [zoneSpecification] and
- * [zoneValues], then runs [body] in that zone and returns the result.
- *
- * If [onError] is provided, it must have one of the types
- * * `void Function(Object)`
- * * `void Function(Object, StackTrace)`
- * and the [onError] handler is used *both* to handle asynchronous errors
- * by overriding [ZoneSpecification.handleUncaughtError] in [zoneSpecification],
- * if any, *and* to handle errors thrown synchronously by the call to [body].
- *
- * If an error occurs synchronously in [body],
- * then throwing in the [onError] handler
- * makes the call to `runZone` throw that error,
- * and otherwise the call to `runZoned` attempt to return `null`.
- *
- * If the zone specification has a `handleUncaughtError` value or the [onError]
- * parameter is provided, the zone becomes an error-zone.
- *
- * Errors will never cross error-zone boundaries by themselves.
- * Errors that try to cross error-zone boundaries are considered uncaught in
- * their originating error zone.
- *
- *     var future = new Future.value(499);
- *     runZoned(() {
- *       var future2 = future.then((_) { throw "error in first error-zone"; });
- *       runZoned(() {
- *         var future3 = future2.catchError((e) { print("Never reached!"); });
- *       }, onError: (e, s) { print("unused error handler"); });
- *     }, onError: (e, s) { print("catches error of first error-zone."); });
- *
- * Example:
- *
- *     runZoned(() {
- *       new Future(() { throw "asynchronous error"; });
- *     }, onError: (e, s) => print(e));  // Will print "asynchronous error".
- *
- * It is possible to manually pass an error from one error zone to another
- * by re-throwing it in the new zone. If [onError] throws, that error will
- * occur in the original zone where [runZoned] was called.
- */
+/// Runs [body] in its own zone.
+///
+/// Creates a new zone using [Zone.fork] based on [zoneSpecification] and
+/// [zoneValues], then runs [body] in that zone and returns the result.
+///
+/// If [onError] is provided, it must have one of the types
+/// * `void Function(Object)`
+/// * `void Function(Object, StackTrace)`
+/// and the [onError] handler is used *both* to handle asynchronous errors
+/// by overriding [ZoneSpecification.handleUncaughtError] in [zoneSpecification],
+/// if any, *and* to handle errors thrown synchronously by the call to [body].
+///
+/// If an error occurs synchronously in [body],
+/// then throwing in the [onError] handler
+/// makes the call to `runZone` throw that error,
+/// and otherwise the call to `runZoned` attempt to return `null`.
+///
+/// If the zone specification has a `handleUncaughtError` value or the [onError]
+/// parameter is provided, the zone becomes an error-zone.
+///
+/// Errors will never cross error-zone boundaries by themselves.
+/// Errors that try to cross error-zone boundaries are considered uncaught in
+/// their originating error zone.
+/// ```dart
+/// var future = Future.value(499);
+/// runZoned(() {
+///   var future2 = future.then((_) { throw "error in first error-zone"; });
+///   runZoned(() {
+///     var future3 = future2.catchError((e) { print("Never reached!"); });
+///   }, onError: (e, s) { print("unused error handler"); });
+/// }, onError: (e, s) { print("catches error of first error-zone."); });
+/// ```
+/// Example:
+/// ```dart
+/// runZoned(() {
+///   Future(() { throw "asynchronous error"; });
+/// }, onError: (e, s) => print(e));  // Will print "asynchronous error".
+/// ```
+/// It is possible to manually pass an error from one error zone to another
+/// by re-throwing it in the new zone. If [onError] throws, that error will
+/// occur in the original zone where [runZoned] was called.
 R runZoned<R>(R body(),
     {Map<Object?, Object?>? zoneValues,
     ZoneSpecification? zoneSpecification,
     @Deprecated("Use runZonedGuarded instead") Function? onError}) {
-  ArgumentError.checkNotNull(body, "body");
+  checkNotNullable(body, "body");
   if (onError != null) {
     // TODO: Remove this when code have been migrated off using [onError].
     if (onError is! void Function(Object, StackTrace)) {
@@ -1550,50 +1710,48 @@ R runZoned<R>(R body(),
   return _runZoned<R>(body, zoneValues, zoneSpecification);
 }
 
-/**
- * Runs [body] in its own error zone.
- *
- * Creates a new zone using [Zone.fork] based on [zoneSpecification] and
- * [zoneValues], then runs [body] in that zone and returns the result.
- *
- * The [onError] function is used *both* to handle asynchronous errors
- * by overriding [ZoneSpecification.handleUncaughtError] in [zoneSpecification],
- * if any, *and* to handle errors thrown synchronously by the call to [body].
- *
- * If an error occurs synchronously in [body],
- * then throwing in the [onError] handler
- * makes the call to `runZonedGuarded` throw that error,
- * and otherwise the call to `runZonedGuarded` returns `null`.
- *
- * The zone will always be an error-zone.
- *
- * Errors will never cross error-zone boundaries by themselves.
- * Errors that try to cross error-zone boundaries are considered uncaught in
- * their originating error zone.
- * ```dart
- * var future = Future.value(499);
- * runZonedGuarded(() {
- *   var future2 = future.then((_) { throw "error in first error-zone"; });
- *   runZonedGuarded(() {
- *     var future3 = future2.catchError((e) { print("Never reached!"); });
- *   }, (e, s) { print("unused error handler"); });
- * }, (e, s) { print("catches error of first error-zone."); });
- * ```
- * Example:
- * ```dart
- * runZonedGuarded(() {
- *   new Future(() { throw "asynchronous error"; });
- * }, (e, s) => print(e));  // Will print "asynchronous error".
- * ```
- * It is possible to manually pass an error from one error zone to another
- * by re-throwing it in the new zone. If [onError] throws, that error will
- * occur in the original zone where [runZoned] was called.
- */
+/// Runs [body] in its own error zone.
+///
+/// Creates a new zone using [Zone.fork] based on [zoneSpecification] and
+/// [zoneValues], then runs [body] in that zone and returns the result.
+///
+/// The [onError] function is used *both* to handle asynchronous errors
+/// by overriding [ZoneSpecification.handleUncaughtError] in [zoneSpecification],
+/// if any, *and* to handle errors thrown synchronously by the call to [body].
+///
+/// If an error occurs synchronously in [body],
+/// then throwing in the [onError] handler
+/// makes the call to `runZonedGuarded` throw that error,
+/// and otherwise the call to `runZonedGuarded` returns `null`.
+///
+/// The zone will always be an error-zone.
+///
+/// Errors will never cross error-zone boundaries by themselves.
+/// Errors that try to cross error-zone boundaries are considered uncaught in
+/// their originating error zone.
+/// ```dart
+/// var future = Future.value(499);
+/// runZonedGuarded(() {
+///   var future2 = future.then((_) { throw "error in first error-zone"; });
+///   runZonedGuarded(() {
+///     var future3 = future2.catchError((e) { print("Never reached!"); });
+///   }, (e, s) { print("unused error handler"); });
+/// }, (e, s) { print("catches error of first error-zone."); });
+/// ```
+/// Example:
+/// ```dart
+/// runZonedGuarded(() {
+///   Future(() { throw "asynchronous error"; });
+/// }, (e, s) => print(e));  // Will print "asynchronous error".
+/// ```
+/// It is possible to manually pass an error from one error zone to another
+/// by re-throwing it in the new zone. If [onError] throws, that error will
+/// occur in the original zone where [runZoned] was called.
 @Since("2.8")
 R? runZonedGuarded<R>(R body(), void onError(Object error, StackTrace stack),
     {Map<Object?, Object?>? zoneValues, ZoneSpecification? zoneSpecification}) {
-  ArgumentError.checkNotNull(body, "body");
-  ArgumentError.checkNotNull(onError, "onError");
+  checkNotNullable(body, "body");
+  checkNotNullable(onError, "onError");
   _Zone parentZone = Zone._current;
   HandleUncaughtErrorHandler errorHandler = (Zone self, ZoneDelegate parent,
       Zone zone, Object error, StackTrace stackTrace) {

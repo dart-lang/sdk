@@ -1165,14 +1165,14 @@ library l;''');
 
   Expression _parseExpression(String code) {
     CompilationUnit unit = _parseUnit('var v = $code;');
-    TopLevelVariableDeclaration decl = unit.declarations.single;
+    var decl = unit.declarations.single as TopLevelVariableDeclaration;
     return decl.variables.variables.single.initializer;
   }
 
   Statement _parseStatement(String code) {
     CompilationUnit unit = _parseUnit('main() async { $code }');
-    FunctionDeclaration main = unit.declarations.single;
-    BlockFunctionBody body = main.functionExpression.body;
+    var main = unit.declarations.single as FunctionDeclaration;
+    var body = main.functionExpression.body as BlockFunctionBody;
     return body.block.statements.single;
   }
 
@@ -3808,7 +3808,7 @@ class StringUtilitiesTest {
 
   void test_printListOfQuotedNames_empty() {
     expect(() {
-      StringUtilities.printListOfQuotedNames(List<String>(0));
+      StringUtilities.printListOfQuotedNames(List<String>.filled(0, null));
     }, throwsArgumentError);
   }
 

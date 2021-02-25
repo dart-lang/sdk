@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
-import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -829,6 +829,62 @@ class C {
     expect(ctorParamType.returnType.node.isImmutable, false);
   }
 
+  Future<void>
+      test_fieldFormalParameter_named_no_default_required_hint() async {
+    await analyze('''
+class C {
+  String s;
+  C({/*required*/ this.s});
+}
+''');
+    expect(
+        variables.getRequiredHint(
+            testSource, findNode.fieldFormalParameter('this.s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_fieldFormalParameter_named_no_default_required_hint_annotation() async {
+    await analyze('''
+class C {
+  String s;
+  C({@deprecated /*required*/ this.s});
+}
+''');
+    expect(
+        variables.getRequiredHint(
+            testSource, findNode.fieldFormalParameter('this.s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_fieldFormalParameter_named_no_default_required_hint_function_typed() async {
+    await analyze('''
+class C {
+  String Function() s;
+  C({/*required*/ String this.s()});
+}
+''');
+    expect(
+        variables.getRequiredHint(
+            testSource, findNode.fieldFormalParameter('this.s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_fieldFormalParameter_named_no_default_required_hint_type() async {
+    await analyze('''
+class C {
+  String s;
+  C({/*required*/ String this.s});
+}
+''');
+    expect(
+        variables.getRequiredHint(
+            testSource, findNode.fieldFormalParameter('this.s')),
+        isNotNull);
+  }
+
   Future<void> test_fieldFormalParameter_typed() async {
     await analyze('''
 class C {
@@ -861,6 +917,62 @@ class C {
         TypeMatcher<NullabilityNodeMutable>());
     // Note: the edge builder will unify this implicit type with the type of the
     // field.
+  }
+
+  Future<void> test_formalParameter_named_no_default_required_hint() async {
+    await analyze('''
+void f({/*required*/ String s}) {}
+''');
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_formalParameter_named_no_default_required_hint_annotation() async {
+    await analyze('''
+void f({@deprecated /*required*/ String s}) {}
+''');
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_formalParameter_named_no_default_required_hint_covariant() async {
+    await analyze('''
+class C {
+  void f({/*required*/ covariant String s}) {}
+}
+''');
+    expect(
+        variables.getRequiredHint(
+            testSource, findNode.simpleParameter('String s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_formalParameter_named_no_default_required_hint_final_type() async {
+    await analyze('''
+void f({/*required*/ final String s}) {}
+''');
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_formalParameter_named_no_default_required_hint_no_type() async {
+    await analyze('''
+void f({/*required*/ s}) {}
+''');
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
+        isNotNull);
+  }
+
+  Future<void> test_formalParameter_named_no_default_required_hint_var() async {
+    await analyze('''
+void f({/*required*/ var s}) {}
+''');
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
+        isNotNull);
   }
 
   Future<void> test_function_explicit_returnType() async {
@@ -941,8 +1053,8 @@ void f() {
     await analyze('''
 typedef T F<T, U>(U u);
 ''');
-    var element = findElement.functionTypeAlias('F');
-    var decoratedType = variables.decoratedElementType(element.function);
+    var element = findElement.typeAlias('F');
+    var decoratedType = variables.decoratedElementType(element.aliasedElement);
     var t = element.typeParameters[0];
     var u = element.typeParameters[1];
     // typeFormals should be empty because this is not a generic function type,
@@ -967,7 +1079,7 @@ typedef T F<T, U>(U u);
 typedef F();
 ''');
     var decoratedType = variables
-        .decoratedElementType(findElement.functionTypeAlias('F').function);
+        .decoratedElementType(findElement.typeAlias('F').aliasedElement);
     expect(decoratedType.returnType.type.isDynamic, isTrue);
     expect(decoratedType.returnType.node.isImmutable, false);
     expect(decoratedType.typeFormals, isEmpty);
@@ -978,11 +1090,33 @@ typedef F();
 typedef int F(String s);
 ''');
     var decoratedType = variables
-        .decoratedElementType(findElement.functionTypeAlias('F').function);
+        .decoratedElementType(findElement.typeAlias('F').aliasedElement);
     expect(decoratedType.returnType, same(decoratedTypeAnnotation('int')));
     expect(decoratedType.typeFormals, isEmpty);
     expect(decoratedType.positionalParameters[0],
         same(decoratedTypeAnnotation('String')));
+  }
+
+  Future<void>
+      test_functionTypedFormalParameter_named_no_default_required_hint() async {
+    await analyze('''
+void f({/*required*/ void s()}) {}
+''');
+    expect(
+        variables.getRequiredHint(
+            testSource, findNode.functionTypedFormalParameter('s')),
+        isNotNull);
+  }
+
+  Future<void>
+      test_functionTypedFormalParameter_named_no_default_required_hint_no_return() async {
+    await analyze('''
+void f({/*required*/ s()}) {}
+''');
+    expect(
+        variables.getRequiredHint(
+            testSource, findNode.functionTypedFormalParameter('s')),
+        isNotNull);
   }
 
   Future<void> test_functionTypedFormalParameter_namedParameter_typed() async {
@@ -1153,8 +1287,8 @@ void f(void Function(int) x) {}
     await analyze('''
 typedef F = T Function<T, U>(U u);
 ''');
-    var element = findElement.functionTypeAlias('F');
-    var decoratedType = variables.decoratedElementType(element.function);
+    var element = findElement.typeAlias('F');
+    var decoratedType = variables.decoratedElementType(element.aliasedElement);
     expect(decoratedType,
         same(decoratedGenericFunctionTypeAnnotation('T Function')));
     expect(decoratedType.typeFormals, hasLength(2));
@@ -1177,8 +1311,8 @@ typedef F = T Function<T, U>(U u);
     await analyze('''
 typedef F<T, U> = T Function(U u);
 ''');
-    var element = findElement.functionTypeAlias('F');
-    var decoratedType = variables.decoratedElementType(element.function);
+    var element = findElement.typeAlias('F');
+    var decoratedType = variables.decoratedElementType(element.aliasedElement);
     expect(decoratedType,
         same(decoratedGenericFunctionTypeAnnotation('T Function')));
     var t = element.typeParameters[0];
@@ -1205,7 +1339,7 @@ typedef F<T, U> = T Function(U u);
 typedef F = Function();
 ''');
     var decoratedType = variables
-        .decoratedElementType(findElement.functionTypeAlias('F').function);
+        .decoratedElementType(findElement.typeAlias('F').aliasedElement);
     expect(decoratedType,
         same(decoratedGenericFunctionTypeAnnotation('Function')));
     expect(decoratedType.returnType.type.isDynamic, isTrue);
@@ -1218,7 +1352,7 @@ typedef F = Function();
 typedef F = int Function(String s);
 ''');
     var decoratedType = variables
-        .decoratedElementType(findElement.functionTypeAlias('F').function);
+        .decoratedElementType(findElement.typeAlias('F').aliasedElement);
     expect(decoratedType,
         same(decoratedGenericFunctionTypeAnnotation('int Function')));
     expect(decoratedType.returnType, same(decoratedTypeAnnotation('int')));
@@ -1701,6 +1835,24 @@ void f({@required String s}) {}
     expect(functionType.namedParameters['s'].node.isPossiblyOptional, false);
   }
 
+  Future<void>
+      test_topLevelFunction_parameterType_named_no_default_required_hint() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+void f({/*required*/ String s}) {}
+''');
+    var decoratedType = decoratedTypeAnnotation('String');
+    var functionType = decoratedFunctionType('f');
+    expect(functionType.namedParameters['s'], same(decoratedType));
+    expect(decoratedType.node, isNotNull);
+    expect(decoratedType.node, isNot(never));
+    expect(decoratedType.node, isNot(always));
+    expect(functionType.namedParameters['s'].node.isPossiblyOptional, false);
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
+        isNotNull);
+  }
+
   Future<void> test_topLevelFunction_parameterType_named_with_default() async {
     await analyze('''
 void f({String s: 'x'}) {}
@@ -1919,7 +2071,7 @@ F<int> f;
     // This is necessary because there is no guarantee of whether the typedef or
     // its usage will be visited first.
     var typedefDecoratedType = variables
-        .decoratedElementType(findElement.functionTypeAlias('F').function);
+        .decoratedElementType(findElement.typeAlias('F').aliasedElement);
     var decoratedType = decoratedTypeAnnotation('F<int>');
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(decoratedType.node, isNot(same(typedefDecoratedType.node)));
@@ -1940,7 +2092,7 @@ F f;
     // This is necessary because there is no guarantee of whether the typedef or
     // its usage will be visited first.
     var typedefDecoratedType = variables
-        .decoratedElementType(findElement.functionTypeAlias('F').function);
+        .decoratedElementType(findElement.typeAlias('F').aliasedElement);
     var decoratedType = decoratedTypeAnnotation('F f');
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(decoratedType.node, isNot(same(typedefDecoratedType.node)));
@@ -1970,7 +2122,7 @@ F f;
     // This is necessary because there is no guarantee of whether the typedef or
     // its usage will be visited first.
     var typedefDecoratedType = variables
-        .decoratedElementType(findElement.functionTypeAlias('F').function);
+        .decoratedElementType(findElement.typeAlias('F').aliasedElement);
     var decoratedType = decoratedTypeAnnotation('F f');
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(decoratedType.node, isNot(same(typedefDecoratedType.node)));
@@ -2028,6 +2180,14 @@ typedef F = void Function();
 ''');
     var decorated = decoratedGenericFunctionTypeAnnotation('void Function()');
     expect(decorated.node, same(never));
+  }
+
+  Future<void> test_variableDeclaration_late_final_hint_simple() async {
+    await analyze('/*late final*/ int i;');
+    expect(
+        variables.getLateHint(
+            testSource, findNode.variableDeclarationList('int i')),
+        isNotNull);
   }
 
   Future<void> test_variableDeclaration_late_hint_after_metadata() async {

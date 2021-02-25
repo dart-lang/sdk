@@ -53,8 +53,8 @@ final closureCallbackPointer =
     Pointer.fromFunction<Void Function(Handle)>(doClosureCallback);
 
 void doDynamicLinking() {
-  Expect.isTrue(NativeApi.majorVersion == 1);
-  Expect.isTrue(NativeApi.minorVersion >= 1);
+  Expect.isTrue(NativeApi.majorVersion == 2);
+  Expect.isTrue(NativeApi.minorVersion >= 0);
   final initializeApi = testLibrary.lookupFunction<
       IntPtr Function(Pointer<Void>),
       int Function(Pointer<Void>)>("InitDartApiDL");

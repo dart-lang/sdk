@@ -31,7 +31,7 @@ class Foo extends core::Object /*isEnum*/  {
     : self::Foo::index = index, self::Foo::_name = _name, super core::Object::•()
     ;
   method toString() → core::String*
-    return this.{=self::Foo::_name};
+    return this.{self::Foo::_name};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -59,3 +59,10 @@ constants  {
   #C11 = 42
   #C12 = self::Fisk<core::int*> {x:#C11}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///annotation_on_enum_values.dart:
+- Foo. (from org-dartlang-testcase:///annotation_on_enum_values.dart:17:6)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Fisk.fisk (from org-dartlang-testcase:///annotation_on_enum_values.dart:14:9)

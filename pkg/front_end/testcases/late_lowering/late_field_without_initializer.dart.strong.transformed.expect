@@ -13,11 +13,11 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   static get lateStaticField1() → core::int
-    return let final core::int? #t1 = self::Class::_#lateStaticField1 in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'lateStaticField1' has not been initialized.") : #t1{core::int};
+    return let final core::int? #t1 = self::Class::_#lateStaticField1 in #t1.==(null) ?{core::int} throw new _in::LateError::fieldNI("lateStaticField1") : #t1{core::int};
   static set lateStaticField1(core::int #t2) → void
     self::Class::_#lateStaticField1 = #t2;
   static get lateStaticField2() → core::int
-    return let final core::int? #t3 = self::Class::_#lateStaticField2 in #t3.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'lateStaticField2' has not been initialized.") : #t3{core::int};
+    return let final core::int? #t3 = self::Class::_#lateStaticField2 in #t3.==(null) ?{core::int} throw new _in::LateError::fieldNI("lateStaticField2") : #t3{core::int};
   static set lateStaticField2(core::int #t4) → void
     self::Class::_#lateStaticField2 = #t4;
   static method staticMethod() → dynamic {
@@ -26,11 +26,11 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     self::expect(42, self::Class::lateStaticField2);
   }
   get lateInstanceField() → core::int
-    return let final core::int? #t5 = this.{self::Class::_#Class#lateInstanceField} in #t5.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'lateInstanceField' has not been initialized.") : #t5{core::int};
+    return let final core::int? #t5 = this.{self::Class::_#Class#lateInstanceField} in #t5.==(null) ?{core::int} throw new _in::LateError::fieldNI("lateInstanceField") : #t5{core::int};
   set lateInstanceField(core::int #t6) → void
     this.{self::Class::_#Class#lateInstanceField} = #t6;
   get lateGenericInstanceField() → self::Class::T%
-    return this.{self::Class::_#Class#lateGenericInstanceField#isSet} ?{self::Class::T%} let final self::Class::T? #t7 = this.{self::Class::_#Class#lateGenericInstanceField} in #t7{self::Class::T%} : throw new _in::LateInitializationErrorImpl::•("Field 'lateGenericInstanceField' has not been initialized.");
+    return this.{self::Class::_#Class#lateGenericInstanceField#isSet} ?{self::Class::T%} let final self::Class::T? #t7 = this.{self::Class::_#Class#lateGenericInstanceField} in #t7{self::Class::T%} : throw new _in::LateError::fieldNI("lateGenericInstanceField");
   set lateGenericInstanceField(generic-covariant-impl self::Class::T% #t8) → void {
     this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
     this.{self::Class::_#Class#lateGenericInstanceField} = #t8;
@@ -57,15 +57,15 @@ static field core::int? _#lateTopLevelField = null;
 static field core::int? _#Extension|lateExtensionField1 = null;
 static field core::int? _#Extension|lateExtensionField2 = null;
 static get lateTopLevelField() → core::int
-  return let final core::int? #t9 = self::_#lateTopLevelField in #t9.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'lateTopLevelField' has not been initialized.") : #t9{core::int};
+  return let final core::int? #t9 = self::_#lateTopLevelField in #t9.==(null) ?{core::int} throw new _in::LateError::fieldNI("lateTopLevelField") : #t9{core::int};
 static set lateTopLevelField(core::int #t10) → void
   self::_#lateTopLevelField = #t10;
 static get Extension|lateExtensionField1() → core::int
-  return let final core::int? #t11 = self::_#Extension|lateExtensionField1 in #t11.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'lateExtensionField1' has not been initialized.") : #t11{core::int};
+  return let final core::int? #t11 = self::_#Extension|lateExtensionField1 in #t11.==(null) ?{core::int} throw new _in::LateError::fieldNI("lateExtensionField1") : #t11{core::int};
 static set Extension|lateExtensionField1(core::int #t12) → void
   self::_#Extension|lateExtensionField1 = #t12;
 static get Extension|lateExtensionField2() → core::int
-  return let final core::int? #t13 = self::_#Extension|lateExtensionField2 in #t13.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'lateExtensionField2' has not been initialized.") : #t13{core::int};
+  return let final core::int? #t13 = self::_#Extension|lateExtensionField2 in #t13.==(null) ?{core::int} throw new _in::LateError::fieldNI("lateExtensionField2") : #t13{core::int};
 static set Extension|lateExtensionField2(core::int #t14) → void
   self::_#Extension|lateExtensionField2 = #t14;
 static method Extension|staticMethod() → dynamic {
@@ -103,7 +103,7 @@ static method throws(() → dynamic f, core::String message) → dynamic {
   try {
     value = f.call();
   }
-  on core::LateInitializationError catch(final core::LateInitializationError e) {
+  on core::Error catch(final core::Error e) {
     core::print(e);
     return;
   }

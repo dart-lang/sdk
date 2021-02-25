@@ -7,9 +7,9 @@ class Base extends core::Object {
     : super core::Object::•()
     ;
   no-such-method-forwarder set push(core::int* x) → void
-    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(x)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
   no-such-method-forwarder set float(covariant core::int* x) → void
-    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(x)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
   method noSuchMethod(core::Invocation* i) → dynamic
     return core::print("${this.{self::Base::runtimeType}}: ${i.{core::Invocation::positionalArguments}.{core::List::[]}(0)}");
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -32,12 +32,12 @@ class You extends self::Base {
     : super self::Base::•()
     ;
   no-such-method-forwarder set push(core::num* x) → void
-    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(x)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
   no-such-method-forwarder set float(covariant core::num* x) → void
-    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(x)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
 }
 static method main() → dynamic {
-  core::List<self::Base*>* list = <self::Base*>[new self::Me::•(), new self::You::•()];
+  core::List<self::Base*>* list = core::_GrowableList::_literal2<self::Base*>(new self::Me::•(), new self::You::•());
   {
     core::Iterator<self::Base*>* :sync-for-iterator = list.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {

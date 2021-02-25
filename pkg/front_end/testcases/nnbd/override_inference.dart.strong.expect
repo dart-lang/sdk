@@ -1,0 +1,285 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/override_inference.dart:114:17: Error: Can't infer a type for 'x' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   void method1c(x); // error
+//                 ^
+// pkg/front_end/testcases/nnbd/override_inference.dart:10:8: Context: This is one of the overridden members.
+//   void method1c(int x);
+//        ^^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:62:8: Context: This is one of the overridden members.
+//   void method1c(String x);
+//        ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/override_inference.dart:115:3: Error: Can't infer a return type for 'method1d' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   method1d(); // error
+//   ^^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:11:10: Context: This is one of the overridden members.
+//   String method1d();
+//          ^^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:63:7: Context: This is one of the overridden members.
+//   int method1d();
+//       ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/override_inference.dart:122:8: Error: Can't infer types for 'method5a' as the overridden members don't have a combined signature.
+// Try adding explicit types.
+//   void method5a(x, y); // error
+//        ^^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:18:8: Context: This is one of the overridden members.
+//   void method5a(int x, num y);
+//        ^^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:70:8: Context: This is one of the overridden members.
+//   void method5a(num x, int y);
+//        ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/override_inference.dart:123:32: Error: Can't infer a type for 'z' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   void method5b(num x, num y, [z]); // error
+//                                ^
+// pkg/front_end/testcases/nnbd/override_inference.dart:19:8: Context: This is one of the overridden members.
+//   void method5b(int x, num y);
+//        ^^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:71:8: Context: This is one of the overridden members.
+//   void method5b(num x, int y);
+//        ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/override_inference.dart:130:7: Error: Can't infer a return type for 'getter1c' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   get getter1c; // error
+//       ^^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:26:14: Context: This is one of the overridden members.
+//   String get getter1c;
+//              ^^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:78:11: Context: This is one of the overridden members.
+//   int get getter1c;
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/override_inference.dart:142:9: Error: Can't infer a type for 'field1c' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   final field1c = null; // error
+//         ^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:40:12: Context: This is one of the overridden members.
+//   int? get field1c;
+//            ^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:92:15: Context: This is one of the overridden members.
+//   double? get field1c;
+//               ^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/override_inference.dart:146:9: Error: Can't infer a type for 'field2c' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   final field2c = null; // error
+//         ^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:44:12: Context: This is one of the overridden members.
+//   void set field2c(int? value);
+//            ^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:96:12: Context: This is one of the overridden members.
+//   void set field2c(double? value);
+//            ^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/override_inference.dart:150:9: Error: Can't infer a type for 'field3c' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   final field3c = null; // error
+//         ^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:48:12: Context: This is one of the overridden members.
+//   int? get field3c;
+//            ^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:100:15: Context: This is one of the overridden members.
+//   double? get field3c;
+//               ^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:52:12: Context: This is one of the overridden members.
+//   void set field3c(Object? value);
+//            ^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:104:12: Context: This is one of the overridden members.
+//   void set field3c(Object? value);
+//            ^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/override_inference.dart:153:7: Error: Can't infer a type for 'field4b' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field4b = null; // error
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:55:12: Context: This is one of the overridden members.
+//   num? get field4b;
+//            ^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:107:12: Context: This is one of the overridden members.
+//   num? get field4b;
+//            ^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:56:12: Context: This is one of the overridden members.
+//   void set field4b(Object? value);
+//            ^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:108:12: Context: This is one of the overridden members.
+//   void set field4b(Object? value);
+//            ^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/override_inference.dart:136:12: Error: Can't infer a return type for 'setter1c' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   void set setter1c(x); // error
+//            ^^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:33:12: Context: This is one of the overridden members.
+//   void set setter1c(String x);
+//            ^^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:85:12: Context: This is one of the overridden members.
+//   void set setter1c(int x);
+//            ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/override_inference.dart:111:16: Error: Class 'C' inherits multiple members named 'field2c' with incompatible signatures.
+// Try adding a declaration of 'field2c' to 'C'.
+// abstract class C implements A<int>, B<num> {
+//                ^
+// pkg/front_end/testcases/nnbd/override_inference.dart:44:12: Context: This is one of the overridden members.
+//   void set field2c(int? value);
+//            ^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:96:12: Context: This is one of the overridden members.
+//   void set field2c(double? value);
+//            ^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+abstract class A<AT extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::AT%>
+    : super core::Object::•()
+    ;
+  abstract method method1a(core::Object x) → core::String;
+  abstract method method1b(core::String x) → core::Object;
+  abstract method method1c(core::int x) → void;
+  abstract method method1d() → core::String;
+  abstract method method2a(core::Object? x) → void;
+  abstract method method2b(dynamic x) → void;
+  abstract method method3a<AT3a extends core::Object? = dynamic>(self::A::method3a::AT3a% x) → void;
+  abstract method method3b<AT3b extends core::Object? = dynamic>(self::A::method3b::AT3b% x) → void;
+  abstract method method4a<AT4a extends core::Object? = dynamic>(self::A::method4a::AT4a% x, generic-covariant-impl self::A::AT% y) → void;
+  abstract method method4b<AT4b extends core::Object? = dynamic>(self::A::method4b::AT4b% x, generic-covariant-impl self::A::AT% y) → void;
+  abstract method method5a(core::int x, core::num y) → void;
+  abstract method method5b(core::int x, core::num y) → void;
+  abstract method method6a({core::int x = #C1, core::num y = #C1}) → void;
+  abstract method method6b({core::num y = #C1, core::int x = #C1}) → void;
+  method method7a(core::Object? o, {core::Object? named = #C1}) → core::Object? {}
+  abstract get getter1a() → core::Object;
+  abstract get getter1b() → core::String;
+  abstract get getter1c() → core::String;
+  abstract set getter1d(core::String x) → void;
+  abstract get getter1e() → core::int;
+  abstract set getter1e(core::int x) → void;
+  abstract set setter1a(core::Object x) → void;
+  abstract set setter1b(core::String x) → void;
+  abstract set setter1c(core::String x) → void;
+  abstract get setter1d() → core::String;
+  abstract get setter1e() → core::int;
+  abstract set setter1e(core::int x) → void;
+  abstract get field1a() → core::int?;
+  abstract get field1b() → core::num?;
+  abstract get field1c() → core::int?;
+  abstract set field2a(core::int? value) → void;
+  abstract set field2b(core::num? value) → void;
+  abstract set field2c(core::int? value) → void;
+  abstract get field3a() → core::int?;
+  abstract get field3b() → core::num?;
+  abstract get field3c() → core::int?;
+  abstract set field3a(core::Object? value) → void;
+  abstract set field3b(core::Object? value) → void;
+  abstract set field3c(core::Object? value) → void;
+  abstract get field4a() → core::num?;
+  abstract get field4b() → core::num?;
+  abstract set field4b(core::Object? value) → void;
+}
+abstract class B<BT extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::BT%>
+    : super core::Object::•()
+    ;
+  abstract method method1a(core::String x) → core::Object;
+  abstract method method1b(core::Object x) → core::String;
+  abstract method method1c(core::String x) → void;
+  abstract method method1d() → core::int;
+  abstract method method2a(dynamic x) → void;
+  abstract method method2b(core::Object? x) → void;
+  abstract method method3a<BT3a extends core::Object? = dynamic>(self::B::method3a::BT3a% x) → void;
+  abstract method method3b<BT3b extends core::Object? = dynamic>(self::B::method3b::BT3b% x) → void;
+  abstract method method4a<BT4a extends core::Object? = dynamic>(self::B::method4a::BT4a% x, generic-covariant-impl self::B::BT% y) → void;
+  abstract method method4b<BT4b extends core::Object? = dynamic>(self::B::method4b::BT4b% x, generic-covariant-impl self::B::BT% y) → void;
+  abstract method method5a(core::num x, core::int y) → void;
+  abstract method method5b(core::num x, core::int y) → void;
+  abstract method method6a({core::Object x = #C1, core::num y = #C1}) → void;
+  abstract method method6b({core::int x = #C1, core::Object y = #C1}) → void;
+  abstract method method7a(FutureOr<dynamic>o, {FutureOr<dynamic>named = #C1}) → FutureOr<dynamic>;
+  abstract get getter1a() → core::String;
+  abstract get getter1b() → core::Object;
+  abstract get getter1c() → core::int;
+  abstract set getter1d(core::Object x) → void;
+  abstract get getter1e() → core::num;
+  abstract set getter1e(core::Object x) → void;
+  abstract set setter1a(core::String x) → void;
+  abstract set setter1b(core::Object x) → void;
+  abstract set setter1c(core::int x) → void;
+  abstract get setter1d() → core::Object;
+  abstract get setter1e() → core::num;
+  abstract set setter1e(core::Object x) → void;
+  abstract get field1a() → core::num?;
+  abstract get field1b() → core::int?;
+  abstract get field1c() → core::double?;
+  abstract set field2a(core::num? value) → void;
+  abstract set field2b(core::int? value) → void;
+  abstract set field2c(core::double? value) → void;
+  abstract get field3a() → core::num?;
+  abstract get field3b() → core::int?;
+  abstract get field3c() → core::double?;
+  abstract set field3a(core::Object? value) → void;
+  abstract set field3b(core::Object? value) → void;
+  abstract set field3c(core::Object? value) → void;
+  abstract set field4a(core::num? value) → void;
+  abstract get field4b() → core::num?;
+  abstract set field4b(core::Object? value) → void;
+}
+abstract class C extends core::Object implements self::A<core::int>, self::B<core::num> {
+  final field core::int? field1a = null;
+  final field core::int? field1b = null;
+  final field invalid-type field1c = null;
+  final field core::num? field2a = null;
+  final field core::num? field2b = null;
+  final field invalid-type field2c = null;
+  final field core::int? field3a = null;
+  final field core::int? field3b = null;
+  final field invalid-type field3c = null;
+  field core::num? field4a = null;
+  field invalid-type field4b = null;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  abstract method method1a(core::Object x) → core::String;
+  abstract method method1b(core::Object x) → core::String;
+  abstract method method1c(invalid-type x) → void;
+  abstract method method1d() → invalid-type;
+  abstract method method2a(core::Object? x) → void;
+  abstract method method2b(core::Object? x) → void;
+  abstract method method3a<CT3a extends core::Object? = dynamic>(self::C::method3a::CT3a% x) → void;
+  abstract method method3b<CT3b extends core::Object? = dynamic>(self::C::method3b::CT3b% x, [dynamic y = #C1]) → void;
+  abstract method method4a<CT4a extends core::Object? = dynamic>(self::C::method4a::CT4a% x, generic-covariant-impl core::num y) → void;
+  abstract method method4b<CT4b extends core::Object? = dynamic>(self::C::method4b::CT4b% x, generic-covariant-impl core::num y, [dynamic z = #C1]) → void;
+  abstract method method5a(invalid-type x, invalid-type y) → void;
+  abstract method method5b(core::num x, core::num y, [invalid-type z = #C1]) → void;
+  abstract method method6a({core::Object x = #C1, core::num y = #C1}) → void;
+  abstract method method6b({core::int x = #C1, core::Object y = #C1, dynamic z = #C1}) → void;
+  abstract method method7a(core::Object? o, {core::Object? named = #C1}) → core::Object?;
+  abstract get getter1a() → core::String;
+  abstract get getter1b() → core::String;
+  abstract get getter1c() → invalid-type;
+  abstract get getter1d() → core::Object;
+  abstract get getter1e() → core::int;
+  abstract set setter1a(core::Object x) → void;
+  abstract set setter1b(core::Object x) → void;
+  abstract set setter1c(invalid-type x) → void;
+  abstract set setter1d(core::String x) → void;
+  abstract set setter1e(core::Object x) → void;
+  abstract member-signature set getter1d(core::Object x) → void; -> self::B::getter1d
+  abstract member-signature set getter1e(core::Object x) → void; -> self::B::getter1e
+  abstract member-signature set field2a(core::num? value) → void; -> self::B::field2a
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

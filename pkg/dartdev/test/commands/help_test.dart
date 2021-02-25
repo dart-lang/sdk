@@ -20,15 +20,16 @@ void help() {
   /// Commands not tested by the following loop.
   List<String> _commandsNotTested = <String>[
     'help', // `dart help help` is redundant
+    'test', // `dart help test` does not call `test:test --help`.
   ];
-  DartdevRunner(['--disable-dartdev-analytics'])
+  DartdevRunner(['--no-analytics'])
       .commands
       .forEach((String commandKey, Command command) {
     if (!_commandsNotTested.contains(commandKey)) {
       test('(help $commandKey == $commandKey --help)', () {
         p = project();
-        var result = p.runSync('help', [commandKey]);
-        var verbHelpResult = p.runSync(commandKey, ['--help']);
+        var result = p.runSync(['help', commandKey]);
+        var verbHelpResult = p.runSync([commandKey, '--help']);
 
         expect(result.stdout, contains(verbHelpResult.stdout));
         expect(result.stderr, contains(verbHelpResult.stderr));
@@ -36,17 +37,27 @@ void help() {
     }
   });
 
-  test('(help pub == pub help)', () {
+  test('(help test ~= test --help) outside project', () {
     p = project();
-    var result = p.runSync('help', ['pub']);
-    var pubHelpResult = p.runSync('pub', ['help']);
+    p.deleteFile('pubspec.yaml');
+    var result = p.runSync(['help', 'test']);
+    var testHelpResult = p.runSync(['test', '--help']);
+
+    expect(testHelpResult.stdout, contains(result.stdout));
+    expect(testHelpResult.stderr, contains(result.stderr));
+  });
+
+  test('(help pub == pub --help)', () {
+    p = project();
+    var result = p.runSync(['help', 'pub']);
+    var pubHelpResult = p.runSync(['pub', '--help']);
 
     expect(result.stdout, contains(pubHelpResult.stdout));
     expect(result.stderr, contains(pubHelpResult.stderr));
   });
 
   test('(--help flags also have -h abbr)', () {
-    DartdevRunner(['--disable-dartdev-analytics'])
+    DartdevRunner(['--no-analytics'])
         .commands
         .forEach((String commandKey, Command command) {
       var helpOption = command.argParser.options['help'];

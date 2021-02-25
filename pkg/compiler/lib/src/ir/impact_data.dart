@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/class_hierarchy.dart' as ir;
-import 'package:kernel/type_environment.dart' as ir;
 
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
@@ -45,23 +43,23 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
   }
 
   @override
-  void registerSuperSet(ir.Name name) {
+  void registerSuperSet(ir.Member target) {
     _data._superSets ??= [];
-    _data._superSets.add(name);
+    _data._superSets.add(target);
   }
 
   @override
-  void registerSuperGet(ir.Name name) {
+  void registerSuperGet(ir.Member target) {
     _data._superGets ??= [];
-    _data._superGets.add(name);
+    _data._superGets.add(target);
   }
 
   @override
-  void registerSuperInvocation(ir.Name name, int positionalArguments,
+  void registerSuperInvocation(ir.Member target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments) {
     _data._superInvocations ??= [];
     _data._superInvocations.add(new _SuperInvocation(
-        name,
+        target,
         new _CallStructure(
             positionalArguments, namedArguments, typeArguments)));
   }
@@ -392,31 +390,31 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
 
   @override
   void registerSymbolLiteral(String value) {
-    _data._symbolLiterals ??= [];
+    _data._symbolLiterals ??= {};
     _data._symbolLiterals.add(value);
   }
 
   @override
   void registerStringLiteral(String value) {
-    _data._stringLiterals ??= [];
+    _data._stringLiterals ??= {};
     _data._stringLiterals.add(value);
   }
 
   @override
   void registerBoolLiteral(bool value) {
-    _data._boolLiterals ??= [];
+    _data._boolLiterals ??= {};
     _data._boolLiterals.add(value);
   }
 
   @override
   void registerDoubleLiteral(double value) {
-    _data._doubleLiterals ??= [];
+    _data._doubleLiterals ??= {};
     _data._doubleLiterals.add(value);
   }
 
   @override
   void registerIntLiteral(int value) {
-    _data._intLiterals ??= [];
+    _data._intLiterals ??= {};
     _data._intLiterals.add(value);
   }
 
@@ -480,8 +478,8 @@ class ImpactDataImpl implements ImpactData {
   static const String tag = 'ImpactData';
 
   List<_SuperInitializer> _superInitializers;
-  List<ir.Name> _superSets;
-  List<ir.Name> _superGets;
+  List<ir.Member> _superSets;
+  List<ir.Member> _superGets;
   List<_SuperInvocation> _superInvocations;
   List<_InstanceAccess> _instanceSets;
   List<_DynamicAccess> _dynamicSets;
@@ -508,11 +506,11 @@ class ImpactDataImpl implements ImpactData {
   List<_MapLiteral> _mapLiterals;
   List<_ContainerLiteral> _listLiterals;
   List<_ContainerLiteral> _setLiterals;
-  List<String> _symbolLiterals;
-  List<String> _stringLiterals;
-  List<bool> _boolLiterals;
-  List<double> _doubleLiterals;
-  List<int> _intLiterals;
+  Set<String> _symbolLiterals;
+  Set<String> _stringLiterals;
+  Set<bool> _boolLiterals;
+  Set<double> _doubleLiterals;
+  Set<int> _intLiterals;
   List<_RuntimeTypeUse> _runtimeTypeUses;
   List<_ForInData> _forInData;
 
@@ -531,8 +529,10 @@ class ImpactDataImpl implements ImpactData {
     _superInitializers = source.readList(
         () => new _SuperInitializer.fromDataSource(source),
         emptyAsNull: true);
-    _superSets = source.readList(() => source.readName(), emptyAsNull: true);
-    _superGets = source.readList(() => source.readName(), emptyAsNull: true);
+    _superSets =
+        source.readList(() => source.readMemberNode(), emptyAsNull: true);
+    _superGets =
+        source.readList(() => source.readMemberNode(), emptyAsNull: true);
     _superInvocations = source.readList(
         () => new _SuperInvocation.fromDataSource(source),
         emptyAsNull: true);
@@ -599,13 +599,16 @@ class ImpactDataImpl implements ImpactData {
     _setLiterals = source.readList(
         () => new _ContainerLiteral.fromDataSource(source),
         emptyAsNull: true);
-    _symbolLiterals = source.readStrings(emptyAsNull: true);
-    _stringLiterals = source.readStrings(emptyAsNull: true);
-    _boolLiterals = source.readList(() => source.readBool(), emptyAsNull: true);
-    _doubleLiterals =
-        source.readList(() => source.readDoubleValue(), emptyAsNull: true);
-    _intLiterals =
-        source.readList(() => source.readIntegerValue(), emptyAsNull: true);
+    _symbolLiterals = source.readStrings(emptyAsNull: true).toSet();
+    _stringLiterals = source.readStrings(emptyAsNull: true).toSet();
+    _boolLiterals =
+        source.readList(() => source.readBool(), emptyAsNull: true).toSet();
+    _doubleLiterals = source
+        .readList(() => source.readDoubleValue(), emptyAsNull: true)
+        .toSet();
+    _intLiterals = source
+        .readList(() => source.readIntegerValue(), emptyAsNull: true)
+        .toSet();
     _runtimeTypeUses = source.readList(
         () => new _RuntimeTypeUse.fromDataSource(source),
         emptyAsNull: true);
@@ -631,8 +634,8 @@ class ImpactDataImpl implements ImpactData {
     sink.writeList(
         _superInitializers, (_SuperInitializer o) => o.toDataSink(sink),
         allowNull: true);
-    sink.writeList(_superSets, sink.writeName, allowNull: true);
-    sink.writeList(_superGets, sink.writeName, allowNull: true);
+    sink.writeList(_superSets, sink.writeMemberNode, allowNull: true);
+    sink.writeList(_superGets, sink.writeMemberNode, allowNull: true);
     sink.writeList(
         _superInvocations, (_SuperInvocation o) => o.toDataSink(sink),
         allowNull: true);
@@ -721,19 +724,19 @@ class ImpactDataImpl implements ImpactData {
       }
     }
     if (_superSets != null) {
-      for (ir.Name data in _superSets) {
+      for (ir.Member data in _superSets) {
         registry.registerSuperSet(data);
       }
     }
     if (_superGets != null) {
-      for (ir.Name data in _superGets) {
+      for (ir.Member data in _superGets) {
         registry.registerSuperGet(data);
       }
     }
     if (_superInvocations != null) {
       for (_SuperInvocation data in _superInvocations) {
         registry.registerSuperInvocation(
-            data.name,
+            data.target,
             data.callStructure.positionalArguments,
             data.callStructure.namedArguments,
             data.callStructure.typeArguments);
@@ -1112,22 +1115,22 @@ class _SuperInitializer {
 class _SuperInvocation {
   static const String tag = '_SuperInvocation';
 
-  final ir.Name name;
+  final ir.Member target;
   final _CallStructure callStructure;
 
-  _SuperInvocation(this.name, this.callStructure);
+  _SuperInvocation(this.target, this.callStructure);
 
   factory _SuperInvocation.fromDataSource(DataSource source) {
     source.begin(tag);
-    ir.Name name = source.readName();
+    ir.Member member = source.readMemberNode();
     _CallStructure callStructure = new _CallStructure.fromDataSource(source);
     source.end(tag);
-    return new _SuperInvocation(name, callStructure);
+    return new _SuperInvocation(member, callStructure);
   }
 
   void toDataSink(DataSink sink) {
     sink.begin(tag);
-    sink.writeName(name);
+    sink.writeMemberNode(target);
     callStructure.toDataSink(sink);
     sink.end(tag);
   }

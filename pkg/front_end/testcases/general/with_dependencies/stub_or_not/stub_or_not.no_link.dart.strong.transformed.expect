@@ -49,7 +49,7 @@ abstract class Foo extends stu::Baz implements stu::Qux {
   synthetic constructor •() → stu::Foo*
     : super stu::Baz::•()
     ;
-  abstract forwarding-stub method handleEvent(covariant stu2::EvenFileB* entry) → void;
+  abstract member-signature method handleEvent(covariant stu2::EvenFileB* entry) → void; -> stu::Qux::handleEvent
 }
 
 library;

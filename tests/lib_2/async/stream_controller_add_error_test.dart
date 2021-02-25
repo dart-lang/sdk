@@ -8,41 +8,41 @@ import 'package:expect/expect.dart';
 main() {
   // Single-cast async.
   var controller = StreamController();
-  Expect.throwsArgumentError(() {
+  Expect.throwsTypeError(() {
     controller.addError(null);
   });
 
-  Expect.throwsArgumentError(() {
+  Expect.throwsTypeError(() {
     controller.sink.addError(null);
   });
 
   // Single-cast sync.
   controller = StreamController(sync: true);
-  Expect.throwsArgumentError(() {
+  Expect.throwsTypeError(() {
     controller.addError(null);
   });
 
-  Expect.throwsArgumentError(() {
+  Expect.throwsTypeError(() {
     controller.sink.addError(null);
   });
 
   // Broadcast async.
   controller = StreamController.broadcast();
-  Expect.throwsArgumentError(() {
+  Expect.throwsTypeError(() {
     controller.addError(null);
   });
 
-  Expect.throwsArgumentError(() {
+  Expect.throwsTypeError(() {
     controller.sink.addError(null);
   });
 
   // Broadcast sync.
   controller = StreamController.broadcast(sync: true);
-  Expect.throwsArgumentError(() {
+  Expect.throwsTypeError(() {
     controller.addError(null);
   });
 
-  Expect.throwsArgumentError(() {
+  Expect.throwsTypeError(() {
     controller.sink.addError(null);
   });
 }

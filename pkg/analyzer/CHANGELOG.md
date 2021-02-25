@@ -1,3 +1,61 @@
+## 0.41.2-dev
+* Deprecated `FunctionTypeAliasElement.function`.
+  Use `TypeAliasElement.aliasedElement` instead.
+* Widened the dependency on package:crypto to include version 3.0.0.
+* Deprecated `CompilationUnitElement.functionTypeAliases`.
+  Use `CompilationUnitElement.typeAliases` instead.
+* Added `AnalysisContext.sdkRoot`.
+
+## 0.41.1
+* Updated `PackageBuildWorkspace` that supports `package:build` to stop
+  at the first directory with `pubspec.yaml`, and don't try to go up
+  and find another one with both `pubspec.yaml` and `.dart_tool/build`.
+* Added a new constructor for non-API `ErrorCode` class. It will be used to
+  migrate existing `ErrorCode` subclasses, and then deprecated and removed.
+
+## 0.41.0
+* Replaced `Scope.lookup({id, setter})` with `lookup(id)`.
+* Deprecated `Scope.lookup2(id)`, use `lookup()` instead.
+* Removed deprecated `Member.baseElement`.
+* Removed deprecated `package:analyzer/analyzer.dart` library.
+* Removed deprecated `ElementAnnotation.constantValue`.
+* Removed deprecated `VariableElement.constantValue`.
+* Removed deprecated `VariableElement.initializer`.
+* Removed deprecated `auxiliaryElements`.
+* The value of`FunctionType.element` for types created from a `typedef`
+  is now `FunctionTypeAliasElement`, not its function element.
+* Removed deprecated `GenericTypeAliasElement`.
+* Removed `PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS`.
+* Changed the default `PhysicalResourceProvider` constructor to no longer take a
+  required positional parameter (removed the existing `fileReadMode` positional
+  parameter).
+
+## 0.40.6
+* The non_nullable feature is released in 2.12 language version.
+* Updated the current language version to 2.12.
+* Changed the default language version when the package does not specify one.
+  Instead of the latest known language version, the language version of the
+  SDK (against which analysis is done, not necessary the same as used to run
+  the analyzer) is used.
+
+## 0.40.5
+* Deprecated `GenericTypeAliasElement`. Use `FunctionTypeAliasElement`.
+* Read imports, exports, and parts on demand in `AnalysisDriver`.
+  Specifically, `parseFileSync` will not read any referenced files.
+* Types are not set anymore for classes/constructors/getters of
+  identifiers in metadata (still set in arguments).
+
+## 0.40.4
+* Deprecated `IndexExpression.auxiliaryElements` and
+  `SimpleIdentifier.auxiliaryElements`. Use `CompoundAssignmentExpression`.
+* Removed internal `getReadType`, use `CompoundAssignmentExpression`.
+* Bug fixes: 34699, 43524, 42990.
+
+## 0.40.3
+* Updated the current language version to `2.11`.
+* Bug fixes: 43541, 27896, 28066, 28066, 43497, 43478, 28066, 43465,
+  43462, 43439, 43162, 43397, 43200.
+
 ## 0.40.2
 * Require `meta: ^1.2.3`.
 

@@ -6,8 +6,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/binary/ast_from_binary.dart' as ir;
-import 'package:kernel/binary/ast_to_binary.dart' as ir;
 import '../closure.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';

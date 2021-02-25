@@ -12,7 +12,7 @@ import "dart:core" as core;
 
 static method main() → dynamic {
   {
-    core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[1, 2, 3].{core::Iterable::iterator};
+    core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(1, 2, 3).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       core::int* i = :sync-for-iterator.{core::Iterator::current};
       {

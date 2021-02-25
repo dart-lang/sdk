@@ -10,6 +10,11 @@ class RegExpAllMatchesTest {
   static testIterator() {
     var matches = new RegExp("foo").allMatches("foo foo");
     Iterator it = matches.iterator;
+    if (hasSoundNullSafety) {
+      Expect.throws(() => it.current);
+    } else {
+      Expect.isNull(it.current);
+    }
     Expect.isTrue(it.moveNext());
     Expect.equals('foo', it.current.group(0));
     Expect.isTrue(it.moveNext());

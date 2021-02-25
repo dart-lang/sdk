@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
@@ -41,6 +42,8 @@ abstract class Future<T> {
   factory Future.value([FutureOr<T>? result]) {
     throw 0;
   }
+
+  Future<T> catchError(Function onError, {bool test(Object error)});
 
   Future<R> then<R>(FutureOr<R> onValue(T value));
 
@@ -223,6 +226,13 @@ abstract class Converter<S, T> implements StreamTransformer {}
 abstract class Encoding {}
 
 class JsonDecoder extends Converter<String, Object> {}
+
+const JsonCodec json = JsonCodec();
+
+class JsonCodec {
+  const JsonCodec();
+  String encode(Object? value, {Object? toEncodable(dynamic object)?}) => '';
+}
 ''',
     )
   ],
@@ -252,8 +262,13 @@ void print(Object? object) {}
 
 class ArgumentError extends Error {
   ArgumentError([message]);
-  
+
   static T checkNotNull<T>(T argument, [String, name]) => argument;
+}
+
+// In the SDK this is an abstract class.
+class BigInt implements Comparable<BigInt> {
+  static BigInt parse(String source, {int radix}) => BigInt();
 }
 
 abstract class bool extends Object {
@@ -381,7 +396,11 @@ abstract class Iterable<E> {
 
   void forEach(void f(E element));
 
+  E lastWhere(bool test(E element), {E orElse()?});
+
   Iterable<R> map<R>(R f(E e));
+
+  E singleWhere(bool test(E element), {E orElse()?});
 
   List<E> toList({bool growable = true});
 
@@ -486,6 +505,8 @@ abstract class num implements Comparable<num> {
   int toInt();
 }
 
+abstract class Match {}
+
 class Object {
   const Object();
 
@@ -498,7 +519,9 @@ class Object {
   external dynamic noSuchMethod(Invocation invocation);
 }
 
-abstract class Pattern {}
+abstract class Pattern {
+  Iterable<Match> allMatches(String string, [int start = 0]);
+}
 
 abstract class RegExp implements Pattern {
   external factory RegExp(String source);
@@ -557,6 +580,10 @@ class Symbol {
 }
 
 class Type {}
+
+class UnsupportedError {
+  UnsupportedError(String message);
+}
 
 class Uri {
   static List<int> parseIPv6Address(String host, [int start = 0, int end]) {
@@ -634,6 +661,8 @@ class Double extends NativeType {
 }
 
 class Pointer<T extends NativeType> extends NativeType {
+  external factory Pointer.fromAddress(int ptr);
+
   static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf("T") Function f,
       [Object exceptionalReturn]) {}
@@ -657,6 +686,12 @@ abstract class NativeFunction<T extends Function> extends NativeType {}
 
 class DartRepresentationOf {
   const DartRepresentationOf(String nativeType);
+}
+
+extension StructPointer<T extends Struct> on Pointer<T> {
+  external T get ref;
+
+  external T operator [](int index);
 }
 ''',
   )
@@ -1081,11 +1116,6 @@ class MockSdk implements DartSdk {
 
   final Map<String, String> uriMap = {};
 
-  final AnalysisOptionsImpl _analysisOptions;
-
-  /// The [AnalysisContextImpl] which is used for all of the sources.
-  AnalysisContextImpl _analysisContext;
-
   @override
   final List<SdkLibrary> sdkLibraries = [];
 
@@ -1093,15 +1123,24 @@ class MockSdk implements DartSdk {
 
   /// Optional [additionalLibraries] should have unique URIs, and paths in
   /// their units are relative (will be put into `sdkRoot/lib`).
+  ///
+  /// [nullSafePackages], if supplied, is a list of packages names that should
+  /// be included in the null safety allow list.
+  ///
+  /// [sdkVersion], if supplied will override the version stored in the mock
+  /// SDK's `version` file.
   MockSdk({
     @required this.resourceProvider,
-    AnalysisOptionsImpl analysisOptions,
     List<MockSdkLibrary> additionalLibraries = const [],
-  }) : _analysisOptions = analysisOptions ?? AnalysisOptionsImpl() {
+    List<String> nullSafePackages = const [],
+    String sdkVersion,
+  }) {
+    sdkVersion ??= '${ExperimentStatus.currentVersion.major}.'
+        '${ExperimentStatus.currentVersion.minor}.0';
     _versionFile = resourceProvider
         .getFolder(resourceProvider.convertPath(sdkRoot))
         .getChildAssumingFile('version');
-    _versionFile.writeAsStringSync('2.10.0');
+    _versionFile.writeAsStringSync(sdkVersion);
 
     for (MockSdkLibrary library in _LIBRARIES) {
       var convertedLibrary = library._toProvider(resourceProvider);
@@ -1158,19 +1197,20 @@ class MockSdk implements DartSdk {
       resourceProvider.convertPath(
         '$sdkRoot/lib/_internal/allowed_experiments.json',
       ),
-      r'''
-{
-  "version": 1,
-  "experimentSets": {
-    "nullSafety": ["non-nullable"]
-  },
-  "sdk": {
-    "default": {
-      "experimentSet": "nullSafety"
-    }
-  }
-}
-''',
+      json.encode({
+        'version': 1,
+        'experimentSets': {
+          'nullSafety': ['non-nullable']
+        },
+        'sdk': {
+          'default': {'experimentSet': 'nullSafety'}
+        },
+        if (nullSafePackages.isNotEmpty)
+          'packages': {
+            for (var package in nullSafePackages)
+              package: {'experimentSet': 'nullSafety'}
+          }
+      }),
     );
   }
 
@@ -1187,15 +1227,6 @@ class MockSdk implements DartSdk {
     } catch (_) {
       return null;
     }
-  }
-
-  @override
-  AnalysisContextImpl get context {
-    if (_analysisContext == null) {
-      var factory = SourceFactory([DartUriResolver(this)]);
-      _analysisContext = SdkAnalysisContext(_analysisOptions, factory);
-    }
-    return _analysisContext;
   }
 
   @override

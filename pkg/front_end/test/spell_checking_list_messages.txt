@@ -10,6 +10,8 @@
 # automatic tools might move it to the top of the file.
 
 JS
+adjusting
+api
 argument(s)
 assigning
 b
@@ -19,6 +21,7 @@ compilesdk
 constructor(s)
 count.#count
 d
+dart.dev
 dart2js_server
 dart:ffi
 dart_runner
@@ -27,16 +30,20 @@ dname
 e.g
 enum's
 f
+ffi
 flutter_runner
 futureor
 h
+https
 interop
 libraries.json
 list.filled
 loadlibrary
 name.#name
 name.stack
+nameokempty
 native('native
+natively
 nativetype
 nnbd
 nosuchmethod
@@ -50,7 +57,9 @@ patch(es)
 pubspec.yaml
 re
 sdksummary
+solutions
 stacktrace
+stringokempty
 struct<#name
 structs
 super.namedconstructor
@@ -60,5 +69,6 @@ this.namedconstructor
 this.x
 type3.#name
 u
+unsound
 v
 x

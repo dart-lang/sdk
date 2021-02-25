@@ -220,7 +220,8 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
                                          const char* function_info,
                                          const Code& code,
                                          bool optimized) {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   LocalVarDescriptors& var_descriptors = LocalVarDescriptors::Handle(zone);
   if (FLAG_print_variable_descriptors) {
     var_descriptors = code.GetLocalVarDescriptors();
@@ -290,13 +291,16 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  THR_Print("StackMaps for function '%s' {\n", function_fullname);
-  if (code.compressed_stackmaps() != CompressedStackMaps::null()) {
+  {
     const auto& stackmaps =
         CompressedStackMaps::Handle(zone, code.compressed_stackmaps());
-    THR_Print("%s\n", stackmaps.ToCString());
+    CompressedStackMaps::Iterator it(thread, stackmaps);
+    TextBuffer buffer(100);
+    buffer.Printf("StackMaps for function '%s' {\n", function_fullname);
+    it.WriteToBuffer(&buffer, "\n");
+    buffer.AddString("}\n");
+    THR_Print("%s", buffer.buffer());
   }
-  THR_Print("}\n");
 
   if (FLAG_print_variable_descriptors) {
     THR_Print("Variable Descriptors for function '%s' {\n", function_fullname);
@@ -305,20 +309,20 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     String& var_name = String::Handle(zone);
     for (intptr_t i = 0; i < var_desc_length; i++) {
       var_name = var_descriptors.GetName(i);
-      LocalVarDescriptorsLayout::VarInfo var_info;
+      UntaggedLocalVarDescriptors::VarInfo var_info;
       var_descriptors.GetInfo(i, &var_info);
       const int8_t kind = var_info.kind();
-      if (kind == LocalVarDescriptorsLayout::kSavedCurrentContext) {
+      if (kind == UntaggedLocalVarDescriptors::kSavedCurrentContext) {
         THR_Print("  saved current CTX reg offset %d\n", var_info.index());
       } else {
-        if (kind == LocalVarDescriptorsLayout::kContextLevel) {
+        if (kind == UntaggedLocalVarDescriptors::kContextLevel) {
           THR_Print("  context level %d scope %d", var_info.index(),
                     var_info.scope_id);
-        } else if (kind == LocalVarDescriptorsLayout::kStackVar) {
+        } else if (kind == UntaggedLocalVarDescriptors::kStackVar) {
           THR_Print("  stack var '%s' offset %d", var_name.ToCString(),
                     var_info.index());
         } else {
-          ASSERT(kind == LocalVarDescriptorsLayout::kContextVar);
+          ASSERT(kind == UntaggedLocalVarDescriptors::kContextVar);
           THR_Print("  context var '%s' level %d offset %d",
                     var_name.ToCString(), var_info.scope_id, var_info.index());
         }
@@ -335,7 +339,8 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   THR_Print("%s}\n", handlers.ToCString());
 
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-  if (code.catch_entry_moves_maps() != Object::null()) {
+  if (FLAG_precompiled_mode &&
+      code.catch_entry_moves_maps() != Object::null()) {
     THR_Print("Catch entry moves for function '%s' {\n", function_fullname);
     CatchEntryMovesMapReader reader(
         TypedData::Handle(code.catch_entry_moves_maps()));
@@ -385,9 +390,9 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 
         dst_type = AbstractType::null();
         if (object.IsAbstractType()) {
-          dst_type = AbstractType::Cast(object).raw();
+          dst_type = AbstractType::Cast(object).ptr();
         } else if (object.IsCode()) {
-          code = Code::Cast(object).raw();
+          code = Code::Cast(object).ptr();
         }
 
         auto kind = Code::KindField::decode(kind_type_and_offset.Value());

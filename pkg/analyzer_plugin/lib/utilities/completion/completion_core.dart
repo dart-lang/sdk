@@ -72,8 +72,6 @@ class CompletionGenerator {
   /// non-fatal 'plugin.error' notification.
   Future<GeneratorResult<CompletionGetSuggestionsResult>>
       generateCompletionResponse(CompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var notifications = <Notification>[];
     var collector = CompletionCollectorImpl();
     try {

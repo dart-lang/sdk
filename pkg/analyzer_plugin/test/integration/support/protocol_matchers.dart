@@ -175,6 +175,7 @@ final Matcher isCompletionSuggestion =
 ///   OPTIONAL_ARGUMENT
 ///   OVERRIDE
 ///   PARAMETER
+///   PACKAGE_NAME
 /// }
 final Matcher isCompletionSuggestionKind =
     MatchesEnum('CompletionSuggestionKind', [
@@ -186,7 +187,8 @@ final Matcher isCompletionSuggestionKind =
   'NAMED_ARGUMENT',
   'OPTIONAL_ARGUMENT',
   'OVERRIDE',
-  'PARAMETER'
+  'PARAMETER',
+  'PACKAGE_NAME'
 ]);
 
 /// ContextRoot
@@ -257,6 +259,7 @@ final Matcher isElement = LazyMatcher(() => MatchesJsonObject('Element', {
 ///   PREFIX
 ///   SETTER
 ///   TOP_LEVEL_VARIABLE
+///   TYPE_ALIAS
 ///   TYPE_PARAMETER
 ///   UNIT_TEST_GROUP
 ///   UNIT_TEST_TEST
@@ -286,6 +289,7 @@ final Matcher isElementKind = MatchesEnum('ElementKind', [
   'PREFIX',
   'SETTER',
   'TOP_LEVEL_VARIABLE',
+  'TYPE_ALIAS',
   'TYPE_PARAMETER',
   'UNIT_TEST_GROUP',
   'UNIT_TEST_TEST',
@@ -303,6 +307,7 @@ final Matcher isFilePath = isString;
 ///   ANNOTATIONS
 ///   BLOCK
 ///   CLASS_BODY
+///   COMMENT
 ///   DIRECTIVES
 ///   DOCUMENTATION_COMMENT
 ///   FILE_HEADER
@@ -314,6 +319,7 @@ final Matcher isFoldingKind = MatchesEnum('FoldingKind', [
   'ANNOTATIONS',
   'BLOCK',
   'CLASS_BODY',
+  'COMMENT',
   'DIRECTIVES',
   'DOCUMENTATION_COMMENT',
   'FILE_HEADER',
@@ -416,6 +422,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   TOP_LEVEL_SETTER_DECLARATION
 ///   TOP_LEVEL_SETTER_REFERENCE
 ///   TOP_LEVEL_VARIABLE_DECLARATION
+///   TYPE_ALIAS
 ///   TYPE_NAME_DYNAMIC
 ///   TYPE_PARAMETER
 ///   UNRESOLVED_INSTANCE_MEMBER_REFERENCE
@@ -491,6 +498,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'TOP_LEVEL_SETTER_DECLARATION',
   'TOP_LEVEL_SETTER_REFERENCE',
   'TOP_LEVEL_VARIABLE_DECLARATION',
+  'TYPE_ALIAS',
   'TYPE_NAME_DYNAMIC',
   'TYPE_PARAMETER',
   'UNRESOLVED_INSTANCE_MEMBER_REFERENCE',
@@ -666,12 +674,17 @@ final Matcher isParameterInfo = LazyMatcher(() => MatchesJsonObject(
 /// ParameterKind
 ///
 /// enum {
-///   NAMED
-///   OPTIONAL
-///   REQUIRED
+///   OPTIONAL_NAMED
+///   OPTIONAL_POSITIONAL
+///   REQUIRED_NAMED
+///   REQUIRED_POSITIONAL
 /// }
-final Matcher isParameterKind =
-    MatchesEnum('ParameterKind', ['NAMED', 'OPTIONAL', 'REQUIRED']);
+final Matcher isParameterKind = MatchesEnum('ParameterKind', [
+  'OPTIONAL_NAMED',
+  'OPTIONAL_POSITIONAL',
+  'REQUIRED_NAMED',
+  'REQUIRED_POSITIONAL'
+]);
 
 /// Position
 ///

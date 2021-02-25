@@ -20,7 +20,7 @@ class FixTest extends FixProcessorTest {
   FixKind get kind => fail('kind should not be requested');
 
   Future<void> test_malformedTypeTest() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(p) {
   p i s Null;
 }''');

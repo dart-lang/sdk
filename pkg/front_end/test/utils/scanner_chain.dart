@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 library fasta.testing.scanner_chain;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
@@ -10,7 +12,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
 import 'package:_fe_analyzer_shared/src/scanner/io.dart' show readBytesFromFile;
 
 import 'package:testing/testing.dart'
-    show ChainContext, Future, Result, Step, TestDescription;
+    show ChainContext, Result, Step, TestDescription;
 
 class ReadFile {
   final Uri uri;

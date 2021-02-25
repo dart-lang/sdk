@@ -26,13 +26,13 @@ extension _extension#1 on self::Class* {
   get property2 = self::_extension#1|get#property2;
   set property2 = self::_extension#1|set#property2;
 }
-static method _extension#0|get#property1(final self::Class* #this) → core::int*
+static method _extension#0|get#property1(lowered final self::Class* #this) → core::int*
   return self::_extension#1|get#property2(#this);
-static method _extension#0|set#property1(final self::Class* #this, core::int* value) → void
+static method _extension#0|set#property1(lowered final self::Class* #this, core::int* value) → void
   return #this.{self::Class::field} = value;
-static method _extension#1|get#property2(final self::Class* #this) → core::int*
+static method _extension#1|get#property2(lowered final self::Class* #this) → core::int*
   return #this.{self::Class::field};
-static method _extension#1|set#property2(final self::Class* #this, core::int* value) → void
+static method _extension#1|set#property2(lowered final self::Class* #this, core::int* value) → void
   return let final core::int* #t1 = value in let final void #t2 = self::_extension#0|set#property1(#this, #t1) in #t1;
 static method main() → dynamic {
   self::Class* c = new self::Class::•();
@@ -48,3 +48,11 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
     throw "Mismatch: expected=${expected}, actual=${actual}";
   }
 }
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///internal_resolution.dart:23:28 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///internal_resolution.dart:23:28 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///internal_resolution.dart:25:28 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///internal_resolution.dart:25:28 -> IntConstant(87)
+Extra constant evaluation: evaluated: 49, effectively constant: 4

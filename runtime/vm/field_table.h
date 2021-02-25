@@ -16,18 +16,24 @@
 
 namespace dart {
 
+class Isolate;
 class Field;
 
 class FieldTable {
  public:
-  FieldTable()
+  explicit FieldTable(Isolate* isolate)
       : top_(0),
         capacity_(0),
         free_head_(-1),
         table_(nullptr),
-        old_tables_(new MallocGrowableArray<InstancePtr*>()) {}
+        old_tables_(new MallocGrowableArray<InstancePtr*>()),
+        isolate_(isolate),
+        is_ready_to_use_(isolate == nullptr) {}
 
   ~FieldTable();
+
+  bool IsReadyToUse() const;
+  void MarkReadyToUse();
 
   intptr_t NumFieldIds() const { return top_; }
   intptr_t Capacity() const { return capacity_; }
@@ -41,7 +47,9 @@ class FieldTable {
 
   bool IsValidIndex(intptr_t index) const { return index >= 0 && index < top_; }
 
-  void Register(const Field& field);
+  // Returns whether registering this field caused a growth in the backing
+  // store.
+  bool Register(const Field& field, intptr_t expected_field_id = -1);
   void AllocateIndex(intptr_t index);
 
   // Static field elements are being freed only during isolate reload
@@ -55,7 +63,7 @@ class FieldTable {
   }
   void SetAt(intptr_t index, InstancePtr raw_instance);
 
-  FieldTable* Clone();
+  FieldTable* Clone(Isolate* for_isolate);
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -81,6 +89,15 @@ class FieldTable {
   // When table_ grows and have to reallocated, keep the old one here
   // so it will get freed when its are no longer in use.
   MallocGrowableArray<InstancePtr*>* old_tables_;
+
+  // If non-NULL, it will specify the isolate this field table belongs to.
+  // Growing the field table will keep the cached field table on the isolate's
+  // mutator thread up-to-date.
+  Isolate* isolate_;
+
+  // Whether this field table is ready to use by e.g. registering new static
+  // fields.
+  bool is_ready_to_use_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(FieldTable);
 };

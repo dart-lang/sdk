@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // SharedOptions=--supermixin
 
+// @dart = 2.9
+
 library front_end.test.memory_file_system_test;
 
 import 'dart:convert';

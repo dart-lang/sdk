@@ -16,16 +16,16 @@ abstract class _F&B&D extends flu::B<self::E> implements flu2::D<self::E> /*isAn
   synthetic constructor •() → self::_F&B&D
     : super flu::B::•()
     ;
-  abstract member-signature operator /*isNullableByDefault, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get /*isNullableByDefault, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method /*isNullableByDefault, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method /*isNullableByDefault, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method /*isNullableByDefault, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method /*isNullableByDefault, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature get /*isNullableByDefault, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method /*isNullableByDefault, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ toString() → core::String*; -> core::Object::toString
-  abstract member-signature method /*isNullableByDefault, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get /*isNullableByDefault, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature operator /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ toString() → core::String*; -> core::Object::toString
+  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class F extends self::_F&B&D {
   synthetic constructor •() → self::F

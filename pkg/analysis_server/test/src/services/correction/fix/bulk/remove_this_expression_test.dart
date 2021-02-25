@@ -19,7 +19,7 @@ class RemoveThisExpressionTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.unnecessary_this;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int x;
   A(int x) : this.x = x;

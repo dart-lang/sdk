@@ -19,6 +19,7 @@ library;
 //          ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Expected an identifier, but got '1'.
+// Try inserting an identifier before '1'.
 //     for (1 in x) {
 //          ^
 //
@@ -69,6 +70,7 @@ library;
 //        ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Expected an identifier, but got '1'.
+// Try inserting an identifier before '1'.
 //   for (1 in arguments) {
 //        ^
 //
@@ -117,7 +119,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
           invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Error: Can't assign to a type literal.
     for (Fisk in x) {
          ^^^^";
-          core::print(self::Fisk*);
+          core::print(#C1);
         }
       }
     }
@@ -143,7 +145,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
           invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:20:10: Error: Can't assign to a type literal.
     for (VoidFunction in x) {
          ^^^^^^^^^^^^";
-          core::print(() →* void);
+          core::print(#C2);
         }
       }
     }
@@ -205,7 +207,7 @@ static method main(dynamic arguments) → dynamic {
         invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:34:8: Error: Can't assign to a type literal.
   for (Fisk in arguments) {
        ^^^^";
-        core::print(self::Fisk*);
+        core::print(#C1);
       }
     }
   }
@@ -231,7 +233,7 @@ static method main(dynamic arguments) → dynamic {
         invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:40:8: Error: Can't assign to a type literal.
   for (VoidFunction in arguments) {
        ^^^^^^^^^^^^";
-        core::print(() →* void);
+        core::print(#C2);
       }
     }
   }
@@ -255,4 +257,9 @@ static method main(dynamic arguments) → dynamic {
       }
     }
   }
+}
+
+constants  {
+  #C1 = TypeLiteralConstant(self::Fisk*)
+  #C2 = TypeLiteralConstant(() →* void)
 }

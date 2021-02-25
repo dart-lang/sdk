@@ -10,7 +10,6 @@ import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/src/bounds_checks.dart' as ir;
 
-import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../closure.dart' show BoxLocal, ThisLocal;
@@ -38,6 +37,7 @@ import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
+import '../kernel/dart2js_target.dart' show allowedNativeTest;
 import '../kernel/element_map_impl.dart';
 import '../kernel/env.dart';
 import '../kernel/kelements.dart';
@@ -136,7 +136,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       AnnotationsData annotations)
       : this.options = _elementMap.options {
     _elementEnvironment = new JsElementEnvironment(this);
-    _typeConverter = new DartTypeConverter(options, this);
+    _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this, options);
     _commonElements = new CommonElementsImpl(_types, _elementEnvironment);
     _constantValuefier = new ConstantValuefier(this);
@@ -296,7 +296,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   JsKernelToElementMap.readFromDataSource(this.options, this.reporter,
       this._environment, ir.Component component, DataSource source) {
     _elementEnvironment = new JsElementEnvironment(this);
-    _typeConverter = new DartTypeConverter(options, this);
+    _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this, options);
     _commonElements = new CommonElementsImpl(_types, _elementEnvironment);
     _constantValuefier = new ConstantValuefier(this);
@@ -807,32 +807,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   @override
-  MemberEntity getSuperMember(MemberEntity context, ir.Name name,
-      {bool setter: false}) {
-    // We can no longer trust the interface target of the super access since it
-    // might be a member that we have cloned.
-    ClassEntity cls = getMemberThisType(context).element;
-    assert(
-        cls != null,
-        failedAt(context,
-            "No enclosing class for super member access in $context."));
-    IndexedClass superclass = getSuperType(cls)?.element;
-    while (superclass != null) {
-      JClassEnv env = classes.getEnv(superclass);
-      MemberEntity superMember =
-          env.lookupMember(this, name.name, setter: setter);
-      if (superMember != null) {
-        if (!superMember.isInstanceMember) return null;
-        if (!superMember.isAbstract) {
-          return superMember;
-        }
-      }
-      superclass = getSuperType(superclass)?.element;
-    }
-    return null;
-  }
-
-  @override
   ConstructorEntity getConstructor(ir.Member node) =>
       getConstructorInternal(node);
 
@@ -1067,10 +1041,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return env.isUnnamedMixinApplication;
   }
 
-  bool _isSuperMixinApplication(IndexedClass cls) {
+  bool _isMixinApplicationWithMembers(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassEnv env = classes.getEnv(cls);
-    return env.isSuperMixinApplication;
+    return env.isMixinApplicationWithMembers;
   }
 
   void _forEachSupertype(IndexedClass cls, void f(InterfaceType supertype)) {
@@ -1182,8 +1156,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       reportLocatedMessage(reporter, message, context);
     },
         environment: _environment.toMap(),
-        enableTripleShift:
-            options.languageExperiments[ir.ExperimentalFlag.tripleShift],
+        enableTripleShift: options.enableTripleShift,
         evaluationMode: options.useLegacySubtyping
             ? ir.EvaluationMode.weak
             : ir.EvaluationMode.strong);
@@ -1243,7 +1216,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   Name getName(ir.Name name) {
     return new Name(
-        name.name, name.isPrivate ? getLibrary(name.library) : null);
+        name.text, name.isPrivate ? getLibrary(name.library) : null);
   }
 
   @override
@@ -1261,9 +1234,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     // folks.
     if (node is ir.PropertyGet) {
       return getGetterSelector(node.name);
-    }
-    if (node is ir.DirectPropertyGet) {
-      return getGetterSelector(node.target.name);
     }
     if (node is ir.SuperPropertyGet) {
       return getGetterSelector(node.name);
@@ -1302,13 +1272,13 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   Selector getGetterSelector(ir.Name irName) {
     Name name = new Name(
-        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
+        irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.getter(name);
   }
 
   Selector getSetterSelector(ir.Name irName) {
     Name name = new Name(
-        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
+        irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.setter(name);
   }
 
@@ -1326,18 +1296,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   TypeLookup _typeLookup({bool resolveAsRaw: true}) {
     bool cachedMayLookupInMain;
-    bool mayLookupInMain() {
-      var mainUri = elementEnvironment.mainLibrary.canonicalUri;
-      // Tests permit lookup outside of dart: libraries.
-      return mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js/internal')) ||
-          mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js/native')) ||
-          mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/internal')) ||
-          mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/native'));
-    }
 
     DartType lookup(String typeName, {bool required}) {
       DartType findInLibrary(LibraryEntity library) {
@@ -1360,8 +1318,11 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       // TODO(johnniwinther): Narrow the set of lookups based on the depending
       // library.
       // TODO(johnniwinther): Cache more results to avoid redundant lookups?
+      cachedMayLookupInMain ??=
+          // Tests permit lookup outside of dart: libraries.
+          allowedNativeTest(elementEnvironment.mainLibrary.canonicalUri);
       DartType type;
-      if (cachedMayLookupInMain ??= mayLookupInMain()) {
+      if (cachedMayLookupInMain) {
         type ??= findInLibrary(elementEnvironment.mainLibrary);
       }
       type ??= findIn(Uris.dart_core);
@@ -2140,11 +2101,15 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         if (node.kind == ir.ProcedureKind.Factory) {
           parts.add(utils.reconstructConstructorName(getMember(node)));
         } else {
-          parts.add(utils.operatorNameToIdentifier(node.name.name));
+          parts.add(utils.operatorNameToIdentifier(node.name.text));
         }
       } else if (node is ir.Constructor) {
         parts.add(utils.reconstructConstructorName(getMember(node)));
         break;
+      } else if (node is ir.Field) {
+        // Add the field name for closures in field initializers.
+        String name = node.name?.name;
+        if (name != null) parts.add(name);
       }
       current = current.parent;
     }
@@ -2251,8 +2216,8 @@ class JsElementEnvironment extends ElementEnvironment
   }
 
   @override
-  bool isSuperMixinApplication(ClassEntity cls) {
-    return elementMap._isSuperMixinApplication(cls);
+  bool isMixinApplicationWithMembers(ClassEntity cls) {
+    return elementMap._isMixinApplicationWithMembers(cls);
   }
 
   @override

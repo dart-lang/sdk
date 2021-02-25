@@ -16,6 +16,9 @@ main() {
 @reflectiveTest
 class UnqualifiedReferenceToNonLocalStaticMemberTest
     extends PubPackageResolutionTest {
+  CompileTimeErrorCode get _errorCode =>
+      CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER;
+
   test_getter() async {
     await assertErrorsInCode(r'''
 class A {
@@ -27,10 +30,7 @@ class B extends A {
   }
 }
 ''', [
-      error(
-          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-          80,
-          1),
+      error(_errorCode, 80, 1),
     ]);
   }
 
@@ -46,28 +46,29 @@ class B extends A {
   }
 }
 ''', [
-      error(
-          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-          72,
-          3),
+      error(_errorCode, 72, 3),
     ]);
   }
 
-  test_setter() async {
+  test_readWrite() async {
     await assertErrorsInCode(r'''
 class A {
-  static set a(x) {}
+  static int get x => 0;
+  static set x(int _) {}
 }
 class B extends A {
-  b(y) {
-    a = y;
+  void f() {
+    x = 0;
+    x += 1;
+    ++x;
+    x++;
   }
 }
 ''', [
-      error(
-          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-          66,
-          1),
+      error(_errorCode, 99, 1),
+      error(_errorCode, 110, 1),
+      error(_errorCode, 124, 1),
+      error(_errorCode, 131, 1),
     ]);
   }
 }

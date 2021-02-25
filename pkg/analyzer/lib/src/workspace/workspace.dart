@@ -7,6 +7,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// Abstract superclass of classes that provide information about the workspace
 /// in which analysis is being performed.
@@ -44,6 +45,15 @@ abstract class WorkspacePackage {
   /// Return `null` if this package does not have enabled experiments.
   List<String> get enabledExperiments => null;
 
+  /// Return the language version override for all files in the package.
+  ///
+  /// We use [enabledExperiments] to enable Null Safety for selected packages
+  /// when it is not enabled by default in the SDK, and use [languageVersion]
+  /// to disable Null Safety for packages that are not migrated yet.
+  ///
+  /// Return `null` if this package does not have a language version override.
+  Version get languageVersion => null;
+
   String get root;
 
   Workspace get workspace;
@@ -67,6 +77,9 @@ abstract class WorkspacePackage {
   /// path of the root of those packages for all of the packages that could
   /// validly be imported by the library with the given [libraryPath].
   Map<String, List<Folder>> packagesAvailableTo(String libraryPath);
+
+  /// Return whether [source] is located in this package's public API.
+  bool sourceIsInPublicApi(Source source);
 }
 
 /// An interface for a workspace that contains a default analysis options file.

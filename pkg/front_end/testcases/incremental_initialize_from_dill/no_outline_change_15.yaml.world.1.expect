@@ -1,4 +1,4 @@
-main = <No Member>;
+main = main::main;
 library from "org-dartlang-test:///lib1.dart" as lib1 {
 
   class A<T extends dart.core::Object* = dynamic> extends dart.core::Object {

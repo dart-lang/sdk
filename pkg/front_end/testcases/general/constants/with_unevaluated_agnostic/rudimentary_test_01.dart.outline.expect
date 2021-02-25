@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::int foo = 42.{core::num::*}(42){(core::num) → core::int};
+static const field core::String bar = "hello ${const core::String::fromEnvironment("baz", defaultValue: "world")}!";
+static const field core::bool baz = true && true && (false || true) && 42 =={core::num::==}{(core::Object) → core::bool} 21.{core::num::*}(4){(core::num) → core::int}.{core::num::/}(2){(core::num) → core::double};
+static const field core::Symbol blaSymbol = #_x;
+static method main() → dynamic
+  ;
+static method _x() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///rudimentary_test_01.dart:5:20 -> IntConstant(1764)
+Evaluated with empty environment: StringConcatenation @ org-dartlang-testcase:///rudimentary_test_01.dart:6:18 -> StringConstant("hello world!")
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///rudimentary_test_01.dart:7:27 -> StringConstant("world")
+Evaluated: LogicalExpression @ org-dartlang-testcase:///rudimentary_test_01.dart:8:50 -> BoolConstant(true)
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///rudimentary_test_01.dart:9:19 -> SymbolConstant(#_x)
+Extra constant evaluation: evaluated: 5, effectively constant: 5

@@ -21,7 +21,6 @@ class B {
     //^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INITIALIZER_FOR_NON_EXISTENT_FIELD
     // [error line 15, column 11, length 0]
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] Expected '.' before this.
     //    ^^
     // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -30,17 +29,25 @@ class B {
 
   test() {
     this?.field = 1;
-    //  ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+//  ^
+// [cfe] The receiver 'this' cannot be null.
+//      ^^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     this?.field += 1;
-    //  ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+//  ^
+// [cfe] The receiver 'this' cannot be null.
+//      ^^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     this?.field;
-    //  ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+//  ^
+// [cfe] The receiver 'this' cannot be null.
+//      ^^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     this?.method();
-    //  ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+//  ^
+// [cfe] The receiver 'this' cannot be null.
+//      ^^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   }
 }
 

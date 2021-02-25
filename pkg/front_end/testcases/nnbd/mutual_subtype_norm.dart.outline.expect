@@ -1,0 +1,38 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  method method1() → void
+    ;
+  method method2() → FutureOr<void>
+    ;
+  method method3() → FutureOr<void>
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    ;
+  method method1() → void
+    ;
+  method method2() → void
+    ;
+  method method3() → FutureOr<void>
+    ;
+}
+class C extends core::Object implements self::A, self::B {
+  synthetic constructor •() → self::C
+    ;
+  method method1() → void
+    ;
+  method method2() → void
+    ;
+  method method3() → FutureOr<void>
+    ;
+}
+static method main() → dynamic
+  ;

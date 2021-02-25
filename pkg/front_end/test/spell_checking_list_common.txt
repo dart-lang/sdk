@@ -119,6 +119,7 @@ alternatives
 although
 altogether
 always
+ambiguity
 ambiguous
 among
 amongst
@@ -273,6 +274,7 @@ begins
 behaved
 behaves
 behavior
+behavioral
 behaviors
 behind
 being
@@ -300,6 +302,7 @@ bits
 bitwise
 black
 block
+blocked
 blocks
 blogs
 blue
@@ -430,7 +433,9 @@ check
 checked
 checker
 checking
+checkpoints
 checks
+chian
 child
 children
 choice
@@ -578,6 +583,7 @@ conform
 conformed
 confuse
 confused
+conjunction
 connect
 connected
 connection
@@ -644,6 +650,7 @@ convenience
 convenient
 conventional
 conventions
+conversion
 convert
 converted
 convertible
@@ -797,6 +804,7 @@ dereferenced
 derivation
 derive
 derived
+descendant
 descendants
 describe
 described
@@ -821,6 +829,7 @@ detect
 detected
 detecting
 detection
+detector
 detects
 determination
 determine
@@ -840,6 +849,7 @@ didn't
 diet
 differ
 difference
+differences
 different
 differently
 dig
@@ -857,6 +867,7 @@ directory
 disable
 disabled
 disabling
+disallowed
 disambiguate
 disambiguated
 disappear
@@ -910,6 +921,7 @@ driver
 drop
 dropped
 dropping
+drops
 due
 dump
 dumped
@@ -985,6 +997,7 @@ endured
 enforcement
 engine
 engineers
+enhance
 enhancing
 enough
 ensure
@@ -1016,7 +1029,9 @@ equate
 equivalence
 equivalent
 equivalents
+erasure
 erroneous
+erroneously
 error
 errors
 escape
@@ -1065,6 +1080,7 @@ executed
 executes
 executing
 execution
+exempt
 exercise
 exhaustive
 exist
@@ -1126,6 +1142,7 @@ face
 facilitate
 fact
 fact's
+facto
 factories
 factory
 facts
@@ -1201,6 +1218,7 @@ flatten
 flattened
 flexibility
 flexible
+flip
 float
 flow
 flow's
@@ -1268,6 +1286,7 @@ gatherer
 gathering
 general
 generalized
+generalizes
 generally
 generate
 generated
@@ -1375,6 +1394,7 @@ holding
 holds
 hood
 hooks
+horns
 horribly
 host
 hostnames
@@ -1483,6 +1503,7 @@ informally
 information
 informational
 informs
+inherently
 inherit
 inheritable
 inheritance
@@ -1525,6 +1546,7 @@ instantiating
 instantiation
 instantiations
 instead
+instruct
 instruction
 instructions
 instrumentation
@@ -1579,6 +1601,7 @@ invalidating
 invalidation
 invariant
 invariantly
+inversion
 invert
 inverted
 investigate
@@ -1766,8 +1789,10 @@ magic
 main
 mainly
 maintain
+maintains
 major
 make
+makers
 makes
 making
 malformed
@@ -1809,6 +1834,7 @@ means
 meant
 measurably
 measure
+measurements
 mechanism
 medium
 meet
@@ -1836,6 +1862,7 @@ middle
 might
 millisecond
 milliseconds
+mimics
 minimal
 minimum
 minor
@@ -1845,6 +1872,7 @@ mirrors
 misleading
 mismatch
 mismatches
+mismatching
 missing
 misused
 mix
@@ -1857,6 +1885,7 @@ mixins
 mock
 mode
 model
+modeling
 models
 modes
 modifiable
@@ -1965,6 +1994,7 @@ notice
 noticed
 notifies
 now
+nowhere
 null
 nullability
 nullable
@@ -2122,6 +2152,7 @@ peek
 peel
 peeled
 peeling
+peels
 pending
 percent
 percolate
@@ -2282,9 +2313,11 @@ promote
 promoted
 promoter
 promotes
+promoting
 promotion
 promotions
 propagate
+propagated
 propagates
 propagating
 propagation
@@ -2353,12 +2386,14 @@ ready
 real
 realigned
 realized
+realizing
 really
 reason
 reasonable
 reasoning
 reasons
 reassign
+rebase
 receive
 receiver
 recent
@@ -2402,11 +2437,13 @@ referenced
 references
 referencing
 referred
+referring
 refers
 refine
 refinement
 refinements
 reflecting
+reflects
 regardless
 region
 regions
@@ -2765,6 +2802,7 @@ specifying
 speed
 speedup
 split
+splits
 splitter
 spread
 spreadable
@@ -2788,6 +2826,7 @@ starts
 startup
 state
 stateful
+stateless
 statement
 statement's
 statements
@@ -2864,6 +2903,7 @@ sufficient
 sufficiently
 suffix
 suffixes
+sugar
 suggested
 suitable
 suites
@@ -2886,6 +2926,7 @@ supposed
 suppress
 suppressed
 sure
+surface
 surrogate
 surrogates
 surrounding
@@ -2991,6 +3032,7 @@ throwing
 thrown
 throws
 thumb
+thunk
 thus
 time
 timeline
@@ -3156,6 +3198,7 @@ unsigned
 unsized
 unskip
 unsorted
+unsoundness
 unspecified
 unsplit
 unstable
@@ -3300,6 +3343,7 @@ working
 worklist
 works
 world
+worry
 worth
 would
 wouldn't

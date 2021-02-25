@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:core' hide MapEntry;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
@@ -11,6 +13,8 @@ import 'package:kernel/core_types.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
+import '../dill/dill_member_builder.dart';
+
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/class_hierarchy_builder.dart' show ClassMember;
 import '../kernel/expression_generator_helper.dart'
@@ -18,6 +22,7 @@ import '../kernel/expression_generator_helper.dart'
 
 import '../kernel/kernel_builder.dart'
     show isRedirectingGenerativeConstructorImplementation;
+import '../kernel/kernel_target.dart' show ClonedFunctionNode;
 
 import '../loader.dart' show Loader;
 
@@ -31,6 +36,7 @@ import '../messages.dart'
         messageSuperInitializerNotLast,
         noLength;
 
+import '../source/source_class_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'builder.dart';
@@ -134,7 +140,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
-      Constructor referenceFrom,
+      Member referenceFrom,
       [String nativeMethodName])
       : _constructor = new Constructor(null,
             fileUri: compilationUnit.fileUri,
@@ -154,6 +160,9 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
 
   @override
   Member get invokeTarget => constructor;
+
+  @override
+  Iterable<Member> get exportedMembers => [constructor];
 
   @override
   ConstructorBuilder get origin => actualOrigin ?? this;
@@ -256,7 +265,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     FunctionNode functionNode = super.buildFunction(library);
     ClassBuilder enclosingClassBuilder = parent;
     Class enclosingClass = enclosingClassBuilder.cls;
-    List<DartType> typeParameterTypes = new List<DartType>();
+    List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
       typeParameterTypes.add(
@@ -429,5 +438,28 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     Set<FieldBuilder> result = _initializedFields;
     _initializedFields = null;
     return result;
+  }
+}
+
+class SyntheticConstructorBuilder extends DillConstructorBuilder {
+  MemberBuilderImpl _origin;
+  ClonedFunctionNode _clonedFunctionNode;
+
+  SyntheticConstructorBuilder(
+      SourceClassBuilder parent, Constructor constructor,
+      {MemberBuilder origin, ClonedFunctionNode clonedFunctionNode})
+      : _origin = origin,
+        _clonedFunctionNode = clonedFunctionNode,
+        super(constructor, parent);
+
+  void buildOutlineExpressions(
+      LibraryBuilder libraryBuilder, CoreTypes coreTypes) {
+    if (_origin != null) {
+      // Ensure that default value expressions have been created for [_origin].
+      _origin.buildOutlineExpressions(libraryBuilder, coreTypes);
+      _clonedFunctionNode.cloneDefaultValues();
+      _clonedFunctionNode = null;
+      _origin = null;
+    }
   }
 }

@@ -1200,7 +1200,7 @@ class X extends A with M {}
   test_superInvocation_setter() async {
     await assertNoErrorsInCode(r'''
 class A {
-  void set foo(_) {}
+  void set foo(int _) {}
 }
 
 mixin M on A {
@@ -1212,9 +1212,14 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    var access = findNode.propertyAccess('super.foo = 0');
-    assertElement(access, findElement.setter('foo'));
-    // Hm... Does it need any type?
-    assertTypeDynamic(access);
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 }

@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.tool.entry_points;
+// @dart=2.9
 
-import 'dart:async' show Stream;
+library fasta.tool.entry_points;
 
 import 'dart:convert' show LineSplitter, jsonDecode, jsonEncode, utf8;
 
@@ -13,17 +13,15 @@ import 'dart:io' show File, Platform, exitCode, stderr, stdin, stdout;
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
 
+import 'package:front_end/src/fasta/fasta_codes.dart'
+    show LocatedMessage, codeInternalProblemVerificationError;
+
 import 'package:kernel/kernel.dart'
     show CanonicalName, Library, Component, Source, loadComponentFromBytes;
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
 import 'package:kernel/src/types.dart' show Types;
-
-import 'package:vm/bytecode/gen_bytecode.dart'
-    show createFreshComponentWithBytecode, generateBytecode;
-
-import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
@@ -136,6 +134,8 @@ class BatchCompiler {
 
   Component platformComponent;
 
+  bool hadVerifyError = false;
+
   BatchCompiler(this.lines);
 
   run() async {
@@ -176,12 +176,15 @@ class BatchCompiler {
     ProcessedOptions options = c.options;
     bool verbose = options.verbose;
     Ticker ticker = new Ticker(isVerbose: verbose);
-    if (platformComponent == null || platformUri != options.sdkSummary) {
+    if (platformComponent == null ||
+        platformUri != options.sdkSummary ||
+        hadVerifyError) {
       platformUri = options.sdkSummary;
       platformComponent = await options.loadSdkSummary(null);
       if (platformComponent == null) {
         throw "platformComponent is null";
       }
+      hadVerifyError = false;
     } else {
       options.sdkSummaryComponent = platformComponent;
     }
@@ -195,7 +198,13 @@ class BatchCompiler {
         root.adoptChild(name);
       }
     }
-    root.unbindAll();
+    for (Object error in c.errors) {
+      if (error is LocatedMessage) {
+        if (error.messageObject.code == codeInternalProblemVerificationError) {
+          hadVerifyError = true;
+        }
+      }
+    }
     return c.errors.isEmpty;
   }
 }
@@ -314,9 +323,9 @@ class CompileTask {
         dillTarget.loader.appendLibraries(additionalDill);
       }
     } else {
-      Uri platform = c.options.sdkSummary;
-      if (platform != null) {
-        _appendDillForUri(dillTarget, platform);
+      Component sdkSummary = await c.options.loadSdkSummary(null);
+      if (sdkSummary != null) {
+        dillTarget.loader.appendLibraries(sdkSummary);
       }
     }
 
@@ -350,6 +359,7 @@ class CompileTask {
 
   Future<Uri> compile(
       {bool omitPlatform: false, bool supportAdditionalDills: true}) async {
+    c.options.reportNullSafetyCompilationModeInfo();
     KernelTarget kernelTarget =
         await buildOutline(supportAdditionalDills: supportAdditionalDills);
     Uri uri = c.options.output;
@@ -419,18 +429,7 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
-  Component component = result.component;
-  if (c.options.bytecode) {
-    generateBytecode(component,
-        options: new BytecodeOptions(
-            enableAsserts: true,
-            emitSourceFiles: true,
-            emitSourcePositions: true,
-            environmentDefines: c.options.environmentDefines));
-    component = createFreshComponentWithBytecode(component);
-  }
-
-  await writeComponentToFile(component, fullOutput);
+  await writeComponentToFile(result.component, fullOutput);
 
   c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");
 
@@ -489,7 +488,7 @@ Future<void> writeDepsFile(
   StringBuffer sb = new StringBuffer();
   sb.write(toRelativeFilePath(output));
   sb.write(":");
-  List<String> paths = new List<String>(allDependencies.length);
+  List<String> paths = new List<String>.filled(allDependencies.length, null);
   for (int i = 0; i < allDependencies.length; i++) {
     paths[i] = toRelativeFilePath(allDependencies[i]);
   }

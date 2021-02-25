@@ -10,11 +10,11 @@ library expect;
 
 import 'package:meta/meta.dart';
 
-/// Whether the program is running with weak null safety checking.
-bool get isWeakMode => const <Null>[] is List<Object>;
+/// Whether the program is running without sound null safety.
+bool get hasUnsoundNullSafety => const <Null>[] is List<Object>;
 
-/// Whether the program is running with strong null safety checking.
-bool get isStrongMode => !isWeakMode;
+/// Whether the program is running with sound null safety.
+bool get hasSoundNullSafety => !hasUnsoundNullSafety;
 
 /**
  * Expect is used for tests that do not want to make use of the
@@ -440,6 +440,17 @@ class Expect {
     _fail("$defaultMessage$diff");
   }
 
+  /// Checks that [haystack] contains a given substring [needle].
+  ///
+  /// For example, this succeeds:
+  ///
+  ///     Expect.contains("a", "abcdefg");
+  static void contains(String needle, String haystack) {
+    if (!haystack.contains(needle)) {
+      _fail("String '$needle' not found within '$haystack'");
+    }
+  }
+
   /// Checks that [actual] contains a given list of [substrings] in order.
   ///
   /// For example, this succeeds:
@@ -612,17 +623,10 @@ class Expect {
     Expect.throws(f, (error) => error is NoSuchMethodError, reason);
   }
 
-  /// Checks that [f] throws an appropriate error on a null argument.
-  ///
-  /// In strong mode, this is expected to be a [TypeError] when casting the
-  /// `null` to some non-nullable type. In weak mode, that cast is ignored and
-  /// some later explicit validation should handle it and [ArgumentError].
-  static void throwsNullCheckError(void f()) {
-    if (isStrongMode) {
-      throwsTypeError(f);
-    } else {
-      throwsArgumentError(f);
-    }
+  static void throwsReachabilityError(void f(),
+      [String reason = "ReachabilityError"]) {
+    Expect.throws(
+        f, (error) => error.toString().startsWith('ReachabilityError'), reason);
   }
 
   static void throwsRangeError(void f(), [String reason = "RangeError"]) {

@@ -2,10 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 library fasta.test.textual_outline_test;
 
-import 'dart:async' show Future;
 import 'dart:io';
+
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
+    show ScannerConfiguration;
 
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
@@ -22,6 +26,7 @@ import 'package:testing/testing.dart'
         runMe;
 
 import '../utils/kernel_chain.dart' show MatchContext;
+import 'testing/suite.dart' show UPDATE_EXPECTATIONS;
 
 const List<Map<String, String>> EXPECTATIONS = [
   {
@@ -52,6 +57,13 @@ main([List<String> arguments = const []]) =>
 
 class Context extends ChainContext with MatchContext {
   final bool updateExpectations;
+
+  @override
+  String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
+
+  @override
+  bool get canBeFixWithUpdateExpectations => true;
+
   Context(this.updateExpectations);
 
   final List<Step> steps = const <Step>[
@@ -74,10 +86,12 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       String result = textualOutline(bytes,
           throwOnUnexpected: true,
           performModelling: modelled,
-          addMarkerForUnknownForTest: modelled);
+          addMarkerForUnknownForTest: modelled,
+          configuration:
+              const ScannerConfiguration(enableExtensionMethods: true));
       if (result == null) {
-        return new Result(null, context.expectationSet["EmptyOutput"],
-            description.uri, StackTrace.current);
+        return new Result(
+            null, context.expectationSet["EmptyOutput"], description.uri);
       }
 
       // In an attempt to make it less sensitive to formatting first remove
@@ -117,8 +131,9 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       if (expectMatch.outcome != Expectation.Pass) return expectMatch;
 
       if (formatterException != null) {
-        return new Result(null, context.expectationSet["FormatterCrash"],
-            formatterException, formatterExceptionSt);
+        return new Result(
+            null, context.expectationSet["FormatterCrash"], formatterException,
+            trace: formatterExceptionSt);
       }
     }
 

@@ -2,16 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import '../ast.dart' hide MapEntry;
-import '../core_types.dart';
 
 import 'replacement_visitor.dart';
 
 /// Returns legacy erasure of [type], that is, the type in which all nnbd
 /// nullabilities have been replaced with legacy nullability, and all required
 /// named parameters are not required.
-DartType legacyErasure(CoreTypes coreTypes, DartType type) {
-  return rawLegacyErasure(coreTypes, type) ?? type;
+DartType legacyErasure(DartType type) {
+  return rawLegacyErasure(type) ?? type;
 }
 
 /// Returns legacy erasure of [type], that is, the type in which all nnbd
@@ -19,22 +20,21 @@ DartType legacyErasure(CoreTypes coreTypes, DartType type) {
 /// named parameters are not required.
 ///
 /// Returns `null` if the type wasn't changed.
-DartType rawLegacyErasure(CoreTypes coreTypes, DartType type) {
-  return type.accept(new _LegacyErasure(coreTypes));
+DartType rawLegacyErasure(DartType type) {
+  return type.accept(const _LegacyErasure());
 }
 
 /// Returns legacy erasure of [supertype], that is, the type in which all nnbd
 /// nullabilities have been replaced with legacy nullability, and all required
 /// named parameters are not required.
-Supertype legacyErasureSupertype(CoreTypes coreTypes, Supertype supertype) {
+Supertype legacyErasureSupertype(Supertype supertype) {
   if (supertype.typeArguments.isEmpty) {
     return supertype;
   }
   List<DartType> newTypeArguments;
   for (int i = 0; i < supertype.typeArguments.length; i++) {
     DartType typeArgument = supertype.typeArguments[i];
-    DartType newTypeArgument =
-        typeArgument.accept(new _LegacyErasure(coreTypes));
+    DartType newTypeArgument = typeArgument.accept(const _LegacyErasure());
     if (newTypeArgument != null) {
       newTypeArguments ??= supertype.typeArguments.toList(growable: false);
       newTypeArguments[i] = newTypeArgument;
@@ -51,12 +51,10 @@ Supertype legacyErasureSupertype(CoreTypes coreTypes, Supertype supertype) {
 ///
 /// The visitor returns `null` if the type wasn't changed.
 class _LegacyErasure extends ReplacementVisitor {
-  final CoreTypes coreTypes;
-
-  _LegacyErasure(this.coreTypes);
+  const _LegacyErasure();
 
   Nullability visitNullability(DartType node) {
-    if (node.nullability != Nullability.legacy) {
+    if (node.declaredNullability != Nullability.legacy) {
       return Nullability.legacy;
     }
     return null;
@@ -71,11 +69,49 @@ class _LegacyErasure extends ReplacementVisitor {
   }
 
   @override
-  DartType visitInterfaceType(InterfaceType node) {
-    if (node.classNode == coreTypes.nullClass) return null;
-    return super.visitInterfaceType(node);
-  }
+  DartType visitNeverType(NeverType node) => const NullType();
+}
 
-  @override
-  DartType visitNeverType(NeverType node) => coreTypes.nullType;
+/// Returns `true` if a member declared in [declaringClass] inherited or
+/// mixed into [enclosingClass] needs legacy erasure to compute its inherited
+/// type.
+///
+/// For instance:
+///
+///    // Opt in:
+///    class Super {
+///      int extendedMethod(int i, {required int j}) => i;
+///    }
+///    class Mixin {
+///      int mixedInMethod(int i, {required int j}) => i;
+///    }
+///    // Opt out:
+///    class Legacy extends Super with Mixin {}
+///    // Opt in:
+///    class Class extends Legacy {
+///      test() {
+///        // Ok to call `Legacy.extendedMethod` since its type is
+///        // `int* Function(int*, {int* j})`.
+///        super.extendedMethod(null);
+///        // Ok to call `Legacy.mixedInMethod` since its type is
+///        // `int* Function(int*, {int* j})`.
+///        super.mixedInMethod(null);
+///      }
+///    }
+///
+bool needsLegacyErasure(Class enclosingClass, Class declaringClass) {
+  Class cls = enclosingClass;
+  while (cls != null) {
+    if (!cls.enclosingLibrary.isNonNullableByDefault) {
+      return true;
+    }
+    if (cls == declaringClass) {
+      return false;
+    }
+    if (cls.mixedInClass == declaringClass) {
+      return false;
+    }
+    cls = cls.superclass;
+  }
+  return false;
 }

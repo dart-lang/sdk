@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -112,7 +114,7 @@ void main() {
 }
 
 ModuleMetadata createMetadata(String version) => ModuleMetadata(
-    'module', 'closure', 'module.map', 'module.js', version: version)
+    'module', 'closure', 'module.map', 'module.js', true, version: version)
   ..addLibrary(LibraryMetadata('library', 'package:library/test.dart',
       'file:///source/library/lib/test.dart', ['src/test2.dart']));
 
@@ -123,6 +125,7 @@ void testMetadataFields(ModuleMetadata module, String version) {
   expect(module.closureName, 'closure');
   expect(module.sourceMapUri, 'module.map');
   expect(module.moduleUri, 'module.js');
+  expect(module.soundNullSafety, true);
 
   var libUri = module.libraries.keys.first;
   var lib = module.libraries[libUri];

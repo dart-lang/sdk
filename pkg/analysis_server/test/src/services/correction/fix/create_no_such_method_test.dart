@@ -20,7 +20,7 @@ class CreateNoSuchMethodTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_NO_SUCH_METHOD;
 
   Future<void> test_class() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class A {
   m1();
   int m2();
@@ -45,7 +45,7 @@ class B extends A {
   }
 
   Future<void> test_classTypeAlias() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class A {
   m();
 }

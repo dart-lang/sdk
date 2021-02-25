@@ -54,12 +54,12 @@ void JSONStream::Setup(Zone* zone,
                        const Array& param_values,
                        bool parameters_are_dart_objects) {
   set_reply_port(reply_port);
-  seq_ = &Instance::ZoneHandle(seq.raw());
+  seq_ = &Instance::ZoneHandle(seq.ptr());
   method_ = method.ToCString();
 
   if (parameters_are_dart_objects) {
-    parameter_keys_ = &Array::ZoneHandle(param_keys.raw());
-    parameter_values_ = &Array::ZoneHandle(param_values.raw());
+    parameter_keys_ = &Array::ZoneHandle(param_keys.ptr());
+    parameter_values_ = &Array::ZoneHandle(param_values.ptr());
     ASSERT(parameter_keys_->Length() == parameter_values_->Length());
   } else if (param_keys.Length() > 0) {
     String& string_iterator = String::Handle();
@@ -184,9 +184,7 @@ void JSONStream::PostNullReply(Dart_Port port) {
       Message::New(port, Object::null(), Message::kNormalPriority));
 }
 
-static void Finalizer(void* isolate_callback_data,
-                      Dart_WeakPersistentHandle handle,
-                      void* buffer) {
+static void Finalizer(void* isolate_callback_data, void* buffer) {
   free(buffer);
 }
 
@@ -322,7 +320,7 @@ void JSONStream::PrintValue(Breakpoint* bpt) {
 
 void JSONStream::PrintValue(TokenPosition tp) {
   PrintCommaIfNeeded();
-  PrintValue(tp.value());
+  PrintValue(static_cast<intptr_t>(tp.Serialize()));
 }
 
 void JSONStream::PrintValue(const ServiceEvent* event) {
@@ -348,16 +346,6 @@ void JSONStream::PrintValue(Isolate* isolate, bool ref) {
 void JSONStream::PrintValue(IsolateGroup* isolate_group, bool ref) {
   PrintCommaIfNeeded();
   isolate_group->PrintJSON(this, ref);
-}
-
-void JSONStream::PrintValue(ThreadRegistry* reg) {
-  PrintCommaIfNeeded();
-  reg->PrintJSON(this);
-}
-
-void JSONStream::PrintValue(Thread* thread) {
-  PrintCommaIfNeeded();
-  thread->PrintJSON(this);
 }
 
 void JSONStream::PrintValue(const TimelineEvent* timeline_event) {
@@ -408,16 +396,6 @@ void JSONStream::PrintProperty(const char* name, MessageQueue* queue) {
 void JSONStream::PrintProperty(const char* name, Isolate* isolate) {
   PrintPropertyName(name);
   PrintValue(isolate);
-}
-
-void JSONStream::PrintProperty(const char* name, ThreadRegistry* reg) {
-  PrintPropertyName(name);
-  PrintValue(reg);
-}
-
-void JSONStream::PrintProperty(const char* name, Thread* thread) {
-  PrintPropertyName(name);
-  PrintValue(thread);
 }
 
 void JSONStream::PrintProperty(const char* name,

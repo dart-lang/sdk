@@ -16,7 +16,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
-import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/new_notifications.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
@@ -51,7 +50,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
-import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -602,9 +600,6 @@ class AnalysisServer extends AbstractAnalysisServer {
 
 /// Various IDE options.
 class AnalysisServerOptions {
-  bool useAnalysisHighlight2 = false;
-
-  String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
 
   String clientId;
@@ -627,24 +622,8 @@ class AnalysisServerOptions {
   /// generally used in specific SDKs (like the internal google3 one).
   SdkConfiguration configurationOverrides;
 
-  /// The list of the names of the experiments that should be enabled by
-  /// default, unless the analysis options file of a context overrides it.
-  List<String> enabledExperiments = const <String>[];
-
   /// Whether to use the Language Server Protocol.
   bool useLanguageServerProtocol = false;
-
-  /// Base path to locate trained completion language model files.
-  ///
-  /// ML completion is enabled if this is non-null.
-  String completionModelFolder;
-
-  /// Whether to enable parsing via the Fasta parser.
-  bool useFastaParser = true;
-
-  /// Return `true` if the new relevance computations should be used when
-  /// computing code completion suggestions.
-  bool useNewRelevance = true;
 
   /// The set of enabled features.
   FeatureSet featureSet = FeatureSet();
@@ -663,9 +642,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       analysisServer.notificationManager;
 
   @override
-  nd.AnalysisDriver addAnalysisDriver(
-      Folder folder, ContextRoot contextRoot, AnalysisOptions options) {
-    var builder = createContextBuilder(folder, options);
+  nd.AnalysisDriver addAnalysisDriver(Folder folder, ContextRoot contextRoot) {
+    var builder = createContextBuilder(folder);
     var analysisDriver = builder.buildDriver(contextRoot);
     analysisDriver.results.listen((result) {
       var notificationManager = analysisServer.notificationManager;
@@ -779,6 +757,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
+  void afterContextRefresh() {
+    analysisServer.addContextsToDeclarationsTracker();
+  }
+
+  @override
   void afterWatchEvent(WatchEvent event) {
     analysisServer._onAnalysisSetChangedController.add(null);
   }
@@ -818,9 +801,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
+  ContextBuilder createContextBuilder(Folder folder) {
     var builderOptions = ContextBuilderOptions();
-    builderOptions.defaultOptions = options;
     var builder = ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
@@ -839,11 +821,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
-    if (analysisServer.options.useAnalysisHighlight2) {
-      return DartUnitHighlightsComputer2(unit).compute();
-    } else {
-      return DartUnitHighlightsComputer(unit).compute();
-    }
+    return DartUnitHighlightsComputer(unit).compute();
   }
 
   server.AnalysisNavigationParams _computeNavigationParams(

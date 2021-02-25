@@ -1,6 +1,8 @@
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
 
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
@@ -9,4 +11,4 @@
 
 import "ast.dart";
 
-Version defaultLanguageVersion = const Version(2, 10);
+Version defaultLanguageVersion = const Version(2, 12);

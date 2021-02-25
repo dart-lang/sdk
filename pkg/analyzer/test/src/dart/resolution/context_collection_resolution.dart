@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
@@ -24,7 +25,10 @@ import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
+import 'context_collection_resolution_caching.dart';
 import 'resolution.dart';
+
+export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
 class AnalysisOptionsFileConfig {
   final List<String> experiments;
@@ -35,12 +39,12 @@ class AnalysisOptionsFileConfig {
   final bool strictRawTypes;
 
   AnalysisOptionsFileConfig({
-    this.experiments,
-    this.implicitCasts,
-    this.implicitDynamic,
-    this.lints,
-    this.strictInference,
-    this.strictRawTypes,
+    this.experiments = const [],
+    this.implicitCasts = true,
+    this.implicitDynamic = true,
+    this.lints = const [],
+    this.strictInference = false,
+    this.strictRawTypes = false,
   });
 
   String toContent() {
@@ -127,10 +131,14 @@ abstract class ContextResolutionTest
     with ResourceProviderMixin, ResolutionTest {
   static bool _lintRulesAreRegistered = false;
 
-  final ByteStore _byteStore = MemoryByteStore();
+  ByteStore _byteStore = getContextResolutionTestByteStore();
 
   Map<String, String> _declaredVariables = {};
   AnalysisContextCollection _analysisContextCollection;
+
+  /// If not `null`, [resolveFile] will use the context that corresponds
+  /// to this path, instead of the given path.
+  String pathForContextSelection;
 
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
@@ -200,7 +208,7 @@ abstract class ContextResolutionTest
 
   @override
   Future<ResolvedUnitResult> resolveFile(String path) {
-    var analysisContext = contextFor(path);
+    var analysisContext = contextFor(pathForContextSelection ?? path);
     var session = analysisContext.currentSession;
     return session.getResolvedUnit(path);
   }
@@ -216,6 +224,12 @@ abstract class ContextResolutionTest
       resourceProvider: resourceProvider,
       additionalLibraries: additionalMockSdkLibraries,
     );
+  }
+
+  /// Call this method if the test needs to use the empty byte store, without
+  /// any information cached.
+  void useEmptyByteStore() {
+    _byteStore = MemoryByteStore();
   }
 
   void verifyCreatedCollection() {}
@@ -240,79 +254,6 @@ abstract class ContextResolutionTest
   }
 }
 
-class PackageConfigFileBuilder {
-  final List<_PackageDescription> _packages = [];
-
-  void add({
-    @required String name,
-    @required String rootPath,
-    String packageUri = 'lib/',
-    String languageVersion,
-  }) {
-    if (_packages.any((e) => e.name == name)) {
-      throw StateError('Already added: $name');
-    }
-    _packages.add(
-      _PackageDescription(
-        name: name,
-        rootPath: rootPath,
-        packageUri: packageUri,
-        languageVersion: languageVersion,
-      ),
-    );
-  }
-
-  String toContent(String Function(String) toUriStr) {
-    var buffer = StringBuffer();
-
-    buffer.writeln('{');
-
-    var prefix = ' ' * 2;
-    buffer.writeln('$prefix"configVersion": 2,');
-    buffer.writeln('$prefix"packages": [');
-
-    for (var i = 0; i < _packages.length; i++) {
-      var package = _packages[i];
-
-      var prefix = ' ' * 4;
-      buffer.writeln('$prefix{');
-
-      prefix = ' ' * 6;
-      buffer.writeln('$prefix"name": "${package.name}",');
-
-      var rootUri = toUriStr(package.rootPath);
-      buffer.write('$prefix"rootUri": "$rootUri"');
-
-      if (package.packageUri != null) {
-        buffer.writeln(',');
-        buffer.write('$prefix"packageUri": "${package.packageUri}"');
-      }
-
-      if (package.languageVersion != null) {
-        buffer.writeln(',');
-        buffer.write('$prefix"languageVersion": "${package.languageVersion}"');
-      }
-
-      buffer.writeln();
-
-      prefix = ' ' * 4;
-      buffer.write(prefix);
-      buffer.writeln(i < _packages.length - 1 ? '},' : '}');
-    }
-
-    buffer.writeln('  ]');
-    buffer.writeln('}');
-
-    return buffer.toString();
-  }
-
-  PackageConfigFileBuilder _copy() {
-    var copy = PackageConfigFileBuilder();
-    copy._packages.addAll(_packages);
-    return copy;
-  }
-}
-
 class PubPackageResolutionTest extends ContextResolutionTest {
   AnalysisOptionsImpl get analysisOptions {
     var path = convertPath(testPackageRootPath);
@@ -322,8 +263,14 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
+  /// The path that is not in [workspaceRootPath], contains external packages.
+  String get packagesRootPath => '/packages';
+
   @override
   String get testFilePath => '$testPackageLibPath/test.dart';
+
+  /// The language version to use by default for `package:test`.
+  String get testPackageLanguageVersion => '2.9';
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
@@ -340,7 +287,12 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, content: config.toContent(toUriStr));
+    newFile(
+      path,
+      content: config.toContent(
+        toUriStr: toUriStr,
+      ),
+    );
   }
 
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
@@ -356,12 +308,12 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     bool js = false,
     bool meta = false,
   }) {
-    config = config._copy();
+    config = config.copy();
 
     config.add(
       name: 'test',
       rootPath: testPackageRootPath,
-      languageVersion: languageVersion,
+      languageVersion: languageVersion ?? testPackageLanguageVersion,
     );
 
     if (js) {
@@ -413,7 +365,10 @@ class PubspecYamlFileConfig {
   }
 }
 
-mixin WithNullSafetyMixin on PubPackageResolutionTest {
+mixin WithNonFunctionTypeAliasesMixin on PubPackageResolutionTest {
+  @override
+  String get testPackageLanguageVersion => null;
+
   @override
   bool get typeToStringWithNullability => true;
 
@@ -424,22 +379,16 @@ mixin WithNullSafetyMixin on PubPackageResolutionTest {
 
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
-        experiments: [EnableString.non_nullable],
+        experiments: [EnableString.nonfunction_type_aliases],
       ),
     );
   }
 }
 
-class _PackageDescription {
-  final String name;
-  final String rootPath;
-  final String packageUri;
-  final String languageVersion;
+mixin WithNullSafetyMixin on PubPackageResolutionTest {
+  @override
+  String get testPackageLanguageVersion => null;
 
-  _PackageDescription({
-    @required this.name,
-    @required this.rootPath,
-    @required this.packageUri,
-    @required this.languageVersion,
-  });
+  @override
+  bool get typeToStringWithNullability => true;
 }

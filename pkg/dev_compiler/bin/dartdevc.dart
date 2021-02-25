@@ -3,6 +3,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Command line entry point for Dart Development Compiler (dartdevc), used to
 /// compile a collection of dart libraries into a single JS module
 
@@ -30,17 +32,20 @@ Future main(List<String> args, [SendPort sendPort]) async {
   } else if (parsedArgs.isBatch) {
     await runBatch(parsedArgs);
   } else if (parsedArgs.isExpressionCompiler) {
-    ExpressionCompilerWorker worker;
     if (sendPort != null) {
       var receivePort = ReceivePort();
       sendPort.send(receivePort.sendPort);
-      worker = await ExpressionCompilerWorker.createFromArgs(parsedArgs.rest,
+      var worker = await ExpressionCompilerWorker.createFromArgs(
+          parsedArgs.rest,
           requestStream: receivePort.cast<Map<String, dynamic>>(),
           sendResponse: sendPort.send);
+      await worker.start();
+      receivePort.close();
     } else {
-      worker = await ExpressionCompilerWorker.createFromArgs(parsedArgs.rest);
+      var worker =
+          await ExpressionCompilerWorker.createFromArgs(parsedArgs.rest);
+      await worker.start();
     }
-    await worker.start();
   } else {
     var result = await compile(parsedArgs);
     exitCode = result.exitCode;

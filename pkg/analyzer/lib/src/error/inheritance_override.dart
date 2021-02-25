@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
-import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/task/inference_error.dart';
 import 'package:meta/meta.dart';
 
 class InheritanceOverrideVerifier {
@@ -237,6 +237,7 @@ class _ClassVerifier {
           superMember: interfaceElement,
           errorReporter: reporter,
           errorNode: classNameNode,
+          errorCode: CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
         );
       }
 
@@ -285,7 +286,8 @@ class _ClassVerifier {
         errorNode: node,
       );
 
-      if (superMember is MethodElement &&
+      if (!_isNonNullableByDefault &&
+          superMember is MethodElement &&
           member is MethodElement &&
           methodParameterNodes != null) {
         _checkForOptionalParametersDifferentDefaultValues(

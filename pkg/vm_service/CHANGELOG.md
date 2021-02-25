@@ -1,5 +1,61 @@
 # Changelog
 
+## 6.0.1-nullsafety.0
+- Fix versioning for pub.
+
+## 6.0.0-nullsafety.4
+- Fixed issue where response parsing could fail for `SourceReportRange.coverage`
+  if no coverage information was provided.
+## 6.0.0-nullsafety.3
+- Fixed issue where `Response.type` and classes which override `Response.type` were
+  returning the name of the `package:vm_service` reference object (e.g., InstanceRef) instead of
+  the type specified in the specification (e.g., @Instance).
+
+## 6.0.0-nullsafety.2
+- *breaking* Updated signature of `Field.staticValue` to `dynamic` in order to
+  properly allow for uninitialized sentinel values.
+
+## 6.0.0-nullsafety.1
+- *breaking* Null safety migration, take two. Assume all object fields are nullable.
+
+## 6.0.0-nullsafety-dev
+- *breaking* Migrate to use null safety.
+
+## 5.5.1
+- Fix issue where `VmService.onDone` could complete before the provided `DisposeHandler` had finished executing.
+
+## 5.5.0
+- Update to version `3.42.0` of the spec.
+- Added optional `limit` parameter to `getStack` RPC.
+
+## 5.4.0
+- Update to version `3.41.0` of the spec.
+- Added `PortList` class.
+- Added `getPorts` RPC.
+- Added optional properties `portId`, `allocationLocation`, and `debugName` to
+  `InstanceRef` and `Instance`.
+
+## 5.3.1
+- Rename `State` class to `_State` to avoid class name conflicts with Flutter.
+
+## 5.3.0
+- Added support for `dart:io` extensions version 1.5.
+- Added combination getter/setter `socketProfilingEnabled`.
+- Deprecated `startSocketProfiling` and `pauseSocketProfiling`.
+- Update to version `3.40.0` of the spec.
+- Added `IsolateFlag` class.
+- Added `isolateFlags` property to `Isolate`.
+
+## 5.2.0
+- Added support for `dart:io` extensions version 1.3.
+- Added combination getter/setter `httpEnableTimelineLogging`.
+- Deprecated `getHttpEnableTimelineLogging` and `setHttpEnableTimelineLogging`.
+
+## 5.1.0
+- Added support for `dart:io` extensions version 1.2.
+- Added `getOpenFiles`, `getOpenFileById`, `getSpawnedProcesses`, and `getSpawnedProcessById` RPCs.
+- Added `OpenFileList`, `OpenFileRef`, `OpenFile`, `SpawnedProcessList`, `SpawnedProcessRef`, and `SpawnedProcess` objects.
+
 ## 5.0.0
 
 - **breaking**: Update to version `3.39.0` of the spec.

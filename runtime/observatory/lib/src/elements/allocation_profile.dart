@@ -37,20 +37,20 @@ enum _SortingField {
 enum _SortingDirection { ascending, descending }
 
 class AllocationProfileElement extends CustomElement implements Renderable {
-  RenderingScheduler<AllocationProfileElement> _r;
+  late RenderingScheduler<AllocationProfileElement> _r;
 
   Stream<RenderedEvent<AllocationProfileElement>> get onRendered =>
       _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.AllocationProfileRepository _repository;
-  M.AllocationProfile _profile;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.AllocationProfileRepository _repository;
+  M.AllocationProfile? _profile;
   bool _autoRefresh = false;
   bool _isCompacted = false;
-  StreamSubscription _gcSubscription;
+  late StreamSubscription _gcSubscription;
   _SortingField _sortingField = _SortingField.size;
   _SortingDirection _sortingDirection = _SortingDirection.descending;
 
@@ -64,7 +64,7 @@ class AllocationProfileElement extends CustomElement implements Renderable {
       M.EventRepository events,
       M.NotificationRepository notifications,
       M.AllocationProfileRepository repository,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -163,9 +163,9 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                             ..text = 'last forced GC at',
                           new DivElement()
                             ..classes = ['memberValue']
-                            ..text = _profile.lastServiceGC == null
+                            ..text = _profile!.lastServiceGC == null
                                 ? '---'
-                                : '${_profile.lastServiceGC}',
+                                : '${_profile!.lastServiceGC}',
                         ],
                     ],
                   new HRElement(),
@@ -179,14 +179,14 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                   ? [
                       new HeadingElement.h2()
                         ..text = 'New Generation '
-                            '(${_usedCaption(_profile.newSpace)})',
+                            '(${_usedCaption(_profile!.newSpace)})',
                     ]
                   : [
                       new HeadingElement.h2()..text = 'New Generation',
                       new BRElement(),
                       new DivElement()
                         ..classes = ['memberList']
-                        ..children = _createSpaceMembers(_profile.newSpace),
+                        ..children = _createSpaceMembers(_profile!.newSpace),
                     ],
             new DivElement()
               ..classes = ['heap-space', 'left']
@@ -194,14 +194,14 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                   ? [
                       new HeadingElement.h2()
                         ..text = 'Old Generation '
-                            '(${_usedCaption(_profile.oldSpace)})',
+                            '(${_usedCaption(_profile!.oldSpace)})',
                     ]
                   : [
                       new HeadingElement.h2()..text = 'Old Generation',
                       new BRElement(),
                       new DivElement()
                         ..classes = ['memberList']
-                        ..children = _createSpaceMembers(_profile.oldSpace),
+                        ..children = _createSpaceMembers(_profile!.oldSpace),
                     ],
             new DivElement()
               ..classes = ['heap-space', 'left']
@@ -209,14 +209,14 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                   ? [
                       new HeadingElement.h2()
                         ..text = 'Total '
-                            '(${_usedCaption(_profile.totalSpace)})',
+                            '(${_usedCaption(_profile!.totalSpace)})',
                     ]
                   : [
                       new HeadingElement.h2()..text = 'Total',
                       new BRElement(),
                       new DivElement()
                         ..classes = ['memberList']
-                        ..children = _createSpaceMembers(_profile.totalSpace),
+                        ..children = _createSpaceMembers(_profile!.totalSpace),
                     ],
             new ButtonElement()
               ..classes = ['compact']
@@ -234,7 +234,7 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                     _createCollectionLine, _updateCollectionLine,
                     createHeader: _createCollectionHeader,
                     search: _search,
-                    items: _profile.members.toList()..sort(_createSorter()),
+                    items: _profile!.members.toList()..sort(_createSorter()),
                     queue: _r.queue)
                 .element
           ]
@@ -282,7 +282,7 @@ class AllocationProfileElement extends CustomElement implements Renderable {
         getter = _getInstances;
         break;
       case _SortingField.className:
-        getter = (M.ClassHeapStats s) => s.clazz.name;
+        getter = (M.ClassHeapStats s) => s.clazz!.name;
         break;
     }
     switch (_sortingDirection) {
@@ -432,14 +432,14 @@ class AllocationProfileElement extends CustomElement implements Renderable {
     e.children[9].text = Utils.formatSize(_getExternalSize(item));
     e.children[10].text = Utils.formatSize(_getSize(item));
     e.children[11].text = '${_getInstances(item)}';
-    e.children[12] = new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
+    e.children[12] = new ClassRefElement(_isolate, item.clazz!, queue: _r.queue)
         .element
       ..classes = ['name'];
   }
 
   bool _search(Pattern pattern, itemDynamic) {
     M.ClassHeapStats item = itemDynamic;
-    return item.clazz.name.contains(pattern);
+    return item.clazz!.name!.contains(pattern);
   }
 
   static String _usedCaption(M.HeapSpace space) =>
@@ -526,11 +526,11 @@ class AllocationProfileElement extends CustomElement implements Renderable {
           'Class'
         ].join(',') +
         '\n';
-    AnchorElement tl = document.createElement('a');
+    AnchorElement tl = document.createElement('a') as AnchorElement;
     tl
       ..attributes['href'] = 'data:text/plain;charset=utf-8,' +
           Uri.encodeComponent(header +
-              (_profile.members.toList()..sort(_createSorter()))
+              (_profile!.members.toList()..sort(_createSorter()))
                   .map(_csvOut)
                   .join('\n'))
       ..attributes['download'] = 'heap-profile.csv'
@@ -551,7 +551,7 @@ class AllocationProfileElement extends CustomElement implements Renderable {
       _getExternalSize(s),
       _getSize(s),
       _getInstances(s),
-      s.clazz.name
+      s.clazz!.name
     ].join(',');
   }
 

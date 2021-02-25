@@ -17,6 +17,7 @@
 
 #include "vm/clustered_snapshot.h"
 #include "vm/dart_api_impl.h"
+#include "vm/datastream.h"
 #include "vm/stack_frame.h"
 #include "vm/timer.h"
 
@@ -84,108 +85,6 @@ static char* ComputeKernelServicePath(const char* arg) {
     return NULL;
   }
   return Utils::StrDup(buffer);
-}
-
-// This file is created by the target //runtime/bin:gen_kernel_bytecode_dill
-// which is depended on by run_vm_tests.
-static char* ComputeGenKernelKernelPath(const char* arg) {
-  char buffer[2048];
-  char* gen_kernel_path = Utils::StrDup(File::GetCanonicalPath(NULL, arg));
-  EXPECT(gen_kernel_path != NULL);
-  const char* compiler_path = "%s%sgen_kernel_bytecode.dill";
-  const char* path_separator = File::PathSeparator();
-  ASSERT(path_separator != NULL && strlen(path_separator) == 1);
-  char* ptr = strrchr(gen_kernel_path, *path_separator);
-  while (ptr != NULL) {
-    *ptr = '\0';
-    Utils::SNPrint(buffer, ARRAY_SIZE(buffer), compiler_path, gen_kernel_path,
-                   path_separator);
-    if (File::Exists(NULL, buffer)) {
-      break;
-    }
-    ptr = strrchr(gen_kernel_path, *path_separator);
-  }
-  free(gen_kernel_path);
-  if (ptr == NULL) {
-    return NULL;
-  }
-  return Utils::StrDup(buffer);
-}
-
-static int64_t GenKernelKernelBenchmark(const char* name,
-                                        bool benchmark_load,
-                                        bool benchmark_read_bytecode) {
-  EXPECT(benchmark_load || benchmark_read_bytecode);
-  bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
-  bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
-  bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
-  bin::VmService::SetNativeResolver();
-
-  char* dill_path = ComputeGenKernelKernelPath(Benchmark::Executable());
-  File* file = File::Open(NULL, dill_path, File::kRead);
-  EXPECT(file != NULL);
-  bin::RefCntReleaseScope<File> rs(file);
-  intptr_t kernel_buffer_size = file->Length();
-  uint8_t* kernel_buffer =
-      reinterpret_cast<uint8_t*>(malloc(kernel_buffer_size));
-  EXPECT(kernel_buffer != NULL);
-  bool read_fully = file->ReadFully(kernel_buffer, kernel_buffer_size);
-  EXPECT(read_fully);
-
-  Timer timer(true, name);
-  if (benchmark_load) {
-    timer.Start();
-  }
-
-  Dart_Handle result =
-      Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
-  EXPECT_VALID(result);
-
-  result = Dart_FinalizeLoading(false);
-  EXPECT_VALID(result);
-
-  if (benchmark_read_bytecode && !benchmark_load) {
-    timer.Start();
-  }
-
-  if (benchmark_read_bytecode) {
-    result = Dart_ReadAllBytecode();
-    EXPECT_VALID(result);
-  }
-
-  timer.Stop();
-  int64_t elapsed_time = timer.TotalElapsedTime();
-  free(dill_path);
-  free(kernel_buffer);
-  return elapsed_time;
-}
-
-BENCHMARK(GenKernelKernelLoadKernel) {
-  benchmark->set_score(
-      GenKernelKernelBenchmark("GenKernelKernelLoadKernel benchmark",
-                               /* benchmark_load */ true,
-                               /* benchmark_read_bytecode */ false));
-}
-
-BENCHMARK(GenKernelKernelReadAllBytecode) {
-  benchmark->set_score(
-      GenKernelKernelBenchmark("GenKernelKernelReadAllBytecode benchmark",
-                               /* benchmark_load */ false,
-                               /* benchmark_read_bytecode */ true));
-}
-
-BENCHMARK(GenKernelKernelCombined) {
-  benchmark->set_score(
-      GenKernelKernelBenchmark("GenKernelKernelCombined benchmark",
-                               /* benchmark_load */ true,
-                               /* benchmark_read_bytecode */ true));
-}
-
-BENCHMARK_MEMORY(GenKernelKernelMaxRSS) {
-  GenKernelKernelBenchmark("GenKernelKernelMaxRSS benchmark",
-                           /* benchmark_load */ false,
-                           /* benchmark_read_bytecode */ true);
-  benchmark->set_score(bin::Process::MaxRSS());
 }
 
 //
@@ -302,9 +201,7 @@ BENCHMARK(UseDartApi) {
   benchmark->set_score(elapsed_time);
 }
 
-static void NoopFinalizer(void* isolate_callback_data,
-                          Dart_WeakPersistentHandle handle,
-                          void* peer) {}
+static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
 
 //
 // Measure time accessing internal and external strings.
@@ -373,7 +270,6 @@ BENCHMARK(KernelServiceCompileAll) {
   intptr_t kernel_buffer_size = file->Length();
   uint8_t* kernel_buffer =
       reinterpret_cast<uint8_t*>(malloc(kernel_buffer_size));
-  EXPECT(kernel_buffer != NULL);
   bool read_fully = file->ReadFully(kernel_buffer, kernel_buffer_size);
   EXPECT(read_fully);
   Dart_Handle result =
@@ -414,7 +310,6 @@ static void StackFrame_accessFrame(Dart_NativeArguments args) {
     TransitionNativeToVM transition(thread);
     const int kNumIterations = 100;
     Code& code = Code::Handle(thread->zone());
-    Bytecode& bytecode = Bytecode::Handle(thread->zone());
     for (int i = 0; i < kNumIterations; i++) {
       StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
                                 StackFrameIterator::kNoCrossThreadIteration);
@@ -424,13 +319,8 @@ static void StackFrame_accessFrame(Dart_NativeArguments args) {
           code = frame->LookupDartCode();
           EXPECT(code.function() == Function::null());
         } else if (frame->IsDartFrame()) {
-          if (frame->is_interpreted()) {
-            bytecode = frame->LookupDartBytecode();
-            EXPECT(bytecode.function() != Function::null());
-          } else {
-            code = frame->LookupDartCode();
-            EXPECT(code.function() != Function::null());
-          }
+          code = frame->LookupDartCode();
+          EXPECT(code.function() != Function::null());
         }
         frame = frames.NextFrame();
       }
@@ -500,12 +390,6 @@ BENCHMARK(FrameLookup) {
   benchmark->set_score(elapsed_time);
 }
 
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  return reinterpret_cast<uint8_t*>(realloc(ptr, new_size));
-}
-
 BENCHMARK_SIZE(CoreSnapshotSize) {
   const char* kScriptChars =
       "import 'dart:async';\n"
@@ -519,8 +403,6 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
       "\n";
 
   // Start an Isolate, load a script and create a full snapshot.
-  uint8_t* vm_snapshot_data_buffer;
-  uint8_t* isolate_snapshot_data_buffer;
   // Need to load the script into the dart: core library due to
   // the import of dart:_internal.
   TestCase::LoadCoreTestScript(kScriptChars, NULL);
@@ -532,17 +414,16 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
   Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
-  FullSnapshotWriter writer(Snapshot::kFull, &vm_snapshot_data_buffer,
-                            &isolate_snapshot_data_buffer, &malloc_allocator,
-                            NULL, NULL /* image_writer */);
+  MallocWriteStream vm_snapshot_data(FullSnapshotWriter::kInitialSize);
+  MallocWriteStream isolate_snapshot_data(FullSnapshotWriter::kInitialSize);
+  FullSnapshotWriter writer(
+      Snapshot::kFullCore, &vm_snapshot_data, &isolate_snapshot_data,
+      /*vm_image_writer=*/nullptr, /*iso_image_writer=*/nullptr);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot =
-      Snapshot::SetupFromBuffer(isolate_snapshot_data_buffer);
-  ASSERT(snapshot->kind() == Snapshot::kFull);
+      Snapshot::SetupFromBuffer(isolate_snapshot_data.buffer());
+  ASSERT(snapshot->kind() == Snapshot::kFullCore);
   benchmark->set_score(snapshot->length());
-
-  free(vm_snapshot_data_buffer);
-  free(isolate_snapshot_data_buffer);
 }
 
 BENCHMARK_SIZE(StandaloneSnapshotSize) {
@@ -560,8 +441,6 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
       "\n";
 
   // Start an Isolate, load a script and create a full snapshot.
-  uint8_t* vm_snapshot_data_buffer;
-  uint8_t* isolate_snapshot_data_buffer;
   // Need to load the script into the dart: core library due to
   // the import of dart:_internal.
   TestCase::LoadCoreTestScript(kScriptChars, NULL);
@@ -573,17 +452,16 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
   Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
-  FullSnapshotWriter writer(Snapshot::kFull, &vm_snapshot_data_buffer,
-                            &isolate_snapshot_data_buffer, &malloc_allocator,
-                            NULL, NULL /* image_writer */);
+  MallocWriteStream vm_snapshot_data(FullSnapshotWriter::kInitialSize);
+  MallocWriteStream isolate_snapshot_data(FullSnapshotWriter::kInitialSize);
+  FullSnapshotWriter writer(
+      Snapshot::kFullCore, &vm_snapshot_data, &isolate_snapshot_data,
+      /*vm_image_writer=*/nullptr, /*iso_image_writer=*/nullptr);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot =
-      Snapshot::SetupFromBuffer(isolate_snapshot_data_buffer);
-  ASSERT(snapshot->kind() == Snapshot::kFull);
+      Snapshot::SetupFromBuffer(isolate_snapshot_data.buffer());
+  ASSERT(snapshot->kind() == Snapshot::kFullCore);
   benchmark->set_score(snapshot->length());
-
-  free(vm_snapshot_data_buffer);
-  free(isolate_snapshot_data_buffer);
 }
 
 BENCHMARK(CreateMirrorSystem) {

@@ -20,7 +20,7 @@ class ReplaceIfElseWithConditionalTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL;
 
   Future<void> test_assignment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   int vvv;
   if (true) {
@@ -39,7 +39,7 @@ main() {
   }
 
   Future<void> test_expressionVsReturn() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (true) {
     print(42);
@@ -52,7 +52,7 @@ main() {
   }
 
   Future<void> test_notIfStatement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print(0);
 }
@@ -61,7 +61,7 @@ main() {
   }
 
   Future<void> test_notSingleStatement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   int vvv;
   if (true) {
@@ -77,7 +77,7 @@ main() {
   }
 
   Future<void> test_return() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (true) {
     return 111;

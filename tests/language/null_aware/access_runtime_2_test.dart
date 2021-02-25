@@ -28,7 +28,7 @@ main() {
 
   // e1?.id is equivalent to ((x) => x == null ? null : x.id)(e1).
 
-  C? c = new C(1);
+  var c = new C(1) as C?;
   Expect.equals(1, c?.v);
 
   // C?.id is equivalent to C.id.

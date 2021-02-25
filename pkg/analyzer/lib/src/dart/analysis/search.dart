@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -31,7 +32,8 @@ class Search {
   Search(this._driver);
 
   /// Returns class or mixin members with the given [name].
-  Future<List<Element>> classMembers(String name) async {
+  Future<List<Element>> classMembers(
+      String name, SearchedFiles searchedFiles) async {
     List<Element> elements = <Element>[];
 
     void addElement(Element element) {
@@ -48,10 +50,12 @@ class Search {
 
     List<String> files = await _driver.getFilesDefiningClassMemberName(name);
     for (String file in files) {
-      UnitElementResult unitResult = await _driver.getUnitElement(file);
-      if (unitResult != null) {
-        unitResult.element.types.forEach(addElements);
-        unitResult.element.mixins.forEach(addElements);
+      if (searchedFiles.add(file, this)) {
+        UnitElementResult unitResult = await _driver.getUnitElement(file);
+        if (unitResult != null) {
+          unitResult.element.types.forEach(addElements);
+          unitResult.element.mixins.forEach(addElements);
+        }
       }
     }
     return elements;
@@ -65,11 +69,11 @@ class Search {
     }
 
     ElementKind kind = element.kind;
-    if (kind == ElementKind.CLASS ||
-        kind == ElementKind.CONSTRUCTOR ||
-        kind == ElementKind.EXTENSION ||
-        kind == ElementKind.FUNCTION_TYPE_ALIAS ||
-        kind == ElementKind.SETTER) {
+    if (element is ClassElement ||
+        element is ConstructorElement ||
+        element is ExtensionElement ||
+        element is PropertyAccessorElement && element.isSetter ||
+        element is TypeAliasElement) {
       return _searchReferences(element, searchedFiles);
     } else if (kind == ElementKind.COMPILATION_UNIT) {
       return _searchReferences_CompilationUnit(element);
@@ -175,9 +179,9 @@ class Search {
         unitElement.enums.forEach(addElement);
         unitElement.extensions.forEach(addElement);
         unitElement.functions.forEach(addElement);
-        unitElement.functionTypeAliases.forEach(addElement);
         unitElement.mixins.forEach(addElement);
         unitElement.topLevelVariables.forEach(addElement);
+        unitElement.typeAliases.forEach(addElement);
         unitElement.types.forEach(addElement);
       }
     }
@@ -245,7 +249,7 @@ class Search {
       }
     } else {
       files = await _driver.getFilesReferencingName(name);
-      if (!files.contains(path)) {
+      if (searchedFiles.add(path, this) && !files.contains(path)) {
         files.add(path);
       }
     }
@@ -452,7 +456,7 @@ class Search {
       },
       searchedFiles,
     ));
-    if (parameter.isOptional) {
+    if (parameter.isNamed || parameter.isOptionalPositional) {
       results.addAll(await _searchReferences(parameter, searchedFiles));
     }
     return results;
@@ -496,9 +500,12 @@ class SearchedFiles {
     return identical(pathOwner, search) && identical(uriOwner, search);
   }
 
-  void ownAdded(Search search) {
-    for (var path in search._driver.addedFiles) {
-      add(path, search);
+  void ownAnalyzed(Search search) {
+    var contextRoot = search._driver.analysisContext.contextRoot;
+    for (var path in contextRoot.analyzedFiles()) {
+      if (path.endsWith('.dart')) {
+        add(path, search);
+      }
     }
   }
 }
@@ -620,7 +627,7 @@ class _ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
       if (node.staticElement == importElement.prefix) {
         AstNode parent = node.parent;
         if (parent is PrefixedIdentifier && parent.prefix == node) {
-          var element = parent.staticElement?.declaration;
+          var element = parent.writeOrReadElement?.declaration;
           if (importedElements.contains(element)) {
             _addResultForPrefix(node, parent.identifier);
           }
@@ -633,7 +640,7 @@ class _ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
         }
       }
     } else {
-      var element = node.staticElement?.declaration;
+      var element = node.writeOrReadElement?.declaration;
       if (importedElements.contains(element)) {
         _addResult(node.offset, 0);
       }

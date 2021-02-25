@@ -29,6 +29,14 @@ import 'package:meta/meta.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartType {
+  /// If this type is an instantiation of a type alias, return the type
+  /// arguments used for the instantiation. Otherwise return `null`.
+  List<DartType> get aliasArguments;
+
+  /// If this type is an instantiation of a type alias, return it.
+  /// Otherwise return `null`.
+  TypeAliasElement get aliasElement;
+
   /// Return the name of this type as it should appear when presented to users
   /// in contexts such as error messages.
   ///

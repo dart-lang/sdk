@@ -21,7 +21,7 @@ class LanguageError;
 class Instance;
 class Integer;
 class ReadStream;
-class WriteStream;
+class BaseWriteStream;
 class String;
 class Thread;
 class TypedData;
@@ -67,7 +67,8 @@ class Exceptions : AllStatic {
     kAbstractClassInstantiation,
     kCyclicInitializationError,
     kCompileTimeError,
-    kLateInitializationError,
+    kLateFieldAssignedDuringInitialization,
+    kLateFieldNotInitialized,
   };
 
   DART_NORETURN static void ThrowByType(ExceptionType type,
@@ -83,10 +84,12 @@ class Exceptions : AllStatic {
                                             intptr_t expected_to);
   DART_NORETURN static void ThrowUnsupportedError(const char* msg);
   DART_NORETURN static void ThrowCompileTimeError(const LanguageError& error);
-  DART_NORETURN static void ThrowLateInitializationError(const String& name);
+  DART_NORETURN static void ThrowLateFieldAssignedDuringInitialization(
+      const String& name);
+  DART_NORETURN static void ThrowLateFieldNotInitialized(const String& name);
 
-  // Returns a RawInstance if the exception is successfully created,
-  // otherwise returns a RawError.
+  // Returns an InstancePtr if the exception is successfully created,
+  // otherwise returns an ErrorPtr.
   static ObjectPtr Create(ExceptionType type, const Array& arguments);
 
   // Returns RawUnhandledException that wraps exception of type [type] with
@@ -203,7 +206,7 @@ class CatchEntryMove {
   static CatchEntryMove ReadFrom(ReadStream* stream);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  void WriteTo(WriteStream* stream);
+  void WriteTo(BaseWriteStream* stream);
 #endif
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)

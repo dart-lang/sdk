@@ -2,50 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.transform_collections;
 
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/ast.dart'
-    show
-        Arguments,
-        AsExpression,
-        Block,
-        BlockExpression,
-        Class,
-        ConditionalExpression,
-        DartType,
-        DynamicType,
-        Expression,
-        ExpressionStatement,
-        Field,
-        ForInStatement,
-        ForStatement,
-        IfStatement,
-        InterfaceType,
-        Let,
-        Library,
-        ListConcatenation,
-        ListLiteral,
-        MapConcatenation,
-        MapEntry,
-        MapLiteral,
-        MethodInvocation,
-        Name,
-        Not,
-        NullLiteral,
-        Procedure,
-        PropertyGet,
-        SetConcatenation,
-        SetLiteral,
-        Statement,
-        StaticInvocation,
-        transformList,
-        TreeNode,
-        VariableDeclaration,
-        VariableGet;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/src/legacy_erasure.dart';
+import 'package:kernel/type_algebra.dart';
 
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
@@ -72,18 +39,28 @@ import '../source/source_loader.dart';
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 class CollectionTransformer extends Transformer {
-  final CoreTypes coreTypes;
-  final TypeEnvironment typeEnvironment;
-  final Procedure listAdd;
-  final Procedure setFactory;
-  final Procedure setAdd;
-  final Procedure objectEquals;
-  final Procedure mapEntries;
-  final Procedure mapPut;
-  final Class mapEntryClass;
-  final Field mapEntryKey;
-  final Field mapEntryValue;
-  final SourceLoaderDataForTesting dataForTesting;
+  final SourceLoader _loader;
+  final TypeEnvironment _typeEnvironment;
+  final Procedure _listAdd;
+  FunctionType _listAddFunctionType;
+  final Procedure _listAddAll;
+  FunctionType _listAddAllFunctionType;
+  final Procedure _listOf;
+  final Procedure _setFactory;
+  final Procedure _setAdd;
+  FunctionType _setAddFunctionType;
+  final Procedure _setAddAll;
+  FunctionType _setAddAllFunctionType;
+  final Procedure _setOf;
+  final Procedure _objectEquals;
+  final Procedure _mapEntries;
+  final Procedure _mapPut;
+  FunctionType _mapPutFunctionType;
+  final Class _mapEntryClass;
+  final Field _mapEntryKey;
+  final Field _mapEntryValue;
+  final SourceLoaderDataForTesting _dataForTesting;
+  final bool useNewMethodInvocationEncoding;
 
   /// Library that contains the transformed nodes.
   ///
@@ -91,99 +68,185 @@ class CollectionTransformer extends Transformer {
   /// the library.
   Library _currentLibrary;
 
-  static Procedure _findSetFactory(CoreTypes coreTypes) {
-    Procedure factory = coreTypes.index.getMember('dart:core', 'Set', '');
+  static Procedure _findSetFactory(CoreTypes coreTypes, String name) {
+    Procedure factory = coreTypes.index.getMember('dart:core', 'Set', name);
     RedirectingFactoryBody body = factory?.function?.body;
     return body?.target;
   }
 
-  CollectionTransformer(SourceLoader loader)
-      : coreTypes = loader.coreTypes,
-        typeEnvironment = loader.typeInferenceEngine.typeSchemaEnvironment,
-        listAdd = loader.coreTypes.index.getMember('dart:core', 'List', 'add'),
-        setFactory = _findSetFactory(loader.coreTypes),
-        setAdd = loader.coreTypes.index.getMember('dart:core', 'Set', 'add'),
-        objectEquals =
-            loader.coreTypes.index.getMember('dart:core', 'Object', '=='),
-        mapEntries =
-            loader.coreTypes.index.getMember('dart:core', 'Map', 'get:entries'),
-        mapPut = loader.coreTypes.index.getMember('dart:core', 'Map', '[]='),
-        mapEntryClass =
-            loader.coreTypes.index.getClass('dart:core', 'MapEntry'),
-        mapEntryKey =
-            loader.coreTypes.index.getMember('dart:core', 'MapEntry', 'key'),
-        mapEntryValue =
-            loader.coreTypes.index.getMember('dart:core', 'MapEntry', 'value'),
-        dataForTesting = loader.dataForTesting;
+  CollectionTransformer(this._loader)
+      : _typeEnvironment = _loader.typeInferenceEngine.typeSchemaEnvironment,
+        _listAdd =
+            _loader.coreTypes.index.getMember('dart:core', 'List', 'add'),
+        _listAddAll =
+            _loader.coreTypes.index.getMember('dart:core', 'List', 'addAll'),
+        _listOf = _loader.coreTypes.index.getMember('dart:core', 'List', 'of'),
+        _setFactory = _findSetFactory(_loader.coreTypes, ''),
+        _setAdd = _loader.coreTypes.index.getMember('dart:core', 'Set', 'add'),
+        _setAddAll =
+            _loader.coreTypes.index.getMember('dart:core', 'Set', 'addAll'),
+        _setOf = _findSetFactory(_loader.coreTypes, 'of'),
+        _objectEquals =
+            _loader.coreTypes.index.getMember('dart:core', 'Object', '=='),
+        _mapEntries = _loader.coreTypes.index
+            .getMember('dart:core', 'Map', 'get:entries'),
+        _mapPut = _loader.coreTypes.index.getMember('dart:core', 'Map', '[]='),
+        _mapEntryClass =
+            _loader.coreTypes.index.getClass('dart:core', 'MapEntry'),
+        _mapEntryKey =
+            _loader.coreTypes.index.getMember('dart:core', 'MapEntry', 'key'),
+        _mapEntryValue =
+            _loader.coreTypes.index.getMember('dart:core', 'MapEntry', 'value'),
+        _dataForTesting = _loader.dataForTesting,
+        useNewMethodInvocationEncoding =
+            _loader.target.backendTarget.supportsNewMethodInvocationEncoding {
+    _listAddFunctionType = _listAdd.getterType;
+    _listAddAllFunctionType = _listAddAll.getterType;
+    _setAddFunctionType = _setAdd.getterType;
+    _setAddAllFunctionType = _setAddAll.getterType;
+    _mapPutFunctionType = _mapPut.getterType;
+  }
 
   TreeNode _translateListOrSet(
       Expression node, DartType elementType, List<Expression> elements,
       {bool isSet: false}) {
     // Translate elements in place up to the first non-expression, if any.
-    int i = 0;
-    for (; i < elements.length; ++i) {
-      if (elements[i] is ControlFlowElement) break;
-      elements[i] = elements[i].accept<TreeNode>(this)..parent = node;
+    int index = 0;
+    for (; index < elements.length; ++index) {
+      if (elements[index] is ControlFlowElement) break;
+      elements[index] = elements[index].accept<TreeNode>(this)..parent = node;
     }
 
     // If there were only expressions, we are done.
-    if (i == elements.length) return node;
+    if (index == elements.length) return node;
 
-    // Build a block expression and create an empty list or set.
+    InterfaceType receiverType = isSet
+        ? _typeEnvironment.setType(elementType, _currentLibrary.nonNullable)
+        : _typeEnvironment.listType(elementType, _currentLibrary.nonNullable);
     VariableDeclaration result;
-    if (isSet) {
-      result = _createVariable(
-          _createSetLiteral(node.fileOffset, elementType, []),
-          typeEnvironment.setType(elementType, _currentLibrary.nonNullable));
-    } else {
-      result = _createVariable(
-          _createListLiteral(node.fileOffset, elementType, []),
-          typeEnvironment.listType(elementType, _currentLibrary.nonNullable));
+    if (index == 0 && elements[index] is SpreadElement) {
+      SpreadElement initialSpread = elements[index];
+      final bool typeMatches = initialSpread.elementType != null &&
+          _typeEnvironment.isSubtypeOf(initialSpread.elementType, elementType,
+              SubtypeCheckMode.withNullabilities);
+      if (typeMatches && !initialSpread.isNullAware) {
+        // Create a list or set of the initial spread element.
+        Expression value = initialSpread.expression.accept<TreeNode>(this);
+        index++;
+        if (isSet) {
+          result = _createVariable(
+              new StaticInvocation(
+                  _setOf,
+                  new Arguments([value], types: [elementType])
+                    ..fileOffset = node.fileOffset)
+                ..fileOffset = node.fileOffset,
+              receiverType);
+        } else {
+          result = _createVariable(
+              new StaticInvocation(
+                  _listOf,
+                  new Arguments([value], types: [elementType])
+                    ..fileOffset = node.fileOffset)
+                ..fileOffset = node.fileOffset,
+              receiverType);
+        }
+      }
     }
-    List<Statement> body = [result];
-    // Add the elements up to the first non-expression.
-    for (int j = 0; j < i; ++j) {
-      _addExpressionElement(elements[j], isSet, result, body);
+    List<Statement> body;
+    if (result == null) {
+      // Create a list or set with the elements up to the first non-expression.
+      if (isSet) {
+        if (_loader.target.backendTarget.supportsSetLiterals) {
+          // Include the elements up to the first non-expression in the set
+          // literal.
+          result = _createVariable(
+              _createSetLiteral(
+                  node.fileOffset, elementType, elements.sublist(0, index)),
+              receiverType);
+        } else {
+          // TODO(johnniwinther): When all the back ends handle set literals we
+          //  can use remove this branch.
+
+          // Create an empty set using the [setFactory] constructor.
+          result = _createVariable(
+              new StaticInvocation(
+                  _setFactory,
+                  new Arguments([], types: [elementType])
+                    ..fileOffset = node.fileOffset)
+                ..fileOffset = node.fileOffset,
+              receiverType);
+          body = [result];
+          // Add the elements up to the first non-expression.
+          for (int j = 0; j < index; ++j) {
+            _addExpressionElement(
+                elements[j], receiverType, isSet, result, body);
+          }
+        }
+      } else {
+        // Include the elements up to the first non-expression in the list
+        // literal.
+        result = _createVariable(
+            _createListLiteral(
+                node.fileOffset, elementType, elements.sublist(0, index)),
+            receiverType);
+      }
     }
+    body ??= [result];
     // Translate the elements starting with the first non-expression.
-    for (; i < elements.length; ++i) {
-      _translateElement(elements[i], elementType, isSet, result, body);
+    for (; index < elements.length; ++index) {
+      _translateElement(
+          elements[index], receiverType, elementType, isSet, result, body);
     }
 
     return _createBlockExpression(
         node.fileOffset, _createBlock(body), _createVariableGet(result));
   }
 
-  void _translateElement(Expression element, DartType elementType, bool isSet,
-      VariableDeclaration result, List<Statement> body) {
+  void _translateElement(
+      Expression element,
+      InterfaceType receiverType,
+      DartType elementType,
+      bool isSet,
+      VariableDeclaration result,
+      List<Statement> body) {
     if (element is SpreadElement) {
-      _translateSpreadElement(element, elementType, isSet, result, body);
+      _translateSpreadElement(
+          element, receiverType, elementType, isSet, result, body);
     } else if (element is IfElement) {
-      _translateIfElement(element, elementType, isSet, result, body);
+      _translateIfElement(
+          element, receiverType, elementType, isSet, result, body);
     } else if (element is ForElement) {
-      _translateForElement(element, elementType, isSet, result, body);
+      _translateForElement(
+          element, receiverType, elementType, isSet, result, body);
     } else if (element is ForInElement) {
-      _translateForInElement(element, elementType, isSet, result, body);
+      _translateForInElement(
+          element, receiverType, elementType, isSet, result, body);
     } else {
       _addExpressionElement(
-          element.accept<TreeNode>(this), isSet, result, body);
+          element.accept<TreeNode>(this), receiverType, isSet, result, body);
     }
   }
 
-  void _addExpressionElement(Expression element, bool isSet,
-      VariableDeclaration result, List<Statement> body) {
+  void _addExpressionElement(Expression element, InterfaceType receiverType,
+      bool isSet, VariableDeclaration result, List<Statement> body) {
     body.add(_createExpressionStatement(
-        _createAdd(_createVariableGet(result), element, isSet)));
+        _createAdd(_createVariableGet(result), receiverType, element, isSet)));
   }
 
-  void _translateIfElement(IfElement element, DartType elementType, bool isSet,
-      VariableDeclaration result, List<Statement> body) {
+  void _translateIfElement(
+      IfElement element,
+      InterfaceType receiverType,
+      DartType elementType,
+      bool isSet,
+      VariableDeclaration result,
+      List<Statement> body) {
     List<Statement> thenStatements = [];
-    _translateElement(element.then, elementType, isSet, result, thenStatements);
+    _translateElement(
+        element.then, receiverType, elementType, isSet, result, thenStatements);
     List<Statement> elseStatements;
     if (element.otherwise != null) {
-      _translateElement(element.otherwise, elementType, isSet, result,
-          elseStatements = <Statement>[]);
+      _translateElement(element.otherwise, receiverType, elementType, isSet,
+          result, elseStatements = <Statement>[]);
     }
     Statement thenBody = thenStatements.length == 1
         ? thenStatements.first
@@ -194,14 +257,22 @@ class CollectionTransformer extends Transformer {
           ? elseStatements.first
           : _createBlock(elseStatements);
     }
-    body.add(_createIf(element.fileOffset,
-        element.condition.accept<TreeNode>(this), thenBody, elseBody));
+    IfStatement ifStatement = _createIf(element.fileOffset,
+        element.condition.accept<TreeNode>(this), thenBody, elseBody);
+    _dataForTesting?.registerAlias(element, ifStatement);
+    body.add(ifStatement);
   }
 
-  void _translateForElement(ForElement element, DartType elementType,
-      bool isSet, VariableDeclaration result, List<Statement> body) {
+  void _translateForElement(
+      ForElement element,
+      InterfaceType receiverType,
+      DartType elementType,
+      bool isSet,
+      VariableDeclaration result,
+      List<Statement> body) {
     List<Statement> statements = <Statement>[];
-    _translateElement(element.body, elementType, isSet, result, statements);
+    _translateElement(
+        element.body, receiverType, elementType, isSet, result, statements);
     Statement loopBody =
         statements.length == 1 ? statements.first : _createBlock(statements);
     ForStatement loop = _createForStatement(
@@ -212,12 +283,17 @@ class CollectionTransformer extends Transformer {
         loopBody);
     transformList(loop.variables, this, loop);
     transformList(loop.updates, this, loop);
-    dataForTesting?.registerAlias(element, loop);
+    _dataForTesting?.registerAlias(element, loop);
     body.add(loop);
   }
 
-  void _translateForInElement(ForInElement element, DartType elementType,
-      bool isSet, VariableDeclaration result, List<Statement> body) {
+  void _translateForInElement(
+      ForInElement element,
+      InterfaceType receiverType,
+      DartType elementType,
+      bool isSet,
+      VariableDeclaration result,
+      List<Statement> body) {
     List<Statement> statements;
     Statement prologue = element.prologue;
     if (prologue == null) {
@@ -227,7 +303,8 @@ class CollectionTransformer extends Transformer {
       statements =
           prologue is Block ? prologue.statements : <Statement>[prologue];
     }
-    _translateElement(element.body, elementType, isSet, result, statements);
+    _translateElement(
+        element.body, receiverType, elementType, isSet, result, statements);
     Statement loopBody =
         statements.length == 1 ? statements.first : _createBlock(statements);
     if (element.problem != null) {
@@ -237,58 +314,94 @@ class CollectionTransformer extends Transformer {
     ForInStatement loop = _createForInStatement(element.fileOffset,
         element.variable, element.iterable.accept<TreeNode>(this), loopBody,
         isAsync: element.isAsync);
-    dataForTesting?.registerAlias(element, loop);
+    _dataForTesting?.registerAlias(element, loop);
     body.add(loop);
   }
 
-  void _translateSpreadElement(SpreadElement element, DartType elementType,
-      bool isSet, VariableDeclaration result, List<Statement> body) {
+  void _translateSpreadElement(
+      SpreadElement element,
+      InterfaceType receiverType,
+      DartType elementType,
+      bool isSet,
+      VariableDeclaration result,
+      List<Statement> body) {
     Expression value = element.expression.accept<TreeNode>(this);
 
     final bool typeMatches = element.elementType != null &&
-        typeEnvironment.isSubtypeOf(element.elementType, elementType,
+        _typeEnvironment.isSubtypeOf(element.elementType, elementType,
             SubtypeCheckMode.withNullabilities);
+    if (typeMatches) {
+      // If the type guarantees that all elements are of the required type, use
+      // a single 'addAll' call instead of a for-loop with calls to 'add'.
 
-    // Null-aware spreads require testing the subexpression's value.
-    VariableDeclaration temp;
-    if (element.isNullAware) {
-      temp = _createVariable(
-          value,
-          typeEnvironment.iterableType(
-              typeMatches ? elementType : const DynamicType(),
-              _currentLibrary.nullable));
-      body.add(temp);
-      value = _createNullCheckedVariableGet(temp);
-    }
+      // Null-aware spreads require testing the subexpression's value.
+      VariableDeclaration temp;
+      if (element.isNullAware) {
+        temp = _createVariable(
+            value,
+            _typeEnvironment.iterableType(
+                typeMatches ? elementType : const DynamicType(),
+                _currentLibrary.nullable));
+        body.add(temp);
+        value = _createNullCheckedVariableGet(temp);
+      }
 
-    VariableDeclaration variable;
-    Statement loopBody;
-    if (!typeMatches) {
-      variable = _createForInVariable(element.fileOffset, const DynamicType());
-      VariableDeclaration castedVar = _createVariable(
-          _createImplicitAs(element.expression.fileOffset,
-              _createVariableGet(variable), elementType),
-          elementType);
-      loopBody = _createBlock(<Statement>[
-        castedVar,
-        _createExpressionStatement(_createAdd(
-            _createVariableGet(result), _createVariableGet(castedVar), isSet))
-      ]);
+      Statement statement = _createExpressionStatement(_createAddAll(
+          _createVariableGet(result), receiverType, value, isSet));
+
+      if (element.isNullAware) {
+        statement = _createIf(
+            temp.fileOffset,
+            _createEqualsNull(_createVariableGet(temp), notEquals: true),
+            statement);
+      }
+      body.add(statement);
     } else {
-      variable = _createForInVariable(element.fileOffset, elementType);
-      loopBody = _createExpressionStatement(_createAdd(
-          _createVariableGet(result), _createVariableGet(variable), isSet));
-    }
-    Statement statement =
-        _createForInStatement(element.fileOffset, variable, value, loopBody);
+      // Null-aware spreads require testing the subexpression's value.
+      VariableDeclaration temp;
+      if (element.isNullAware) {
+        temp = _createVariable(
+            value,
+            _typeEnvironment.iterableType(
+                typeMatches ? elementType : const DynamicType(),
+                _currentLibrary.nullable));
+        body.add(temp);
+        value = _createNullCheckedVariableGet(temp);
+      }
 
-    if (element.isNullAware) {
-      statement = _createIf(
-          temp.fileOffset,
-          _createEqualsNull(_createVariableGet(temp), notEquals: true),
-          statement);
+      VariableDeclaration variable;
+      Statement loopBody;
+      if (!typeMatches) {
+        variable =
+            _createForInVariable(element.fileOffset, const DynamicType());
+        VariableDeclaration castedVar = _createVariable(
+            _createImplicitAs(element.expression.fileOffset,
+                _createVariableGet(variable), elementType),
+            elementType);
+        loopBody = _createBlock(<Statement>[
+          castedVar,
+          _createExpressionStatement(_createAdd(_createVariableGet(result),
+              receiverType, _createVariableGet(castedVar), isSet))
+        ]);
+      } else {
+        variable = _createForInVariable(element.fileOffset, elementType);
+        loopBody = _createExpressionStatement(_createAdd(
+            _createVariableGet(result),
+            receiverType,
+            _createVariableGet(variable),
+            isSet));
+      }
+      Statement statement =
+          _createForInStatement(element.fileOffset, variable, value, loopBody);
+
+      if (element.isNullAware) {
+        statement = _createIf(
+            temp.fileOffset,
+            _createEqualsNull(_createVariableGet(temp), notEquals: true),
+            statement);
+      }
+      body.add(statement);
     }
-    body.add(statement);
   }
 
   @override
@@ -330,52 +443,66 @@ class CollectionTransformer extends Transformer {
     if (i == node.entries.length) return node;
 
     // Build a block expression and create an empty map.
+    InterfaceType receiverType = _typeEnvironment.mapType(
+        node.keyType, node.valueType, _currentLibrary.nonNullable);
     VariableDeclaration result = _createVariable(
         _createMapLiteral(node.fileOffset, node.keyType, node.valueType, []),
-        typeEnvironment.mapType(
-            node.keyType, node.valueType, _currentLibrary.nonNullable));
+        receiverType);
     List<Statement> body = [result];
     // Add all the entries up to the first control-flow entry.
     for (int j = 0; j < i; ++j) {
-      _addNormalEntry(node.entries[j], result, body);
+      _addNormalEntry(node.entries[j], receiverType, result, body);
     }
     for (; i < node.entries.length; ++i) {
-      _translateEntry(
-          node.entries[i], node.keyType, node.valueType, result, body);
+      _translateEntry(node.entries[i], receiverType, node.keyType,
+          node.valueType, result, body);
     }
 
     return _createBlockExpression(
         node.fileOffset, _createBlock(body), _createVariableGet(result));
   }
 
-  void _translateEntry(MapEntry entry, DartType keyType, DartType valueType,
-      VariableDeclaration result, List<Statement> body) {
+  void _translateEntry(
+      MapEntry entry,
+      InterfaceType receiverType,
+      DartType keyType,
+      DartType valueType,
+      VariableDeclaration result,
+      List<Statement> body) {
     if (entry is SpreadMapEntry) {
-      _translateSpreadEntry(entry, keyType, valueType, result, body);
+      _translateSpreadEntry(
+          entry, receiverType, keyType, valueType, result, body);
     } else if (entry is IfMapEntry) {
-      _translateIfEntry(entry, keyType, valueType, result, body);
+      _translateIfEntry(entry, receiverType, keyType, valueType, result, body);
     } else if (entry is ForMapEntry) {
-      _translateForEntry(entry, keyType, valueType, result, body);
+      _translateForEntry(entry, receiverType, keyType, valueType, result, body);
     } else if (entry is ForInMapEntry) {
-      _translateForInEntry(entry, keyType, valueType, result, body);
+      _translateForInEntry(
+          entry, receiverType, keyType, valueType, result, body);
     } else {
-      _addNormalEntry(entry.accept<TreeNode>(this), result, body);
+      _addNormalEntry(entry.accept<TreeNode>(this), receiverType, result, body);
     }
   }
 
-  void _addNormalEntry(
-      MapEntry entry, VariableDeclaration result, List<Statement> body) {
-    body.add(_createExpressionStatement(_createIndexSet(
-        entry.fileOffset, _createVariableGet(result), entry.key, entry.value)));
+  void _addNormalEntry(MapEntry entry, InterfaceType receiverType,
+      VariableDeclaration result, List<Statement> body) {
+    body.add(_createExpressionStatement(_createIndexSet(entry.fileOffset,
+        _createVariableGet(result), receiverType, entry.key, entry.value)));
   }
 
-  void _translateIfEntry(IfMapEntry entry, DartType keyType, DartType valueType,
-      VariableDeclaration result, List<Statement> body) {
+  void _translateIfEntry(
+      IfMapEntry entry,
+      InterfaceType receiverType,
+      DartType keyType,
+      DartType valueType,
+      VariableDeclaration result,
+      List<Statement> body) {
     List<Statement> thenBody = [];
-    _translateEntry(entry.then, keyType, valueType, result, thenBody);
+    _translateEntry(
+        entry.then, receiverType, keyType, valueType, result, thenBody);
     List<Statement> elseBody;
     if (entry.otherwise != null) {
-      _translateEntry(entry.otherwise, keyType, valueType, result,
+      _translateEntry(entry.otherwise, receiverType, keyType, valueType, result,
           elseBody = <Statement>[]);
     }
     Statement thenStatement =
@@ -385,26 +512,39 @@ class CollectionTransformer extends Transformer {
       elseStatement =
           elseBody.length == 1 ? elseBody.first : _createBlock(elseBody);
     }
-    body.add(_createIf(entry.fileOffset, entry.condition.accept<TreeNode>(this),
-        thenStatement, elseStatement));
+    IfStatement ifStatement = _createIf(entry.fileOffset,
+        entry.condition.accept<TreeNode>(this), thenStatement, elseStatement);
+    _dataForTesting?.registerAlias(entry, ifStatement);
+    body.add(ifStatement);
   }
 
-  void _translateForEntry(ForMapEntry entry, DartType keyType,
-      DartType valueType, VariableDeclaration result, List<Statement> body) {
+  void _translateForEntry(
+      ForMapEntry entry,
+      InterfaceType receiverType,
+      DartType keyType,
+      DartType valueType,
+      VariableDeclaration result,
+      List<Statement> body) {
     List<Statement> statements = <Statement>[];
-    _translateEntry(entry.body, keyType, valueType, result, statements);
+    _translateEntry(
+        entry.body, receiverType, keyType, valueType, result, statements);
     Statement loopBody =
         statements.length == 1 ? statements.first : _createBlock(statements);
     ForStatement loop = _createForStatement(entry.fileOffset, entry.variables,
         entry.condition?.accept<TreeNode>(this), entry.updates, loopBody);
-    dataForTesting?.registerAlias(entry, loop);
+    _dataForTesting?.registerAlias(entry, loop);
     transformList(loop.variables, this, loop);
     transformList(loop.updates, this, loop);
     body.add(loop);
   }
 
-  void _translateForInEntry(ForInMapEntry entry, DartType keyType,
-      DartType valueType, VariableDeclaration result, List<Statement> body) {
+  void _translateForInEntry(
+      ForInMapEntry entry,
+      InterfaceType receiverType,
+      DartType keyType,
+      DartType valueType,
+      VariableDeclaration result,
+      List<Statement> body) {
     List<Statement> statements;
     Statement prologue = entry.prologue;
     if (prologue == null) {
@@ -414,7 +554,8 @@ class CollectionTransformer extends Transformer {
       statements =
           prologue is Block ? prologue.statements : <Statement>[prologue];
     }
-    _translateEntry(entry.body, keyType, valueType, result, statements);
+    _translateEntry(
+        entry.body, receiverType, keyType, valueType, result, statements);
     Statement loopBody =
         statements.length == 1 ? statements.first : _createBlock(statements);
     if (entry.problem != null) {
@@ -424,18 +565,23 @@ class CollectionTransformer extends Transformer {
     ForInStatement loop = _createForInStatement(entry.fileOffset,
         entry.variable, entry.iterable.accept<TreeNode>(this), loopBody,
         isAsync: entry.isAsync);
-    dataForTesting?.registerAlias(entry, loop);
+    _dataForTesting?.registerAlias(entry, loop);
     body.add(loop);
   }
 
-  void _translateSpreadEntry(SpreadMapEntry entry, DartType keyType,
-      DartType valueType, VariableDeclaration result, List<Statement> body) {
+  void _translateSpreadEntry(
+      SpreadMapEntry entry,
+      InterfaceType receiverType,
+      DartType keyType,
+      DartType valueType,
+      VariableDeclaration result,
+      List<Statement> body) {
     Expression value = entry.expression.accept<TreeNode>(this);
 
-    final DartType entryType = new InterfaceType(mapEntryClass,
+    final DartType entryType = new InterfaceType(_mapEntryClass,
         _currentLibrary.nonNullable, <DartType>[keyType, valueType]);
     final bool typeMatches = entry.entryType != null &&
-        typeEnvironment.isSubtypeOf(
+        _typeEnvironment.isSubtypeOf(
             entry.entryType, entryType, SubtypeCheckMode.withNullabilities);
 
     // Null-aware spreads require testing the subexpression's value.
@@ -443,7 +589,7 @@ class CollectionTransformer extends Transformer {
     if (entry.isNullAware) {
       temp = _createVariable(
           value,
-          typeEnvironment.mapType(
+          _typeEnvironment.mapType(
               typeMatches ? keyType : const DynamicType(),
               typeMatches ? valueType : const DynamicType(),
               _currentLibrary.nullable));
@@ -456,7 +602,7 @@ class CollectionTransformer extends Transformer {
     if (!typeMatches) {
       variable = _createForInVariable(
           entry.fileOffset,
-          new InterfaceType(mapEntryClass, _currentLibrary.nonNullable,
+          new InterfaceType(_mapEntryClass, _currentLibrary.nonNullable,
               <DartType>[const DynamicType(), const DynamicType()]));
       VariableDeclaration keyVar = _createVariable(
           _createImplicitAs(
@@ -478,6 +624,7 @@ class CollectionTransformer extends Transformer {
         _createExpressionStatement(_createIndexSet(
             entry.expression.fileOffset,
             _createVariableGet(result),
+            receiverType,
             _createVariableGet(keyVar),
             _createVariableGet(valueVar)))
       ]);
@@ -486,6 +633,7 @@ class CollectionTransformer extends Transformer {
       loopBody = _createExpressionStatement(_createIndexSet(
           entry.expression.fileOffset,
           _createVariableGet(result),
+          receiverType,
           _createGetKey(
               entry.expression.fileOffset, _createVariableGet(variable)),
           _createGetValue(
@@ -531,7 +679,7 @@ class CollectionTransformer extends Transformer {
     List<Expression> currentPart = i > 0 ? elements.sublist(0, i) : null;
 
     DartType iterableType =
-        typeEnvironment.iterableType(elementType, _currentLibrary.nonNullable);
+        _typeEnvironment.iterableType(elementType, _currentLibrary.nonNullable);
 
     for (; i < elements.length; ++i) {
       Expression element = elements[i];
@@ -544,7 +692,7 @@ class CollectionTransformer extends Transformer {
         if (element.isNullAware) {
           VariableDeclaration temp = _createVariable(
               spreadExpression,
-              typeEnvironment.iterableType(
+              _typeEnvironment.iterableType(
                   elementType, _currentLibrary.nullable));
           parts.add(_createNullAwareGuard(element.fileOffset, temp,
               makeLiteral(element.fileOffset, []), iterableType));
@@ -607,7 +755,7 @@ class CollectionTransformer extends Transformer {
     List<Expression> parts = [];
     List<MapEntry> currentPart = i > 0 ? node.entries.sublist(0, i) : null;
 
-    DartType collectionType = typeEnvironment.mapType(
+    DartType collectionType = _typeEnvironment.mapType(
         node.keyType, node.valueType, _currentLibrary.nonNullable);
 
     for (; i < node.entries.length; ++i) {
@@ -724,17 +872,15 @@ class CollectionTransformer extends Transformer {
   Expression _createSetLiteral(
       int fileOffset, DartType elementType, List<Expression> elements,
       {bool isConst: false}) {
+    assert(fileOffset != null);
+    assert(fileOffset != TreeNode.noOffset);
     if (isConst) {
       return new SetLiteral(elements,
           typeArgument: elementType, isConst: isConst)
         ..fileOffset = fileOffset;
     } else {
-      // TODO(kmillikin): When all the back ends handle set literals we can use
-      // one here.
-      return new StaticInvocation(
-          setFactory,
-          new Arguments(elements, types: [elementType])
-            ..fileOffset = fileOffset)
+      return new SetLiteral(elements,
+          typeArgument: elementType, isConst: isConst)
         ..fileOffset = fileOffset;
     }
   }
@@ -746,39 +892,101 @@ class CollectionTransformer extends Transformer {
       ..fileOffset = expression.fileOffset;
   }
 
-  MethodInvocation _createAdd(
-      Expression receiver, Expression argument, bool isSet) {
+  Expression _createAdd(Expression receiver, InterfaceType receiverType,
+      Expression argument, bool isSet) {
     assert(receiver != null);
     assert(argument != null);
     assert(argument.fileOffset != TreeNode.noOffset,
         "No fileOffset on ${argument}.");
-    return new MethodInvocation(receiver, new Name('add'),
-        new Arguments([argument]), isSet ? setAdd : listAdd)
-      ..fileOffset = argument.fileOffset;
+    if (useNewMethodInvocationEncoding) {
+      FunctionType functionType = Substitution.fromInterfaceType(receiverType)
+          .substituteType(isSet ? _setAddFunctionType : _listAddFunctionType);
+      if (!_currentLibrary.isNonNullableByDefault) {
+        functionType = legacyErasure(functionType);
+      }
+      return new InstanceInvocation(InstanceAccessKind.Instance, receiver,
+          new Name('add'), new Arguments([argument]),
+          functionType: functionType,
+          interfaceTarget: isSet ? _setAdd : _listAdd)
+        ..fileOffset = argument.fileOffset
+        ..isInvariant = true;
+    } else {
+      return new MethodInvocation(receiver, new Name('add'),
+          new Arguments([argument]), isSet ? _setAdd : _listAdd)
+        ..fileOffset = argument.fileOffset
+        ..isInvariant = true;
+    }
+  }
+
+  Expression _createAddAll(Expression receiver, InterfaceType receiverType,
+      Expression argument, bool isSet) {
+    assert(receiver != null);
+    assert(argument != null);
+    assert(argument.fileOffset != TreeNode.noOffset,
+        "No fileOffset on ${argument}.");
+    if (useNewMethodInvocationEncoding) {
+      FunctionType functionType = Substitution.fromInterfaceType(receiverType)
+          .substituteType(
+              isSet ? _setAddAllFunctionType : _listAddAllFunctionType);
+      if (!_currentLibrary.isNonNullableByDefault) {
+        functionType = legacyErasure(functionType);
+      }
+      return new InstanceInvocation(InstanceAccessKind.Instance, receiver,
+          new Name('addAll'), new Arguments([argument]),
+          functionType: functionType,
+          interfaceTarget: isSet ? _setAddAll : _listAddAll)
+        ..fileOffset = argument.fileOffset
+        ..isInvariant = true;
+    } else {
+      return new MethodInvocation(receiver, new Name('addAll'),
+          new Arguments([argument]), isSet ? _setAddAll : _listAddAll)
+        ..fileOffset = argument.fileOffset
+        ..isInvariant = true;
+    }
   }
 
   Expression _createEqualsNull(Expression expression, {bool notEquals: false}) {
     assert(expression != null);
     assert(expression.fileOffset != TreeNode.noOffset);
-    Expression check = new MethodInvocation(
-        expression,
-        new Name('=='),
-        new Arguments([new NullLiteral()..fileOffset = expression.fileOffset]),
-        objectEquals)
-      ..fileOffset = expression.fileOffset;
-    if (notEquals) {
-      check = new Not(check)..fileOffset = expression.fileOffset;
+    if (useNewMethodInvocationEncoding) {
+      return new EqualsNull(expression, isNot: notEquals)
+        ..fileOffset = expression.fileOffset;
+    } else {
+      Expression check = new MethodInvocation(
+          expression,
+          new Name('=='),
+          new Arguments(
+              [new NullLiteral()..fileOffset = expression.fileOffset]),
+          _objectEquals)
+        ..fileOffset = expression.fileOffset;
+      if (notEquals) {
+        check = new Not(check)..fileOffset = expression.fileOffset;
+      }
+      return check;
     }
-    return check;
   }
 
-  MethodInvocation _createIndexSet(
-      int fileOffset, Expression receiver, Expression key, Expression value) {
+  Expression _createIndexSet(int fileOffset, Expression receiver,
+      InterfaceType receiverType, Expression key, Expression value) {
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
-    return new MethodInvocation(
-        receiver, new Name('[]='), new Arguments([key, value]), mapPut)
-      ..fileOffset = fileOffset;
+    if (useNewMethodInvocationEncoding) {
+      FunctionType functionType = Substitution.fromInterfaceType(receiverType)
+          .substituteType(_mapPutFunctionType);
+      if (!_currentLibrary.isNonNullableByDefault) {
+        functionType = legacyErasure(functionType);
+      }
+      return new InstanceInvocation(InstanceAccessKind.Instance, receiver,
+          new Name('[]='), new Arguments([key, value]),
+          functionType: functionType, interfaceTarget: _mapPut)
+        ..fileOffset = fileOffset
+        ..isInvariant = true;
+    } else {
+      return new MethodInvocation(
+          receiver, new Name('[]='), new Arguments([key, value]), _mapPut)
+        ..fileOffset = fileOffset
+        ..isInvariant = true;
+    }
   }
 
   AsExpression _createImplicitAs(
@@ -801,21 +1009,21 @@ class CollectionTransformer extends Transformer {
   PropertyGet _createGetKey(int fileOffset, Expression receiver) {
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
-    return new PropertyGet(receiver, new Name('key'), mapEntryKey)
+    return new PropertyGet(receiver, new Name('key'), _mapEntryKey)
       ..fileOffset = fileOffset;
   }
 
   PropertyGet _createGetValue(int fileOffset, Expression receiver) {
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
-    return new PropertyGet(receiver, new Name('value'), mapEntryValue)
+    return new PropertyGet(receiver, new Name('value'), _mapEntryValue)
       ..fileOffset = fileOffset;
   }
 
   PropertyGet _createGetEntries(int fileOffset, Expression receiver) {
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
-    return new PropertyGet(receiver, new Name('entries'), mapEntries)
+    return new PropertyGet(receiver, new Name('entries'), _mapEntries)
       ..fileOffset = fileOffset;
   }
 

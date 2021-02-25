@@ -3,12 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:ffi';
-import "package:ffi/ffi.dart" show allocate, free;
+
+import "package:ffi/ffi.dart";
+
+import 'calloc.dart';
 
 main() {
-  final data = allocate<Uint8>(count: 3);
+  final data = calloc<Uint8>(3);
   for (int i = 0; i < 3; ++i) {
     data.elementAt(i).value = 1;
   }
-  free(data);
+  calloc.free(data);
 }

@@ -23,6 +23,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerContext,
         CompilerOptions,
         CompilerResult,
+        InvocationMode,
         DiagnosticMessage,
         DiagnosticMessageHandler,
         ExperimentalFlag,
@@ -32,6 +33,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         ProcessedOptions,
         Severity,
         StandardFileSystem,
+        Verbosity,
         getMessageUri,
         kernelForProgram,
         parseExperimentalArguments,
@@ -47,10 +49,6 @@ import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 import 'package:package_config/package_config.dart' show loadPackageConfigUri;
 
-import 'bytecode/bytecode_serialization.dart' show BytecodeSizeStatistics;
-import 'bytecode/gen_bytecode.dart'
-    show generateBytecode, createFreshComponentWithBytecode;
-import 'bytecode/options.dart' show BytecodeOptions;
 import 'http_filesystem.dart' show HttpAwareFileSystem;
 import 'target/install.dart' show installAdditionalTargets;
 import 'transformations/devirtualization.dart' as devirtualization
@@ -59,8 +57,6 @@ import 'transformations/mixin_deduplication.dart' as mixin_deduplication
     show transformComponent;
 import 'transformations/no_dynamic_invocations_annotator.dart'
     as no_dynamic_invocations_annotator show transformComponent;
-import 'transformations/protobuf_aware_treeshaker/transformer.dart'
-    as protobuf_tree_shaker;
 import 'transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 import 'transformations/obfuscation_prohibitions_annotator.dart'
@@ -108,9 +104,6 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('tree-shake-write-only-fields',
       help: 'Enable tree shaking of fields which are only written in AOT mode.',
       defaultsTo: true);
-  args.addFlag('protobuf-tree-shaker',
-      help: 'Enable protobuf tree shaker transformation in AOT mode.',
-      defaultsTo: false);
   args.addFlag('protobuf-tree-shaker-v2',
       help: 'Enable protobuf tree shaker v2 in AOT mode.', defaultsTo: false);
   args.addMultiOption('define',
@@ -129,14 +122,6 @@ void declareCompilerOptions(ArgParser args) {
   args.addOption('data-dir',
       help: 'Name of the subdirectory of //data for output files');
   args.addOption('manifest', help: 'Path to output Fuchsia package manifest');
-  args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false);
-  args.addMultiOption('bytecode-options',
-      help: 'Specify options for bytecode generation:',
-      valueHelp: 'opt1,opt2,...',
-      allowed: BytecodeOptions.commandLineFlags.keys,
-      allowedHelp: BytecodeOptions.commandLineFlags);
-  args.addFlag('drop-ast',
-      help: 'Include only bytecode into the output file', defaultsTo: true);
   args.addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features to enable.');
   args.addFlag('help',
@@ -144,6 +129,13 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('track-widget-creation',
       help: 'Run a kernel transformer to track creation locations for widgets.',
       defaultsTo: false);
+  args.addOption('invocation-modes',
+      help: 'Provides information to the front end about how it is invoked.',
+      defaultsTo: '');
+  args.addOption('verbosity',
+      help: 'Sets the verbosity level used for filtering messages during '
+          'compilation.',
+      defaultsTo: Verbosity.defaultValue);
 }
 
 /// Create ArgParser and populate it with options consumed by [runCompiler].
@@ -184,11 +176,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool tfa = options['tfa'];
   final bool linkPlatform = options['link-platform'];
   final bool embedSources = options['embed-sources'];
-  final bool genBytecode = options['gen-bytecode'];
-  final bool dropAST = options['drop-ast'];
   final bool enableAsserts = options['enable-asserts'];
   final bool nullSafety = options['sound-null-safety'];
-  final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
   final bool useProtobufTreeShakerV2 = options['protobuf-tree-shaker-v2'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final String manifestFilename = options['manifest'];
@@ -215,13 +204,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     }
   }
 
-  final BytecodeOptions bytecodeOptions = new BytecodeOptions(
-    enableAsserts: enableAsserts,
-    emitSourceFiles: embedSources,
-    environmentDefines: environmentDefines,
-    aot: aot,
-  )..parseCommandLineFlags(options['bytecode-options']);
-
   final fileSystem =
       createFrontEndFileSystem(fileSystemScheme, fileSystemRoots);
 
@@ -238,7 +220,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
   }
 
-  final errorPrinter = new ErrorPrinter();
+  final verbosity = Verbosity.parseArgument(options['verbosity']);
+  final errorPrinter = new ErrorPrinter(verbosity);
   final errorDetector = new ErrorDetector(previousErrorHandler: errorPrinter);
 
   final CompilerOptions compilerOptions = new CompilerOptions()
@@ -246,17 +229,20 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..fileSystem = fileSystem
     ..additionalDills = additionalDills
     ..packagesFileUri = packagesUri
-    ..experimentalFlags = parseExperimentalFlags(
+    ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
         onError: print)
     ..nnbdMode = (nullSafety == true) ? NnbdMode.Strong : NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }
-    ..embedSourceText = embedSources;
+    ..embedSourceText = embedSources
+    ..invocationModes =
+        InvocationMode.parseArguments(options['invocation-modes'])
+    ..verbosity = verbosity;
 
   if (nullSafety == null &&
-      compilerOptions.experimentalFlags[ExperimentalFlag.nonNullable]) {
+      compilerOptions.isExperimentEnabled(ExperimentalFlag.nonNullable)) {
     await autoDetectNullSafetyMode(mainUri, compilerOptions);
   }
 
@@ -276,10 +262,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,
       enableAsserts: enableAsserts,
-      genBytecode: genBytecode,
-      bytecodeOptions: bytecodeOptions,
-      dropAST: dropAST && !splitOutputByPackages,
-      useProtobufTreeShaker: useProtobufTreeShaker,
       useProtobufTreeShakerV2: useProtobufTreeShakerV2,
       minimalKernel: minimalKernel,
       treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
@@ -291,19 +273,11 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     return compileTimeErrorExitCode;
   }
 
-  if (bytecodeOptions.showBytecodeSizeStatistics && !splitOutputByPackages) {
-    BytecodeSizeStatistics.reset();
-  }
-
   final IOSink sink = new File(outputFileName).openWrite();
   final BinaryPrinter printer = new BinaryPrinter(sink,
       libraryFilter: (lib) => !results.loadedLibraries.contains(lib));
   printer.writeComponentFile(results.component);
   await sink.close();
-
-  if (bytecodeOptions.showBytecodeSizeStatistics && !splitOutputByPackages) {
-    BytecodeSizeStatistics.dump();
-  }
 
   if (depfile != null) {
     await writeDepfile(
@@ -316,9 +290,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       compilerOptions,
       results,
       outputFileName,
-      genBytecode: genBytecode,
-      bytecodeOptions: bytecodeOptions,
-      dropAST: dropAST,
     );
   }
 
@@ -357,10 +328,6 @@ Future<KernelCompilationResults> compileToKernel(
     bool useGlobalTypeFlowAnalysis: false,
     Map<String, String> environmentDefines,
     bool enableAsserts: true,
-    bool genBytecode: false,
-    BytecodeOptions bytecodeOptions,
-    bool dropAST: false,
-    bool useProtobufTreeShaker: false,
     bool useProtobufTreeShakerV2: false,
     bool minimalKernel: false,
     bool treeShakeWriteOnlyFields: false,
@@ -394,7 +361,6 @@ Future<KernelCompilationResults> compileToKernel(
         component,
         useGlobalTypeFlowAnalysis,
         enableAsserts,
-        useProtobufTreeShaker,
         useProtobufTreeShakerV2,
         errorDetector,
         minimalKernel: minimalKernel,
@@ -408,26 +374,6 @@ Future<KernelCompilationResults> compileToKernel(
 
       component.metadata.clear();
       component.uriToSource.clear();
-    }
-  }
-
-  if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
-    List<Library> libraries = new List<Library>();
-    for (Library library in component.libraries) {
-      if (loadedLibraries.contains(library)) continue;
-      libraries.add(library);
-    }
-
-    await runWithFrontEndCompilerContext(source, options, component, () {
-      generateBytecode(component,
-          libraries: libraries,
-          hierarchy: compilerResult.classHierarchy,
-          coreTypes: compilerResult.coreTypes,
-          options: bytecodeOptions);
-    });
-
-    if (dropAST) {
-      component = createFreshComponentWithBytecode(component);
     }
   }
 
@@ -472,7 +418,6 @@ Future runGlobalTransformations(
     Component component,
     bool useGlobalTypeFlowAnalysis,
     bool enableAsserts,
-    bool useProtobufTreeShaker,
     bool useProtobufTreeShakerV2,
     ErrorDetector errorDetector,
     {bool minimalKernel: false,
@@ -493,10 +438,6 @@ Future runGlobalTransformations(
   // before type flow analysis so TFA won't take unreachable code into account.
   unreachable_code_elimination.transformComponent(component, enableAsserts);
 
-  if (useProtobufTreeShaker && useProtobufTreeShakerV2) {
-    throw 'Cannot use both versions of protobuf tree shaker';
-  }
-
   if (useGlobalTypeFlowAnalysis) {
     globalTypeFlow.transformComponent(target, coreTypes, component,
         treeShakeSignatures: !minimalKernel,
@@ -505,19 +446,6 @@ Future runGlobalTransformations(
   } else {
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);
-  }
-
-  if (useProtobufTreeShaker) {
-    if (!useGlobalTypeFlowAnalysis) {
-      throw 'Protobuf tree shaker requires type flow analysis (--tfa)';
-    }
-
-    protobuf_tree_shaker.removeUnusedProtoReferences(
-        component, coreTypes, null);
-
-    globalTypeFlow.transformComponent(target, coreTypes, component,
-        treeShakeSignatures: !minimalKernel,
-        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
   }
 
   // TODO(35069): avoid recomputing CSA by reading it from the platform files.
@@ -568,10 +496,11 @@ class ErrorDetector {
 }
 
 class ErrorPrinter {
+  final Verbosity verbosity;
   final DiagnosticMessageHandler previousErrorHandler;
   final compilationMessages = <Uri, List<DiagnosticMessage>>{};
 
-  ErrorPrinter({this.previousErrorHandler});
+  ErrorPrinter(this.verbosity, {this.previousErrorHandler});
 
   void call(DiagnosticMessage message) {
     final sourceUri = getMessageUri(message);
@@ -581,10 +510,23 @@ class ErrorPrinter {
 
   void printCompilationMessages() {
     final sortedUris = compilationMessages.keys.toList()
-      ..sort((a, b) => '$a'.compareTo('$b'));
+      ..sort((a, b) {
+        // Sort messages without a corresponding uri before the location based
+        // messages, since these related to the whole compilation.
+        if (a != null && b != null) {
+          return '$a'.compareTo('$b');
+        } else if (a != null) {
+          return 1;
+        } else if (b != null) {
+          return -1;
+        }
+        return 0;
+      });
     for (final Uri sourceUri in sortedUris) {
       for (final DiagnosticMessage message in compilationMessages[sourceUri]) {
-        printDiagnosticMessage(message, print);
+        if (Verbosity.shouldPrint(verbosity, message)) {
+          printDiagnosticMessage(message, print);
+        }
       }
     }
   }
@@ -683,22 +625,9 @@ Future<Uri> convertToPackageUri(
 /// Write a separate kernel binary for each package. The name of the
 /// output kernel binary is '[outputFileName]-$package.dilp'.
 /// The list of package names is written into a file '[outputFileName]-packages'.
-///
-/// Generates bytecode for each package if requested.
-Future writeOutputSplitByPackages(
-  Uri source,
-  CompilerOptions compilerOptions,
-  KernelCompilationResults compilationResults,
-  String outputFileName, {
-  bool genBytecode: false,
-  BytecodeOptions bytecodeOptions,
-  bool dropAST: false,
-}) async {
-  if (bytecodeOptions.showBytecodeSizeStatistics) {
-    BytecodeSizeStatistics.reset();
-  }
-
-  final packages = new List<String>();
+Future writeOutputSplitByPackages(Uri source, CompilerOptions compilerOptions,
+    KernelCompilationResults compilationResults, String outputFileName) async {
+  final packages = <String>[];
   await runWithFrontEndCompilerContext(
       source, compilerOptions, compilationResults.component, () async {
     // When loading a kernel file list, flutter_runner and dart_runner expect
@@ -710,17 +639,6 @@ Future writeOutputSplitByPackages(
       final IOSink sink = new File(filename).openWrite();
 
       Component partComponent = compilationResults.component;
-      if (genBytecode) {
-        generateBytecode(partComponent,
-            options: bytecodeOptions,
-            libraries: libraries,
-            hierarchy: compilationResults.classHierarchy,
-            coreTypes: compilationResults.coreTypes);
-
-        if (dropAST) {
-          partComponent = createFreshComponentWithBytecode(partComponent);
-        }
-      }
 
       final BinaryPrinter printer = new BinaryPrinter(sink,
           libraryFilter: (lib) =>
@@ -730,10 +648,6 @@ Future writeOutputSplitByPackages(
       await sink.close();
     }, mainFirst: false);
   });
-
-  if (bytecodeOptions.showBytecodeSizeStatistics) {
-    BytecodeSizeStatistics.dump();
-  }
 
   final IOSink packagesList = new File('$outputFileName-packages').openWrite();
   for (String package in packages) {
@@ -778,11 +692,10 @@ Future<Null> forEachPackage<T>(KernelCompilationResults results,
   sortComponent(component);
 
   final packages = new Map<String, List<Library>>();
-  packages['main'] = new List<Library>(); // Always create 'main'.
+  packages['main'] = <Library>[]; // Always create 'main'.
   for (Library lib in component.libraries) {
     packages
-        .putIfAbsent(
-            packageFor(lib, loadedLibraries), () => new List<Library>())
+        .putIfAbsent(packageFor(lib, loadedLibraries), () => <Library>[])
         .add(lib);
   }
   packages.remove(null); // Ignore external libraries.

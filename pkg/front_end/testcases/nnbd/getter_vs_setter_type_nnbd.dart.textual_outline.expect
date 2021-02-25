@@ -1,0 +1,104 @@
+int get property1 => 0;
+void set property1(int value) {}
+int get property2 => 0;
+void set property2(int? value) {}
+int? get property3 => 0;
+void set property3(int value) {}
+
+abstract class A {
+  int get property1;
+  void set property1(int i);
+  int get property2;
+  void set property2(int? i);
+  int? get property3;
+  void set property3(int i);
+  int property4;
+  int? property5;
+  covariant int property6;
+  A(this.property4, this.property5, this.property6);
+  static int get property7 => 0;
+  static void set property7(int value) {}
+  static int get property8 => 0;
+  static void set property8(int? value) {}
+  static int? get property9 => 0;
+  static void set property9(int value) {}
+}
+
+abstract class B1 {
+  int get property1;
+  int get property2;
+  int? get property3;
+  final int property4;
+  final int property5;
+  final int? property6;
+  B1(this.property4, this.property5, this.property6);
+}
+
+abstract class B2 implements B1 {
+  void set property1(int i);
+  void set property2(int? i);
+  void set property3(int i);
+  void set property4(int i);
+  void set property5(int? i);
+  void set property6(int i);
+}
+
+abstract class C1 {
+  void set property1(int i);
+  void set property2(int? i);
+  void set property3(int i);
+  int property4;
+  int? property5;
+  int property6;
+  C1(this.property4, this.property5, this.property6);
+}
+
+abstract class C2 implements C1 {
+  int get property1;
+  int get property2;
+  int? get property3;
+  int get property4;
+  int get property5;
+  int? get property6;
+}
+
+abstract class D1 {
+  int get property1;
+  int get property2;
+  int? get property3;
+}
+
+abstract class D2 {
+  void set property1(int i);
+  void set property2(int? i);
+  void set property3(int i);
+}
+
+abstract class D3 implements D1, D2 {}
+
+abstract class D4 implements D3 {}
+
+extension Extension<T extends num> on int {
+  int get property1 => 0;
+  void set property1(int i) {}
+  int get property2 => 0;
+  void set property2(int? i) {}
+  int? get property3 => 0;
+  void set property3(int i) {}
+  T get property4a => 0;
+  void set property4a(T i) {}
+  T? get property4b => 0;
+  void set property4b(T? i) {}
+  T get property5 => 0;
+  void set property5(T? i) {}
+  T? get property6 => 0;
+  void set property6(T i) {}
+  static int get property7 => 0;
+  static void set property7(int value) {}
+  static int get property8 => 0;
+  static void set property8(int? value) {}
+  static int? get property9 => 0;
+  static void set property9(int value) {}
+}
+
+main() {}

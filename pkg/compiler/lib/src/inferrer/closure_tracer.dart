@@ -15,7 +15,7 @@ import 'type_graph_nodes.dart';
 class ClosureTracerVisitor extends TracerVisitor {
   final Iterable<FunctionEntity> tracedElements;
   final List<CallSiteTypeInformation> _callsToAnalyze =
-      new List<CallSiteTypeInformation>();
+      <CallSiteTypeInformation>[];
 
   ClosureTracerVisitor(this.tracedElements, ApplyableTypeInformation tracedType,
       InferrerEngine inferrer)
@@ -84,6 +84,8 @@ class ClosureTracerVisitor extends TracerVisitor {
       String name = called.name;
       if (name == Identifiers.JS || name == Identifiers.DART_CLOSURE_TO_JS) {
         bailout('Used in JS ${info.debugName}');
+      } else if (name == Identifiers.RAW_DART_FUNCTION_REF) {
+        bailout('Escaped raw function reference');
       }
     }
     if (called.isGetter &&

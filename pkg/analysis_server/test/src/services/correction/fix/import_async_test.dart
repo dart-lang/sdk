@@ -24,7 +24,7 @@ class ImportAsyncTest extends FixProcessorTest {
 environment:
   sdk: ^2.0.0
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Future<int> zero() async => 0;
 ''');
     await assertHasFix('''
@@ -39,7 +39,7 @@ Future<int> zero() async => 0;
 environment:
   sdk: ^2.0.0
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Stream<int> zero() => null;
 ''');
     await assertHasFix('''

@@ -20,20 +20,20 @@ import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/utils.dart';
 
 class VMViewElement extends CustomElement implements Renderable {
-  RenderingScheduler<VMViewElement> _r;
+  late RenderingScheduler<VMViewElement> _r;
 
   Stream<RenderedEvent<VMViewElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.VMRepository _vms;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.IsolateRepository _isolates;
-  M.IsolateGroupRepository _isolateGroups;
-  M.ScriptRepository _scripts;
-  StreamSubscription _vmSubscription;
-  StreamSubscription _startSubscription;
-  StreamSubscription _exitSubscription;
+  late M.VM _vm;
+  late M.VMRepository _vms;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.IsolateRepository _isolates;
+  late M.IsolateGroupRepository _isolateGroups;
+  late M.ScriptRepository _scripts;
+  late StreamSubscription _vmSubscription;
+  late StreamSubscription _startSubscription;
+  late StreamSubscription _exitSubscription;
 
   M.VMRef get vm => _vm;
   M.NotificationRepository get notifications => _notifications;
@@ -46,7 +46,7 @@ class VMViewElement extends CustomElement implements Renderable {
       M.IsolateRepository isolates,
       M.IsolateGroupRepository isolateGroups,
       M.ScriptRepository scripts,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(vms != null);
     assert(events != null);
@@ -72,7 +72,7 @@ class VMViewElement extends CustomElement implements Renderable {
     super.attached();
     _r.enable();
     _vmSubscription = _events.onVMUpdate.listen((e) {
-      _vm = e.vm;
+      _vm = e.vm as M.VM;
       _r.dirty();
     });
     _startSubscription = _events.onIsolateStart.listen((_) => _r.dirty());
@@ -220,7 +220,7 @@ class VMViewElement extends CustomElement implements Renderable {
   }
 
   Element describeVM() {
-    final uptime = new DateTime.now().difference(_vm.startTime);
+    final uptime = new DateTime.now().difference(_vm.startTime!);
     return new DivElement()
       ..classes = ['content-centered-big']
       ..children = <HtmlElement>[
@@ -256,7 +256,7 @@ class VMViewElement extends CustomElement implements Renderable {
                   ..text = 'embedder',
                 new DivElement()
                   ..classes = ['memberValue']
-                  ..text = _vm.embedder ?? "UNKNOWN"
+                  ..text = _vm.embedder
               ],
             new DivElement()
               ..classes = ['memberItem']
@@ -337,7 +337,7 @@ class VMViewElement extends CustomElement implements Renderable {
 
   Element describeIsolateGroup(M.IsolateGroupRef group) {
     final isolateType =
-        group.isSystemIsolateGroup ? 'System Isolate' : 'Isolate';
+        group.isSystemIsolateGroup! ? 'System Isolate' : 'Isolate';
     final isolates = (group as M.IsolateGroup).isolates;
     return new DivElement()
       ..classes = ['content-centered-big']
@@ -350,7 +350,7 @@ class VMViewElement extends CustomElement implements Renderable {
           ..children = <Element>[
             new UListElement()
               ..classes = ['list-group']
-              ..children = isolates.map(describeIsolate).toList(),
+              ..children = isolates!.map(describeIsolate).toList(),
           ],
       ];
   }

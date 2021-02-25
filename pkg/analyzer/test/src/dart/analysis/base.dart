@@ -4,8 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -16,34 +14,14 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
-
-/// Finds an [Element] with the given [name].
-Element findChildElement(Element root, String name, [ElementKind kind]) {
-  Element result;
-  root.accept(_ElementVisitorFunctionWrapper((Element element) {
-    if (element.name != name) {
-      return;
-    }
-    if (kind != null && element.kind != kind) {
-      return;
-    }
-    result = element;
-  }));
-  return result;
-}
-
-typedef Predicate<E> = bool Function(E argument);
-
-/// A function to be called for every [Element].
-typedef _ElementVisitorFunction = void Function(Element element);
 
 class BaseAnalysisDriverTest with ResourceProviderMixin {
   DartSdk sdk;
@@ -62,6 +40,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   final List<ExceptionResult> allExceptions = <ExceptionResult>[];
 
   String testProject;
+  String testProject2;
   String testFile;
   String testCode;
 
@@ -80,7 +59,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
       {Map<String, List<Folder>> packageMap,
       SummaryDataStore externalSummaries}) {
     packageMap ??= <String, List<Folder>>{
-      'test': [getFolder(testProject)],
+      'test': [getFolder('$testProject/lib')],
       'aaa': [getFolder('/aaa/lib')],
       'bbb': [getFolder('/bbb/lib')],
     };
@@ -98,13 +77,32 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
           ResourceUriResolver(resourceProvider)
         ]),
         createAnalysisOptions(),
-        packages: Packages.empty,
+        packages: Packages({
+          'test': Package(
+            name: 'test',
+            rootFolder: getFolder(testProject),
+            libFolder: getFolder('$testProject/lib'),
+            languageVersion: Version.parse('2.9.0'),
+          ),
+          'aaa': Package(
+            name: 'aaa',
+            rootFolder: getFolder('/aaa'),
+            libFolder: getFolder('/aaa/lib'),
+            languageVersion: Version.parse('2.9.0'),
+          ),
+          'bbb': Package(
+            name: 'bbb',
+            rootFolder: getFolder('/bbb'),
+            libFolder: getFolder('/bbb/lib'),
+            languageVersion: Version.parse('2.9.0'),
+          ),
+        }),
         enableIndex: true,
         externalSummaries: externalSummaries);
   }
 
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
-    ..useFastaParser = analyzer.Parser.useFasta
+    ..useFastaParser = true
     ..contextFeatures = FeatureSet.fromEnableFlags2(
       sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
       flags: enabledExperiments,
@@ -141,7 +139,8 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
 
   void setUp() {
     sdk = MockSdk(resourceProvider: resourceProvider);
-    testProject = convertPath('/test/lib');
+    testProject = convertPath('/test');
+    testProject2 = convertPath('/test/lib');
     testFile = convertPath('/test/lib/test.dart');
     logger = PerformanceLog(logBuffer);
     scheduler = AnalysisDriverScheduler(logger);
@@ -153,19 +152,6 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   }
 
   void tearDown() {}
-}
-
-/// Wraps an [_ElementVisitorFunction] into a [GeneralizingElementVisitor].
-class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
-  final _ElementVisitorFunction function;
-
-  _ElementVisitorFunctionWrapper(this.function);
-
-  @override
-  visitElement(Element element) {
-    function(element);
-    super.visitElement(element);
-  }
 }
 
 class _GeneratedUriResolverMock implements UriResolver {

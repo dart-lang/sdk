@@ -10,66 +10,32 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantMapKeyTest);
-    defineReflectiveTests(NonConstantMapKeyTest_language24);
   });
 }
 
 @reflectiveTest
 class NonConstantMapKeyTest extends PubPackageResolutionTest
-    with NonConstantMapKeyTestCases {
-  @override
-  bool get _constant_update_2018 => true;
-}
-
-@reflectiveTest
-class NonConstantMapKeyTest_language24 extends PubPackageResolutionTest
-    with NonConstantMapKeyTestCases {
-  @override
-  bool get _constant_update_2018 => false;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: '2.4',
-    );
-  }
-}
+    with NonConstantMapKeyTestCases {}
 
 mixin NonConstantMapKeyTestCases on PubPackageResolutionTest {
-  bool get _constant_update_2018;
-
   test_const_ifElement_thenTrue_elseFinal() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 0: 1 else a : 0};
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 75, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 55, 25),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 75, 1),
+    ]);
   }
 
   test_const_ifElement_thenTrue_thenFinal() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) a : 0};
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 65, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 55, 15),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 65, 1),
+    ]);
   }
 
   test_const_topLevel() async {

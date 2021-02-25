@@ -36,13 +36,13 @@ static get Extension|property() → dynamic
   ;
 static set Extension|property(dynamic value) → void
   ;
-static method Extension|instanceMethod(final self::Class* #this) → dynamic
+static method Extension|instanceMethod(lowered final self::Class* #this) → dynamic
   ;
-static method Extension|get#instanceMethod(final self::Class* #this) → () →* dynamic
+static method Extension|get#instanceMethod(lowered final self::Class* #this) → () →* dynamic
   return () → dynamic => self::Extension|instanceMethod(#this);
-static method Extension|get#instanceProperty(final self::Class* #this) → dynamic
+static method Extension|get#instanceProperty(lowered final self::Class* #this) → dynamic
   ;
-static method Extension|set#instanceProperty(final self::Class* #this, dynamic value) → void
+static method Extension|set#instanceProperty(lowered final self::Class* #this, dynamic value) → void
   ;
 static method main() → dynamic
   ;

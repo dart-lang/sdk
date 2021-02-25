@@ -19,44 +19,36 @@ void main() {
 @reflectiveTest
 class InstrumentationRendererTest extends NnbdMigrationTestBase {
   /// Render the instrumentation view for [files].
-  Future<String> renderViewForTestFiles(Map<String, String> files,
+  Future<String> renderViewForTestFiles(
       {bool applied = false, bool needsRerun = false}) async {
-    var packageRoot = convertPath('/project');
-    await buildInfoForTestFiles(files, includedRoot: packageRoot);
+    var files = {convertPath('$projectPath/lib/a.dart'): 'int a = null;'};
+    await buildInfoForTestFiles(files, includedRoot: projectPath);
     var migrationInfo =
-        MigrationInfo(infos, {}, resourceProvider.pathContext, packageRoot);
+        MigrationInfo(infos, {}, resourceProvider.pathContext, projectPath);
     var instrumentationRenderer = InstrumentationRenderer(
         migrationInfo, PathMapper(resourceProvider), applied, needsRerun);
     return instrumentationRenderer.render();
   }
 
   Future<void> test_appliedStyle() async {
-    var renderedView = await renderViewForTestFiles(
-        {convertPath('/project/lib/a.dart'): 'int a = null;'},
-        applied: true);
+    var renderedView = await renderViewForTestFiles(applied: true);
     // harmless space in class list due to other potential classes here.
     expect(renderedView, contains('<body class="applied ">'));
   }
 
   Future<void> test_navigation_containsRoot() async {
-    var renderedView = await renderViewForTestFiles(
-        {convertPath('/project/lib/a.dart'): 'int a = null;'});
-    var expectedPath = convertPath('/project');
+    var renderedView = await renderViewForTestFiles();
     // harmless space in class list due to other potential classes here.
-    expect(renderedView, contains('<p class="root">$expectedPath</p>'));
+    expect(renderedView, contains('<p class="root">$projectPath</p>'));
   }
 
   Future<void> test_needsRerunStyle() async {
-    var renderedView = await renderViewForTestFiles(
-        {convertPath('/project/lib/a.dart'): 'int a = null;'},
-        needsRerun: true);
+    var renderedView = await renderViewForTestFiles(needsRerun: true);
     expect(renderedView, contains('<body class="proposed needs-rerun">'));
   }
 
   Future<void> test_notAppliedStyle() async {
-    var renderedView = await renderViewForTestFiles(
-        {convertPath('/project/lib/a.dart'): 'int a = null;'},
-        applied: false);
+    var renderedView = await renderViewForTestFiles(applied: false);
     // harmless space in class list due to other potential classes here.
     expect(renderedView, contains('<body class="proposed ">'));
   }

@@ -27,24 +27,28 @@ bool GCSweeper::SweepPage(OldPage* page, FreeList* freelist, bool locked) {
   uword current = start;
 
   while (current < end) {
-    intptr_t obj_size;
-    ObjectPtr raw_obj = ObjectLayout::FromAddr(current);
+    ObjectPtr raw_obj = UntaggedObject::FromAddr(current);
     ASSERT(OldPage::Of(raw_obj) == page);
-    if (raw_obj->ptr()->IsMarked()) {
+    // These acquire operations balance release operations in array
+    // truncaton, ensuring the writes creating the filler object are ordered
+    // before the writes inserting the filler object into the freelist.
+    uword tags = raw_obj->untag()->tags_.load(std::memory_order_acquire);
+    intptr_t obj_size = raw_obj->untag()->HeapSize(tags);
+    if (UntaggedObject::IsMarked(tags)) {
       // Found marked object. Clear the mark bit and update swept bytes.
-      raw_obj->ptr()->ClearMarkBit();
-      obj_size = raw_obj->ptr()->HeapSize();
+      raw_obj->untag()->ClearMarkBit();
       used_in_bytes += obj_size;
     } else {
-      uword free_end = current + raw_obj->ptr()->HeapSize();
+      uword free_end = current + obj_size;
       while (free_end < end) {
-        ObjectPtr next_obj = ObjectLayout::FromAddr(free_end);
-        if (next_obj->ptr()->IsMarked()) {
+        ObjectPtr next_obj = UntaggedObject::FromAddr(free_end);
+        tags = next_obj->untag()->tags_.load(std::memory_order_acquire);
+        if (UntaggedObject::IsMarked(tags)) {
           // Reached the end of the free block.
           break;
         }
         // Expand the free block by the size of this object.
-        free_end += next_obj->ptr()->HeapSize();
+        free_end += next_obj->untag()->HeapSize(tags);
       }
       obj_size = free_end - current;
       if (is_executable) {
@@ -80,21 +84,22 @@ intptr_t GCSweeper::SweepLargePage(OldPage* page) {
   ASSERT(!page->is_image_page());
 
   intptr_t words_to_end = 0;
-  ObjectPtr raw_obj = ObjectLayout::FromAddr(page->object_start());
+  ObjectPtr raw_obj = UntaggedObject::FromAddr(page->object_start());
   ASSERT(OldPage::Of(raw_obj) == page);
-  if (raw_obj->ptr()->IsMarked()) {
-    raw_obj->ptr()->ClearMarkBit();
-    words_to_end = (raw_obj->ptr()->HeapSize() >> kWordSizeLog2);
+  if (raw_obj->untag()->IsMarked()) {
+    raw_obj->untag()->ClearMarkBit();
+    words_to_end = (raw_obj->untag()->HeapSize() >> kWordSizeLog2);
   }
 #ifdef DEBUG
   // Array::MakeFixedLength creates trailing filler objects,
   // but they are always unreachable. Verify that they are not marked.
-  uword current = ObjectLayout::ToAddr(raw_obj) + raw_obj->ptr()->HeapSize();
+  uword current =
+      UntaggedObject::ToAddr(raw_obj) + raw_obj->untag()->HeapSize();
   uword end = page->object_end();
   while (current < end) {
-    ObjectPtr cur_obj = ObjectLayout::FromAddr(current);
-    ASSERT(!cur_obj->ptr()->IsMarked());
-    intptr_t obj_size = cur_obj->ptr()->HeapSize();
+    ObjectPtr cur_obj = UntaggedObject::FromAddr(current);
+    ASSERT(!cur_obj->untag()->IsMarked());
+    intptr_t obj_size = cur_obj->untag()->HeapSize();
     memset(reinterpret_cast<void*>(current), Heap::kZapByte, obj_size);
     current += obj_size;
   }

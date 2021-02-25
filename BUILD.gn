@@ -68,6 +68,12 @@ group("runtime") {
   }
 }
 
+# A separate target and not included in group("runtime"). This way the target\
+# "runtime" does not get many executables extra as build output.
+group("run_ffi_unit_tests") {
+  deps = [ "runtime/bin/ffi_unit_test:run_ffi_unit_tests" ]
+}
+
 group("runtime_kernel") {
   if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
@@ -105,10 +111,6 @@ group("dartdevc") {
 
 group("dartfmt") {
   deps = [ "utils/dartfmt" ]
-}
-
-group("dartfix") {
-  deps = [ "utils/dartfix" ]
 }
 
 group("analysis_server") {
@@ -157,16 +159,64 @@ if (is_fuchsia) {
   import("third_party/fuchsia/sdk/linux/build/component.gni")
   import("third_party/fuchsia/sdk/linux/build/package.gni")
 
-  fuchsia_component("fuchsia_test_component") {
-    testonly = true
-    data_deps = [ "runtime/bin:dart" ]
-    manifest = "build/fuchsia/dart.cmx"
+  template("dart_fuchsia_test_package") {
+    fuchsia_package(target_name) {
+      package_name = invoker.package_name
+      if (is_debug) {
+        package_name += "_debug"
+      } else if (is_release) {
+        package_name += "_release"
+      } else if (is_product) {
+        package_name += "_product"
+      }
+      testonly = true
+      deps = invoker.deps
+    }
+  }
 
-    resource_files = [
-      ".dart_tool/package_config.json",
-      "pkg/testing/test/hello_test.dart",
-      "tools/addlatexhash.dart",
-    ]
+  template("dart_fuchsia_test_component") {
+    fuchsia_component(target_name) {
+      testonly = true
+      data_deps = [ "runtime/bin:dart" ]
+      if (defined(invoker.data_deps)) {
+        data_deps += invoker.data_deps
+      }
+      manifest = "build/fuchsia/dart.cmx"
+
+      library_files = []
+      if (defined(invoker.library_files)) {
+        library_files += invoker.library_files
+      }
+      resource_files = [
+        ".dart_tool/package_config.json",
+        "pkg/testing/test/hello_test.dart",
+        "tools/addlatexhash.dart",
+      ]
+      resource_dirs = invoker.resource_dirs
+
+      resources = []
+      foreach(file, library_files) {
+        resources += [
+          {
+            path = root_out_dir + "/" + file
+            dest = "lib/" + file
+          },
+        ]
+      }
+      foreach(file, resource_files) {
+        resources += [
+          {
+            path = file
+            dest = "data/" + file
+          },
+        ]
+      }
+      resources +=
+          exec_script("tools/fuchsia/find_resources.py", resource_dirs, "json")
+    }
+  }
+
+  dart_fuchsia_test_component("fuchsia_test_component") {
     resource_dirs = [
       "tests/standalone_2",
       "pkg/async_helper",
@@ -188,30 +238,32 @@ if (is_fuchsia) {
       "third_party/pkg/string_scanner",
       "third_party/pkg/typed_data",
     ]
-
-    resources = []
-    foreach(file, resource_files) {
-      resources += [
-        {
-          path = file
-          dest = "data/" + file
-        },
-      ]
-    }
-    resources +=
-        exec_script("tools/fuchsia/find_resources.py", resource_dirs, "json")
   }
 
-  fuchsia_package("fuchsia_test_package") {
-    package_name = "dart_test_"
-    if (is_debug) {
-      package_name += "debug"
-    } else if (is_release) {
-      package_name += "release"
-    } else if (is_product) {
-      package_name += "product"
-    }
-    testonly = true
+  dart_fuchsia_test_package("fuchsia_test_package") {
+    package_name = "dart_test"
     deps = [ ":fuchsia_test_component" ]
+  }
+
+  dart_fuchsia_test_component("fuchsia_ffi_test_component") {
+    data_deps = [
+      "runtime/bin:ffi_test_dynamic_library",
+      "runtime/bin:ffi_test_functions",
+    ]
+    library_files = [
+      "libffi_test_dynamic_library.so",
+      "libffi_test_functions.so",
+    ]
+    resource_dirs = [
+      "pkg/expect",
+      "pkg/meta",
+      "tests/ffi",
+      "third_party/pkg/ffi",
+    ]
+  }
+
+  dart_fuchsia_test_package("fuchsia_ffi_test_package") {
+    package_name = "dart_ffi_test"
+    deps = [ ":fuchsia_ffi_test_component" ]
   }
 }

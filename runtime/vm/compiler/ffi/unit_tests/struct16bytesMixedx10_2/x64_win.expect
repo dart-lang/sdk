@@ -1,0 +1,17 @@
+xmm1 float
+xmm2 float
+xmm3 float
+S+0 float
+P(S+8 int64) Compound(size: 16)
+P(S+16 int64) Compound(size: 16)
+P(S+24 int64) Compound(size: 16)
+P(S+32 int64) Compound(size: 16)
+P(S+40 int64) Compound(size: 16)
+P(S+48 int64) Compound(size: 16)
+P(S+56 int64) Compound(size: 16)
+P(S+64 int64) Compound(size: 16)
+P(S+72 int64) Compound(size: 16)
+P(S+80 int64) Compound(size: 16)
+S+88 int32
+=>
+P(rcx int64, ret:rax int64) Compound(size: 16)

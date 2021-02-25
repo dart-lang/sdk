@@ -8,6 +8,8 @@
 // similarly defined functions and closures except that the parameters and
 // return types are all dynamic.
 
+// @dart=2.9
+
 import 'package:benchmark_harness/benchmark_harness.dart';
 
 const int kRepeat = 100;

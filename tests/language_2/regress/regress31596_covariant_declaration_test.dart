@@ -18,7 +18,7 @@ abstract class I {
 
 class D extends C implements I {}
 //    ^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+// [analyzer] COMPILE_TIME_ERROR.INVALID_IMPLEMENTATION_OVERRIDE
 // [cfe] unspecified
 
 main() {}

@@ -1,0 +1,7 @@
+extension Extension on int {
+  syncStarMethod() sync* {}
+  asyncMethod() async {}
+  asyncStarMethod() async* {}
+}
+
+main() {}

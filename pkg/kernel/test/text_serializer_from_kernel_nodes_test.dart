@@ -1,6 +1,9 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 library kernel.text_serializer_from_kernel_nodes_test;
 
 import 'package:kernel/ast.dart';
@@ -119,7 +122,8 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
-      Field field = new Field(new Name('field'), type: const DynamicType());
+      Field field =
+          new Field.immutable(new Name('field'), type: const DynamicType());
       Library library = new Library(
           new Uri(scheme: 'package', path: 'foo/bar.dart'),
           fields: <Field>[field]);
@@ -136,7 +140,26 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
-      Field field = new Field(new Name('field'), type: const DynamicType());
+      Field field =
+          new Field.mutable(new Name('field'), type: const DynamicType());
+      Library library = new Library(
+          new Uri(scheme: 'package', path: 'foo/bar.dart'),
+          fields: <Field>[field]);
+      Component component = new Component(libraries: <Library>[library]);
+      component.computeCanonicalNames();
+      return new TestCase<Statement>(
+          name: '/* suppose top-level: dynamic field; */ field;',
+          node: new ExpressionStatement(new StaticGet(field)),
+          expectation: ''
+              '(expr (get-static "package:foo/bar.dart::@fields::field"))',
+          makeSerializationState: () => new SerializationState(null),
+          makeDeserializationState: () =>
+              new DeserializationState(null, component.root),
+          serializer: statementSerializer);
+    }(),
+    () {
+      Field field =
+          new Field.mutable(new Name('field'), type: const DynamicType());
       Library library = new Library(
           new Uri(scheme: 'package', path: 'foo/bar.dart'),
           fields: <Field>[field]);
@@ -148,7 +171,7 @@ void test() {
               new ExpressionStatement(new StaticSet(field, new IntLiteral(1))),
           expectation: ''
               '(expr'
-              ' (set-static "package:foo/bar.dart::@fields::field" (int 1)))',
+              ' (set-static "package:foo/bar.dart::@=fields::field" (int 1)))',
           makeSerializationState: () => new SerializationState(null),
           makeDeserializationState: () =>
               new DeserializationState(null, component.root),
@@ -208,7 +231,8 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
-      Field field = new Field(new Name('field'), type: const DynamicType());
+      Field field =
+          new Field.immutable(new Name('field'), type: const DynamicType());
       Class klass = new Class(name: 'A', fields: <Field>[field]);
       Library library = new Library(
           new Uri(scheme: 'package', path: 'foo/bar.dart'),
@@ -220,11 +244,10 @@ void test() {
           new VariableDeclaration('x', type: const DynamicType());
       return new TestCase<Statement>(
           name: '/* suppose A {dynamic field;} A x; */ x.{A::field};',
-          node: new ExpressionStatement(new DirectPropertyGet.byReference(
-              new VariableGet(x), field.reference)),
+          node: new ExpressionStatement(new PropertyGet.byReference(
+              new VariableGet(x), field.name, field.getterReference)),
           expectation: ''
-              '(expr (get-direct-prop (get-var "x^0" _)'
-              ' "package:foo/bar.dart::A::@fields::field"))',
+              '(expr (get-prop (get-var "x^0" _) (public "field")))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, nameClue: 'x')
@@ -237,7 +260,37 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
-      Field field = new Field(new Name('field'), type: const DynamicType());
+      Field field =
+          new Field.mutable(new Name('field'), type: const DynamicType());
+      Class klass = new Class(name: 'A', fields: <Field>[field]);
+      Library library = new Library(
+          new Uri(scheme: 'package', path: 'foo/bar.dart'),
+          classes: <Class>[klass]);
+      Component component = new Component(libraries: <Library>[library]);
+      component.computeCanonicalNames();
+
+      VariableDeclaration x =
+          new VariableDeclaration('x', type: const DynamicType());
+      return new TestCase<Statement>(
+          name: '/* suppose A {dynamic field;} A x; */ x.{A::field};',
+          node: new ExpressionStatement(new PropertyGet.byReference(
+              new VariableGet(x), field.name, field.getterReference)),
+          expectation: ''
+              '(expr (get-prop (get-var "x^0" _) (public "field")))',
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)
+                ..addBinder(x, nameClue: 'x')
+                ..extend()),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null)
+                ..addBinder(x, "x^0")
+                ..extend(),
+              component.root),
+          serializer: statementSerializer);
+    }(),
+    () {
+      Field field =
+          new Field.mutable(new Name('field'), type: const DynamicType());
       Class klass = new Class(name: 'A', fields: <Field>[field]);
       Library library = new Library(
           new Uri(scheme: 'package', path: 'foo/bar.dart'),
@@ -249,11 +302,13 @@ void test() {
           new VariableDeclaration('x', type: const DynamicType());
       return new TestCase<Statement>(
           name: '/* suppose A {dynamic field;} A x; */ x.{A::field} = 42;',
-          node: new ExpressionStatement(new DirectPropertySet.byReference(
-              new VariableGet(x), field.reference, new IntLiteral(42))),
+          node: new ExpressionStatement(PropertySet.byReference(
+              new VariableGet(x),
+              field.name,
+              new IntLiteral(42),
+              field.setterReference)),
           expectation: ''
-              '(expr (set-direct-prop (get-var "x^0" _)'
-              ' "package:foo/bar.dart::A::@fields::field" (int 42)))',
+              '(expr (set-prop (get-var "x^0" _) (public "field") (int 42)))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, nameClue: 'x')
@@ -280,11 +335,13 @@ void test() {
           new VariableDeclaration('x', type: const DynamicType());
       return new TestCase<Statement>(
           name: '/* suppose A {foo() {...}} A x; */ x.{A::foo}();',
-          node: new ExpressionStatement(new DirectMethodInvocation.byReference(
-              new VariableGet(x), method.reference, new Arguments([]))),
+          node: new ExpressionStatement(new MethodInvocation.byReference(
+              new VariableGet(x),
+              method.name,
+              new Arguments([]),
+              method.reference)),
           expectation: ''
-              '(expr (invoke-direct-method (get-var "x^0" _)'
-              ' "package:foo/bar.dart::A::@methods::foo"'
+              '(expr (invoke-method (get-var "x^0" _) (public "foo")'
               ' () () ()))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
@@ -522,7 +579,8 @@ void test() {
     if (roundTripInput != testCase.expectation) {
       failures.add(''
           "* initial serialization for test '${testCase.name}'"
-          " gave output '${roundTripInput}'");
+          " gave output '${roundTripInput}'"
+          " but expected '${testCase.expectation}'");
     }
 
     TreeNode deserialized =

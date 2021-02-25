@@ -29,6 +29,8 @@ const char* PortMap::PortStateString(PortState kind) {
       return "live";
     case kControlPort:
       return "control";
+    case kInactivePort:
+      return "inactive";
     default:
       UNREACHABLE();
       return "UNKNOWN";
@@ -72,10 +74,11 @@ void PortMap::SetPortState(Dart_Port port, PortState state) {
 
   Entry& entry = *it;
   PortState old_state = entry.state;
-  ASSERT(old_state == kNewPort);
   entry.state = state;
   if (state == kLivePort) {
     entry.handler->increment_live_ports();
+  } else if (state == kInactivePort && old_state == kLivePort) {
+    entry.handler->decrement_live_ports();
   }
   if (FLAG_trace_isolates) {
     OS::PrintErr(
@@ -209,6 +212,18 @@ bool PortMap::IsLocalPort(Dart_Port id) {
   MessageHandler* handler = (*it).handler;
   ASSERT(handler != nullptr);
   return handler->IsCurrentIsolate();
+}
+
+bool PortMap::IsLivePort(Dart_Port id) {
+  MutexLocker ml(mutex_);
+  auto it = ports_->TryLookup(id);
+  if (it == ports_->end()) {
+    // Port does not exist.
+    return false;
+  }
+
+  PortState state = (*it).state;
+  return (state == kLivePort || state == kControlPort);
 }
 
 Isolate* PortMap::GetIsolate(Dart_Port id) {

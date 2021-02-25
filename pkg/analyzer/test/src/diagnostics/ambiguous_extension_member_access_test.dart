@@ -144,7 +144,6 @@ f(SubTarget<num> t) {
   }
 
   test_operator_binary() async {
-    // There is no error reported.
     await assertErrorsInCode('''
 class A {}
 
@@ -159,6 +158,26 @@ extension E2 on A {
 A f(A a) => a + a;
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 122, 5),
+    ]);
+  }
+
+  test_operator_binary_compoundAssignment() async {
+    await assertErrorsInCode('''
+class A {}
+
+extension E1 on A {
+  A operator +(_) => this;
+}
+
+extension E2 on A {
+  A operator +(_) => this;
+}
+
+void f(A a) {
+  a += 0;
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 130, 2),
     ]);
   }
 
@@ -234,6 +253,8 @@ f() {
     ]);
     var access = findNode.propertyAccess('0.a');
     assertElementNull(access);
-    assertTypeDynamic(access);
+    if (hasAssignmentLeftResolution) {
+      assertTypeDynamic(access);
+    }
   }
 }

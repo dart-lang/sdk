@@ -34,18 +34,23 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
       bytes_(NULL),
       bytes_length_(0),
       timestamp_(OS::GetCurrentTimeMillis()) {
-  // We should never generate events for the vm isolate as it is never reported over the service.
+  // We should never generate events for the vm isolate as it is never reported
+  // over the service.
   ASSERT(isolate_ != Dart::vm_isolate());
 
-  // System isolates should never post service events. However, the Isolate service object uses a
-  // service event to represent the current running state of the isolate, so we need to allow for
-  // system isolates to create resume and none events for this purpose. The resume event represents
-  // a running isolate and the none event is returned for an isolate that has not yet been marked as
-  // runnable (see "pauseEvent" in Isolate::PrintJSON).
+  // System isolates should never post service events. However, the Isolate
+  // service object uses a service event to represent the current running state
+  // of the isolate, so we need to allow for system isolates to create resume
+  // and none events for this purpose. The resume event represents a running
+  // isolate and the none event is returned for an isolate that has not yet
+  // been marked as runnable (see "pauseEvent" in Isolate::PrintJSON).
   ASSERT(isolate == NULL || !Isolate::IsSystemIsolate(isolate) ||
          (Isolate::IsSystemIsolate(isolate) &&
           (event_kind == ServiceEvent::kResume ||
-           event_kind == ServiceEvent::kNone)));
+           event_kind == ServiceEvent::kNone ||
+           // VM service can print Observatory information to Stdout or Stderr
+           // which are embedder streams.
+           event_kind == ServiceEvent::kEmbedder)));
 
   if ((event_kind == ServiceEvent::kPauseStart) ||
       (event_kind == ServiceEvent::kPauseExit)) {
@@ -247,8 +252,8 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   }
   if (gc_stats() != NULL) {
     jsobj.AddProperty("reason", Heap::GCReasonToString(gc_stats()->reason_));
-    isolate()->heap()->PrintToJSONObject(Heap::kNew, &jsobj);
-    isolate()->heap()->PrintToJSONObject(Heap::kOld, &jsobj);
+    isolate_group()->heap()->PrintToJSONObject(Heap::kNew, &jsobj);
+    isolate_group()->heap()->PrintToJSONObject(Heap::kOld, &jsobj);
   }
   if (bytes() != NULL) {
     jsobj.AddPropertyBase64("bytes", bytes(), bytes_length());

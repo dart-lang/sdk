@@ -4,6 +4,8 @@
 
 // Micro-benchmarks for sync/sync*/async/async* functionality.
 
+// @dart=2.9
+
 import 'dart:async';
 
 const int iterationLimitAsync = 200;

@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:cli_util/cli_logging.dart';
 import 'package:nnbd_migration/src/front_end/migration_state.dart';
 import 'package:nnbd_migration/src/preview/preview_site.dart';
 
@@ -26,7 +27,7 @@ class HttpPreviewServer {
   final MigrationState migrationState;
 
   /// The [PreviewSite] that can handle GET and POST requests.
-  PreviewSite previewSite;
+  PreviewSite _previewSite;
 
   /// Future that is completed with the HTTP server once it is running.
   Future<HttpServer> _serverFuture;
@@ -47,14 +48,15 @@ class HttpPreviewServer {
   /// [HttpServer.bind] to pick one.
   final int preferredPort;
 
+  final Logger _logger;
+
   /// Initialize a newly created HTTP server.
   HttpPreviewServer(this.migrationState, this.rerunFunction, this.applyHook,
-      this.bindAddress, this.preferredPort)
+      this.bindAddress, this.preferredPort, this._logger)
       : assert(bindAddress is String || bindAddress is InternetAddress);
 
   Future<String> get authToken async {
     await _serverFuture;
-    previewSite ??= PreviewSite(migrationState, rerunFunction, applyHook);
     return previewSite.serviceAuthToken;
   }
 
@@ -67,6 +69,9 @@ class HttpPreviewServer {
   Future<int> get boundPort async {
     return (await _serverFuture)?.port;
   }
+
+  PreviewSite get previewSite => _previewSite ??=
+      PreviewSite(migrationState, rerunFunction, applyHook, _logger);
 
   void close() {
     _serverFuture?.then((HttpServer server) {
@@ -96,13 +101,11 @@ class HttpPreviewServer {
 
   /// Handle a GET request received by the HTTP server.
   Future<void> _handleGetRequest(HttpRequest request) async {
-    previewSite ??= PreviewSite(migrationState, rerunFunction, applyHook);
     await previewSite.handleGetRequest(request);
   }
 
   /// Handle a POST request received by the HTTP server.
   Future<void> _handlePostRequest(HttpRequest request) async {
-    previewSite ??= PreviewSite(migrationState, rerunFunction, applyHook);
     await previewSite.handlePostRequest(request);
   }
 

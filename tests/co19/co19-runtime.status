@@ -6,11 +6,39 @@
 LibTest/core/Uri/hasEmptyPath_A01_t01: RuntimeError
 LibTest/core/Uri/parse_A05_t01: RuntimeError
 
+[ $system == windows ]
+LibTest/io/Stdin/readByteSync_A01_t01: Skip # Issue 43645
+LibTest/io/Stdin/readByteSync_A01_t02: Skip # Issue 43645
+
 [ $arch == simarm64 && $runtime == dart_precompiled ]
 LibTest/async/Stream/Stream.periodic_all_t02: Skip # Issue 42898
 
 [ $compiler != dart2js && $runtime != none && $runtime != vm && !$checked ]
 LibTest/async/Future/catchError_A03_t05: RuntimeError
+
+[ $mode == debug && $runtime == dart_precompiled ]
+LibTest/collection/ListBase/ListBase_class_A01_t03: SkipSlow # Very slow compilation in debug mode.
+LibTest/collection/ListBase/ListBase_class_A01_t04: SkipSlow # Very slow compilation in debug mode.
+LibTest/collection/ListBase/ListBase_class_A01_t05: SkipSlow # Very slow compilation in debug mode.
+LibTest/collection/ListBase/ListBase_class_A01_t06: SkipSlow # Very slow compilation in debug mode.
+LibTest/collection/ListMixin/ListMixin_class_A01_t03: SkipSlow # Very slow compilation in debug mode.
+LibTest/collection/ListMixin/ListMixin_class_A01_t04: SkipSlow # Very slow compilation in debug mode.
+LibTest/collection/ListMixin/ListMixin_class_A01_t05: SkipSlow # Very slow compilation in debug mode.
+LibTest/collection/ListMixin/ListMixin_class_A01_t06: SkipSlow # Very slow compilation in debug mode.
+LibTest/core/List/List_all_t03: SkipSlow # Very slow compilation in debug mode.
+LibTest/core/List/List_all_t04: SkipSlow # Very slow compilation in debug mode.
+LibTest/core/List/List_all_t05: SkipSlow # Very slow compilation in debug mode.
+LibTest/core/List/List_all_t06: SkipSlow # Very slow compilation in debug mode.
+
+[ $arch == simarm || $arch == simarm64 ]
+LibTest/collection/ListBase/ListBase_class_A01_t01: SkipSlow # Very slow on sim* architectures.
+LibTest/collection/ListBase/ListBase_class_A01_t04: SkipSlow # Very slow on sim* architectures.
+LibTest/collection/ListBase/ListBase_class_A01_t05: SkipSlow # Very slow on sim* architectures.
+LibTest/collection/ListBase/ListBase_class_A01_t06: SkipSlow # Very slow on sim* architectures.
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: SkipSlow # Very slow on sim* architectures.
+LibTest/collection/ListMixin/ListMixin_class_A01_t04: SkipSlow # Very slow on sim* architectures.
+LibTest/collection/ListMixin/ListMixin_class_A01_t05: SkipSlow # Very slow on sim* architectures.
+LibTest/collection/ListMixin/ListMixin_class_A01_t06: SkipSlow # Very slow on sim* architectures.
 
 [ $compiler == fasta || $runtime == dart_precompiled || $runtime == vm ]
 LibTest/html/*: SkipByDesign # dart:html not supported on VM.

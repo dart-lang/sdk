@@ -18,7 +18,7 @@ class TopLevelParser extends ClassMemberParser {
   TopLevelParser(Listener listener) : super(listener);
 
   @override
-  Token parseClassOrMixinOrExtensionBody(
-          Token token, DeclarationKind kind, String enclosingDeclarationName) =>
+  Token parseClassOrMixinOrExtensionBody(Token token, DeclarationKind kind,
+          String? enclosingDeclarationName) =>
       skipClassOrMixinOrExtensionBody(token);
 }

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
@@ -11,6 +10,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
+import '../../src/services/correction/assist/assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -21,7 +21,7 @@ void main() {
 @reflectiveTest
 class UtilTest extends AbstractSingleUnitTest {
   Future<void> assert_invertCondition(String expr, String expected) async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   int v1, v2, v3, v4, v5;
   bool b1, b2, b3, b4, b5;
@@ -32,14 +32,17 @@ main() {
   }
 }
 ''');
-    IfStatement ifStatement = findNodeAtString('if (');
+    var ifStatement = findNode.ifStatement('if (');
     var condition = ifStatement.condition;
     var result = CorrectionUtils(testAnalysisResult).invertCondition(condition);
     expect(result, expected);
+    // For compactness we put multiple cases into one test method.
+    // Prepare for resolving the test file one again.
+    changeFile(testFile);
   }
 
   Future<void> test_addLibraryImports_dart_hasImports_between() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:async';
 import 'dart:math';
 ''');
@@ -52,7 +55,7 @@ import 'dart:math';
   }
 
   Future<void> test_addLibraryImports_dart_hasImports_first() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:collection';
 import 'dart:math';
 ''');
@@ -65,7 +68,7 @@ import 'dart:math';
   }
 
   Future<void> test_addLibraryImports_dart_hasImports_last() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:async';
 import 'dart:collection';
 ''');
@@ -78,7 +81,7 @@ import 'dart:math';
   }
 
   Future<void> test_addLibraryImports_dart_hasImports_multiple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:collection';
 import 'dart:math';
 ''');
@@ -93,7 +96,7 @@ import 'dart:math';
   }
 
   Future<void> test_addLibraryImports_dart_hasImports_multiple_first() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:html';
 import 'dart:math';
 ''');
@@ -108,7 +111,7 @@ import 'dart:math';
   }
 
   Future<void> test_addLibraryImports_dart_hasImports_multiple_last() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:async';
 import 'dart:collection';
 ''');
@@ -123,7 +126,7 @@ import 'dart:math';
   }
 
   Future<void> test_addLibraryImports_dart_hasLibraryDirective() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 library test;
 
 class A {}
@@ -141,7 +144,7 @@ class A {}
   }
 
   Future<void> test_addLibraryImports_dart_noDirectives_hasComment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 /// Comment.
 
 class A {}
@@ -159,7 +162,7 @@ class A {}
   }
 
   Future<void> test_addLibraryImports_dart_noDirectives_hasShebang() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 #!/bin/dart
 
 class A {}
@@ -177,7 +180,7 @@ class A {}
   }
 
   Future<void> test_addLibraryImports_dart_noDirectives_noShebang() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 ''');
     var newLibrary1 = _getDartSource('dart:math');
@@ -192,8 +195,16 @@ class A {}
 
   Future<void>
       test_addLibraryImports_package_hasDart_hasPackages_insertAfter() async {
-    addPackageFile('aaa', 'aaa.dart', '');
-    await resolveTestUnit('''
+    newFile('$workspaceRootPath/aaa/lib/aaa.dart');
+    newFile('$workspaceRootPath/bbb/lib/bbb.dart');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa')
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'),
+    );
+
+    await resolveTestCode('''
 import 'dart:async';
 
 import 'package:aaa/aaa.dart';
@@ -209,8 +220,16 @@ import 'package:bbb/bbb.dart';
 
   Future<void>
       test_addLibraryImports_package_hasDart_hasPackages_insertBefore() async {
-    addPackageFile('bbb', 'bbb.dart', '');
-    await resolveTestUnit('''
+    newFile('$workspaceRootPath/aaa/lib/aaa.dart');
+    newFile('$workspaceRootPath/bbb/lib/bbb.dart');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa')
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'),
+    );
+
+    await resolveTestCode('''
 import 'dart:async';
 
 import 'package:bbb/bbb.dart';
@@ -225,9 +244,20 @@ import 'package:bbb/bbb.dart';
   }
 
   Future<void> test_addLibraryImports_package_hasImports_between() async {
-    addPackageFile('aaa', 'aaa.dart', '');
-    addPackageFile('ddd', 'ddd.dart', '');
-    await resolveTestUnit('''
+    newFile('$workspaceRootPath/aaa/lib/aaa.dart');
+    newFile('$workspaceRootPath/bbb/lib/bbb.dart');
+    newFile('$workspaceRootPath/ccc/lib/ccc.dart');
+    newFile('$workspaceRootPath/ddd/lib/ddd.dart');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa')
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb')
+        ..add(name: 'ccc', rootPath: '$workspaceRootPath/ccc')
+        ..add(name: 'ddd', rootPath: '$workspaceRootPath/ddd'),
+    );
+
+    await resolveTestCode('''
 import 'package:aaa/aaa.dart';
 import 'package:ddd/ddd.dart';
 ''');

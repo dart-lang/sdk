@@ -68,13 +68,13 @@ class LoadingUnitsMetadataRepository
 
   @override
   LoadingUnitsMetadata readFromBinary(Node node, BinarySource source) {
-    int length = source.readUInt();
+    int length = source.readUInt30();
     var units = <LoadingUnit>[];
     for (int i = 0; i < length; i++) {
-      int id = source.readUInt();
-      int parentId = source.readUInt();
+      int id = source.readUInt30();
+      int parentId = source.readUInt30();
       var libraryUris = <String>[];
-      int length = source.readUInt();
+      int length = source.readUInt30();
       for (int i = 0; i < length; i++) {
         libraryUris.add(source.readStringReference());
       }

@@ -35,7 +35,7 @@ class ReanalyzeTest extends AbstractAnalysisTest {
     newFile(testFile, content: r'''
 import '../../other/b.dart';
 
-B b;
+var b = B();
 ''');
     createProject();
 

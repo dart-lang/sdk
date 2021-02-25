@@ -20,38 +20,48 @@ class ResolutionResult {
   /// Return the element that is invoked for reading.
   final ExecutableElement getter;
 
+  /// If `true`, then the [getter] is `null`, and this is an error that has
+  /// not yet been reported, and the client should report it.
+  ///
+  /// If `false`, then the [getter] is valid. Usually this means that the
+  /// correct target has been found. But the [getter] still might be `null`,
+  /// when there was an error, and it has already been reported (e.g. when
+  /// ambiguous extension);  or when `null` is the only possible result (e.g.
+  /// when `dynamicTarget.foo`, or `functionTyped.call`).
+  final bool needsGetterError;
+
   /// Return the element that is invoked for writing.
   final ExecutableElement setter;
 
+  /// If `true`, then the [setter] is `null`, and this is an error that has
+  /// not yet been reported, and the client should report it.
+  ///
+  /// If `false`, then the [setter] is valid. Usually this means that the
+  /// correct target has been found. But the [setter] still might be `null`,
+  /// when there was an error, and it has already been reported (e.g. when
+  /// ambiguous extension);  or when `null` is the only possible result (e.g.
+  /// when `dynamicTarget.foo`).
+  final bool needsSetterError;
+
   /// Initialize a newly created result to represent resolving a single
   /// reading and / or writing result.
-  ResolutionResult({this.getter, this.setter})
-      : assert(getter != null || setter != null),
-        state = _ResolutionResultState.single;
+  ResolutionResult({
+    this.getter,
+    this.needsGetterError,
+    this.setter,
+    this.needsSetterError,
+  }) : state = _ResolutionResultState.single;
 
   /// Initialize a newly created result with no elements and the given [state].
   const ResolutionResult._(this.state)
       : getter = null,
-        setter = null;
+        needsGetterError = true,
+        setter = null,
+        needsSetterError = true;
 
   /// Return `true` if this result represents the case where multiple ambiguous
   /// elements were found.
   bool get isAmbiguous => state == _ResolutionResultState.ambiguous;
-
-  /// Return `true` if this result represents the case where no element was
-  /// found.
-  bool get isNone => state == _ResolutionResultState.none;
-
-  /// Return `true` if this result represents the case where a single element
-  /// was found.
-  bool get isSingle => state == _ResolutionResultState.single;
-
-  /// If this is a property, return `true` is the property is static.
-  /// If this is a function, return `true` is the function is static.
-  /// Otherwise return `false`.
-  bool get isStatic {
-    return getter?.isStatic ?? setter?.isStatic ?? false;
-  }
 }
 
 /// The state of a [ResolutionResult].

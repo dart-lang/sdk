@@ -1217,6 +1217,7 @@ class CompletionSuggestion implements HasToJson {
 ///   OPTIONAL_ARGUMENT
 ///   OVERRIDE
 ///   PARAMETER
+///   PACKAGE_NAME
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1266,6 +1267,10 @@ class CompletionSuggestionKind implements Enum {
   static const CompletionSuggestionKind PARAMETER =
       CompletionSuggestionKind._('PARAMETER');
 
+  /// The name of a pub package is being suggested.
+  static const CompletionSuggestionKind PACKAGE_NAME =
+      CompletionSuggestionKind._('PACKAGE_NAME');
+
   /// A list containing all of the enum values that are defined.
   static const List<CompletionSuggestionKind> VALUES =
       <CompletionSuggestionKind>[
@@ -1277,7 +1282,8 @@ class CompletionSuggestionKind implements Enum {
     NAMED_ARGUMENT,
     OPTIONAL_ARGUMENT,
     OVERRIDE,
-    PARAMETER
+    PARAMETER,
+    PACKAGE_NAME
   ];
 
   @override
@@ -1305,6 +1311,8 @@ class CompletionSuggestionKind implements Enum {
         return OVERRIDE;
       case 'PARAMETER':
         return PARAMETER;
+      case 'PACKAGE_NAME':
+        return PACKAGE_NAME;
     }
     throw Exception('Illegal enum value: $name');
   }
@@ -1710,6 +1718,7 @@ class Element implements HasToJson {
 ///   PREFIX
 ///   SETTER
 ///   TOP_LEVEL_VARIABLE
+///   TYPE_ALIAS
 ///   TYPE_PARAMETER
 ///   UNIT_TEST_GROUP
 ///   UNIT_TEST_TEST
@@ -1768,6 +1777,8 @@ class ElementKind implements Enum {
   static const ElementKind TOP_LEVEL_VARIABLE =
       ElementKind._('TOP_LEVEL_VARIABLE');
 
+  static const ElementKind TYPE_ALIAS = ElementKind._('TYPE_ALIAS');
+
   static const ElementKind TYPE_PARAMETER = ElementKind._('TYPE_PARAMETER');
 
   static const ElementKind UNIT_TEST_GROUP = ElementKind._('UNIT_TEST_GROUP');
@@ -1801,6 +1812,7 @@ class ElementKind implements Enum {
     PREFIX,
     SETTER,
     TOP_LEVEL_VARIABLE,
+    TYPE_ALIAS,
     TYPE_PARAMETER,
     UNIT_TEST_GROUP,
     UNIT_TEST_TEST,
@@ -1860,6 +1872,8 @@ class ElementKind implements Enum {
         return SETTER;
       case 'TOP_LEVEL_VARIABLE':
         return TOP_LEVEL_VARIABLE;
+      case 'TYPE_ALIAS':
+        return TYPE_ALIAS;
       case 'TYPE_PARAMETER':
         return TYPE_PARAMETER;
       case 'UNIT_TEST_GROUP':
@@ -1896,6 +1910,7 @@ class ElementKind implements Enum {
 ///   ANNOTATIONS
 ///   BLOCK
 ///   CLASS_BODY
+///   COMMENT
 ///   DIRECTIVES
 ///   DOCUMENTATION_COMMENT
 ///   FILE_HEADER
@@ -1911,6 +1926,8 @@ class FoldingKind implements Enum {
   static const FoldingKind BLOCK = FoldingKind._('BLOCK');
 
   static const FoldingKind CLASS_BODY = FoldingKind._('CLASS_BODY');
+
+  static const FoldingKind COMMENT = FoldingKind._('COMMENT');
 
   static const FoldingKind DIRECTIVES = FoldingKind._('DIRECTIVES');
 
@@ -1930,6 +1947,7 @@ class FoldingKind implements Enum {
     ANNOTATIONS,
     BLOCK,
     CLASS_BODY,
+    COMMENT,
     DIRECTIVES,
     DOCUMENTATION_COMMENT,
     FILE_HEADER,
@@ -1951,6 +1969,8 @@ class FoldingKind implements Enum {
         return BLOCK;
       case 'CLASS_BODY':
         return CLASS_BODY;
+      case 'COMMENT':
+        return COMMENT;
       case 'DIRECTIVES':
         return DIRECTIVES;
       case 'DOCUMENTATION_COMMENT':
@@ -2277,6 +2297,7 @@ class HighlightRegion implements HasToJson {
 ///   TOP_LEVEL_SETTER_DECLARATION
 ///   TOP_LEVEL_SETTER_REFERENCE
 ///   TOP_LEVEL_VARIABLE_DECLARATION
+///   TYPE_ALIAS
 ///   TYPE_NAME_DYNAMIC
 ///   TYPE_PARAMETER
 ///   UNRESOLVED_INSTANCE_MEMBER_REFERENCE
@@ -2307,23 +2328,19 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType DIRECTIVE =
       HighlightRegionType._('DIRECTIVE');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType DYNAMIC_TYPE =
       HighlightRegionType._('DYNAMIC_TYPE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_DECLARATION =
       HighlightRegionType._('DYNAMIC_LOCAL_VARIABLE_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_REFERENCE =
       HighlightRegionType._('DYNAMIC_LOCAL_VARIABLE_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_PARAMETER_DECLARATION =
       HighlightRegionType._('DYNAMIC_PARAMETER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_PARAMETER_REFERENCE =
       HighlightRegionType._('DYNAMIC_PARAMETER_REFERENCE');
 
@@ -2332,24 +2349,24 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType ENUM_CONSTANT =
       HighlightRegionType._('ENUM_CONSTANT');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType FIELD = HighlightRegionType._('FIELD');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType FIELD_STATIC =
       HighlightRegionType._('FIELD_STATIC');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType FUNCTION = HighlightRegionType._('FUNCTION');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType FUNCTION_DECLARATION =
       HighlightRegionType._('FUNCTION_DECLARATION');
 
   static const HighlightRegionType FUNCTION_TYPE_ALIAS =
       HighlightRegionType._('FUNCTION_TYPE_ALIAS');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType GETTER_DECLARATION =
       HighlightRegionType._('GETTER_DECLARATION');
 
@@ -2359,39 +2376,30 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType IMPORT_PREFIX =
       HighlightRegionType._('IMPORT_PREFIX');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_FIELD_DECLARATION =
       HighlightRegionType._('INSTANCE_FIELD_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_FIELD_REFERENCE =
       HighlightRegionType._('INSTANCE_FIELD_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_GETTER_DECLARATION =
       HighlightRegionType._('INSTANCE_GETTER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_GETTER_REFERENCE =
       HighlightRegionType._('INSTANCE_GETTER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_METHOD_DECLARATION =
       HighlightRegionType._('INSTANCE_METHOD_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_METHOD_REFERENCE =
       HighlightRegionType._('INSTANCE_METHOD_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_SETTER_DECLARATION =
       HighlightRegionType._('INSTANCE_SETTER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_SETTER_REFERENCE =
       HighlightRegionType._('INSTANCE_SETTER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType INVALID_STRING_ESCAPE =
       HighlightRegionType._('INVALID_STRING_ESCAPE');
 
@@ -2399,7 +2407,6 @@ class HighlightRegionType implements Enum {
 
   static const HighlightRegionType LABEL = HighlightRegionType._('LABEL');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType LIBRARY_NAME =
       HighlightRegionType._('LIBRARY_NAME');
 
@@ -2421,115 +2428,99 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType LITERAL_STRING =
       HighlightRegionType._('LITERAL_STRING');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType LOCAL_FUNCTION_DECLARATION =
       HighlightRegionType._('LOCAL_FUNCTION_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType LOCAL_FUNCTION_REFERENCE =
       HighlightRegionType._('LOCAL_FUNCTION_REFERENCE');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType LOCAL_VARIABLE =
       HighlightRegionType._('LOCAL_VARIABLE');
 
   static const HighlightRegionType LOCAL_VARIABLE_DECLARATION =
       HighlightRegionType._('LOCAL_VARIABLE_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType LOCAL_VARIABLE_REFERENCE =
       HighlightRegionType._('LOCAL_VARIABLE_REFERENCE');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType METHOD = HighlightRegionType._('METHOD');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType METHOD_DECLARATION =
       HighlightRegionType._('METHOD_DECLARATION');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType METHOD_DECLARATION_STATIC =
       HighlightRegionType._('METHOD_DECLARATION_STATIC');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType METHOD_STATIC =
       HighlightRegionType._('METHOD_STATIC');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType PARAMETER =
       HighlightRegionType._('PARAMETER');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType SETTER_DECLARATION =
       HighlightRegionType._('SETTER_DECLARATION');
 
-  /// Only for version 1 of highlight.
+  /// Deprecated - no longer sent.
   static const HighlightRegionType TOP_LEVEL_VARIABLE =
       HighlightRegionType._('TOP_LEVEL_VARIABLE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType PARAMETER_DECLARATION =
       HighlightRegionType._('PARAMETER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType PARAMETER_REFERENCE =
       HighlightRegionType._('PARAMETER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_FIELD_DECLARATION =
       HighlightRegionType._('STATIC_FIELD_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_GETTER_DECLARATION =
       HighlightRegionType._('STATIC_GETTER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_GETTER_REFERENCE =
       HighlightRegionType._('STATIC_GETTER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_METHOD_DECLARATION =
       HighlightRegionType._('STATIC_METHOD_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_METHOD_REFERENCE =
       HighlightRegionType._('STATIC_METHOD_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_SETTER_DECLARATION =
       HighlightRegionType._('STATIC_SETTER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_SETTER_REFERENCE =
       HighlightRegionType._('STATIC_SETTER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_FUNCTION_DECLARATION =
       HighlightRegionType._('TOP_LEVEL_FUNCTION_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_FUNCTION_REFERENCE =
       HighlightRegionType._('TOP_LEVEL_FUNCTION_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_GETTER_DECLARATION =
       HighlightRegionType._('TOP_LEVEL_GETTER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_GETTER_REFERENCE =
       HighlightRegionType._('TOP_LEVEL_GETTER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_SETTER_DECLARATION =
       HighlightRegionType._('TOP_LEVEL_SETTER_DECLARATION');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_SETTER_REFERENCE =
       HighlightRegionType._('TOP_LEVEL_SETTER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_VARIABLE_DECLARATION =
       HighlightRegionType._('TOP_LEVEL_VARIABLE_DECLARATION');
+
+  static const HighlightRegionType TYPE_ALIAS =
+      HighlightRegionType._('TYPE_ALIAS');
 
   static const HighlightRegionType TYPE_NAME_DYNAMIC =
       HighlightRegionType._('TYPE_NAME_DYNAMIC');
@@ -2537,11 +2528,9 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType TYPE_PARAMETER =
       HighlightRegionType._('TYPE_PARAMETER');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType UNRESOLVED_INSTANCE_MEMBER_REFERENCE =
       HighlightRegionType._('UNRESOLVED_INSTANCE_MEMBER_REFERENCE');
 
-  /// Only for version 2 of highlight.
   static const HighlightRegionType VALID_STRING_ESCAPE =
       HighlightRegionType._('VALID_STRING_ESCAPE');
 
@@ -2616,6 +2605,7 @@ class HighlightRegionType implements Enum {
     TOP_LEVEL_SETTER_DECLARATION,
     TOP_LEVEL_SETTER_REFERENCE,
     TOP_LEVEL_VARIABLE_DECLARATION,
+    TYPE_ALIAS,
     TYPE_NAME_DYNAMIC,
     TYPE_PARAMETER,
     UNRESOLVED_INSTANCE_MEMBER_REFERENCE,
@@ -2767,6 +2757,8 @@ class HighlightRegionType implements Enum {
         return TOP_LEVEL_SETTER_REFERENCE;
       case 'TOP_LEVEL_VARIABLE_DECLARATION':
         return TOP_LEVEL_VARIABLE_DECLARATION;
+      case 'TYPE_ALIAS':
+        return TYPE_ALIAS;
       case 'TYPE_NAME_DYNAMIC':
         return TYPE_NAME_DYNAMIC;
       case 'TYPE_PARAMETER':
@@ -4358,27 +4350,34 @@ class ParameterInfo implements HasToJson {
 /// ParameterKind
 ///
 /// enum {
-///   NAMED
-///   OPTIONAL
-///   REQUIRED
+///   OPTIONAL_NAMED
+///   OPTIONAL_POSITIONAL
+///   REQUIRED_NAMED
+///   REQUIRED_POSITIONAL
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ParameterKind implements Enum {
-  /// A named parameter.
-  static const ParameterKind NAMED = ParameterKind._('NAMED');
+  /// An optional named parameter.
+  static const ParameterKind OPTIONAL_NAMED = ParameterKind._('OPTIONAL_NAMED');
 
-  /// An optional parameter.
-  static const ParameterKind OPTIONAL = ParameterKind._('OPTIONAL');
+  /// An optional positional parameter.
+  static const ParameterKind OPTIONAL_POSITIONAL =
+      ParameterKind._('OPTIONAL_POSITIONAL');
 
-  /// A required parameter.
-  static const ParameterKind REQUIRED = ParameterKind._('REQUIRED');
+  /// A required named parameter.
+  static const ParameterKind REQUIRED_NAMED = ParameterKind._('REQUIRED_NAMED');
+
+  /// A required positional parameter.
+  static const ParameterKind REQUIRED_POSITIONAL =
+      ParameterKind._('REQUIRED_POSITIONAL');
 
   /// A list containing all of the enum values that are defined.
   static const List<ParameterKind> VALUES = <ParameterKind>[
-    NAMED,
-    OPTIONAL,
-    REQUIRED
+    OPTIONAL_NAMED,
+    OPTIONAL_POSITIONAL,
+    REQUIRED_NAMED,
+    REQUIRED_POSITIONAL
   ];
 
   @override
@@ -4388,12 +4387,14 @@ class ParameterKind implements Enum {
 
   factory ParameterKind(String name) {
     switch (name) {
-      case 'NAMED':
-        return NAMED;
-      case 'OPTIONAL':
-        return OPTIONAL;
-      case 'REQUIRED':
-        return REQUIRED;
+      case 'OPTIONAL_NAMED':
+        return OPTIONAL_NAMED;
+      case 'OPTIONAL_POSITIONAL':
+        return OPTIONAL_POSITIONAL;
+      case 'REQUIRED_NAMED':
+        return REQUIRED_NAMED;
+      case 'REQUIRED_POSITIONAL':
+        return REQUIRED_POSITIONAL;
     }
     throw Exception('Illegal enum value: $name');
   }

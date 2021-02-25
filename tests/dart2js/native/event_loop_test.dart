@@ -20,9 +20,10 @@ void setup() {
 (function(){
 function A() {}
 A.prototype.foo = function(f) { return f(); };
-makeA = function() { return new A(); };
+self.makeA = function() { return new A(); };
 self.nativeConstructor(A);
 })()""");
+  applyTestExtensions(['A']);
 }
 
 main() {

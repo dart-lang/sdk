@@ -4,8 +4,10 @@
 
 // part of "core_patch.dart";
 
+@pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Smi")
 int _getHash(obj) native "Object_getHash";
+@pragma("vm:recognized", "asm-intrinsic")
 void _setHash(obj, hash) native "Object_setHash";
 
 @patch
@@ -13,6 +15,7 @@ void _setHash(obj, hash) native "Object_setHash";
 class Object {
   // The VM has its own implementation of equals.
   @patch
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   @pragma("vm:prefer-inline")
   bool operator ==(Object other) native "Object_equals";
@@ -52,9 +55,11 @@ class Object {
   }
 
   @patch
-  @pragma("vm:exact-result-type", "dart:core#_Type")
+  @pragma("vm:recognized", "asm-intrinsic")
+  // Result type is either "dart:core#_Type" or "dart:core#_FunctionType".
   Type get runtimeType native "Object_runtimeType";
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:entry-point", "call")
   @pragma("vm:exact-result-type", bool)
   static bool _haveSameRuntimeType(a, b) native "Object_haveSameRuntimeType";

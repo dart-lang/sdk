@@ -5,6 +5,11 @@
 [ $compiler == dartdevk ]
 regexp/lookbehind_test/01: Skip # Flaky in uncatchable way.  Issue 36280
 
+[ $compiler == dartkp ]
+bigint_parse_radix_test: Slow, Pass # --no_intrinsify
+bigint_test/03: SkipSlow # --no_intrinsify
+bigint_test/15: SkipSlow # --no_intrinsify
+
 [ $mode == debug ]
 regexp/pcre_test: Slow, Pass # Issue 22008
 
@@ -38,6 +43,7 @@ regexp/pcre_test: Slow, Pass # Issue 21593
 
 [ $runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk) ]
 int_parse_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 support.
+integer_arith_vm_test: SkipByDesign # Is a VM optimization test that requires int64 support.
 iterable_return_type_int64_test: SkipByDesign # Requires int64 support.
 typed_data_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 support.
 
@@ -48,13 +54,9 @@ bigint_test: Skip # Issue 31659
 [ $compiler == dartdevc || $compiler == dartdevk ]
 bigint_test/03: SkipSlow # modPow is very slow
 bigint_test/15: SkipSlow # modPow is very slow
+list_concurrent_modify_self_test: SkipSlow # missing check causes list to grow to whole heap
 uri_parse_test: Slow, Pass
 uri_test: Slow, Pass
-
-[ $compiler == dartkb || $compiler == dartkp ]
-bigint_parse_radix_test: Slow, Pass # --no_intrinsify
-bigint_test/03: SkipSlow # --no_intrinsify
-bigint_test/15: SkipSlow # --no_intrinsify
 
 [ $runtime == dart_precompiled || $runtime == vm ]
 regexp/global_test: Skip # Issue 21709

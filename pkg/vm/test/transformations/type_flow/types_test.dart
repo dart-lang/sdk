@@ -25,7 +25,7 @@ class TestTypeHierarchy extends TypeHierarchy {
   }
 
   @override
-  Type specializeTypeCone(TFClass base) {
+  Type specializeTypeCone(TFClass base, {bool allowWideCone = false}) {
     Type result = specializations[base.classNode];
     expect(result, isNotNull,
         reason: "specializeTypeCone($base) is not defined");
@@ -66,8 +66,7 @@ main() {
     final InterfaceType t2Raw = new InterfaceType(c2, Nullability.legacy);
     final InterfaceType t2Generic =
         new InterfaceType(c2, Nullability.legacy, [t1]);
-    final InterfaceType t3 =
-        new InterfaceType(coreTypes.nullClass, Nullability.nullable);
+    final DartType t3 = const NullType();
     final FunctionType f1 =
         new FunctionType([t1], const VoidType(), Nullability.legacy);
 

@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*library: scope=[Extension1]*/
+// @dart = 2.9
+
+/*library: scope=[
+  Extension1,
+  async.dart.FutureExtensions]*/
 
 /*class: Extension1:
  builder-name=Extension1,

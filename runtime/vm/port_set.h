@@ -7,6 +7,7 @@
 
 #include "include/dart_api.h"
 
+#include "platform/allocation.h"
 #include "platform/globals.h"
 #include "platform/utils.h"
 
@@ -18,7 +19,7 @@ class PortSet {
   static constexpr Dart_Port kFreePort = static_cast<Dart_Port>(0);
   static constexpr Dart_Port kDeletedPort = static_cast<Dart_Port>(3);
 
-  struct Entry {
+  struct Entry : public MallocAllocated {
     Entry() : port(kFreePort) {}
 
     // Free entries have set this to 0.

@@ -75,7 +75,7 @@ class _Runner {
   String get stdout => _stdout.toString();
 
   Future<void> run2(List<String> args) async {
-    await Driver(isTesting: true).start(args);
+    await Driver().start(args);
     if (stderr.isNotEmpty) {
       fail('Unexpected output to stderr:\n$stderr');
     }

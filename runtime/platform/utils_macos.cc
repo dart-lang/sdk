@@ -25,9 +25,6 @@ char* Utils::StrNDup(const char* s, intptr_t n) {
     len = n;
   }
   char* result = reinterpret_cast<char*>(malloc(len + 1));
-  if (result == NULL) {
-    return NULL;
-  }
   result[len] = '\0';
   return reinterpret_cast<char*>(memmove(result, s, len));
 #else   // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...

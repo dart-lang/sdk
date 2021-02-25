@@ -4,6 +4,8 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -14,7 +16,25 @@ class AddRequiredKeyword extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(node.parent.offset, 'required ');
+      var insertOffset = node.parent.offset;
+
+      var parent = node.parent;
+      if (parent is FormalParameter) {
+        var metadata = parent.metadata;
+        // Check for redundant `@required` annotations.
+        if (metadata.isNotEmpty) {
+          for (var annotation in metadata) {
+            if (annotation.elementAnnotation.isRequired) {
+              var length = annotation.endToken.next.offset -
+                  annotation.beginToken.offset;
+              builder.addDeletion(SourceRange(annotation.offset, length));
+              break;
+            }
+          }
+          insertOffset = metadata.endToken.next.offset;
+        }
+      }
+      builder.addSimpleInsertion(insertOffset, 'required ');
     });
   }
 

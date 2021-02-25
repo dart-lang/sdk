@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
-import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart'
@@ -366,10 +365,10 @@ class GenericInferrer {
         return lower;
       }
       if (!identical(UnknownInferredType.instance, upper)) {
-        return toKnownType ? _typeSystem.greatestClosure(upper) : upper;
+        return toKnownType ? _typeSystem.greatestClosureOfSchema(upper) : upper;
       }
       if (!identical(UnknownInferredType.instance, lower)) {
-        return toKnownType ? _typeSystem.leastClosure(lower) : lower;
+        return toKnownType ? _typeSystem.leastClosureOfSchema(lower) : lower;
       }
       return upper;
     } else {
@@ -380,10 +379,10 @@ class GenericInferrer {
         return upper;
       }
       if (!identical(UnknownInferredType.instance, lower)) {
-        return toKnownType ? _typeSystem.leastClosure(lower) : lower;
+        return toKnownType ? _typeSystem.leastClosureOfSchema(lower) : lower;
       }
       if (!identical(UnknownInferredType.instance, upper)) {
-        return toKnownType ? _typeSystem.greatestClosure(upper) : upper;
+        return toKnownType ? _typeSystem.greatestClosureOfSchema(upper) : upper;
       }
       return lower;
     }
@@ -477,8 +476,11 @@ class GenericInferrer {
   void _nonNullifyTypes(List<DartType> types) {
     if (_typeSystem.isNonNullableByDefault) {
       for (var i = 0; i < types.length; i++) {
-        types[i] = nonNullifyType(_typeSystem, types[i]);
+        types[i] = _typeSystem.nonNullifyLegacy(types[i]);
       }
+    }
+    for (var i = 0; i < types.length; i++) {
+      types[i] = _typeSystem.demoteType(types[i]);
     }
   }
 

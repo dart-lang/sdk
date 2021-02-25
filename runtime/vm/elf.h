@@ -30,12 +30,10 @@ class Elf : public ZoneAllocated {
     DebugInfo,
   };
 
-  Elf(Zone* zone,
-      StreamingWriteStream* stream,
-      Type type,
-      Dwarf* dwarf = nullptr);
+  Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf = nullptr);
 
-  static const intptr_t kPageSize = 4096;
+  static constexpr intptr_t kPageSize = 4096;
+  static constexpr uword kNoSectionStart = 0;
 
   bool IsStripped() const { return dwarf_ == nullptr; }
 
@@ -43,21 +41,30 @@ class Elf : public ZoneAllocated {
   const Dwarf* dwarf() const { return dwarf_; }
   Dwarf* dwarf() { return dwarf_; }
 
-  uword BssStart(bool vm) const;
+  // Returns the relocated address for the symbol with the given name or
+  // kNoSectionStart if the symbol was not found.
+  uword SymbolAddress(const char* name) const;
 
-  // What the next memory offset for a kPageSize-aligned section would be.
+  // What the next memory offset for an appropriately aligned section would be.
   //
-  // Only used by BlobImageWriter::WriteText() to determine the memory offset
-  // for the text section before it is added.
-  intptr_t NextMemoryOffset() const;
-  intptr_t AddNoBits(const char* name, const uint8_t* bytes, intptr_t size);
+  // Only used by AssemblyImageWriter and BlobImageWriter methods.
+  intptr_t NextMemoryOffset(intptr_t alignment) const;
   intptr_t AddText(const char* name, const uint8_t* bytes, intptr_t size);
   intptr_t AddROData(const char* name, const uint8_t* bytes, intptr_t size);
   void AddDebug(const char* name, const uint8_t* bytes, intptr_t size);
 
+  // Adds a local symbol for the given offset and size in the "current" section,
+  // that is, the section index for the symbol is for the next added section.
+  void AddLocalSymbol(const char* name,
+                      intptr_t type,
+                      intptr_t offset,
+                      intptr_t size);
+
   void Finalize();
 
  private:
+  static constexpr const char* kBuildIdNoteName = ".note.gnu.build-id";
+
   static Section* CreateBSS(Zone* zone, Type type, intptr_t size);
 
   // Adds the section and also creates a PT_LOAD segment for the section if it
@@ -71,20 +78,29 @@ class Elf : public ZoneAllocated {
   intptr_t AddSection(Section* section,
                       const char* name,
                       const char* symbol_name = nullptr);
+  // Replaces [old_section] with [new_section] in all appropriate places. If the
+  // section is allocated, the memory size of the section must be the same as
+  // the original to ensure any already-calculated memory offsets are unchanged.
+  void ReplaceSection(Section* old_section, Section* new_section);
+
   void AddStaticSymbol(const char* name,
-                       intptr_t info,
+                       intptr_t binding,
+                       intptr_t type,
                        intptr_t section_index,
                        intptr_t address,
                        intptr_t size);
   void AddDynamicSymbol(const char* name,
-                        intptr_t info,
+                        intptr_t binding,
+                        intptr_t type,
                         intptr_t section_index,
                         intptr_t address,
                         intptr_t size);
 
   Segment* LastLoadSegment() const;
   const Section* FindSectionForAddress(intptr_t address) const;
-  Section* GenerateBuildId();
+  Section* CreateBuildIdNote(const void* description_bytes,
+                             intptr_t description_length);
+  Section* GenerateFinalBuildId();
 
   void AddSectionSymbols();
   void FinalizeDwarfSections();
@@ -97,7 +113,7 @@ class Elf : public ZoneAllocated {
   void WriteSections(ElfWriteStream* stream);
 
   Zone* const zone_;
-  StreamingWriteStream* const unwrapped_stream_;
+  BaseWriteStream* const unwrapped_stream_;
   const Type type_;
 
   // If nullptr, then the ELF file should be stripped of static information like
@@ -117,6 +133,12 @@ class Elf : public ZoneAllocated {
   // The static tables are lazily created when static symbols are added.
   StringTable* strtab_ = nullptr;
   SymbolTable* symtab_ = nullptr;
+
+  // We always create a GNU build ID for all Elf files. In order to create
+  // the appropriate offset to it in an InstructionsSection object, we create an
+  // initial build ID section as a placeholder and then replace that section
+  // during finalization once we have the information to calculate the real one.
+  Section* build_id_;
 
   GrowableArray<Section*> sections_;
   GrowableArray<Segment*> segments_;

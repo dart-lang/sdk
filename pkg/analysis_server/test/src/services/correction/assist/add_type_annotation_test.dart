@@ -21,7 +21,7 @@ class AddTypeAnnotationTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.ADD_TYPE_ANNOTATION;
 
   Future<void> test_classField_final() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   final f = 0;
 }
@@ -36,7 +36,7 @@ class A {
   Future<void> test_classField_final_noAssistWithLint() async {
     createAnalysisOptionsFile(lints: [LintNames.always_specify_types]);
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   /*caret*/final f = 0;
 }
@@ -45,12 +45,12 @@ class A {
   }
 
   Future<void> test_classField_int() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   var f = 0;
 }
 ''');
-    await await assertHasAssistAt('var ', '''
+    await assertHasAssistAt('var ', '''
 class A {
   int f = 0;
 }
@@ -58,7 +58,7 @@ class A {
   }
 
   Future<void> test_declaredIdentifier() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(List<String> items) {
   for (var item in items) {
   }
@@ -85,7 +85,7 @@ main(List<String> items) {
 import 'dart:collection';
 List<HashMap<String, int>> getMap() => null;
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'my_lib.dart';
 main() {
   for (var map in getMap()) {
@@ -104,7 +104,7 @@ main() {
   }
 
   Future<void> test_declaredIdentifier_final() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(List<String> items) {
   for (final item in items) {
   }
@@ -119,7 +119,7 @@ main(List<String> items) {
   }
 
   Future<void> test_declaredIdentifier_generic() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A<T> {
   main(List<List<T>> items) {
     for (var item in items) {
@@ -138,7 +138,7 @@ class A<T> {
   }
 
   Future<void> test_declaredIdentifier_hasTypeAnnotation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(List<String> items) {
   for (String item in items) {
   }
@@ -148,7 +148,7 @@ main(List<String> items) {
   }
 
   Future<void> test_declaredIdentifier_inForEachBody() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(List<String> items) {
   for (var item in items) {
     42;
@@ -160,7 +160,7 @@ main(List<String> items) {
 
   Future<void> test_declaredIdentifier_unknownType() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   for (var item in unknownList) {
   }
@@ -174,7 +174,7 @@ main() {
 import 'dart:collection';
 HashMap<String, int> getMap() => null;
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'my_lib.dart';
 main() {
   var v = getMap();
@@ -201,17 +201,17 @@ library my_app;
 import 'my_lib.dart';
 part 'test.dart';
 ''';
-    var partCode = r'''
+    addTestSource(r'''
 part of my_app;
 main() {
   var /*caret*/v = getMap();
 }
-''';
+''');
 
     var appPath = convertPath('/home/test/lib/app.dart');
     addSource(appPath, appCode);
-    addSource(testFile, partCode);
-    await resolveTestUnit(partCode);
+    await analyzeTestPackageFiles();
+    await resolveTestFile();
 
     await assertHasAssist('''
 part of my_app;
@@ -241,7 +241,7 @@ class MyClass {}
 import '../aa/bbb/lib_a.dart';
 MyClass newMyClass() => null;
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'ccc/lib_b.dart';
 main() {
   var v = newMyClass();
@@ -257,7 +257,7 @@ main() {
   }
 
   Future<void> test_local_bottom() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v = throw 42;
 }
@@ -266,7 +266,7 @@ main() {
   }
 
   Future<void> test_local_Function() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v = () => 1;
 }
@@ -279,7 +279,7 @@ main() {
   }
 
   Future<void> test_local_generic_literal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   main(List<int> items) {
     var v = items;
@@ -296,7 +296,7 @@ class A {
   }
 
   Future<void> test_local_generic_local() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A<T> {
   main(List<T> items) {
     var v = items;
@@ -313,7 +313,7 @@ class A<T> {
   }
 
   Future<void> test_local_hasTypeAnnotation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   int v = 42;
 }
@@ -322,7 +322,7 @@ main() {
   }
 
   Future<void> test_local_int() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v = 0;
 }
@@ -335,7 +335,7 @@ main() {
   }
 
   Future<void> test_local_List() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v = <String>[];
 }
@@ -348,7 +348,7 @@ main() {
   }
 
   Future<void> test_local_localType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {}
 C f() => null;
 main() {
@@ -365,7 +365,7 @@ main() {
   }
 
   Future<void> test_local_multiple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var a = 1, b = '';
 }
@@ -375,7 +375,7 @@ main() {
 
   Future<void> test_local_noValue() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v;
 }
@@ -384,7 +384,7 @@ main() {
   }
 
   Future<void> test_local_null() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v = null;
 }
@@ -393,7 +393,7 @@ main() {
   }
 
   Future<void> test_local_onInitializer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var abc = 0;
 }
@@ -402,7 +402,7 @@ main() {
   }
 
   Future<void> test_local_onName() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var abc = 0;
 }
@@ -415,7 +415,7 @@ main() {
   }
 
   Future<void> test_local_onVar() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v = 0;
 }
@@ -429,7 +429,7 @@ main() {
 
   Future<void> test_local_unknown() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v = unknownVar;
 }
@@ -438,7 +438,7 @@ main() {
   }
 
   Future<void> test_parameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo(f(int p)) {}
 main() {
   foo((test) {});
@@ -453,7 +453,7 @@ main() {
   }
 
   Future<void> test_parameter_hasExplicitType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo(f(int p)) {}
 main() {
   foo((num test) {});
@@ -463,7 +463,7 @@ main() {
   }
 
   Future<void> test_parameter_noPropagatedType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo(f(p)) {}
 main() {
   foo((test) {});
@@ -479,7 +479,7 @@ class A {}
 class _B extends A {}
 foo(f(_B p)) {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'my_lib.dart';
 main() {
   foo((test) {});
@@ -495,7 +495,7 @@ class A {}
 class _B extends A {}
 List<_B> getValues() => [];
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'my_lib.dart';
 class A<T> {
   main() {
@@ -516,7 +516,7 @@ class A {}
 class _B extends A {}
 List<_B> getValues() => [];
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'my_lib.dart';
 main() {
   var v = getValues();
@@ -531,7 +531,7 @@ main() {
   }
 
   Future<void> test_privateType_sameLibrary() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class _A {}
 _A getValue() => _A();
 main() {
@@ -554,7 +554,7 @@ class A {}
 class _B extends A {}
 _B getValue() => _B();
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'my_lib.dart';
 main() {
   var v = getValue();
@@ -564,7 +564,7 @@ main() {
   }
 
   Future<void> test_topLevelField_int() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var V = 0;
 ''');
     await assertHasAssistAt('var ', '''
@@ -573,14 +573,14 @@ int V = 0;
   }
 
   Future<void> test_topLevelField_multiple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var A = 1, V = '';
 ''');
     await assertNoAssistAt('var ');
   }
 
   Future<void> test_topLevelField_noValue() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var V;
 ''');
     await assertNoAssistAt('var ');

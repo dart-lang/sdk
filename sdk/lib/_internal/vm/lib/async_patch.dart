@@ -17,49 +17,6 @@ import "dart:_internal" show VMLibraryHooks, patch;
 // Equivalent of calling FATAL from C++ code.
 _fatal(msg) native "DartAsync_fatal";
 
-class _AsyncAwaitCompleter<T> implements Completer<T> {
-  @pragma("vm:entry-point")
-  final _future = new _Future<T>();
-  @pragma("vm:entry-point")
-  bool isSync;
-
-  @pragma("vm:entry-point")
-  _AsyncAwaitCompleter() : isSync = false;
-
-  @pragma("vm:entry-point")
-  void complete([FutureOr<T>? value]) {
-    // All paths require that if value is null, null as T succeeds.
-    value = (value == null) ? value as T : value;
-    if (!isSync) {
-      _future._asyncComplete(value);
-    } else if (value is Future<T>) {
-      assert(!_future._isComplete);
-      _future._chainFuture(value);
-    } else {
-      // TODO(40014): Remove cast when type promotion works.
-      _future._completeWithValue(value as T);
-    }
-  }
-
-  void completeError(Object e, [StackTrace? st]) {
-    st ??= AsyncError.defaultStackTrace(e);
-    if (isSync) {
-      _future._completeError(e, st);
-    } else {
-      _future._asyncCompleteError(e, st);
-    }
-  }
-
-  @pragma("vm:entry-point")
-  void start(void Function() f) {
-    f();
-    isSync = true;
-  }
-
-  Future<T> get future => _future;
-  bool get isCompleted => !_future._mayComplete;
-}
-
 // We need to pass the value as first argument and leave the second and third
 // arguments empty (used for error handling).
 dynamic Function(dynamic) _asyncThenWrapperHelper(
@@ -117,18 +74,7 @@ Future _awaitHelper(var object, dynamic Function(dynamic) thenCallback,
   //
   // We can only do this for our internal futures (the default implementation of
   // all futures that are constructed by the `dart:async` library).
-  future._awaiter = awaiter;
   return future._thenAwait<dynamic>(thenCallback, errorCallback);
-}
-
-// Called as part of the 'await for (...)' construct. Registers the
-// awaiter on the stream.
-void _asyncStarListenHelper(var object, var awaiter) {
-  if (object is! _StreamImpl) {
-    return;
-  }
-  // `object` is a `_StreamImpl`.
-  object._awaiter = awaiter;
 }
 
 @pragma("vm:entry-point", "call")
@@ -291,44 +237,33 @@ class _AsyncStarStreamController<T> {
 void _rethrow(Object error, StackTrace stackTrace) native "Async_rethrow";
 
 @patch
-class _Future<T> {
-  /// The closure implementing the async[*]-body that is `await`ing this future.
-  Function? _awaiter;
-}
-
-@patch
 class _StreamImpl<T> {
-  /// The closure implementing the async[*]-body that is `await`ing this future.
-  Function? _awaiter;
-
   /// The closure implementing the async-generator body that is creating events
   /// for this stream.
   Function? _generator;
 }
 
 @pragma("vm:entry-point", "call")
-void _completeOnAsyncReturn(Completer completer, Object? value) {
-  completer.complete(value);
+void _completeOnAsyncReturn(_Future _future, Object? value, bool is_sync) {
+  // The first awaited expression is invoked sync. so complete is async. to
+  // allow then and error handlers to be attached.
+  // async_jump_var=0 is prior to first await, =1 is first await.
+  if (!is_sync || value is Future) {
+    _future._asyncComplete(value);
+  } else {
+    _future._completeWithValue(value);
+  }
 }
 
-/// Returns a [StackTrace] object containing the synchronous prefix for this
-/// asynchronous method.
-//
-// This method is recognized. It performs a runtime call if
-// FLAG_causal_async_stacks is enabled or returns `null` otherwise.
-@pragma("vm:prefer-inline")
-Object _asyncStackTraceHelper(Function async_op)
-    native "StackTrace_asyncStackTraceHelper";
-
-// This method is asm intrinsified.
 @pragma("vm:entry-point", "call")
-void _clearAsyncThreadStackTrace()
-    native "StackTrace_clearAsyncThreadStackTrace";
-
-// This method is asm intrinsified.
-@pragma("vm:entry-point", "call")
-void _setAsyncThreadStackTrace(StackTrace stackTrace)
-    native "StackTrace_setAsyncThreadStackTrace";
+void _completeOnAsyncError(
+    _Future _future, Object e, StackTrace st, bool is_sync) {
+  if (!is_sync) {
+    _future._asyncCompleteError(e, st);
+  } else {
+    _future._completeError(e, st);
+  }
+}
 
 void _moveNextDebuggerStepCheck(Function async_op)
     native "AsyncStarMoveNext_debuggerStepCheck";

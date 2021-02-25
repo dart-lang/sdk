@@ -20,27 +20,32 @@ void pub() {
   void _assertPubHelpInvoked(ProcessResult result) {
     expect(result, isNotNull);
     expect(result.exitCode, 0);
-    expect(result.stdout, contains('Pub is a package manager for Dart'));
-    expect(result.stdout, contains('Available commands:'));
+    expect(result.stdout, contains('Work with packages'));
+    expect(result.stdout, contains('Available subcommands:'));
     expect(result.stderr, isEmpty);
   }
 
   test('implicit --help', () {
-    _assertPubHelpInvoked(project().runSync('pub', []));
+    final result = project().runSync(['pub']);
+    expect(result, isNotNull);
+    expect(result.exitCode, 64);
+    expect(result.stderr, contains('Missing subcommand for "dart pub".'));
+    expect(result.stderr, contains('Available subcommands:'));
+    expect(result.stdout, isEmpty);
   });
 
   test('--help', () {
-    _assertPubHelpInvoked(project().runSync('pub', ['--help']));
+    _assertPubHelpInvoked(project().runSync(['pub', '--help']));
   });
 
   test('-h', () {
-    _assertPubHelpInvoked(project().runSync('pub', ['-h']));
+    _assertPubHelpInvoked(project().runSync(['pub', '-h']));
   });
 
   test('help cache', () {
     p = project();
-    var result = p.runSync('pub', ['help', 'cache']);
-    var result2 = p.runSync('pub', ['cache', '--help']);
+    var result = p.runSync(['help', 'pub', 'cache']);
+    var result2 = p.runSync(['pub', 'cache', '--help']);
 
     expect(result.exitCode, 0);
 
@@ -53,8 +58,8 @@ void pub() {
 
   test('help publish', () {
     p = project();
-    var result = p.runSync('pub', ['help', 'publish']);
-    var result2 = p.runSync('pub', ['publish', '--help']);
+    var result = p.runSync(['help', 'pub', 'publish']);
+    var result2 = p.runSync(['pub', 'publish', '--help']);
 
     expect(result.exitCode, 0);
 
@@ -66,47 +71,29 @@ void pub() {
     expect(result.stderr, result2.stderr);
   });
 
-  test('--enable-experiment pub run', () {
+  test('run --enable-experiment', () {
     p = project();
     p.file('bin/main.dart',
-        "void main() { int a; a = null; print('a is \$a.'); }");
+        "void main() { int? a; a = null; print('a is \$a.'); }");
 
     // run 'pub get'
-    p.runSync('pub', ['get']);
+    p.runSync(['pub', 'get']);
 
     var result = p.runSync(
-        '--enable-experiment=non-nullable', ['pub', 'run', 'main.dart']);
+        ['pub', 'run', '--enable-experiment=no-non-nullable', 'main.dart']);
 
     expect(result.exitCode, 254);
     expect(result.stdout, isEmpty);
     expect(
         result.stderr,
-        contains("A value of type 'Null' can't be assigned to a variable of "
-            "type 'int'"));
-  });
-
-  test('pub run --enable-experiment', () {
-    p = project();
-    p.file('bin/main.dart',
-        "void main() { int a; a = null; print('a is \$a.'); }");
-
-    // run 'pub get'
-    p.runSync('pub', ['get']);
-
-    var result = p.runSync(
-        'pub', ['run', '--enable-experiment=non-nullable', 'main.dart']);
-
-    expect(result.exitCode, 254);
-    expect(result.stdout, isEmpty);
-    expect(
-        result.stderr,
-        contains("A value of type 'Null' can't be assigned to a variable of "
-            "type 'int'"));
+        contains('bin/main.dart:1:18: Error: This requires the null safety '
+            'language feature, which requires language version of 2.12 or '
+            'higher.\n'));
   });
 
   test('failure', () {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync('pub', ['deps']);
+    var result = p.runSync(['pub', 'deps']);
     expect(result.exitCode, 65);
     expect(result.stdout, isEmpty);
     expect(result.stderr, contains('No pubspec.lock file found'));
@@ -114,7 +101,7 @@ void pub() {
 
   test('failure unknown option', () {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync('pub', ['deps', '--foo']);
+    var result = p.runSync(['pub', 'deps', '--foo']);
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);
     expect(result.stderr, startsWith('Could not find an option named "foo".'));

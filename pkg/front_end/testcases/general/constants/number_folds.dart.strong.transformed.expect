@@ -1,0 +1,156 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/number_folds.dart:13:23: Error: '+' is not a prefix operator.
+// Try removing '+'.
+// const int unaryPlus = +2;
+//                       ^
+//
+// pkg/front_end/testcases/general/constants/number_folds.dart:6:30: Error: The operator '>>>' isn't defined for the class 'int'.
+// Try correcting the operator to an existing operator, or defining a '>>>' operator.
+// const int shiftNegative2 = 2 >>> -1;
+//                              ^^^
+//
+// pkg/front_end/testcases/general/constants/number_folds.dart:9:23: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+// const int divZero = 2 / 0;
+//                       ^
+//
+// pkg/front_end/testcases/general/constants/number_folds.dart:27:29: Error: The operator '>>>' isn't defined for the class 'int'.
+// Try correcting the operator to an existing operator, or defining a '>>>' operator.
+// const int binaryShift2 = 84 >>> 1;
+//                             ^^^
+//
+// pkg/front_end/testcases/general/constants/number_folds.dart:28:29: Error: The operator '>>>' isn't defined for the class 'int'.
+// Try correcting the operator to an existing operator, or defining a '>>>' operator.
+// const int binaryShift3 = 21 >>> 64;
+//                             ^^^
+//
+// pkg/front_end/testcases/general/constants/number_folds.dart:5:30: Error: Constant evaluation error:
+// const int shiftNegative1 = 2 << -1;
+//                              ^
+// pkg/front_end/testcases/general/constants/number_folds.dart:5:30: Context: Binary operator '<<' on '2' requires non-negative operand, but was '-1'.
+// const int shiftNegative1 = 2 << -1;
+//                              ^
+// pkg/front_end/testcases/general/constants/number_folds.dart:5:11: Context: While analyzing:
+// const int shiftNegative1 = 2 << -1;
+//           ^
+//
+// pkg/front_end/testcases/general/constants/number_folds.dart:7:30: Error: Constant evaluation error:
+// const int shiftNegative3 = 2 >> -1;
+//                              ^
+// pkg/front_end/testcases/general/constants/number_folds.dart:7:30: Context: Binary operator '>>' on '2' requires non-negative operand, but was '-1'.
+// const int shiftNegative3 = 2 >> -1;
+//                              ^
+// pkg/front_end/testcases/general/constants/number_folds.dart:7:11: Context: While analyzing:
+// const int shiftNegative3 = 2 >> -1;
+//           ^
+//
+// pkg/front_end/testcases/general/constants/number_folds.dart:8:23: Error: Constant evaluation error:
+// const int modZero = 2 % 0;
+//                       ^
+// pkg/front_end/testcases/general/constants/number_folds.dart:8:23: Context: Binary operator '%' on '2' requires non-zero divisor, but divisor was '0'.
+// const int modZero = 2 % 0;
+//                       ^
+// pkg/front_end/testcases/general/constants/number_folds.dart:8:11: Context: While analyzing:
+// const int modZero = 2 % 0;
+//           ^
+//
+// pkg/front_end/testcases/general/constants/number_folds.dart:10:26: Error: Constant evaluation error:
+// const int intdivZero = 2 ~/ 0;
+//                          ^
+// pkg/front_end/testcases/general/constants/number_folds.dart:10:26: Context: Binary operator '~/' on '2' requires non-zero divisor, but divisor was '0'.
+// const int intdivZero = 2 ~/ 0;
+//                          ^
+// pkg/front_end/testcases/general/constants/number_folds.dart:10:11: Context: While analyzing:
+// const int intdivZero = 2 ~/ 0;
+//           ^
+//
+// pkg/front_end/testcases/general/constants/number_folds.dart:37:40: Error: Constant evaluation error:
+// const int doubleTruncateDivZero = 84.2 ~/ 0;
+//                                        ^
+// pkg/front_end/testcases/general/constants/number_folds.dart:37:40: Context: Binary operator '~/' on '84.2' requires non-zero divisor, but divisor was '0'.
+// const int doubleTruncateDivZero = 84.2 ~/ 0;
+//                                        ^
+// pkg/front_end/testcases/general/constants/number_folds.dart:37:11: Context: While analyzing:
+// const int doubleTruncateDivZero = 84.2 ~/ 0;
+//           ^
+//
+// pkg/front_end/testcases/general/constants/number_folds.dart:38:40: Error: Constant evaluation error:
+// const int doubleTruncateDivNull = 84.2 ~/ null;
+//                                        ^
+// pkg/front_end/testcases/general/constants/number_folds.dart:38:40: Context: Binary operator '~/' on '84.2' requires operand of type 'num', but was of type 'Null'.
+// const int doubleTruncateDivNull = 84.2 ~/ null;
+//                                        ^
+// pkg/front_end/testcases/general/constants/number_folds.dart:38:11: Context: While analyzing:
+// const int doubleTruncateDivNull = 84.2 ~/ null;
+//           ^
+//
+// pkg/front_end/testcases/general/constants/number_folds.dart:40:39: Error: Constant evaluation error:
+// const int doubleTruncateDivNaN = 84.2 ~/ doubleNan;
+//                                       ^
+// pkg/front_end/testcases/general/constants/number_folds.dart:40:39: Context: Binary operator '84.2 ~/ NaN' results is Infinity or NaN.
+// const int doubleTruncateDivNaN = 84.2 ~/ doubleNan;
+//                                       ^
+// pkg/front_end/testcases/general/constants/number_folds.dart:40:11: Context: While analyzing:
+// const int doubleTruncateDivNaN = 84.2 ~/ doubleNan;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+static const field core::int* shiftNegative1 = invalid-expression "Binary operator '<<' on '2' requires non-negative operand, but was '-1'.";
+static const field core::int* shiftNegative2 = invalid-expression "pkg/front_end/testcases/general/constants/number_folds.dart:6:30: Error: The operator '>>>' isn't defined for the class 'int'.
+Try correcting the operator to an existing operator, or defining a '>>>' operator.
+const int shiftNegative2 = 2 >>> -1;
+                             ^^^";
+static const field core::int* shiftNegative3 = invalid-expression "Binary operator '>>' on '2' requires non-negative operand, but was '-1'.";
+static const field core::int* modZero = invalid-expression "Binary operator '%' on '2' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* divZero = invalid-expression "pkg/front_end/testcases/general/constants/number_folds.dart:9:23: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+const int divZero = 2 / 0;
+                      ^";
+static const field core::int* intdivZero = invalid-expression "Binary operator '~/' on '2' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* unaryMinus = #C1;
+static const field core::int* unaryTilde = #C2;
+static const field core::int* unaryPlus = invalid-expression "pkg/front_end/testcases/general/constants/number_folds.dart:13:23: Error: This couldn't be parsed.
+const int unaryPlus = +2;
+                      ^";
+static const field core::int* binaryPlus = #C3;
+static const field core::int* binaryMinus = #C3;
+static const field core::int* binaryTimes = #C3;
+static const field core::double* binaryDiv = #C4;
+static const field core::int* binaryTildeDiv = #C3;
+static const field core::int* binaryMod = #C3;
+static const field core::int* binaryOr = #C3;
+static const field core::int* binaryAnd = #C3;
+static const field core::int* binaryXor = #C3;
+static const field core::int* binaryShift1 = #C3;
+static const field core::int* binaryShift2 = invalid-expression "pkg/front_end/testcases/general/constants/number_folds.dart:27:29: Error: The operator '>>>' isn't defined for the class 'int'.
+Try correcting the operator to an existing operator, or defining a '>>>' operator.
+const int binaryShift2 = 84 >>> 1;
+                            ^^^";
+static const field core::int* binaryShift3 = invalid-expression "pkg/front_end/testcases/general/constants/number_folds.dart:28:29: Error: The operator '>>>' isn't defined for the class 'int'.
+Try correcting the operator to an existing operator, or defining a '>>>' operator.
+const int binaryShift3 = 21 >>> 64;
+                            ^^^";
+static const field core::int* binaryShift4 = #C3;
+static const field core::bool* binaryLess = #C5;
+static const field core::bool* binaryLessEqual = #C6;
+static const field core::bool* binaryGreaterEqual = #C6;
+static const field core::bool* binaryGreater = #C5;
+static const field core::int* doubleTruncateDiv = #C3;
+static const field core::int* doubleTruncateDivZero = invalid-expression "Binary operator '~/' on '84.2' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* doubleTruncateDivNull = invalid-expression "Binary operator '~/' on '84.2' requires operand of type 'num', but was of type 'Null'.";
+static const field core::double* doubleNan = #C7;
+static const field core::int* doubleTruncateDivNaN = invalid-expression "Binary operator '84.2 ~/ NaN' results is Infinity or NaN.";
+static method main() → dynamic {}
+
+constants  {
+  #C1 = -2
+  #C2 = -3
+  #C3 = 42
+  #C4 = 42.0
+  #C5 = false
+  #C6 = true
+  #C7 = NaN
+}

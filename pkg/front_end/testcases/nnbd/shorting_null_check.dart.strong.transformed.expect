@@ -1,0 +1,107 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/shorting_null_check.dart:12:24: Warning: Operand of null-aware operation '!' has type 'int' which excludes null.
+// int? test1(A? a) => a?.zero!;
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/shorting_null_check.dart:14:25: Warning: Operand of null-aware operation '!' has type 'int' which excludes null.
+// bool? test3(A? a) => a?.zero!.isEven;
+//                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int zero;
+  field core::int? zeroOrNull;
+  constructor •(core::int zero, [core::int? zeroOrNull = #C1]) → self::A
+    : self::A::zero = zero, self::A::zeroOrNull = zeroOrNull, super core::Object::•()
+    ;
+}
+class Foo extends core::Object {
+  field self::Bar? bar;
+  constructor •(self::Bar? bar) → self::Foo
+    : self::Foo::bar = bar, super core::Object::•()
+    ;
+  operator [](core::int? index) → self::Bar?
+    return !index.{core::num::==}(null) ?{self::Bar?} new self::Bar::•(index{core::int}) : null;
+}
+class Bar extends core::Object {
+  field core::int baz;
+  constructor •(core::int baz) → self::Bar
+    : self::Bar::baz = baz, super core::Object::•()
+    ;
+  operator [](core::int index) → core::int
+    return index;
+  operator ==(core::Object other) → core::bool
+    return other is{ForNonNullableByDefault} self::Bar && this.{self::Bar::baz}.{core::num::==}(other{self::Bar}.{self::Bar::baz});
+}
+static method test1(self::A? a) → core::int?
+  return let final self::A? #t1 = a in #t1.{core::Object::==}(null) ?{core::int?} null : #t1{self::A}.{self::A::zero}!;
+static method test2(self::A? a) → core::int?
+  return let final self::A? #t2 = a in #t2.{core::Object::==}(null) ?{core::int?} null : #t2{self::A}.{self::A::zeroOrNull}!;
+static method test3(self::A? a) → core::bool?
+  return let final self::A? #t3 = a in #t3.{core::Object::==}(null) ?{core::bool?} null : #t3{self::A}.{self::A::zero}!.{core::int::isEven};
+static method test4(self::A? a) → core::bool?
+  return let final self::A? #t4 = a in #t4.{core::Object::==}(null) ?{core::bool?} null : #t4{self::A}.{self::A::zeroOrNull}!.{core::int::isEven};
+static method test5(self::Foo? foo) → self::Bar?
+  return let final self::Foo? #t5 = foo in #t5.{core::Object::==}(null) ?{self::Bar?} null : #t5{self::Foo}.{self::Foo::bar}!;
+static method test6(self::Foo? foo) → core::int?
+  return let final self::Foo? #t6 = foo in #t6.{core::Object::==}(null) ?{core::int?} null : #t6{self::Foo}.{self::Foo::bar}!.{self::Bar::baz};
+static method test7(self::Foo? foo, core::int baz) → core::int?
+  return let final self::Foo? #t7 = foo in #t7.{core::Object::==}(null) ?{core::int?} null : #t7{self::Foo}.{self::Foo::bar}!.{self::Bar::[]}(baz);
+static method test8(self::Foo? foo, core::int? bar) → self::Bar?
+  return let final self::Foo? #t8 = foo in #t8.{core::Object::==}(null) ?{self::Bar?} null : #t8{self::Foo}.{self::Foo::[]}(bar)!;
+static method test9(self::Foo? foo, core::int? bar) → core::int?
+  return let final self::Foo? #t9 = foo in #t9.{core::Object::==}(null) ?{core::int?} null : #t9{self::Foo}.{self::Foo::[]}(bar)!.{self::Bar::baz};
+static method test10(self::Foo? foo, core::int? bar, core::int baz) → dynamic
+  return let final self::Foo? #t10 = foo in #t10.{core::Object::==}(null) ?{core::int?} null : #t10{self::Foo}.{self::Foo::[]}(bar)!.{self::Bar::[]}(baz);
+static method main() → dynamic {
+  self::expect(0, self::test1(new self::A::•(0)));
+  self::expect(null, self::test1(null));
+  self::expect(0, self::test2(new self::A::•(0, 0)));
+  self::expect(null, self::test2(null));
+  self::throws(() → void => self::test2(new self::A::•(0, null)));
+  self::expect(true, self::test3(new self::A::•(0)));
+  self::expect(null, self::test3(null));
+  self::expect(true, self::test4(new self::A::•(0, 0)));
+  self::expect(null, self::test4(null));
+  self::throws(() → void => self::test4(new self::A::•(0, null)));
+  self::expect(new self::Bar::•(0), self::test5(new self::Foo::•(new self::Bar::•(0))));
+  self::expect(null, self::test5(null));
+  self::throws(() → void => self::test5(new self::Foo::•(null)));
+  self::expect(0, self::test6(new self::Foo::•(new self::Bar::•(0))));
+  self::expect(null, self::test6(null));
+  self::throws(() → void => self::test6(new self::Foo::•(null)));
+  self::expect(42, self::test7(new self::Foo::•(new self::Bar::•(0)), 42));
+  self::expect(null, self::test7(null, 42));
+  self::throws(() → void => self::test7(new self::Foo::•(null), 42));
+  self::expect(new self::Bar::•(42), self::test8(new self::Foo::•(new self::Bar::•(0)), 42));
+  self::expect(null, self::test8(null, 42));
+  self::throws(() → void => self::test8(new self::Foo::•(new self::Bar::•(0)), null));
+  self::expect(42, self::test9(new self::Foo::•(new self::Bar::•(0)), 42));
+  self::expect(null, self::test9(null, 42));
+  self::throws(() → void => self::test9(new self::Foo::•(new self::Bar::•(0)), null));
+  self::expect(87, self::test10(new self::Foo::•(new self::Bar::•(0)), 42, 87));
+  self::expect(null, self::test10(null, 42, 87));
+  self::throws(() → void => self::test10(new self::Foo::•(new self::Bar::•(0)), null, 87));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → void f) → dynamic {
+  try {
+    f.call();
+  }
+  on core::Object catch(final core::Object _) {
+    return;
+  }
+  throw "Missing exception";
+}
+
+constants  {
+  #C1 = null
+}

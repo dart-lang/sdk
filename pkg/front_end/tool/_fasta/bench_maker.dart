@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 library fasta.tool.entry_points;
 
 import "dart:convert" show JsonEncoder;
@@ -164,7 +166,7 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     }
     Procedure callOperator;
     for (Procedure procedure in cls.procedures) {
-      if (procedure.name.name == "call") {
+      if (procedure.name.text == "call") {
         callOperator = procedure;
       }
     }
@@ -250,6 +252,11 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   void visitNeverType(NeverType node, StringBuffer sb) {
     sb.write("Never");
     writeNullability(node.nullability, sb);
+  }
+
+  @override
+  void visitNullType(NullType node, StringBuffer sb) {
+    sb.write("Null");
   }
 
   @override

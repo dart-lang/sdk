@@ -15,6 +15,7 @@ import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/utilities/completeness_tracker.dart';
@@ -228,10 +229,14 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
     var decoratedType = node.parameter.accept(this);
+    var hint = getPrefixHint(node.firstTokenAfterCommentAndMetadata);
     if (node.defaultValue != null) {
       node.defaultValue.accept(this);
       return null;
     } else if (node.declaredElement.hasRequired) {
+      return null;
+    } else if (hint != null && hint.kind == HintCommentKind.required) {
+      _variables.recordRequiredHint(source, node, hint);
       return null;
     }
     if (decoratedType == null) {
@@ -362,7 +367,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitFunctionTypeAlias(FunctionTypeAlias node) {
     node.metadata.accept(this);
     var declaredElement = node.declaredElement;
-    var functionType = declaredElement.function.type;
+    var functionElement =
+        declaredElement.aliasedElement as GenericFunctionTypeElement;
+    var functionType = functionElement.type;
     var returnType = node.returnType;
     DecoratedType decoratedReturnType;
     var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
@@ -396,7 +403,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _namedParameters = previousNamedParameters;
     }
     _variables.recordDecoratedElementType(
-        declaredElement.function, decoratedFunctionType);
+        functionElement, decoratedFunctionType);
     return null;
   }
 
@@ -418,7 +425,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       decoratedFunctionType = node.functionType.accept(this);
     });
     _variables.recordDecoratedElementType(
-        (node.declaredElement as GenericTypeAliasElement).function,
+        (node.declaredElement as TypeAliasElement).aliasedElement,
         decoratedFunctionType);
     return null;
   }
@@ -465,7 +472,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
-  visitMixinDeclaration(MixinDeclaration node) {
+  DecoratedType visitMixinDeclaration(MixinDeclaration node) {
     node.metadata.accept(this);
     node.name?.accept(this);
     node.typeParameters?.accept(this);
@@ -631,6 +638,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         () => typeAnnotation?.accept(this));
     var hint = getPrefixHint(node.firstTokenAfterCommentAndMetadata);
     if (hint != null && hint.kind == HintCommentKind.late_) {
+      _variables.recordLateHint(source, node, hint);
+    }
+    if (hint != null && hint.kind == HintCommentKind.lateFinal) {
       _variables.recordLateHint(source, node, hint);
     }
     for (var variable in node.variables) {

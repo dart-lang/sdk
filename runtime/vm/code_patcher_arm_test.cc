@@ -28,9 +28,10 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
       Library::Handle(), class_name, script, TokenPosition::kNoSource));
   const String& function_name =
       String::Handle(Symbols::New(thread, "callerFunction"));
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   const Function& function = Function::Handle(Function::New(
-      function_name, FunctionLayout::kRegularFunction, true, false, false,
-      false, false, owner_class, TokenPosition::kNoSource));
+      signature, function_name, UntaggedFunction::kRegularFunction, true, false,
+      false, false, false, owner_class, TokenPosition::kNoSource));
 
   const String& target_name = String::Handle(String::New("targetFunction"));
   const intptr_t kTypeArgsLen = 0;
@@ -40,11 +41,13 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const ICData& ic_data = ICData::ZoneHandle(ICData::New(
       function, target_name, args_descriptor, 15, 1, ICData::kInstance));
 
-  // Code accessing pp is generated, but not executed. Uninitialized pp is OK.
-  __ set_constant_pool_allowed(true);
+  // Code is generated, but not executed. Just parsed with CodePatcher.
+  __ set_constant_pool_allowed(true);  // Uninitialized pp is OK.
+  SPILLS_LR_TO_FRAME({});              // Clobbered LR is OK.
 
   __ LoadObject(R9, ic_data);
   __ BranchLinkPatchable(StubCode::OneArgCheckInlineCache());
+  RESTORES_LR_FROM_FRAME({});  // Clobbered LR is OK.
   __ Ret();
 }
 

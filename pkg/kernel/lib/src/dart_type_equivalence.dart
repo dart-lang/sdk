@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import '../ast.dart';
 import '../core_types.dart';
 import '../visitor.dart';
 
 class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   final CoreTypes coreTypes;
+  // TODO(dmitryas): Implement also equateBottomTypes.
   final bool equateTopTypes;
   final bool ignoreAllNullabilities;
   final bool ignoreTopLevelNullability;
@@ -195,6 +198,11 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   @override
   bool visitInvalidType(InvalidType node, DartType other) {
     return other is InvalidType;
+  }
+
+  @override
+  bool visitNullType(NullType node, DartType other) {
+    return other is NullType;
   }
 
   @override

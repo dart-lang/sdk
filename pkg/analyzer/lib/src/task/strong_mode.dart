@@ -10,11 +10,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/lazy_ast.dart';
+import 'package:analyzer/src/task/inference_error.dart';
 
 /// An object used to infer the type of instance fields and the return types of
 /// instance methods within a single compilation unit.
@@ -141,7 +138,7 @@ class InstanceMemberInferrer {
       );
       if (combinedGetter != null) {
         var returnType = combinedGetter.returnType;
-        return nonNullifyType(typeSystem, returnType);
+        return typeSystem.nonNullifyLegacy(returnType);
       }
       return DynamicTypeImpl.instance;
     }
@@ -154,8 +151,11 @@ class InstanceMemberInferrer {
         name: setterName,
       );
       if (combinedSetter != null) {
-        var type = combinedSetter.parameters[0].type;
-        return nonNullifyType(typeSystem, type);
+        var parameters = combinedSetter.parameters;
+        if (parameters.isNotEmpty) {
+          var type = parameters[0].type;
+          return typeSystem.nonNullifyLegacy(type);
+        }
       }
       return DynamicTypeImpl.instance;
     }
@@ -282,14 +282,12 @@ class InstanceMemberInferrer {
 
           if (getterType == setterType) {
             var type = getterType;
-            type = nonNullifyType(typeSystem, type);
+            type = typeSystem.nonNullifyLegacy(type);
             field.type = type;
           } else {
-            LazyAst.setTypeInferenceError(
-              field.linkedNode,
-              TopLevelInferenceErrorBuilder(
-                kind: TopLevelInferenceErrorKind.overrideConflictFieldType,
-              ),
+            field.typeInferenceError = TopLevelInferenceError(
+              kind: TopLevelInferenceErrorKind.overrideConflictFieldType,
+              arguments: const <String>[],
             );
           }
           return;
@@ -427,12 +425,9 @@ class InstanceMemberInferrer {
           }
         }
 
-        LazyAst.setTypeInferenceError(
-          element.linkedNode,
-          TopLevelInferenceErrorBuilder(
-            kind: TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature,
-            arguments: [conflictExplanation],
-          ),
+        element.typeInferenceError = TopLevelInferenceError(
+          kind: TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature,
+          arguments: [conflictExplanation],
         );
       }
     }
@@ -443,7 +438,7 @@ class InstanceMemberInferrer {
     if (element.hasImplicitReturnType && element.displayName != '[]=') {
       if (combinedSignatureType != null) {
         var returnType = combinedSignatureType.returnType;
-        returnType = nonNullifyType(typeSystem, returnType);
+        returnType = typeSystem.nonNullifyLegacy(returnType);
         element.returnType = returnType;
       } else {
         element.returnType = DynamicTypeImpl.instance;
@@ -490,7 +485,7 @@ class InstanceMemberInferrer {
       );
       if (matchingParameter != null) {
         var type = matchingParameter.type;
-        type = nonNullifyType(typeSystem, type);
+        type = typeSystem.nonNullifyLegacy(type);
         parameter.type = type;
       } else {
         parameter.type = DynamicTypeImpl.instance;

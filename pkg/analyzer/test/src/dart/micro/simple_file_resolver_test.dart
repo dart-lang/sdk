@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:matcher/matcher.dart';
@@ -214,6 +216,9 @@ import 'a.dart';
 
 @reflectiveTest
 class FileResolverTest extends FileResolutionTest {
+  @override
+  bool typeToStringWithNullability = false;
+
   test_analysisOptions_default_fromPackageUri() async {
     newFile('/workspace/dart/analysis_options/lib/default.yaml', content: r'''
 analyzer:
@@ -252,7 +257,38 @@ analyzer:
     implicit-casts: false
 ''');
 
+    newFile('/workspace/thid_party/dart/aaa/analysis_options.yaml',
+        content: r'''
+analyzer:
+  strong-mode:
+    implicit-casts: true
+''');
+
     var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
+    await assertErrorsInFile(aPath, r'''
+num a = 0;
+int b = a;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
+    ]);
+  }
+
+  test_analysisOptions_file_inThirdPartyDartLang() async {
+    newFile('/workspace/dart/analysis_options/lib/third_party.yaml',
+        content: r'''
+analyzer:
+  strong-mode:
+    implicit-casts: false
+''');
+
+    newFile('/workspace/thid_party/dart_lang/aaa/analysis_options.yaml',
+        content: r'''
+analyzer:
+  strong-mode:
+    implicit-casts: true
+''');
+
+    var aPath = convertPath('/workspace/third_party/dart_lang/aaa/lib/a.dart');
     await assertErrorsInFile(aPath, r'''
 num a = 0;
 int b = a;
@@ -296,6 +332,19 @@ var b = 1 + 2;
     assertElement(findNode.simple('int a'), intElement);
 
     assertType(findElement.topVar('b').type, 'int');
+  }
+
+  test_collectSharedDataIdentifiers() async {
+    var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
+
+    newFile(aPath, content: r'''
+class A {}
+''');
+
+    await resolveFile(aPath);
+    fileResolver.collectSharedDataIdentifiers();
+    expect(fileResolver.removedCacheIds.length,
+        (fileResolver.byteStore as CiderCachedByteStore).testView.length);
   }
 
   test_getErrors() {
@@ -397,6 +446,62 @@ import 'dart:math';
     ]);
   }
 
+  test_linkLibraries_getErrors() {
+    addTestFile(r'''
+var a = b;
+var foo = 0;
+''');
+
+    var path = convertPath('/workspace/dart/test/lib/test.dart');
+    fileResolver.linkLibraries(path: path);
+
+    var result = getTestErrors();
+    expect(result.path, path);
+    expect(result.uri.toString(), 'package:dart.test/test.dart');
+    assertErrorsInList(result.errors, [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 8, 1),
+    ]);
+    expect(result.lineInfo.lineStarts, [0, 11, 24]);
+  }
+
+  test_nullSafety_enabled() async {
+    typeToStringWithNullability = true;
+
+    newFile('/workspace/dart/test/BUILD', content: r'''
+dart_package(
+  null_safety = True,
+)
+''');
+
+    await assertNoErrorsInCode(r'''
+void f(int? a) {
+  if (a != null) {
+    a.isEven;
+  }
+}
+''');
+
+    assertType(
+      findElement.parameter('a').type,
+      'int?',
+    );
+  }
+
+  test_nullSafety_notEnabled() async {
+    typeToStringWithNullability = true;
+
+    await assertErrorsInCode(r'''
+void f(int? a) {}
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 10, 1),
+    ]);
+
+    assertType(
+      findElement.parameter('a').type,
+      'int*',
+    );
+  }
+
   test_resolve_part_of() async {
     newFile('/workspace/dart/test/lib/a.dart', content: r'''
 part 'test.dart';
@@ -417,6 +522,9 @@ void func() {
   }
 
   test_reuse_compatibleOptions() async {
+    newFile('/workspace/dart/aaa/BUILD', content: '');
+    newFile('/workspace/dart/bbb/BUILD', content: '');
+
     var aPath = '/workspace/dart/aaa/lib/a.dart';
     var aResult = await assertErrorsInFile(aPath, r'''
 num a = 0;
@@ -438,12 +546,14 @@ int b = a;
   }
 
   test_reuse_incompatibleOptions_implicitCasts() async {
+    newFile('/workspace/dart/aaa/BUILD', content: '');
     newFile('/workspace/dart/aaa/analysis_options.yaml', content: r'''
 analyzer:
   strong-mode:
     implicit-casts: false
 ''');
 
+    newFile('/workspace/dart/bbb/BUILD', content: '');
     newFile('/workspace/dart/bbb/analysis_options.yaml', content: r'''
 analyzer:
   strong-mode:
@@ -475,11 +585,87 @@ int b = a;
     ]);
   }
 
+  test_switchCase_implementsEquals_enum() async {
+    await assertNoErrorsInCode(r'''
+enum MyEnum {a, b, c}
+
+void f(MyEnum myEnum) {
+  switch (myEnum) {
+    case MyEnum.a:
+      break;
+    default:
+      break;
+  }
+}
+''');
+  }
+
   test_unknown_uri() async {
     await assertErrorsInCode(r'''
 import 'foo:bar';
 ''', [
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9),
     ]);
+  }
+
+  test_unusedFiles() async {
+    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
+    var cPath = convertPath('/workspace/dart/aaa/lib/c.dart');
+
+    newFile('/workspace/dart/aaa/lib/a.dart', content: r'''
+class A {}
+''');
+
+    newFile(bPath, content: r'''
+import 'a.dart';
+''');
+
+    newFile(cPath, content: r'''
+import 'a.dart';
+''');
+
+    await resolveFile(bPath);
+    await resolveFile(cPath);
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([cPath]);
+    expect(fileResolver.fsState.testView.unusedFiles.contains(bPath), true);
+    expect(fileResolver.fsState.testView.unusedFiles.length, 1);
+  }
+
+  test_unusedFiles_mutilple() async {
+    var dPath = convertPath('/workspace/dart/aaa/lib/d.dart');
+    var ePath = convertPath('/workspace/dart/aaa/lib/e.dart');
+    var fPath = convertPath('/workspace/dart/aaa/lib/f.dart');
+
+    newFile('/workspace/dart/aaa/lib/a.dart', content: r'''
+class A {}
+''');
+
+    newFile('/workspace/dart/aaa/lib/b.dart', content: r'''
+class B {}
+''');
+
+    newFile('/workspace/dart/aaa/lib/c.dart', content: r'''
+class C {}
+''');
+
+    newFile(dPath, content: r'''
+import 'a.dart';
+''');
+
+    newFile(ePath, content: r'''
+import 'a.dart';
+import 'b.dart';
+''');
+
+    newFile(fPath, content: r'''
+import 'c.dart';
+ ''');
+
+    await resolveFile(dPath);
+    await resolveFile(ePath);
+    await resolveFile(fPath);
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([dPath, fPath]);
+    expect(fileResolver.fsState.testView.unusedFiles.contains(ePath), true);
+    expect(fileResolver.fsState.testView.unusedFiles.length, 2);
   }
 }

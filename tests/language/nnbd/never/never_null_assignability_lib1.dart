@@ -25,9 +25,9 @@ void takesNull(Null n) {
 }
 
 void takesNever(Never n) {
-  // In weak mode, we may get null.  Throw AssertionError so that this
-  // can be distinguished from a dynamic call failure.
-  if (n != null) throw AssertionError("Not null");
+  // In weak mode, we may get null.  However, we can't observe it (because
+  // evaluating an expression of type `Never` causes an exception to be
+  // thrown).  So do nothing.
 }
 
 void applyTakesNull(void Function(Null) fn, dynamic arg) {
@@ -36,8 +36,9 @@ void applyTakesNull(void Function(Null) fn, dynamic arg) {
 }
 
 void applyTakesNever(void Function(Never) fn, dynamic arg) {
-  // Make the cast explicit for clarity.
-  fn(arg as Never);
+  // We can't make the cast explicit, because `arg as Never` has static type
+  // `Never`, which would cause an exception to be thrown.
+  fn(arg);
 }
 
 void applyTakesNullDynamically(void Function(Null) fn, dynamic arg) {

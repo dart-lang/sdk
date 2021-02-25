@@ -10,13 +10,13 @@ import 'common/test_helper.dart';
 var tests = <VMTest>[
   (VmService service) async {
     final vm = await service.getVM();
-    final result = await service.getMemoryUsage(vm.isolates.first.id);
+    final result = await service.getMemoryUsage(vm.isolates!.first.id!);
     expect(result.heapUsage, isPositive);
     expect(result.heapCapacity, isPositive);
     expect(result.externalUsage, isPositive);
   },
   (VmService service) async {
-    bool caughtException;
+    bool? caughtException;
     try {
       await service.getMemoryUsage('badid');
       fail('Unreachable');

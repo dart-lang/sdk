@@ -3,6 +3,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:kernel/kernel.dart';
 import 'package:kernel/naive_type_checker.dart';
 import 'package:kernel/text/ast_to_text.dart';
@@ -37,15 +39,15 @@ Incompatible override of ${superMember} with ${ownMember}:
     String sourceLine = null;
 
     // Try finding original source line.
-    final fileOffset = _findFileOffset(where);
+    final int fileOffset = _findFileOffset(where);
     if (fileOffset != TreeNode.noOffset) {
-      final fileUri = _fileUriOf(context);
+      final Uri fileUri = _fileUriOf(context);
 
-      final component = context.enclosingComponent;
-      final source = component.uriToSource[fileUri];
-      final location = component.getLocation(fileUri, fileOffset);
-      final lineStart = source.lineStarts[location.line - 1];
-      final lineEnd = (location.line < source.lineStarts.length)
+      final Component component = context.enclosingComponent;
+      final Source source = component.uriToSource[fileUri];
+      final Location location = component.getLocation(fileUri, fileOffset);
+      final int lineStart = source.lineStarts[location.line - 1];
+      final int lineEnd = (location.line < source.lineStarts.length)
           ? source.lineStarts[location.line]
           : (source.source.length - 1);
       if (lineStart < source.source.length &&
@@ -58,16 +60,17 @@ Incompatible override of ${superMember} with ${ownMember}:
     }
 
     // Find the name of the enclosing member.
-    var name = "", body = context;
+    String name = "";
+    dynamic body = context;
     if (context is Class || context is Library) {
       name = context.name;
     } else if (context is Procedure || context is Constructor) {
-      final parent = context.parent;
-      final parentName =
+      final dynamic parent = context.parent;
+      final String parentName =
           parent is Class ? parent.name : (parent as Library).name;
-      name = "${parentName}::${context.name.name}";
+      name = "${parentName}::${context.name.text}";
     } else {
-      final field = context as Field;
+      final Field field = context as Field;
       if (where is Field) {
         name = "${field.parent}.${field.name}";
       } else {
@@ -114,7 +117,7 @@ Source:
   }
 
   static Member _findEnclosingMember(TreeNode n) {
-    var context = n;
+    TreeNode context = n;
     while (context is! Member) {
       context = context.parent;
     }
@@ -125,7 +128,7 @@ Source:
 /// Extension of a [Printer] that highlights the given node using ANSI
 /// escape sequences.
 class HighlightingPrinter extends Printer {
-  final highlight;
+  final Node highlight;
 
   HighlightingPrinter(this.highlight)
       : super(new StringBuffer(), syntheticNames: globalDebuggingNames);
@@ -133,8 +136,8 @@ class HighlightingPrinter extends Printer {
   @override
   bool shouldHighlight(Node node) => highlight == node;
 
-  static const kHighlightStart = ansiRed;
-  static const kHighlightEnd = ansiReset;
+  static const String kHighlightStart = ansiRed;
+  static const String kHighlightEnd = ansiReset;
 
   @override
   void startHighlight(Node node) {
@@ -150,7 +153,7 @@ class HighlightingPrinter extends Printer {
   /// representation of the [highlight] node.
   static String stringifyContainingLines(Node node, Node highlight) {
     if (node == highlight) {
-      final firstLine = debugNodeToString(node).split('\n').first;
+      final String firstLine = debugNodeToString(node).split('\n').first;
       return "${kHighlightStart}${firstLine}${kHighlightEnd}";
     }
 
@@ -161,7 +164,7 @@ class HighlightingPrinter extends Printer {
   }
 
   static Iterable<String> _onlyHighlightedLines(String text) sync* {
-    for (var line
+    for (String line
         in text.split('\n').skipWhile((l) => !l.contains(kHighlightStart))) {
       yield line;
       if (line.contains(kHighlightEnd)) {
@@ -171,7 +174,7 @@ class HighlightingPrinter extends Printer {
   }
 }
 
-const ansiBlue = "\u001b[1;34m";
-const ansiYellow = "\u001b[1;33m";
-const ansiRed = "\u001b[1;31m";
-const ansiReset = "\u001b[0;0m";
+const String ansiBlue = "\u001b[1;34m";
+const String ansiYellow = "\u001b[1;33m";
+const String ansiRed = "\u001b[1;31m";
+const String ansiReset = "\u001b[0;0m";

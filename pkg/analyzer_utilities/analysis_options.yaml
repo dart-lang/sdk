@@ -1,0 +1,12 @@
+include: package:pedantic/analysis_options.1.9.0.yaml
+
+analyzer:
+  strong-mode:
+    implicit-casts: false
+
+linter:
+  rules:
+    - empty_constructor_bodies
+    - empty_statements
+    - unnecessary_brace_in_string_interps
+    - valid_regexps

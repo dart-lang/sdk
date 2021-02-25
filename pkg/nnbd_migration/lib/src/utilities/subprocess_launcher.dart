@@ -38,7 +38,7 @@ class SubprocessLauncher {
   static Future<void> _printStream(Stream<List<int>> stream, Stdout output,
       {String prefix = '', Iterable<String> Function(String line) filter}) {
     assert(prefix != null);
-    if (filter == null) filter = (line) => [line];
+    filter ??= (line) => [line];
     return stream
         .transform(utf8.decoder)
         .transform(const LineSplitter())
@@ -52,7 +52,7 @@ class SubprocessLauncher {
   }
 
   SubprocessLauncher(this.context, [Map<String, String> environment])
-      : this.environmentDefaults = environment ?? <String, String>{};
+      : environmentDefaults = environment ?? <String, String>{};
 
   /// Wraps [runStreamedImmediate] as a closure around
   /// [maxParallel.addFutureFromClosure].
@@ -121,7 +121,7 @@ class SubprocessLauncher {
       Map result;
       try {
         result = json.decoder.convert(line) as Map;
-      } catch (FormatException) {
+      } on FormatException {
         // ignore
       }
       if (result != null) {
@@ -145,7 +145,7 @@ class SubprocessLauncher {
         if (environment[key].contains(quotables)) {
           return "$key='${environment[key]}'";
         } else {
-          return "$key=${environment[key]}";
+          return '$key=${environment[key]}';
         }
       }).join(' '));
       stderr.write(' ');
@@ -156,7 +156,7 @@ class SubprocessLauncher {
         if (arg.contains(quotables)) {
           stderr.write(" '$arg'");
         } else {
-          stderr.write(" $arg");
+          stderr.write(' $arg');
         }
       }
     }
@@ -193,7 +193,7 @@ class SubprocessLauncher {
     int exitCode = await process.exitCode;
     if (exitCode != 0 && !allowNonzeroExit) {
       throw ProcessException(executable, arguments,
-          "SubprocessLauncher got non-zero exitCode: $exitCode", exitCode);
+          'SubprocessLauncher got non-zero exitCode: $exitCode', exitCode);
     }
     return jsonObjects;
   }

@@ -1,8 +1,8 @@
-main = <No Member>;
+main = foo::main;
 library from "org-dartlang-test:///foo.dart" as foo {
 
   abstract class Key extends dart.core::Object /*hasConstConstructor*/  {
-    static field dynamic _redirecting# = <dynamic>[foo::Key::•];
+    static final field dynamic _redirecting# = <dynamic>[foo::Key::•];
     const constructor empty() → foo::Key*
       : super dart.core::Object::•()
       ;

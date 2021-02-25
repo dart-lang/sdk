@@ -34,6 +34,7 @@ void main() {
     b = a.d;
     //    ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [cfe] The getter 'd' isn't defined for the class 'A'.
   }
   if (a is D && (b = a.d)) {
     b = a.d;

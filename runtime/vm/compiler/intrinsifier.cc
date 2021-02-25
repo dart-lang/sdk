@@ -91,7 +91,7 @@ bool Intrinsifier::CanIntrinsifyFieldAccessor(const Function& function) {
   // If we intrinsify, the intrinsified code therefore does not depend on the
   // field guard and we do not add it to the guarded fields via
   // [ParsedFunction::AddToGuardedFields].
-  if (Field::ShouldCloneFields()) {
+  if (CompilerState::Current().should_clone_fields()) {
     field = field.CloneFromOriginal();
   }
 
@@ -130,8 +130,6 @@ bool Intrinsifier::CanIntrinsifyFieldAccessor(const Function& function) {
     //
     // Normally we have to check the parameter type.
     ASSERT(function.NeedsArgumentTypeChecks());
-    // Dynamic call sites will go to dyn:set:* instead.
-    ASSERT(!function.CanReceiveDynamicInvocation());
     // Covariant parameter types have to be checked, which we don't support.
     if (field.is_covariant() || field.is_generic_covariant_impl()) return false;
 
@@ -181,7 +179,6 @@ static IntrinsicDesc math_intrinsics[] = {
 };
 
 static IntrinsicDesc typed_data_intrinsics[] = {
-  TYPED_DATA_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
   GRAPH_TYPED_DATA_INTRINSICS_LIST(DEFINE_INTRINSIC)
   {nullptr, nullptr},
 };
@@ -219,7 +216,7 @@ void Intrinsifier::InitializeState() {
   };
 
   for (intptr_t i = 0; i < kNumLibs; i++) {
-    lib = intrinsics[i].library.raw();
+    lib = intrinsics[i].library.ptr();
     for (IntrinsicDesc* intrinsic = intrinsics[i].intrinsics;
          intrinsic->class_name != nullptr; intrinsic++) {
       func = Function::null();
@@ -263,7 +260,6 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     return false;
   }
 
-  ASSERT(!compiler->flow_graph().IsCompiledForOsr());
   if (GraphIntrinsifier::GraphIntrinsify(parsed_function, compiler)) {
     return compiler->intrinsic_slow_path_label()->IsUnused();
   }
@@ -293,6 +289,14 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     AsmIntrinsifier::enum_name(compiler->assembler(), &normal_ir_body);        \
     const auto size_after = compiler->assembler()->CodeSize();                 \
     if (size_before == size_after) return false;                               \
+    if (function.HasUnboxedParameters()) {                                     \
+      FATAL1("Unsupported unboxed parameters in asm intrinsic %s",             \
+             function.ToFullyQualifiedCString());                              \
+    }                                                                          \
+    if (function.HasUnboxedReturnValue()) {                                    \
+      FATAL1("Unsupported unboxed return value in asm intrinsic %s",           \
+             function.ToFullyQualifiedCString());                              \
+    }                                                                          \
     if (!normal_ir_body.IsBound()) {                                           \
       EMIT_BREAKPOINT();                                                       \
       return true;                                                             \

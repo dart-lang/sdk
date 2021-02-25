@@ -4,12 +4,12 @@
 
 // @dart = 2.7
 
-/*member: defaultArg:OutputUnit(1, {lib})*/
+/*member: defaultArg:member_unit=1{lib}*/
 defaultArg() => "";
 
 /*member: funky:
- OutputUnit(1, {lib}),
- constants=[FunctionConstant(defaultArg)=OutputUnit(1, {lib})]
+ constants=[FunctionConstant(defaultArg)=1{lib}],
+ member_unit=1{lib}
 */
 funky([x = defaultArg]) => x();
 

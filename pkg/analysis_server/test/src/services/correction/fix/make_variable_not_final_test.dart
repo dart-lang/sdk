@@ -20,7 +20,7 @@ class MakeVariableNotFinalTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.MAKE_VARIABLE_NOT_FINAL;
 
   Future<void> test_hasType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   final int fff = 1;
   fff = 2;
@@ -37,7 +37,7 @@ main() {
   }
 
   Future<void> test_noType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   final fff = 1;
   fff = 2;

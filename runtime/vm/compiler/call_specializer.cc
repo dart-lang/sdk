@@ -13,7 +13,7 @@
 namespace dart {
 
 // Quick access to the current isolate and zone.
-#define I (isolate())
+#define IG (isolate_group())
 #define Z (zone())
 
 static void RefineUseTypes(Definition* instr) {
@@ -150,7 +150,7 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
 
   if (all_cids_known) {
     const Class& receiver_class =
-        Class::Handle(Z, isolate()->class_table()->At(class_ids[0]));
+        Class::Handle(Z, IG->class_table()->At(class_ids[0]));
     if (!receiver_class.is_finalized()) {
       // Do not eagerly finalize classes. ResolveDynamicForReceiverClass can
       // cause class finalization, since callee's receiver class may not be
@@ -232,7 +232,7 @@ void CallSpecializer::AddCheckSmi(Definition* to_check,
   if (to_check->Type()->ToCid() != kSmiCid) {
     InsertBefore(insert_before,
                  new (Z) CheckSmiInstr(new (Z) Value(to_check), deopt_id,
-                                       insert_before->token_pos()),
+                                       insert_before->source()),
                  deopt_environment, FlowGraph::kEffect);
   }
 }
@@ -243,8 +243,8 @@ void CallSpecializer::AddCheckClass(Definition* to_check,
                                     Environment* deopt_environment,
                                     Instruction* insert_before) {
   // Type propagation has not run yet, we cannot eliminate the check.
-  Instruction* check = flow_graph_->CreateCheckClass(
-      to_check, cids, deopt_id, insert_before->token_pos());
+  Instruction* check = flow_graph_->CreateCheckClass(to_check, cids, deopt_id,
+                                                     insert_before->source());
   InsertBefore(insert_before, check, deopt_environment, FlowGraph::kEffect);
 }
 
@@ -264,7 +264,7 @@ void CallSpecializer::AddCheckNull(Value* to_check,
   if (to_check->Type()->is_nullable()) {
     CheckNullInstr* check_null =
         new (Z) CheckNullInstr(to_check->CopyWithType(Z), function_name,
-                               deopt_id, insert_before->token_pos());
+                               deopt_id, insert_before->source());
     if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Inserted %s\n", check_null->ToCString());
     }
@@ -355,7 +355,7 @@ bool CallSpecializer::TryStringLengthOneEquality(InstanceCallInstr* call,
 
     // Comparing char-codes instead of strings.
     EqualityCompareInstr* comp =
-        new (Z) EqualityCompareInstr(call->token_pos(), op_kind, left_val,
+        new (Z) EqualityCompareInstr(call->source(), op_kind, left_val,
                                      right_val, kSmiCid, call->deopt_id());
     ReplaceCall(call, comp);
 
@@ -394,11 +394,11 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
   } else if (binary_feedback.OperandsAre(kSmiCid)) {
     InsertBefore(call,
                  new (Z) CheckSmiInstr(new (Z) Value(left), call->deopt_id(),
-                                       call->token_pos()),
+                                       call->source()),
                  call->env(), FlowGraph::kEffect);
     InsertBefore(call,
                  new (Z) CheckSmiInstr(new (Z) Value(right), call->deopt_id(),
-                                       call->token_pos()),
+                                       call->source()),
                  call->env(), FlowGraph::kEffect);
     cid = kSmiCid;
   } else if (binary_feedback.OperandsAreSmiOrMint() &&
@@ -440,7 +440,7 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
       if ((right_const != NULL && right_const->value().IsNull()) ||
           (left_const != NULL && left_const->value().IsNull())) {
         StrictCompareInstr* comp = new (Z)
-            StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
+            StrictCompareInstr(call->source(), Token::kEQ_STRICT,
                                new (Z) Value(left), new (Z) Value(right),
                                /* number_check = */ false, DeoptId::kNone);
         ReplaceCall(call, comp);
@@ -450,9 +450,9 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
     }
   }
   ASSERT(cid != kIllegalCid);
-  EqualityCompareInstr* comp = new (Z)
-      EqualityCompareInstr(call->token_pos(), op_kind, new (Z) Value(left),
-                           new (Z) Value(right), cid, call->deopt_id());
+  EqualityCompareInstr* comp =
+      new (Z) EqualityCompareInstr(call->source(), op_kind, new (Z) Value(left),
+                                   new (Z) Value(right), cid, call->deopt_id());
   ReplaceCall(call, comp);
   return true;
 }
@@ -470,11 +470,11 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
   if (binary_feedback.OperandsAre(kSmiCid)) {
     InsertBefore(call,
                  new (Z) CheckSmiInstr(new (Z) Value(left), call->deopt_id(),
-                                       call->token_pos()),
+                                       call->source()),
                  call->env(), FlowGraph::kEffect);
     InsertBefore(call,
                  new (Z) CheckSmiInstr(new (Z) Value(right), call->deopt_id(),
-                                       call->token_pos()),
+                                       call->source()),
                  call->env(), FlowGraph::kEffect);
     cid = kSmiCid;
   } else if (binary_feedback.OperandsAreSmiOrMint() &&
@@ -503,7 +503,7 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
   }
   ASSERT(cid != kIllegalCid);
   RelationalOpInstr* comp =
-      new (Z) RelationalOpInstr(call->token_pos(), op_kind, new (Z) Value(left),
+      new (Z) RelationalOpInstr(call->source(), op_kind, new (Z) Value(left),
                                 new (Z) Value(right), cid, call->deopt_id());
   ReplaceCall(call, comp);
   return true;
@@ -634,7 +634,7 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
 
     BinaryDoubleOpInstr* double_bin_op = new (Z)
         BinaryDoubleOpInstr(op_kind, new (Z) Value(left), new (Z) Value(right),
-                            call->deopt_id(), call->token_pos());
+                            call->deopt_id(), call->source());
     ReplaceCall(call, double_bin_op);
   } else if (operands_type == kMintCid) {
     if (!FlowGraphCompiler::SupportsUnboxedInt64()) return false;
@@ -661,7 +661,7 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         // because the smi operation can still deoptimize.
         InsertBefore(call,
                      new (Z) CheckSmiInstr(new (Z) Value(left),
-                                           call->deopt_id(), call->token_pos()),
+                                           call->deopt_id(), call->source()),
                      call->env(), FlowGraph::kEffect);
         ConstantInstr* constant = flow_graph()->GetConstant(
             Smi::Handle(Z, Smi::New(Smi::Cast(obj).Value() - 1)));
@@ -708,7 +708,7 @@ bool CallSpecializer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
   if (call->Targets().ReceiverIs(kSmiCid)) {
     InsertBefore(call,
                  new (Z) CheckSmiInstr(new (Z) Value(input), call->deopt_id(),
-                                       call->token_pos()),
+                                       call->source()),
                  call->env(), FlowGraph::kEffect);
     unary_op = new (Z)
         UnarySmiOpInstr(op_kind, new (Z) Value(input), call->deopt_id());
@@ -744,8 +744,8 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
     field = field.CloneFromOriginal();
   }
 
-  switch (flow_graph()->CheckForInstanceCall(call,
-                                             FunctionLayout::kImplicitGetter)) {
+  switch (flow_graph()->CheckForInstanceCall(
+      call, UntaggedFunction::kImplicitGetter)) {
     case FlowGraph::ToCheck::kCheckNull:
       AddCheckNull(call->Receiver(), call->function_name(), call->deopt_id(),
                    call->env(), call);
@@ -771,7 +771,7 @@ void CallSpecializer::InlineImplicitInstanceGetter(Definition* call,
   const bool calls_initializer = field.NeedsInitializationCheckOnLoad();
   const Slot& slot = Slot::Get(field, &flow_graph()->parsed_function());
   LoadFieldInstr* load = new (Z) LoadFieldInstr(
-      new (Z) Value(receiver), slot, call->token_pos(), calls_initializer,
+      new (Z) Value(receiver), slot, call->source(), calls_initializer,
       calls_initializer ? call->deopt_id() : DeoptId::kNone);
 
   // Note that this is a case of LoadField -> InstanceCall lazy deopt.
@@ -801,8 +801,11 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     return false;
   }
   const Function& target = targets.FirstTarget();
-  if (target.kind() != FunctionLayout::kImplicitSetter) {
+  if (target.kind() != UntaggedFunction::kImplicitSetter) {
     // Non-implicit setter are inlined like normal method calls.
+    return false;
+  }
+  if (!CompilerState::Current().is_aot() && !target.WasCompiled()) {
     return false;
   }
   Field& field = Field::ZoneHandle(Z, target.accessor_field());
@@ -811,8 +814,8 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     field = field.CloneFromOriginal();
   }
 
-  switch (flow_graph()->CheckForInstanceCall(instr,
-                                             FunctionLayout::kImplicitSetter)) {
+  switch (flow_graph()->CheckForInstanceCall(
+      instr, UntaggedFunction::kImplicitSetter)) {
     case FlowGraph::ToCheck::kCheckNull:
       AddCheckNull(instr->Receiver(), instr->function_name(), instr->deopt_id(),
                    instr->env(), instr);
@@ -839,7 +842,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     }
   }
 
-  if (I->use_field_guards()) {
+  if (IG->use_field_guards()) {
     if (field.guarded_cid() != kDynamicCid) {
       InsertBefore(instr,
                    new (Z)
@@ -897,10 +900,9 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
       if (!dst_type.IsInstantiated()) {
         const Class& owner = Class::Handle(Z, field.Owner());
         if (owner.NumTypeArguments() > 0) {
-          instantiator_type_args = new (Z)
-              LoadFieldInstr(new (Z) Value(instr->ArgumentAt(0)),
-                             Slot::GetTypeArgumentsSlotFor(thread(), owner),
-                             instr->token_pos());
+          instantiator_type_args = new (Z) LoadFieldInstr(
+              new (Z) Value(instr->ArgumentAt(0)),
+              Slot::GetTypeArgumentsSlotFor(thread(), owner), instr->source());
           InsertBefore(instr, instantiator_type_args, instr->env(),
                        FlowGraph::kValue);
         }
@@ -909,7 +911,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
       InsertBefore(
           instr,
           new (Z) AssertAssignableInstr(
-              instr->token_pos(), new (Z) Value(instr->ArgumentAt(1)),
+              instr->source(), new (Z) Value(instr->ArgumentAt(1)),
               new (Z) Value(flow_graph_->GetConstant(dst_type)),
               new (Z) Value(instantiator_type_args),
               new (Z) Value(function_type_args),
@@ -922,8 +924,8 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
   ASSERT(instr->FirstArgIndex() == 0);
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
       field, new (Z) Value(instr->ArgumentAt(0)),
-      new (Z) Value(instr->ArgumentAt(1)), kEmitStoreBarrier,
-      instr->token_pos(), &flow_graph()->parsed_function());
+      new (Z) Value(instr->ArgumentAt(1)), kEmitStoreBarrier, instr->source(),
+      &flow_graph()->parsed_function());
 
   // Discard the environment from the original instruction because the store
   // can't deoptimize.
@@ -963,9 +965,12 @@ bool CallSpecializer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     return false;
   }
   const Function& target = targets.FirstTarget();
-  if (target.kind() != FunctionLayout::kImplicitGetter) {
+  if (target.kind() != UntaggedFunction::kImplicitGetter) {
     // Non-implicit getters are inlined like normal methods by conventional
     // inlining in FlowGraphInliner.
+    return false;
+  }
+  if (!CompilerState::Current().is_aot() && !target.WasCompiled()) {
     return false;
   }
   return TryInlineImplicitInstanceGetter(call);
@@ -982,7 +987,7 @@ void CallSpecializer::ReplaceWithMathCFunction(
     args->Add(new (Z) Value(call->ArgumentAt(i)));
   }
   InvokeMathCFunctionInstr* invoke = new (Z) InvokeMathCFunctionInstr(
-      args, call->deopt_id(), recognized_kind, call->token_pos());
+      args, call->deopt_id(), recognized_kind, call->source());
   ReplaceCall(call, invoke);
 }
 
@@ -1004,7 +1009,7 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       AddReceiverCheck(call);
       ReplaceCall(call,
                   new (Z) SmiToDoubleInstr(new (Z) Value(call->ArgumentAt(0)),
-                                           call->token_pos()));
+                                           call->source()));
       return true;
     } else if ((receiver_cid == kMintCid) && CanConvertInt64ToDouble()) {
       AddReceiverCheck(call);
@@ -1097,7 +1102,7 @@ BoolPtr CallSpecializer::InstanceOfAsBool(
     }
   }
 
-  const ClassTable& class_table = *isolate()->class_table();
+  const ClassTable& class_table = *IG->class_table();
   Bool& prev = Bool::Handle(Z);
   Class& cls = Class::Handle(Z);
 
@@ -1127,14 +1132,14 @@ BoolPtr CallSpecializer::InstanceOfAsBool(
     results->Add(cls.id());
     results->Add(static_cast<intptr_t>(is_subtype));
     if (prev.IsNull()) {
-      prev = Bool::Get(is_subtype).raw();
+      prev = Bool::Get(is_subtype).ptr();
     } else {
       if (is_subtype != prev.value()) {
         results_differ = true;
       }
     }
   }
-  return results_differ ? Bool::null() : prev.raw();
+  return results_differ ? Bool::null() : prev.ptr();
 }
 
 // Returns true if checking against this type is a direct class id comparison.
@@ -1235,7 +1240,7 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
   if (type.IsNullType() || (type.IsNeverType() && type.IsLegacy()) ||
       left_value->Type()->IsSubtypeOf(type)) {
     Definition* replacement = new (Z) StrictCompareInstr(
-        call->token_pos(),
+        call->source(),
         (type.IsNullType() || (type.IsNeverType() && type.IsLegacy()))
             ? Token::kEQ_STRICT
             : Token::kNE_STRICT,
@@ -1266,12 +1271,12 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     instantiator_type_args = flow_graph()->constant_null();
     function_type_args = flow_graph()->constant_null();
     ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
-    type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
+    type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).ptr();
   } else {
     ASSERT(call->ArgumentCount() == 4);
     instantiator_type_args = call->ArgumentAt(1);
     function_type_args = call->ArgumentAt(2);
-    type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
+    type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).ptr();
   }
 
   if (TryOptimizeInstanceOfUsingStaticTypes(call, type)) {
@@ -1286,7 +1291,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
         flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(type_cid)));
 
     StrictCompareInstr* check_cid = new (Z) StrictCompareInstr(
-        call->token_pos(), Token::kEQ_STRICT, new (Z) Value(left_cid),
+        call->source(), Token::kEQ_STRICT, new (Z) Value(left_cid),
         new (Z) Value(cid), /* number_check = */ false, DeoptId::kNone);
     ReplaceCall(call, check_cid);
     return;
@@ -1313,7 +1318,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
           return;
         }
         TestCidsInstr* test_cids = new (Z) TestCidsInstr(
-            call->token_pos(), Token::kIS, new (Z) Value(left), *results,
+            call->source(), Token::kIS, new (Z) Value(left), *results,
             can_deopt ? call->deopt_id() : DeoptId::kNone);
         // Remove type.
         ReplaceCall(call, test_cids);
@@ -1332,7 +1337,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   }
 
   InstanceOfInstr* instance_of = new (Z) InstanceOfInstr(
-      call->token_pos(), new (Z) Value(left),
+      call->source(), new (Z) Value(left),
       new (Z) Value(instantiator_type_args), new (Z) Value(function_type_args),
       type, call->deopt_id());
   ReplaceCall(call, instance_of);
@@ -1388,7 +1393,7 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
               Definition* arg = call->ArgumentAt(1);
               AddCheckSmi(arg, call->deopt_id(), call->env(), call);
               ReplaceCall(call, new (Z) SmiToDoubleInstr(new (Z) Value(arg),
-                                                         call->token_pos()));
+                                                         call->source()));
               return;
             } else if (binary_feedback.ArgumentIs(kMintCid) &&
                        CanConvertInt64ToDouble()) {
@@ -1455,7 +1460,7 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
     ZoneGrowableArray<intptr_t>* results,
     const AbstractType& type) {
   ASSERT(results->length() >= 2);  // At least on entry.
-  const ClassTable& class_table = *Isolate::Current()->class_table();
+  const ClassTable& class_table = *IsolateGroup::Current()->class_table();
   if ((*results)[0] != kSmiCid) {
     const Class& smi_class = Class::Handle(class_table.At(kSmiCid));
     const bool smi_is_subtype =
@@ -1515,6 +1520,7 @@ void TypedDataSpecializer::EnsureIsInitialized() {
 
   auto& td_class = Class::Handle(Z);
   auto& direct_implementors = GrowableObjectArray::Handle(Z);
+  SafepointReadRwLocker ml(thread_, thread_->isolate_group()->program_lock());
 
 #define INIT_HANDLE(iface, member_name, type, cid)                             \
   td_class = typed_data.LookupClass(Symbols::iface());                         \
@@ -1561,26 +1567,27 @@ void TypedDataSpecializer::VisitStaticCall(StaticCallInstr* call) {
 }
 
 void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
-  const bool is_length_getter = call->Selector() == Symbols::GetLength().raw();
-  const bool is_index_get = call->Selector() == Symbols::IndexToken().raw();
+  const bool is_length_getter = call->Selector() == Symbols::GetLength().ptr();
+  const bool is_index_get = call->Selector() == Symbols::IndexToken().ptr();
   const bool is_index_set =
-      call->Selector() == Symbols::AssignIndexToken().raw();
+      call->Selector() == Symbols::AssignIndexToken().ptr();
 
   if (is_length_getter || is_index_get || is_index_set) {
     EnsureIsInitialized();
 
     const intptr_t receiver_index = call->FirstArgIndex();
 
-    CompileType* receiver_type = call->ArgumentAt(receiver_index + 0)->Type();
+    CompileType* receiver_type =
+        call->ArgumentValueAt(receiver_index + 0)->Type();
 
     CompileType* index_type = nullptr;
     if (is_index_get || is_index_set) {
-      index_type = call->ArgumentAt(receiver_index + 1)->Type();
+      index_type = call->ArgumentValueAt(receiver_index + 1)->Type();
     }
 
     CompileType* value_type = nullptr;
     if (is_index_set) {
-      value_type = call->ArgumentAt(receiver_index + 2)->Type();
+      value_type = call->ArgumentValueAt(receiver_index + 2)->Type();
     }
 
     auto& type_class = Class::Handle(zone_);
@@ -1673,7 +1680,7 @@ void TypedDataSpecializer::AppendNullCheck(TemplateDartCall<0>* call,
                                            Definition** value) {
   auto check =
       new (Z) CheckNullInstr(new (Z) Value(*value), Symbols::OptimizedOut(),
-                             call->deopt_id(), call->token_pos());
+                             call->deopt_id(), call->source());
   flow_graph_->InsertBefore(call, check, call->env(), FlowGraph::kValue);
 
   // Use data dependency as control dependency.
@@ -1684,7 +1691,7 @@ void TypedDataSpecializer::AppendBoundsCheck(TemplateDartCall<0>* call,
                                              Definition* array,
                                              Definition** index) {
   auto length = new (Z) LoadFieldInstr(
-      new (Z) Value(array), Slot::TypedDataBase_length(), call->token_pos());
+      new (Z) Value(array), Slot::TypedDataBase_length(), call->source());
   flow_graph_->InsertBefore(call, length, call->env(), FlowGraph::kValue);
 
   auto check = new (Z) GenericCheckBoundInstr(
@@ -1698,7 +1705,7 @@ void TypedDataSpecializer::AppendBoundsCheck(TemplateDartCall<0>* call,
 Definition* TypedDataSpecializer::AppendLoadLength(TemplateDartCall<0>* call,
                                                    Definition* array) {
   auto length = new (Z) LoadFieldInstr(
-      new (Z) Value(array), Slot::TypedDataBase_length(), call->token_pos());
+      new (Z) Value(array), Slot::TypedDataBase_length(), call->source());
   flow_graph_->InsertBefore(call, length, call->env(), FlowGraph::kValue);
   return length;
 }
@@ -1717,7 +1724,7 @@ Definition* TypedDataSpecializer::AppendLoadIndexed(TemplateDartCall<0>* call,
 
   Definition* load = new (Z) LoadIndexedInstr(
       new (Z) Value(data), new (Z) Value(index), /*index_unboxed=*/false,
-      index_scale, cid, kAlignedAccess, DeoptId::kNone, call->token_pos());
+      index_scale, cid, kAlignedAccess, DeoptId::kNone, call->source());
   flow_graph_->InsertBefore(call, load, call->env(), FlowGraph::kValue);
 
   if (cid == kTypedDataFloat32ArrayCid) {
@@ -1796,7 +1803,7 @@ void TypedDataSpecializer::AppendStoreIndexed(TemplateDartCall<0>* call,
   auto store = new (Z) StoreIndexedInstr(
       new (Z) Value(data), new (Z) Value(index), new (Z) Value(value),
       kNoStoreBarrier, /*index_unboxed=*/false, index_scale, cid,
-      kAlignedAccess, DeoptId::kNone, call->token_pos(),
+      kAlignedAccess, DeoptId::kNone, call->source(),
       Instruction::kNotSpeculative);
   flow_graph_->InsertBefore(call, store, call->env(), FlowGraph::kEffect);
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 part of 'type_inferrer.dart';
 
 /// Keeps track of information about the innermost function or closure being
@@ -151,7 +153,7 @@ class _SyncClosureContext implements ClosureContext {
         // dynamic, or Null.
         if (returnType is VoidType ||
             returnType is DynamicType ||
-            returnType == inferrer.coreTypes.nullType) {
+            returnType is NullType) {
           // Valid return;
         } else {
           statement.expression = inferrer.helper.wrapInProblem(
@@ -172,7 +174,7 @@ class _SyncClosureContext implements ClosureContext {
         if (returnType is VoidType &&
             !(expressionType is VoidType ||
                 expressionType is DynamicType ||
-                expressionType == inferrer.coreTypes.nullType)) {
+                expressionType is NullType)) {
           // It is a compile-time error if s is `return e;`, T is void, and S is
           // neither void, dynamic, nor Null.
           statement.expression = inferrer.helper.wrapInProblem(
@@ -199,7 +201,14 @@ class _SyncClosureContext implements ClosureContext {
               _returnContext, expressionType, statement.expression,
               fileOffset: statement.expression.fileOffset,
               isVoidAllowed: true,
-              errorTemplate: templateInvalidReturn);
+              errorTemplate: templateInvalidReturn,
+              nullabilityErrorTemplate: templateInvalidReturnNullability,
+              nullabilityPartErrorTemplate:
+                  templateInvalidReturnPartNullability,
+              nullabilityNullErrorTemplate:
+                  templateInvalidReturnNullabilityNull,
+              nullabilityNullTypeErrorTemplate:
+                  templateInvalidReturnNullabilityNullType);
           statement.expression = expression..parent = statement;
         }
       }
@@ -210,7 +219,7 @@ class _SyncClosureContext implements ClosureContext {
         // `return;` is a valid return if T is void, dynamic, or Null.
         if (returnType is VoidType ||
             returnType is DynamicType ||
-            returnType == inferrer.coreTypes.nullType) {
+            returnType is NullType) {
           // Valid return;
         } else {
           statement.expression = inferrer.helper.wrapInProblem(
@@ -235,7 +244,7 @@ class _SyncClosureContext implements ClosureContext {
         } else if (returnType is VoidType &&
             expressionType is! VoidType &&
             expressionType is! DynamicType &&
-            expressionType != inferrer.coreTypes.nullType) {
+            expressionType is! NullType) {
           // Invalid if T is void and S is not void, dynamic, or Null
           statement.expression = inferrer.helper.wrapInProblem(
               statement.expression,
@@ -246,7 +255,7 @@ class _SyncClosureContext implements ClosureContext {
         } else if (expressionType is VoidType &&
             returnType is! VoidType &&
             returnType is! DynamicType &&
-            returnType != inferrer.coreTypes.nullType) {
+            returnType is! NullType) {
           // Invalid if S is void and T is not void, dynamic, or Null.
           statement.expression = inferrer.helper.wrapInProblem(
               statement.expression,
@@ -294,15 +303,16 @@ class _SyncClosureContext implements ClosureContext {
       {bool hasImplicitReturn}) {
     assert(_needToInferReturnType);
     assert(hasImplicitReturn != null);
-    DartType inferredType;
+    DartType actualReturnedType;
+    DartType inferredReturnType;
     if (inferrer.isNonNullableByDefault) {
       if (hasImplicitReturn) {
         // No explicit returns we have an implicit `return null`.
-        inferredType = inferrer.typeSchemaEnvironment.nullType;
+        actualReturnedType = const NullType();
       } else {
         // No explicit return and the function doesn't complete normally; that
         // is, it throws.
-        inferredType = new NeverType(inferrer.library.nonNullable);
+        actualReturnedType = new NeverType(inferrer.library.nonNullable);
       }
       // Use the types seen from the explicit return statements.
       for (int i = 0; i < _returnStatements.length; i++) {
@@ -315,12 +325,31 @@ class _SyncClosureContext implements ClosureContext {
             type = inferrer.computeGreatestClosure(_returnContext);
           }
         }
-        if (inferredType == null) {
-          inferredType = type;
+        if (actualReturnedType == null) {
+          actualReturnedType = type;
         } else {
-          inferredType = inferrer.typeSchemaEnvironment.getStandardUpperBound(
-              inferredType, type, inferrer.library.library);
+          actualReturnedType = inferrer.typeSchemaEnvironment
+              .getStandardUpperBound(
+                  actualReturnedType, type, inferrer.library.library);
         }
+      }
+
+      // Let T be the actual returned type of a function literal as computed
+      // above. Let R be the greatest closure of the typing context K as
+      // computed above.
+      DartType returnContext =
+          inferrer.computeGreatestClosure2(_declaredReturnType);
+      if (returnContext is VoidType) {
+        // With null safety: if R is void, or the function literal is marked
+        // async and R is FutureOr<void>, let S be void.
+        inferredReturnType = const VoidType();
+      } else if (inferrer.typeSchemaEnvironment.isSubtypeOf(actualReturnedType,
+          returnContext, SubtypeCheckMode.withNullabilities)) {
+        // Otherwise, if T <: R then let S be T.
+        inferredReturnType = actualReturnedType;
+      } else {
+        // Otherwise, let S be R.
+        inferredReturnType = returnContext;
       }
     } else {
       if (_returnStatements.isNotEmpty) {
@@ -335,37 +364,41 @@ class _SyncClosureContext implements ClosureContext {
               type = inferrer.computeGreatestClosure(_returnContext);
             }
           }
-          if (inferredType == null) {
-            inferredType = type;
+          if (actualReturnedType == null) {
+            actualReturnedType = type;
           } else {
-            inferredType = inferrer.typeSchemaEnvironment.getStandardUpperBound(
-                inferredType, type, inferrer.library.library);
+            actualReturnedType = inferrer.typeSchemaEnvironment
+                .getStandardUpperBound(
+                    actualReturnedType, type, inferrer.library.library);
           }
         }
       } else if (hasImplicitReturn) {
         // No explicit returns we have an implicit `return null`.
-        inferredType = inferrer.typeSchemaEnvironment.nullType;
+        actualReturnedType = const NullType();
       } else {
         // No explicit return and the function doesn't complete normally; that
         // is, it throws.
-        inferredType = inferrer.typeSchemaEnvironment.nullType;
+        actualReturnedType = const NullType();
+      }
+
+      if (!inferrer.typeSchemaEnvironment.isSubtypeOf(actualReturnedType,
+          _returnContext, SubtypeCheckMode.withNullabilities)) {
+        // If the inferred return type isn't a subtype of the context, we use
+        // the context.
+        inferredReturnType =
+            inferrer.computeGreatestClosure2(_declaredReturnType);
+      } else {
+        inferredReturnType = actualReturnedType;
       }
     }
 
-    if (!inferrer.typeSchemaEnvironment.isSubtypeOf(
-        inferredType, _returnContext, SubtypeCheckMode.withNullabilities)) {
-      // If the inferred return type isn't a subtype of the context, we use the
-      // context.
-      inferredType = inferrer.computeGreatestClosure2(_declaredReturnType);
-    }
-
     for (int i = 0; i < _returnStatements.length; ++i) {
-      _checkValidReturn(inferrer, inferredType, _returnStatements[i],
+      _checkValidReturn(inferrer, inferredReturnType, _returnStatements[i],
           _returnExpressionTypes[i]);
     }
 
     return _inferredReturnType =
-        demoteTypeInLibrary(inferredType, inferrer.library.library);
+        demoteTypeInLibrary(inferredReturnType, inferrer.library.library);
   }
 
   @override
@@ -466,7 +499,7 @@ class _AsyncClosureContext implements ClosureContext {
         // dynamic, or Null.
         if (futureValueType is VoidType ||
             futureValueType is DynamicType ||
-            futureValueType == inferrer.coreTypes.nullType) {
+            futureValueType is NullType) {
           // Valid return;
         } else {
           statement.expression = inferrer.helper.wrapInProblem(
@@ -491,7 +524,7 @@ class _AsyncClosureContext implements ClosureContext {
         if (futureValueType is VoidType &&
             !(flattenedExpressionType is VoidType ||
                 flattenedExpressionType is DynamicType ||
-                flattenedExpressionType == inferrer.coreTypes.nullType)) {
+                flattenedExpressionType is NullType)) {
           // It is a compile-time error if s is `return e;`, T_v is void, and
           // flatten(S) is neither void, dynamic, Null.
           statement.expression = inferrer.helper.wrapInProblem(
@@ -528,7 +561,14 @@ class _AsyncClosureContext implements ClosureContext {
                   inferrer.computeGreatestClosure2(_returnContext),
               declaredContextType: returnType,
               isVoidAllowed: false,
-              errorTemplate: templateInvalidReturnAsync)
+              errorTemplate: templateInvalidReturnAsync,
+              nullabilityErrorTemplate: templateInvalidReturnAsyncNullability,
+              nullabilityPartErrorTemplate:
+                  templateInvalidReturnAsyncPartNullability,
+              nullabilityNullErrorTemplate:
+                  templateInvalidReturnAsyncNullabilityNull,
+              nullabilityNullTypeErrorTemplate:
+                  templateInvalidReturnAsyncNullabilityNullType)
             ..parent = statement;
         }
       }
@@ -541,7 +581,7 @@ class _AsyncClosureContext implements ClosureContext {
         // `return;` is a valid return if flatten(T) is void, dynamic, or Null.
         if (flattenedReturnType is VoidType ||
             flattenedReturnType is DynamicType ||
-            flattenedReturnType == inferrer.coreTypes.nullType) {
+            flattenedReturnType is NullType) {
           // Valid return;
         } else {
           statement.expression = inferrer.helper.wrapInProblem(
@@ -576,7 +616,7 @@ class _AsyncClosureContext implements ClosureContext {
         } else if (returnType is VoidType &&
             flattenedExpressionType is! VoidType &&
             flattenedExpressionType is! DynamicType &&
-            flattenedExpressionType != inferrer.coreTypes.nullType) {
+            flattenedExpressionType is! NullType) {
           // Invalid if T is void and flatten(S) is not void, dynamic, or Null.
           statement.expression = inferrer.helper.wrapInProblem(
               statement.expression,
@@ -587,7 +627,7 @@ class _AsyncClosureContext implements ClosureContext {
         } else if (flattenedExpressionType is VoidType &&
             flattenedReturnType is! VoidType &&
             flattenedReturnType is! DynamicType &&
-            flattenedReturnType != inferrer.coreTypes.nullType) {
+            flattenedReturnType is! NullType) {
           // Invalid if flatten(S) is void and flatten(T) is not void, dynamic,
           // or Null.
           statement.expression = inferrer.helper.wrapInProblem(
@@ -665,7 +705,7 @@ class _AsyncClosureContext implements ClosureContext {
     if (inferrer.isNonNullableByDefault) {
       if (hasImplicitReturn) {
         // No explicit returns we have an implicit `return null`.
-        inferredType = inferrer.typeSchemaEnvironment.nullType;
+        inferredType = const NullType();
       } else {
         // No explicit return and the function doesn't complete normally; that
         // is, it throws.
@@ -731,11 +771,11 @@ class _AsyncClosureContext implements ClosureContext {
         }
       } else if (hasImplicitReturn) {
         // No explicit returns we have an implicit `return null`.
-        inferredType = inferrer.typeSchemaEnvironment.nullType;
+        inferredType = const NullType();
       } else {
         // No explicit return and the function doesn't complete normally;
         // that is, it throws.
-        inferredType = inferrer.typeSchemaEnvironment.nullType;
+        inferredType = const NullType();
       }
       inferredType =
           inferrer.wrapFutureType(inferredType, inferrer.library.nonNullable);
@@ -890,14 +930,14 @@ class _SyncStarClosureContext implements ClosureContext {
       }
     } else if (hasImplicitReturn) {
       // No explicit returns we have an implicit `return null`.
-      inferredElementType = inferrer.typeSchemaEnvironment.nullType;
+      inferredElementType = const NullType();
     } else {
       // No explicit return and the function doesn't complete normally; that is,
       // it throws.
       if (inferrer.isNonNullableByDefault) {
         inferredElementType = new NeverType(inferrer.library.nonNullable);
       } else {
-        inferredElementType = inferrer.typeSchemaEnvironment.nullType;
+        inferredElementType = const NullType();
       }
     }
 
@@ -1015,14 +1055,14 @@ class _AsyncStarClosureContext implements ClosureContext {
       }
     } else if (hasImplicitReturn) {
       // No explicit returns we have an implicit `return null`.
-      inferredElementType = inferrer.typeSchemaEnvironment.nullType;
+      inferredElementType = const NullType();
     } else {
       // No explicit return and the function doesn't complete normally; that is,
       // it throws.
       if (inferrer.isNonNullableByDefault) {
         inferredElementType = new NeverType(inferrer.library.nonNullable);
       } else {
-        inferredElementType = inferrer.typeSchemaEnvironment.nullType;
+        inferredElementType = const NullType();
       }
     }
 

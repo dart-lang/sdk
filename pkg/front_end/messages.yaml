@@ -61,7 +61,12 @@
 # `#unicode` a Unicode short identifier (U+xxxx). We use this to represent code
 #  units or code points.
 #
-# `#name`, `#name2`, `#name3`, `#name4`: names (as strings).
+# `#name`, `#name2`, `#name3`, `#name4`: names (as strings). Note that asserts
+#    check if these are empty. If they can be empty use an available `OKEmpty`
+#    version (or add the missing needed one(s)) to avoid triggering an assert.
+#
+# `#nameOKEmpty`: name (as string). Will use an "(unnamed)" default message if
+#    the string is null or empty. Otherwise see the describtion above.
 #
 # `#names`: A list of names (strings).
 #
@@ -71,6 +76,13 @@
 #    Note: as a rule of thumb, avoid using the `#string` keys. In particular,
 #    do not use them for composing error messages, see [diagnostics.md](
 #    lib/src/fasta/diagnostics.md#avoid-composing-messages-programmatically).
+#    Note that asserts check if these are empty. If they can be empty use an
+#    available `OKEmpty` version (or add the missing needed one(s)) to avoid
+#    triggering an assert.
+#
+# `#stringOKEmpty`: string (that isn't a name). Will use an "(empty)" default
+#    message if the string is null or empty.
+#    Otherwise see the describtion above.
 #
 # `#type`, #type2`, `#type3`: Kernel types.
 #
@@ -117,7 +129,7 @@ ConstEvalInvalidType:
   template: "Expected constant '#constant' to be of type '#type', but was of type '#type2'."
 
 ConstEvalInvalidBinaryOperandType:
-  template: "Binary operator '#string' on '#constant' requires operand of type '#type', but was of type '#type2'."
+  template: "Binary operator '#stringOKEmpty' on '#constant' requires operand of type '#type', but was of type '#type2'."
 
 ConstEvalInvalidEqualsOperandType:
   template: "Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'."
@@ -136,11 +148,11 @@ ConstEvalNonNull:
   template: "Constant expression must be non-null."
 
 ConstEvalInvalidMethodInvocation:
-  template: "The method '#string' can't be invoked on '#constant' in a constant expression."
+  template: "The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression."
   analyzerCode: UNDEFINED_OPERATOR
 
 ConstEvalInvalidPropertyGet:
-  template: "The property '#string' can't be accessed on '#constant' in a constant expression."
+  template: "The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression."
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
 ConstEvalInvalidStringInterpolationOperand:
@@ -150,7 +162,7 @@ ConstEvalInvalidStringInterpolationOperand:
   analyzerCode: CONST_EVAL_TYPE_BOOL_NUM_STRING
 
 ConstEvalInvalidStaticInvocation:
-  template: "The invocation of '#name' is not allowed in a constant expression."
+  template: "The invocation of '#nameOKEmpty' is not allowed in a constant expression."
   analyzerCode: CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 
 ConstEvalInvalidSymbolName:
@@ -162,16 +174,16 @@ ConstEvalFailedAssertion:
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
 ConstEvalFailedAssertionWithMessage:
-  template: "This assertion failed with message: #string"
+  template: "This assertion failed with message: #stringOKEmpty"
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
 ConstEvalNonConstantVariableGet:
-  template: "The variable '#string' is not a constant, only constant expressions are allowed."
+  template: "The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed."
   analyzerCode: NON_CONSTANT_VALUE_IN_INITIALIZER
 
 ConstEvalDeferredLibrary:
   template: >
-    '#name' can't be used in a constant expression because it's marked as
+    '#nameOKEmpty' can't be used in a constant expression because it's marked as
     'deferred' which means it isn't available until loaded.
   tip: >
     Try moving the constant from the deferred library, or removing 'deferred'
@@ -251,6 +263,15 @@ ExperimentNotEnabledNoFlag:
 ExperimentNotEnabledNoFlagInvalidLanguageVersion:
   template: "This requires the null safety language feature, which is experimental and requires language version of #string2 or higher."
   tip: "You can enable the experiment using the '--enable-experiment=non-nullable' command line option."
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+
+ExperimentDisabled:
+  template: "This requires the '#string' language feature to be enabled."
+  tip: "The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-#string' command line option is passed."
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+
+ExperimentDisabledInvalidLanguageVersion:
+  template: "This requires the null safety language feature, which requires language version of #string2 or higher."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
 EmptyNamedParameterList:
@@ -494,8 +515,16 @@ ExpectedHexDigit:
 
 ExpectedIdentifier:
   template: "Expected an identifier, but got '#lexeme'."
+  tip: "Try inserting an identifier before '#lexeme'."
   analyzerCode: MISSING_IDENTIFIER
-  script: "do() {} main() {}"
+  script: "var = 42;"
+
+ExpectedIdentifierButGotKeyword:
+  template: "'#lexeme' can't be used as an identifier because it's a keyword."
+  tip: "Try renaming this to be an identifier that isn't a keyword."
+  index: 113
+  analyzerCode: ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  script: "var default = 42;"
 
 EqualityCannotBeEqualityOperand:
   index: 1
@@ -1296,13 +1325,27 @@ StrongModeNNBDButOptOut:
 
 StrongModeNNBDPackageOptOut:
   template:  |
-    Cannot run with sound null safety as one or more dependencies do not
-    support null safety:
+    Cannot run with sound null safety, because the following dependencies
+    don't support null safety:
 
     #names
 
-    Run 'pub outdated --mode=null-safety' to determine if versions of your
-    dependencies supporting null safety are available.
+    For solutions, see https://dart.dev/go/unsound-null-safety
+
+WeakWithStrongDillLibrary:
+  template: "Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety."
+
+StrongWithWeakDillLibrary:
+  template: "Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety."
+
+AgnosticWithStrongDillLibrary:
+  template: "Loaded library is compiled with sound null safety and cannot be used in compilation for agnostic null safety."
+
+AgnosticWithWeakDillLibrary:
+  template: "Loaded library is compiled with unsound null safety and cannot be used in compilation for agnostic null safety."
+
+InvalidNnbdDillLibrary:
+  template: "Trying to use library with invalid null safety."
 
 AbstractNotSync:
   template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
@@ -1718,9 +1761,6 @@ FastaUsageLong:
       --omit-platform
         Exclude the platform from the serialized dill file.
 
-      --bytecode
-        Generate bytecode. Supported only for SDK platform compilation.
-
       --exclude-source
         Do not include source code in the dill file.
 
@@ -1871,6 +1911,12 @@ InternalProblemUnfinishedTypeVariable:
 InternalProblemUnsupportedNullability:
   template: "Unsupported nullability value '#string' on type '#type'."
   severity: INTERNAL_PROBLEM
+
+IncrementalCompilerIllegalParameter:
+  template: "Illegal parameter name '#string' found during expression compilation."
+
+IncrementalCompilerIllegalTypeParameter:
+  template: "Illegal type parameter name '#string' found during expression compilation."
 
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
@@ -2119,8 +2165,8 @@ DeclaredMemberConflictsWithInheritedMemberCause:
   template: "This is the inherited member."
   severity: CONTEXT
 
-DeclaredMemberConflictsWithInheritedMembersCause:
-  template: "This is one of the inherited members."
+DeclaredMemberConflictsWithOverriddenMembersCause:
+  template: "This is one of the overridden members."
   severity: CONTEXT
 
 InheritedMembersConflict:
@@ -2215,6 +2261,171 @@ OverrideMismatchRequiredNamedParameter:
     abstract class B implements A {
       method({required int? a});
     }
+
+InvalidGetterSetterType:
+  template: "The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      num get property;
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeGetterInherited:
+  template: "The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      num get property;
+    }
+    abstract class B implements A {
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeFieldInherited:
+  template: "The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      final num property;
+      A(this.property);
+    }
+    abstract class B implements A {
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeSetterInheritedGetter:
+  template: "The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      void set property(int i);
+    }
+    abstract class B implements A {
+      num get property;
+    }
+
+InvalidGetterSetterTypeSetterInheritedField:
+  template: "The type '#type' of the field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      void set property(int i);
+    }
+    abstract class B implements A {
+      final num property;
+      B(this.property);
+    }
+
+InvalidGetterSetterTypeBothInheritedField:
+  template: "The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      final num property;
+      A(this.property);
+    }
+    abstract class B {
+      void set property(int i);
+    }
+    abstract class C implements A, B {}
+
+InvalidGetterSetterTypeBothInheritedGetter:
+  template: "The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      num get property;
+    }
+    abstract class B {
+      void set property(int i);
+    }
+    abstract class C implements A, B {}
+
+InvalidGetterSetterTypeLegacy:
+  template: "The type '#type' of the getter '#name' is not assignable to the type '#type2' of the setter '#name2'."
+  script: |
+    abstract class A {
+      String get property;
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeGetterInheritedLegacy:
+  template: "The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the setter '#name2'."
+  script: |
+    abstract class A {
+      String get property;
+    }
+    abstract class B implements A {
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeFieldInheritedLegacy:
+  template: "The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the setter '#name2'."
+  script: |
+    abstract class A {
+      final String property;
+      A(this.property);
+    }
+    abstract class B implements A {
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeSetterInheritedGetterLegacy:
+  template: "The type '#type' of the getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
+  script: |
+    abstract class A {
+      void set property(int i);
+    }
+    abstract class B implements A {
+      String get property;
+    }
+
+InvalidGetterSetterTypeSetterInheritedFieldLegacy:
+  template: "The type '#type' of the field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
+  script: |
+    abstract class A {
+      void set property(int i);
+    }
+    abstract class B implements A {
+      final String property;
+      B(this.property);
+    }
+
+InvalidGetterSetterTypeBothInheritedFieldLegacy:
+  template: "The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
+  script: |
+    abstract class A {
+      final String property;
+      A(this.property);
+    }
+    abstract class B {
+      void set property(int i);
+    }
+    abstract class C implements A, B {}
+
+InvalidGetterSetterTypeBothInheritedGetterLegacy:
+  template: "The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
+  script: |
+    abstract class A {
+      String get property;
+    }
+    abstract class B {
+      void set property(int i);
+    }
+    abstract class C implements A, B {}
+
+InvalidGetterSetterTypeFieldContext:
+  template: "This is the declaration of the field '#name'."
+  severity: CONTEXT
+
+InvalidGetterSetterTypeGetterContext:
+  template: "This is the declaration of the getter '#name'."
+  severity: CONTEXT
+
+InvalidGetterSetterTypeSetterContext:
+  template: "This is the declaration of the setter '#name'."
+  severity: CONTEXT
 
 PartOfSelf:
   template: "A file can't be a part of itself."
@@ -2940,10 +3151,10 @@ ConstConstructorNonFinalFieldCause:
   severity: CONTEXT
 
 ConstConstructorLateFinalFieldError:
-  template: "Constructor is marked 'const' so fields can't be late."
+  template: "Can't have a late final field in a class with a const constructor."
 
 ConstConstructorLateFinalFieldCause:
-  template: "Field is late, but constructor is 'const'."
+  template: "This constructor is const."
   severity: CONTEXT
 
 ConstConstructorRedirectionToNonConst:
@@ -3061,6 +3272,14 @@ ColonInPlaceOfIn:
   tip: "Try replacing the colon with the keyword 'in'."
   analyzerCode: ParserErrorCode.COLON_IN_PLACE_OF_IN
 
+BinaryOperatorWrittenOut:
+  index: 112
+  template: "Binary operator '#string' is written as '#string2' instead of the written out word."
+  tip: "Try replacing '#string' with '#string2'."
+  analyzerCode: ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT
+  script: >
+    int foo(int x, int y) => x xor y;
+
 ExternalFactoryRedirection:
   index: 85
   template: "A redirecting factory can't be external."
@@ -3070,6 +3289,54 @@ ExternalFactoryRedirection:
 ArgumentTypeNotAssignable:
   template: "The argument type '#type' can't be assigned to the parameter type '#type2'."
   analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
+  script: >
+    method(int i) {}
+    main() {
+      method(1.5);
+    }
+
+ArgumentTypeNotAssignableNullability:
+  template: "The argument type '#type' can't be assigned to the parameter type '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    method(int i) {}
+    main() {
+      int? j = null;
+      method(j);
+    }
+
+ArgumentTypeNotAssignablePartNullability:
+  template: "The argument type '#type' can't be assigned to the parameter type '#type2' because '#type3' is nullable and '#type4' isn't."
+  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    method(List<int> i) {}
+    main() {
+      List<int?> j = [null];
+      method(j);
+    }
+
+ArgumentTypeNotAssignableNullabilityNull:
+  template: "The value 'null' can't be assigned to the parameter type '#type' because '#type' is not nullable."
+  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    method(int i) {}
+    main() {
+      method(null);
+    }
+
+ArgumentTypeNotAssignableNullabilityNullType:
+  template: "The argument type '#type' can't be assigned to the parameter type '#type2' because '#type2' is not nullable."
+  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    method(int i) {}
+    main() {
+      Null n;
+      method(n);
+    }
 
 InvalidAssignmentError:
   template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
@@ -3078,6 +3345,49 @@ InvalidAssignmentError:
     main() {
       int i;
       i = 1.5;
+    }
+
+InvalidAssignmentErrorNullability:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: INVALID_ASSIGNMENT
+  configuration: nnbd-strong
+  script: >
+    main() {
+      int i = 0;
+      int? j;
+      i = j;
+    }
+
+InvalidAssignmentErrorPartNullability:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type3' is nullable and '#type4' isn't."
+  analyzerCode: INVALID_ASSIGNMENT
+  configuration: nnbd-strong
+  script: >
+    main() {
+      List<int> i = [];
+      List<int?> j = [null];
+      i = j;
+    }
+
+InvalidAssignmentErrorNullabilityNull:
+  template: "The value 'null' can't be assigned to a variable of type '#type' because '#type' is not nullable."
+  analyzerCode: INVALID_ASSIGNMENT
+  configuration: nnbd-strong
+  script: >
+    main() {
+      int i = 0;
+      i = null;
+    }
+
+InvalidAssignmentErrorNullabilityNullType:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type2' is not nullable."
+  analyzerCode: INVALID_ASSIGNMENT
+  configuration: nnbd-strong
+  script: >
+    main() {
+      Null n;
+      int i = 0;
+      i = n;
     }
 
 PatchClassTypeVariablesMismatch:
@@ -3253,17 +3563,52 @@ DillOutlineSummary:
     #num2%12.3 bytes/ms, and
     #num3%12.3 ms/libraries.
 
-CantInferTypeDueToInconsistentOverrides:
-  template: "Can't infer a type for '#name' as some of the inherited members have different types."
-  tip: "Try adding an explicit type."
-  analyzerCode: INVALID_METHOD_OVERRIDE
-  external: testcases/inference/inconsistent_overrides.dart
+CantInferTypesDueToNoCombinedSignature:
+  template: "Can't infer types for '#name' as the overridden members don't have a combined signature."
+  tip: "Try adding explicit types."
+  analyzerCode: COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  script: |
+    class A {
+      void method(int a, String b) {}
+    }
+    class B {
+      void method(String a, int b) {}
+    }
+    class C implements A, B {
+      void method(a, b) {}
+    }
 
-CantInferReturnTypeDueToInconsistentOverrides:
-  template: "Can't infer a return type for '#name' as some of the inherited members have different types."
+CantInferTypeDueToNoCombinedSignature:
+  template: "Can't infer a type for '#name' as the overridden members don't have a combined signature."
   tip: "Try adding an explicit type."
-  analyzerCode: INVALID_METHOD_OVERRIDE
-  external: testcases/inference/inconsistent_overrides.dart
+  analyzerCode: COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  configuration: nnbd-strong
+  script: |
+    class A {
+      void method(int a) {}
+    }
+    class B {
+      void method(String a) {}
+    }
+    class C implements A, B {
+      void method(a) {}
+    }
+
+CantInferReturnTypeDueToNoCombinedSignature:
+  template: "Can't infer a return type for '#name' as the overridden members don't have a combined signature."
+  tip: "Try adding an explicit type."
+  analyzerCode: COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      int get getter;
+    }
+    abstract class B {
+      String get getter;
+    }
+    abstract class C implements A, B {
+      get getter;
+    }
 
 CantInferTypeDueToCircularity:
   template: "Can't infer the type of '#string': circularity found during type inference."
@@ -3303,9 +3648,58 @@ ForInLoopElementTypeNotAssignable:
   template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
   tip: "Try changing the type of the variable."
   analyzerCode: FOR_IN_OF_INVALID_ELEMENT_TYPE
+  script: |
+    method() {
+      List<String> list = [];
+      for (int i in list) {}
+    }
+
+ForInLoopElementTypeNotAssignableNullability:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type' is nullable and '#type2' isn't."
+  tip: "Try changing the type of the variable."
+  analyzerCode: FOR_IN_OF_INVALID_ELEMENT_TYPE
+  configuration: nnbd-strong
+  script: |
+    method() {
+      List<int?> list = [];
+      for (int i in list) {}
+    }
+
+ForInLoopElementTypeNotAssignablePartNullability:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type3' is nullable and '#type4' isn't."
+  tip: "Try changing the type of the variable."
+  analyzerCode: FOR_IN_OF_INVALID_ELEMENT_TYPE
+  configuration: nnbd-strong
+  script: |
+    method() {
+      List<List<int?>> list = [[]];
+      for (List<int> i in list) {}
+    }
 
 ForInLoopTypeNotIterable:
   template: "The type '#type' used in the 'for' loop must implement '#type2'."
+  analyzerCode: FOR_IN_OF_INVALID_TYPE
+  script: |
+    method() {
+      String list = '';
+      for (int i in list) {}
+    }
+
+ForInLoopTypeNotIterableNullability:
+  template: "The type '#type' used in the 'for' loop must implement '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: FOR_IN_OF_INVALID_TYPE
+  configuration: nnbd-strong
+  script: |
+    method() {
+      List<int>? list = null;
+      for (int i in list) {}
+    }
+
+# This cannot never occur since the iterable is checked to be assignable to `Iterable<dynamic>` so nullability can
+# only be a problem at the immediate level as in [ForInLoopTypeNotIterableNullability]. The message is needed for
+# symmetry in the call site.
+ForInLoopTypeNotIterablePartNullability:
+  template: "The type '#type' used in the 'for' loop must implement '#type2' because '#type3' is nullable and '#type4' isn't."
   analyzerCode: FOR_IN_OF_INVALID_TYPE
 
 InitializingFormalTypeMismatch:
@@ -3321,10 +3715,6 @@ InitializingFormalTypeMismatch:
 InitializingFormalTypeMismatchField:
   template: "The field that corresponds to the parameter."
   severity: CONTEXT
-
-UseOfDeprecatedIdentifier:
-  template: "'#name' is deprecated."
-  severity: IGNORED
 
 InitializeFromDillNotSelfContained:
   template: |
@@ -3463,10 +3853,10 @@ CantUseDeferredPrefixAsConstant:
     from the import.
   analyzerCode: CONST_DEFERRED_CLASS
   script: |
-    import "dart:core" deferred as prefix;
+    import "dart:convert" deferred as prefix;
 
     main() {
-      const prefix.Object();
+      const prefix.JsonCodec();
     }
 
 CyclicRedirectingFactoryConstructors:
@@ -3522,10 +3912,50 @@ InvalidReturn:
   configuration: nnbd-strong
   declaration: "int foo() { return true; }"
 
+InvalidReturnNullability:
+  template: "A value of type '#type' can't be returned from a function with return type '#type2' because '#type' is nullable and '#type2' isn't."
+  configuration: nnbd-strong
+  declaration: "int foo(int? i) { return i; }"
+
+InvalidReturnPartNullability:
+  template: "A value of type '#type' can't be returned from a function with return type '#type2' because '#type3' is nullable and '#type4' isn't."
+  configuration: nnbd-strong
+  declaration: "List<int> foo(List<int?> list) { return list; }"
+
+InvalidReturnNullabilityNull:
+  template: "The value 'null' can't be returned from a function with return type '#type' because '#type' is not nullable."
+  configuration: nnbd-strong
+  declaration: "int foo() { return null; }"
+
+InvalidReturnNullabilityNullType:
+  template: "A value of type '#type' can't be returned from a function with return type '#type2' because '#type2' is not nullable."
+  configuration: nnbd-strong
+  declaration: "int foo(Null i) { return i; }"
+
 InvalidReturnAsync:
   template: "A value of type '#type' can't be returned from an async function with return type '#type2'."
   configuration: nnbd-strong
   declaration: "Future<int> foo() async { return true; }"
+
+InvalidReturnAsyncNullability:
+  template: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type' is nullable and '#type2' isn't."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo(int? i) async { return i; }"
+
+InvalidReturnAsyncPartNullability:
+  template: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type3' is nullable and '#type4' isn't."
+  configuration: nnbd-strong
+  declaration: "Future<List<int>> foo(List<int?> list) async { return list; }"
+
+InvalidReturnAsyncNullabilityNull:
+  template: "The value 'null' can't be returned from an async function with return type '#type' because '#type' is not nullable."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo() async { return null; }"
+
+InvalidReturnAsyncNullabilityNullType:
+  template: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type2' is not nullable."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo(Null n) async { return n; }"
 
 ImplicitReturnNull:
   template: "A non-null value must be returned since the return type '#type' doesn't allow null."
@@ -3705,6 +4135,10 @@ IncorrectTypeArgumentVariable:
   template: "This is the type variable whose bound isn't conformed to."
   severity: CONTEXT
 
+SuperBoundedHint:
+  template: "If you want '#type' to be a super-bounded type, note that the inverted type '#type2' must then satisfy its bounds, which it does not."
+  severity: CONTEXT
+
 InferredPackageUri:
   template: "Interpreting this as package URI, '#uri'."
   severity: WARNING
@@ -3799,6 +4233,18 @@ FfiTypeMismatch:
   template: "Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'."
   external: test/ffi_test.dart
 
+FfiEmptyStruct:
+  # Used by dart:ffi
+  template: "Struct '#name' is empty. Empty structs are undefined behavior."
+  external: test/ffi_test.dart
+
+FfiEmptyStructWarning:
+  # Used by dart:ffi
+  template: "Struct '#name' is empty. Support for empty structs is deprecated and will be removed in the next stable version of Dart. Use Opaque instead."
+  analyzerCode: EMPTY_STRUCT_WARNING
+  severity: INFO
+  external: test/ffi_test.dart
+
 FfiTypeInvalid:
   # Used by dart:ffi
   template: "Expected type '#type' to be a valid and instantiated subtype of 'NativeType'."
@@ -3814,6 +4260,20 @@ FfiFieldNoAnnotation:
   template: "Field '#name' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code."
   external: test/ffi_test.dart
 
+FfiFieldCyclic:
+  # Used by dart:ffi
+  template: |
+    Struct '#name' contains itself. Cycle elements:
+    #names
+  external: test/ffi_test.dart
+
+FfiNonConstantTypeArgumentWarning:
+  # Used by dart:ffi
+  template: "Support for using non-constant type arguments '#type' in this FFI API is deprecated and will be removed in the next stable version of Dart. Rewrite the code to ensure that type arguments are compile time constants referring to a valid native type."
+  analyzerCode: NON_CONSTANT_TYPE_ARGUMENT_WARNING
+  severity: INFO
+  external: test/ffi_test.dart
+
 FfiNotStatic:
   # Used by dart:ffi
   template: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code."
@@ -3822,6 +4282,7 @@ FfiNotStatic:
 FfiFieldInitializer:
   # Used by dart:ffi
   template: "Field '#name' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution."
+  tip: "Mark the field as external to avoid having to initialize it."
   external: test/ffi_test.dart
 
 FfiExtendsOrImplementsSealedClass:
@@ -3882,6 +4343,26 @@ SpreadElementTypeMismatch:
       List<int> b = <int>[...a];
     }
 
+SpreadElementTypeMismatchNullability:
+  template: "Can't assign spread elements of type '#type' to collection elements of type '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      List<int?> a = <int?>[0, null];
+      List<int> b = <int>[...a];
+    }
+
+SpreadElementTypeMismatchPartNullability:
+  template: "Can't assign spread elements of type '#type' to collection elements of type '#type2' because '#type3' is nullable and '#type4' isn't."
+  analyzerCode: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      List<List<int?>> a = <List<int?>>[[0, null]];
+      List<List<int>> b = <List<int>>[...a];
+    }
+
 SpreadMapEntryTypeMismatch:
   template: "Unexpected type '#type' of a map spread entry.  Expected 'dynamic' or a Map."
   script:
@@ -3905,6 +4386,26 @@ SpreadMapEntryElementKeyTypeMismatch:
       Map<int, int> b = <int, int>{...a};
     }
 
+SpreadMapEntryElementKeyTypeMismatchNullability:
+  template: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: MAP_KEY_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      Map<String?, int> a = <String?, int>{"foo": 42, null: 87};
+      Map<String, int> b = <String, int>{...a};
+    }
+
+SpreadMapEntryElementKeyTypeMismatchPartNullability:
+  template: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type3' is nullable and '#type4' isn't."
+  analyzerCode: MAP_KEY_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      Map<List<String?>, int> a = <List<String?>, int>{["foo"]: 42, [null]: 87};
+      Map<List<String>, int> b = <List<String>, int>{...a};
+    }
+
 SpreadMapEntryElementValueTypeMismatch:
   template: "Can't assign spread entry values of type '#type' to map entry values of type '#type2'."
   analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
@@ -3912,6 +4413,26 @@ SpreadMapEntryElementValueTypeMismatch:
     main() {
       Map<String, int> a = <String, int>{"foo": 42};
       Map<String, String> b = <String, String>{...a};
+    }
+
+SpreadMapEntryElementValueTypeMismatchNullability:
+  template: "Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      Map<String, int?> a = <String, int?>{"foo": 42, "bar": null};
+      Map<String, int> b = <String, int>{...a};
+    }
+
+SpreadMapEntryElementValueTypeMismatchPartNullability:
+  template: "Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type3' is nullable and '#type4' isn't."
+  analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      Map<String, List<int?>> a = <String, List<int?>>{"foo": [42], "bar": [null]};
+      Map<String, List<int>> b = <String, List<int>>{...a};
     }
 
 CantDisambiguateNotEnoughInformation:
@@ -3971,15 +4492,6 @@ InvalidTypeVariableVariancePositionInReturnType:
         return null;
       }
     }
-
-IllegalRecursiveType:
-  template: "Illegal recursive type '#type'."
-  script: >
-    class Base<T> {}
-    class Derived<T> extends Base<Derived<Derived<T>>> {}
-
-BytecodeLimitExceededTooManyArguments:
-  template: "Dart bytecode limit exceeded: too many arguments."
 
 CombinedMemberSignatureFailed:
   template: "Class '#name' inherits multiple members named '#name2' with incompatible signatures."
@@ -4103,7 +4615,9 @@ ValueForRequiredParameterNotProvidedError:
   template: "Required named parameter '#name' must be provided."
 
 OptionalNonNullableWithoutInitializerError:
-  template: "Optional parameter '#name' should have a default value because its type '#type' doesn't allow null."
+  template: "The parameter '#name' can't have a value of 'null' because of its type '#type', but the implicit default value is 'null'."
+  tip: "Try adding either an explicit non-'null' default value or the 'required' modifier."
+  analyzerCode: MISSING_DEFAULT_VALUE_FOR_PARAMETER
   configuration: nnbd-strong
   script:
     - method1({int a}) {}
@@ -4143,6 +4657,10 @@ JsInteropAnonymousFactoryPositionalParameters:
   template: "Factory constructors for @anonymous JS interop classes should not contain any positional parameters."
   tip: "Try replacing them with named parameters instead."
 
+JsInteropDartClassExtendsJSClass:
+  template: "Dart class '#name' cannot extend JS interop class '#name2'."
+  tip: "Try adding the JS interop annotation or removing it from the parent class."
+
 JsInteropEnclosingClassJSAnnotation:
   template: "Member has a JS interop annotation but the enclosing class does not."
   tip: "Try adding the annotation to the enclosing class."
@@ -4155,13 +4673,24 @@ JsInteropIndexNotSupported:
   template: "JS interop classes do not support [] and []= operator methods."
   tip: "Try replacing with a normal method."
 
+JsInteropJSClassExtendsDartClass:
+  template: "JS interop class '#name' cannot extend Dart class '#name2'."
+  tip: "Try removing the JS interop annotation or adding it to the parent class."
+
 JsInteropNamedParameters:
   template: "Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class."
   tip: "Try replacing them with normal or optional parameters."
 
+JsInteropNativeClassInAnnotation:
+  template: "JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'."
+
 JsInteropNonExternalConstructor:
   template: "JS interop classes do not support non-external constructors."
   tip: "Try annotating with `external`."
+
+JsInteropNonExternalMember:
+  template: "This JS interop member must be annotated with `external`. Only factories and static methods can be non-external."
+  tip: "Try annotating the member with `external`."
 
 DefaultListConstructorError:
   template: "Can't use the default List constructor."
@@ -4171,6 +4700,32 @@ NonNullableInNullAware:
   template: "Operand of null-aware operation '#name' has type '#type' which excludes null."
   severity: WARNING
 
+ThisInNullAwareReceiver:
+  template: "The receiver 'this' cannot be null."
+  tip: "Try replacing '?.' with '.'"
+  severity: WARNING
+  configuration: nnbd-strong
+  script: |
+    class C {
+      var field;
+      method() {
+        this?.field;
+      }
+    }
+
+ClassInNullAwareReceiver:
+  template: "The class '#name' cannot be null."
+  tip: "Try replacing '?.' with '.'"
+  severity: WARNING
+  configuration: nnbd-strong
+  script: |
+    class C {
+      static var field;
+    }
+    method() {
+      C?.field;
+    }
+
 NonNullableNotAssignedError:
   template: "Non-nullable variable '#name' must be assigned before it can be used."
   configuration: nnbd-strong
@@ -4179,22 +4734,46 @@ NonNullableNotAssignedError:
       T t; t;
     }
 
-NonNullableLateDefinitelyUnassignedError:
-  template: "Non-nullable late variable '#name' without initializer is definitely unassigned."
+FinalNotAssignedError:
+  template: "Final variable '#name' must be assigned before it can be used."
+  analyzerCode: READ_POTENTIALLY_UNASSIGNED_FINAL
+  configuration: nnbd-strong
+  script: >
+    method(bool b) {
+      final int i;
+      if (b) {
+        i = 0;
+      }
+      i;
+    }
+
+LateDefinitelyUnassignedError:
+  template: "Late variable '#name' without initializer is definitely unassigned."
   configuration: nnbd-strong
   script: |
     method<T>() {
       late T t; t;
     }
 
-NonNullableLateDefinitelyAssignedError:
-  template: "Non-nullable late final variable '#name' definitely assigned."
+LateDefinitelyAssignedError:
+  template: "Late final variable '#name' definitely assigned."
   configuration: nnbd-strong
   script: |
     method() {
       late final int t;
       t = 0;
       t = 0;
+    }
+
+FinalPossiblyAssignedError:
+  template: "Final variable '#name' might already be assigned at this point."
+  analyzerCode: ASSIGNMENT_TO_FINAL_LOCAL
+  configuration: nnbd-strong
+  script: |
+    method() {
+      final int i;
+      i = 0;
+      i = 0;
     }
 
 NonAgnosticConstant:
@@ -4278,3 +4857,107 @@ NonVoidReturnSetter:
   script:
     - int set setter(_) {}
     - dynamic set setter(_) {}
+
+NeverReachableSwitchDefaultError:
+  template: "`null` encountered as case in a switch expression with a non-nullable enum type."
+
+NeverReachableSwitchDefaultWarning:
+  template: "The default case is not reachable with sound null safety because the switch expression is non-nullable."
+  severity: WARNING
+
+NeverValueError:
+  template: "`null` encountered as the result from expression with type `Never`."
+
+NeverValueWarning:
+  template: "The expression can not result in a value with sound null safety because the expression type is `Never`."
+  severity: WARNING
+
+MainNotFunctionDeclaration:
+  template: "The 'main' declaration must be a function declaration."
+  configuration: nnbd-strong
+  script:
+    - var main;
+
+MainNotFunctionDeclarationExported:
+  template: "The exported 'main' declaration must be a function declaration."
+  configuration: nnbd-strong
+  exampleAllowMoreCodes: true
+  script:
+    main.dart:
+      export 'lib.dart';
+    lib.dart:
+      var main;
+
+MainTooManyRequiredParameters:
+  template: "The 'main' method must have at most 2 required parameters."
+  configuration: nnbd-strong
+  script:
+    - main(a, b, c) {}
+
+MainTooManyRequiredParametersExported:
+  template: "The exported 'main' method must have at most 2 required parameters."
+  configuration: nnbd-strong
+  exampleAllowMoreCodes: true
+  script:
+    main.dart:
+      export 'lib.dart';
+    lib.dart:
+      main(a, b, c) {}
+
+MainRequiredNamedParameters:
+  template: "The 'main' method cannot have required named parameters."
+  configuration: nnbd-strong
+  script:
+    - main({required a}) {}
+
+MainRequiredNamedParametersExported:
+  template: "The exported 'main' method cannot have required named parameters."
+  configuration: nnbd-strong
+  exampleAllowMoreCodes: true
+  script:
+    main.dart:
+      export 'lib.dart';
+    lib.dart:
+      main({required a}) {}
+
+MainWrongParameterType:
+  template: "The type '#type' of the first parameter of the 'main' method is not a supertype of '#type2'."
+  configuration: nnbd-strong
+  script:
+    - main(Set<String> args) {}
+
+MainWrongParameterTypeExported:
+  template: "The type '#type' of the first parameter of the exported 'main' method is not a supertype of '#type2'."
+  configuration: nnbd-strong
+  exampleAllowMoreCodes: true
+  script:
+    main.dart:
+      export 'lib.dart';
+    lib.dart:
+      main(Set<String> args) {}
+
+ExportedMain:
+  template: "This is exported 'main' declaration."
+  severity: CONTEXT
+
+UnexpectedModifierInNonNnbd:
+  template: "The modifier '#lexeme' is only available in null safe libraries."
+  exampleAllowMoreCodes: true
+  analyzerCode: UNEXPECTED_TOKEN
+  script:
+    - "late int x;"
+
+CompilingWithSoundNullSafety:
+  template: "Compiling with sound null safety"
+  configuration: nnbd-strong,compile
+  severity: INFO
+  script: |
+    main() {}
+
+CompilingWithoutSoundNullSafety:
+  template: "Compiling without sound null safety"
+  configuration: nnbd-weak,compile
+  severity: INFO
+  script: |
+    // @dart=2.9
+    main() {}

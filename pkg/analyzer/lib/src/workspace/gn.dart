@@ -143,10 +143,15 @@ class GnWorkspace extends Workspace {
   /// For a source at `$root/foo/bar`, the packages files are generated in
   /// `$root/out/<debug|release>-XYZ/dartlang/gen/foo/bar`.
   ///
-  /// Note that in some cases multiple .packages files can be found at that
-  /// location, for example if the package contains both a library and a binary
-  /// target. For a complete view of the package, all of these files need to be
-  /// taken into account.
+  /// Note that in some cases multiple package_config.json files can be found at
+  /// that location, for example if the package contains both a library and a
+  /// binary target. For a complete view of the package, all of these files need
+  /// to be taken into account.
+  ///
+  /// Additionally, often times the package_config file name is prepended by
+  /// extra words, which results in file names like
+  /// `tiler_component_package_config.json`. Because of this, we cannot simply
+  /// check for `pathContext.basename(file.path) == 'package_config.json'`.
   static List<File> _findPackagesFile(
     ResourceProvider provider,
     String root,
@@ -166,7 +171,7 @@ class GnWorkspace extends Workspace {
     return genDir
         .getChildren()
         .whereType<File>()
-        .where((File file) => pathContext.extension(file.path) == '.packages')
+        .where((File file) => file.path.endsWith('package_config.json'))
         .toList();
   }
 
@@ -237,4 +242,17 @@ class GnWorkspacePackage extends WorkspacePackage {
   @override
   Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
       workspace.packageMap;
+
+  @override
+  bool sourceIsInPublicApi(Source source) {
+    var filePath = filePathFromSource(source);
+    if (filePath == null) return false;
+    var libFolder = workspace.provider.pathContext.join(root, 'lib');
+    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+      var libSrcFolder =
+          workspace.provider.pathContext.join(root, 'lib', 'src');
+      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+    }
+    return false;
+  }
 }

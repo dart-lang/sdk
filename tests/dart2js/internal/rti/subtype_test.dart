@@ -78,7 +78,7 @@ void testTopTypes() {
 }
 
 void testNull() {
-  if (isStrongMode) {
+  if (hasSoundNullSafety) {
     unrelated(nullName, 'int');
     unrelated(nullName, 'Iterable<CodeUnits>');
     unrelated(nullName, objectName);
@@ -93,7 +93,7 @@ void testNull() {
 
 void testBottom() {
   String never = '0&';
-  if (isStrongMode) {
+  if (hasSoundNullSafety) {
     strictSubtype(never, nullName);
   } else {
     equivalent(never, nullName);

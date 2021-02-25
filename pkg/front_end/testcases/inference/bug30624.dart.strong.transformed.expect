@@ -46,3 +46,7 @@ constants  {
   #C1 = null
   #C2 = tearoff self::C::_default
 }
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///bug30624.dart:40:35 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 47, effectively constant: 1

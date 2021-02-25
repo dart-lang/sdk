@@ -22,7 +22,8 @@ import '../resolution/resolution.dart';
 class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   static final String _testFile = '/workspace/dart/test/lib/test.dart';
 
-  final CiderByteStore byteStore = CiderMemoryByteStore();
+  final CiderCachedByteStore byteStore =
+      CiderCachedByteStore(20 * 1024 * 1024 /* 20 MB */);
 
   final StringBuffer logBuffer = StringBuffer();
   PerformanceLog logger;
@@ -44,6 +45,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       convertPath(_testFile),
     );
 
+    byteStore.testView = CiderByteStoreTestView();
     fileResolver = FileResolver.from(
       logger: logger,
       resourceProvider: resourceProvider,
@@ -52,7 +54,6 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       getFileDigest: (String path) => _getDigest(path),
       workspace: workspace,
       prefetchFiles: null,
-      libraryContextResetTimeout: null,
     );
     fileResolver.testView = FileResolverTestView();
   }
@@ -82,6 +83,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     sdk = MockSdk(resourceProvider: resourceProvider);
 
     newFile('/workspace/WORKSPACE', content: '');
+    newFile('/workspace/dart/test/BUILD', content: '');
     createFileResolver();
   }
 

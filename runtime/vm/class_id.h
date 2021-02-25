@@ -14,7 +14,7 @@
 
 namespace dart {
 
-// Size of the class-id part of the object header. See ObjectLayout.
+// Size of the class-id part of the object header. See UntaggedObject.
 typedef uint16_t ClassIdTagType;
 
 #define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                           \
@@ -22,8 +22,6 @@ typedef uint16_t ClassIdTagType;
   V(PatchClass)                                                                \
   V(Function)                                                                  \
   V(ClosureData)                                                               \
-  V(SignatureData)                                                             \
-  V(RedirectionData)                                                           \
   V(FfiTrampolineData)                                                         \
   V(Field)                                                                     \
   V(Script)                                                                    \
@@ -31,7 +29,6 @@ typedef uint16_t ClassIdTagType;
   V(Namespace)                                                                 \
   V(KernelProgramInfo)                                                         \
   V(Code)                                                                      \
-  V(Bytecode)                                                                  \
   V(Instructions)                                                              \
   V(InstructionsSection)                                                       \
   V(ObjectPool)                                                                \
@@ -42,7 +39,6 @@ typedef uint16_t ClassIdTagType;
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
-  V(ParameterTypeCheck)                                                        \
   V(SingleTargetCache)                                                         \
   V(UnlinkedCall)                                                              \
   V(MonomorphicSmiableCall)                                                    \
@@ -61,6 +57,7 @@ typedef uint16_t ClassIdTagType;
   V(TypeArguments)                                                             \
   V(AbstractType)                                                              \
   V(Type)                                                                      \
+  V(FunctionType)                                                              \
   V(TypeRef)                                                                   \
   V(TypeParameter)                                                             \
   V(Closure)                                                                   \
@@ -146,13 +143,6 @@ typedef uint16_t ClassIdTagType;
   V(DynamicLibrary)                                                            \
   V(Struct)
 
-#define CLASS_LIST_WASM(V)                                                     \
-  V(WasmInt32)                                                                 \
-  V(WasmInt64)                                                                 \
-  V(WasmFloat)                                                                 \
-  V(WasmDouble)                                                                \
-  V(WasmVoid)
-
 #define DART_CLASS_LIST_TYPED_DATA(V)                                          \
   V(Int8)                                                                      \
   V(Uint8)                                                                     \
@@ -204,10 +194,6 @@ enum ClassId : intptr_t {
   CLASS_LIST_FFI(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
 
-#define DEFINE_OBJECT_KIND(clazz) k##clazz##Cid,
-  CLASS_LIST_WASM(DEFINE_OBJECT_KIND)
-#undef DEFINE_OBJECT_KIND
-
 #define DEFINE_OBJECT_KIND(clazz)                                              \
   kTypedData##clazz##Cid,                                                      \
   kTypedData##clazz##ViewCid,                                                  \
@@ -244,6 +230,7 @@ bool IsOneByteStringClassId(intptr_t index);
 bool IsTwoByteStringClassId(intptr_t index);
 bool IsExternalStringClassId(intptr_t index);
 bool IsBuiltinListClassId(intptr_t index);
+bool IsTypeClassId(intptr_t index);
 bool IsTypedDataBaseClassId(intptr_t index);
 bool IsTypedDataClassId(intptr_t index);
 bool IsTypedDataViewClassId(intptr_t index);
@@ -329,6 +316,11 @@ inline bool IsBuiltinListClassId(intptr_t index) {
           (index == kByteBufferCid));
 }
 
+inline bool IsTypeClassId(intptr_t index) {
+  // Only Type and FunctionType can be encountered as instance types at runtime.
+  return index == kTypeCid || index == kFunctionTypeCid;
+}
+
 inline bool IsTypedDataBaseClassId(intptr_t index) {
   // Make sure this is updated when new TypedData types are added.
   COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 == kTypedDataUint8ArrayCid);
@@ -366,21 +358,29 @@ inline bool IsFfiNativeTypeTypeClassId(intptr_t index) {
 }
 
 inline bool IsFfiTypeClassId(intptr_t index) {
-  // Make sure this is updated when new Ffi types are added.
-  COMPILE_ASSERT(kFfiNativeFunctionCid == kFfiPointerCid + 1 &&
-                 kFfiInt8Cid == kFfiPointerCid + 2 &&
-                 kFfiInt16Cid == kFfiPointerCid + 3 &&
-                 kFfiInt32Cid == kFfiPointerCid + 4 &&
-                 kFfiInt64Cid == kFfiPointerCid + 5 &&
-                 kFfiUint8Cid == kFfiPointerCid + 6 &&
-                 kFfiUint16Cid == kFfiPointerCid + 7 &&
-                 kFfiUint32Cid == kFfiPointerCid + 8 &&
-                 kFfiUint64Cid == kFfiPointerCid + 9 &&
-                 kFfiIntPtrCid == kFfiPointerCid + 10 &&
-                 kFfiFloatCid == kFfiPointerCid + 11 &&
-                 kFfiDoubleCid == kFfiPointerCid + 12 &&
-                 kFfiVoidCid == kFfiPointerCid + 13);
-  return (index >= kFfiPointerCid && index <= kFfiVoidCid);
+  switch (index) {
+    case kFfiPointerCid:
+    case kFfiNativeFunctionCid:
+#define CASE_FFI_CID(name) case kFfi##name##Cid:
+      CLASS_LIST_FFI_TYPE_MARKER(CASE_FFI_CID)
+#undef CASE_FFI_CID
+      return true;
+    default:
+      return false;
+  }
+  UNREACHABLE();
+}
+
+inline bool IsFfiPredefinedClassId(classid_t class_id) {
+  switch (class_id) {
+#define CASE_FFI_CID(name) case kFfi##name##Cid:
+    CLASS_LIST_FFI(CASE_FFI_CID)
+#undef CASE_FFI_CID
+    return true;
+    default:
+      return false;
+  }
+  UNREACHABLE();
 }
 
 inline bool IsFfiTypeIntClassId(intptr_t index) {

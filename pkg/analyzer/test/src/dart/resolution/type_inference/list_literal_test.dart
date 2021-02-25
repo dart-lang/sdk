@@ -32,7 +32,16 @@ List<int> a = [1];
     assertType(findNode.listLiteral('['), 'List<int>');
   }
 
-  test_context_noTypeArgs_noElements() async {
+  test_context_noTypeArgs_noElements_fromReturnType() async {
+    await assertNoErrorsInCode('''
+List<int> f() {
+  return [];
+}
+''');
+    assertType(findNode.listLiteral('[]'), 'List<int>');
+  }
+
+  test_context_noTypeArgs_noElements_fromVariableType() async {
     await assertNoErrorsInCode('''
 List<String> a = [];
 ''');
@@ -273,7 +282,7 @@ var a = [...b, ...c];
     await assertNoErrorsInCode(r'''
 mixin L on List<int> {}
 
-main(L l1) {
+void f(L l1) {
   // ignore:unused_local_variable
   var l2 = [...l1];
 }

@@ -13,38 +13,38 @@ import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
-final dartJITBinary = path.join(path.dirname(io.Platform.executable),
-    'dart' + path.extension(io.Platform.executable));
+final dartJITBinary = path.join(path.dirname(io.Platform.resolvedExecutable),
+    'dart' + path.extension(io.Platform.resolvedExecutable));
 
 Future setupProcesses() async {
-  var dir = await io.Directory.systemTemp.createTemp('file_service');
+  final dir = await io.Directory.systemTemp.createTemp('file_service');
 
-  var args = [
+  final args = [
     ...io.Platform.executableArguments,
     '--pause_isolates_on_start',
     io.Platform.script.toFilePath(),
   ];
-  var process1;
-  var process2;
-  var process3;
+  io.Process? process1;
+  io.Process? process2;
+  io.Process? process3;
 
   void closeDown() {
     if (process1 != null) {
-      process1.kill();
+      process1!.kill();
     }
     if (process2 != null) {
-      process2.kill();
+      process2!.kill();
     }
     if (process3 != null) {
-      process3.kill();
+      process3!.kill();
     }
     dir.deleteSync(recursive: true);
   }
 
   Future<ServiceExtensionResponse> cleanup(ignored_a, ignored_b) {
     closeDown();
-    var result = jsonEncode({'type': 'foobar'});
-    return new Future.value(new ServiceExtensionResponse.result(result));
+    final result = jsonEncode({'type': 'foobar'});
+    return Future.value(ServiceExtensionResponse.result(result));
   }
 
   Future<ServiceExtensionResponse> setup(ignored_a, ignored_b) async {
@@ -52,8 +52,8 @@ Future setupProcesses() async {
       process1 = await io.Process.start(io.Platform.executable, args);
       process2 =
           await io.Process.start(io.Platform.executable, args..add('foobar'));
-      var codeFilePath = dir.path + io.Platform.pathSeparator + "other_file";
-      var codeFile = new io.File(codeFilePath);
+      final codeFilePath = dir.path + io.Platform.pathSeparator + "other_file";
+      final codeFile = io.File(codeFilePath);
       await codeFile.writeAsString('''
           import "dart:io";
 
@@ -63,23 +63,23 @@ Future setupProcesses() async {
           ''');
       process3 = await io.Process.start(
           dartJITBinary, [...io.Platform.executableArguments, codeFilePath]);
-    } catch (e) {
+    } catch (_) {
       closeDown();
-      throw e;
+      rethrow;
     }
 
-    var result = jsonEncode({
+    final result = jsonEncode({
       'type': 'foobar',
-      'pids': [process1.pid, process2.pid, process3.pid]
+      'pids': [process1!.pid, process2!.pid, process3!.pid]
     });
-    return new Future.value(new ServiceExtensionResponse.result(result));
+    return Future.value(ServiceExtensionResponse.result(result));
   }
 
   Future<ServiceExtensionResponse> closeStdin(ignored_a, ignored_b) {
-    process3.stdin.close();
-    return process3.exitCode.then<ServiceExtensionResponse>((int exit) {
-      var result = jsonEncode({'type': 'foobar'});
-      return new ServiceExtensionResponse.result(result);
+    process3!.stdin.close();
+    return process3!.exitCode.then<ServiceExtensionResponse>((int exit) {
+      final result = jsonEncode({'type': 'foobar'});
+      return ServiceExtensionResponse.result(result);
     });
   }
 
@@ -88,26 +88,28 @@ Future setupProcesses() async {
   registerExtension('ext.dart.io.closeStdin', closeStdin);
 }
 
-var processTests = <IsolateTest>[
+final processTests = <IsolateTest>[
   // Initial.
   (Isolate isolate) async {
-    var setup = await isolate.invokeRpcNoUpgrade('ext.dart.io.setup', {});
+    final setup = await isolate.invokeRpcNoUpgrade('ext.dart.io.setup', {});
     try {
-      var all =
-          await isolate.invokeRpcNoUpgrade('ext.dart.io.getProcesses', {});
-      expect(all['type'], equals('_startedprocesses'));
+      var all = await isolate
+          .invokeRpcNoUpgrade('ext.dart.io.getSpawnedProcesses', {});
+      expect(all['type'], equals('SpawnedProcessList'));
 
-      expect(all['data'].length, equals(3));
+      expect(all['processes'].length, equals(3));
 
-      var first = await isolate.invokeRpcNoUpgrade(
-          'ext.dart.io.getProcessById', {'id': all['data'][0]['id']});
+      final first = await isolate.invokeRpcNoUpgrade(
+          'ext.dart.io.getSpawnedProcessById',
+          {'id': all['processes'][0]['id']});
       expect(first['name'], io.Platform.executable);
       expect(first['pid'], equals(setup['pids'][0]));
       expect(first['arguments'].contains('foobar'), isFalse);
       expect(first['startedAt'], greaterThan(0));
 
-      var second = await isolate.invokeRpcNoUpgrade(
-          'ext.dart.io.getProcessById', {'id': all['data'][1]['id']});
+      final second = await isolate.invokeRpcNoUpgrade(
+          'ext.dart.io.getSpawnedProcessById',
+          {'id': all['processes'][1]['id']});
       expect(second['name'], io.Platform.executable);
       expect(second['pid'], equals(setup['pids'][1]));
       expect(second['arguments'].contains('foobar'), isTrue);
@@ -115,8 +117,9 @@ var processTests = <IsolateTest>[
       expect(second['startedAt'], greaterThan(0));
       expect(second['startedAt'], greaterThanOrEqualTo(first['startedAt']));
 
-      var third = await isolate.invokeRpcNoUpgrade(
-          'ext.dart.io.getProcessById', {'id': all['data'][2]['id']});
+      final third = await isolate.invokeRpcNoUpgrade(
+          'ext.dart.io.getSpawnedProcessById',
+          {'id': all['processes'][2]['id']});
       expect(third['name'], dartJITBinary);
       expect(third['pid'], equals(setup['pids'][2]));
       expect(third['pid'] != first['pid'], isTrue);
@@ -124,9 +127,10 @@ var processTests = <IsolateTest>[
       expect(third['startedAt'], greaterThanOrEqualTo(second['startedAt']));
 
       await isolate.invokeRpcNoUpgrade('ext.dart.io.closeStdin', {});
-      all = await isolate.invokeRpcNoUpgrade('ext.dart.io.getProcesses', {});
-      expect(all['type'], equals('_startedprocesses'));
-      expect(all['data'].length, equals(2));
+      all = await isolate
+          .invokeRpcNoUpgrade('ext.dart.io.getSpawnedProcesses', {});
+      expect(all['type'], equals('SpawnedProcessList'));
+      expect(all['processes'].length, equals(2));
     } finally {
       await isolate.invokeRpcNoUpgrade('ext.dart.io.cleanup', {});
     }

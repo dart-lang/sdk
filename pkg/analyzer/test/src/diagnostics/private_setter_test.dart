@@ -32,10 +32,23 @@ main() {
     ]);
 
     var aImport = findElement.importFind('package:test/a.dart');
-    assertElement(
-      findNode.simple('_foo = 0'),
-      aImport.setter('_foo'),
+
+    assertAssignment(
+      findNode.assignment('_foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: aImport.setter('_foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
     );
+
+    if (hasAssignmentLeftResolution) {
+      assertElement(
+        findNode.simple('_foo = 0'),
+        aImport.setter('_foo'),
+      );
+    }
   }
 
   test_typeLiteral_privateField_sameLibrary() async {
@@ -43,18 +56,6 @@ main() {
 class A {
   // ignore:unused_field
   static int _foo = 0;
-}
-
-main() {
-  A._foo = 0;
-}
-''');
-  }
-
-  test_typeLiteral_privateSetter__sameLibrary() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  static set _foo(int _) {}
 }
 
 main() {
@@ -82,10 +83,23 @@ main() {
     ]);
 
     var aImport = findElement.importFind('package:test/a.dart');
-    assertElement(
-      findNode.simple('_foo = 0'),
-      aImport.setter('_foo'),
+
+    assertAssignment(
+      findNode.assignment('_foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: aImport.setter('_foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
     );
+
+    if (hasAssignmentLeftResolution) {
+      assertElement(
+        findNode.simple('_foo = 0'),
+        aImport.setter('_foo'),
+      );
+    }
   }
 
   test_typeLiteral_privateSetter_differentLibrary_noGetter() async {
@@ -105,9 +119,34 @@ main() {
     ]);
 
     var aImport = findElement.importFind('package:test/a.dart');
-    assertElement(
-      findNode.simple('_foo = 0'),
-      aImport.setter('_foo'),
+
+    assertAssignment(
+      findNode.assignment('_foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: aImport.setter('_foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
     );
+
+    if (hasAssignmentLeftResolution) {
+      assertElement(
+        findNode.simple('_foo = 0'),
+        aImport.setter('_foo'),
+      );
+    }
+  }
+
+  test_typeLiteral_privateSetter_sameLibrary() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static set _foo(int _) {}
+}
+
+main() {
+  A._foo = 0;
+}
+''');
   }
 }

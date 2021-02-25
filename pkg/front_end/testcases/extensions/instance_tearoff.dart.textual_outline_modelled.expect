@@ -1,0 +1,27 @@
+class Class1 {
+  Class1(this.field);
+  String toString() => 'Class1($field)';
+  int field;
+}
+
+class Class2 {
+  Class2(this.field);
+  String toString() => 'Class2($field)';
+  int field;
+}
+
+expect(expected, actual) {}
+
+extension Extension1 on Class1 {
+  int genericMethod<T extends num>(T t) {}
+  int method() {}
+}
+
+extension Extension2 on Class2 {
+  int genericMethod<T extends num>(T t) {}
+  int method() {}
+}
+
+main() {}
+testExtension1() {}
+testExtension2() {}

@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'bazel_changes_test.dart' as bazel_changes;
 import 'get_errors_test.dart' as get_errors;
 import 'get_hover_test.dart' as get_hover;
 import 'get_navigation_test.dart' as get_navigation;
@@ -15,7 +16,6 @@ import 'notification_closing_labels_test.dart' as notification_closing_labels;
 import 'notification_errors_test.dart' as notification_errors;
 import 'notification_folding_test.dart' as notification_folding;
 import 'notification_highlights2_test.dart' as notification_highlights2;
-import 'notification_highlights_test.dart' as notification_highlights;
 import 'notification_implemented_test.dart' as notification_implemented;
 import 'notification_navigation_test.dart' as notification_navigation;
 import 'notification_occurrences_test.dart' as notification_occurrences;
@@ -27,6 +27,7 @@ import 'update_content_test.dart' as update_content;
 
 void main() {
   defineReflectiveSuite(() {
+    bazel_changes.main();
     get_errors.main();
     get_hover.main();
     get_navigation.main();
@@ -37,7 +38,6 @@ void main() {
     notification_folding.main();
     notification_errors.main();
     notification_highlights2.main();
-    notification_highlights.main();
     notification_implemented.main();
     notification_navigation.main();
     notification_occurrences.main();

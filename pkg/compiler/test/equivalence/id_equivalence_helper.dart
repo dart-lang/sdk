@@ -29,11 +29,23 @@ export '../helpers/memory_compiler.dart' show CollectedMessage;
 
 const String specMarker = 'spec';
 const String prodMarker = 'prod';
+const String twoDeferredFragmentMarker = 'two-frag';
+const String threeDeferredFragmentMarker = 'three-frag';
 
 const TestConfig specConfig = TestConfig(specMarker, 'compliance mode', []);
 
 const TestConfig prodConfig = TestConfig(prodMarker, 'production mode',
     [Flags.omitImplicitChecks, Flags.laxRuntimeTypeToString]);
+
+const TestConfig twoDeferredFragmentConfig = TestConfig(
+    twoDeferredFragmentMarker,
+    'two deferred fragment mode',
+    ['${Flags.mergeFragmentsThreshold}=2']);
+
+const TestConfig threeDeferredFragmentConfig = TestConfig(
+    threeDeferredFragmentMarker,
+    'three deferred fragment mode',
+    ['${Flags.mergeFragmentsThreshold}=3']);
 
 /// Default internal configurations not including experimental features.
 const List<TestConfig> defaultInternalConfigs = [specConfig, prodConfig];
@@ -135,7 +147,8 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
         compiler.stopAfterTypeInference =
             options.contains(stopAfterTypeInference);
       },
-      packageConfig: packageConfig);
+      packageConfig: packageConfig,
+      unsafeToTouchSourceFiles: true);
   if (!result.isSuccess) {
     if (skipFailedCompilations) return null;
     Expect.isTrue(
@@ -453,7 +466,7 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
 Uri createUriForFileName(String fileName) {
   // Pretend this is a dart2js_native test to allow use of 'native'
   // keyword and import of private libraries.
-  return Uri.parse('memory:sdk/tests/dart2js_2/native/$fileName');
+  return Uri.parse('memory:sdk/tests/dart2js/native/$fileName');
 }
 
 Future<TestResult<T>> runTestForConfiguration<T>(TestConfig testConfiguration,

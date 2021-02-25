@@ -20,7 +20,7 @@ class ImportLibraryPrefixTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PREFIX;
 
   Future<void> test_withClass() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:collection' as pref;
 main() {
   pref.HashMap s = null;
@@ -45,7 +45,7 @@ extension E on int {
   static String m() => '';
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'lib.dart' as p;
 void f(p.C c) {
   print(E.m());
@@ -60,7 +60,7 @@ void f(p.C c) {
   }
 
   Future<void> test_withTopLevelVariable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' as pref;
 main() {
   print(pref.e);

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.verifier;
 
 import 'dart:core' hide MapEntry;
@@ -12,7 +14,10 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
-import 'package:kernel/verifier.dart' show VerifyingVisitor;
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
+
+import 'package:kernel/verifier.dart'
+    show VerifyGetStaticType, VerifyingVisitor;
 
 import '../compiler_context.dart' show CompilerContext;
 
@@ -108,9 +113,9 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   TreeNode get localContext {
     TreeNode result = getSameLibraryLastSeenTreeNode(withLocation: true);
     if (result == null &&
-        currentClassOrMember != null &&
-        _isInSameLibrary(currentLibrary, currentClassOrMember)) {
-      result = currentClassOrMember;
+        currentClassOrExtensionOrMember != null &&
+        _isInSameLibrary(currentLibrary, currentClassOrExtensionOrMember)) {
+      result = currentClassOrExtensionOrMember;
     }
     return result;
   }
@@ -169,7 +174,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
 
   @override
   problem(TreeNode node, String details, {TreeNode context, TreeNode origin}) {
-    node ??= (context ?? currentClassOrMember);
+    node ??= (context ?? currentClassOrExtensionOrMember);
     int offset = node?.fileOffset ?? -1;
     Uri file = node?.location?.file ?? fileUri;
     Uri uri = file == null ? null : file;
@@ -238,9 +243,17 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   }
 
   @override
+  void visitExtension(Extension node) {
+    enterTreeNode(node);
+    fileUri = checkLocation(node, node.name, node.fileUri);
+    super.visitExtension(node);
+    exitTreeNode(node);
+  }
+
+  @override
   void visitField(Field node) {
     enterTreeNode(node);
-    fileUri = checkLocation(node, node.name.name, node.fileUri);
+    fileUri = checkLocation(node, node.name.text, node.fileUri);
     super.visitField(node);
     exitTreeNode(node);
   }
@@ -248,20 +261,12 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   @override
   void visitProcedure(Procedure node) {
     enterTreeNode(node);
-    fileUri = checkLocation(node, node.name.name, node.fileUri);
+    fileUri = checkLocation(node, node.name.text, node.fileUri);
     super.visitProcedure(node);
     exitTreeNode(node);
   }
 
-  bool isNullType(DartType node) {
-    if (node is InterfaceType) {
-      Uri importUri = node.classNode.enclosingLibrary.importUri;
-      return node.classNode.name == "Null" &&
-          importUri.scheme == "dart" &&
-          importUri.path == "core";
-    }
-    return false;
-  }
+  bool isNullType(DartType node) => node is NullType;
 
   bool isObjectClass(Class c) {
     return c.name == "Object" &&
@@ -294,7 +299,9 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
           origin: remoteContext);
     }
 
-    bool isTypeCast = localContext != null &&
+    // TODO(johnniwinther): This check wasn't called from InterfaceType and
+    // is currently very broken. Disabling for now.
+    /*bool isTypeCast = localContext != null &&
         localContext is AsExpression &&
         localContext.isTypeError;
     // Don't check cases like foo(x as{TypeError} T).  In cases where foo comes
@@ -334,7 +341,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
             "Found a legacy type '${node}' in an opted-in library.",
             origin: remoteContext);
       }
-    }
+    }*/
 
     super.defaultDartType(node);
   }
@@ -402,5 +409,25 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     enterTreeNode(node);
     super.defaultTreeNode(node);
     exitTreeNode(node);
+  }
+}
+
+void verifyGetStaticType(TypeEnvironment env, Component component,
+    {bool skipPlatform: false}) {
+  component.accept(new FastaVerifyGetStaticType(env, skipPlatform));
+}
+
+class FastaVerifyGetStaticType extends VerifyGetStaticType {
+  final bool skipPlatform;
+
+  FastaVerifyGetStaticType(TypeEnvironment env, this.skipPlatform) : super(env);
+
+  @override
+  visitLibrary(Library node) {
+    if (skipPlatform && node.importUri.scheme == 'dart') {
+      return;
+    }
+
+    super.visitLibrary(node);
   }
 }

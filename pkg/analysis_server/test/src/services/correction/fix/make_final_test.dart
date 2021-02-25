@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,7 +26,7 @@ class PreferFinalFieldsTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_final_fields;
 
   Future<void> test_field_type() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   int _f = 2;
   int get g => _f;
@@ -42,7 +41,7 @@ class C {
   }
 
   Future<void> test_field_var() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   var _f = 2;
   int get g => _f;
@@ -58,10 +57,8 @@ class C {
 }
 
 @reflectiveTest
-class PreferFinalFieldsWithNullSafetyTest extends FixProcessorLintTest {
-  @override
-  List<String> get experiments => [EnableString.non_nullable];
-
+class PreferFinalFieldsWithNullSafetyTest extends FixProcessorLintTest
+    with WithNullSafetyLintMixin {
   @override
   FixKind get kind => DartFixKind.MAKE_FINAL;
 
@@ -69,7 +66,7 @@ class PreferFinalFieldsWithNullSafetyTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_final_fields;
 
   Future<void> test_lateField_type() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   late int _f = 2;
   int get g => _f;
@@ -84,7 +81,7 @@ class C {
   }
 
   Future<void> test_lateField_var() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   late var _f = 2;
   int get g => _f;
@@ -108,7 +105,7 @@ class PreferFinalInForEachTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_final_in_for_each;
 
   Future<void> test_noType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void fn() {
   for (var i in [1, 2, 3]) {
     print(i);
@@ -125,7 +122,7 @@ void fn() {
   }
 
   Future<void> test_type() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void fn() {
   for (int i in [1, 2, 3]) {
     print(i);

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show Directory, File, exit;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -78,8 +80,8 @@ main(List<String> args) async {
 
   Stopwatch stopwatch = new Stopwatch()..start();
   CompilerOptions options = getOptions(flutterPatchedSdk.uri);
-  options.experimentalFlags[ExperimentalFlag.alternativeInvalidationStrategy] =
-      useExperimentalInvalidation;
+  options.explicitExperimentalFlags[ExperimentalFlag
+      .alternativeInvalidationStrategy] = useExperimentalInvalidation;
   helper.TestIncrementalCompiler compiler =
       new helper.TestIncrementalCompiler(options, inputFile.uri);
   Component c = await compiler.computeDelta();
@@ -122,7 +124,7 @@ main(List<String> args) async {
 
   c = null;
 
-  List<Uri> diffs = new List<Uri>();
+  List<Uri> diffs = <Uri>[];
   Set<Uri> componentUris = new Set<Uri>();
 
   Stopwatch localStopwatch = new Stopwatch()..start();

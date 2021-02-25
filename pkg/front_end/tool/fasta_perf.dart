@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 /// An entrypoint used to run portions of fasta and measure its performance.
 library front_end.tool.fasta_perf;
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
@@ -75,16 +76,7 @@ main(List<String> args) async {
   }
 }
 
-Uri sdkRoot = _computeRoot();
-Uri _computeRoot() {
-  // TODO(sigmund): delete this when our performance bots include runtime/lib/
-  if (new Directory('runtime/lib/').existsSync()) {
-    return Uri.base.resolve("sdk/");
-  }
-  return Uri.base
-      .resolveUri(new Uri.file(Platform.resolvedExecutable))
-      .resolve('patched_sdk/');
-}
+Uri sdkRoot = Uri.base.resolve("sdk/");
 
 /// Translates `dart:*` and `package:*` URIs to resolved URIs.
 UriTranslator uriResolver;

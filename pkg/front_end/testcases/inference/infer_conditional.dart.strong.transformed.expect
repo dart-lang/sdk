@@ -8,3 +8,9 @@ static method main() → dynamic {
   self::a;
   self::b;
 }
+
+
+Extra constant evaluation status:
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///infer_conditional.dart:8:35 -> DoubleConstant(2.0)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///infer_conditional.dart:9:35 -> IntConstant(2)
+Extra constant evaluation: evaluated: 4, effectively constant: 2

@@ -1,0 +1,56 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:5:1: Error: A library can't opt out of null safety by default, when using sound null safety.
+// // @dart=2.8
+// ^^^^^^^^^^^^
+//
+import self as self;
+
+import "org-dartlang-testcase:///non_nullable_from_opt_out_lib.dart";
+
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+class Class<T extends core::Object = core::Object> extends core::Object {
+  field core::int? _#Class#instanceField;
+  field dynamic _#Class#finalInstanceField;
+  field core::bool _#Class#finalInstanceField#isSet;
+  generic-covariant-impl field self2::Class::T? _#Class#instanceTypeVariable;
+  field self2::Class::T? _#Class#finalInstanceTypeVariable;
+  static field core::int? _#staticField;
+  static field dynamic _#staticFinalField;
+  static field core::bool _#staticFinalField#isSet;
+  synthetic constructor •() → self2::Class<self2::Class::T>
+    ;
+  get instanceField() → core::int;
+  set instanceField(core::int #t1) → void;
+  get finalInstanceField() → dynamic;
+  set finalInstanceField(dynamic #t2) → void;
+  get instanceTypeVariable() → self2::Class::T;
+  set instanceTypeVariable(generic-covariant-impl self2::Class::T #t3) → void;
+  get finalInstanceTypeVariable() → self2::Class::T;
+  set finalInstanceTypeVariable(self2::Class::T #t4) → void;
+  static get staticField() → core::int;
+  static set staticField(core::int #t5) → void;
+  static get staticFinalField() → dynamic;
+  static set staticFinalField(dynamic #t6) → void;
+}
+static field core::int? _#topLevelField;
+static field dynamic _#finalTopLevelField;
+static field core::bool _#finalTopLevelField#isSet;
+static get topLevelField() → core::int;
+static set topLevelField(core::int #t7) → void;
+static get finalTopLevelField() → dynamic;
+static set finalTopLevelField(dynamic #t8) → void;
+static method method<T extends core::Object = core::Object>(core::bool b, core::int i, self2::method::T t) → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → void f) → dynamic
+  ;

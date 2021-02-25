@@ -4,6 +4,9 @@
 
 library generate_vm_service_dart;
 
+// TODO(bkonyi): remove once markdown and pub_semver deps are updated to null
+// safety for the SDK.
+// ignore_for_file: import_of_legacy_library_into_null_safe
 import 'package:markdown/markdown.dart';
 
 import '../common/generate_common.dart';
@@ -13,9 +16,9 @@ import 'src_gen_dart.dart';
 
 export 'src_gen_dart.dart' show DartGenerator;
 
-Api api;
+late Api api;
 
-String _coerceRefType(String typeName) {
+String? _coerceRefType(String? typeName) {
   if (typeName == 'Object') typeName = 'Obj';
   if (typeName == '@Object') typeName = 'ObjRef';
   if (typeName == 'Null') typeName = 'NullVal';
@@ -23,7 +26,7 @@ String _coerceRefType(String typeName) {
   if (typeName == 'Function') typeName = 'Func';
   if (typeName == '@Function') typeName = 'FuncRef';
 
-  if (typeName.startsWith('@')) typeName = typeName.substring(1) + 'Ref';
+  if (typeName!.startsWith('@')) typeName = typeName.substring(1) + 'Ref';
 
   if (typeName == 'string') typeName = 'String';
   if (typeName == 'map') typeName = 'Map';
@@ -32,7 +35,7 @@ String _coerceRefType(String typeName) {
 }
 
 String _typeRefListToString(List<TypeRef> types) =>
-    'const [' + types.map((e) => "'" + e.name + "'").join(',') + ']';
+    'const [' + types.map((e) => "'" + e.name! + "'").join(',') + ']';
 
 final String _headerCode = r'''
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
@@ -48,8 +51,6 @@ final String _headerCode = r'''
 import 'dart:async';
 import 'dart:convert' show base64, jsonDecode, jsonEncode, utf8;
 import 'dart:typed_data';
-
-import 'package:meta/meta.dart';
 
 import 'service_extension_registry.dart';
 
@@ -69,8 +70,8 @@ final String _implCode = r'''
   /// Call an arbitrary service protocol method. This allows clients to call
   /// methods not explicitly exposed by this library.
   Future<Response> callMethod(String method, {
-    String isolateId,
-    Map args
+    String? isolateId,
+    Map<String, dynamic>? args
   }) {
     return callServiceExtension(method, isolateId: isolateId, args: args);
   }
@@ -80,13 +81,13 @@ final String _implCode = r'''
   /// See https://api.dart.dev/stable/dart-developer/dart-developer-library.html.
   @override
   Future<Response> callServiceExtension(String method, {
-    String isolateId,
-    Map args
+    String? isolateId,
+    Map<String, dynamic>? args
   }) {
     if (args == null && isolateId == null) {
       return _call(method);
     } else if (args == null) {
-      return _call(method, {'isolateId': isolateId});
+      return _call(method, {'isolateId': isolateId!});
     } else {
       args = Map.from(args);
       if (isolateId != null) {
@@ -100,8 +101,8 @@ final String _implCode = r'''
 
   Stream<String> get onReceive => _onReceive.stream;
 
-  void dispose() {
-    _streamSub.cancel();
+  Future<void> dispose() async {
+    await _streamSub.cancel();
     _completers.forEach((id, c) {
       final method = _methodCalls[id];
       return c.completeError(RPCError(
@@ -109,7 +110,7 @@ final String _implCode = r'''
     });
     _completers.clear();
     if (_disposeHandler != null) {
-      _disposeHandler();
+      await _disposeHandler!();
     }
     if (!_onDoneCompleter.isCompleted) {
       _onDoneCompleter.complete();
@@ -162,22 +163,21 @@ final String _implCode = r'''
         bytes.buffer, bytes.offsetInBytes + metaOffset, metaLength));
     final data = ByteData.view(
         bytes.buffer, bytes.offsetInBytes + dataOffset, dataLength);
-    dynamic map = jsonDecode(meta);
-    if (map != null && map['method'] == 'streamNotify') {
+    dynamic map = jsonDecode(meta)!;
+    if (map['method'] == 'streamNotify') {
       String streamId = map['params']['streamId'];
       Map event = map['params']['event'];
       event['data'] = data;
       _getEventController(streamId)
-          .add(createServiceObject(event, const ['Event']));
+          .add(createServiceObject(event, const ['Event'])! as Event);
     }
   }
 
   void _processMessageStr(String message) {
-    var json;
+    late Map<String, dynamic> json;
     try {
       _onReceive.add(message);
-
-      json = jsonDecode(message);
+      json = jsonDecode(message)!;
     } catch (e, s) {
       _log.severe('unable to decode message: ${message}, ${e}\n${s}');
       return;
@@ -199,9 +199,9 @@ final String _implCode = r'''
   }
 
   void _processResponse(Map<String, dynamic> json) {
-    Completer completer = _completers.remove(json['id']);
-    String methodName = _methodCalls.remove(json['id']);
-    List<String> returnTypes = _methodReturnTypes[methodName];
+    Completer? completer = _completers.remove(json['id']);
+    String methodName = _methodCalls.remove(json['id'])!;
+    List<String> returnTypes = _methodReturnTypes[methodName] ?? [];
     if (completer == null) {
       _log.severe('unmatched request response: ${jsonEncode(json)}');
     } else if (json['error'] != null) {
@@ -230,24 +230,25 @@ final String _implCode = r'''
 
   Future _processNotification(Map<String, dynamic> json) async {
     final String method = json['method'];
-    final Map params = json['params'] ?? <String, dynamic>{};
+    final Map<String, dynamic> params = json['params'] ?? <String, dynamic>{};
     if (method == 'streamNotify') {
       String streamId = params['streamId'];
-      _getEventController(streamId).add(createServiceObject(params['event'], const ['Event']));
+      _getEventController(streamId).add(createServiceObject(params['event'], const ['Event'])! as Event);
     } else {
       await _routeRequest(method, params);
     }
   }
 
   Future<Map> _routeRequest(String method, Map<String, dynamic> params) async{
-    if (!_services.containsKey(method)) {
+    final service = _services[method];
+    if (service == null) {
       RPCError error = RPCError(
           method, RPCError.kMethodNotFound, 'method not found \'$method\'');
       return {'error': error.toMap()};
     }
 
     try {
-      return await _services[method](params);
+      return await service(params);
     } catch (e, st) {
       RPCError error = RPCError.withDetails(
         method, RPCError.kServerError, '$e', details: '$st',);
@@ -281,22 +282,22 @@ class RPCError implements Exception {
     return RPCError(callingMethod, json['code'], json['message'], json['data']);
   }
 
-  final String callingMethod;
+  final String? callingMethod;
   final int code;
   final String message;
-  final Map data;
+  final Map? data;
 
   RPCError(this.callingMethod, this.code, this.message, [this.data]);
 
   RPCError.withDetails(this.callingMethod, this.code, this.message,
-      {Object details})
+      {Object? details})
       : data = details == null ? null : <String, dynamic>{} {
     if (details != null) {
-      data['details'] = details;
+      data!['details'] = details;
     }
   }
 
-  String get details => data == null ? null : data['details'];
+  String? get details => data == null ? null : data!['details'];
 
   /// Return a map representation of this error suitable for converstion to
   /// json.
@@ -326,17 +327,17 @@ class SentinelException implements Exception {
   final Sentinel sentinel;
 
   SentinelException.parse(this.callingMethod, Map<String, dynamic> data) :
-    sentinel = Sentinel.parse(data);
+    sentinel = Sentinel.parse(data)!;
 
   String toString() => '$sentinel from ${callingMethod}()';
 }
 
 /// An `ExtensionData` is an arbitrary map that can have any contents.
 class ExtensionData {
-  static ExtensionData parse(Map json) =>
+  static ExtensionData? parse(Map<String, dynamic>? json) =>
       json == null ? null : ExtensionData._fromJson(json);
 
-  final Map data;
+  final Map<String, dynamic> data;
 
   ExtensionData() : data = {};
 
@@ -362,11 +363,11 @@ class _NullLog implements Log {
 ''';
 
 final _registerServiceImpl = '''
-_serviceExtensionRegistry.registerExtension(params['service'], this);
+_serviceExtensionRegistry.registerExtension(params!['service'], this);
 response =  Success();''';
 
 final _streamListenCaseImpl = '''
-var id = params['streamId'];
+var id = params!['streamId'];
 if (_streamSubscriptions.containsKey(id)) {
   throw RPCError.withDetails(
     'streamListen', 103, 'Stream already subscribed',
@@ -390,7 +391,7 @@ _streamSubscriptions[id] = stream.listen((e) {
 response = Success();''';
 
 final _streamCancelCaseImpl = '''
-var id = params['streamId'];
+var id = params!['streamId'];
 var existing = _streamSubscriptions.remove(id);
 if (existing == null) {
   throw RPCError.withDetails(
@@ -402,22 +403,22 @@ await existing.cancel();
 response = Success();''';
 
 abstract class Member {
-  String get name;
+  String? get name;
 
-  String get docs => null;
+  String? get docs => null;
 
   void generate(DartGenerator gen);
 
   bool get hasDocs => docs != null;
 
-  String toString() => name;
+  String toString() => name!;
 }
 
 class Api extends Member with ApiParseUtil {
-  String serviceVersion;
+  String? serviceVersion;
   List<Method> methods = [];
   List<Enum> enums = [];
-  List<Type> types = [];
+  List<Type?> types = [];
   List<StreamCategory> streamCategories = [];
 
   void parse(List<Node> nodes) {
@@ -427,19 +428,19 @@ class Api extends Member with ApiParseUtil {
     // the pre following it is the definition
     // the optional p following that is the documentation
 
-    String h3Name;
+    String? h3Name;
 
     for (int i = 0; i < nodes.length; i++) {
       Node node = nodes[i];
 
       if (isPre(node) && h3Name != null) {
         String definition = textForCode(node);
-        String docs = '';
+        String? docs = '';
 
         while (i + 1 < nodes.length &&
                 (isPara(nodes[i + 1]) || isBlockquote(nodes[i + 1])) ||
             isList(nodes[i + 1])) {
-          Element p = nodes[++i];
+          Element p = nodes[++i] as Element;
           String str = TextOutputVisitor.printText(p);
           if (!str.contains('|') &&
               !str.contains('``') &&
@@ -449,7 +450,7 @@ class Api extends Member with ApiParseUtil {
           docs = '${docs}\n\n${str}';
         }
 
-        docs = docs.trim();
+        docs = docs!.trim();
         if (docs.isEmpty) docs = null;
 
         _parse(h3Name, definition, docs);
@@ -460,20 +461,20 @@ class Api extends Member with ApiParseUtil {
       }
     }
 
-    for (Type type in types) {
-      type.calculateFieldOverrides();
+    for (Type? type in types) {
+      type!.calculateFieldOverrides();
     }
 
     Method streamListenMethod =
         methods.singleWhere((method) => method.name == 'streamListen');
-    _parseStreamListenDocs(streamListenMethod.docs);
+    _parseStreamListenDocs(streamListenMethod.docs!);
   }
 
   String get name => 'api';
 
-  String get docs => null;
+  String? get docs => null;
 
-  void _parse(String name, String definition, [String docs]) {
+  void _parse(String name, String definition, [String? docs]) {
     name = name.trim();
     definition = definition.trim();
     // clean markdown introduced changes
@@ -518,13 +519,13 @@ String decodeBase64(String str) => utf8.decode(base64.decode(str));
 bool _isNullInstance(Map json) => ((json['type'] == '@Instance') &&
                                   (json['kind'] == 'Null'));
 
-Object createServiceObject(dynamic json, List<String> expectedTypes) {
+Object? createServiceObject(dynamic json, List<String> expectedTypes) {
   if (json == null) return null;
 
   if (json is List) {
     return json.map((e) => createServiceObject(e, expectedTypes)).toList();
   } else if (json is Map) {
-    String type = json['type'];
+    String? type = json['type'];
 
     // Not a Response type.
     if (type == null) {
@@ -539,10 +540,11 @@ Object createServiceObject(dynamic json, List<String> expectedTypes) {
       // be returned.
       return null;
     }
-    if (_typeFactories[type] == null) {
+    final typeFactory = _typeFactories[type];
+    if (typeFactory == null) {
       return null;
     } else {
-      return _typeFactories[type](json);
+      return typeFactory(json);
     }
   } else {
     // Handle simple types.
@@ -566,7 +568,7 @@ dynamic _createSpecificObject(dynamic json, dynamic creator(Map<String, dynamic>
   }
 }
 
-void _setIfNotNull(Map<String, Object> json, String key, Object value) {
+void _setIfNotNull(Map<String, dynamic> json, String key, Object? value) {
   if (value == null) return;
   json[key] = value;
 }
@@ -588,8 +590,8 @@ void addTypeFactory(String name, Function factory) {
 ''');
     gen.writeln();
     gen.writeln('Map<String, Function> _typeFactories = {');
-    types.forEach((Type type) {
-      gen.writeln("'${type.rawName}': ${type.name}.parse,");
+    types.forEach((Type? type) {
+      gen.writeln("'${type!.rawName}': ${type.name}.parse,");
     });
     gen.writeln('};');
     gen.writeln();
@@ -615,7 +617,7 @@ abstract class VmServiceInterface {
   Stream<Event> onEvent(String streamId);
 
   /// Handler for calling extra service extensions.
-  Future<Response> callServiceExtension(String method, {String isolateId, Map args});
+  Future<Response> callServiceExtension(String method, {String? isolateId, Map<String, dynamic>? args});
 ''');
     methods.forEach((m) {
       m.generateDefinition(gen);
@@ -628,14 +630,14 @@ abstract class VmServiceInterface {
     // automatically.
     gen.write('''
   class _PendingServiceRequest {
-    Future<Map<String, Object>> get future => _completer.future;
-    final _completer = Completer<Map<String, Object>>();
+    Future<Map<String, Object?>> get future => _completer.future;
+    final _completer = Completer<Map<String, Object?>>();
 
     final dynamic originalId;
 
     _PendingServiceRequest(this.originalId);
 
-    void complete(Map<String, Object> response) {
+    void complete(Map<String, Object?> response) {
       response['id'] = originalId;
       _completer.complete(response);
     }
@@ -649,7 +651,7 @@ abstract class VmServiceInterface {
   /// instances.
   class VmServerConnection {
     final Stream<Map<String, Object>> _requestStream;
-    final StreamSink<Map<String, Object>> _responseSink;
+    final StreamSink<Map<String, Object?>> _responseSink;
     final ServiceExtensionRegistry _serviceExtensionRegistry;
     final VmServiceInterface _serviceImplementation;
     /// Used to create unique ids when acting as a proxy between clients.
@@ -659,8 +661,8 @@ abstract class VmServiceInterface {
     final _streamSubscriptions = <String, StreamSubscription>{};
 
     /// Completes when [_requestStream] is done.
-    Future get done => _doneCompleter.future;
-    final _doneCompleter = Completer<Null>();
+    Future<void> get done => _doneCompleter.future;
+    final _doneCompleter = Completer<void>();
 
     /// Pending service extension requests to this client by id.
     final _pendingServiceExtensionRequests = <dynamic, _PendingServiceRequest>{};
@@ -678,13 +680,13 @@ abstract class VmServiceInterface {
     ///
     /// We don't attempt to do any serialization or deserialization of the
     /// request or response in this case
-    Future<Map<String, Object>> _forwardServiceExtensionRequest(
-        Map<String, Object> request) {
-      var originalId = request['id'];
-      request = Map.of(request);
+    Future<Map<String, Object?>> _forwardServiceExtensionRequest(
+        Map<String, Object?> request) {
+      final originalId = request['id'];
+      request = Map<String, Object?>.of(request);
       // Modify the request ID to ensure we don't have conflicts between
       // multiple clients ids.
-      var newId = '\${_nextServiceRequestId++}:\$originalId';
+      final newId = '\${_nextServiceRequestId++}:\$originalId';
       request['id'] = newId;
       var pendingRequest = _PendingServiceRequest(originalId);
       _pendingServiceExtensionRequests[newId] = pendingRequest;
@@ -692,22 +694,22 @@ abstract class VmServiceInterface {
       return pendingRequest.future;
     }
 
-    void _delegateRequest(Map<String, Object> request) async {
+    void _delegateRequest(Map<String, Object?> request) async {
       try {
         var id = request['id'];
         // Check if this is actually a response to a pending request.
         if (_pendingServiceExtensionRequests.containsKey(id)) {
-          final pending = _pendingServiceExtensionRequests[id];
-          pending.complete(Map.of(request));
+          final pending = _pendingServiceExtensionRequests[id]!;
+          pending.complete(Map<String, Object?>.of(request));
           return;
         }
-        var method = request['method'] as String;
+        final method = request['method'] as String?;
         if (method == null) {
           throw RPCError(
             null, RPCError.kInvalidRequest, 'Invalid Request', request);
         }
-        var params = request['params'] as Map;
-        Response response;
+        final params = request['params'] as Map<String, dynamic>?;
+        late Response response;
 
         switch(method) {
           case 'registerService':
@@ -722,14 +724,22 @@ abstract class VmServiceInterface {
         } else if (m.name == 'streamCancel') {
           gen.writeln(_streamCancelCaseImpl);
         } else {
+          bool firstParam = true;
+          final nullCheck = () {
+            final result = firstParam ? '!' : '';
+            if (firstParam) {
+              firstParam = false;
+            }
+            return result;
+          };
           gen.write("response = await _serviceImplementation.${m.name}(");
           // Positional args
           m.args.where((arg) => !arg.optional).forEach((MethodArg arg) {
             if (arg.type.isArray) {
               gen.write(
-                  "${arg.type.listCreationRef}.from(params['${arg.name}'] ?? []), ");
+                  "${arg.type.listCreationRef}.from(params${nullCheck()}['${arg.name}'] ?? []), ");
             } else {
-              gen.write("params['${arg.name}'], ");
+              gen.write("params${nullCheck()}['${arg.name}'], ");
             }
           });
           // Optional named args
@@ -738,9 +748,10 @@ abstract class VmServiceInterface {
             namedArgs.forEach((arg) {
               if (arg.name == 'scope') {
                 gen.writeln(
-                    "${arg.name}: params['${arg.name}']?.cast<String, String>(), ");
+                    "${arg.name}: params${nullCheck()}['${arg.name}']?.cast<String, String>(), ");
               } else {
-                gen.writeln("${arg.name}: params['${arg.name}'], ");
+                gen.writeln(
+                    "${arg.name}: params${nullCheck()}['${arg.name}'], ");
               }
             });
           }
@@ -752,7 +763,7 @@ abstract class VmServiceInterface {
     // Handle service extensions
     gen.writeln('default:');
     gen.writeln('''
-        var registeredClient = _serviceExtensionRegistry.clientFor(method);
+        final registeredClient = _serviceExtensionRegistry.clientFor(method);
         if (registeredClient != null) {
           // Check for any client which has registered this extension, if we
           // have one then delegate the request to that client.
@@ -764,8 +775,8 @@ abstract class VmServiceInterface {
         } else if (method.startsWith('ext.')) {
           // Remaining methods with `ext.` are assumed to be registered via
           // dart:developer, which the service implementation handles.
-          var args = params == null ? null : Map.of(params);
-          var isolateId = args?.remove('isolateId');
+          final args = params == null ? null : Map<String, dynamic>.of(params);
+          final isolateId = args?.remove('isolateId');
           response = await _serviceImplementation.callServiceExtension(method,
               isolateId: isolateId, args: args);
         } else {
@@ -774,13 +785,6 @@ abstract class VmServiceInterface {
 ''');
     // Terminate the switch
     gen.writeln('}');
-
-    // Handle null responses
-    gen.write('''
-      if (response == null) {
-        throw StateError('Invalid null response from service');
-      }
-    ''');
 
     // Generate the json success response
     gen.write("""_responseSink.add({
@@ -793,7 +797,7 @@ abstract class VmServiceInterface {
     // Close the try block, handle errors
     gen.write(r'''
       } catch (e, st) {
-        var error = e is RPCError
+        final error = e is RPCError
             ? e.toMap()
             : {
                 'code': RPCError.kInternalError,
@@ -817,13 +821,13 @@ abstract class VmServiceInterface {
 
     // The client side service implementation.
     gen.writeStatement('class VmService implements VmServiceInterface {');
-    gen.writeStatement('StreamSubscription _streamSub;');
-    gen.writeStatement('Function _writeMessage;');
+    gen.writeStatement('late final StreamSubscription _streamSub;');
+    gen.writeStatement('late final Function _writeMessage;');
     gen.writeStatement('int _id = 0;');
     gen.writeStatement('Map<String, Completer> _completers = {};');
     gen.writeStatement('Map<String, String> _methodCalls = {};');
     gen.writeStatement('Map<String, ServiceCallback> _services = {};');
-    gen.writeStatement('Log _log;');
+    gen.writeStatement('late final Log _log;');
     gen.write('''
 
 StreamController<String> _onSend = StreamController.broadcast(sync: true);
@@ -834,7 +838,7 @@ final Completer _onDoneCompleter = Completer();
 Map<String, StreamController<Event>> _eventControllers = {};
 
 StreamController<Event> _getEventController(String eventName) {
-  StreamController<Event> controller = _eventControllers[eventName];
+  StreamController<Event>? controller = _eventControllers[eventName];
   if (controller == null) {
     controller = StreamController.broadcast();
     _eventControllers[eventName] = controller;
@@ -842,12 +846,12 @@ StreamController<Event> _getEventController(String eventName) {
   return controller;
 }
 
-DisposeHandler _disposeHandler;
+late final DisposeHandler? _disposeHandler;
 
 VmService(Stream<dynamic> /*String|List<int>*/ inStream, void writeMessage(String message), {
-  Log log,
-  DisposeHandler disposeHandler,
-  Future streamClosed,
+  Log? log,
+  DisposeHandler? disposeHandler,
+  Future? streamClosed,
 }) {
   _streamSub = inStream.listen(_processMessage, onDone: ()=> _onDoneCompleter.complete());
   _writeMessage = writeMessage;
@@ -882,7 +886,7 @@ Stream<Event> onEvent(String streamId) => _getEventController(streamId).stream;
     });
     gen.writeln();
     gen.writeln('// types');
-    types.where((t) => !t.skip).forEach((t) => t.generate(gen));
+    types.where((t) => !t!.skip).forEach((t) => t!.generate(gen));
   }
 
   void generateAsserts(DartGenerator gen) {
@@ -903,17 +907,14 @@ dynamic assertNotNull(dynamic obj) {
 }
 
 bool assertBool(bool obj) {
-  assertNotNull(obj);
   return obj;
 }
 
 int assertInt(int obj) {
-  assertNotNull(obj);
   return obj;
 }
 
 double assertDouble(double obj) {
-  assertNotNull(obj);
   return obj;
 }
 
@@ -936,14 +937,19 @@ List<String> assertListOfString(List<String> list) {
   return list;
 }
 
+List<vms.IsolateFlag> assertListOfIsolateFlag(List<vms.IsolateFlag> list) {
+  for (vms.IsolateFlag elem in list) {
+    assertIsolateFlag(elem);
+  }
+  return list;
+}
+
 String assertString(String obj) {
-  assertNotNull(obj);
   if (obj.isEmpty) throw 'expected non-zero length string';
   return obj;
 }
 
 vms.Success assertSuccess(vms.Success obj) {
-  assertNotNull(obj);
   if (obj.type != 'Success') throw 'expected Success';
   return obj;
 }
@@ -957,10 +963,10 @@ vms.Event assertDebugEvent(vms.Event event) {
       event.kind == vms.EventKind.kBreakpointAdded ||
       event.kind == vms.EventKind.kBreakpointRemoved ||
       event.kind == vms.EventKind.kBreakpointResolved) {
-    assertBreakpoint(event.breakpoint);
+    assertBreakpoint(event.breakpoint!);
   }
   if (event.kind == vms.EventKind.kPauseBreakpoint) {
-    for (vms.Breakpoint elem in event.pauseBreakpoints) {
+    for (vms.Breakpoint elem in event.pauseBreakpoints!) {
       assertBreakpoint(elem);
     }
   }
@@ -976,18 +982,18 @@ vms.Event assertDebugEvent(vms.Event event) {
     if (event.topFrame != null ||
         (event.kind != vms.EventKind.kPauseInterrupted &&
             event.kind != vms.EventKind.kResume)) {
-      assertFrame(event.topFrame);
+      assertFrame(event.topFrame!);
     }
   }
   if (event.kind == vms.EventKind.kPauseException) {
-    assertInstanceRef(event.exception);
+    assertInstanceRef(event.exception!);
   }
   if (event.kind == vms.EventKind.kPauseBreakpoint ||
       event.kind == vms.EventKind.kPauseInterrupted) {
-    assertBool(event.atAsyncSuspension);
+    assertBool(event.atAsyncSuspension!);
   }
   if (event.kind == vms.EventKind.kInspect) {
-    assertInstanceRef(event.inspectee);
+    assertInstanceRef(event.inspectee!);
   }
   return event;
 }
@@ -997,7 +1003,7 @@ vms.Event assertDebugEvent(vms.Event event) {
 vms.Event assertIsolateEvent(vms.Event event) {
   assertEvent(event);
   if (event.kind == vms.EventKind.kServiceExtensionAdded) {
-    assertString(event.extensionRPC);
+    assertString(event.extensionRPC!);
   }
   return event;
 }
@@ -1006,10 +1012,10 @@ vms.Event assertIsolateEvent(vms.Event event) {
     for (Enum e in enums) {
       e.generateAssert(gen);
     }
-    for (Type type in types) {
-      if (type.name == 'Success') continue;
+    for (Type? type in types) {
+      if (type!.name == 'Success') continue;
       type.generateAssert(gen);
-      if (type.name.endsWith('Ref') ||
+      if (type.name!.endsWith('Ref') ||
           [
             'BoundVariable',
             'Breakpoint',
@@ -1022,6 +1028,7 @@ vms.Event assertIsolateEvent(vms.Event event) {
             'InboundReference',
             'LibraryDependency',
             'Message',
+            'ProcessMemoryItem',
             'ProfileFunction',
             'ProcessMemoryItem',
             'Protocol',
@@ -1036,16 +1043,17 @@ vms.Event assertIsolateEvent(vms.Event event) {
 
   void setDefaultValue(String typeName, String fieldName, String defaultValue) {
     types
-        .firstWhere((t) => t.name == typeName)
+        .firstWhere((t) => t!.name == typeName)!
         .fields
         .firstWhere((f) => f.name == fieldName)
         .defaultValue = defaultValue;
   }
 
-  bool isEnumName(String typeName) => enums.any((Enum e) => e.name == typeName);
+  bool isEnumName(String? typeName) =>
+      enums.any((Enum e) => e.name == typeName);
 
-  Type getType(String name) =>
-      types.firstWhere((t) => t.name == name, orElse: () => null);
+  Type? getType(String? name) =>
+      types.firstWhere((t) => t!.name == name, orElse: () => null);
 
   void _parseStreamListenDocs(String docs) {
     Iterator<String> lines = docs.split('\n').map((l) => l.trim()).iterator;
@@ -1083,8 +1091,8 @@ vms.Event assertIsolateEvent(vms.Event event) {
 }
 
 class StreamCategory {
-  String _name;
-  List<String> _events;
+  String? _name;
+  List<String>? _events;
 
   StreamCategory(String line) {
     // Debug | PauseStart, PauseExit, ...
@@ -1094,13 +1102,13 @@ class StreamCategory {
     _events = line.split(',').map((w) => w.trim()).toList();
   }
 
-  String get name => _name;
+  String? get name => _name;
 
-  List<String> get events => _events;
+  List<String>? get events => _events;
 
   void generate(DartGenerator gen) {
     gen.writeln();
-    gen.writeln('// ${events.join(', ')}');
+    gen.writeln('// ${events!.join(', ')}');
     gen.writeln(
         "Stream<Event> get on${name}Event => _getEventController('$name').stream;");
   }
@@ -1110,7 +1118,7 @@ class StreamCategory {
 
 class Method extends Member {
   final String name;
-  final String docs;
+  final String? docs;
 
   MemberType returnType = MemberType();
   List<MethodArg> args = [];
@@ -1135,7 +1143,7 @@ class Method extends Member {
           .join());
 
       args.where((MethodArg a) => a.optional).forEach((MethodArg arg) {
-        String valueRef = arg.name;
+        String? valueRef = arg.name;
         // Special case for `getAllocationProfile`. We do not want to add these
         // params if they are false.
         if (name == 'getAllocationProfile') {
@@ -1166,7 +1174,7 @@ class Method extends Member {
       {bool withDocs = true, bool withOverrides = false}) {
     gen.writeln();
     if (withDocs && docs != null) {
-      String _docs = docs == null ? '' : docs;
+      String _docs = docs == null ? '' : docs!;
       if (returnType.isMultipleReturns) {
         _docs += '\n\nThe return value can be one of '
             '${joinLast(returnType.types.map((t) => '[${t}]'), ', ', ' or ')}.';
@@ -1183,7 +1191,7 @@ class Method extends Member {
     gen.write('Future<${returnType.name}> ${name}(');
     bool startedOptional = false;
     gen.write(args.map((MethodArg arg) {
-      String typeName;
+      String? typeName;
       if (api.isEnumName(arg.type.name)) {
         if (arg.type.isArray) {
           typeName = typeName = '/*${arg.type}*/ List<String>';
@@ -1193,12 +1201,12 @@ class Method extends Member {
       } else {
         typeName = arg.type.ref;
       }
-
+      final nullable = arg.optional ? '?' : '';
       if (arg.optional && !startedOptional) {
         startedOptional = true;
-        return '{${typeName} ${arg.name}';
+        return '{${typeName}$nullable ${arg.name}';
       } else {
-        return '${typeName} ${arg.name}';
+        return '${typeName}$nullable ${arg.name}';
       }
     }).join(', '));
     if (args.length >= 4) gen.write(',');
@@ -1206,7 +1214,7 @@ class Method extends Member {
     gen.write(') ');
   }
 
-  void _parse(Token token) => MethodParser(token).parseInto(this);
+  void _parse(Token? token) => MethodParser(token).parseInto(this);
 }
 
 class MemberType extends Member {
@@ -1222,7 +1230,7 @@ class MemberType extends Member {
 
     while (loop) {
       if (parser.consume('(')) {
-        while (parser.peek().text != ')') {
+        while (parser.peek()!.text != ')') {
           // @Instance | Sentinel
           parser.advance();
         }
@@ -1251,7 +1259,7 @@ class MemberType extends Member {
     }
   }
 
-  String get name {
+  String? get name {
     if (types.isEmpty) return '';
     if (types.length == 1) return types.first.ref;
     if (isReturnType) return 'Response';
@@ -1269,25 +1277,25 @@ class MemberType extends Member {
 
   bool get isArray => types.length == 1 && types.first.isArray;
 
-  void generate(DartGenerator gen) => gen.write(name);
+  void generate(DartGenerator gen) => gen.write(name!);
 }
 
 class TypeRef {
-  String name;
+  String? name;
   int arrayDepth = 0;
-  List<TypeRef> genericTypes;
+  List<TypeRef>? genericTypes;
 
   TypeRef(this.name);
 
-  String get ref {
+  String? get ref {
     if (arrayDepth == 2) {
       return 'List<List<${name}>>';
     } else if (arrayDepth == 1) {
       return 'List<${name}>';
     } else if (genericTypes != null) {
-      return '$name<${genericTypes.join(', ')}>';
+      return '$name<${genericTypes!.join(', ')}>';
     } else {
-      return name.startsWith('_') ? name.substring(1) : name;
+      return name!.startsWith('_') ? name!.substring(1) : name;
     }
   }
 
@@ -1301,7 +1309,7 @@ class TypeRef {
     }
   }
 
-  String get listTypeArg => arrayDepth == 2 ? 'List<$name>' : name;
+  String? get listTypeArg => arrayDepth == 2 ? 'List<$name>' : name;
 
   bool get isArray => arrayDepth > 0;
 
@@ -1323,13 +1331,13 @@ class TypeRef {
           name == 'double' ||
           name == 'ByteData');
 
-  String toString() => ref;
+  String toString() => ref!;
 }
 
 class MethodArg extends Member {
   final Method parent;
   TypeRef type;
-  String name;
+  String? name;
   bool optional = false;
 
   MethodArg(this.parent, this.type, this.name);
@@ -1343,10 +1351,10 @@ class MethodArg extends Member {
 
 class Type extends Member {
   final Api parent;
-  String rawName;
-  String name;
-  String superName;
-  final String docs;
+  String? rawName;
+  String? name;
+  String? superName;
+  final String? docs;
   List<TypeField> fields = [];
 
   Type(this.parent, String categoryName, String definition, [this.docs]) {
@@ -1357,11 +1365,11 @@ class Type extends Member {
 
   factory Type.merge(Type t1, Type t2) {
     final Api parent = t1.parent;
-    final String rawName = t1.rawName;
-    final String name = t1.name;
-    final String superName = t1.superName;
+    final String? rawName = t1.rawName;
+    final String? name = t1.name;
+    final String? superName = t1.superName;
     final String docs = [t1.docs, t2.docs].where((e) => e != null).join('\n');
-    final Map<String, TypeField> map = <String, TypeField>{};
+    final Map<String?, TypeField> map = <String?, TypeField>{};
     for (TypeField f in t2.fields.reversed) {
       map[f.name] = f;
     }
@@ -1378,17 +1386,17 @@ class Type extends Member {
   bool get isResponse {
     if (superName == null) return false;
     if (name == 'Response' || superName == 'Response') return true;
-    return parent.getType(superName).isResponse;
+    return parent.getType(superName)!.isResponse;
   }
 
-  bool get isRef => name.endsWith('Ref');
+  bool get isRef => name!.endsWith('Ref');
 
   bool get supportsIdentity {
     if (fields.any((f) => f.name == 'id')) return true;
-    return superName == null ? false : getSuper().supportsIdentity;
+    return superName == null ? false : getSuper()!.supportsIdentity;
   }
 
-  Type getSuper() => superName == null ? null : api.getType(superName);
+  Type? getSuper() => superName == null ? null : api.getType(superName);
 
   List<TypeField> getAllFields() {
     if (superName == null) return fields;
@@ -1396,7 +1404,7 @@ class Type extends Member {
     List<TypeField> all = [];
     all.insertAll(0, fields);
 
-    Type s = getSuper();
+    Type? s = getSuper();
     while (s != null) {
       all.insertAll(0, s.fields);
       s = s.getSuper();
@@ -1411,7 +1419,7 @@ class Type extends Member {
     gen.writeln();
     if (docs != null) gen.writeDocs(docs);
     gen.write('class ${name} ');
-    Type superType;
+    Type? superType;
     if (superName != null) {
       superType = parent.getType(superName);
       gen.write('extends ${superName} ');
@@ -1420,12 +1428,12 @@ class Type extends Member {
       gen.write('implements ${name}Ref ');
     }
     gen.writeln('{');
-    gen.writeln('static ${name} parse(Map<String, dynamic> json) => '
+    gen.writeln('static ${name}? parse(Map<String, dynamic>? json) => '
         'json == null ? null : ${name}._fromJson(json);');
     gen.writeln();
 
     if (name == 'Response' || name == 'TimelineEvent') {
-      gen.writeln('Map<String, dynamic> json;');
+      gen.writeln('Map<String, dynamic>? json;');
     }
     if (name == 'Script') {
       gen.writeln('final _tokenToLine = <int, int>{};');
@@ -1444,9 +1452,10 @@ class Type extends Member {
     gen.write('${name}(');
     if (fields.isNotEmpty) {
       gen.write('{');
-      fields
-          .where((field) => !field.optional)
-          .forEach((field) => field.generateNamedParameter(gen));
+      fields.where((field) => !field.optional).forEach((field) {
+        final fromParent = (name == 'Instance' && field.name == 'classRef');
+        field.generateNamedParameter(gen, fromParent: fromParent);
+      });
       if (hasRequiredParentFields) {
         superType.fields.where((field) => !field.optional).forEach(
             (field) => field.generateNamedParameter(gen, fromParent: true));
@@ -1460,11 +1469,22 @@ class Type extends Member {
     if (hasRequiredParentFields) {
       gen.write(' : super(');
       superType.fields.where((field) => !field.optional).forEach((field) {
-        String name = field.generatableName;
-        gen.write('$name: $name');
+        String? name = field.generatableName;
+        gen.writeln('$name: $name,');
       });
+      if (name == 'Instance') {
+        gen.writeln('classRef: classRef,');
+      }
       gen.write(')');
+    } else if (name!.contains('NullVal')) {
+      gen.writeln(' : super(');
+      gen.writeln("id: 'instance/null',");
+      gen.writeln('kind: InstanceKind.kNull,');
+      gen.writeln("classRef: ClassRef(id: 'class/null',");
+      gen.writeln("name: 'Null',),");
+      gen.writeln(')');
     }
+
     gen.writeln(';');
 
     // Build from JSON.
@@ -1494,6 +1514,37 @@ class Type extends Member {
         }
         if (field.defaultValue != null) {
           gen.write(' ?? ${field.defaultValue}');
+        } else if (!field.optional) {
+          // If a default isn't provided and the field is required, generate a
+          // sane default initializer to avoid TypeErrors at runtime when
+          // running in a null-safe context.
+          dynamic defaultValue;
+          switch (field.type.name) {
+            case 'int':
+            case 'num':
+            case 'double':
+              defaultValue = -1;
+              break;
+            case 'bool':
+              defaultValue = false;
+              break;
+            case 'String':
+              defaultValue = "''";
+              break;
+            case 'ByteData':
+              defaultValue = "ByteData(0)";
+              break;
+            default:
+              {
+                if (field.type.isEnum) {
+                  // TODO(bkonyi): Figure out if there's a more correct way to
+                  // determine a default value for enums.
+                  defaultValue = "''";
+                }
+                break;
+              }
+          }
+          gen.write(' ?? $defaultValue');
         }
         gen.writeln(';');
         // } else if (field.type.isEnum) {
@@ -1505,23 +1556,27 @@ class Type extends Member {
         // Special case `Event.extensionData`.
         gen.writeln(
             "extensionData = ExtensionData.parse(json['extensionData']);");
-      } else if (name == 'Instance' && field.name == 'associations') {
-        // Special case `Instance.associations`.
-        gen.writeln("associations = json['associations'] == null "
-            "? null : List<MapAssociation>.from("
-            "_createSpecificObject(json['associations'], MapAssociation.parse));");
+      } else if (name == 'Instance') {
+        if (field.name == 'associations') {
+          // Special case `Instance.associations`.
+          gen.writeln("associations = json['associations'] == null "
+              "? null : List<MapAssociation>.from("
+              "_createSpecificObject(json['associations'], MapAssociation.parse));");
+        } else if (field.name == 'classRef') {
+          // This is populated by `Obj`
+        }
       } else if (name == '_CpuProfile' && field.name == 'codes') {
         // Special case `_CpuProfile.codes`.
         gen.writeln("codes = List<CodeRegion>.from("
-            "_createSpecificObject(json['codes'], CodeRegion.parse));");
+            "_createSpecificObject(json['codes']!, CodeRegion.parse));");
       } else if (name == '_CpuProfile' && field.name == 'functions') {
         // Special case `_CpuProfile.functions`.
         gen.writeln("functions = List<ProfileFunction>.from("
-            "_createSpecificObject(json['functions'], ProfileFunction.parse));");
+            "_createSpecificObject(json['functions']!, ProfileFunction.parse));");
       } else if (name == 'SourceReport' && field.name == 'ranges') {
         // Special case `SourceReport.ranges`.
         gen.writeln("ranges = List<SourceReportRange>.from("
-            "_createSpecificObject(json['ranges'], SourceReportRange.parse));");
+            "_createSpecificObject(json['ranges']!, SourceReportRange.parse));");
       } else if (name == 'SourceReportRange' && field.name == 'coverage') {
         // Special case `SourceReportRange.coverage`.
         gen.writeln("coverage = _createSpecificObject("
@@ -1529,7 +1584,7 @@ class Type extends Member {
       } else if (name == 'Library' && field.name == 'dependencies') {
         // Special case `Library.dependencies`.
         gen.writeln("dependencies = List<LibraryDependency>.from("
-            "_createSpecificObject(json['dependencies'], "
+            "_createSpecificObject(json['dependencies']!, "
             "LibraryDependency.parse));");
       } else if (name == 'Script' && field.name == 'tokenPosTable') {
         // Special case `Script.tokenPosTable`.
@@ -1537,7 +1592,7 @@ class Type extends Member {
         if (field.optional) {
           gen.write("json['tokenPosTable'] == null ? null : ");
         }
-        gen.writeln("List<List<int>>.from(json['tokenPosTable'].map"
+        gen.writeln("List<List<int>>.from(json['tokenPosTable']!.map"
             "((dynamic list) => List<int>.from(list)));");
         gen.writeln('_parseTokenPosTable();');
       } else if (field.type.isArray) {
@@ -1550,7 +1605,7 @@ class Type extends Member {
                 "List<${fieldType.listTypeArg}>.from($ref);");
           } else {
             gen.writeln("${field.generatableName} = $ref == null ? null : "
-                "List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList));");
+                "List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList)! as List);");
           }
         } else {
           if (fieldType.isListTypeSimple) {
@@ -1568,17 +1623,18 @@ class Type extends Member {
             // field named 'samples' instead of 'instances'.
             if (name == 'InstanceSet') {
               gen.writeln("${field.generatableName} = "
-                  "List<${fieldType.listTypeArg}>.from(createServiceObject($ref ?? json['samples'], $typesList));");
+                  "List<${fieldType.listTypeArg}>.from(createServiceObject(($ref ?? json['samples']!) as List, $typesList)! as List);");
             } else {
               gen.writeln("${field.generatableName} = "
-                  "List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList) ?? []);");
+                  "List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList) as List? ?? []);");
             }
           }
         }
       } else {
         String typesList = _typeRefListToString(field.type.types);
         gen.writeln("${field.generatableName} = "
-            "createServiceObject(json['${field.name}'], $typesList);");
+            "createServiceObject(json['${field.name}']${field.optional ? '' : '!'}, "
+            "$typesList) as ${field.type.name}${field.optional ? '?' : ''};");
       }
     });
     if (fields.isNotEmpty) {
@@ -1592,10 +1648,13 @@ class Type extends Member {
 
     // toJson support, the base Response type is not supported
     if (name == 'Response') {
+      gen.writeln("String get type => 'Response';");
+      gen.writeln();
       gen.writeln('''
 Map<String, dynamic> toJson() {
-  var result = json == null ? <String, dynamic>{} : Map.of(json);
-  result['type'] = type ?? 'Response';
+  final localJson = json;
+  final result = localJson == null ? <String, dynamic>{} : Map<String, dynamic>.of(localJson);
+  result['type'] = type;
   return result;
 }''');
     } else if (name == 'TimelineEvent') {
@@ -1603,7 +1662,8 @@ Map<String, dynamic> toJson() {
       // fairly dynamic. Return the json directly.
       gen.writeln('''
           Map<String, dynamic> toJson() {
-            var result = json == null ? <String, dynamic>{} : Map.of(json);
+            final localJson = json;
+            final result = localJson == null ? <String, dynamic>{} : Map<String, dynamic>.of(localJson);
             result['type'] = 'TimelineEvent';
             return result;
           }
@@ -1611,19 +1671,25 @@ Map<String, dynamic> toJson() {
     } else {
       if (isResponse) {
         gen.writeln('@override');
+        gen.writeln("String get type => '$rawName';");
+        gen.writeln();
+      }
+
+      if (isResponse) {
+        gen.writeln('@override');
       }
       gen.writeln('Map<String, dynamic> toJson() {');
       if (superName == null || superName == 'Response') {
         // The base Response type doesn't have a toJson
-        gen.writeln('var json = <String, dynamic>{};');
+        gen.writeln('final json = <String, dynamic>{};');
       } else {
-        gen.writeln('var json = super.toJson();');
+        gen.writeln('final json = super.toJson();');
       }
 
       // Only Response objects have a `type` field, as defined by protocol.
       if (isResponse) {
         // Overwrites "type" from the super class if we had one.
-        gen.writeln("json['type'] = '$rawName';");
+        gen.writeln("json['type'] = type;");
       }
 
       var requiredFields = fields.where((f) => !f.optional);
@@ -1675,7 +1741,8 @@ Map<String, dynamic> toJson() {
         }
         gen.writeln("String toString() => '[${name} ' //\n'${properties}]';");
       } else {
-        gen.writeln("String toString() => '[${name} ${properties}]';");
+        final formattedProperties = (properties.isEmpty) ? '' : ' $properties';
+        gen.writeln("String toString() => '[$name$formattedProperties]';");
       }
     } else {
       gen.writeln("String toString() => '[${name}]';");
@@ -1689,20 +1756,21 @@ Map<String, dynamic> toJson() {
     gen.writeDocs('''This function maps a token position to a line number.
 The VM considers the first line to be line 1.''');
     gen.writeln(
-        'int getLineNumberFromTokenPos(int tokenPos) => _tokenToLine[tokenPos];');
+        'int? getLineNumberFromTokenPos(int tokenPos) => _tokenToLine[tokenPos];');
     gen.writeln();
     gen.writeDocs('''This function maps a token position to a column number.
 The VM considers the first column to be column 1.''');
     gen.writeln(
-        'int getColumnNumberFromTokenPos(int tokenPos) => _tokenToColumn[tokenPos];');
+        'int? getColumnNumberFromTokenPos(int tokenPos) => _tokenToColumn[tokenPos];');
     gen.writeln();
     gen.writeln('''
 void _parseTokenPosTable() {
-  if (tokenPosTable == null) {
+  final tokenPositionTable = tokenPosTable;
+  if (tokenPositionTable == null) {
     return;
   }
-  final lineSet = Set<int>();
-  for (List line in tokenPosTable) {
+  final lineSet = <int>{};
+  for (List line in tokenPositionTable) {
     // Each entry begins with a line number...
     int lineNumber = line[0];
     lineSet.add(lineNumber);
@@ -1719,7 +1787,6 @@ void _parseTokenPosTable() {
 
   // Writes the code to retrieve the serialized value of a field.
   void generateSerializedFieldAccess(TypeField field, DartGenerator gen) {
-    var nullAware = field.optional ? '?' : '';
     if (field.type.isSimple || field.type.isEnum) {
       gen.write('${field.generatableName}');
       if (field.defaultValue != null) {
@@ -1727,18 +1794,18 @@ void _parseTokenPosTable() {
       }
     } else if (name == 'Event' && field.name == 'extensionData') {
       // Special case `Event.extensionData`.
-      gen.writeln('extensionData$nullAware.data');
+      gen.writeln('extensionData?.data');
     } else if (field.type.isArray) {
-      gen.write('${field.generatableName}$nullAware.map((f) => f');
+      gen.write('${field.generatableName}?.map((f) => f');
       // Special case `tokenPosTable` which is a List<List<int>>.
       if (field.name == 'tokenPosTable') {
-        gen.write('$nullAware.toList()');
+        gen.write('.toList()');
       } else if (!field.type.types.first.isListTypeSimple) {
-        gen.write('$nullAware.toJson()');
+        gen.write('.toJson()');
       }
-      gen.write(')$nullAware.toList()');
+      gen.write(').toList()');
     } else {
-      gen.write('${field.generatableName}$nullAware.toJson()');
+      gen.write('${field.generatableName}?.toJson()');
     }
   }
 
@@ -1752,9 +1819,9 @@ void _parseTokenPosTable() {
           TypeRef arrayType = type.types.first;
           if (arrayType.arrayDepth == 1) {
             String assertMethodName = 'assertListOf' +
-                arrayType.name.substring(0, 1).toUpperCase() +
-                arrayType.name.substring(1);
-            gen.writeln('$assertMethodName(obj.${field.generatableName});');
+                arrayType.name!.substring(0, 1).toUpperCase() +
+                arrayType.name!.substring(1);
+            gen.writeln('$assertMethodName(obj.${field.generatableName}!);');
           } else {
             gen.writeln(
                 '// assert obj.${field.generatableName} is ${type.name}');
@@ -1767,9 +1834,9 @@ void _parseTokenPosTable() {
             gen.writeln(
                 'if (obj.${field.generatableName} is vms.${typeRef.name}) {');
             String assertMethodName = 'assert' +
-                typeRef.name.substring(0, 1).toUpperCase() +
-                typeRef.name.substring(1);
-            gen.writeln('$assertMethodName(obj.${field.generatableName});');
+                typeRef.name!.substring(0, 1).toUpperCase() +
+                typeRef.name!.substring(1);
+            gen.writeln('$assertMethodName(obj.${field.generatableName}!);');
           }
           gen.writeln('} else {');
           gen.writeln(
@@ -1777,9 +1844,9 @@ void _parseTokenPosTable() {
           gen.writeln('}');
         } else {
           String assertMethodName = 'assert' +
-              type.name.substring(0, 1).toUpperCase() +
-              type.name.substring(1);
-          gen.writeln('$assertMethodName(obj.${field.generatableName});');
+              type.name!.substring(0, 1).toUpperCase() +
+              type.name!.substring(1);
+          gen.writeln('$assertMethodName(obj.${field.generatableName}!);');
         }
       }
     }
@@ -1799,19 +1866,19 @@ void _parseTokenPosTable() {
     gen.writeln('');
   }
 
-  void _parse(Token token) => TypeParser(token).parseInto(this);
+  void _parse(Token? token) => TypeParser(token).parseInto(this);
 
   void calculateFieldOverrides() {
     for (TypeField field in fields.toList()) {
       if (superName == null) continue;
 
-      if (getSuper().hasField(field.name)) {
+      if (getSuper()!.hasField(field.name)) {
         field.setOverrides();
       }
     }
   }
 
-  bool hasField(String name) {
+  bool hasField(String? name) {
     if (fields.any((field) => field.name == name)) return true;
     return getSuper()?.hasField(name) ?? false;
   }
@@ -1829,19 +1896,19 @@ class TypeField extends Member {
   };
 
   final Type parent;
-  final String _docs;
+  final String? _docs;
   MemberType type = MemberType();
-  String name;
+  String? name;
   bool optional = false;
-  String defaultValue;
+  String? defaultValue;
   bool overrides = false;
 
   TypeField(this.parent, this._docs);
 
   void setOverrides() => overrides = true;
 
-  String get docs {
-    String str = _docs == null ? '' : _docs;
+  String? get docs {
+    String str = _docs == null ? '' : _docs!;
     if (type.isMultipleReturns) {
       str += '\n\n[${generatableName}] can be one of '
           '${joinLast(type.types.map((t) => '[${t}]'), ', ', ' or ')}.';
@@ -1850,26 +1917,37 @@ class TypeField extends Member {
     return str;
   }
 
-  String get generatableName {
+  String? get generatableName {
     return _nameRemap[name] != null ? _nameRemap[name] : name;
   }
 
   void generate(DartGenerator gen) {
-    if (docs.isNotEmpty) gen.writeDocs(docs);
+    if (docs!.isNotEmpty) gen.writeDocs(docs);
     if (optional) gen.write('@optional ');
     if (overrides) gen.write('@override ');
-    String typeName =
-        api.isEnumName(type.name) ? '/*${type.name}*/ String' : type.name;
-    gen.writeStatement('${typeName} ${generatableName};');
-    if (parent.fields.any((field) => field.hasDocs)) gen.writeln();
+    // Special case where Instance extends Obj, but 'classRef' is not optional
+    // for Instance although it is for Obj.
+    /*if (parent.name == 'Instance' && generatableName == 'classRef') {
+      gen.writeStatement('covariant late final ClassRef classRef;');
+    } else if (parent.name!.contains('NullVal') &&
+        generatableName == 'valueAsString') {
+      gen.writeStatement('covariant late final String valueAsString;');
+    } else */
+    {
+      String? typeName =
+          api.isEnumName(type.name) ? '/*${type.name}*/ String' : type.name;
+      typeName = '$typeName?';
+      gen.writeStatement('${typeName} ${generatableName};');
+      if (parent.fields.any((field) => field.hasDocs)) gen.writeln();
+    }
   }
 
   void generateNamedParameter(DartGenerator gen, {bool fromParent = false}) {
     if (!optional) {
-      gen.write('@required ');
+      gen.write('required ');
     }
     if (fromParent) {
-      String typeName =
+      String? typeName =
           api.isEnumName(type.name) ? '/*${type.name}*/ String' : type.name;
       gen.writeStatement('$typeName ${generatableName},');
     } else {
@@ -1880,7 +1958,7 @@ class TypeField extends Member {
 
 class Enum extends Member {
   final String name;
-  final String docs;
+  final String? docs;
 
   List<EnumValue> enums = [];
 
@@ -1893,7 +1971,7 @@ class Enum extends Member {
   factory Enum.merge(Enum e1, Enum e2) {
     final String name = e1.name;
     final String docs = [e1.docs, e2.docs].where((e) => e != null).join('\n');
-    final Map<String, EnumValue> map = <String, EnumValue>{};
+    final Map<String?, EnumValue> map = <String?, EnumValue>{};
     for (EnumValue e in e2.enums.reversed) {
       map[e.name] = e;
     }
@@ -1923,7 +2001,7 @@ class Enum extends Member {
   void generateAssert(DartGenerator gen) {
     gen.writeln('String assert${name}(String obj) {');
     List<EnumValue> sorted = enums.toList()
-      ..sort((EnumValue e1, EnumValue e2) => e1.name.compareTo(e2.name));
+      ..sort((EnumValue e1, EnumValue e2) => e1.name!.compareTo(e2.name!));
     for (EnumValue value in sorted) {
       gen.writeln('  if (obj == "${value.name}") return obj;');
     }
@@ -1932,13 +2010,13 @@ class Enum extends Member {
     gen.writeln('');
   }
 
-  void _parse(Token token) => EnumParser(token).parseInto(this);
+  void _parse(Token? token) => EnumParser(token).parseInto(this);
 }
 
 class EnumValue extends Member {
   final Enum parent;
-  final String name;
-  final String docs;
+  final String? name;
+  final String? docs;
 
   EnumValue(this.parent, this.name, [this.docs]);
 
@@ -1989,7 +2067,7 @@ class TextOutputVisitor implements NodeVisitor {
   }
 
   void visitText(Text text) {
-    String t = text.text;
+    String? t = text.text;
     if (_em) {
       t = _coerceRefType(t);
     } else if (_href) {
@@ -2032,7 +2110,7 @@ class TextOutputVisitor implements NodeVisitor {
 //     string targetId [optional],
 //     string expression)
 class MethodParser extends Parser {
-  MethodParser(Token startToken) : super(startToken);
+  MethodParser(Token? startToken) : super(startToken);
 
   void parseInto(Method method) {
     // method is return type, name, (, args )
@@ -2046,21 +2124,21 @@ class MethodParser extends Parser {
 
     expect('(');
 
-    while (peek().text != ')') {
+    while (peek()!.text != ')') {
       Token type = expectName();
       TypeRef ref = TypeRef(_coerceRefType(type.text));
-      if (peek().text == '[') {
+      if (peek()!.text == '[') {
         while (consume('[')) {
           expect(']');
           ref.arrayDepth++;
         }
-      } else if (peek().text == '<') {
+      } else if (peek()!.text == '<') {
         // handle generics
         expect('<');
         ref.genericTypes = [];
-        while (peek().text != '>') {
+        while (peek()!.text != '>') {
           Token genericTypeName = expectName();
-          ref.genericTypes.add(TypeRef(_coerceRefType(genericTypeName.text)));
+          ref.genericTypes!.add(TypeRef(_coerceRefType(genericTypeName.text)));
           consume(',');
         }
         expect('>');
@@ -2088,7 +2166,7 @@ class MethodParser extends Parser {
 }
 
 class TypeParser extends Parser {
-  TypeParser(Token startToken) : super(startToken);
+  TypeParser(Token? startToken) : super(startToken);
 
   void parseInto(Type type) {
     // class ClassList extends Response {
@@ -2107,7 +2185,7 @@ class TypeParser extends Parser {
 
     expect('{');
 
-    while (peek().text != '}') {
+    while (peek()!.text != '}') {
       TypeField field = TypeField(type, collectComments());
       field.type.parse(this);
       field.name = expectName().text;
@@ -2130,6 +2208,8 @@ class TypeParser extends Parser {
       dataField.name = 'data';
       dataField.optional = true;
       type.fields.add(dataField);
+    } else if (type.rawName == 'Response') {
+      type.fields.removeWhere((field) => field.name == 'type');
     }
 
     expect('}');
@@ -2137,7 +2217,7 @@ class TypeParser extends Parser {
 }
 
 class EnumParser extends Parser {
-  EnumParser(Token startToken) : super(startToken);
+  EnumParser(Token? startToken) : super(startToken);
 
   void parseInto(Enum e) {
     // enum ErrorKind { UnhandledException, Foo, Bar }
@@ -2150,7 +2230,7 @@ class EnumParser extends Parser {
 
     while (!t.eof) {
       if (consume('}')) break;
-      String docs = collectComments();
+      String? docs = collectComments();
       t = expectName();
       consume(',');
 

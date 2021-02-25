@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.messages;
 
-import 'package:kernel/ast.dart' show Library, Location, Component, TreeNode;
+import 'package:kernel/ast.dart'
+    show Library, Location, Component, Source, TreeNode;
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -21,10 +24,10 @@ Location getLocationFromUri(Uri uri, int charOffset) {
   return getLocation(uri, charOffset);
 }
 
-String getSourceLine(Location location) {
+String getSourceLine(Location location, [Map<Uri, Source> uriToSource]) {
   if (location == null) return null;
-  return CompilerContext.current.uriToSource[location.file]
-      ?.getTextLine(location.line);
+  uriToSource ??= CompilerContext.current.uriToSource;
+  return uriToSource[location.file]?.getTextLine(location.line);
 }
 
 Location getLocationFromNode(TreeNode node) {

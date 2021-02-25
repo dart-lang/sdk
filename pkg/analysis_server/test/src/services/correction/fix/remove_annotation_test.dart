@@ -22,11 +22,11 @@ class RemoveAnnotationTest extends FixProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
   }
 
   Future<void> test_factory() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 @factory
@@ -40,7 +40,7 @@ f() {}
   }
 
   Future<void> test_immutable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 @immutable
@@ -54,7 +54,7 @@ f() {}
   }
 
   Future<void> test_literal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 @literal
@@ -68,7 +68,7 @@ f() {}
   }
 
   Future<void> test_override_field() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   @override
   String name;
@@ -82,7 +82,7 @@ class A {
   }
 
   Future<void> test_override_getter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   @override
   int get zero => 0;
@@ -96,7 +96,7 @@ class A {
   }
 
   Future<void> test_override_method() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   @override
   void m() {}
@@ -110,7 +110,7 @@ class A {
   }
 
   Future<void> test_override_setter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   @override
   set value(v) {}
@@ -124,7 +124,7 @@ class A {
   }
 
   Future<void> test_required_namedWithDefault() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 f({@required int x = 0}) {}
@@ -137,7 +137,7 @@ f({int x = 0}) {}
   }
 
   Future<void> test_required_positional() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 f([@required int x]) {}
@@ -150,7 +150,7 @@ f([int x]) {}
   }
 
   Future<void> test_required_required() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 f(@required int x) {}
@@ -163,7 +163,7 @@ f(int x) {}
   }
 
   Future<void> test_sealed() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 @sealed

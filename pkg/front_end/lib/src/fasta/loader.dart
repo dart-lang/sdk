@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.loader;
+// @dart = 2.9
 
-import 'dart:async' show Future;
+library fasta.loader;
 
 import 'dart:collection' show Queue;
 
@@ -282,11 +282,13 @@ abstract class Loader {
       {bool wasHandled: false,
       List<LocatedMessage> context,
       Severity severity,
-      bool problemOnLibrary: false}) {
+      bool problemOnLibrary: false,
+      List<Uri> involvedFiles}) {
     return addMessage(message, charOffset, length, fileUri, severity,
         wasHandled: wasHandled,
         context: context,
-        problemOnLibrary: problemOnLibrary);
+        problemOnLibrary: problemOnLibrary,
+        involvedFiles: involvedFiles);
   }
 
   /// All messages reported by the compiler (errors, warnings, etc.) are routed
@@ -304,8 +306,9 @@ abstract class Loader {
       Uri fileUri, Severity severity,
       {bool wasHandled: false,
       List<LocatedMessage> context,
-      bool problemOnLibrary: false}) {
-    severity = target.fixSeverity(severity, message, fileUri);
+      bool problemOnLibrary: false,
+      List<Uri> involvedFiles}) {
+    severity ??= message.code.severity;
     if (severity == Severity.ignored) return null;
     String trace = """
 message: ${message.message}
@@ -323,13 +326,14 @@ severity: $severity
     }
     target.context.report(
         message.withLocation(fileUri, charOffset, length), severity,
-        context: context);
+        context: context, involvedFiles: involvedFiles);
     if (severity == Severity.error) {
       (wasHandled ? handledErrors : unhandledErrors)
           .add(message.withLocation(fileUri, charOffset, length));
     }
     FormattedMessage formattedMessage = target.createFormattedMessage(
-        message, charOffset, length, fileUri, context, severity);
+        message, charOffset, length, fileUri, context, severity,
+        involvedFiles: involvedFiles);
     if (!problemOnLibrary) {
       allComponentProblems.add(formattedMessage);
     }

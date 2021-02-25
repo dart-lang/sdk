@@ -2,8 +2,17 @@
 class Class {
   Class _field;
 }
-extension Extension ;
-on Class (){}
+
+extension Extension on Class {
+  Class get field => _field;
+  void set field(Class value) {}
+  Class method() => field;
+  Class operator [](Class key) => field;
+  void operator []=(Class key, Class value) {}
+  Class operator +(int value) => field;
+  Class operator -() => field;
+}
+
 main() {}
 void propertyAccess(Class c) {}
 void indexAccess(Class c) {}

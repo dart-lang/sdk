@@ -23,6 +23,7 @@ library;
 //                        ^^^^^^
 //
 // pkg/front_end/testcases/general/issue42997.dart:12:30: Error: Expected an identifier, but got ','.
+// Try inserting an identifier before ','.
 //     for (PropertyState<Object, Object>> state in _states) ;
 //                              ^
 //
@@ -56,7 +57,7 @@ class PropertyState#1<I extends core::Object* = dynamic, O extends core::Object*
   method dispose() → void {
     for (final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:10: Error: Can't use 'PropertyState' because it is declared more than once.
     for (PropertyState<Object, Object>> state in _states) ;
-         ^".<(core::Object*); invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:30: Error: This couldn't be parsed.
+         ^".<(#C1); invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:30: Error: This couldn't be parsed.
     for (PropertyState<Object, Object>> state in _states) ;
                              ^" as{TypeError,ForDynamic} core::bool*; invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:30: Error: This couldn't be parsed.
     for (PropertyState<Object, Object>> state in _states) ;
@@ -80,3 +81,7 @@ Try correcting the operator to an existing operator, or defining a '>>' operator
 }
 static method main() → dynamic {}
 static abstract method PropertyState() → dynamic;
+
+constants  {
+  #C1 = TypeLiteralConstant(core::Object*)
+}

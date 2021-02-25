@@ -42,12 +42,13 @@ void setup() {
   B.prototype.foo = function () { return arguments.length; };
   inherits(B, A);
 
-  makeA = function(){return new A()};
-  makeB = function(){return new B()};
+  self.makeA = function(){return new A()};
+  self.makeB = function(){return new B()};
 
   self.nativeConstructor(A);
   self.nativeConstructor(B);
 })()""");
+  applyTestExtensions(['A', 'B']);
 }
 
 testDynamicContext() {

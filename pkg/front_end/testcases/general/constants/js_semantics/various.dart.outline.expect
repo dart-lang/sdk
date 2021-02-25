@@ -1,0 +1,71 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::bool* y = false;
+static const field core::bool* z = !self::y;
+static const field core::Object* maybeInt = self::z ?{core::Object*} 42 : true;
+static const field core::bool* isItInt = self::maybeInt is core::int* ?{core::bool*} true : false;
+static const field core::bool* isItDouble = self::maybeInt is core::double* ?{core::bool*} true : false;
+static const field core::int* actualInt = 42;
+static const field core::bool* isItInt2 = self::actualInt is core::int* ?{core::bool*} true : false;
+static const field core::bool* isItDouble2 = self::actualInt is core::double* ?{core::bool*} true : false;
+static const field core::Object* maybeDouble = self::z ?{core::Object*} 42.0 : true;
+static const field core::bool* isItInt3 = self::maybeDouble is core::int* ?{core::bool*} true : false;
+static const field core::bool* isItDouble3 = self::maybeDouble is core::double* ?{core::bool*} true : false;
+static const field core::double* actualDouble = 42.0;
+static const field core::bool* isItInt4 = self::actualDouble is core::int* ?{core::bool*} true : false;
+static const field core::bool* isItDouble4 = self::actualDouble is core::double* ?{core::bool*} true : false;
+static const field core::Object* maybeDouble2 = self::z ?{core::Object*} 42.42 : true;
+static const field core::bool* isItInt5 = self::maybeDouble2 is core::int* ?{core::bool*} true : false;
+static const field core::bool* isItDouble5 = self::maybeDouble2 is core::double* ?{core::bool*} true : false;
+static const field core::double* actualDouble2 = 42.42;
+static const field core::bool* isItInt6 = self::actualDouble2 is core::int* ?{core::bool*} true : false;
+static const field core::bool* isItDouble7 = self::actualDouble2 is core::double* ?{core::bool*} true : false;
+static const field core::bool* zeroPointZeroIdentical = core::identical(0.0, 0.0);
+static const field core::bool* zeroPointZeroIdenticalToZero = core::identical(0.0, 0);
+static const field core::bool* zeroIdenticalToZeroPointZero = core::identical(0, 0.0);
+static const field core::bool* nanIdentical = core::identical(0.{core::num::/}(0){(core::num*) →* core::double*}, 0.{core::num::/}(0){(core::num*) →* core::double*});
+static const field core::bool* stringIdentical = core::identical("hello", "hello");
+static const field core::bool* string2Identical = core::identical("hello", "world");
+static const field core::bool* zeroPointZeroEqual = 0.0 =={core::num::==}{(core::Object*) →* core::bool*} 0.0;
+static const field core::bool* zeroPointZeroEqualToZero = 0.0 =={core::num::==}{(core::Object*) →* core::bool*} 0;
+static const field core::bool* zeroEqualToZeroPointZero = 0 =={core::num::==}{(core::Object*) →* core::bool*} 0.0;
+static const field core::bool* nanEqual = 0.{core::num::/}(0){(core::num*) →* core::double*} =={core::num::==}{(core::Object*) →* core::bool*} 0.{core::num::/}(0){(core::num*) →* core::double*};
+static const field core::bool* stringEqual = "hello" =={core::String::==}{(core::Object*) →* core::bool*} "hello";
+static const field core::bool* string2Equal = "hello" =={core::String::==}{(core::Object*) →* core::bool*} "world";
+static const field core::int* intFortyTwo = 42;
+static const field core::String* intStringConcat = "hello${self::intFortyTwo.{core::num::*}(self::intFortyTwo){(core::num*) →* core::int*}}";
+
+
+Extra constant evaluation status:
+Evaluated: Not @ org-dartlang-testcase:///various.dart:6:16 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:8:20 -> DoubleConstant(42.0)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:9:38 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:10:44 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:13:40 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:14:46 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:16:23 -> DoubleConstant(42.0)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:17:42 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:18:48 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:21:43 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:22:49 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:24:24 -> DoubleConstant(42.42)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:25:43 -> BoolConstant(false)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:26:49 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:29:44 -> BoolConstant(false)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:30:50 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:32:32 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:33:38 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:34:38 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:35:22 -> BoolConstant(false)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:36:25 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:37:26 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:39:32 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:40:38 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:41:36 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:42:24 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:43:29 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:44:30 -> BoolConstant(false)
+Evaluated: StringConcatenation @ org-dartlang-testcase:///various.dart:47:30 -> StringConstant("hello1764")
+Extra constant evaluation: evaluated: 29, effectively constant: 29

@@ -20,7 +20,7 @@ class SplitAndConditionTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.SPLIT_AND_CONDITION;
 
   Future<void> test_hasElse() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1 && 2 == 2) {
     print(1);
@@ -33,7 +33,7 @@ main() {
   }
 
   Future<void> test_innerAndExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1 && 2 == 2 && 3 == 3) {
     print(0);
@@ -52,7 +52,7 @@ main() {
   }
 
   Future<void> test_notAnd() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1 || 2 == 2) {
     print(0);
@@ -63,7 +63,7 @@ main() {
   }
 
   Future<void> test_notOnOperator() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1 && 2 == 2) {
     print(0);
@@ -75,7 +75,7 @@ main() {
   }
 
   Future<void> test_notPartOfIf() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print(1 == 1 && 2 == 2);
 }
@@ -84,7 +84,7 @@ main() {
   }
 
   Future<void> test_notTopLevelAnd() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (true || (1 == 1 && 2 == 2)) {
     print(0);
@@ -99,7 +99,7 @@ main() {
   }
 
   Future<void> test_selectionTooLarge() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1
 // start
@@ -116,7 +116,7 @@ main() {
   }
 
   Future<void> test_thenBlock() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (true && false) {
     print(0);
@@ -141,7 +141,7 @@ main() {
   }
 
   Future<void> test_thenStatement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (true && false)
     print(0);

@@ -418,7 +418,7 @@ main() {
 
   test_constantGenericTypeArg_infer() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26141
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 abstract class Equality<Q> {}
 abstract class EqualityBase<R> implements Equality<R> {
   final C<R> c = const C();
@@ -439,7 +439,7 @@ class C<Q> {
 main() {
   const SetEquality<String>();
 }
-''', []);
+''');
   }
 
   test_constructorInvalid() async {
@@ -2278,11 +2278,11 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 1),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 117, 9),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 137, 15),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 124, 1),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 148, 3),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 159, 3),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 173, 5),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 189, 9),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 196, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 190, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 193, 1),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 209, 3),
@@ -2298,7 +2298,7 @@ main() {
   }
 
   test_genericMethodOverride() async {
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 class Future<T> {
   S then<S>(S onValue(T t)) => null;
 }
@@ -2318,7 +2318,7 @@ class DerivedFuture3<T> extends Future<T> {
 class DerivedFuture4<A> extends Future<A> {
   B then<B>(Object onValue(A a)) => null;
 }
-''', []);
+''');
   }
 
   test_genericMethodSuper() async {
@@ -2348,7 +2348,7 @@ class F extends A<num> {
   }
 
   test_genericMethodSuperSubstitute() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class Cloneable<T> {}
 class G<T> {
   create<A extends Cloneable<T>, B extends Iterable<A>>() => null;
@@ -2356,7 +2356,7 @@ class G<T> {
 class H extends G<num> {
   create2() => super.create<Cloneable<int>, List<Cloneable<int>>>();
 }
-''', []);
+''');
   }
 
   test_getterGetterOverride() async {
@@ -3103,7 +3103,7 @@ var fe1 = (int x) => x;
 
   test_implicitDynamic_static() async {
     _disableTestPackageImplicitDynamic();
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   static void test(int body()) {}
 }
@@ -3113,7 +3113,7 @@ void main() {
     return 42;
   });
 }
-''', []);
+''');
   }
 
   test_implicitDynamic_type() async {
@@ -3223,7 +3223,7 @@ class C2 extends Object with M2 {
 
   test_interfacesFromMixinsOnlyConsiderMostDerivedMember() {
     // Regression test for dart2js interface pattern in strong mode.
-    return assertErrorsInCode(r'''
+    return assertNoErrorsInCode(r'''
 abstract class I1 { num get x; }
 abstract class I2 extends I1 { int get x; }
 
@@ -3234,7 +3234,7 @@ class Base extends Object with M1 implements I1 {}
 class Child extends Base with M2 implements I2 {}
 
 class C extends Object with M1, M2 implements I1, I2 {}
-''', []);
+''');
   }
 
   test_interfacesFromMixinsUsedTwiceAreChecked() {
@@ -3548,7 +3548,7 @@ class U1 = Base with M1, M2;
     // This is a regression test for a bug in an earlier implementation were
     // names were hiding errors if the first mixin override looked correct,
     // but subsequent ones did not.
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A {}
 class B {}
 
@@ -3571,7 +3571,7 @@ class M3 {
 class T1 extends Base with M1, M2, M3 {}
 
 class U1 = Base with M1, M2, M3;
-''', []);
+''');
   }
 
   test_invalidOverrides_noErrorsIfSubclassCorrectlyOverrideBaseAndInterface() async {
@@ -3785,14 +3785,14 @@ class H implements F {
 
   test_methodTearoffStrictArrow() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26393
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   void foo(dynamic x) {}
   void test(void f(int x)) {
     test(foo);
   }
 }
-''', []);
+''');
   }
 
   test_mixinApplicationIsConcrete() {
@@ -3809,7 +3809,7 @@ class C = Object with B;
 
 class D extends Object with C implements A {}
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 100, 1),
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 100, 1),
     ]);
   }
 
@@ -4092,7 +4092,7 @@ class T1 implements I2 {
   }
 
   test_nullCoalescingOperator() async {
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A {}
 class C<T> {}
 main() {
@@ -4105,11 +4105,11 @@ main() {
   c ??= new C();
   d = d ?? new C();
 }
-''', []);
+''');
   }
 
   test_nullCoalescingStrictArrow() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 bool _alwaysTrue(x) => true;
 typedef bool TakesA<T>(T t);
 class C<T> {
@@ -4118,7 +4118,7 @@ class C<T> {
     : g = f ?? _alwaysTrue;
   C.a() : g = _alwaysTrue;
 }
-''', []);
+''');
   }
 
   test_optionalParams() async {
@@ -4155,13 +4155,13 @@ abstract class D extends C {
 
   test_overrideNarrowsType_legalWithChecked() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/25232
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 abstract class A { void test(A arg) { } }
 abstract class B extends A { void test(covariant B arg) { } }
 abstract class X implements A { }
 class C extends B with X { }
 class D extends B implements A { }
-''', []);
+''');
   }
 
   test_overrideNarrowsType_noDuplicateError() {
@@ -4180,8 +4180,8 @@ class D extends B with X { }
 class E extends B implements A { }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 78, 4),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 159, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 189, 1),
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 159, 1),
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 189, 1),
     ]);
   }
 
@@ -4522,7 +4522,7 @@ class AlsoValid extends Base {
 
 main() => new Derived();
 ''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 170, 7),
+      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 170, 5),
     ]);
   }
 
@@ -4643,7 +4643,7 @@ class B extends A {
   }
 
   test_tearOffTreatedConsistentlyAsStrictArrow() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void foo(void f(String x)) {}
 
 class A {
@@ -4666,11 +4666,11 @@ void test() {
   foo(baz2);
   foo(baz3);
 }
-''', []);
+''');
   }
 
   test_tearOffTreatedConsistentlyAsStrictArrowNamedParam() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 typedef void Handler(String x);
 void foo({Handler f}) {}
 
@@ -4694,7 +4694,7 @@ void test() {
   foo(f: baz2);
   foo(f: baz3);
 }
-''', []);
+''');
   }
 
   test_ternaryOperator() async {

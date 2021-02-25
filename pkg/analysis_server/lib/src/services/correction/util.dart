@@ -422,7 +422,7 @@ List<AstNode> getParents(AstNode node) {
     }
   }
   // fill array of parents
-  var parents = List<AstNode>(numParents);
+  var parents = List<AstNode>.filled(numParents, null);
   var current = node.parent;
   var index = numParents;
   while (current != null) {
@@ -831,10 +831,10 @@ class CorrectionUtils {
 
     var element = type.element;
 
-    // Typedef(s) are represented as GenericFunctionTypeElement(s).
+    // Typedef(s) are represented as FunctionTypeAliasElement(s).
     if (element is GenericFunctionTypeElement &&
         element.typeParameters.isEmpty &&
-        element.enclosingElement is GenericTypeAliasElement) {
+        element.enclosingElement is FunctionTypeAliasElement) {
       element = element.enclosingElement;
     }
 

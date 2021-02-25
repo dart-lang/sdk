@@ -7,6 +7,7 @@
 // SharedObjects=ffi_test_functions
 
 import 'dart:ffi';
+import 'dart:io';
 import 'dart:isolate';
 
 import "package:expect/expect.dart";
@@ -29,7 +30,9 @@ void main() async {
   final receivePort = ReceivePort();
   Isolate.spawn(secondIsolateMain, receivePort.sendPort);
   await receivePort.first;
-  Expect.equals(42, getGlobalVar());
+  if (!Platform.isIOS /* Static linking causes different behavior. */) {
+    Expect.equals(42, getGlobalVar());
+  }
 }
 
 void secondIsolateMain(SendPort sendPort) {

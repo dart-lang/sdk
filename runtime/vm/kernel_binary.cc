@@ -75,7 +75,7 @@ TypedDataPtr Reader::ReadLineStartsData(intptr_t line_start_count) {
     }
   }
 
-  return line_starts_data.raw();
+  return line_starts_data.ptr();
 }
 
 const char* kKernelInvalidFilesize =
@@ -208,12 +208,12 @@ std::unique_ptr<Program> Program::ReadFromFile(
       isolate->CallTagHandler(Dart_kKernelTag, Object::null_object(), uri));
   if (ret.IsExternalTypedData()) {
     const auto& typed_data = ExternalTypedData::Handle(
-        thread->zone(), ExternalTypedData::RawCast(ret.raw()));
+        thread->zone(), ExternalTypedData::RawCast(ret.ptr()));
     kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     return kernel_program;
   } else if (error != nullptr) {
     Api::Scope api_scope(thread);
-    Dart_Handle retval = Api::NewHandle(thread, ret.raw());
+    Dart_Handle retval = Api::NewHandle(thread, ret.ptr());
     {
       TransitionVMToNative transition(thread);
       *error = Dart_GetError(retval);

@@ -99,7 +99,7 @@ class Maplet<K, V> extends MapBase<K, V> {
       } else if (_key == key) {
         _value = value;
       } else {
-        List list = new List(CAPACITY * 2);
+        List list = new List.filled(CAPACITY * 2, null);
         list[0] = _key;
         list[1] = key;
         list[CAPACITY] = _value;

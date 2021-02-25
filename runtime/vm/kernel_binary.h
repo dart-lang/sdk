@@ -20,8 +20,8 @@ namespace kernel {
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
-static const uint32_t kMinSupportedKernelFormatVersion = 45;
-static const uint32_t kMaxSupportedKernelFormatVersion = 45;
+static const uint32_t kMinSupportedKernelFormatVersion = 54;
+static const uint32_t kMaxSupportedKernelFormatVersion = 54;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -42,9 +42,9 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 45;
   V(AssertInitializer, 12)                                                     \
   V(CheckLibraryIsLoaded, 13)                                                  \
   V(LoadLibrary, 14)                                                           \
-  V(DirectPropertyGet, 15)                                                     \
-  V(DirectPropertySet, 16)                                                     \
-  V(DirectMethodInvocation, 17)                                                \
+  V(EqualsNull, 15)                                                            \
+  V(EqualsCall, 16)                                                            \
+  V(StaticTearOff, 17)                                                         \
   V(ConstStaticInvocation, 18)                                                 \
   V(InvalidExpression, 19)                                                     \
   V(VariableGet, 20)                                                           \
@@ -129,6 +129,16 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 45;
   V(SimpleInterfaceType, 96)                                                   \
   V(SimpleFunctionType, 97)                                                    \
   V(ConstantExpression, 106)                                                   \
+  V(InstanceGet, 118)                                                          \
+  V(InstanceSet, 119)                                                          \
+  V(InstanceInvocation, 120)                                                   \
+  V(InstanceTearOff, 121)                                                      \
+  V(DynamicGet, 122)                                                           \
+  V(DynamicSet, 123)                                                           \
+  V(DynamicInvocation, 124)                                                    \
+  V(FunctionInvocation, 125)                                                   \
+  V(FunctionTearOff, 126)                                                      \
+  V(LocalFunctionInvocation, 127)                                              \
   V(SpecializedVariableGet, 128)                                               \
   V(SpecializedVariableSet, 136)                                               \
   V(SpecializedIntLiteral, 144)
@@ -194,6 +204,12 @@ enum IsExpressionFlags {
 };
 
 // Keep in sync with package:kernel/lib/ast.dart
+enum MethodInvocationFlags {
+  kMethodInvocationFlagInvariant = 1 << 0,
+  kMethodInvocationFlagBoundsSafe = 1 << 1,
+};
+
+// Keep in sync with package:kernel/lib/ast.dart
 enum class NamedTypeFlags : uint8_t {
   kIsRequired = 1 << 0,
 };
@@ -213,14 +229,18 @@ class Reader : public ValueObject {
         raw_buffer_(buffer),
         typed_data_(NULL),
         size_(size),
-        offset_(0) {}
+        offset_(0),
+        max_position_(TokenPosition::kNoSource),
+        min_position_(TokenPosition::kNoSource) {}
 
   explicit Reader(const ExternalTypedData& typed_data)
       : thread_(Thread::Current()),
         raw_buffer_(NULL),
         typed_data_(&typed_data),
         size_(typed_data.IsNull() ? 0 : typed_data.Length()),
-        offset_(0) {}
+        offset_(0),
+        max_position_(TokenPosition::kNoSource),
+        min_position_(TokenPosition::kNoSource) {}
 
   uint32_t ReadFromIndex(intptr_t end_offset,
                          intptr_t fields_before,
@@ -293,13 +313,17 @@ class Reader : public ValueObject {
   }
 
   intptr_t ReadSLEB128() {
-    const uint8_t* buffer = this->buffer();
-    return Utils::DecodeSLEB128<intptr_t>(buffer, size_, &offset_);
+    ReadStream stream(this->buffer(), size_, offset_);
+    const intptr_t result = stream.ReadSLEB128();
+    offset_ = stream.Position();
+    return result;
   }
 
   int64_t ReadSLEB128AsInt64() {
-    const uint8_t* buffer = this->buffer();
-    return Utils::DecodeSLEB128<int64_t>(buffer, size_, &offset_);
+    ReadStream stream(this->buffer(), size_, offset_);
+    const int64_t result = stream.ReadSLEB128<int64_t>();
+    offset_ = stream.Position();
+    return result;
   }
 
   /**
@@ -309,14 +333,9 @@ class Reader : public ValueObject {
     // Position is saved as unsigned,
     // but actually ranges from -1 and up (thus the -1)
     intptr_t value = ReadUInt() - 1;
-    TokenPosition result = TokenPosition(value);
-    max_position_ = Utils::Maximum(max_position_, result);
-    if (min_position_.IsNoSource()) {
-      min_position_ = result;
-    } else if (result.IsReal()) {
-      min_position_ = Utils::Minimum(min_position_, result);
-    }
-
+    TokenPosition result = TokenPosition::Deserialize(value);
+    max_position_ = TokenPosition::Max(max_position_, result);
+    min_position_ = TokenPosition::Min(min_position_, result);
     return result;
   }
 
@@ -533,12 +552,8 @@ class PositionScope {
   }
 
   ~PositionScope() {
-    if (reader_->min_position_.IsNoSource()) {
-      reader_->min_position_ = min_;
-    } else if (min_.IsReal()) {
-      reader_->min_position_ = Utils::Minimum(reader_->min_position_, min_);
-    }
-    reader_->max_position_ = Utils::Maximum(reader_->max_position_, max_);
+    reader_->min_position_ = TokenPosition::Min(reader_->min_position_, min_);
+    reader_->max_position_ = TokenPosition::Max(reader_->max_position_, max_);
   }
 
  private:

@@ -79,13 +79,11 @@ class Compiler : public AllStatic {
   // Generates code for given function without optimization and sets its code
   // field.
   //
-  // Returns the raw code object if compilation succeeds.  Otherwise returns a
-  // RawError.  Also installs the generated code on the function.
+  // Returns the raw code object if compilation succeeds.  Otherwise returns an
+  // ErrorPtr.  Also installs the generated code on the function.
   static ObjectPtr CompileFunction(Thread* thread, const Function& function);
 
   // Generates unoptimized code if not present, current code is unchanged.
-  // Bytecode is considered unoptimized code.
-  // TODO(regis): Revisit when deoptimizing mixed bytecode and jitted code.
   static ErrorPtr EnsureUnoptimizedCode(Thread* thread,
                                         const Function& function);
 
@@ -108,9 +106,6 @@ class Compiler : public AllStatic {
   // Returns Error::null() if there is no compilation error.
   static ErrorPtr CompileAllFunctions(const Class& cls);
 
-  // Eagerly read all bytecode.
-  static ErrorPtr ReadAllBytecode(const Class& cls);
-
   // Notify the compiler that background (optimized) compilation has failed
   // because the mutator thread changed the state (e.g., deoptimization,
   // deferred loading). The background compilation may retry to compile
@@ -129,36 +124,24 @@ class BackgroundCompiler {
 
   static void Start(Isolate* isolate) {
     ASSERT(Thread::Current()->IsMutatorThread());
-    if (FLAG_enable_interpreter && isolate->background_compiler() != NULL) {
-      isolate->background_compiler()->Start();
-    }
     if (isolate->optimizing_background_compiler() != NULL) {
       isolate->optimizing_background_compiler()->Start();
     }
   }
   static void Stop(Isolate* isolate) {
     ASSERT(Thread::Current()->IsMutatorThread());
-    if (FLAG_enable_interpreter && isolate->background_compiler() != NULL) {
-      isolate->background_compiler()->Stop();
-    }
     if (isolate->optimizing_background_compiler() != NULL) {
       isolate->optimizing_background_compiler()->Stop();
     }
   }
   static void Enable(Isolate* isolate) {
     ASSERT(Thread::Current()->IsMutatorThread());
-    if (FLAG_enable_interpreter && isolate->background_compiler() != NULL) {
-      isolate->background_compiler()->Enable();
-    }
     if (isolate->optimizing_background_compiler() != NULL) {
       isolate->optimizing_background_compiler()->Enable();
     }
   }
   static void Disable(Isolate* isolate) {
     ASSERT(Thread::Current()->IsMutatorThread());
-    if (FLAG_enable_interpreter && isolate->background_compiler() != NULL) {
-      isolate->background_compiler()->Disable();
-    }
     if (isolate->optimizing_background_compiler() != NULL) {
       isolate->optimizing_background_compiler()->Disable();
     }
@@ -168,10 +151,6 @@ class BackgroundCompiler {
     if (optimizing_compiler) {
       if (isolate->optimizing_background_compiler() != NULL) {
         return isolate->optimizing_background_compiler()->IsDisabled();
-      }
-    } else {
-      if (FLAG_enable_interpreter && isolate->background_compiler() != NULL) {
-        return isolate->background_compiler()->IsDisabled();
       }
     }
     return false;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 library fasta.test.assert_locations_test;
 
 import 'package:async_helper/async_helper.dart' show asyncTest;
@@ -114,10 +116,10 @@ class VerifyingVisitor extends RecursiveVisitor<Null> {
 
   @override
   visitProcedure(Procedure node) {
-    expectedSpan = test.spans[node.name.name];
+    expectedSpan = test.spans[node.name.text];
     if (expectedSpan != null) {
       super.visitProcedure(node);
-      verified.add(node.name.name);
+      verified.add(node.name.text);
       expectedSpan = null;
     }
   }

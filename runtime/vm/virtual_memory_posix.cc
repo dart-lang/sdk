@@ -16,6 +16,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/heap/pages.h"
 #include "vm/isolate.h"
 
 // #define VIRTUAL_MEMORY_LOGGING 1
@@ -75,7 +76,7 @@ void VirtualMemory::Init() {
   // Also detect for missing support of memfd_create syscall.
   if (FLAG_dual_map_code) {
     intptr_t size = PageSize();
-    intptr_t alignment = 256 * 1024;  // e.g. heap page size.
+    intptr_t alignment = kOldPageSize;
     VirtualMemory* vm = AllocateAligned(size, alignment, true, "memfd-test");
     if (vm == NULL) {
       LOG_INFO("memfd_create not supported; disabling dual mapping of code.\n");
@@ -93,6 +94,25 @@ void VirtualMemory::Init() {
     delete vm;
   }
 #endif  // defined(DUAL_MAPPING_SUPPORTED)
+
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+  FILE* fp = fopen("/proc/sys/vm/max_map_count", "r");
+  if (fp != nullptr) {
+    size_t max_map_count = 0;
+    int count = fscanf(fp, "%zu", &max_map_count);
+    fclose(fp);
+    if (count == 1) {
+      size_t max_heap_pages = FLAG_old_gen_heap_size * MB / kOldPageSize;
+      if (max_map_count < max_heap_pages) {
+        OS::PrintErr(
+            "warning: vm.max_map_count (%zu) is not large enough to support "
+            "--old_gen_heap_size=%d. Consider increasing it with `sysctl -w "
+            "vm.max_map_count=%zu`\n",
+            max_map_count, FLAG_old_gen_heap_size, max_heap_pages);
+      }
+    }
+  }
+#endif
 }
 
 bool VirtualMemory::DualMappingEnabled() {

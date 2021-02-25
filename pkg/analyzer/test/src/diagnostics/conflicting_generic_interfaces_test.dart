@@ -138,11 +138,13 @@ import 'a.dart';
 class C extends Bi implements Biq {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'b.dart';
 
 abstract class D implements C {}
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
   }
 
   test_class_topMerge() async {
@@ -169,11 +171,13 @@ import 'a.dart';
 class B extends A<int> {}
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 import 'b.dart';
 
 class C extends B implements A<int> {}
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 24, 8),
+    ]);
   }
 }

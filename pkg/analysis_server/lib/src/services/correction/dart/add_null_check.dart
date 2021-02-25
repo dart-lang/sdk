@@ -36,16 +36,49 @@ class AddNullCheck extends CorrectionProducer {
     DartType toType;
     var parent = target.parent;
     if (parent is AssignmentExpression && target == parent.rightHandSide) {
-      toType = parent.leftHandSide.staticType;
+      toType = parent.writeType;
     } else if (parent is VariableDeclaration && target == parent.initializer) {
       toType = parent.declaredElement.type;
     } else if (parent is ArgumentList) {
       toType = target.staticParameterElement.type;
+    } else if (parent is IndexExpression) {
+      toType = parent.realTarget.staticType;
+    } else if (parent is ForEachPartsWithDeclaration) {
+      toType =
+          typeProvider.iterableType2(parent.loopVariable.declaredElement.type);
+    } else if (parent is ForEachPartsWithIdentifier) {
+      toType = typeProvider.iterableType2(parent.identifier.staticType);
+    } else if (parent is SpreadElement) {
+      var literal = parent.thisOrAncestorOfType<TypedLiteral>();
+      if (literal is ListLiteral) {
+        toType = literal.staticType.asInstanceOf(typeProvider.iterableElement);
+      } else if (literal is SetOrMapLiteral) {
+        toType = literal.staticType.isDartCoreSet
+            ? literal.staticType.asInstanceOf(typeProvider.iterableElement)
+            : literal.staticType.asInstanceOf(typeProvider.mapElement);
+      }
+    } else if (parent is YieldStatement) {
+      var enclosingExecutable =
+          parent.thisOrAncestorOfType<FunctionBody>().parent;
+      if (enclosingExecutable is FunctionDeclaration) {
+        toType = enclosingExecutable.returnType?.type;
+      } else if (enclosingExecutable is MethodDeclaration) {
+        toType = enclosingExecutable.returnType?.type;
+      } else if (enclosingExecutable is FunctionExpression) {
+        toType = enclosingExecutable.declaredElement.returnType;
+      }
+    } else if ((parent is PrefixedIdentifier && target == parent.prefix) ||
+        (parent is PropertyAccess && target == parent.target) ||
+        (parent is MethodInvocation && target == parent.target) ||
+        (parent is FunctionExpressionInvocation && target == parent.function)) {
+      // No need to set the `toType` because there isn't any need for a type
+      // check.
     } else {
       return;
     }
-    if (!typeSystem.isAssignableTo(
-        toType, typeSystem.promoteToNonNull(fromType))) {
+    if (toType != null &&
+        !typeSystem.isAssignableTo(
+            typeSystem.promoteToNonNull(fromType), toType)) {
       // The reason that `fromType` can't be assigned to `toType` is more than
       // just because it's nullable, in which case a null check won't fix the
       // problem.

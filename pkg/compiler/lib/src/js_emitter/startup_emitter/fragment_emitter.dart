@@ -54,6 +54,16 @@ function copyProperties(from, to) {
     to[key] = from[key];
   }
 }
+// Copies the own properties from [from] to [to] if not already present in [to].
+function mixinProperties(from, to) {
+  var keys = Object.keys(from);
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    if (!to.hasOwnProperty(key)) {
+      to[key] = from[key];
+    }
+  }
+}
 
 // Only use direct proto access to construct the prototype chain (instead of
 // copying properties) on platforms where we know it works well (Chrome / d8).
@@ -72,7 +82,7 @@ function setFunctionNamesIfNecessary(holders) {
     for (var j = 0; j < keys.length; j++) {
       var key = keys[j];
       var f = holder[key];
-      if (typeof f == 'function') f.name = key;
+      if (typeof f == "function") f.name = key;
     }
   }
 }
@@ -111,7 +121,7 @@ function inheritMany(sup, classes) {
 
 // Mixes in the properties of [mixin] into [cls].
 function mixin(cls, mixin) {
-  copyProperties(mixin.prototype, cls.prototype);
+  mixinProperties(mixin.prototype, cls.prototype);
   cls.prototype.constructor = cls;
 }
 
@@ -162,6 +172,27 @@ function lazy(holder, name, getterName, initializer) {
   holder[getterName] = function() {
     if (holder[name] === uninitializedSentinel) {
       holder[name] = initializer();
+    }
+    holder[getterName] = function() { return this[name]; };
+    return holder[name];
+  };
+}
+
+// Creates a lazy final field that uses non-nullable initialization semantics.
+//
+// A lazy field has a storage entry, [name], which holds the value, and a
+// getter ([getterName]) to access the field. If the field wasn't set before
+// the first access, it is initialized with the [initializer].
+function lazyFinal(holder, name, getterName, initializer) {
+  var uninitializedSentinel = holder;
+  holder[name] = uninitializedSentinel;
+  holder[getterName] = function() {
+    if (holder[name] === uninitializedSentinel) {
+      var value = initializer();
+      if (holder[name] !== uninitializedSentinel) {
+        #throwLateInitializationError(name);
+      }
+      holder[name] = value;
     }
     holder[getterName] = function() { return this[name]; };
     return holder[name];
@@ -229,7 +260,7 @@ function installTearOff(
   var funs = [];
   for (var i = 0; i < funsOrNames.length; i++) {
     var fun = funsOrNames[i];
-    if ((typeof fun) == 'string') fun = container[fun];
+    if ((typeof fun) == "string") fun = container[fun];
     fun.#callName = callNames[i];
     funs.push(fun);
   }
@@ -369,6 +400,7 @@ var #hunkHelpers = (function(){
 
     makeConstList: makeConstList,
     lazy: lazy,
+    lazyFinal: lazyFinal,
     lazyOld: lazyOld,
     updateHolder: updateHolder,
     convertToFastObject: convertToFastObject,
@@ -668,6 +700,35 @@ class FragmentEmitter {
     if (library != null) _dumpInfoTask.registerEntityAst(library, code);
   }
 
+  PreFragment emitPreFragment(DeferredFragment fragment, bool estimateSize) {
+    var classPrototypes = emitPrototypes(fragment, includeClosures: false);
+    var closurePrototypes = emitPrototypes(fragment, includeClosures: true);
+    var inheritance = emitInheritance(fragment);
+    var methodAliases = emitInstanceMethodAliases(fragment);
+    var tearOffs = emitInstallTearOffs(fragment);
+    var constants = emitConstants(fragment);
+    var typeRules = emitTypeRules(fragment);
+    var variances = emitVariances(fragment);
+    var staticNonFinalFields = emitStaticNonFinalFields(fragment);
+    var lazyInitializers = emitLazilyInitializedStatics(fragment);
+    // TODO(floitsch): only call emitNativeSupport if we need native.
+    var nativeSupport = emitNativeSupport(fragment);
+    return PreFragment(
+        fragment,
+        classPrototypes,
+        closurePrototypes,
+        inheritance,
+        methodAliases,
+        tearOffs,
+        constants,
+        typeRules,
+        variances,
+        staticNonFinalFields,
+        lazyInitializers,
+        nativeSupport,
+        estimateSize);
+  }
+
   js.Statement emitMainFragment(
       Program program, DeferredLoadingState deferredLoadingState) {
     MainFragment fragment = program.fragments.first;
@@ -677,8 +738,8 @@ class FragmentEmitter {
 
     String softDeferredId = "softDeferred${new Random().nextInt(0x7FFFFFFF)}";
 
-    HolderCode holderCode =
-        emitHolders(program.holders, fragment, initializeEmptyHolders: true);
+    HolderCode holderCode = emitHolders(program.holders, fragment.libraries,
+        initializeEmptyHolders: true);
 
     js.Statement mainCode = js.js.statement(_mainBoilerplate, {
       // TODO(29455): 'hunkHelpers' displaces other names, so don't minify it.
@@ -686,6 +747,8 @@ class FragmentEmitter {
       'directAccessTestExpression': js.js(_directAccessTestExpression),
       'cyclicThrow': _emitter
           .staticFunctionAccess(_closedWorld.commonElements.cyclicThrowHelper),
+      'throwLateInitializationError': _emitter.staticFunctionAccess(
+          _closedWorld.commonElements.throwLateInitializationError),
       'operatorIsPrefix': js.string(_namer.fixedNames.operatorIsPrefix),
       'tearOffCode': new js.Block(buildTearOffCode(
           _options, _emitter, _namer, _closedWorld.commonElements)),
@@ -767,10 +830,10 @@ class FragmentEmitter {
     return new js.Block(holderInits);
   }
 
-  js.Expression emitDeferredFragment(DeferredFragment fragment,
-      js.Expression deferredTypes, List<Holder> holders) {
+  js.Expression emitDeferredFragment(
+      FinalizedFragment fragment, List<Holder> holders) {
     HolderCode holderCode =
-        emitHolders(holders, fragment, initializeEmptyHolders: false);
+        emitHolders(holders, fragment.libraries, initializeEmptyHolders: false);
 
     List<Holder> nonStaticStateHolders = holders
         .where((Holder holder) => !holder.isStaticStateHolder)
@@ -797,19 +860,6 @@ class FragmentEmitter {
       }
     }
 
-    var classPrototypes = emitPrototypes(fragment, includeClosures: false);
-    var closurePrototypes = emitPrototypes(fragment, includeClosures: true);
-    var inheritance = emitInheritance(fragment);
-    var methodAliases = emitInstanceMethodAliases(fragment);
-    var tearOffs = emitInstallTearOffs(fragment);
-    var constants = emitConstants(fragment);
-    var typeRules = emitTypeRules(fragment);
-    var variances = emitVariances(fragment);
-    var staticNonFinalFields = emitStaticNonFinalFields(fragment);
-    var lazyInitializers = emitLazilyInitializedStatics(fragment);
-    // TODO(floitsch): only call emitNativeSupport if we need native.
-    var nativeSupport = emitNativeSupport(fragment);
-
     // TODO(sra): How do we tell if [deferredTypes] is empty? It is filled-in
     // later via the program finalizers. So we should defer the decision on the
     // emptiness of the fragment until the finalizers have run.  For now we seem
@@ -819,16 +869,7 @@ class FragmentEmitter {
     // not emit any functions, then we probably did not use the signature types
     // in the OutputUnit's types, leaving them unused and tree-shaken.
 
-    if (holderCode.activeHolders.isEmpty &&
-        isEmptyStatement(classPrototypes) &&
-        isEmptyStatement(closurePrototypes) &&
-        isEmptyStatement(inheritance) &&
-        isEmptyStatement(methodAliases) &&
-        isEmptyStatement(tearOffs) &&
-        isEmptyStatement(constants) &&
-        isEmptyStatement(staticNonFinalFields) &&
-        isEmptyStatement(lazyInitializers) &&
-        isEmptyStatement(nativeSupport)) {
+    if (holderCode.activeHolders.isEmpty && fragment.isEmpty) {
       return null;
     }
 
@@ -841,18 +882,18 @@ class FragmentEmitter {
           .map((holder) => js.js("#", holder.name))
           .toList(growable: false)),
       'updateHolders': new js.Block(updateHolderAssignments),
-      'prototypes': classPrototypes,
-      'closures': closurePrototypes,
-      'inheritance': inheritance,
-      'aliases': methodAliases,
-      'tearOffs': tearOffs,
-      'typeRules': typeRules,
-      'variances': variances,
-      'constants': constants,
-      'staticNonFinalFields': staticNonFinalFields,
-      'lazyStatics': lazyInitializers,
-      'types': deferredTypes,
-      'nativeSupport': nativeSupport,
+      'prototypes': fragment.classPrototypes,
+      'closures': fragment.closurePrototypes,
+      'inheritance': fragment.inheritance,
+      'aliases': fragment.methodAliases,
+      'tearOffs': fragment.tearOffs,
+      'typeRules': fragment.typeRules,
+      'variances': fragment.variances,
+      'constants': fragment.constants,
+      'staticNonFinalFields': fragment.staticNonFinalFields,
+      'lazyStatics': fragment.lazyInitializers,
+      'types': fragment.deferredTypes,
+      'nativeSupport': fragment.nativeSupport,
       'typesOffset': _namer.typesOffsetName,
       'sharedStrings': StringReferenceResource(),
       'sharedTypeRtis': TypeReferenceResource(),
@@ -880,7 +921,7 @@ class FragmentEmitter {
   ///
   /// The emitted holders contain classes (only the constructors) and all
   /// static functions.
-  HolderCode emitHolders(List<Holder> holders, Fragment fragment,
+  HolderCode emitHolders(List<Holder> holders, List<Library> libraries,
       {bool initializeEmptyHolders}) {
     assert(initializeEmptyHolders != null);
     // Skip the static-state holder in this function.
@@ -894,7 +935,7 @@ class FragmentEmitter {
       holderCode[holder] = <js.Property>[];
     }
 
-    for (Library library in fragment.libraries) {
+    for (Library library in libraries) {
       for (StaticMethod method in library.statics) {
         assert(!method.holder.isStaticStateHolder);
         Map<js.Name, js.Expression> propertyMap = emitStaticMethod(method);
@@ -1464,13 +1505,6 @@ class FragmentEmitter {
     return js.js.statement('(function #(){#})();', [name, block]);
   }
 
-  bool isEmptyStatement(js.Statement statement) {
-    if (statement is js.Block) {
-      return statement.statements.isEmpty;
-    }
-    return statement is js.EmptyStatement;
-  }
-
   /// Emits the section that installs tear-off getters.
   js.Statement emitInstallTearOffs(Fragment fragment,
       {bool softDeferred = false}) {
@@ -1755,14 +1789,17 @@ class FragmentEmitter {
     LocalAliases locals = LocalAliases();
     for (StaticField field in fields) {
       assert(field.holder.isStaticStateHolder);
+      String helper = field.usesNonNullableInitialization
+          ? field.isFinal
+              ? locals.find('_lazyFinal', 'hunkHelpers.lazyFinal')
+              : locals.find('_lazy', 'hunkHelpers.lazy')
+          : locals.find('_lazyOld', 'hunkHelpers.lazyOld');
       js.Statement statement = js.js.statement("#(#, #, #, #);", [
-        field.usesNonNullableInitialization
-            ? locals.find('_lazy', 'hunkHelpers.lazy')
-            : locals.find('_lazyOld', 'hunkHelpers.lazyOld'),
+        helper,
         field.holder.name,
         js.quoteName(field.name),
         js.quoteName(field.getterName),
-        field.code
+        field.code,
       ]);
 
       registerEntityAst(field.element, statement,
@@ -1837,20 +1874,20 @@ class FragmentEmitter {
   // array of hashes indexed by part.
   // [deferredLoadHashes] may have missing entries to indicate empty parts.
   void finalizeDeferredLoadingData(
-      Map<String, List<Fragment>> loadMap,
-      Map<DeferredFragment, String> deferredLoadHashes,
+      Map<String, List<FinalizedFragment>> loadMap,
+      Map<FinalizedFragment, String> deferredLoadHashes,
       DeferredLoadingState deferredLoadingState) {
     if (loadMap.isEmpty) return;
 
-    Map<Fragment, int> fragmentIndexes = {};
+    Map<FinalizedFragment, int> fragmentIndexes = {};
     List<String> fragmentUris = [];
     List<String> fragmentHashes = [];
 
     List<js.Property> libraryPartsMapEntries = [];
 
-    loadMap.forEach((String loadId, List<Fragment> fragmentList) {
+    loadMap.forEach((String loadId, List<FinalizedFragment> fragmentList) {
       List<js.Expression> indexes = [];
-      for (Fragment fragment in fragmentList) {
+      for (FinalizedFragment fragment in fragmentList) {
         String fragmentHash = deferredLoadHashes[fragment];
         if (fragmentHash == null) continue;
         int index = fragmentIndexes[fragment];

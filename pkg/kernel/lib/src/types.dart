@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import '../ast.dart'
     show
         BottomType,
@@ -15,6 +17,7 @@ import '../ast.dart'
         Library,
         NamedType,
         NeverType,
+        NullType,
         Nullability,
         TypeParameter,
         TypeParameterType,
@@ -108,6 +111,10 @@ class Types with StandardBounds {
       return const IsSubtypeOf.never();
     }
     if (s is NeverType) {
+      return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
+    }
+    if (s is NullType) {
+      // Rule 4.
       return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
     }
 
@@ -233,6 +240,25 @@ class Types with StandardBounds {
       } else if (s is FutureOrType) {
         return relation.isFutureOrRelated(s, t, this);
       }
+    } else if (t is NullType) {
+      const IsNullTypeSubtypeOf relation = const IsNullTypeSubtypeOf();
+      if (s is DynamicType) {
+        return relation.isDynamicRelated(s, t, this);
+      } else if (s is VoidType) {
+        return relation.isVoidRelated(s, t, this);
+      } else if (s is InterfaceType) {
+        return relation.isInterfaceRelated(s, t, this);
+      } else if (s is FunctionType) {
+        return relation.isFunctionRelated(s, t, this);
+      } else if (s is TypeParameterType) {
+        return s.promotedBound == null
+            ? relation.isTypeParameterRelated(s, t, this)
+            : relation.isIntersectionRelated(s, t, this);
+      } else if (s is TypedefType) {
+        return relation.isTypedefRelated(s, t, this);
+      } else if (s is FutureOrType) {
+        return relation.isFutureOrRelated(s, t, this);
+      }
     } else if (t is NeverType) {
       const IsNeverTypeSubtypeOf relation = const IsNeverTypeSubtypeOf();
       if (s is DynamicType) {
@@ -293,8 +319,7 @@ class Types with StandardBounds {
 
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
       Library clientLibrary, CoreTypes coreTypes) {
-    return hierarchy.getTypeAsInstanceOf(
-        type, superclass, clientLibrary, coreTypes);
+    return hierarchy.getTypeAsInstanceOf(type, superclass, clientLibrary);
   }
 
   List<DartType> getTypeArgumentsAsInstanceOf(
@@ -343,11 +368,6 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   @override
   IsSubtypeOf isInterfaceRelated(
       InterfaceType s, InterfaceType t, Types types) {
-    if (s.classNode == types.hierarchy.coreTypes.nullClass) {
-      // This is an optimization, to avoid instantiating unnecessary type
-      // arguments in getKernelTypeAsInstanceOf.
-      return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
-    }
     List<DartType> asSupertypeArguments =
         types.hierarchy.getTypeArgumentsAsInstanceOf(s, t.classNode);
     if (asSupertypeArguments == null) {
@@ -482,9 +502,9 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
         return const IsSubtypeOf.never();
       }
     }
-    List<NamedType> sNamed = s.namedParameters;
-    List<NamedType> tNamed = t.namedParameters;
-    if (sNamed.isNotEmpty || tNamed.isNotEmpty) {
+    List<NamedType> sNamedParameters = s.namedParameters;
+    List<NamedType> tNamedParameters = t.namedParameters;
+    if (sNamedParameters.isNotEmpty || tNamedParameters.isNotEmpty) {
       // Rule 16, the number of positional parameters must be the same.
       if (sPositional.length != tPositional.length) {
         return const IsSubtypeOf.never();
@@ -497,16 +517,47 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
       // [s]. Also, for the intersection, the type of the parameter of [t] must
       // be a subtype of the type of the parameter of [s].
       int sCount = 0;
-      for (int tCount = 0; tCount < tNamed.length; tCount++) {
-        String name = tNamed[tCount].name;
-        for (; sCount < sNamed.length; sCount++) {
-          if (sNamed[sCount].name == name) break;
+      for (int tCount = 0; tCount < tNamedParameters.length; tCount++) {
+        NamedType tNamedParameter = tNamedParameters[tCount];
+        String name = tNamedParameter.name;
+        NamedType sNamedParameter;
+        for (; sCount < sNamedParameters.length; sCount++) {
+          sNamedParameter = sNamedParameters[sCount];
+          if (sNamedParameter.name == name) {
+            break;
+          } else if (sNamedParameter.isRequired) {
+            /// From the NNBD spec: For each j such that r0j is required, then
+            /// there exists an i in n+1...q such that xj = yi, and r1i is
+            /// required
+            result = result.and(new IsSubtypeOf.onlyIfIgnoringNullabilities(
+                subtype: s, supertype: t));
+          }
         }
-        if (sCount == sNamed.length) return const IsSubtypeOf.never();
+        if (sCount == sNamedParameters.length) return const IsSubtypeOf.never();
+        // Increment [sCount] so we don't check [sNamedParameter] again in the
+        // loop above or below and assume it is an extra (unmatched) parameter.
+        sCount++;
         result = result.and(types.performNullabilityAwareSubtypeCheck(
-            tNamed[tCount].type, sNamed[sCount].type));
+            tNamedParameter.type, sNamedParameter.type));
         if (!result.isSubtypeWhenIgnoringNullabilities()) {
           return const IsSubtypeOf.never();
+        }
+
+        /// From the NNBD spec: For each j such that r0j is required, then there
+        /// exists an i in n+1...q such that xj = yi, and r1i is required
+        if (sNamedParameter.isRequired && !tNamedParameter.isRequired) {
+          result = result.and(new IsSubtypeOf.onlyIfIgnoringNullabilities(
+              subtype: s, supertype: t));
+        }
+      }
+      for (; sCount < sNamedParameters.length; sCount++) {
+        NamedType sNamedParameter = sNamedParameters[sCount];
+        if (sNamedParameter.isRequired) {
+          /// From the NNBD spec: For each j such that r0j is required, then
+          /// there exists an i in n+1...q such that xj = yi, and r1i is
+          /// required
+          result = result.and(new IsSubtypeOf.onlyIfIgnoringNullabilities(
+              subtype: s, supertype: t));
         }
       }
     }
@@ -515,10 +566,6 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
 
   @override
   IsSubtypeOf isInterfaceRelated(InterfaceType s, FunctionType t, Types types) {
-    if (s.classNode == types.hierarchy.coreTypes.nullClass) {
-      // Rule 4.
-      return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
-    }
     return const IsSubtypeOf.never();
   }
 
@@ -608,10 +655,6 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
   @override
   IsSubtypeOf isInterfaceRelated(
       InterfaceType s, TypeParameterType t, Types types) {
-    if (s.classNode == types.hierarchy.coreTypes.nullClass) {
-      // Rule 4.
-      return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
-    }
     return const IsSubtypeOf.never();
   }
 
@@ -842,10 +885,6 @@ class IsIntersectionSubtypeOf extends TypeRelation<TypeParameterType> {
   @override
   IsSubtypeOf isInterfaceRelated(
       InterfaceType s, TypeParameterType intersection, Types types) {
-    if (s.classNode == types.hierarchy.coreTypes.nullClass) {
-      // Rule 4.
-      return new IsSubtypeOf.basedSolelyOnNullabilities(s, intersection);
-    }
     return const IsSubtypeOf.never();
   }
 
@@ -881,6 +920,48 @@ class IsIntersectionSubtypeOf extends TypeRelation<TypeParameterType> {
   }
 }
 
+class IsNullTypeSubtypeOf implements TypeRelation<NullType> {
+  const IsNullTypeSubtypeOf();
+
+  IsSubtypeOf isDynamicRelated(DynamicType s, NullType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf isVoidRelated(VoidType s, NullType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf isInterfaceRelated(InterfaceType s, NullType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf isIntersectionRelated(
+      TypeParameterType intersection, NullType t, Types types) {
+    return types.performNullabilityAwareMutualSubtypesCheck(
+        intersection.promotedBound, t);
+  }
+
+  IsSubtypeOf isFunctionRelated(FunctionType s, NullType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf isFutureOrRelated(FutureOrType s, NullType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf isTypeParameterRelated(
+      TypeParameterType s, NullType t, Types types) {
+    // We don't need to combine the check of the bound against [t] with the
+    // check of the nullability of [s] against the nullability of [t] because
+    // [t] is always nullable.
+    return types.performNullabilityAwareSubtypeCheck(s.bound, t);
+  }
+
+  IsSubtypeOf isTypedefRelated(TypedefType s, NullType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s.unalias, t);
+  }
+}
+
 class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
   const IsNeverTypeSubtypeOf();
 
@@ -893,17 +974,6 @@ class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
   }
 
   IsSubtypeOf isInterfaceRelated(InterfaceType s, NeverType t, Types types) {
-    if (s.classNode == types.hierarchy.coreTypes.nullClass) {
-      if (t.nullability == Nullability.nullable ||
-          t.nullability == Nullability.legacy) {
-        return const IsSubtypeOf.always();
-      }
-      if (t.nullability == Nullability.nonNullable) {
-        return const IsSubtypeOf.never();
-      }
-      throw new StateError(
-          "Unexpected nullability '$t.nullability' of type Never");
-    }
     return const IsSubtypeOf.never();
   }
 

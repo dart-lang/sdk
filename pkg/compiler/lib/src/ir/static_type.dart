@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
-import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 import '../common/names.dart';
@@ -13,6 +12,7 @@ import 'runtime_type_analysis.dart';
 import 'scope.dart';
 import 'static_type_base.dart';
 import 'static_type_cache.dart';
+import 'util.dart';
 
 /// Enum values for how the target of a static type should be interpreted.
 enum ClassRelation {
@@ -38,6 +38,29 @@ ClassRelation computeClassRelationFromType(ir.DartType type) {
   }
 }
 
+class StaticTypeCacheImpl implements ir.StaticTypeCache {
+  final Map<ir.Expression, ir.DartType> _expressionTypes = {};
+  final Map<ir.ForInStatement, ir.DartType> _forInIteratorTypes = {};
+
+  @override
+  ir.DartType getExpressionType(
+      ir.Expression node, ir.StaticTypeContext context) {
+    return _expressionTypes[node] ??= node.getStaticTypeInternal(context);
+  }
+
+  @override
+  ir.DartType getForInIteratorType(
+      ir.ForInStatement node, ir.StaticTypeContext context) {
+    return _forInIteratorTypes[node] ??= node.getElementTypeInternal(context);
+  }
+
+  @override
+  ir.DartType getForInElementType(
+      ir.ForInStatement node, ir.StaticTypeContext context) {
+    throw UnsupportedError('StaticTypeCacheImpl.getForInElementType');
+  }
+}
+
 /// Visitor that computes and caches the static type of expression while
 /// visiting the full tree at expression level.
 ///
@@ -46,8 +69,7 @@ ClassRelation computeClassRelationFromType(ir.DartType type) {
 /// adds 'handleX' hooks for subclasses to handle individual expressions using
 /// the readily compute static types of subexpressions.
 abstract class StaticTypeVisitor extends StaticTypeBase {
-  final Map<ir.Expression, ir.DartType> _expressionTypeCache = {};
-  Map<ir.ForInStatement, ir.DartType> _forInIteratorTypeCache;
+  final StaticTypeCacheImpl _staticTypeCache;
   Map<ir.Expression, TypeMap> typeMapsForTesting;
   Map<ir.PropertyGet, RuntimeTypeUseData> _pendingRuntimeTypeUseData = {};
 
@@ -56,11 +78,13 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ThisInterfaceType _thisType;
   ir.Library _currentLibrary;
 
-  StaticTypeVisitor(ir.TypeEnvironment typeEnvironment, this.hierarchy)
+  StaticTypeVisitor(
+      ir.TypeEnvironment typeEnvironment, this.hierarchy, this._staticTypeCache)
       : super(typeEnvironment);
 
   StaticTypeCache getStaticTypeCache() {
-    return new StaticTypeCache(_expressionTypeCache, _forInIteratorTypeCache);
+    return new StaticTypeCache(_staticTypeCache._expressionTypes,
+        _staticTypeCache._forInIteratorTypes);
   }
 
   /// If `true`, the effect of executing assert statements is taken into account
@@ -170,7 +194,12 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     while (type is ir.TypeParameterType) {
       type = (type as ir.TypeParameterType).parameter.bound;
     }
-    return type is ir.InterfaceType ? type : null;
+    if (type is ir.InterfaceType) {
+      return type;
+    } else if (type is ir.NullType) {
+      return typeEnvironment.coreTypes.deprecatedNullType;
+    }
+    return null;
   }
 
   /// Returns the static type of the expression as an instantiation of
@@ -197,7 +226,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     while (type is ir.TypeParameterType) {
       type = (type as ir.TypeParameterType).parameter.bound;
     }
-    if (type == typeEnvironment.nullType) {
+    if (type is ir.NullType) {
       return typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, currentLibrary.nullable);
     }
@@ -233,7 +262,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
           .substituteType(interfaceTarget.getterType);
     }
     // Treat the properties of Object specially.
-    String nameString = node.name.name;
+    String nameString = node.name.text;
     if (nameString == 'hashCode') {
       return typeEnvironment.coreTypes.intNonNullableRawType;
     } else if (nameString == 'runtimeType') {
@@ -251,11 +280,11 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   ir.DartType visitPropertyGet(ir.PropertyGet node) {
     ir.DartType receiverType = visitNode(node.receiver);
-    ir.DartType resultType = _expressionTypeCache[node] =
+    ir.DartType resultType = _staticTypeCache._expressionTypes[node] =
         _computePropertyGetType(node, receiverType);
     receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
     handlePropertyGet(node, receiverType, resultType);
-    if (node.name.name == Identifiers.runtimeType_) {
+    if (node.name.text == Identifiers.runtimeType_) {
       RuntimeTypeUseData data =
           computeRuntimeTypeUse(_pendingRuntimeTypeUseData, node);
       if (data.leftRuntimeTypeExpression == node) {
@@ -324,61 +353,6 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return valueType;
   }
 
-  void handleDirectPropertyGet(ir.DirectPropertyGet node,
-      ir.DartType receiverType, ir.DartType resultType) {}
-
-  @override
-  ir.DartType visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    ir.DartType receiverType = visitNode(node.receiver);
-    ir.Class superclass = node.target.enclosingClass;
-    receiverType = getTypeAsInstanceOf(receiverType, superclass);
-    ir.DartType resultType = ir.Substitution.fromInterfaceType(receiverType)
-        .substituteType(node.target.getterType);
-    _expressionTypeCache[node] = resultType;
-    handleDirectPropertyGet(node, receiverType, resultType);
-    return resultType;
-  }
-
-  void handleDirectMethodInvocation(
-      ir.DirectMethodInvocation node,
-      ir.DartType receiverType,
-      ArgumentTypes argumentTypes,
-      ir.DartType returnType) {}
-
-  @override
-  ir.DartType visitDirectMethodInvocation(ir.DirectMethodInvocation node) {
-    ir.DartType receiverType = visitNode(node.receiver);
-    ArgumentTypes argumentTypes = _visitArguments(node.arguments);
-    ir.DartType returnType;
-    if (typeEnvironment.isSpecialCasedBinaryOperator(node.target)) {
-      ir.DartType argumentType = argumentTypes.positional[0];
-      returnType = typeEnvironment.getTypeOfSpecialCasedBinaryOperator(
-          receiverType, argumentType);
-    } else {
-      ir.Class superclass = node.target.enclosingClass;
-      receiverType = getTypeAsInstanceOf(receiverType, superclass);
-      ir.DartType returnType = ir.Substitution.fromInterfaceType(receiverType)
-          .substituteType(node.target.function.returnType);
-      returnType = ir.Substitution.fromPairs(
-              node.target.function.typeParameters, node.arguments.types)
-          .substituteType(returnType);
-    }
-    _expressionTypeCache[node] = returnType;
-    handleDirectMethodInvocation(node, receiverType, argumentTypes, returnType);
-    return returnType;
-  }
-
-  void handleDirectPropertySet(ir.DirectPropertySet node,
-      ir.DartType receiverType, ir.DartType valueType) {}
-
-  @override
-  ir.DartType visitDirectPropertySet(ir.DirectPropertySet node) {
-    ir.DartType receiverType = visitNode(node.receiver);
-    ir.DartType valueType = super.visitDirectPropertySet(node);
-    handleDirectPropertySet(node, receiverType, valueType);
-    return valueType;
-  }
-
   /// Returns `true` if [interfaceTarget] is an arithmetic operator whose result
   /// type is computed using both the receiver type and the argument type.
   ///
@@ -391,7 +365,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   ir.Member _getMember(ir.Class cls, String name) {
     for (ir.Member member in cls.members) {
-      if (member.name.name == name) return member;
+      if (member.name.text == name) return member;
     }
     throw fail("Member '$name' not found in $cls");
   }
@@ -544,7 +518,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       ir.VariableGet get = new ir.VariableGet(variable)..parent = parent;
       // Visit the newly created variable get.
       handleVariableGet(get, argumentType);
-      _expressionTypeCache[get] = argumentType;
+      _staticTypeCache._expressionTypes[get] = argumentType;
 
       if (checkedParameterType == null) {
         return get;
@@ -599,7 +573,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     // TODO(34602): Remove when `interfaceTarget` is set on synthetic calls to
     // ==.
     if (interfaceTarget == null &&
-        node.name.name == '==' &&
+        node.name.text == '==' &&
         node.arguments.types.isEmpty &&
         node.arguments.positional.length == 1 &&
         node.arguments.named.isEmpty) {
@@ -647,7 +621,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         return const ir.DynamicType();
       }
     }
-    if (node.name.name == 'call') {
+    if (node.name.text == 'call') {
       if (receiverType is ir.FunctionType) {
         if (receiverType.typeParameters.length != node.arguments.types.length) {
           return const DoesNotCompleteType();
@@ -657,7 +631,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
             .substituteType(receiverType.returnType);
       }
     }
-    if (node.name.name == '==') {
+    if (node.name.text == '==') {
       // We use this special case to simplify generation of '==' checks.
       return typeEnvironment.coreTypes.boolNonNullableRawType;
     }
@@ -670,7 +644,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     if (arguments.positional.isEmpty) {
       positional = const <ir.DartType>[];
     } else {
-      positional = new List<ir.DartType>(arguments.positional.length);
+      positional =
+          new List<ir.DartType>.filled(arguments.positional.length, null);
       int index = 0;
       for (ir.Expression argument in arguments.positional) {
         positional[index++] = visitNode(argument);
@@ -679,7 +654,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     if (arguments.named.isEmpty) {
       named = const <ir.DartType>[];
     } else {
-      named = new List<ir.DartType>(arguments.named.length);
+      named = new List<ir.DartType>.filled(arguments.named.length, null);
       int index = 0;
       for (ir.NamedExpression argument in arguments.named) {
         named[index++] = visitNode(argument);
@@ -701,12 +676,12 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType returnType =
         _computeMethodInvocationType(node, receiverType, argumentTypes);
     receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
-    if (node.name.name == '==') {
+    if (node.name.text == '==') {
       ir.Expression left = node.receiver;
       ir.Expression right = node.arguments.positional[0];
       TypeMap afterInvocation = typeMap;
       if (left is ir.VariableGet &&
-          right is ir.NullLiteral &&
+          isNullLiteral(right) &&
           !_invalidatedVariables.contains(left.variable)) {
         // If `left == null` is true, we promote the type of the variable to
         // `Null` by registering that is known _not_ to be of its declared type.
@@ -716,7 +691,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
             .promote(left.variable, left.variable.type, isTrue: true);
       }
       if (right is ir.VariableGet &&
-          left is ir.NullLiteral &&
+          isNullLiteral(left) &&
           !_invalidatedVariables.contains(right.variable)) {
         // If `null == right` is true, we promote the type of the variable to
         // `Null` by registering that is known _not_ to be of its declared type.
@@ -726,7 +701,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
             .promote(right.variable, right.variable.type, isTrue: true);
       }
     }
-    _expressionTypeCache[node] = returnType;
+    _staticTypeCache._expressionTypes[node] = returnType;
     handleMethodInvocation(node, receiverType, argumentTypes, returnType);
     return returnType;
   }
@@ -741,13 +716,13 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType promotedType = typeMap.typeOf(node, typeEnvironment);
     assert(
         node.promotedType == null ||
-            promotedType == typeEnvironment.nullType ||
+            promotedType is ir.NullType ||
             promotedType is ir.FutureOrType ||
             typeEnvironment.isSubtypeOf(promotedType, node.promotedType,
                 ir.SubtypeCheckMode.ignoringNullabilities),
         "Unexpected promotion of ${node.variable} in ${node.parent}. "
         "Expected ${node.promotedType}, found $promotedType");
-    _expressionTypeCache[node] = promotedType;
+    _staticTypeCache._expressionTypes[node] = promotedType;
     handleVariableGet(node, promotedType);
     return promotedType;
   }
@@ -794,7 +769,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType returnType = ir.Substitution.fromPairs(
             node.target.function.typeParameters, node.arguments.types)
         .substituteType(node.target.function.returnType);
-    _expressionTypeCache[node] = returnType;
+    _staticTypeCache._expressionTypes[node] = returnType;
     handleStaticInvocation(node, argumentTypes, returnType);
     return returnType;
   }
@@ -810,7 +785,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
             .nonNullableRawType(node.target.enclosingClass))
         : new ExactInterfaceType(node.target.enclosingClass,
             ir.Nullability.nonNullable, node.arguments.types);
-    _expressionTypeCache[node] = resultType;
+    _staticTypeCache._expressionTypes[node] = resultType;
     handleConstructorInvocation(node, argumentTypes, resultType);
     return resultType;
   }
@@ -835,7 +810,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
             .substituteType(node.interfaceTarget.getterType);
       }
     }
-    _expressionTypeCache[node] = resultType;
+    _staticTypeCache._expressionTypes[node] = resultType;
     handleSuperPropertyGet(node, resultType);
     return resultType;
   }
@@ -871,14 +846,14 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
               node.arguments.types)
           .substituteType(returnType);
     }
-    _expressionTypeCache[node] = returnType;
+    _staticTypeCache._expressionTypes[node] = returnType;
     handleSuperMethodInvocation(node, argumentTypes, returnType);
     return returnType;
   }
 
   @override
   ir.DartType visitLogicalExpression(ir.LogicalExpression node) {
-    if (node.operator == '&&') {
+    if (node.operatorEnum == ir.LogicalExpressionOperator.AND) {
       visitNode(node.left);
       TypeMap afterLeftWhenTrue = typeMapWhenTrue;
       TypeMap afterLeftWhenFalse = typeMapWhenFalse;
@@ -990,7 +965,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.DartType visitInstantiation(ir.Instantiation node) {
     ir.FunctionType expressionType = visitNode(node.expression);
     ir.DartType resultType = _computeInstantiationType(node, expressionType);
-    _expressionTypeCache[node] = resultType;
+    _staticTypeCache._expressionTypes[node] = resultType;
     handleInstantiation(node, expressionType, resultType);
     return resultType;
   }
@@ -1033,10 +1008,10 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.DartType visitNullCheck(ir.NullCheck node) {
     ir.DartType operandType = visitNode(node.operand);
     handleNullCheck(node, operandType);
-    ir.DartType resultType = operandType == typeEnvironment.nullType
+    ir.DartType resultType = operandType is ir.NullType
         ? const ir.NeverType(ir.Nullability.nonNullable)
         : operandType.withDeclaredNullability(ir.Nullability.nonNullable);
-    _expressionTypeCache[node] = resultType;
+    _staticTypeCache._expressionTypes[node] = resultType;
     return resultType;
   }
 
@@ -1275,8 +1250,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
             .substituteType(member.getterType);
       }
     }
-    _forInIteratorTypeCache ??= {};
-    _forInIteratorTypeCache[node] = iteratorType;
+    _staticTypeCache._forInIteratorTypes[node] = iteratorType;
     TypeMap beforeLoop = typeMap =
         typeMap.remove(variableScopeModel.getScopeFor(node).assignedVariables);
     visitNode(node.variable);
@@ -1533,13 +1507,13 @@ class TypeHolder {
       for (ir.DartType type in falseTypes) {
         if (typeEnvironment.isSubtypeOf(
             declaredType, type, ir.SubtypeCheckMode.ignoringNullabilities)) {
-          return typeEnvironment.nullType;
+          return const ir.NullType();
         }
       }
     }
     if (trueTypes != null) {
       for (ir.DartType type in trueTypes) {
-        if (type == typeEnvironment.nullType) {
+        if (type is ir.NullType) {
           return type;
         }
         if (typeEnvironment.isSubtypeOf(
@@ -1801,9 +1775,9 @@ class TargetInfo {
       if (candidate == null) {
         candidate = type;
       } else {
-        if (type == typeEnvironment.nullType) {
+        if (type is ir.NullType) {
           // Keep the current candidate.
-        } else if (candidate == typeEnvironment.nullType) {
+        } else if (candidate is ir.NullType) {
           candidate = type;
         } else if (typeEnvironment.isSubtypeOf(
             candidate, type, ir.SubtypeCheckMode.ignoringNullabilities)) {

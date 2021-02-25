@@ -195,6 +195,27 @@ const char* MethodRecognizer::KindToCString(Kind kind) {
   return "?";
 }
 
+// Is this method marked with the vm:recognized pragma?
+bool MethodRecognizer::IsMarkedAsRecognized(const Function& function,
+                                            const char* kind) {
+  const Function* functionp =
+      function.IsDynamicInvocationForwarder()
+          ? &Function::Handle(function.ForwardingTarget())
+          : &function;
+  Object& options = Object::Handle();
+  bool is_recognized =
+      Library::FindPragma(Thread::Current(), /*only_core=*/true, *functionp,
+                          Symbols::vm_recognized(), &options);
+  if (!is_recognized) return false;
+  if (kind == nullptr) return true;
+
+  ASSERT(options.IsString());
+  ASSERT(String::Cast(options).Equals("asm-intrinsic") ||
+         String::Cast(options).Equals("graph-intrinsic") ||
+         String::Cast(options).Equals("other"));
+  return String::Cast(options).Equals(kind);
+}
+
 void MethodRecognizer::InitializeState() {
   GrowableArray<Library*> libs(3);
   Libraries(&libs);
@@ -270,43 +291,43 @@ void MethodRecognizer::Libraries(GrowableArray<Library*>* libs) {
 }
 
 static Token::Kind RecognizeTokenKindHelper(const String& name) {
-  if (name.raw() == Symbols::Plus().raw()) {
+  if (name.ptr() == Symbols::Plus().ptr()) {
     return Token::kADD;
-  } else if (name.raw() == Symbols::Minus().raw()) {
+  } else if (name.ptr() == Symbols::Minus().ptr()) {
     return Token::kSUB;
-  } else if (name.raw() == Symbols::Star().raw()) {
+  } else if (name.ptr() == Symbols::Star().ptr()) {
     return Token::kMUL;
-  } else if (name.raw() == Symbols::Slash().raw()) {
+  } else if (name.ptr() == Symbols::Slash().ptr()) {
     return Token::kDIV;
-  } else if (name.raw() == Symbols::TruncDivOperator().raw()) {
+  } else if (name.ptr() == Symbols::TruncDivOperator().ptr()) {
     return Token::kTRUNCDIV;
-  } else if (name.raw() == Symbols::Percent().raw()) {
+  } else if (name.ptr() == Symbols::Percent().ptr()) {
     return Token::kMOD;
-  } else if (name.raw() == Symbols::BitOr().raw()) {
+  } else if (name.ptr() == Symbols::BitOr().ptr()) {
     return Token::kBIT_OR;
-  } else if (name.raw() == Symbols::Ampersand().raw()) {
+  } else if (name.ptr() == Symbols::Ampersand().ptr()) {
     return Token::kBIT_AND;
-  } else if (name.raw() == Symbols::Caret().raw()) {
+  } else if (name.ptr() == Symbols::Caret().ptr()) {
     return Token::kBIT_XOR;
-  } else if (name.raw() == Symbols::LeftShiftOperator().raw()) {
+  } else if (name.ptr() == Symbols::LeftShiftOperator().ptr()) {
     return Token::kSHL;
-  } else if (name.raw() == Symbols::RightShiftOperator().raw()) {
+  } else if (name.ptr() == Symbols::RightShiftOperator().ptr()) {
     return Token::kSHR;
-  } else if (name.raw() == Symbols::Tilde().raw()) {
+  } else if (name.ptr() == Symbols::Tilde().ptr()) {
     return Token::kBIT_NOT;
-  } else if (name.raw() == Symbols::UnaryMinus().raw()) {
+  } else if (name.ptr() == Symbols::UnaryMinus().ptr()) {
     return Token::kNEGATE;
-  } else if (name.raw() == Symbols::EqualOperator().raw()) {
+  } else if (name.ptr() == Symbols::EqualOperator().ptr()) {
     return Token::kEQ;
-  } else if (name.raw() == Symbols::Token(Token::kNE).raw()) {
+  } else if (name.ptr() == Symbols::Token(Token::kNE).ptr()) {
     return Token::kNE;
-  } else if (name.raw() == Symbols::LAngleBracket().raw()) {
+  } else if (name.ptr() == Symbols::LAngleBracket().ptr()) {
     return Token::kLT;
-  } else if (name.raw() == Symbols::RAngleBracket().raw()) {
+  } else if (name.ptr() == Symbols::RAngleBracket().ptr()) {
     return Token::kGT;
-  } else if (name.raw() == Symbols::LessEqualOperator().raw()) {
+  } else if (name.ptr() == Symbols::LessEqualOperator().ptr()) {
     return Token::kLTE;
-  } else if (name.raw() == Symbols::GreaterEqualOperator().raw()) {
+  } else if (name.ptr() == Symbols::GreaterEqualOperator().ptr()) {
     return Token::kGTE;
   } else if (Field::IsGetterName(name)) {
     return Token::kGET;
@@ -345,8 +366,8 @@ intptr_t FactoryRecognizer::ResultCid(const Function& factory) {
   ASSERT(factory.IsFactory());
   const Class& function_class = Class::Handle(factory.Owner());
   const Library& lib = Library::Handle(function_class.library());
-  ASSERT((lib.raw() == Library::CoreLibrary()) ||
-         (lib.raw() == Library::TypedDataLibrary()));
+  ASSERT((lib.ptr() == Library::CoreLibrary()) ||
+         (lib.ptr() == Library::TypedDataLibrary()));
   const String& factory_name = String::Handle(factory.name());
   for (intptr_t i = 0;
        factory_recognizer_list[i].symbol_id != Symbols::kIllegal; i++) {
@@ -372,11 +393,11 @@ intptr_t FactoryRecognizer::GetResultCidOfListFactory(Zone* zone,
     return kDynamicCid;
   }
 
-  if (owner.Name() == Symbols::List().raw()) {
-    if (function.name() == Symbols::ListFactory().raw()) {
+  if (owner.Name() == Symbols::List().ptr()) {
+    if (function.name() == Symbols::ListFactory().ptr()) {
       ASSERT(argument_count == 1 || argument_count == 2);
       return (argument_count == 1) ? kGrowableObjectArrayCid : kArrayCid;
-    } else if (function.name() == Symbols::ListFilledFactory().raw()) {
+    } else if (function.name() == Symbols::ListFilledFactory().ptr()) {
       ASSERT(argument_count == 3 || argument_count == 4);
       return (argument_count == 3) ? kArrayCid : kDynamicCid;
     }

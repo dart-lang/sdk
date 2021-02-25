@@ -8,7 +8,6 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/bit_vector.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/hash_map.h"
@@ -205,7 +204,7 @@ class KernelLoader : public ValueObject {
   // not nullptr, then they are populated with number of classes and top-level
   // procedures in [program].
   static void FindModifiedLibraries(Program* program,
-                                    Isolate* isolate,
+                                    IsolateGroup* isolate_group,
                                     BitVector* modified_libs,
                                     bool force_reload,
                                     bool* is_empty_program,
@@ -332,9 +331,10 @@ class KernelLoader : public ValueObject {
     return kernel_program_info_.ScriptAt(source_uri_index);
   }
 
-  void GenerateFieldAccessors(const Class& klass,
-                              const Field& field,
-                              FieldHelper* field_helper);
+  // Returns the initial field value for a static function (if applicable).
+  InstancePtr GenerateFieldAccessors(const Class& klass,
+                                     const Field& field,
+                                     FieldHelper* field_helper);
   bool FieldNeedsSetter(FieldHelper* field_helper);
 
   void LoadLibraryImportsAndExports(Library* library,
@@ -345,7 +345,7 @@ class KernelLoader : public ValueObject {
   LibraryPtr LookupLibraryFromClass(NameIndex klass);
   ClassPtr LookupClass(const Library& library, NameIndex klass);
 
-  FunctionLayout::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
+  UntaggedFunction::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
 
   void EnsureExternalClassIsLookedUp() {
     if (external_name_class_.IsNull()) {
@@ -410,12 +410,12 @@ class KernelLoader : public ValueObject {
   ConstantReader constant_reader_;
   TypeTranslator type_translator_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
-  BytecodeMetadataHelper bytecode_metadata_helper_;
 
   Class& external_name_class_;
   Field& external_name_field_;
   GrowableObjectArray& potential_natives_;
   GrowableObjectArray& potential_pragma_functions_;
+  Instance& static_field_value_;
 
   Class& pragma_class_;
 

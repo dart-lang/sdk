@@ -10,6 +10,6 @@ class InboundReferencesRepository implements M.InboundReferencesRepository {
     assert(isolate != null);
     final response = await isolate
         .invokeRpc('getInboundReferences', {'targetId': id, 'limit': 100});
-    return new S.InboundReferences(response);
+    return new S.InboundReferences(response as S.ServiceMap);
   }
 }

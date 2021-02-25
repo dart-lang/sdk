@@ -76,6 +76,7 @@ class LintNames {
       'prefer_interpolation_to_compose_strings';
   static const String prefer_is_empty = 'prefer_is_empty';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
+  static const String prefer_is_not_operator = 'prefer_is_not_operator';
   static const String prefer_iterable_whereType = 'prefer_iterable_whereType';
   static const String prefer_null_aware_operators =
       'prefer_null_aware_operators';
@@ -95,6 +96,9 @@ class LintNames {
   static const String unnecessary_null_in_if_null_operators =
       'unnecessary_null_in_if_null_operators';
   static const String unnecessary_overrides = 'unnecessary_overrides';
+  static const String unnecessary_parenthesis = 'unnecessary_parenthesis';
+  static const String unnecessary_string_interpolations =
+      'unnecessary_string_interpolations';
   static const String unnecessary_this = 'unnecessary_this';
   static const String use_full_hex_values_for_flutter_colors =
       'use_full_hex_values_for_flutter_colors';

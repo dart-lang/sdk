@@ -59,7 +59,7 @@ abstract class AbstractScanner implements Scanner {
   /// Called when the scanner detects a language version comment
   /// so that the listener can update the scanner configuration
   /// based upon the specified language version.
-  final LanguageVersionChanged languageVersionChanged;
+  final LanguageVersionChanged? languageVersionChanged;
 
   /// Experimental flag for enabling scanning of the `extension` token.
   bool _enableExtensionMethods = false;
@@ -94,12 +94,12 @@ abstract class AbstractScanner implements Scanner {
   /**
    * A pointer to the last scanned token.
    */
-  Token tail;
+  late Token tail;
 
   /**
    * A pointer to the last prepended error token.
    */
-  Token errorTail;
+  late Token errorTail;
 
   bool hasErrors = false;
 
@@ -108,14 +108,14 @@ abstract class AbstractScanner implements Scanner {
    * before they are assigned to the [Token] precedingComments field
    * of a non-comment token. A value of `null` indicates no comment tokens.
    */
-  CommentToken comments;
+  CommentToken? comments;
 
   /**
    * A pointer to the last scanned comment token or `null` if none.
    */
-  Token commentsTail;
+  Token? commentsTail;
 
-  final List<int> lineStarts;
+  late final List<int> lineStarts;
 
   /**
    * The stack of open groups, e.g [: { ... ( .. :]
@@ -127,9 +127,9 @@ abstract class AbstractScanner implements Scanner {
   final bool inRecoveryOption;
   int recoveryCount = 0;
 
-  AbstractScanner(ScannerConfiguration config, this.includeComments,
+  AbstractScanner(ScannerConfiguration? config, this.includeComments,
       this.languageVersionChanged,
-      {int numberOfBytesHint})
+      {int? numberOfBytesHint})
       : lineStarts = new LineStarts(numberOfBytesHint),
         inRecoveryOption = false {
     this.tail = this.tokens;
@@ -154,7 +154,7 @@ abstract class AbstractScanner implements Scanner {
   }
 
   @override
-  set configuration(ScannerConfiguration config) {
+  set configuration(ScannerConfiguration? config) {
     if (config != null) {
       _enableExtensionMethods = config.enableExtensionMethods;
       _enableNonNullable = config.enableNonNullable;
@@ -228,7 +228,7 @@ abstract class AbstractScanner implements Scanner {
   /**
    * Returns the first token scanned by this [Scanner].
    */
-  Token firstToken() => tokens.next;
+  Token firstToken() => tokens.next!;
 
   /**
    * Notifies that a new token starts at current offset.
@@ -331,7 +331,7 @@ abstract class AbstractScanner implements Scanner {
     discardOpenLt();
     while (!groupingStack.isEmpty) {
       unmatchedBeginGroup(groupingStack.head);
-      groupingStack = groupingStack.tail;
+      groupingStack = groupingStack.tail!;
     }
     appendToken(new Token.eof(tokenStart, comments));
   }
@@ -364,7 +364,7 @@ abstract class AbstractScanner implements Scanner {
    * Group begin tokens are '{', '(', '[', '<' and '${'.
    */
   void appendBeginGroup(TokenType type) {
-    Token token = new BeginToken(type, tokenStart, comments);
+    BeginToken token = new BeginToken(type, tokenStart, comments);
     appendToken(token);
 
     // { [ ${ cannot appear inside a type parameters / arguments.
@@ -406,13 +406,13 @@ abstract class AbstractScanner implements Scanner {
           openKind == OPEN_CURLY_BRACKET_TOKEN);
       // We're ending an interpolated expression.
       begin.endGroup = close;
-      groupingStack = groupingStack.tail;
+      groupingStack = groupingStack.tail!;
       // Using "start-of-text" to signal that we're back in string
       // scanning mode.
       return $STX;
     }
     begin.endGroup = close;
-    groupingStack = groupingStack.tail;
+    groupingStack = groupingStack.tail!;
     return advance();
   }
 
@@ -426,7 +426,7 @@ abstract class AbstractScanner implements Scanner {
     if (groupingStack.isEmpty) return;
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack.head.endGroup = tail;
-      groupingStack = groupingStack.tail;
+      groupingStack = groupingStack.tail!;
     }
   }
 
@@ -441,12 +441,12 @@ abstract class AbstractScanner implements Scanner {
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
       // Don't assign endGroup: in "T<U<V>>", the '>>' token closes the outer
       // '<', the inner '<' is left without endGroup.
-      groupingStack = groupingStack.tail;
+      groupingStack = groupingStack.tail!;
     }
     if (groupingStack.isEmpty) return;
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack.head.endGroup = tail;
-      groupingStack = groupingStack.tail;
+      groupingStack = groupingStack.tail!;
     }
   }
 
@@ -458,10 +458,10 @@ abstract class AbstractScanner implements Scanner {
       errorTail = tail;
     } else {
       token.next = errorTail.next;
-      token.next.previous = token;
+      token.next!.previous = token;
       errorTail.next = token;
       token.previous = errorTail;
-      errorTail = errorTail.next;
+      errorTail = errorTail.next!;
     }
   }
 
@@ -523,7 +523,7 @@ abstract class AbstractScanner implements Scanner {
         break; // recover
       }
       first = false;
-      groupingStack = groupingStack.tail;
+      groupingStack = groupingStack.tail!;
     } while (!groupingStack.isEmpty);
 
     recoveryCount++;
@@ -591,7 +591,7 @@ abstract class AbstractScanner implements Scanner {
       // The option-runs might have set invalid endGroup pointers. Reset them.
       for (Link<BeginToken> link = originalStack;
           link.isNotEmpty;
-          link = link.tail) {
+          link = link.tail!) {
         link.head.endToken = null;
       }
 
@@ -618,7 +618,7 @@ abstract class AbstractScanner implements Scanner {
       if (!identical(entryToUse.head.kind, LT_TOKEN)) {
         unmatchedBeginGroup(originalStack.head);
       }
-      originalStack = originalStack.tail;
+      originalStack = originalStack.tail!;
     }
   }
 
@@ -636,7 +636,7 @@ abstract class AbstractScanner implements Scanner {
   void discardOpenLt() {
     while (!groupingStack.isEmpty &&
         identical(groupingStack.head.kind, LT_TOKEN)) {
-      groupingStack = groupingStack.tail;
+      groupingStack = groupingStack.tail!;
     }
   }
 
@@ -650,7 +650,7 @@ abstract class AbstractScanner implements Scanner {
     while (!groupingStack.isEmpty) {
       BeginToken beginToken = groupingStack.head;
       unmatchedBeginGroup(beginToken);
-      groupingStack = groupingStack.tail;
+      groupingStack = groupingStack.tail!;
       if (identical(beginToken.kind, STRING_INTERPOLATION_TOKEN)) break;
     }
   }
@@ -1432,7 +1432,7 @@ abstract class AbstractScanner implements Scanner {
         createLanguageVersionToken(start, major, minor);
     if (languageVersionChanged != null) {
       // TODO(danrubel): make this required and remove the languageVersion field
-      languageVersionChanged(this, languageVersion);
+      languageVersionChanged!(this, languageVersion);
     } else {
       // TODO(danrubel): remove this hack and require listener to update
       // the scanner's configuration.
@@ -1536,7 +1536,7 @@ abstract class AbstractScanner implements Scanner {
 
   void appendDartDoc(int start, TokenType type, bool asciiOnly) {
     if (!includeComments) return;
-    Token newComment = createDartDocToken(type, start, asciiOnly);
+    CommentToken newComment = createDartDocToken(type, start, asciiOnly);
     _appendToCommentStream(newComment);
   }
 
@@ -1557,14 +1557,14 @@ abstract class AbstractScanner implements Scanner {
     }
   }
 
-  void _appendToCommentStream(Token newComment) {
+  void _appendToCommentStream(CommentToken newComment) {
     if (comments == null) {
       comments = newComment;
       commentsTail = comments;
     } else {
-      commentsTail.next = newComment;
-      commentsTail.next.previous = commentsTail;
-      commentsTail = commentsTail.next;
+      commentsTail!.next = newComment;
+      commentsTail!.next!.previous = commentsTail;
+      commentsTail = commentsTail!.next;
     }
   }
 
@@ -1580,7 +1580,7 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int tokenizeKeywordOrIdentifier(int next, bool allowDollar) {
-    KeywordState state = KeywordState.KEYWORD_STATE;
+    KeywordState? state = KeywordState.KEYWORD_STATE;
     int start = scanOffset;
     // We allow a leading capital character.
     if ($A <= next && next <= $Z) {
@@ -1596,14 +1596,18 @@ abstract class AbstractScanner implements Scanner {
       state = state.next(next);
       next = advance();
     }
-    if (state == null || state.keyword == null) {
+    if (state == null) {
       return tokenizeIdentifier(next, start, allowDollar);
     }
-    if (!_enableExtensionMethods && state.keyword == Keyword.EXTENSION) {
+    Keyword? keyword = state.keyword;
+    if (keyword == null) {
+      return tokenizeIdentifier(next, start, allowDollar);
+    }
+    if (!_enableExtensionMethods && keyword == Keyword.EXTENSION) {
       return tokenizeIdentifier(next, start, allowDollar);
     }
     if (!_enableNonNullable &&
-        (state.keyword == Keyword.LATE || state.keyword == Keyword.REQUIRED)) {
+        (keyword == Keyword.LATE || keyword == Keyword.REQUIRED)) {
       return tokenizeIdentifier(next, start, allowDollar);
     }
     if (($A <= next && next <= $Z) ||
@@ -1612,7 +1616,7 @@ abstract class AbstractScanner implements Scanner {
         identical(next, $$)) {
       return tokenizeIdentifier(next, start, allowDollar);
     } else {
-      appendKeywordToken(state.keyword);
+      appendKeywordToken(keyword);
       return next;
     }
   }
@@ -1883,7 +1887,7 @@ abstract class AbstractScanner implements Scanner {
       if (tail.type == TokenType.IDENTIFIER && tail.charEnd == tokenStart) {
         charOffset = tail.charOffset;
         codeUnits.addAll(tail.lexeme.codeUnits);
-        tail = tail.previous;
+        tail = tail.previous!;
       } else {
         charOffset = errorToken.charOffset;
       }
@@ -1910,7 +1914,9 @@ abstract class AbstractScanner implements Scanner {
   }
 
   void unterminatedString(int quoteChar, int quoteStart, int start,
-      {bool asciiOnly, bool isMultiLine, bool isRaw}) {
+      {required bool asciiOnly,
+      required bool isMultiLine,
+      required bool isRaw}) {
     String suffix = new String.fromCharCodes(
         isMultiLine ? [quoteChar, quoteChar, quoteChar] : [quoteChar]);
     String prefix = isRaw ? 'r$suffix' : suffix;
@@ -1938,14 +1944,14 @@ TokenType closeBraceInfoFor(BeginToken begin) {
     '{': TokenType.CLOSE_CURLY_BRACKET,
     '<': TokenType.GT,
     r'${': TokenType.CLOSE_CURLY_BRACKET,
-  }[begin.lexeme];
+  }[begin.lexeme]!;
 }
 
 class LineStarts extends Object with ListMixin<int> {
-  List<int> array;
+  late List<int> array;
   int arrayLength = 0;
 
-  LineStarts(int numberOfBytesHint) {
+  LineStarts(int? numberOfBytesHint) {
     // Let's assume the average Dart file is 300 bytes.
     if (numberOfBytesHint == null) numberOfBytesHint = 300;
 
@@ -2038,12 +2044,12 @@ class ScannerConfiguration {
   final bool enableTripleShift;
 
   const ScannerConfiguration({
-    bool enableExtensionMethods,
-    bool enableNonNullable,
-    bool enableTripleShift,
-  })  : this.enableExtensionMethods = enableExtensionMethods ?? false,
-        this.enableNonNullable = enableNonNullable ?? false,
-        this.enableTripleShift = enableTripleShift ?? false;
+    bool enableExtensionMethods = false,
+    bool enableNonNullable = false,
+    bool enableTripleShift = false,
+  })  : this.enableExtensionMethods = enableExtensionMethods,
+        this.enableNonNullable = enableNonNullable,
+        this.enableTripleShift = enableTripleShift;
 }
 
 bool _isIdentifierChar(int next, bool allowDollar) {

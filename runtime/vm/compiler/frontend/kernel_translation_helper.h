@@ -129,6 +129,8 @@ class TranslationHelper {
                      intptr_t len,
                      Heap::Space space);
 
+  const String& DartString(const GrowableHandlePtrArray<const String>& pieces);
+
   const String& DartSymbolPlain(const char* content) const;
   String& DartSymbolPlain(StringIndex string_index) const;
   const String& DartSymbolObfuscate(const char* content) const;
@@ -192,14 +194,9 @@ class TranslationHelper {
                    const char* format,
                    ...) PRINTF_ATTRIBUTE(5, 6);
 
-  ArrayPtr GetBytecodeComponent() const { return info_.bytecode_component(); }
-  void SetBytecodeComponent(const Array& bytecode_component) {
-    info_.set_bytecode_component(bytecode_component);
-  }
-
   void SetExpressionEvaluationFunction(const Function& function) {
     ASSERT(expression_evaluation_function_ == nullptr);
-    expression_evaluation_function_ = &Function::Handle(zone_, function.raw());
+    expression_evaluation_function_ = &Function::Handle(zone_, function.ptr());
   }
   const Function& GetExpressionEvaluationFunction() {
     if (expression_evaluation_function_ == nullptr) {
@@ -210,11 +207,11 @@ class TranslationHelper {
   void SetExpressionEvaluationRealClass(const Class& real_class) {
     ASSERT(expression_evaluation_real_class_ == nullptr);
     ASSERT(!real_class.IsNull());
-    expression_evaluation_real_class_ = &Class::Handle(zone_, real_class.raw());
+    expression_evaluation_real_class_ = &Class::Handle(zone_, real_class.ptr());
   }
   ClassPtr GetExpressionEvaluationRealClass() {
     ASSERT(expression_evaluation_real_class_ != nullptr);
-    return expression_evaluation_real_class_->raw();
+    return expression_evaluation_real_class_->ptr();
   }
 
  private:
@@ -299,8 +296,8 @@ class FunctionNodeHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
-  TokenPosition position_;
-  TokenPosition end_position_;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition end_position_ = TokenPosition::kNoSource;
   AsyncMarker async_marker_;
   AsyncMarker dart_async_marker_;
   intptr_t total_parameter_count_ = 0;
@@ -355,7 +352,7 @@ class TypeParameterHelper {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
 
-  TokenPosition position_;
+  TokenPosition position_ = TokenPosition::kNoSource;
   uint8_t flags_ = 0;
   StringIndex name_index_;
 
@@ -390,9 +387,10 @@ class VariableDeclarationHelper {
     kFinal = 1 << 0,
     kConst = 1 << 1,
     kCovariant = 1 << 3,
-    kIsGenericCovariantImpl = 1 << 5,
-    kLate = 1 << 6,
-    kRequired = 1 << 7,
+    kIsGenericCovariantImpl = 1 << 4,
+    kLate = 1 << 5,
+    kRequired = 1 << 6,
+    kLowered = 1 << 7,
   };
 
   explicit VariableDeclarationHelper(KernelReaderHelper* helper)
@@ -417,8 +415,8 @@ class VariableDeclarationHelper {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
 
-  TokenPosition position_;
-  TokenPosition equals_position_;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition equals_position_ = TokenPosition::kNoSource;
   uint8_t flags_ = 0;
   StringIndex name_index_;
   intptr_t annotation_count_ = 0;
@@ -441,7 +439,8 @@ class FieldHelper {
  public:
   enum Field {
     kStart,  // tag.
-    kCanonicalName,
+    kCanonicalNameGetter,
+    kCanonicalNameSetter,
     kSourceUriIndex,
     kPosition,
     kEndPosition,
@@ -457,10 +456,10 @@ class FieldHelper {
     kFinal = 1 << 0,
     kConst = 1 << 1,
     kStatic = 1 << 2,
-    kIsCovariant = 1 << 5,
-    kIsGenericCovariantImpl = 1 << 6,
-    kIsLate = 1 << 7,
-    kExtensionMember = 1 << 8,
+    kIsCovariant = 1 << 3,
+    kIsGenericCovariantImpl = 1 << 4,
+    kIsLate = 1 << 5,
+    kExtensionMember = 1 << 6,
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
@@ -487,9 +486,10 @@ class FieldHelper {
   bool IsLate() const { return (flags_ & kIsLate) != 0; }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
 
-  NameIndex canonical_name_;
-  TokenPosition position_;
-  TokenPosition end_position_;
+  NameIndex canonical_name_getter_;
+  NameIndex canonical_name_setter_;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition end_position_ = TokenPosition::kNoSource;
   uint32_t flags_ = 0;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
@@ -518,12 +518,11 @@ class ProcedureHelper {
     kPosition,
     kEndPosition,
     kKind,
+    kStubKind,
     kFlags,
     kName,
     kAnnotations,
-    kForwardingStubSuperTarget,
-    kForwardingStubInterfaceTarget,
-    kMemberSignatureTarget,
+    kStubTarget,
     kFunction,
     kEnd,
   };
@@ -536,18 +535,26 @@ class ProcedureHelper {
     kFactory,
   };
 
+  enum StubKind {
+    kRegularStubKind,
+    kAbstractForwardingStubKind,
+    kConcreteForwardingStubKind,
+    kNoSuchMethodForwarderStubKind,
+    kMemberSignatureStubKind,
+    kAbstractMixinStubKind,
+    kConcreteMixinStubKind,
+  };
+
   enum Flag {
     kStatic = 1 << 0,
     kAbstract = 1 << 1,
     kExternal = 1 << 2,
     kConst = 1 << 3,  // Only for external const factories.
-    kForwardingStub = 1 << 4,
 
     // TODO(29841): Remove this line after the issue is resolved.
-    kRedirectingFactoryConstructor = 1 << 6,
-    kNoSuchMethodForwarder = 1 << 7,
-    kExtensionMember = 1 << 8,
-    kMemberSignature = 1 << 9,
+    kRedirectingFactoryConstructor = 1 << 4,
+    kExtensionMember = 1 << 5,
+    kSyntheticProcedure = 1 << 7,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -566,27 +573,33 @@ class ProcedureHelper {
   bool IsAbstract() const { return (flags_ & kAbstract) != 0; }
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsConst() const { return (flags_ & kConst) != 0; }
-  bool IsForwardingStub() const { return (flags_ & kForwardingStub) != 0; }
+  bool IsForwardingStub() const {
+    return stub_kind_ == kAbstractForwardingStubKind ||
+           stub_kind_ == kConcreteForwardingStubKind;
+  }
   bool IsRedirectingFactoryConstructor() const {
     return (flags_ & kRedirectingFactoryConstructor) != 0;
   }
   bool IsNoSuchMethodForwarder() const {
-    return (flags_ & kNoSuchMethodForwarder) != 0;
+    return stub_kind_ == kNoSuchMethodForwarderStubKind;
   }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
-  bool IsMemberSignature() const { return (flags_ & kMemberSignature) != 0; }
+  bool IsMemberSignature() const {
+    return stub_kind_ == kMemberSignatureStubKind;
+  }
 
   NameIndex canonical_name_;
-  TokenPosition start_position_;
-  TokenPosition position_;
-  TokenPosition end_position_;
+  TokenPosition start_position_ = TokenPosition::kNoSource;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition end_position_ = TokenPosition::kNoSource;
   Kind kind_;
   uint32_t flags_ = 0;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
+  StubKind stub_kind_;
 
   // Only valid if the 'isForwardingStub' flag is set.
-  NameIndex forwarding_stub_super_target_;
+  NameIndex concrete_forwarding_stub_target_;
 
  private:
   KernelReaderHelper* helper_;
@@ -642,9 +655,9 @@ class ConstructorHelper {
   bool IsSynthetic() { return (flags_ & kSynthetic) != 0; }
 
   NameIndex canonical_name_;
-  TokenPosition start_position_;
-  TokenPosition position_;
-  TokenPosition end_position_;
+  TokenPosition start_position_ = TokenPosition::kNoSource;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition end_position_ = TokenPosition::kNoSource;
   uint8_t flags_ = 0;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
@@ -687,12 +700,12 @@ class ClassHelper {
   };
 
   enum Flag {
-    kIsAbstract = 1 << 2,
-    kIsEnumClass = 1 << 3,
-    kIsAnonymousMixin = 1 << 4,
-    kIsEliminatedMixin = 1 << 5,
-    kFlagMixinDeclaration = 1 << 6,
-    kHasConstConstructor = 1 << 7,
+    kIsAbstract = 1 << 0,
+    kIsEnumClass = 1 << 1,
+    kIsAnonymousMixin = 1 << 2,
+    kIsEliminatedMixin = 1 << 3,
+    kFlagMixinDeclaration = 1 << 4,
+    kHasConstConstructor = 1 << 5,
   };
 
   explicit ClassHelper(KernelReaderHelper* helper)
@@ -720,9 +733,9 @@ class ClassHelper {
   }
 
   NameIndex canonical_name_;
-  TokenPosition start_position_;
-  TokenPosition position_;
-  TokenPosition end_position_;
+  TokenPosition start_position_ = TokenPosition::kNoSource;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition end_position_ = TokenPosition::kNoSource;
   StringIndex name_index_;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
@@ -768,11 +781,10 @@ class LibraryHelper {
   };
 
   enum Flag {
-    kExternal = 1 << 0,
-    kSynthetic = 1 << 1,
-    kIsNonNullableByDefault = 1 << 2,
-    kNonNullableByDefaultCompiledModeBit1Weak = 1 << 3,
-    kNonNullableByDefaultCompiledModeBit2Strong = 1 << 4,
+    kSynthetic = 1 << 0,
+    kIsNonNullableByDefault = 1 << 1,
+    kNonNullableByDefaultCompiledModeBit1 = 1 << 2,
+    kNonNullableByDefaultCompiledModeBit2 = 1 << 3,
   };
 
   explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)
@@ -787,18 +799,18 @@ class LibraryHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
-  bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsSynthetic() const { return (flags_ & kSynthetic) != 0; }
   bool IsNonNullableByDefault() const {
     return (flags_ & kIsNonNullableByDefault) != 0;
   }
   NNBDCompiledMode GetNonNullableByDefaultCompiledMode() const {
-    bool weak = (flags_ & kNonNullableByDefaultCompiledModeBit1Weak) != 0;
-    bool strong = (flags_ & kNonNullableByDefaultCompiledModeBit2Strong) != 0;
-    if (weak && strong) return NNBDCompiledMode::kAgnostic;
-    if (strong) return NNBDCompiledMode::kStrong;
-    if (weak) return NNBDCompiledMode::kWeak;
-    return NNBDCompiledMode::kDisabled;
+    bool bit1 = (flags_ & kNonNullableByDefaultCompiledModeBit1) != 0;
+    bool bit2 = (flags_ & kNonNullableByDefaultCompiledModeBit2) != 0;
+    if (!bit1 && !bit2) return NNBDCompiledMode::kWeak;
+    if (bit1 && !bit2) return NNBDCompiledMode::kStrong;
+    if (bit1 && bit2) return NNBDCompiledMode::kAgnostic;
+    if (!bit1 && bit2) return NNBDCompiledMode::kInvalid;
+    UNREACHABLE();
   }
 
   uint8_t flags_ = 0;
@@ -1246,6 +1258,7 @@ class KernelReaderHelper {
   const String& GetSourceFor(intptr_t index);
   TypedDataPtr GetLineStartsFor(intptr_t index);
   String& SourceTableImportUriFor(intptr_t index, uint32_t binaryVersion);
+  ExternalTypedDataPtr GetConstantCoverageFor(intptr_t index);
 
   Zone* zone_;
   TranslationHelper& translation_helper_;
@@ -1259,8 +1272,6 @@ class KernelReaderHelper {
   // kernel program.
   intptr_t data_program_offset_;
 
-  friend class BytecodeMetadataHelper;
-  friend class BytecodeReaderHelper;
   friend class ClassHelper;
   friend class CallSiteAttributesMetadataHelper;
   friend class ConstantReader;
@@ -1286,6 +1297,8 @@ class KernelReaderHelper {
   friend class ObfuscationProhibitionsMetadataHelper;
   friend class LoadingUnitsMetadataHelper;
   friend bool NeedsDynamicInvocationForwarder(const Function& function);
+  friend ArrayPtr CollectConstConstructorCoverageFrom(
+      const Script& interesting_script);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(KernelReaderHelper);
@@ -1303,12 +1316,12 @@ class ActiveClass {
 
   bool MemberIsProcedure() {
     ASSERT(member != NULL);
-    FunctionLayout::Kind function_kind = member->kind();
-    return function_kind == FunctionLayout::kRegularFunction ||
-           function_kind == FunctionLayout::kGetterFunction ||
-           function_kind == FunctionLayout::kSetterFunction ||
-           function_kind == FunctionLayout::kMethodExtractor ||
-           function_kind == FunctionLayout::kDynamicInvocationForwarder ||
+    UntaggedFunction::Kind function_kind = member->kind();
+    return function_kind == UntaggedFunction::kRegularFunction ||
+           function_kind == UntaggedFunction::kGetterFunction ||
+           function_kind == UntaggedFunction::kSetterFunction ||
+           function_kind == UntaggedFunction::kMethodExtractor ||
+           function_kind == UntaggedFunction::kDynamicInvocationForwarder ||
            member->IsFactory();
   }
 
@@ -1317,7 +1330,7 @@ class ActiveClass {
     return member->IsFactory();
   }
 
-  bool RequireLegacyErasure(bool null_safety) const {
+  bool RequireConstCanonicalTypeErasure(bool null_safety) const {
     return klass != nullptr && !null_safety &&
            Library::Handle(klass->library()).nnbd_compiled_mode() ==
                NNBDCompiledMode::kAgnostic;
@@ -1333,7 +1346,7 @@ class ActiveClass {
   void RecordDerivedTypeParameter(Zone* zone,
                                   const TypeParameter& original,
                                   const TypeParameter& derived) {
-    if (original.raw() != derived.raw() &&
+    if (original.ptr() != derived.ptr() &&
         original.bound() == AbstractType::null()) {
       if (derived_type_parameters == nullptr) {
         derived_type_parameters = &GrowableObjectArray::Handle(
@@ -1352,9 +1365,9 @@ class ActiveClass {
 
   const Function* member;
 
-  // The innermost enclosing function. This is used for building types, as a
+  // The innermost enclosing signature. This is used for building types, as a
   // parent for function types.
-  const Function* enclosing;
+  const FunctionType* enclosing;
 
   const TypeArguments* local_type_parameters;
 
@@ -1397,9 +1410,9 @@ class ActiveMemberScope {
 class ActiveEnclosingFunctionScope {
  public:
   ActiveEnclosingFunctionScope(ActiveClass* active_class,
-                               const Function* enclosing)
+                               const FunctionType* enclosing_signature)
       : active_class_(active_class), saved_(*active_class) {
-    active_class_->enclosing = enclosing;
+    active_class_->enclosing = enclosing_signature;
   }
 
   ~ActiveEnclosingFunctionScope() { *active_class_ = saved_; }
@@ -1417,16 +1430,17 @@ class ActiveTypeParametersScope {
   // parameters defined by 'innermost' and any enclosing *closures* (but not
   // enclosing methods/top-level functions/classes).
   //
-  // Also, the enclosing function is set to 'innermost'.
+  // Also, the enclosing signature is set to innermost's signature.
   ActiveTypeParametersScope(ActiveClass* active_class,
                             const Function& innermost,
+                            const FunctionType* innermost_signature,
                             Zone* Z);
 
   // Append the list of the local type parameters to the list in ActiveClass.
   //
-  // Also, the enclosing function is set to 'function'.
+  // Also, the enclosing signature is set to 'signature'.
   ActiveTypeParametersScope(ActiveClass* active_class,
-                            const Function* function,
+                            const FunctionType* innermost_signature,
                             const TypeArguments& new_params,
                             Zone* Z);
 
@@ -1445,7 +1459,7 @@ class TypeTranslator {
                  ConstantReader* constant_reader,
                  ActiveClass* active_class,
                  bool finalize = false,
-                 bool apply_legacy_erasure = false);
+                 bool apply_canonical_type_erasure = false);
 
   AbstractType& BuildType();
   AbstractType& BuildTypeWithoutFinalization();
@@ -1457,9 +1471,11 @@ class TypeTranslator {
       intptr_t length);
 
   void LoadAndSetupTypeParameters(ActiveClass* active_class,
-                                  const Object& set_on,
+                                  const Function& function,
+                                  const Class& parameterized_class,
+                                  const FunctionType& parameterized_signature,
                                   intptr_t type_parameter_count,
-                                  const Function& parameterized_function);
+                                  const NNBDMode nnbd_mode);
 
   const Type& ReceiverType(const Class& klass);
 
@@ -1517,7 +1533,7 @@ class TypeTranslator {
   Zone* zone_;
   AbstractType& result_;
   bool finalize_;
-  const bool apply_legacy_erasure_;
+  const bool apply_canonical_type_erasure_;
 
   friend class ScopeBuilder;
   friend class KernelLoader;

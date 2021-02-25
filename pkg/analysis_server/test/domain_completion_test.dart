@@ -6,11 +6,9 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,7 +19,6 @@ import 'mocks.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionDomainHandlerGetSuggestionsTest);
-    defineReflectiveTests(CompletionDomainHandlerListTokenDetailsTest);
   });
 }
 
@@ -43,10 +40,8 @@ class A {
     addTestFile('main() { new A(^);}'
         'class A { A({one, two}) {} }');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ',
-        relevance: DART_RELEVANCE_NAMED_PARAMETER);
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ',
-        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ');
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ');
     expect(suggestions, hasLength(2));
   }
 
@@ -54,30 +49,24 @@ class A {
     addTestFile('main() { new A(^);}'
         'class A { factory A({one, two}) => throw 0; }');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ',
-        relevance: DART_RELEVANCE_NAMED_PARAMETER);
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ',
-        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ');
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ');
     expect(suggestions, hasLength(2));
   }
 
   Future<void> test_ArgumentList_imported_function_named_param() async {
     addTestFile('main() { int.parse("16", ^);}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ',
-        relevance: DART_RELEVANCE_NAMED_PARAMETER);
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ',
-        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ');
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ');
     expect(suggestions, hasLength(2));
   }
 
   Future<void> test_ArgumentList_imported_function_named_param1() async {
     addTestFile('main() { foo(o^);} foo({one, two}) {}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ',
-        relevance: DART_RELEVANCE_NAMED_PARAMETER);
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ',
-        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ');
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ');
     expect(suggestions, hasLength(2));
   }
 
@@ -85,54 +74,42 @@ class A {
     addTestFile('mainx() {A a = new A(); a.foo(one: 7, ^);}'
         'class A { foo({one, two}) {} }');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ',
-        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ');
     expect(suggestions, hasLength(1));
   }
 
   Future<void> test_ArgumentList_imported_function_named_param_label1() async {
     addTestFile('main() { int.parse("16", r^: 16);}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix',
-        relevance: DART_RELEVANCE_NAMED_PARAMETER);
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError',
-        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix');
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError');
     expect(suggestions, hasLength(2));
   }
 
   Future<void> test_ArgumentList_imported_function_named_param_label3() async {
     addTestFile('main() { int.parse("16", ^: 16);}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ',
-        relevance: DART_RELEVANCE_NAMED_PARAMETER);
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ',
-        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ');
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ');
     expect(suggestions, hasLength(2));
   }
 
   Future<void> test_catch() async {
     addTestFile('main() {try {} ^}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'on',
-        relevance: DART_RELEVANCE_KEYWORD);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'catch',
-        relevance: DART_RELEVANCE_KEYWORD);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'finally',
-        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'on');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'catch');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'finally');
     expect(suggestions, hasLength(3));
   }
 
   Future<void> test_catch2() async {
     addTestFile('main() {try {} on Foo {} ^}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'on',
-        relevance: DART_RELEVANCE_KEYWORD);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'catch',
-        relevance: DART_RELEVANCE_KEYWORD);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'finally',
-        relevance: DART_RELEVANCE_KEYWORD);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'for',
-        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'on');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'catch');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'finally');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'for');
     suggestions.firstWhere(
         (CompletionSuggestion suggestion) =>
             suggestion.kind != CompletionSuggestionKind.KEYWORD, orElse: () {
@@ -146,8 +123,7 @@ class A {
     assertNoResult('on');
     assertNoResult('catch');
     assertNoResult('finally');
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'for',
-        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'for');
     suggestions.firstWhere(
         (CompletionSuggestion suggestion) =>
             suggestion.kind != CompletionSuggestionKind.KEYWORD, orElse: () {
@@ -161,8 +137,7 @@ class A {
     assertNoResult('on');
     assertNoResult('catch');
     assertNoResult('finally');
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'for',
-        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'for');
     suggestions.firstWhere(
         (CompletionSuggestion suggestion) =>
             suggestion.kind != CompletionSuggestionKind.KEYWORD, orElse: () {
@@ -173,65 +148,51 @@ class A {
   Future<void> test_catch5() async {
     addTestFile('main() {try {} ^ finally {}}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'on',
-        relevance: DART_RELEVANCE_KEYWORD);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'catch',
-        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'on');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'catch');
     expect(suggestions, hasLength(2));
   }
 
   Future<void> test_constructor() async {
     addTestFile('class A {bool foo; A() : ^;}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
-        relevance: DART_RELEVANCE_KEYWORD);
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
-        relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
   }
 
   Future<void> test_constructor2() async {
     addTestFile('class A {bool foo; A() : s^;}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
-        relevance: DART_RELEVANCE_KEYWORD);
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
-        relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
   }
 
   Future<void> test_constructor3() async {
     addTestFile('class A {bool foo; A() : a=7,^;}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
-        relevance: DART_RELEVANCE_KEYWORD);
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
-        relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
   }
 
   Future<void> test_constructor4() async {
     addTestFile('class A {bool foo; A() : a=7,s^;}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
-        relevance: DART_RELEVANCE_KEYWORD);
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
-        relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
   }
 
   Future<void> test_constructor5() async {
     addTestFile('class A {bool foo; A() : a=7,s^}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
-        relevance: DART_RELEVANCE_KEYWORD);
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
-        relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
   }
 
   Future<void> test_constructor6() async {
     addTestFile('class A {bool foo; A() : a=7,^ void bar() {}}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
-        relevance: DART_RELEVANCE_KEYWORD);
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
-        relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
   }
 
   Future<void> test_html() {
@@ -315,8 +276,7 @@ class A {
 
     // Assert valid results for the second request
     expect(allSuggestions[result2.id], same(suggestions));
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'class',
-        relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'class');
   }
 
   @failingTest
@@ -370,9 +330,9 @@ class A {
     expect(replacementOffset, completionOffset - 3);
     expect(replacementLength, 3);
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'export \'\';',
-        selectionOffset: 8, relevance: DART_RELEVANCE_HIGH);
+        selectionOffset: 8);
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'import \'\';',
-        selectionOffset: 8, relevance: DART_RELEVANCE_HIGH);
+        selectionOffset: 8);
     assertNoResult('extends');
     assertNoResult('library');
   }
@@ -407,14 +367,13 @@ class A {
     }
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'library',
-        relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'library');
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'import \'\';',
-        selectionOffset: 8, relevance: DART_RELEVANCE_HIGH);
+        selectionOffset: 8);
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'export \'\';',
-        selectionOffset: 8, relevance: DART_RELEVANCE_HIGH);
+        selectionOffset: 8);
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'part \'\';',
-        selectionOffset: 6, relevance: DART_RELEVANCE_HIGH);
+        selectionOffset: 6);
     assertNoResult('extends');
   }
 
@@ -509,10 +468,8 @@ class A {
   main(aaa, bbb) {}
   ''');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'main',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'main');
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'min');
   }
 
@@ -522,8 +479,7 @@ class A {
   main(aaa, bbb) {}
   ''');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'main',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'main');
   }
 
   Future<void> test_inherited() {
@@ -538,8 +494,7 @@ class B extends A {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm',
-          relevance: DART_RELEVANCE_LOCAL_METHOD);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
     });
   }
 
@@ -568,36 +523,8 @@ class B extends A {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b',
-          relevance: DART_RELEVANCE_LOCAL_METHOD);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
     });
-  }
-
-  Future<void> test_invocation_sdk_relevancy_off() {
-    var originalSorter = DartCompletionManager.contributionSorter;
-    var mockSorter = MockRelevancySorter();
-    DartCompletionManager.contributionSorter = mockSorter;
-    addTestFile('main() {Map m; m.^}');
-    return getSuggestions().then((_) {
-      // Assert that the CommonUsageComputer has been replaced
-      expect(suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
-          isFalse);
-      DartCompletionManager.contributionSorter = originalSorter;
-      mockSorter.enabled = false;
-    });
-  }
-
-  Future<void> test_invocation_sdk_relevancy_on() {
-    if (!server.options.useNewRelevance) {
-      addTestFile('main() {Map m; m.^}');
-      return getSuggestions().then((_) {
-        // Assert that the CommonUsageComputer is working
-        expect(
-            suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
-            isTrue);
-      });
-    }
-    return Future.value(null);
   }
 
   Future<void> test_invocation_withTrailingStmt() {
@@ -605,8 +532,7 @@ class B extends A {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b',
-          relevance: DART_RELEVANCE_LOCAL_METHOD);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
     });
   }
 
@@ -615,8 +541,7 @@ class B extends A {
 class A { var isVisible;}
 main(A p) { var v1 = p.is^; }''');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'isVisible',
-        relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'isVisible');
   }
 
   Future<void> test_keyword() {
@@ -625,9 +550,8 @@ main(A p) { var v1 = p.is^; }''');
       expect(replacementOffset, equals(completionOffset - 2));
       expect(replacementLength, equals(2));
       assertHasResult(CompletionSuggestionKind.KEYWORD, 'export \'\';',
-          selectionOffset: 8, relevance: DART_RELEVANCE_HIGH);
-      assertHasResult(CompletionSuggestionKind.KEYWORD, 'class',
-          relevance: DART_RELEVANCE_HIGH);
+          selectionOffset: 8);
+      assertHasResult(CompletionSuggestionKind.KEYWORD, 'class');
     });
   }
 
@@ -679,8 +603,7 @@ class B extends A {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm',
-          relevance: DART_RELEVANCE_LOCAL_METHOD);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
     });
   }
 
@@ -701,8 +624,7 @@ main() {
     expect(replacementLength, equals(0));
 
     // The class is suggested.
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
-        relevance: DART_RELEVANCE_LOCAL_VARIABLE);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'A');
 
     // Class and all its constructors are shadowed by the local variable.
     assertNoResult('A', elementKind: ElementKind.CLASS);
@@ -717,12 +639,9 @@ main() {
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
           elementKind: ElementKind.CLASS);
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'a',
-          relevance: DART_RELEVANCE_LOCAL_FIELD);
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b',
-          relevance: DART_RELEVANCE_LOCAL_VARIABLE);
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'x',
-          relevance: DART_RELEVANCE_LOCAL_METHOD);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'a');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'x');
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'DateTime',
           elementKind: ElementKind.CLASS);
     });
@@ -746,8 +665,7 @@ class B extends A {m() {^}}
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm',
-          relevance: DART_RELEVANCE_LOCAL_METHOD);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
     });
   }
 
@@ -838,8 +756,7 @@ class B extends A {m() {^}}
     await getSuggestions();
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'b',
-        relevance: DART_RELEVANCE_INHERITED_METHOD);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
     assertNoResult('c');
   }
 
@@ -854,423 +771,9 @@ class B extends A {m() {^}}
       expect(replacementLength, equals(4));
       // Suggestions based upon imported elements are partially filtered
       //assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'test',
-          relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'test');
       assertNoResult('HtmlElement');
     });
-  }
-}
-
-@reflectiveTest
-class CompletionDomainHandlerListTokenDetailsTest
-    extends AbstractCompletionDomainTest {
-  String testFileUri;
-
-  void expectTokens(String content, List<TokenDetails> expectedTokens) async {
-    newFile(testFile, content: content);
-    var request = CompletionListTokenDetailsParams(testFile).toRequest('0');
-    var response = await waitResponse(request);
-    List<Map<String, dynamic>> tokens = response.result['tokens'];
-    _compareTokens(tokens, expectedTokens);
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    testFileUri = toUriStr(testFile);
-  }
-
-  Future<void> test_classDeclaration() async {
-    await expectTokens('''
-class A {}
-class B extends A {}
-class C implements B {}
-class D with C {}
-''', [
-      token('class', 0, null, null),
-      token('A', 6, 'Type',
-          ['declaration']), //token('A', 6, 'dart:core;Type', ['declaration']),
-      token('{', 8, null, null),
-      token('}', 9, null, null),
-      token('class', 11, null, null),
-      token('B', 17, 'Type',
-          ['declaration']), //token('B', 17, 'dart:core;Type', ['declaration']),
-      token('extends', 19, null, null),
-      token('A', 27, 'dart:core;Type<A>', [
-        'reference'
-      ]), //token('A', 27, 'dart:core;Type<$testFileUri;A>', ['reference']),
-      token('{', 29, null, null),
-      token('}', 30, null, null),
-      token('class', 32, null, null),
-      token('C', 38, 'Type',
-          ['declaration']), //token('C', 38, 'dart:core;Type', ['declaration']),
-      token('implements', 40, null, null),
-      token('B', 51, 'dart:core;Type<B>', [
-        'reference'
-      ]), //token('B', 51, 'dart:core;Type<$testFileUri;B>', ['reference']),
-      token('{', 53, null, null),
-      token('}', 54, null, null),
-      token('class', 56, null, null),
-      token('D', 62, 'Type',
-          ['declaration']), //token('D', 62, 'dart:core;Type', ['declaration']),
-      token('with', 64, null, null),
-      token('C', 69, 'dart:core;Type<C>', [
-        'reference'
-      ]), //token('C', 69, 'dart:core;Type<$testFileUri;C>', ['reference']),
-      token('{', 71, null, null),
-      token('}', 72, null, null),
-    ]);
-  }
-
-  Future<void> test_genericType() async {
-    await expectTokens('''
-List<int> x = null;
-''', [
-      token('List', 0, 'dart:core;Type<List>', [
-        'reference'
-      ]), //token('List', 0, 'dart:core;Type<dart:core;List>', ['reference']),
-      token('<', 4, null, null),
-      token('int', 5, 'dart:core;Type<int>', [
-        'reference'
-      ]), //token('int', 5, 'dart:core;Type<dart:core;int>', ['reference']),
-      token('>', 8, null, null),
-      token('x', 10, 'List',
-          ['declaration']), //token('x', 10, 'dart:core;List', ['declaration']),
-      token('=', 12, null, null),
-      token('null', 14, null, null),
-      token(';', 18, null, null),
-    ]);
-  }
-
-  Future<void> test_getterInvocation() async {
-    await expectTokens('''
-var x = 'a'.length;
-''', [
-      token('var', 0, null, null),
-      token('x', 4, 'int',
-          ['declaration']), //token('x', 4, 'dart:core;int', ['declaration']),
-      token('=', 6, null, null),
-      token("'a'", 8, 'String',
-          null), //token("'a'", 8, 'dart:core;String', null),
-      token('.', 11, null, null),
-      token('length', 12, 'int',
-          ['reference']), //token('length', 12, 'dart:core;int', ['reference']),
-      token(';', 18, null, null),
-    ]);
-  }
-
-  Future<void> test_literal_bool() async {
-    await expectTokens('''
-var x = true;
-''', [
-      token('var', 0, null, null),
-      token('x', 4, 'bool',
-          ['declaration']), //token('x', 4, 'dart:core;bool', ['declaration']),
-      token('=', 6, null, null),
-      token(
-          'true', 8, 'bool', null), //token('true', 8, 'dart:core;bool', null),
-      token(';', 12, null, null),
-    ]);
-  }
-
-  Future<void> test_literal_double() async {
-    await expectTokens('''
-var x = 3.4;
-''', [
-      token('var', 0, null, null),
-      token('x', 4, 'double', [
-        'declaration'
-      ]), //token('x', 4, 'dart:core;double', ['declaration']),
-      token('=', 6, null, null),
-      token('3.4', 8, 'double',
-          null), //token('3.4', 8, 'dart:core;double', null),
-      token(';', 11, null, null),
-    ]);
-  }
-
-  Future<void> test_literal_int() async {
-    await expectTokens('''
-var x = 7;
-''', [
-      token('var', 0, null, null),
-      token('x', 4, 'int',
-          ['declaration']), //token('x', 4, 'dart:core;int', ['declaration']),
-      token('=', 6, null, null),
-      token('7', 8, 'int', null), //token('7', 8, 'dart:core;int', null),
-      token(';', 9, null, null),
-    ]);
-  }
-
-  Future<void> test_literal_list() async {
-    await expectTokens('''
-var x = <int>[];
-''', [
-      token('var', 0, null, null),
-      token('x', 4, 'List',
-          ['declaration']), //token('x', 4, 'dart:core;List', ['declaration']),
-      token('=', 6, null, null),
-      token('<', 8, null, null),
-      token('int', 9, 'dart:core;Type<int>', [
-        'reference'
-      ]), //token("int", 9, 'dart:core;Type<dart:core;int>', ['reference']),
-      token('>', 12, null, null),
-      token('[', 13, null, null),
-      token(']', 14, null, null),
-      token(';', 15, null, null),
-    ]);
-  }
-
-  Future<void> test_literal_map() async {
-    await expectTokens('''
-var x = <int, int>{};
-''', [
-      token('var', 0, null, null),
-      token('x', 4, 'Map',
-          ['declaration']), //token('x', 4, 'dart:core;Map', ['declaration']),
-      token('=', 6, null, null),
-      token('<', 8, null, null),
-      token('int', 9, 'dart:core;Type<int>', [
-        'reference'
-      ]), //token("int", 9, 'dart:core;Type<dart:core;int>', ['reference']),
-//      token(',', null, null),
-      token('int', 14, 'dart:core;Type<int>', [
-        'reference'
-      ]), //token("int", 14, 'dart:core;Type<dart:core;int>', ['reference']),
-      token('>', 17, null, null),
-      token('{', 18, null, null),
-      token('}', 19, null, null),
-      token(';', 20, null, null),
-    ]);
-  }
-
-  Future<void> test_literal_null() async {
-    await expectTokens('''
-var x = null;
-''', [
-      token('var', 0, null, null),
-      token('x', 4, 'dynamic', ['declaration']),
-      token('=', 6, null, null),
-      token('null', 8, null, null),
-      token(';', 12, null, null),
-    ]);
-  }
-
-  Future<void> test_literal_set() async {
-    await expectTokens('''
-var x = <int>{};
-''', [
-      token('var', 0, null, null),
-      token('x', 4, 'Set',
-          ['declaration']), //token('x', 4, 'dart:core;Set', ['declaration']),
-      token('=', 6, null, null),
-      token('<', 8, null, null),
-      token('int', 9, 'dart:core;Type<int>', [
-        'reference'
-      ]), //token("int", 9, 'dart:core;Type<dart:core;int>', ['reference']),
-      token('>', 12, null, null),
-      token('{', 13, null, null),
-      token('}', 14, null, null),
-      token(';', 15, null, null),
-    ]);
-  }
-
-  Future<void> test_literal_string() async {
-    await expectTokens('''
-var x = 'a';
-''', [
-      token('var', 0, null, null),
-      token('x', 4, 'String', [
-        'declaration'
-      ]), //token('x', 4, 'dart:core;String', ['declaration']),
-      token('=', 6, null, null),
-      token("'a'", 8, 'String',
-          null), //token("'a'", 8, 'dart:core;String', null),
-      token(';', 11, null, null),
-    ]);
-  }
-
-  Future<void> test_methodDeclaration() async {
-    await expectTokens('''
-class A {
-  String c(int x, int y) {}
-}
-''', [
-      token('class', 0, null, null),
-      token('A', 6, 'Type', ['declaration']),
-      //token('A', 6, 'dart:core;Type', ['declaration']),
-      token('{', 8, null, null),
-      token('String', 12, 'dart:core;Type<String>', ['reference']),
-      //token('String', 12, 'dart:core;Type<dart:core;String>', ['reference']),
-      token('c', 19, 'String Function(int, int)',
-          //'dart:core;String Function(dart:core;int, dart:core;int)',
-          ['declaration']),
-      token('(', 20, null, null),
-      token('int', 21, 'dart:core;Type<int>', ['reference']),
-      //token('int', 21, 'dart:core;Type<dart:core;int>', ['reference']),
-      token('x', 25, 'int', ['declaration']),
-      //token('x', 25, 'dart:core;int', ['declaration']),
-//      token(',', null, null),
-      token('int', 28, 'dart:core;Type<int>', ['reference']),
-      //token('int', 28, 'dart:core;Type<dart:core;int>', ['reference']),
-      token('y', 32, 'int', ['declaration']),
-      //token('y', 32, 'dart:core;int', ['declaration']),
-      token(')', 33, null, null),
-      token('{', 35, null, null),
-      token('}', 36, null, null),
-      token('}', 38, null, null),
-    ]);
-  }
-
-  Future<void> test_methodInvocation() async {
-    await expectTokens('''
-var x = 'radar'.indexOf('r', 1);
-''', [
-      token('var', 0, null, null),
-      token('x', 4, 'int',
-          ['declaration']), //token('x', 4, 'dart:core;int', ['declaration']),
-      token('=', 6, null, null),
-      token("'radar'", 8, 'String',
-          null), //token("'radar'", 8, 'dart:core;String', null),
-      token('.', 15, null, null),
-      token('indexOf', 16, 'int Function(Pattern, int)',
-          //'dart:core;int Function(dart:core;Pattern, dart:core;int)',
-          ['reference']),
-      token('(', 23, null, null),
-      token("'r'", 24, 'String',
-          null), //token("'r'", 24, 'dart:core;String', null),
-//      token(',', null, null),
-      token('1', 29, 'int', null), //token('1', 29, 'dart:core;int', null),
-      token(')', 30, null, null),
-      token(';', 31, null, null),
-    ]);
-  }
-
-  Future<void> test_mixinDeclaration() async {
-    await expectTokens('''
-class A {}
-class B {}
-mixin D on A implements B {}
-''', [
-      token('class', 0, null, null),
-      token('A', 6, 'Type',
-          ['declaration']), //token('A', 6, 'dart:core;Type', ['declaration']),
-      token('{', 8, null, null),
-      token('}', 9, null, null),
-      token('class', 11, null, null),
-      token('B', 17, 'Type',
-          ['declaration']), //token('B', 17, 'dart:core;Type', ['declaration']),
-      token('{', 19, null, null),
-      token('}', 20, null, null),
-      token('mixin', 22, null, null),
-      token('D', 28, 'Type',
-          ['declaration']), //token('D', 28, 'dart:core;Type', ['declaration']),
-      token('on', 30, null, null),
-      token('A', 33, 'dart:core;Type<A>', [
-        'reference'
-      ]), //token('A', 33, 'dart:core;Type<$testFileUri;A>', ['reference']),
-      token('implements', 35, null, null),
-      token('B', 46, 'dart:core;Type<B>', [
-        'reference'
-      ]), //token('B', 'dart:core;Type<$testFileUri;B>', ['reference']),
-      token('{', 48, null, null),
-      token('}', 49, null, null),
-    ]);
-  }
-
-  Future<void> test_parameterReference() async {
-    await expectTokens('''
-int f(int p) {
-  return p;
-}
-''', [
-      token('int', 0, 'dart:core;Type<int>', ['reference']),
-      //token('int', 0, 'dart:core;Type<dart:core;int>', ['reference']),
-      token('f', 4, 'int Function(int)', ['declaration']),
-      //token('f', 4, 'dart:core;int Function(dart:core;int)', ['declaration']),
-      token('(', 5, null, null),
-      token('int', 6, 'dart:core;Type<int>', ['reference']),
-      //token('int', 6, 'dart:core;Type<dart:core;int>', ['reference']),
-      token('p', 10, 'int', ['declaration']),
-      //token('p', 10, 'dart:core;int', ['declaration']),
-      token(')', 11, null, null),
-      token('{', 13, null, null),
-      token('return', 17, null, null),
-      token('p', 24, 'int', ['reference']),
-      //token('p', 24, 'dart:core;int', ['reference']),
-      token(';', 25, null, null),
-      token('}', 27, null, null),
-    ]);
-  }
-
-  Future<void> test_topLevelVariable_withDocComment() async {
-    await expectTokens('''
-/// Doc comment [x] with reference.
-int x;
-''', [
-      token('int', 36, 'dart:core;Type<int>', [
-        'reference'
-      ]), //token('int', 36, 'dart:core;Type<dart:core;int>', ['reference']),
-      token('x', 40, 'int',
-          ['declaration']), //token('x', 40, 'dart:core;int', ['declaration']),
-      token(';', 41, null, null),
-    ]);
-  }
-
-  TokenDetails token(
-      String lexeme, int offset, String type, List<String> kinds) {
-    return TokenDetails(lexeme, offset, type: type, validElementKinds: kinds);
-  }
-
-  void _compareTokens(List<Map<String, dynamic>> actualTokens,
-      List<TokenDetails> expectedTokens) {
-    var length = expectedTokens.length;
-    expect(actualTokens, hasLength(length));
-    var errors = <String>[];
-    for (var i = 0; i < length; i++) {
-      var actual = actualTokens[i];
-      var expected = expectedTokens[i];
-      if (actual['lexeme'] != expected.lexeme) {
-        errors.add('Lexeme at $i: '
-            'expected "${expected.lexeme}", '
-            'actual "${actual['lexeme']}"');
-      }
-      if (actual['offset'] != expected.offset) {
-        errors.add('Offset at $i: ("${expected.lexeme}"): '
-            'expected "${expected.offset}", '
-            'actual "${actual['offset']}"');
-      }
-      if (actual['type'] != expected.type) {
-        errors.add('Type at $i ("${expected.lexeme}"): '
-            'expected "${expected.type}", '
-            'actual "${actual['type']}"');
-      }
-      if (_differentKinds(
-          actual['validElementKinds'], expected.validElementKinds)) {
-        errors.add('Kinds at $i ("${expected.lexeme}"): '
-            'expected "${expected.validElementKinds}", '
-            'actual "${actual['validElementKinds']}"');
-      }
-    }
-    expect(errors, isEmpty);
-  }
-
-  /// Return `true` if the two lists of kinds are different.
-  bool _differentKinds(List<String> actual, List<String> expected) {
-    if (actual == null) {
-      return expected != null;
-    } else if (expected == null) {
-      return true;
-    }
-    var expectedLength = expected.length;
-    if (actual.length != expectedLength) {
-      return true;
-    }
-    for (var i = 0; i < expectedLength; i++) {
-      if (actual[i] != expected[i]) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 

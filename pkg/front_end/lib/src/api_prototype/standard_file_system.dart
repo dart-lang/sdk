@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library front_end.standard_file_system;
 
-import 'dart:async';
 import 'dart:io' as io;
 
 import 'file_system.dart';

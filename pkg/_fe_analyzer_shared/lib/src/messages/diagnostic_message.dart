@@ -34,32 +34,38 @@ abstract class DiagnosticMessage {
   Iterable<String> get plainTextFormatted;
 
   Severity get severity;
+
+  Iterable<Uri>? get involvedFiles;
+
+  String? get codeName;
 }
 
 /// This method is subject to change.
-Uri getMessageUri(DiagnosticMessage message) {
+Uri? getMessageUri(DiagnosticMessage message) {
   return message is FormattedMessage
       ? message.uri
-      : message is DiagnosticMessageFromJson ? message.uri : null;
+      : message is DiagnosticMessageFromJson
+          ? message.uri
+          : null;
 }
 
 /// This method is subject to change.
-int getMessageCharOffset(DiagnosticMessage message) {
+int? getMessageCharOffset(DiagnosticMessage message) {
   return message is FormattedMessage ? message.charOffset : null;
 }
 
 /// This method is subject to change.
-int getMessageLength(DiagnosticMessage message) {
+int? getMessageLength(DiagnosticMessage message) {
   return message is FormattedMessage ? message.length : null;
 }
 
 /// This method is subject to change.
-Code getMessageCodeObject(DiagnosticMessage message) {
+Code? getMessageCodeObject(DiagnosticMessage message) {
   return message is FormattedMessage ? message.code : null;
 }
 
 /// This method is subject to change.
-String getMessageHeaderText(DiagnosticMessage message) {
+String? getMessageHeaderText(DiagnosticMessage message) {
   return message is FormattedMessage ? message.message : null;
 }
 
@@ -69,12 +75,12 @@ int getMessageCode(DiagnosticMessage message) {
 }
 
 /// This method is subject to change.
-Map<String, dynamic> getMessageArguments(DiagnosticMessage message) {
+Map<String, dynamic>? getMessageArguments(DiagnosticMessage message) {
   return message is FormattedMessage ? message.arguments : null;
 }
 
 /// This method is subject to change.
-Iterable<DiagnosticMessage> getMessageRelatedInformation(
+Iterable<DiagnosticMessage>? getMessageRelatedInformation(
     DiagnosticMessage message) {
   return message is FormattedMessage ? message.relatedInformation : null;
 }

@@ -885,11 +885,11 @@ static final field dynamic field26 = self::Extension|genericMethod<self::A*, sel
 static final field dynamic field27 = self::Extension|genericMethod<self::B*, self::A*>(self::classB, self::a);
 static final field dynamic field28 = self::Extension|genericMethod<self::B*, self::A*>(self::classB, self::a);
 static final field dynamic field29 = self::Extension|genericMethod<self::B*, self::B*>(self::classB, self::a as{TypeError} self::B*);
-static method Extension|method<T extends self::B* = self::B*>(final self::Class<self::Extension|method::T*>* #this) → dynamic {}
-static method Extension|get#method<T extends self::B* = self::B*>(final self::Class<self::Extension|get#method::T*>* #this) → () →* dynamic
+static method Extension|method<T extends self::B* = self::B*>(lowered final self::Class<self::Extension|method::T*>* #this) → dynamic {}
+static method Extension|get#method<T extends self::B* = self::B*>(lowered final self::Class<self::Extension|get#method::T*>* #this) → () →* dynamic
   return () → dynamic => self::Extension|method<self::Extension|get#method::T*>(#this);
-static method Extension|genericMethod<T extends self::B* = self::B*, S extends self::B* = self::B*>(final self::Class<self::Extension|genericMethod::T*>* #this, self::Extension|genericMethod::S* s) → dynamic {}
-static method Extension|get#genericMethod<T extends self::B* = self::B*>(final self::Class<self::Extension|get#genericMethod::T*>* #this) → <S extends self::B* = self::B*>(S*) →* dynamic
+static method Extension|genericMethod<T extends self::B* = self::B*, S extends self::B* = self::B*>(lowered final self::Class<self::Extension|genericMethod::T*>* #this, self::Extension|genericMethod::S* s) → dynamic {}
+static method Extension|get#genericMethod<T extends self::B* = self::B*>(lowered final self::Class<self::Extension|get#genericMethod::T*>* #this) → <S extends self::B* = self::B*>(S*) →* dynamic
   return <S extends self::B* = self::B*>(S* s) → dynamic => self::Extension|genericMethod<self::Extension|get#genericMethod::T*, S*>(#this, s);
 static method main() → dynamic {}
 static method test() → dynamic {

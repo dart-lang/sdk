@@ -1,0 +1,64 @@
+main = main::main;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  import "org-dartlang-test:///main.dart";
+
+  extension Extension1 on main::A* {
+    method baz = lib1::Extension1|baz;
+    tearoff baz = lib1::Extension1|get#baz;
+  }
+  static method Extension1|baz(lowered final main::A* #this) → dynamic
+    return 42;
+  static method Extension1|get#baz(lowered final main::A* #this) → () →* dynamic
+    return () → dynamic => lib1::Extension1|baz(#this);
+}
+library from "org-dartlang-test:///lib2.dart" as lib2 {
+additionalExports = (lib1::Extension1,
+  main::main,
+  main::A,
+  main::Extension2)
+
+  import "org-dartlang-test:///main.dart";
+  import "org-dartlang-test:///lib1.dart";
+  export "org-dartlang-test:///main.dart";
+  export "org-dartlang-test:///lib1.dart";
+
+  static method method(main::A* a) → dynamic {
+    lib1::Extension1|baz(a);
+    main::Extension2|boz(a);
+    lib1::Extension1|baz(a);
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib1.dart";
+  import "org-dartlang-test:///lib2.dart";
+
+  class A extends dart.core::Object {
+    synthetic constructor •() → main::A*
+      : super dart.core::Object::•()
+      ;
+    method foo() → dynamic {}
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+  }
+  extension Extension2 on main::A* {
+    method boz = main::Extension2|boz;
+    tearoff boz = main::Extension2|get#boz;
+  }
+  static method main() → dynamic {
+    lib2::method(new main::A::•());
+  }
+  static method Extension2|boz(lowered final main::A* #this) → dynamic
+    return 87;
+  static method Extension2|get#boz(lowered final main::A* #this) → () →* dynamic
+    return () → dynamic => main::Extension2|boz(#this);
+}

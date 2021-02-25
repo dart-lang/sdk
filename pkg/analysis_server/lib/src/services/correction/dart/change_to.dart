@@ -188,20 +188,19 @@ class ChangeTo extends CorrectionProducer {
       } else if (node.parent is PropertyAccess) {
         target = (node.parent as PropertyAccess).target;
       }
-      // find getter
-      if (node.inGetterContext()) {
-        await _proposeClassOrMixinMember(builder, target, (Element element) {
-          return element is PropertyAccessorElement && element.isGetter ||
-              element is FieldElement && element.getter != null;
-        });
-      }
-      // find setter
-      if (node.inSetterContext()) {
-        await _proposeClassOrMixinMember(builder, target, (Element element) {
-          return element is PropertyAccessorElement && element.isSetter ||
-              element is FieldElement && element.setter != null;
-        });
-      }
+      // find getter or setter
+      var wantGetter = node.inGetterContext();
+      var wantSetter = node.inSetterContext();
+      await _proposeClassOrMixinMember(builder, target, (Element element) {
+        if (element is PropertyAccessorElement) {
+          return wantGetter && element.isGetter ||
+              wantSetter && element.isSetter;
+        } else if (element is FieldElement) {
+          return wantGetter && element.getter != null ||
+              wantSetter && element.setter != null;
+        }
+        return false;
+      });
     }
   }
 

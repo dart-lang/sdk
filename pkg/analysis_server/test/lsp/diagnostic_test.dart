@@ -9,7 +9,6 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/utilities/mock_packages.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -67,12 +66,6 @@ String b = "Test";
     expect(related.location.range.end.character, equals(16));
   }
 
-  @override
-  void setUp() {
-    super.setUp();
-    pedanticLibFolder = MockPackages.instance.addPedantic(resourceProvider);
-  }
-
   Future<void> test_afterDocumentEdits() async {
     const initialContents = 'int a = 1;';
     newFile(mainFilePath, content: initialContents);
@@ -105,6 +98,7 @@ linter:
     expect(initialDiagnostics.first.code, 'undefined_lint_warning');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43926')
   Future<void> test_analysisOptionsFile_packageInclude() async {
     newFile(analysisOptionsPath, content: '''
 include: package:pedantic/analysis_options.yaml
@@ -118,15 +112,16 @@ include: package:pedantic/analysis_options.yaml
     expect(initialDiagnostics.first.severity, DiagnosticSeverity.Warning);
     expect(initialDiagnostics.first.code, 'include_file_not_found');
 
-    // Write a package file that allows resolving the include.
-    final secondDiagnosticsUpdate = waitForDiagnostics(analysisOptionsUri);
-    newFile('$projectFolderPath/.packages', content: '''
-pedantic:${pedanticLibFolder.toUri()}
-''');
+    // TODO(scheglov) The server does not handle the file change.
+    throw 'Times out';
 
-    // Ensure the error disappeared.
-    final updatedDiagnostics = await secondDiagnosticsUpdate;
-    expect(updatedDiagnostics, hasLength(0));
+    // // Write a package file that allows resolving the include.
+    // final secondDiagnosticsUpdate = waitForDiagnostics(analysisOptionsUri);
+    // writePackageConfig(projectFolderPath, pedantic: true);
+    //
+    // // Ensure the error disappeared.
+    // final updatedDiagnostics = await secondDiagnosticsUpdate;
+    // expect(updatedDiagnostics, hasLength(0));
   }
 
   Future<void> test_contextMessage() async {
@@ -171,7 +166,7 @@ void f() {
 
     // Deleting the file should result in an update to remove the diagnostics.
     final secondDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
-    await deleteFile(mainFilePath);
+    deleteFile(mainFilePath);
     final updatedDiagnostics = await secondDiagnosticsUpdate;
     expect(updatedDiagnostics, hasLength(0));
   }
@@ -250,6 +245,21 @@ void f() {
     expect(diagnostics, isNull);
   }
 
+  Future<void> test_fixDataFile() async {
+    var fixDataPath = join(projectFolderPath, 'lib', 'fix_data.yaml');
+    var fixDataUri = Uri.file(fixDataPath);
+    newFile(fixDataPath, content: '''
+version: latest
+''').path;
+
+    final firstDiagnosticsUpdate = waitForDiagnostics(fixDataUri);
+    await initialize();
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    expect(initialDiagnostics, hasLength(1));
+    expect(initialDiagnostics.first.severity, DiagnosticSeverity.Error);
+    expect(initialDiagnostics.first.code, 'invalid_value');
+  }
+
   Future<void> test_fromPlugins_dartFile() async {
     await checkPluginErrorsForFile(mainFilePath);
   }
@@ -275,16 +285,63 @@ void f() {
 
   Future<void> test_todos() async {
     // TODOs only show up if there's also some code in the file.
-    const initialContents = '''
+    const contents = '''
     // TODO: This
     String a = "";
     ''';
-    newFile(mainFilePath, content: initialContents);
+    newFile(mainFilePath, content: contents);
 
     final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities:
+              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      {'showTodos': true},
+    );
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    expect(initialDiagnostics, hasLength(1));
+  }
+
+  Future<void> test_todos_disabled() async {
+    const contents = '''
+    // TODO: This
+    String a = "";
+    ''';
+    newFile(mainFilePath, content: contents);
+
+    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    // TODOs are disabled by default so we don't need to send any config.
     await initialize();
     final initialDiagnostics = await firstDiagnosticsUpdate;
-    // TODOs should not be sent by LSP.
     expect(initialDiagnostics, hasLength(0));
+  }
+
+  Future<void> test_todos_enabledAfterAnalysis() async {
+    const contents = '''
+    // TODO: This
+    String a = "";
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities:
+              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      {},
+    );
+    await openFile(mainFileUri, contents);
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    expect(initialDiagnostics, hasLength(0));
+
+    // Ensure initial analysis completely finished before we continue.
+    await initialAnalysis;
+
+    // Enable showTodos and update the file to ensure TODOs now come through.
+    final secondDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await updateConfig({'showTodos': true});
+    await replaceFile(222, mainFileUri, contents);
+    final updatedDiagnostics = await secondDiagnosticsUpdate;
+    expect(updatedDiagnostics, hasLength(1));
   }
 }

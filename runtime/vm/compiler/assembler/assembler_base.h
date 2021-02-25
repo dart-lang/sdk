@@ -28,6 +28,171 @@ class MemoryRegion;
 
 namespace compiler {
 
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+// On ARM and ARM64 branch-link family of instructions puts return address
+// into a dedicated register (LR), which called code will then preserve
+// manually if needed. To ensure that LR is not clobbered accidentally we
+// discourage direct use of the register and instead require users to wrap
+// their code in one of the macroses below, which would verify that it is
+// safe to modify LR.
+// We use RELEASE_ASSERT instead of ASSERT because we use LR state (tracked
+// by the assembler) to generate different code sequences for write barriers
+// so we would like to ensure that incorrect code will trigger an assertion
+// instead of producing incorrect code.
+
+// Class representing the state of LR register. In addition to tracking
+// whether LR currently contain return address or not it also tracks
+// entered frames - and whether they preserved a return address or not.
+class LRState {
+ public:
+  LRState(const LRState&) = default;
+  LRState& operator=(const LRState&) = default;
+
+  bool LRContainsReturnAddress() const {
+    RELEASE_ASSERT(!IsUnknown());
+    return (state_ & kLRContainsReturnAddressMask) != 0;
+  }
+
+  LRState SetLRContainsReturnAddress(bool v) const {
+    RELEASE_ASSERT(!IsUnknown());
+    return LRState(frames_, v ? (state_ | 1) : (state_ & ~1));
+  }
+
+  // Returns a |LRState| representing a state after pushing current value
+  // of LR on the stack. LR is assumed clobberable in the new state.
+  LRState EnterFrame() const {
+    RELEASE_ASSERT(!IsUnknown());
+    // 1 bit is used for LR state the rest for frame states.
+    constexpr auto kMaxFrames = (sizeof(state_) * kBitsPerByte) - 1;
+    RELEASE_ASSERT(frames_ < kMaxFrames);
+    // LSB will be clear after the shift meaning that LR can be clobbered.
+    return LRState(frames_ + 1, state_ << 1);
+  }
+
+  // Returns a |LRState| representing a state after popping  LR from the stack.
+  // Note that for inner frames LR would usually be assumed cloberrable
+  // even after leaving a frame. Only outerframe would restore return address
+  // into LR.
+  LRState LeaveFrame() const {
+    RELEASE_ASSERT(!IsUnknown());
+    RELEASE_ASSERT(frames_ > 0);
+    return LRState(frames_ - 1, state_ >> 1);
+  }
+
+  bool IsUnknown() const { return *this == Unknown(); }
+
+  static LRState Unknown() { return LRState(kUnknownMarker, kUnknownMarker); }
+
+  static LRState OnEntry() { return LRState(0, 1); }
+
+  static LRState Clobbered() { return LRState(0, 0); }
+
+  bool operator==(const LRState& other) const {
+    return frames_ == other.frames_ && state_ == other.state_;
+  }
+
+ private:
+  LRState(uint8_t frames, uint8_t state) : frames_(frames), state_(state) {}
+
+  // LR state is encoded in the LSB of state_ bitvector.
+  static constexpr uint8_t kLRContainsReturnAddressMask = 1;
+
+  static constexpr uint8_t kUnknownMarker = 0xFF;
+
+  // Number of frames on the stack or kUnknownMarker when representing
+  // Unknown state.
+  uint8_t frames_ = 0;
+
+  // Bit vector with frames_ + 1 bits: LSB represents LR state, other bits
+  // represent state of LR in each entered frame. Normally this value would
+  // just be (1 << frames_).
+  uint8_t state_ = 1;
+};
+
+// READS_RETURN_ADDRESS_FROM_LR(...) macro verifies that LR contains return
+// address before allowing to use it.
+#define READS_RETURN_ADDRESS_FROM_LR(block)                                    \
+  do {                                                                         \
+    RELEASE_ASSERT(__ lr_state().LRContainsReturnAddress());                   \
+    constexpr Register LR = LR_DO_NOT_USE_DIRECTLY;                            \
+    USE(LR);                                                                   \
+    block;                                                                     \
+  } while (0)
+
+// WRITES_RETURN_ADDRESS_TO_LR(...) macro verifies that LR contains return
+// address before allowing to write into it. LR is considered to still
+// contain return address after this operation.
+#define WRITES_RETURN_ADDRESS_TO_LR(block) READS_RETURN_ADDRESS_FROM_LR(block)
+
+// CLOBBERS_LR(...) checks that LR does *not* contain return address and it is
+// safe to clobber it.
+#define CLOBBERS_LR(block)                                                     \
+  do {                                                                         \
+    RELEASE_ASSERT(!(__ lr_state().LRContainsReturnAddress()));                \
+    constexpr Register LR = LR_DO_NOT_USE_DIRECTLY;                            \
+    USE(LR);                                                                   \
+    block;                                                                     \
+  } while (0)
+
+// SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(...) checks that LR contains return
+// address, executes |block| and marks that LR can be safely clobbered
+// afterwards (assuming that |block| moved LR value onto into another register).
+#define SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(block)                       \
+  do {                                                                         \
+    READS_RETURN_ADDRESS_FROM_LR(block);                                       \
+    __ set_lr_state(__ lr_state().SetLRContainsReturnAddress(false));          \
+  } while (0)
+
+// RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(...) checks that LR does not
+// contain return address, executes |block| and marks LR as containing return
+// address (assuming that |block| restored LR value from another register).
+#define RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(block)                     \
+  do {                                                                         \
+    CLOBBERS_LR(block);                                                        \
+    __ set_lr_state(__ lr_state().SetLRContainsReturnAddress(true));           \
+  } while (0)
+
+// SPILLS_LR_TO_FRAME(...) executes |block| and updates tracked LR state to
+// record that we entered a frame which preserved LR. LR can be clobbered
+// afterwards.
+#define SPILLS_LR_TO_FRAME(block)                                              \
+  do {                                                                         \
+    constexpr Register LR = LR_DO_NOT_USE_DIRECTLY;                            \
+    USE(LR);                                                                   \
+    block;                                                                     \
+    __ set_lr_state(__ lr_state().EnterFrame());                               \
+  } while (0)
+
+// RESTORE_LR(...) checks that LR does not contain return address, executes
+// |block| and updates tracked LR state to record that we exited a frame.
+// Whether LR contains return address or not after this operation depends on
+// the frame state (only the outermost frame usually restores LR).
+#define RESTORES_LR_FROM_FRAME(block)                                          \
+  do {                                                                         \
+    CLOBBERS_LR(block);                                                        \
+    __ set_lr_state(__ lr_state().LeaveFrame());                               \
+  } while (0)
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+
+enum OperandSize {
+  // Architecture-independent constants.
+  kByte,
+  kUnsignedByte,
+  kTwoBytes,  // Halfword (ARM), w(ord) (Intel)
+  kUnsignedTwoBytes,
+  kFourBytes,  // Word (ARM), l(ong) (Intel)
+  kUnsignedFourBytes,
+  kEightBytes,  // DoubleWord (ARM), q(uadword) (Intel)
+  // ARM-specific constants.
+  kSWord,
+  kDWord,
+  // 32-bit ARM specific constants.
+  kWordPair,
+  kRegList,
+  // 64-bit ARM specific constants.
+  kQWord,
+};
+
 // Forward declarations.
 class Assembler;
 class AssemblerFixup;
@@ -87,20 +252,51 @@ class Label : public ZoneAllocated {
   intptr_t position_;
   intptr_t unresolved_;
   intptr_t unresolved_near_positions_[kMaxUnresolvedBranches];
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  // On ARM/ARM64 we track LR state: whether it contains return address or
+  // whether it can be clobbered. To make sure that our tracking it correct
+  // for non linear code sequences we additionally verify at labels that
+  // incomming states are compatible.
+  LRState lr_state_ = LRState::Unknown();
+
+  void UpdateLRState(LRState new_state) {
+    if (lr_state_.IsUnknown()) {
+      lr_state_ = new_state;
+    } else {
+      RELEASE_ASSERT(lr_state_ == new_state);
+    }
+  }
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
 
   void Reinitialize() { position_ = 0; }
 
-  void BindTo(intptr_t position) {
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  void BindTo(intptr_t position, LRState lr_state)
+#else
+  void BindTo(intptr_t position)
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  {
     ASSERT(!IsBound());
     ASSERT(!HasNear());
     position_ = -position - kBias;
     ASSERT(IsBound());
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    UpdateLRState(lr_state);
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
   }
 
-  void LinkTo(intptr_t position) {
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  void LinkTo(intptr_t position, LRState lr_state)
+#else
+  void LinkTo(intptr_t position)
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  {
     ASSERT(!IsBound());
     position_ = position + kBias;
     ASSERT(IsLinked());
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    UpdateLRState(lr_state);
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
   }
 
   void NearLinkTo(intptr_t position) {
@@ -329,6 +525,12 @@ class AssemblerBase : public StackResource {
         has_monomorphic_entry_(false),
         object_pool_builder_(object_pool_builder) {}
   virtual ~AssemblerBase();
+
+  // Used for near/far jumps on IA32/X64, ignored for ARM.
+  enum JumpDistance : bool {
+    kFarJump = false,
+    kNearJump = true,
+  };
 
   intptr_t CodeSize() const { return buffer_.Size(); }
 

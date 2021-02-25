@@ -41,6 +41,7 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:meta/meta.dart';
 
 /// TODO(scheglov) We could use generalized Function in
@@ -85,7 +86,7 @@ typedef WorkToWaitAfterComputingResult = Future<void> Function(String path);
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 110;
+  static const int DATA_VERSION = 122;
 
   /// The length of the list returned by [_computeDeclaredVariablesSignature].
   static const int _declaredVariablesSignatureLength = 4;
@@ -147,7 +148,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _declaredVariablesSignatureLength);
 
   /// The salt to mix into all hashes used as keys for linked data.
-  final Uint32List _saltForResolution = Uint32List(2 +
+  final Uint32List _saltForResolution = Uint32List(3 +
       AnalysisOptionsImpl.signatureLength +
       _declaredVariablesSignatureLength);
 
@@ -173,6 +174,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// The list of tasks to compute files referencing a name.
   final _referencingNameTasks = <_FilesReferencingNameTask>[];
+
+  /// The mapping from the files for which errors were requested using
+  /// [getErrors] to the [Completer]s to report the result.
+  final _errorsRequestedFiles = <String, List<Completer<ErrorsResult>>>{};
+
+  /// The requests from [_errorsRequestedFiles] for files which were found to
+  /// be parts without known libraries, so delayed.
+  final _errorsRequestedParts = <String, List<Completer<ErrorsResult>>>{};
 
   /// The mapping from the files for which the index was requested using
   /// [getIndex] to the [Completer]s to report the result.
@@ -385,6 +394,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _referencingNameTasks.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
+    if (_errorsRequestedFiles.isNotEmpty) {
+      return AnalysisDriverPriority.interactive;
+    }
     if (_indexRequestedFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
@@ -416,7 +428,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_fileTracker.hasPendingFiles) {
       return AnalysisDriverPriority.general;
     }
-    if (_requestedParts.isNotEmpty ||
+    if (_errorsRequestedParts.isNotEmpty ||
+        _requestedParts.isNotEmpty ||
         _partsToAnalyze.isNotEmpty ||
         _unitElementSignatureParts.isNotEmpty ||
         _unitElementRequestedParts.isNotEmpty) {
@@ -547,19 +560,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return null;
     }
 
-    // Ask the analysis result without unit, so return cached errors.
-    // If no cached analysis result, it will be computed.
-    ResolvedUnitResult analysisResult = _computeAnalysisResult(path);
-
-    // If not computed yet, because a part file without a known library,
-    // we have to compute the full analysis result, with the unit.
-    analysisResult ??= await getResult(path);
-    if (analysisResult == null) {
-      return null;
-    }
-
-    return ErrorsResultImpl(currentSession, path, analysisResult.uri,
-        analysisResult.lineInfo, analysisResult.isPart, analysisResult.errors);
+    var completer = Completer<ErrorsResult>();
+    _errorsRequestedFiles
+        .putIfAbsent(path, () => <Completer<ErrorsResult>>[])
+        .add(completer);
+    _scheduler.notify(this);
+    return completer.future;
   }
 
   /// Return a [Future] that completes with the list of added files that
@@ -622,7 +628,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var uriObj = Uri.parse(uri);
     var file = _fsState.getFileForUri(uriObj);
 
-    if (file.isUnresolved) {
+    if (file == null) {
       throw ArgumentError('$uri cannot be resolved to a file.');
     }
 
@@ -879,7 +885,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// without a package name. In these cases we cannot prove that the file is
   /// not a part, so it must be a library.
   bool isLibraryByUri(Uri uri) {
-    return !_fsState.getFileForUri(uri).isPart;
+    var file = _fsState.getFileForUri(uri);
+    return file == null || !file.isPart;
   }
 
   /// Return a [Future] that completes with a [ParsedUnitResult] for the file
@@ -963,6 +970,21 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           completer.completeError(exception, stackTrace);
         });
         _clearLibraryContextAfterException();
+      }
+      return;
+    }
+
+    // Process an error request.
+    if (_errorsRequestedFiles.isNotEmpty) {
+      var path = _errorsRequestedFiles.keys.first;
+      var completers = _errorsRequestedFiles.remove(path);
+      var result = _computeErrors(path: path, asIsIfPartWithoutLibrary: false);
+      if (result != null) {
+        completers.forEach((completer) {
+          completer.complete(result);
+        });
+      } else {
+        _errorsRequestedParts.putIfAbsent(path, () => []).addAll(completers);
       }
       return;
     }
@@ -1143,6 +1165,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       UnitElementResult result =
           _computeUnitElement(path, asIsIfPartWithoutLibrary: true);
       _unitElementRequestedParts.remove(path).forEach((completer) {
+        completer.complete(result);
+      });
+      return;
+    }
+
+    // Compute errors in a part.
+    if (_errorsRequestedParts.isNotEmpty) {
+      var path = _errorsRequestedParts.keys.first;
+      var completers = _errorsRequestedParts.remove(path);
+      var result = _computeErrors(path: path, asIsIfPartWithoutLibrary: true);
+      completers.forEach((completer) {
         completer.complete(result);
       });
       return;
@@ -1334,6 +1367,21 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return Uint8List.fromList(bytes).buffer.asUint32List();
   }
 
+  ErrorsResult _computeErrors({
+    @required String path,
+    @required bool asIsIfPartWithoutLibrary,
+  }) {
+    ResolvedUnitResult analysisResult = _computeAnalysisResult(path,
+        withUnit: false, asIsIfPartWithoutLibrary: asIsIfPartWithoutLibrary);
+
+    if (analysisResult == null) {
+      return null;
+    }
+
+    return ErrorsResultImpl(currentSession, path, analysisResult.uri,
+        analysisResult.lineInfo, analysisResult.isPart, analysisResult.errors);
+  }
+
   AnalysisDriverUnitIndex _computeIndex(String path) {
     AnalysisResult analysisResult = _computeAnalysisResult(path,
         withUnit: false, asIsIfPartWithoutLibrary: true);
@@ -1343,6 +1391,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the newly computed resolution result of the library with the
   /// given [path].
   ResolvedLibraryResultImpl _computeResolvedLibrary(String path) {
+    return NullSafetyUnderstandingFlag.enableNullSafetyTypes(
+        () => _computeResolvedLibrary2(path));
+  }
+
+  /// Unwrapped implementation of [_computeResolvedLibrary].
+  ResolvedLibraryResultImpl _computeResolvedLibrary2(String path) {
     FileState library = _fsState.getFileForPath(path);
 
     return _logger.run('Compute resolved library $path', () {
@@ -1450,6 +1504,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       resourceProvider: _resourceProvider,
       packages: _packages,
       packageDefaultFeatureSet: _analysisOptions.contextFeatures,
+      nonPackageDefaultLanguageVersion:
+          _analysisOptions.nonPackageLanguageVersion,
       nonPackageDefaultFeatureSet: _analysisOptions.nonPackageFeatureSet,
     );
 
@@ -1540,6 +1596,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     index++;
 
     _saltForResolution[index] = enableIndex ? 1 : 0;
+    index++;
+
+    _saltForResolution[index] = enableDebugResolutionMarkers ? 1 : 0;
     index++;
 
     _saltForResolution.setAll(index, _analysisOptions.signature);
@@ -2293,7 +2352,7 @@ class _FilesDefiningClassMemberNameTask {
     while (timer.elapsedMilliseconds < _MS_WORK_INTERVAL) {
       // Prepare files to check.
       if (filesToCheck.isEmpty) {
-        Set<String> newFiles = driver.addedFiles.difference(checkedFiles);
+        Set<String> newFiles = driver.knownFiles.difference(checkedFiles);
         filesToCheck.addAll(newFiles);
       }
 

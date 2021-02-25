@@ -364,6 +364,7 @@ String _argumentsAsJson(Map? arguments) {
 }
 
 /// Returns true if the Dart Timeline stream is enabled.
+@pragma("vm:recognized", "asm-intrinsic")
 external bool _isDartStreamEnabled();
 
 /// Returns the next async task id.

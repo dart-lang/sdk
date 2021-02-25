@@ -1,0 +1,107 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:13:23: Error: '+' is not a prefix operator.
+// Try removing '+'.
+// const int unaryPlus = +2;
+//                       ^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:6:30: Error: The operator '>>>' isn't defined for the class 'int'.
+// Try correcting the operator to an existing operator, or defining a '>>>' operator.
+// const int shiftNegative2 = 2 >>> -1;
+//                              ^^^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:9:23: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+// const int divZero = 2 / 0;
+//                       ^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:27:29: Error: The operator '>>>' isn't defined for the class 'int'.
+// Try correcting the operator to an existing operator, or defining a '>>>' operator.
+// const int binaryShift2 = 84 >>> 1;
+//                             ^^^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:28:29: Error: The operator '>>>' isn't defined for the class 'int'.
+// Try correcting the operator to an existing operator, or defining a '>>>' operator.
+// const int binaryShift3 = 21 >>> 64;
+//                             ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static const field core::int* shiftNegative1 = 2.{core::int::<<}(1.{core::int::unary-}(){() →* core::int*}){(core::int*) →* core::int*};
+static const field core::int* shiftNegative2 = invalid-expression "pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:6:30: Error: The operator '>>>' isn't defined for the class 'int'.
+Try correcting the operator to an existing operator, or defining a '>>>' operator.
+const int shiftNegative2 = 2 >>> -1;
+                             ^^^" as{TypeError,ForDynamic} core::int*;
+static const field core::int* shiftNegative3 = 2.{core::int::>>}(1.{core::int::unary-}(){() →* core::int*}){(core::int*) →* core::int*};
+static const field core::int* modZero = 2.{core::num::%}(0){(core::num*) →* core::int*};
+static const field core::int* divZero = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:9:23: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+const int divZero = 2 / 0;
+                      ^" in 2.{core::num::/}(0){(core::num*) →* core::double*} as{TypeError} core::int*;
+static const field core::int* intdivZero = 2.{core::num::~/}(0){(core::num*) →* core::int*};
+static const field core::int* unaryMinus = 2.{core::int::unary-}(){() →* core::int*};
+static const field core::int* unaryTilde = 2.{core::int::~}(){() →* core::int*};
+static const field core::int* unaryPlus = invalid-expression "pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:13:23: Error: This couldn't be parsed.
+const int unaryPlus = +2;
+                      ^"{dynamic}.+(2) as{TypeError,ForDynamic} core::int*;
+static const field core::int* binaryPlus = 40.{core::num::+}(2){(core::num*) →* core::int*};
+static const field core::int* binaryMinus = 44.{core::num::-}(2){(core::num*) →* core::int*};
+static const field core::int* binaryTimes = 21.{core::num::*}(2){(core::num*) →* core::int*};
+static const field core::double* binaryDiv = 84.{core::num::/}(2){(core::num*) →* core::double*};
+static const field core::int* binaryTildeDiv = 84.{core::num::~/}(2){(core::num*) →* core::int*};
+static const field core::int* binaryMod = 85.{core::num::%}(43){(core::num*) →* core::int*};
+static const field core::int* binaryOr = 32.{core::int::|}(10){(core::int*) →* core::int*};
+static const field core::int* binaryAnd = 63.{core::int::&}(106){(core::int*) →* core::int*};
+static const field core::int* binaryXor = 63.{core::int::^}(21){(core::int*) →* core::int*};
+static const field core::int* binaryShift1 = 21.{core::int::<<}(1){(core::int*) →* core::int*};
+static const field core::int* binaryShift2 = invalid-expression "pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:27:29: Error: The operator '>>>' isn't defined for the class 'int'.
+Try correcting the operator to an existing operator, or defining a '>>>' operator.
+const int binaryShift2 = 84 >>> 1;
+                            ^^^" as{TypeError,ForDynamic} core::int*;
+static const field core::int* binaryShift3 = invalid-expression "pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:28:29: Error: The operator '>>>' isn't defined for the class 'int'.
+Try correcting the operator to an existing operator, or defining a '>>>' operator.
+const int binaryShift3 = 21 >>> 64;
+                            ^^^" as{TypeError,ForDynamic} core::int*;
+static const field core::int* binaryShift4 = 84.{core::int::>>}(1){(core::int*) →* core::int*};
+static const field core::int* binaryShift5 = 1.{core::int::unary-}(){() →* core::int*}.{core::int::>>}(1){(core::int*) →* core::int*};
+static const field core::bool* binaryLess = 42.{core::num::<}(42){(core::num*) →* core::bool*};
+static const field core::bool* binaryLessEqual = 42.{core::num::<=}(42){(core::num*) →* core::bool*};
+static const field core::bool* binaryGreaterEqual = 42.{core::num::>=}(42){(core::num*) →* core::bool*};
+static const field core::bool* binaryGreater = 42.{core::num::>}(42){(core::num*) →* core::bool*};
+static const field core::int* doubleTruncateDiv = 84.2.{core::double::~/}(2){(core::num*) →* core::int*};
+static const field core::int* doubleTruncateDivZero = 84.2.{core::double::~/}(0){(core::num*) →* core::int*};
+static const field core::int* doubleTruncateDivNull = 84.2.{core::double::~/}(null){(core::num*) →* core::int*};
+static const field core::double* doubleNan = 0.{core::num::/}(0){(core::num*) →* core::double*};
+static const field core::int* doubleTruncateDivNaN = 84.2.{core::double::~/}(self::doubleNan){(core::num*) →* core::int*};
+static const field core::int* bigNumber = -9223372036854775808;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:5:33 -> DoubleConstant(-1.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:7:33 -> DoubleConstant(-1.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:9:23 -> DoubleConstant(Infinity)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:11:24 -> DoubleConstant(-2.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:12:24 -> DoubleConstant(4294967293.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:15:27 -> DoubleConstant(42.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:16:28 -> DoubleConstant(42.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:17:28 -> DoubleConstant(42.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:18:29 -> DoubleConstant(42.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:19:30 -> DoubleConstant(42.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:20:26 -> DoubleConstant(42.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:21:25 -> DoubleConstant(42.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:22:26 -> DoubleConstant(42.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:23:26 -> DoubleConstant(42.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:24:29 -> DoubleConstant(42.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:30:29 -> DoubleConstant(42.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:31:29 -> DoubleConstant(4294967295.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:32:28 -> BoolConstant(false)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:33:33 -> BoolConstant(true)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:34:36 -> BoolConstant(true)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:35:31 -> BoolConstant(false)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:37:36 -> DoubleConstant(42.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_folds.dart:40:27 -> DoubleConstant(NaN)
+Evaluated: StaticGet @ org-dartlang-testcase:///number_folds.dart:41:42 -> DoubleConstant(NaN)
+Extra constant evaluation: evaluated: 38, effectively constant: 24

@@ -1,0 +1,42 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "org-dartlang-testcase:///ambiguous_main_export_lib0.dart";
+
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/ambiguous_main_export_lib0.dart:6:1: Error: 'main' is exported from both 'pkg/front_end/testcases/nnbd/ambiguous_main_export_lib1.dart' and 'pkg/front_end/testcases/nnbd/ambiguous_main_export_lib2.dart'.
+// export 'ambiguous_main_export_lib2.dart';
+// ^
+//
+import self as self2;
+import "dart:core" as core;
+
+export "org-dartlang-testcase:///ambiguous_main_export_lib1.dart";
+export "org-dartlang-testcase:///ambiguous_main_export_lib2.dart";
+
+static const field dynamic _exports# = #C1 /*isLegacy, from null */;
+
+library /*isNonNullableByDefault*/;
+import self as self3;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::print(42);
+}
+
+library /*isNonNullableByDefault*/;
+import self as self4;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::print(87);
+}
+
+constants  {
+  #C1 = "{\"main\":\"'main' is exported from both 'pkg/front_end/testcases/nnbd/ambiguous_main_export_lib1.dart' and 'pkg/front_end/testcases/nnbd/ambiguous_main_export_lib2.dart'.\"}"
+}

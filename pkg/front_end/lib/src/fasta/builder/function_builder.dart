@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.procedure_builder;
 
 import 'dart:core' hide MapEntry;
@@ -461,7 +463,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       _extensionThis = result.positionalParameters.first;
       if (extensionBuilder.typeParameters != null) {
         int count = extensionBuilder.typeParameters.length;
-        _extensionTypeParameters = new List<TypeParameter>(count);
+        _extensionTypeParameters = new List<TypeParameter>.filled(count, null);
         for (int index = 0; index < count; index++) {
           _extensionTypeParameters[index] = result.typeParameters[index];
         }
@@ -498,19 +500,24 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
     return _extensionTypeParameters;
   }
 
+  bool _hasBuiltOutlineExpressions = false;
+
   @override
   void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
-    MetadataBuilder.buildAnnotations(
-        member, metadata, library, isClassMember ? parent : null, this);
+    if (!_hasBuiltOutlineExpressions) {
+      MetadataBuilder.buildAnnotations(
+          member, metadata, library, isClassMember ? parent : null, this);
 
-    if (formals != null) {
-      // For const constructors we need to include default parameter values
-      // into the outline. For all other formals we need to call
-      // buildOutlineExpressions to clear initializerToken to prevent
-      // consuming too much memory.
-      for (FormalParameterBuilder formal in formals) {
-        formal.buildOutlineExpressions(library);
+      if (formals != null) {
+        // For const constructors we need to include default parameter values
+        // into the outline. For all other formals we need to call
+        // buildOutlineExpressions to clear initializerToken to prevent
+        // consuming too much memory.
+        for (FormalParameterBuilder formal in formals) {
+          formal.buildOutlineExpressions(library);
+        }
       }
+      _hasBuiltOutlineExpressions = true;
     }
   }
 

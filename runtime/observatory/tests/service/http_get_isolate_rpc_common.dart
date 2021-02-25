@@ -25,9 +25,9 @@ Future<String> getIsolateId(io.HttpClient httpClient, Uri serverUri) async {
       .cast<List<int>>()
       .transform(utf8.decoder)
       .transform(json.decoder)
-      .first;
+      .first as Map;
   Map result = response['result'];
-  return result['isolates'][0]['id'];
+  return result['isolates'][0]['id'] as String;
 }
 
 Future<Null> testeeBefore() async {
@@ -40,17 +40,17 @@ Future<Null> testeeBefore() async {
 
   // Build the request.
   final params = <String, String>{
-    'isolateId': await getIsolateId(httpClient, info.serverUri),
+    'isolateId': await getIsolateId(httpClient, info.serverUri!),
   };
 
   String method = 'getIsolate';
-  final pathSegments = <String>[]..addAll(info.serverUri.pathSegments);
+  final pathSegments = <String>[]..addAll(info.serverUri!.pathSegments);
   if (pathSegments.isNotEmpty) {
     pathSegments[pathSegments.length - 1] = method;
   } else {
     pathSegments.add(method);
   }
-  final requestUri = info.serverUri
+  final requestUri = info.serverUri!
       .replace(pathSegments: pathSegments, queryParameters: params);
 
   try {
@@ -59,7 +59,7 @@ Future<Null> testeeBefore() async {
         .cast<List<int>>()
         .transform(utf8.decoder)
         .transform(json.decoder)
-        .first;
+        .first as Map;
     Map result = response['result'];
     Expect.equals(result['type'], 'Isolate');
     Expect.isTrue(result['id'].startsWith('isolates/'));
@@ -70,8 +70,6 @@ Future<Null> testeeBefore() async {
     Expect.isFalse(result['pauseOnExit']);
     Expect.equals(result['pauseEvent']['type'], 'Event');
     Expect.isNull(result['error']);
-    Expect.isTrue(result['_numZoneHandles'] > 0);
-    Expect.isTrue(result['_numScopedHandles'] > 0);
     Expect.equals(result['rootLib']['type'], '@Library');
     Expect.isTrue(result['libraries'].length > 0);
     Expect.equals(result['libraries'][0]['type'], '@Library');

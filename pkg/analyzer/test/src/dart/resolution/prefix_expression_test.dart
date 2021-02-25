@@ -215,6 +215,26 @@ void f(C c) {
     );
   }
 
+  test_plusPlus_notLValue_simpleIdentifier_typeLiteral() async {
+    await assertErrorsInCode(r'''
+void f() {
+  ++int;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 15, 3),
+    ]);
+
+    assertPrefixExpression(
+      findNode.prefix('++int'),
+      readElement: intElement,
+      readType: 'dynamic',
+      writeElement: intElement,
+      writeType: 'dynamic',
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
   test_plusPlus_prefixedIdentifier_instance() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -471,11 +491,8 @@ class B extends A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefix.operand,
-      readElement: findElement.getter('x'),
-      writeElement: findElement.setter('x'),
-      type: 'num',
     );
   }
 
@@ -504,11 +521,8 @@ class A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefix.operand,
-      readElement: findElement.getter('x'),
-      writeElement: findElement.setter('x'),
-      type: 'num',
     );
   }
 
@@ -537,11 +551,8 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefix.operand,
-      readElement: findElement.topGet('x'),
-      writeElement: findElement.topSet('x'),
-      type: 'num',
     );
   }
 
@@ -572,31 +583,8 @@ class A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefix.operand,
-      readElement: findElement.topGet('x'),
-      writeElement: findElement.topSet('x'),
-      type: 'num',
-    );
-  }
-
-  test_plusPlus_simpleIdentifier_typeLiteral() async {
-    await assertErrorsInCode(r'''
-void f() {
-  ++int;
-}
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 15, 3),
-    ]);
-
-    assertPrefixExpression(
-      findNode.prefix('++int'),
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: intElement,
-      writeType: 'dynamic',
-      element: null,
-      type: 'dynamic',
     );
   }
 
@@ -660,7 +648,8 @@ void f(A? a) {
   !a?.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 55, 6),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          55, 6),
     ]);
 
     assertPrefixExpression(
@@ -684,7 +673,8 @@ void f(A? a) {
   -a?.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 51, 6),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          51, 6),
     ]);
 
     assertPrefixExpression(
@@ -721,7 +711,9 @@ void f(Object x) {
       type: 'Object',
     );
 
-    assertType(findNode.simple('x;'), 'A');
+    if (hasAssignmentLeftResolution) {
+      assertType(findNode.simple('x;'), 'A');
+    }
   }
 
   test_plusPlus_nullShorting() async {
@@ -756,7 +748,8 @@ void f(A? a) {
   ~a?.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 51, 6),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          51, 6),
     ]);
 
     assertPrefixExpression(

@@ -21,8 +21,15 @@ class ExtractWidgetTest extends RefactoringTest {
   @override
   ExtractWidgetRefactoringImpl refactoring;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   Future<void> test_checkAllConditions_selection() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 class C {}
@@ -34,7 +41,6 @@ class C {}
   }
 
   Future<void> test_checkName() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -65,7 +71,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_checkName_alreadyDeclared() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -87,7 +92,6 @@ class Test {}
   }
 
   Future<void> test_expression() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -129,7 +133,7 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -146,7 +150,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_expression_localFunction() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -181,7 +184,7 @@ Widget main() {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -193,7 +196,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_expression_onTypeName() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -218,7 +220,7 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -230,7 +232,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_expression_selection() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -252,7 +253,7 @@ Widget main() {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -278,7 +279,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_expression_topFunction() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -307,7 +307,7 @@ Widget main() {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -319,7 +319,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_invocation_enclosingClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -344,7 +343,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_invocation_enclosingSuperClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -371,7 +369,6 @@ abstract class MyWidget extends StatelessWidget implements MyInterface {
   }
 
   Future<void> test_invocation_otherClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -413,8 +410,8 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.c,
+    Key? key,
+    required this.c,
   }) : super(key: key);
 
   final C c;
@@ -433,7 +430,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_method() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -442,7 +438,7 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return createColumn();
   }
-  
+
   Widget createColumn() {
     var a = new Text('AAA');
     var b = new Text('BBB');
@@ -466,7 +462,7 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -482,12 +478,11 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_method_parameters() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String foo;
+  String foo = '';
 
   @override
   Widget build(BuildContext context) {
@@ -499,7 +494,7 @@ class MyWidget extends StatelessWidget {
       ],
     );
   }
-  
+
   Widget createColumn(String p1, int p2) {
     var a = new Text('$foo $p1');
     var b = new Text('$p2');
@@ -515,7 +510,7 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String foo;
+  String foo = '';
 
   @override
   Widget build(BuildContext context) {
@@ -531,10 +526,10 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.foo,
-    @required this.p1,
-    @required this.p2,
+    Key? key,
+    required this.foo,
+    required this.p1,
+    required this.p2,
   }) : super(key: key);
 
   final String foo;
@@ -553,13 +548,14 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  Future<void> test_method_parameters_named() async {
-    addFlutterPackage();
+  Future<void> test_method_parameters_namedRequired() async {
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String foo;
+  final String foo;
+  
+  MyWidget(this.foo);
 
   @override
   Widget build(BuildContext context) {
@@ -571,8 +567,8 @@ class MyWidget extends StatelessWidget {
       ],
     );
   }
-  
-  Widget createColumn({String p1, int p2}) {
+
+  Widget createColumn({required String p1, required int p2}) {
     var a = new Text('$foo $p1');
     var b = new Text('$p2');
     return new Column(
@@ -581,13 +577,15 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('createColumn({String');
+    _createRefactoringForStringOffset('createColumn({');
 
     await _assertSuccessfulRefactoring(r'''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String foo;
+  final String foo;
+  
+  MyWidget(this.foo);
 
   @override
   Widget build(BuildContext context) {
@@ -603,10 +601,10 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.foo,
-    @required this.p1,
-    @required this.p2,
+    Key? key,
+    required this.foo,
+    required this.p1,
+    required this.p2,
   }) : super(key: key);
 
   final String foo;
@@ -626,12 +624,13 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_field_read_enclosingClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String field;
+  final String field;
+  
+  MyWidget(this.field);
 
   @override
   Widget build(BuildContext context) {
@@ -645,7 +644,9 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String field;
+  final String field;
+  
+  MyWidget(this.field);
 
   @override
   Widget build(BuildContext context) {
@@ -655,8 +656,8 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.field,
+    Key? key,
+    required this.field,
   }) : super(key: key);
 
   final String field;
@@ -670,12 +671,11 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_field_read_otherClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
 class C {
-  String field;
+  String field = '';
 }
 
 class MyWidget extends StatelessWidget {
@@ -693,7 +693,7 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class C {
-  String field;
+  String field = '';
 }
 
 class MyWidget extends StatelessWidget {
@@ -707,8 +707,8 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.c,
+    Key? key,
+    required this.c,
   }) : super(key: key);
 
   final C c;
@@ -722,11 +722,10 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_field_read_topLevelVariable() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
-String field;
+String field = '';
 
 class MyWidget extends StatelessWidget {
   @override
@@ -740,7 +739,7 @@ class MyWidget extends StatelessWidget {
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
 
-String field;
+String field = '';
 
 class MyWidget extends StatelessWidget {
   @override
@@ -751,7 +750,7 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -763,12 +762,13 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_field_write_enclosingClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
   String field;
+  
+  MyWidget(this.field);
 
   @override
   Widget build(BuildContext context) {
@@ -788,12 +788,11 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_parameters_field_write_enclosingSuperClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
 abstract class MySuperWidget extends StatelessWidget {
-  String field;
+  String field = '';
 }
 
 class MyWidget extends MySuperWidget {
@@ -815,12 +814,11 @@ class MyWidget extends MySuperWidget {
   }
 
   Future<void> test_parameters_field_write_otherClass() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
 class C {
-  String field;
+  String field = '';
 }
 
 class MyWidget extends StatelessWidget {
@@ -843,7 +841,7 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class C {
-  String field;
+  String field = '';
 }
 
 class MyWidget extends StatelessWidget {
@@ -857,8 +855,8 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.c,
+    Key? key,
+    required this.c,
   }) : super(key: key);
 
   final C c;
@@ -877,14 +875,13 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_key() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    String key;
+    String key = '';
     return new Text('$key $key');
   }
 }
@@ -896,14 +893,13 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_parameters_local_read_enclosingScope() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    String local;
+    String local = '';
     return new Text('$local $local');
   }
 }
@@ -916,15 +912,15 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    String local;
+    String local = '';
     return Test(local: local);
   }
 }
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.local,
+    Key? key,
+    required this.local,
   }) : super(key: key);
 
   final String local;
@@ -938,7 +934,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_local_write_enclosingScope() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -962,12 +957,13 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_parameters_private() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String _field;
+  final String _field;
+  
+  MyWidget(this._field);
 
   @override
   Widget build(BuildContext context) {
@@ -981,7 +977,9 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String _field;
+  final String _field;
+  
+  MyWidget(this._field);
 
   @override
   Widget build(BuildContext context) {
@@ -991,8 +989,8 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required String field,
+    Key? key,
+    required String field,
   }) : _field = field, super(key: key);
 
   final String _field;
@@ -1006,13 +1004,14 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_private_conflictWithPublic() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  int field;
-  String _field;
+  final int field;
+  final String _field;
+  
+  MyWidget(this.field, this._field);
 
   @override
   Widget build(BuildContext context) {
@@ -1026,8 +1025,10 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  int field;
-  String _field;
+  final int field;
+  final String _field;
+  
+  MyWidget(this.field, this._field);
 
   @override
   Widget build(BuildContext context) {
@@ -1037,9 +1038,9 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.field,
-    @required String field2,
+    Key? key,
+    required this.field,
+    required String field2,
   }) : _field = field2, super(key: key);
 
   final int field;
@@ -1054,16 +1055,17 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_parameters_readField_readLocal() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String field;
+  final String field;
+  
+  MyWidget(this.field);
 
   @override
   Widget build(BuildContext context) {
-    String local;
+    String local = '';
     return new Column(
       children: <Widget>[
         new Text(field),
@@ -1079,20 +1081,22 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String field;
+  final String field;
+  
+  MyWidget(this.field);
 
   @override
   Widget build(BuildContext context) {
-    String local;
+    String local = '';
     return Test(field: field, local: local);
   }
 }
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.field,
-    @required this.local,
+    Key? key,
+    required this.field,
+    required this.local,
   }) : super(key: key);
 
   final String field;
@@ -1112,7 +1116,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_refactoringName() async {
-    addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -1128,7 +1131,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_statements() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -1161,9 +1163,9 @@ Widget main() {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.index,
-    @required this.a,
+    Key? key,
+    required this.index,
+    required this.a,
   }) : super(key: key);
 
   final int index;
@@ -1184,7 +1186,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_statements_BAD_emptySelection() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
@@ -1200,7 +1201,6 @@ void main() {
   }
 
   Future<void> test_statements_BAD_notReturnStatement() async {
-    addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 

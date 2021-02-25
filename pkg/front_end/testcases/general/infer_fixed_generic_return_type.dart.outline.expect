@@ -35,6 +35,7 @@ abstract class _Class&Base&MixinA = self::Base with self::MixinA<dynamic> /*isAn
   synthetic constructor •() → self::_Class&Base&MixinA*
     : super self::Base::•()
     ;
+  abstract mixin-stub method method(core::Object* t) → dynamic; -> self::MixinA::method
 }
 abstract class Class extends self::_Class&Base&MixinA {
   synthetic constructor •() → self::Class*
@@ -104,6 +105,7 @@ abstract class _YamlMap&YamlNode&MapMixin = self::YamlNode with self::MapMixin<d
   synthetic constructor •() → self::_YamlMap&YamlNode&MapMixin*
     : super self::YamlNode::•()
     ;
+  abstract mixin-stub operator [](core::Object* key) → dynamic; -> self::MapMixin::[]
 }
 abstract class _YamlMap&YamlNode&MapMixin&UnmodifiableMapMixin = self::_YamlMap&YamlNode&MapMixin with self::UnmodifiableMapMixin<dynamic, dynamic> /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_YamlMap&YamlNode&MapMixin&UnmodifiableMapMixin*

@@ -1,0 +1,132 @@
+import 'dart:async';
+
+abstract class A<AT> {
+  Object? method7a(Object? o, {Object? named}) {}
+  Object get getter1a;
+  Object method1b(String x);
+  String get getter1b;
+  String get getter1c;
+  String get setter1d;
+  String method1a(Object x);
+  String method1d();
+  int? get field1a;
+  int? get field1c;
+  int? get field3a;
+  int? get field3c;
+  int get getter1e;
+  int get setter1e;
+  num? get field1b;
+  num? get field3b;
+  num? get field4a;
+  num? get field4b;
+  set getter1d(String x);
+  set getter1e(int x);
+  set setter1e(int x);
+  void method1c(int x);
+  void method2a(Object? x);
+  void method2b(dynamic x);
+  void method3a<AT3a>(AT3a x);
+  void method3b<AT3b>(AT3b x);
+  void method4a<AT4a>(AT4a x, AT y);
+  void method4b<AT4b>(AT4b x, AT y);
+  void method5a(int x, num y);
+  void method5b(int x, num y);
+  void method6a({int x, num y});
+  void method6b({num y, int x});
+  void set field2a(int? value);
+  void set field2b(num? value);
+  void set field2c(int? value);
+  void set field3a(Object? value);
+  void set field3b(Object? value);
+  void set field3c(Object? value);
+  void set field4b(Object? value);
+  void set setter1a(Object x);
+  void set setter1b(String x);
+  void set setter1c(String x);
+}
+
+abstract class B<BT> {
+  FutureOr method7a(FutureOr o, {FutureOr named});
+  Object get getter1b;
+  Object get setter1d;
+  Object method1a(String x);
+  String get getter1a;
+  String method1b(Object x);
+  double? get field1c;
+  double? get field3c;
+  int? get field1b;
+  int? get field3b;
+  int get getter1c;
+  int method1d();
+  num? get field1a;
+  num? get field3a;
+  num? get field4b;
+  num get getter1e;
+  num get setter1e;
+  set getter1d(Object x);
+  set getter1e(Object x);
+  set setter1e(Object x);
+  void method1c(String x);
+  void method2a(dynamic x);
+  void method2b(Object? x);
+  void method3a<BT3a>(BT3a x);
+  void method3b<BT3b>(BT3b x);
+  void method4a<BT4a>(BT4a x, BT y);
+  void method4b<BT4b>(BT4b x, BT y);
+  void method5a(num x, int y);
+  void method5b(num x, int y);
+  void method6a({Object x, num y});
+  void method6b({int x, Object y});
+  void set field2a(num? value);
+  void set field2b(int? value);
+  void set field2c(double? value);
+  void set field3a(Object? value);
+  void set field3b(Object? value);
+  void set field3c(Object? value);
+  void set field4a(num? value);
+  void set field4b(Object? value);
+  void set setter1a(String x);
+  void set setter1b(Object x);
+  void set setter1c(int x);
+}
+
+abstract class C implements A<int>, B<num> {
+  final field1a = null;
+  final field1b = null;
+  final field1c = null;
+  final field2a = null;
+  final field2b = null;
+  final field2c = null;
+  final field3a = null;
+  final field3b = null;
+  final field3c = null;
+  get getter1a;
+  get getter1b;
+  get getter1c;
+  get getter1d;
+  get getter1e;
+  method1a(x);
+  method1b(x);
+  method1d();
+  method7a(o, {named});
+  var field4a = null;
+  var field4b = null;
+  void method1c(x);
+  void method2a(x);
+  void method2b(x);
+  void method3a<CT3a>(x);
+  void method3b<CT3b>(x, [y]);
+  void method4a<CT4a>(x, y);
+  void method4b<CT4b>(x, y, [z]);
+  void method5a(x, y);
+  void method5b(num x, num y, [z]);
+  void method6a({x, y});
+  void method6b({x, y, z});
+  void set setter1a(x);
+  void set setter1b(x);
+  void set setter1c(x);
+  void set setter1d(x);
+  void set setter1e(x);
+}
+
+main() {}

@@ -4,31 +4,38 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
-PSEntry _findEntry(YamlMap map, String key) {
+PSEntry _findEntry(YamlMap map, String key, ResourceProvider resourceProvider) {
   PSEntry entry;
   map.nodes.forEach((k, v) {
     if (k is YamlScalar && key == k.toString()) {
-      entry = _processScalar(k, v);
+      entry = _processScalar(k, v, resourceProvider);
     }
   });
   return entry;
 }
 
-PSDependencyList _processDependencies(YamlScalar key, YamlNode v) {
+PSDependencyList _processDependencies(
+    YamlScalar key, YamlNode v, ResourceProvider resourceProvider) {
   if (v is! YamlMap) {
     return null;
   }
   YamlMap depsMap = v;
 
-  _PSDependencyList deps = _PSDependencyList(_PSNode(key));
-  depsMap.nodes.forEach((k, v) => deps.add(_PSDependency(k, v)));
+  _PSDependencyList deps = _PSDependencyList(_PSNode(key, resourceProvider));
+  depsMap.nodes.forEach((k, v) {
+    if (k is YamlScalar) deps.add(_PSDependency(k, v, resourceProvider));
+  });
   return deps;
 }
 
-PSGitRepo _processGitRepo(YamlScalar key, YamlNode v) {
+PSGitRepo _processGitRepo(
+    YamlScalar key, YamlNode v, ResourceProvider resourceProvider) {
   if (v is! YamlMap) {
     return null;
   }
@@ -36,13 +43,14 @@ PSGitRepo _processGitRepo(YamlScalar key, YamlNode v) {
   // url: git://github.com/munificent/kittens.git
   // ref: some-branch
   _PSGitRepo repo = _PSGitRepo();
-  repo.token = _PSNode(key);
-  repo.ref = _findEntry(hostMap, 'ref');
-  repo.url = _findEntry(hostMap, 'url');
+  repo.token = _PSNode(key, resourceProvider);
+  repo.ref = _findEntry(hostMap, 'ref', resourceProvider);
+  repo.url = _findEntry(hostMap, 'url', resourceProvider);
   return repo;
 }
 
-PSHost _processHost(YamlScalar key, YamlNode v) {
+PSHost _processHost(
+    YamlScalar key, YamlNode v, ResourceProvider resourceProvider) {
   if (v is! YamlMap) {
     return null;
   }
@@ -50,27 +58,31 @@ PSHost _processHost(YamlScalar key, YamlNode v) {
   // name: transmogrify
   // url: http://your-package-server.com
   _PSHost host = _PSHost();
-  host.token = _PSNode(key);
-  host.name = _findEntry(hostMap, 'name');
-  host.url = _findEntry(hostMap, 'url');
+  host.token = _PSNode(key, resourceProvider);
+  host.name = _findEntry(hostMap, 'name', resourceProvider);
+  host.url = _findEntry(hostMap, 'url', resourceProvider);
   return host;
 }
 
-PSNodeList _processList(YamlScalar key, YamlNode v) {
+PSNodeList _processList(
+    YamlScalar key, YamlNode v, ResourceProvider resourceProvider) {
   if (v is! YamlList) {
     return null;
   }
   YamlList nodeList = v;
 
-  return _PSNodeList(_PSNode(key), nodeList.nodes.map((n) => _PSNode(n)));
+  return _PSNodeList(_PSNode(key, resourceProvider),
+      nodeList.nodes.map((n) => _PSNode(n, resourceProvider)));
 }
 
-PSEntry _processScalar(YamlScalar key, YamlNode value) {
+PSEntry _processScalar(
+    YamlScalar key, YamlNode value, ResourceProvider resourceProvider) {
   if (value is! YamlScalar) {
     return null;
     //WARN?
   }
-  return PSEntry(_PSNode(key), _PSNode(value));
+  return PSEntry(
+      _PSNode(key, resourceProvider), _PSNode(value, resourceProvider));
 }
 
 abstract class PSDependency {
@@ -105,6 +117,7 @@ abstract class PSHost {
 }
 
 abstract class PSNode {
+  Source get source;
   SourceSpan get span;
   String get text;
 }
@@ -116,8 +129,10 @@ abstract class PSNodeList with IterableMixin<PSNode> {
 }
 
 abstract class Pubspec {
-  factory Pubspec.parse(String source, {Uri sourceUrl}) =>
-      _Pubspec(source, sourceUrl: sourceUrl);
+  factory Pubspec.parse(String source,
+          {Uri sourceUrl, ResourceProvider resourceProvider}) =>
+      _Pubspec(source,
+          sourceUrl: sourceUrl, resourceProvider: resourceProvider);
   PSEntry get author;
   PSNodeList get authors;
   PSDependencyList get dependencies;
@@ -159,25 +174,21 @@ class _PSDependency extends PSDependency {
   @override
   PSGitRepo git;
 
-  factory _PSDependency(dynamic k, YamlNode v) {
-    if (k is! YamlScalar) {
-      return null;
-    }
-    YamlScalar key = k;
-
+  factory _PSDependency(
+      YamlScalar key, YamlNode value, ResourceProvider resourceProvider) {
     _PSDependency dep = _PSDependency._();
 
-    dep.name = _PSNode(key);
+    dep.name = _PSNode(key, resourceProvider);
 
-    if (v is YamlScalar) {
+    if (value is YamlScalar) {
       // Simple version
-      dep.version = PSEntry(null, _PSNode(v));
-    } else if (v is YamlMap) {
+      dep.version = PSEntry(null, _PSNode(value, resourceProvider));
+    } else if (value is YamlMap) {
       // hosted:
       //   name: transmogrify
       //   url: http://your-package-server.com
       //   version: '>=0.4.0 <1.0.0'
-      YamlMap details = v;
+      YamlMap details = value;
       details.nodes.forEach((k, v) {
         if (k is! YamlScalar) {
           return;
@@ -185,16 +196,16 @@ class _PSDependency extends PSDependency {
         YamlScalar key = k;
         switch (key.toString()) {
           case 'path':
-            dep.path = _processScalar(key, v);
+            dep.path = _processScalar(key, v, resourceProvider);
             break;
           case 'version':
-            dep.version = _processScalar(key, v);
+            dep.version = _processScalar(key, v, resourceProvider);
             break;
           case 'hosted':
-            dep.host = _processHost(key, v);
+            dep.host = _processHost(key, v, resourceProvider);
             break;
           case 'git':
-            dep.git = _processGitRepo(key, v);
+            dep.git = _processGitRepo(key, v, resourceProvider);
             break;
         }
       });
@@ -282,9 +293,16 @@ class _PSNode implements PSNode {
   @override
   final SourceSpan span;
 
-  _PSNode(YamlNode node)
+  final ResourceProvider resourceProvider;
+
+  _PSNode(YamlNode node, this.resourceProvider)
       : text = node.value?.toString(),
         span = node.span;
+
+  @override
+  Source get source => (resourceProvider ?? PhysicalResourceProvider.INSTANCE)
+      .getFile(span.sourceUrl.toFilePath())
+      .createSource(span.sourceUrl);
 
   @override
   String toString() => '$text';
@@ -328,9 +346,9 @@ class _Pubspec implements Pubspec {
   @override
   PSDependencyList dependencyOverrides;
 
-  _Pubspec(String src, {Uri sourceUrl}) {
+  _Pubspec(String src, {Uri sourceUrl, ResourceProvider resourceProvider}) {
     try {
-      _parse(src, sourceUrl: sourceUrl);
+      _parse(src, sourceUrl: sourceUrl, resourceProvider: resourceProvider);
     } on Exception {
       // ignore
     }
@@ -388,7 +406,7 @@ class _Pubspec implements Pubspec {
     return sb.toString();
   }
 
-  void _parse(String src, {Uri sourceUrl}) {
+  void _parse(String src, {Uri sourceUrl, ResourceProvider resourceProvider}) {
     var yaml = loadYamlNode(src, sourceUrl: sourceUrl);
     if (yaml is! YamlMap) {
       return;
@@ -401,34 +419,34 @@ class _Pubspec implements Pubspec {
       YamlScalar key = k;
       switch (key.toString()) {
         case 'author':
-          author = _processScalar(key, v);
+          author = _processScalar(key, v, resourceProvider);
           break;
         case 'authors':
-          authors = _processList(key, v);
+          authors = _processList(key, v, resourceProvider);
           break;
         case 'homepage':
-          homepage = _processScalar(key, v);
+          homepage = _processScalar(key, v, resourceProvider);
           break;
         case 'name':
-          name = _processScalar(key, v);
+          name = _processScalar(key, v, resourceProvider);
           break;
         case 'description':
-          description = _processScalar(key, v);
+          description = _processScalar(key, v, resourceProvider);
           break;
         case 'documentation':
-          documentation = _processScalar(key, v);
+          documentation = _processScalar(key, v, resourceProvider);
           break;
         case 'dependencies':
-          dependencies = _processDependencies(key, v);
+          dependencies = _processDependencies(key, v, resourceProvider);
           break;
         case 'dev_dependencies':
-          devDependencies = _processDependencies(key, v);
+          devDependencies = _processDependencies(key, v, resourceProvider);
           break;
         case 'dependency_overrides':
-          dependencyOverrides = _processDependencies(key, v);
+          dependencyOverrides = _processDependencies(key, v, resourceProvider);
           break;
         case 'version':
-          version = _processScalar(key, v);
+          version = _processScalar(key, v, resourceProvider);
           break;
       }
     });

@@ -105,9 +105,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   final List<ParameterElement> parameters;
 
   @override
-  final List<DartType> typeArguments;
-
-  @override
   final NullabilitySuffix nullabilitySuffix;
 
   FunctionTypeImpl({
@@ -116,33 +113,30 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     @required DartType returnType,
     @required NullabilitySuffix nullabilitySuffix,
     Element element,
-    List<DartType> typeArguments,
+    TypeAliasElement aliasElement,
+    List<DartType> aliasArguments,
   })  : typeFormals = typeFormals,
         parameters = _sortNamedParameters(parameters),
         returnType = returnType,
         nullabilitySuffix = nullabilitySuffix,
-        typeArguments = typeArguments ?? const <DartType>[],
-        super(element);
-
-  @deprecated
-  FunctionTypeImpl.synthetic(
-      this.returnType, this.typeFormals, List<ParameterElement> parameters,
-      {Element element,
-      List<DartType> typeArguments,
-      @required NullabilitySuffix nullabilitySuffix})
-      : parameters = _sortNamedParameters(parameters),
-        typeArguments = typeArguments ?? const <DartType>[],
-        nullabilitySuffix = nullabilitySuffix,
-        super(element);
+        super(element,
+            aliasElement: aliasElement, aliasArguments: aliasArguments);
 
   @override
   FunctionTypedElement get element {
-    var element = super.element;
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
     // TODO(scheglov) Can we just construct it with the right element?
-    if (element is GenericTypeAliasElement) {
-      return element.function;
+    var aliasedElement = aliasElement?.aliasedElement;
+    if (aliasedElement is GenericFunctionTypeElement) {
+      return aliasedElement;
     }
-    return element;
+
+    var element = super.element;
+    if (element is FunctionTypedElement) {
+      return element;
+    }
+
+    return null;
   }
 
   @override
@@ -215,6 +209,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       types.add(type);
     });
     return types;
+  }
+
+  @override
+  List<DartType> get typeArguments {
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
+    return aliasArguments ?? const <DartType>[];
   }
 
   @override
@@ -296,6 +296,33 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
+  bool referencesAny(Set<TypeParameterElement> parameters) {
+    if (typeFormals.any((element) {
+      var elementImpl = element as TypeParameterElementImpl;
+      assert(!parameters.contains(elementImpl));
+
+      var bound = elementImpl.bound as TypeImpl;
+      if (bound != null && bound.referencesAny(parameters)) {
+        return true;
+      }
+
+      var defaultType = elementImpl.defaultType as TypeImpl;
+      return defaultType.referencesAny(parameters);
+    })) {
+      return true;
+    }
+
+    if (this.parameters.any((element) {
+      var type = element.type as TypeImpl;
+      return type.referencesAny(parameters);
+    })) {
+      return true;
+    }
+
+    return (returnType as TypeImpl).referencesAny(parameters);
+  }
+
+  @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
     return FunctionTypeImpl(
@@ -303,8 +330,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
-      element: element,
-      typeArguments: typeArguments,
+      aliasElement: aliasElement,
+      aliasArguments: aliasArguments,
     );
   }
 
@@ -637,14 +664,20 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     @required ClassElement element,
     @required this.typeArguments,
     @required this.nullabilitySuffix,
-  }) : super(element);
+    TypeAliasElement aliasElement,
+    List<DartType> aliasArguments,
+  }) : super(
+          element,
+          aliasElement: aliasElement,
+          aliasArguments: aliasArguments,
+        );
 
   @override
   List<PropertyAccessorElement> get accessors {
     if (_accessors == null) {
       List<PropertyAccessorElement> accessors = element.accessors;
       List<PropertyAccessorElement> members =
-          List<PropertyAccessorElement>(accessors.length);
+          List<PropertyAccessorElement>.filled(accessors.length, null);
       for (int i = 0; i < accessors.length; i++) {
         members[i] = PropertyAccessorMember.from(accessors[i], this);
       }
@@ -666,7 +699,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (_constructors == null) {
       List<ConstructorElement> constructors = element.constructors;
       List<ConstructorElement> members =
-          List<ConstructorElement>(constructors.length);
+          List<ConstructorElement>.filled(constructors.length, null);
       for (int i = 0; i < constructors.length; i++) {
         members[i] = ConstructorMember.from(constructors[i], this);
       }
@@ -767,7 +800,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<MethodElement> get methods {
     if (_methods == null) {
       List<MethodElement> methods = element.methods;
-      List<MethodElement> members = List<MethodElement>(methods.length);
+      List<MethodElement> members =
+          List<MethodElement>.filled(methods.length, null);
       for (int i = 0; i < methods.length; i++) {
         members[i] = MethodMember.from(methods[i], this);
       }
@@ -1305,6 +1339,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool referencesAny(Set<TypeParameterElement> parameters) {
+    return typeArguments.any((argument) {
+      var argumentImpl = argument as TypeImpl;
+      return argumentImpl.referencesAny(parameters);
+    });
+  }
+
+  @override
   InterfaceTypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
 
@@ -1322,7 +1364,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (typeParameters.isEmpty) return defined;
 
     var substitution = Substitution.fromInterfaceType(this);
-    var result = List<InterfaceType>(defined.length);
+    var result = List<InterfaceType>.filled(defined.length, null);
     for (int i = 0; i < defined.length; i++) {
       result[i] = substitution.substituteType(defined[i]);
     }
@@ -1425,7 +1467,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (argumentCount == 0) {
       return firstType;
     }
-    List<DartType> lubArguments = List<DartType>(argumentCount);
+    List<DartType> lubArguments = List<DartType>.filled(argumentCount, null);
     for (int i = 0; i < argumentCount; i++) {
       //
       // Ideally we would take the least upper bound of the two argument types,
@@ -1467,12 +1509,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /// search should include the target type. The [visitedInterfaces] is a set
   /// containing all of the interfaces that have been examined, used to prevent
   /// infinite recursion and to optimize the search.
-  static ExecutableElement _lookUpMemberInInterfaces(
+  static T _lookUpMemberInInterfaces<T extends ExecutableElement>(
       InterfaceType targetType,
       bool includeTargetType,
       LibraryElement library,
       HashSet<ClassElement> visitedInterfaces,
-      ExecutableElement Function(InterfaceType type) getMember) {
+      T Function(InterfaceType type) getMember) {
     // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the
     // specification (titled "Inheritance and Overriding" under "Interfaces")
     // describes a much more complex scheme for finding the inherited member.
@@ -1602,12 +1644,20 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
 /// The abstract class `TypeImpl` implements the behavior common to objects
 /// representing the declared type of elements in the element model.
 abstract class TypeImpl implements DartType {
+  @override
+  final List<DartType> aliasArguments;
+
+  @override
+  final TypeAliasElement aliasElement;
+
   /// The element representing the declaration of this type, or `null` if the
   /// type has not, or cannot, be associated with an element.
   final Element _element;
 
   /// Initialize a newly created type to be declared by the given [element].
-  TypeImpl(this._element);
+  TypeImpl(this._element, {this.aliasElement, this.aliasArguments})
+      : assert(aliasElement == null && aliasArguments == null ||
+            aliasElement != null && aliasArguments != null);
 
   @deprecated
   @override
@@ -1695,6 +1745,11 @@ abstract class TypeImpl implements DartType {
     );
     appendTo(builder);
     return builder.toString();
+  }
+
+  /// Returns true if this type references any of the [parameters].
+  bool referencesAny(Set<TypeParameterElement> parameters) {
+    return false;
   }
 
   @override
@@ -1835,6 +1890,11 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
   InterfaceType asInstanceOf(ClassElement element) {
     return bound?.asInstanceOf(element);
+  }
+
+  @override
+  bool referencesAny(Set<TypeParameterElement> parameters) {
+    return parameters.contains(element);
   }
 
   @override

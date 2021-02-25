@@ -1,0 +1,56 @@
+library;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@_in::patch
+class Class extends core::Object {
+  constructor _internal({core::bool value}) → self2::Class
+    ;
+  @_in::patch
+  external constructor patched() → self2::Class
+    ;
+  constructor unpatched() → self2::Class
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class _SubClass&Class&Mixin = self2::Class with self2::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor patched() → self2::_SubClass&Class&Mixin
+    : super self2::Class::patched()
+    ;
+  synthetic constructor unpatched() → self2::_SubClass&Class&Mixin
+    : super self2::Class::unpatched()
+    ;
+  synthetic constructor _internal({core::bool value}) → self2::_SubClass&Class&Mixin
+    : super self2::Class::_internal(value: value)
+    ;
+}
+@_in::patch
+class SubClass extends self2::_SubClass&Class&Mixin {
+  constructor _internal() → self2::SubClass
+    ;
+  @_in::patch
+  external constructor patched() → self2::SubClass
+    ;
+  constructor unpatched() → self2::SubClass
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:8:20 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:14:3 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:16:19 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 5, effectively constant: 4

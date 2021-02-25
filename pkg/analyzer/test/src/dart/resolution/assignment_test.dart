@@ -13,6 +13,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentDriverResolutionTest);
     defineReflectiveTests(AssignmentDriverResolutionWithNullSafetyTest);
+    defineReflectiveTests(
+      AssignmentDriverResolutionWithNonFunctionTypeAliasesTest,
+    );
   });
 }
 
@@ -235,22 +238,19 @@ void f(int c) {
 
     assertSimpleIdentifier(
       findNode.simple('a['),
-      readElement: null,
-      writeElement: null,
+      element: null,
       type: 'dynamic',
     );
 
     assertSimpleIdentifier(
       findNode.simple('b]'),
-      readElement: null,
-      writeElement: null,
+      element: null,
       type: 'dynamic',
     );
 
     assertSimpleIdentifier(
       assignment.rightHandSide,
-      readElement: findElement.parameter('c'),
-      writeElement: null,
+      element: findElement.parameter('c'),
       type: 'int',
     );
   }
@@ -278,22 +278,19 @@ void f(int a, int c) {
 
     assertSimpleIdentifier(
       findNode.simple('a['),
-      readElement: findElement.parameter('a'),
-      writeElement: null,
+      element: findElement.parameter('a'),
       type: 'int',
     );
 
     assertSimpleIdentifier(
       findNode.simple('b]'),
-      readElement: null,
-      writeElement: null,
+      element: null,
       type: 'dynamic',
     );
 
     assertSimpleIdentifier(
       assignment.rightHandSide,
-      readElement: findElement.parameter('c'),
-      writeElement: null,
+      element: findElement.parameter('c'),
       type: 'int',
     );
   }
@@ -324,22 +321,19 @@ void f(A a, int c) {
 
     assertSimpleIdentifier(
       findNode.simple('a['),
-      readElement: findElement.parameter('a'),
-      writeElement: null,
+      element: findElement.parameter('a'),
       type: 'A',
     );
 
     assertSimpleIdentifier(
       findNode.simple('b]'),
-      readElement: null,
-      writeElement: null,
+      element: null,
       type: 'dynamic',
     );
 
     assertSimpleIdentifier(
       assignment.rightHandSide,
-      readElement: findElement.parameter('c'),
-      writeElement: null,
+      element: findElement.parameter('c'),
       type: 'int',
     );
   }
@@ -352,7 +346,6 @@ void f(int a, int b, double c) {
 ''', [
       error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 5),
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 44, 1),
     ]);
 
     var assignment = findNode.assignment('= c');
@@ -362,11 +355,8 @@ void f(int a, int b, double c) {
       readType: 'dynamic',
       writeElement: null,
       writeType: 'dynamic',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
-      ),
-      type: 'double',
+      operatorElement: null,
+      type: 'dynamic',
     );
 
     assertElement(findNode.simple('a +'), findElement.parameter('a'));
@@ -382,7 +372,6 @@ void f(int a, int b, double c) {
 ''', [
       error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 7),
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 7),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 46, 1),
     ]);
 
     var assignment = findNode.assignment('= c');
@@ -392,11 +381,8 @@ void f(int a, int b, double c) {
       readType: 'dynamic',
       writeElement: null,
       writeType: 'dynamic',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
-      ),
-      type: 'double',
+      operatorElement: null,
+      type: 'dynamic',
     );
   }
 
@@ -425,22 +411,19 @@ void f(int a, int b, double c) {
 
     assertSimpleIdentifier(
       findNode.simple('a + b'),
-      readElement: findElement.parameter('a'),
-      writeElement: null,
+      element: findElement.parameter('a'),
       type: 'int',
     );
 
     assertSimpleIdentifier(
       findNode.simple('b)'),
-      readElement: findElement.parameter('b'),
-      writeElement: null,
+      element: findElement.parameter('b'),
       type: 'int',
     );
 
     assertSimpleIdentifier(
       findNode.simple('c;'),
-      readElement: findElement.parameter('c'),
-      writeElement: null,
+      element: findElement.parameter('c'),
       type: 'double',
     );
   }
@@ -461,37 +444,26 @@ void f(num x, int y) {
       readType: 'dynamic',
       writeElement: null,
       writeType: 'dynamic',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
-      ),
-      type: 'num',
+      operatorElement: null,
+      type: 'dynamic',
     );
 
     assertSimpleIdentifier(
       findNode.simple('y;'),
-      readElement: findElement.parameter('y'),
-      writeElement: null,
+      element: findElement.parameter('y'),
       type: 'int',
     );
   }
 
   test_notLValue_postfixIncrement_compound_ifNull() async {
-    await assertErrorsInCode(
-      '''
+    await assertErrorsInCode('''
 void f(num x, int y) {
   x++ ??= y;
 }
-''',
-      expectedErrorsByNullability(nullable: [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1),
-      ], legacy: [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-      ]),
-    );
+''', [
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+    ]);
 
     assertAssignment(
       findNode.assignment('= y'),
@@ -505,8 +477,7 @@ void f(num x, int y) {
 
     assertSimpleIdentifier(
       findNode.simple('y;'),
-      readElement: findElement.parameter('y'),
-      writeElement: null,
+      element: findElement.parameter('y'),
       type: 'int',
     );
   }
@@ -533,8 +504,7 @@ void f(num x, int y) {
 
     assertSimpleIdentifier(
       findNode.simple('y;'),
-      readElement: findElement.parameter('y'),
-      writeElement: null,
+      element: findElement.parameter('y'),
       type: 'int',
     );
   }
@@ -555,37 +525,26 @@ void f(num x, int y) {
       readType: 'dynamic',
       writeElement: null,
       writeType: 'dynamic',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
-      ),
-      type: 'num',
+      operatorElement: null,
+      type: 'dynamic',
     );
 
     assertSimpleIdentifier(
       findNode.simple('y;'),
-      readElement: findElement.parameter('y'),
-      writeElement: null,
+      element: findElement.parameter('y'),
       type: 'int',
     );
   }
 
   test_notLValue_prefixIncrement_compound_ifNull() async {
-    await assertErrorsInCode(
-      '''
+    await assertErrorsInCode('''
 void f(num x, int y) {
   ++x ??= y;
 }
-''',
-      expectedErrorsByNullability(nullable: [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1),
-      ], legacy: [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-      ]),
-    );
+''', [
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+    ]);
 
     assertAssignment(
       findNode.assignment('= y'),
@@ -599,8 +558,7 @@ void f(num x, int y) {
 
     assertSimpleIdentifier(
       findNode.simple('y;'),
-      readElement: findElement.parameter('y'),
-      writeElement: null,
+      element: findElement.parameter('y'),
       type: 'int',
     );
   }
@@ -627,8 +585,7 @@ void f(num x, int y) {
 
     assertSimpleIdentifier(
       findNode.simple('y;'),
-      readElement: findElement.parameter('y'),
-      writeElement: null,
+      element: findElement.parameter('y'),
       type: 'int',
     );
   }
@@ -662,11 +619,8 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: matcherC,
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -694,11 +648,8 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.class_('C'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -743,11 +694,8 @@ void f(A a) {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefixed.identifier,
-      readElement: findElement.getter('x'),
-      writeElement: findElement.setter('x'),
-      type: 'num',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -776,11 +724,8 @@ void f(A a) {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefixed.identifier,
-      readElement: null,
-      writeElement: findElement.setter('x'),
-      type: 'num',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -811,11 +756,8 @@ void f(A a) {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefixed.identifier,
-      readElement: null,
-      writeElement: findElement.getter('x'),
-      type: 'dynamic',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -844,11 +786,8 @@ void f() {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefixed.identifier,
-      readElement: null,
-      writeElement: findElement.setter('x'),
-      type: 'num',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -879,11 +818,8 @@ void f() {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefixed.identifier,
-      readElement: null,
-      writeElement: findElement.getter('x'),
-      type: 'dynamic',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -921,11 +857,8 @@ void f() {
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
     assertImportPrefix(prefixed.prefix, importFind.prefix);
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefixed.identifier,
-      readElement: importFind.topGet('x'),
-      writeElement: importFind.topSet('x'),
-      type: 'num',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -953,22 +886,17 @@ void f(int c) {
 
     assertSimpleIdentifier(
       findNode.simple('a.'),
-      readElement: null,
-      writeElement: null,
+      element: null,
       type: 'dynamic',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       findNode.simple('b ='),
-      readElement: null,
-      writeElement: null,
-      type: 'dynamic',
     );
 
     assertSimpleIdentifier(
       assignment.rightHandSide,
-      readElement: findElement.parameter('c'),
-      writeElement: null,
+      element: findElement.parameter('c'),
       type: 'int',
     );
   }
@@ -996,22 +924,17 @@ void f(int a, int c) {
 
     assertSimpleIdentifier(
       findNode.simple('a.'),
-      readElement: findElement.parameter('a'),
-      writeElement: null,
+      element: findElement.parameter('a'),
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       findNode.simple('b +='),
-      readElement: null,
-      writeElement: null,
-      type: 'dynamic',
     );
 
     assertSimpleIdentifier(
       assignment.rightHandSide,
-      readElement: findElement.parameter('c'),
-      writeElement: null,
+      element: findElement.parameter('c'),
       type: 'int',
     );
   }
@@ -1043,46 +966,39 @@ void f(A a) {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       propertyAccess.propertyName,
-      readElement: findElement.getter('x'),
-      writeElement: findElement.setter('x'),
-      type: 'num',
     );
 
     assertType(assignment.rightHandSide, 'int');
   }
 
   test_propertyAccess_forwardingStub() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
-  int f;
+  int x = 0;
 }
 abstract class I<T> {
-  T f;
+  T x = throw 0;
 }
 class B extends A implements I<int> {}
 main() {
-  new B().f = 1;
+  new B().x = 1;
 }
 ''');
-    var assignment = findNode.assignment('f = 1');
-    assertElementNull(assignment);
-    assertType(assignment, 'int');
 
-    PropertyAccess left = assignment.leftHandSide;
-    assertType(left, 'int');
+    var assignment = findNode.assignment('x = 1');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('x', of: 'A'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
 
-    InstanceCreationExpression creation = left.target;
-    assertElement(creation, findElement.unnamedConstructor('B'));
-    assertType(creation, 'B');
-
-    var fRef = left.propertyName;
-    assertElement(fRef, findElement.setter('f', of: 'A'));
-    assertType(fRef, 'int');
-
-    var right = assignment.rightHandSide;
-    assertType(right, 'int');
+    assertType(assignment.rightHandSide, 'int');
   }
 
   test_propertyAccess_instance_compound() async {
@@ -1112,11 +1028,45 @@ void f(A a) {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       propertyAccess.propertyName,
-      readElement: findElement.getter('x'),
-      writeElement: findElement.setter('x'),
-      type: 'num',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
+  test_propertyAccess_instance_fromMixins_compound() async {
+    await assertNoErrorsInCode('''
+class M1 {
+  int get x => 0;
+  set x(num _) {}
+}
+
+class M2 {
+  int get x => 0;
+  set x(num _) {}
+}
+
+class C with M1, M2 {
+}
+
+void f(C c) {
+  (c).x += 2;
+}
+''');
+
+    var assignment = findNode.assignment('x += 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('x', of: 'M2'),
+      readType: 'int',
+      writeElement: findElement.setter('x', of: 'M2'),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1145,11 +1095,8 @@ void f(A a) {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       propertyAccess.propertyName,
-      readElement: null,
-      writeElement: findElement.setter('x'),
-      type: 'num',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1188,11 +1135,8 @@ class B extends A {
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
     assertSuperExpression(propertyAccess.target);
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       propertyAccess.propertyName,
-      readElement: findElement.getter('x', of: 'A'),
-      writeElement: findElement.setter('x', of: 'A'),
-      type: 'num',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1225,11 +1169,8 @@ class A {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       propertyAccess.propertyName,
-      readElement: findElement.getter('x'),
-      writeElement: findElement.setter('x'),
-      type: 'num',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1257,22 +1198,17 @@ void f(int c) {
 
     assertSimpleIdentifier(
       findNode.simple('a)'),
-      readElement: null,
-      writeElement: null,
+      element: null,
       type: 'dynamic',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       findNode.simple('b ='),
-      readElement: null,
-      writeElement: null,
-      type: 'dynamic',
     );
 
     assertSimpleIdentifier(
       findNode.simple('c;'),
-      readElement: findElement.parameter('c'),
-      writeElement: null,
+      element: findElement.parameter('c'),
       type: 'int',
     );
   }
@@ -1299,22 +1235,17 @@ void f(int a, int c) {
 
     assertSimpleIdentifier(
       findNode.simple('a)'),
-      readElement: findElement.parameter('a'),
-      writeElement: null,
+      element: findElement.parameter('a'),
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       findNode.simple('b ='),
-      readElement: null,
-      writeElement: null,
-      type: 'dynamic',
     );
 
     assertSimpleIdentifier(
       findNode.simple('c;'),
-      readElement: findElement.parameter('c'),
-      writeElement: null,
+      element: findElement.parameter('c'),
       type: 'int',
     );
   }
@@ -1341,11 +1272,8 @@ class C {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.setter('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1373,11 +1301,8 @@ class C {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.setter('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1407,11 +1332,8 @@ class C {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.getter('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1441,11 +1363,8 @@ class C {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.getter('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1473,11 +1392,8 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.topGet('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1512,11 +1428,8 @@ class B extends A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.prefix('x'),
-      type: null,
     );
   }
 
@@ -1542,11 +1455,8 @@ main() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.prefix('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1575,11 +1485,8 @@ void f() {
       type: 'num', // num + int = num
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: findElement.localVar('x'),
-      writeElement: findElement.localVar('x'),
-      type: 'num',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1605,11 +1512,8 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.localVar('x'),
-      type: 'num',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1637,11 +1541,8 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.localVar('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1669,11 +1570,8 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.localVar('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1698,11 +1596,8 @@ void f(num$question x) {
       type: 'num',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: findElement.parameter('x'),
-      writeElement: findElement.parameter('x'),
-      type: 'num$question',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1734,11 +1629,8 @@ void f(B$question x) {
       type: 'A',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: findElement.parameter('x'),
-      writeElement: findElement.parameter('x'),
-      type: 'B$question',
     );
 
     assertType(assignment.rightHandSide, 'C');
@@ -1766,17 +1658,13 @@ void f(double$question a, int b) {
       type: 'num',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: findElement.parameter('a'),
-      writeElement: findElement.parameter('a'),
-      type: 'double$question',
     );
 
     assertSimpleIdentifier(
       assignment.rightHandSide,
-      readElement: findElement.parameter('b'),
-      writeElement: null,
+      element: findElement.parameter('b'),
       type: 'int',
     );
   }
@@ -1803,7 +1691,7 @@ void f(int x) {
 
   test_simpleIdentifier_parameter_compound_refineType_int_int() async {
     await assertNoErrorsInCode(r'''
-main(int x) {
+void f(int x) {
   x += 1;
   x -= 1;
   x *= 1;
@@ -1836,11 +1724,8 @@ void f(num x) {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.parameter('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1871,11 +1756,8 @@ void f(Object x) {
       type: expectedType,
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.parameter('x'),
-      type: 'Object',
     );
 
     assertType(assignment.rightHandSide, expectedType);
@@ -1901,11 +1783,8 @@ void f(int x) {
       type: 'bool',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.parameter('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'bool');
@@ -1931,11 +1810,8 @@ void f(final int x) {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.parameter('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1970,11 +1846,8 @@ class B extends A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.getter('x', of: 'B'),
-      type: null,
     );
   }
 
@@ -2007,11 +1880,8 @@ class B extends A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.method('x', of: 'B'),
-      type: null,
     );
   }
 
@@ -2039,11 +1909,8 @@ class B extends A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.setter('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -2069,17 +1936,13 @@ void f(int y) {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: null,
-      type: 'dynamic',
     );
 
     assertSimpleIdentifier(
       assignment.rightHandSide,
-      readElement: findElement.parameter('y'),
-      writeElement: null,
+      element: findElement.parameter('y'),
       type: 'int',
     );
   }
@@ -2110,11 +1973,8 @@ class B extends A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.setter('x', of: 'A'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -2146,11 +2006,8 @@ class C {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: findElement.getter('x'),
-      writeElement: findElement.setter('x'),
-      type: 'num',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -2189,11 +2046,8 @@ class C with M1, M2 {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: findElement.getter('x', of: 'M2'),
-      writeElement: findElement.setter('x', of: 'M2'),
-      type: 'num',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -2228,11 +2082,8 @@ class B extends A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.topGet('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -2262,11 +2113,8 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: findElement.topGet('x'),
-      writeElement: findElement.topSet('x'),
-      type: 'num',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -2300,11 +2148,8 @@ set x(B$question _) {}
       type: 'A',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: findElement.topGet('x'),
-      writeElement: findElement.topSet('x'),
-      type: 'B$question',
     );
 
     assertType(assignment.rightHandSide, 'C');
@@ -2336,11 +2181,8 @@ class A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: findElement.topGet('x'),
-      writeElement: findElement.topSet('x'),
-      type: 'num',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -2366,11 +2208,8 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.topSet('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -2398,11 +2237,8 @@ void f() {
       type: 'bool',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.topSet('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'bool');
@@ -2430,11 +2266,8 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: findElement.topGet('x'),
-      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -2460,11 +2293,8 @@ void f() {
       type: 'dynamic',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: intElement,
-      type: 'dynamic',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -2490,11 +2320,8 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: intElement,
-      type: 'Type',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -2520,11 +2347,8 @@ void f() {
       type: 'dynamic',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: null,
-      type: 'dynamic',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -2550,19 +2374,55 @@ void f(int a) {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
-      readElement: null,
-      writeElement: null,
-      type: null,
     );
 
     assertSimpleIdentifier(
       assignment.rightHandSide,
-      readElement: findElement.parameter('a'),
-      writeElement: null,
+      element: findElement.parameter('a'),
       type: 'int',
     );
+  }
+}
+
+@reflectiveTest
+class AssignmentDriverResolutionWithNonFunctionTypeAliasesTest
+    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+  test_prefixedIdentifier_typeAlias_static_compound() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static int get x => 0;
+  static set x(int _) {}
+}
+
+typedef B = A;
+
+void f() {
+  B.x += 2;
+}
+''');
+
+    var assignment = findNode.assignment('x += 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('x'),
+      readType: 'int',
+      writeElement: findElement.setter('x'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
+    assertSimpleIdentifierAssignmentTarget(
+      prefixed.identifier,
+    );
+
+    assertType(assignment.rightHandSide, 'int');
   }
 }
 

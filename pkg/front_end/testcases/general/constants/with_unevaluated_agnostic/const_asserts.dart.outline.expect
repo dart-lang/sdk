@@ -1,0 +1,61 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:16:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+//   const Foo.withInvalidCondition(this.x) : assert(x);
+//                                                   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object /*hasConstConstructor*/  {
+  final field core::int x;
+  const constructor •(core::int x) → self::Foo
+    : self::Foo::x = x, assert(x.{core::num::>}(0){(core::num) → core::bool}, "x is not positive"), assert(x.{core::num::>}(0){(core::num) → core::bool}), assert(const core::bool::fromEnvironment("foo") =={core::Object::==}{(core::Object) → core::bool} false, "foo was ${const core::bool::fromEnvironment("foo")}"), assert(const core::bool::fromEnvironment("foo") =={core::Object::==}{(core::Object) → core::bool} false), super core::Object::•()
+    ;
+  const constructor withMessage(core::int x) → self::Foo
+    : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, "btw foo was ${const core::bool::fromEnvironment("foo")}"), super core::Object::•()
+    ;
+  const constructor withInvalidMessage(core::int x) → self::Foo
+    : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, x), super core::Object::•()
+    ;
+  const constructor withInvalidCondition(core::int x) → self::Foo
+    : self::Foo::x = x, assert(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:16:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+  const Foo.withInvalidCondition(this.x) : assert(x);
+                                                  ^" in x as{TypeError,ForNonNullableByDefault} core::bool), super core::Object::•()
+    ;
+}
+class Bar extends core::Object /*hasConstConstructor*/  {
+  final field core::int x;
+  const constructor withMessage(core::int x) → self::Bar
+    : self::Bar::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, "x is not negative"), super core::Object::•()
+    ;
+  const constructor withoutMessage(core::int x) → self::Bar
+    : self::Bar::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}), super core::Object::•()
+    ;
+}
+static const field self::Foo foo1 = const self::Foo::•(1);
+static const field self::Foo foo2 = const self::Foo::•(0);
+static const field self::Foo foo3 = const self::Foo::withMessage(42);
+static const field self::Foo foo4 = const self::Foo::withInvalidMessage(42);
+static const field self::Foo foo5 = const self::Foo::withInvalidCondition(42);
+static const field self::Bar bar1 = const self::Bar::withMessage(1);
+static const field self::Bar bar2 = const self::Bar::withMessage(0);
+static const field self::Bar bar3 = const self::Bar::withoutMessage(1);
+static const field self::Bar bar4 = const self::Bar::withoutMessage(0);
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated with empty environment: EqualsCall @ org-dartlang-testcase:///const_asserts.dart:10:50 -> BoolConstant(true)
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_asserts.dart:10:22 -> BoolConstant(false)
+Evaluated with empty environment: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:11:59 -> StringConstant("foo was false")
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_asserts.dart:11:30 -> BoolConstant(false)
+Evaluated with empty environment: EqualsCall @ org-dartlang-testcase:///const_asserts.dart:12:50 -> BoolConstant(true)
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_asserts.dart:12:22 -> BoolConstant(false)
+Evaluated with empty environment: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:14:73 -> StringConstant("btw foo was false")
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_asserts.dart:14:44 -> BoolConstant(false)
+Evaluated with empty environment: ConstructorInvocation @ org-dartlang-testcase:///const_asserts.dart:25:24 -> InstanceConstant(const Foo{Foo.x: 1})
+Extra constant evaluation: evaluated: 39, effectively constant: 9

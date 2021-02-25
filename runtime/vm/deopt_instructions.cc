@@ -33,7 +33,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
                            intptr_t* cpu_registers,
                            bool is_lazy_deopt,
                            bool deoptimizing_code)
-    : code_(code.raw()),
+    : code_(code.ptr()),
       object_pool_(code.GetObjectPool()),
       deopt_info_(TypedData::null()),
       dest_frame_is_allocated_(false),
@@ -64,7 +64,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
   }
 #endif
   ASSERT(!deopt_info.IsNull());
-  deopt_info_ = deopt_info.raw();
+  deopt_info_ = deopt_info.ptr();
 
   const Function& function = Function::Handle(code.function());
 
@@ -378,19 +378,19 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* top_frame = iterator.NextFrame();
     ASSERT(top_frame != NULL);
-    ASSERT(!top_frame->is_interpreted());
     const Code& code = Code::Handle(top_frame->LookupDartCode());
     const Function& top_function = Function::Handle(code.function());
     const Script& script = Script::Handle(top_function.script());
     const TokenPosition token_pos = code.GetTokenIndexOfPC(top_frame->pc());
-    intptr_t line, column;
-    script.GetTokenLocation(token_pos, &line, &column);
-    String& line_string = String::Handle(script.GetLine(line));
     THR_Print("  Function: %s\n", top_function.ToFullyQualifiedCString());
-    char line_buffer[80];
-    Utils::SNPrint(line_buffer, sizeof(line_buffer), "  Line %" Pd ": '%s'",
-                   line, line_string.ToCString());
-    THR_Print("%s\n", line_buffer);
+    intptr_t line;
+    if (script.GetTokenLocation(token_pos, &line)) {
+      String& line_string = String::Handle(script.GetLine(line));
+      char line_buffer[80];
+      Utils::SNPrint(line_buffer, sizeof(line_buffer), "  Line %" Pd ": '%s'",
+                     line, line_string.ToCString());
+      THR_Print("%s\n", line_buffer);
+    }
     THR_Print("  Deopt args: %" Pd "\n", deopt_arg_count);
   }
 
@@ -405,7 +405,7 @@ ArrayPtr DeoptContext::DestFrameAsArray() {
     obj = static_cast<ObjectPtr>(dest_frame_[i]);
     dest_array.SetAt(i, obj);
   }
-  return dest_array.raw();
+  return dest_array.ptr();
 }
 
 // Deoptimization instruction creating return address using function and
@@ -475,7 +475,7 @@ class DeoptConstantInstr : public DeoptInstr {
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     const PassiveObject& obj = PassiveObject::Handle(
         deopt_context->zone(), deopt_context->ObjectAt(object_table_index_));
-    *reinterpret_cast<ObjectPtr*>(dest_addr) = obj.raw();
+    *reinterpret_cast<ObjectPtr*>(dest_addr) = obj.ptr();
   }
 
   CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
@@ -714,8 +714,8 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     if (function.IsNull()) {
       *reinterpret_cast<ObjectPtr*>(dest_addr) =
           deopt_context->is_lazy_deopt()
-              ? StubCode::DeoptimizeLazyFromReturn().raw()
-              : StubCode::Deoptimize().raw();
+              ? StubCode::DeoptimizeLazyFromReturn().ptr()
+              : StubCode::Deoptimize().ptr();
       return;
     }
 
@@ -725,7 +725,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     // materialization to maintain the invariant that Dart frames always have
     // a pc marker.
     *reinterpret_cast<ObjectPtr*>(dest_addr) =
-        StubCode::FrameAwaitingMaterialization().raw();
+        StubCode::FrameAwaitingMaterialization().ptr();
     deopt_context->DeferPcMarkerMaterialization(object_table_index_, dest_addr);
   }
 
@@ -892,7 +892,7 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   *code = function.unoptimized_code();
   ASSERT(!code->IsNull());
   uword res = code->GetPcForDeoptId(ret_address_instr->deopt_id(),
-                                    PcDescriptorsLayout::kDeopt);
+                                    UntaggedPcDescriptors::kDeopt);
   ASSERT(res != 0);
   return res;
 }
@@ -1208,7 +1208,7 @@ intptr_t DeoptInfoBuilder::EmitMaterializationArguments(intptr_t dest_index) {
     MaterializeObjectInstr* mat = materializations_[i];
     // Class of the instance to allocate.
     AddConstant(mat->cls(), dest_index++);
-    AddConstant(Smi::ZoneHandle(Smi::New(mat->num_variables())), dest_index++);
+    AddConstant(Smi::ZoneHandle(Smi::New(mat->num_elements())), dest_index++);
     for (intptr_t i = 0; i < mat->InputCount(); i++) {
       if (!mat->InputAt(i)->BindsToConstantNull()) {
         // Emit offset-value pair.
@@ -1229,12 +1229,6 @@ intptr_t DeoptInfoBuilder::FindMaterialization(
     }
   }
   return -1;
-}
-
-static uint8_t* ZoneReAlloc(uint8_t* ptr,
-                            intptr_t old_size,
-                            intptr_t new_size) {
-  return Thread::Current()->zone()->Realloc<uint8_t>(ptr, old_size, new_size);
 }
 
 TypedDataPtr DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
@@ -1260,9 +1254,8 @@ TypedDataPtr DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
     length -= (suffix_length - 1);
   }
 
-  uint8_t* buffer;
-  typedef WriteStream::Raw<sizeof(intptr_t), intptr_t> Writer;
-  WriteStream stream(&buffer, ZoneReAlloc, 2 * length * kWordSize);
+  typedef ZoneWriteStream::Raw<sizeof(intptr_t), intptr_t> Writer;
+  ZoneWriteStream stream(zone(), 2 * length * kWordSize);
 
   Writer::Write(&stream, FrameSize());
 
@@ -1301,7 +1294,7 @@ TypedDataPtr DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
   frame_start_ = -1;
 
   ++current_info_number_;
-  return deopt_info.raw();
+  return deopt_info.ptr();
 }
 
 intptr_t DeoptTable::SizeFor(intptr_t length) {

@@ -91,7 +91,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
     Label ok;
     // Check that we are always entering from Dart code.
     __ LoadFromOffset(R8, THR, target::Thread::vm_tag_offset());
-    __ CompareImmediate(R8, VMTag::kDartCompiledTagId);
+    __ CompareImmediate(R8, VMTag::kDartTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -154,7 +154,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Retval is next to 1st argument.
   // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
+  __ LoadImmediate(R2, VMTag::kDartTagId);
   __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
 
   // Mark that the thread has not exited generated Dart code.
@@ -181,7 +181,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ ret();
 }
 
-static void GenerateSharedStubGeneric(
+void StubCodeCompiler::GenerateSharedStubGeneric(
     Assembler* assembler,
     bool save_fpu_registers,
     intptr_t self_code_stub_offset_from_thread,
@@ -194,7 +194,7 @@ static void GenerateSharedStubGeneric(
 
   // To make the stack map calculation architecture independent we do the same
   // as on intel.
-  __ Push(LR);
+  READS_RETURN_ADDRESS_FROM_LR(__ Push(LR));
   __ PushRegisters(all_registers);
   __ ldr(CODE_REG, Address(THR, self_code_stub_offset_from_thread));
   __ EnterStubFrame();
@@ -206,27 +206,28 @@ static void GenerateSharedStubGeneric(
   __ LeaveStubFrame();
   __ PopRegisters(all_registers);
   __ Drop(1);  // We use the LR restored via LeaveStubFrame.
-  __ ret(LR);
+  READS_RETURN_ADDRESS_FROM_LR(__ ret(LR));
 }
 
-static void GenerateSharedStub(Assembler* assembler,
-                               bool save_fpu_registers,
-                               const RuntimeEntry* target,
-                               intptr_t self_code_stub_offset_from_thread,
-                               bool allow_return,
-                               bool store_runtime_result_in_r0 = false) {
-  ASSERT(!store_runtime_result_in_r0 || allow_return);
+void StubCodeCompiler::GenerateSharedStub(
+    Assembler* assembler,
+    bool save_fpu_registers,
+    const RuntimeEntry* target,
+    intptr_t self_code_stub_offset_from_thread,
+    bool allow_return,
+    bool store_runtime_result_in_result_register) {
+  ASSERT(!store_runtime_result_in_result_register || allow_return);
   auto perform_runtime_call = [&]() {
-    if (store_runtime_result_in_r0) {
+    if (store_runtime_result_in_result_register) {
       __ PushRegister(NULL_REG);
     }
     __ CallRuntime(*target, /*argument_count=*/0);
-    if (store_runtime_result_in_r0) {
+    if (store_runtime_result_in_result_register) {
       __ PopRegister(R0);
-      __ str(
-          R0,
-          Address(FP, target::kWordSize *
-                          StubCodeCompiler::WordOffsetFromFpToCpuRegister(R0)));
+      __ str(R0,
+             Address(FP, target::kWordSize *
+                             StubCodeCompiler::WordOffsetFromFpToCpuRegister(
+                                 SharedSlowPathStubABI::kResultReg)));
     }
   };
   GenerateSharedStubGeneric(assembler, save_fpu_registers,
@@ -291,7 +292,7 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 // Calls native code within a safepoint.
 //
 // On entry:
-//   R8: target to call
+//   R9: target to call
 //   Stack: set up for native call (SP), aligned, CSP < SP
 //
 // On exit:
@@ -299,32 +300,32 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 //   Stack: preserved, CSP == SP
 void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
     Assembler* assembler) {
-  COMPILE_ASSERT((1 << R19) & kAbiPreservedCpuRegs);
+  COMPILE_ASSERT(IsAbiPreservedRegister(R19));
 
-  __ mov(R19, LR);
-  __ LoadImmediate(R9, target::Thread::exit_through_ffi());
-  __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/,
+  SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(__ mov(R19, LR));
+  __ LoadImmediate(R10, target::Thread::exit_through_ffi());
+  __ TransitionGeneratedToNative(R9, FPREG, R10 /*volatile*/,
                                  /*enter_safepoint=*/true);
   __ mov(R25, CSP);
   __ mov(CSP, SP);
 
 #if defined(DEBUG)
   // Check CSP alignment.
-  __ andi(R10 /*volatile*/, SP,
+  __ andi(R11 /*volatile*/, SP,
           Immediate(~(OS::ActivationFrameAlignment() - 1)));
-  __ cmp(R10, Operand(SP));
+  __ cmp(R11, Operand(SP));
   Label done;
   __ b(&done, EQ);
   __ Breakpoint();
   __ Bind(&done);
 #endif
 
-  __ blr(R8);
+  __ blr(R9);
 
   __ mov(SP, CSP);
   __ mov(CSP, R25);
 
-  __ TransitionNativeToGenerated(R9, /*leave_safepoint=*/true);
+  __ TransitionNativeToGenerated(R10, /*leave_safepoint=*/true);
   __ ret(R19);
 }
 
@@ -338,8 +339,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 #else
   Label done;
 
-  // R8 is volatile and not used for passing any arguments.
-  COMPILE_ASSERT(!IsCalleeSavedRegister(R8) && !IsArgumentRegister(R8));
+  // R9 is volatile and not used for passing any arguments.
+  COMPILE_ASSERT(!IsCalleeSavedRegister(R9) && !IsArgumentRegister(R9));
   for (intptr_t i = 0;
        i < NativeCallbackTrampolines::NumCallbackTrampolinesPerPage(); ++i) {
     // We don't use LoadImmediate because we need the trampoline size to be
@@ -347,7 +348,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
     //
     // Instead we paste the callback ID directly in the code load it
     // PC-relative.
-    __ ldr(R8, compiler::Address::PC(2 * Instr::kInstrSize));
+    __ ldr(R9, compiler::Address::PC(2 * Instr::kInstrSize));
     __ b(&done);
     __ Emit(next_callback_id + i);
   }
@@ -362,20 +363,23 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   // The load of the callback ID might have incorrect higher-order bits, since
   // we only emit a 32-bit callback ID.
-  __ uxtw(R8, R8);
+  __ uxtw(R9, R9);
 
   // Save THR (callee-saved) and LR on real real C stack (CSP). Keeps it
   // aligned.
   COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 2);
-  __ stp(THR, LR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
+  SPILLS_LR_TO_FRAME(__ stp(
+      THR, LR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex)));
 
   COMPILE_ASSERT(!IsArgumentRegister(THR));
 
   RegisterSet all_registers;
   all_registers.AddAllArgumentRegisters();
+  all_registers.Add(Location::RegisterLocation(
+      CallingConventions::kPointerToReturnStructRegisterCall));
 
-  // The call below might clobber R8 (volatile, holding callback_id).
-  all_registers.Add(Location::RegisterLocation(R8));
+  // The call below might clobber R9 (volatile, holding callback_id).
+  all_registers.Add(Location::RegisterLocation(R9));
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
@@ -396,7 +400,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
     // loaded anywhere, we use the same trick as before to ensure a predictable
     // instruction sequence.
     Label call;
-    __ mov(R0, R8);
+    __ mov(R0, R9);
     __ ldr(R1, compiler::Address::PC(2 * Instr::kInstrSize));
     __ b(&call);
 
@@ -415,32 +419,34 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
     __ mov(CSP, SP);
   }
 
-  COMPILE_ASSERT(!IsCalleeSavedRegister(R9) && !IsArgumentRegister(R9));
+  COMPILE_ASSERT(!IsCalleeSavedRegister(R10) && !IsArgumentRegister(R10));
 
   // Load the code object.
-  __ LoadFromOffset(R9, THR, compiler::target::Thread::callback_code_offset());
-  __ LoadFieldFromOffset(R9, R9,
+  __ LoadFromOffset(R10, THR, compiler::target::Thread::callback_code_offset());
+  __ LoadFieldFromOffset(R10, R10,
                          compiler::target::GrowableObjectArray::data_offset());
-  __ ldr(R9, __ ElementAddressForRegIndex(
-                 /*external=*/false,
-                 /*array_cid=*/kArrayCid,
-                 /*index, smi-tagged=*/compiler::target::kWordSize * 2,
-                 /*index_unboxed=*/false,
-                 /*array=*/R9,
-                 /*index=*/R8,
-                 /*temp=*/TMP));
-  __ LoadFieldFromOffset(R9, R9, compiler::target::Code::entry_point_offset());
+  __ ldr(R10, __ ElementAddressForRegIndex(
+                  /*external=*/false,
+                  /*array_cid=*/kArrayCid,
+                  /*index, smi-tagged=*/compiler::target::kWordSize * 2,
+                  /*index_unboxed=*/false,
+                  /*array=*/R10,
+                  /*index=*/R9,
+                  /*temp=*/TMP));
+  __ LoadFieldFromOffset(R10, R10,
+                         compiler::target::Code::entry_point_offset());
 
-  // Clobbers all volatile registers, including the callback ID in R8.
+  // Clobbers all volatile registers, including the callback ID in R9.
   // Resets CSP and SP, important for EnterSafepoint below.
-  __ blr(R9);
+  __ blr(R10);
 
-  // EnterSafepoint clobbers TMP, TMP2 and R8 -- all volatile and not holding
+  // EnterSafepoint clobbers TMP, TMP2 and R9 -- all volatile and not holding
   // return values.
-  __ EnterSafepoint(/*scratch=*/R8);
+  __ EnterSafepoint(/*scratch=*/R9);
 
   // Pop LR and THR from the real stack (CSP).
-  __ ldp(THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
+  RESTORES_LR_FROM_FRAME(__ ldp(
+      THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex)));
 
   __ ret();
 
@@ -468,7 +474,7 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
 
   // Build type_arguments vector (or null)
   Label no_type_args;
-  __ ldr(R3, Address(THR, target::Thread::object_null_offset()), kDoubleWord);
+  __ ldr(R3, Address(THR, target::Thread::object_null_offset()), kEightBytes);
   __ cmp(R4, Operand(0));
   __ b(&no_type_args, EQ);
   __ ldr(R0, Address(FP, kReceiverOffset * target::kWordSize));
@@ -544,55 +550,8 @@ void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kNullErrorRuntimeEntry,
-      target::Thread::null_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/true, &kNullErrorRuntimeEntry,
-      target::Thread::null_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kArgumentNullErrorRuntimeEntry,
-      target::Thread::null_arg_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/true, &kArgumentNullErrorRuntimeEntry,
-      target::Thread::null_arg_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-void StubCodeCompiler::GenerateNullCastErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kNullCastErrorRuntimeEntry,
-      target::Thread::null_cast_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-void StubCodeCompiler::GenerateNullCastErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/true, &kNullCastErrorRuntimeEntry,
-      target::Thread::null_cast_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-static void GenerateRangeError(Assembler* assembler, bool with_fpu_regs) {
+void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
+                                          bool with_fpu_regs) {
   auto perform_runtime_call = [&]() {
     // If the generated code has unboxed index/length we need to box them before
     // calling the runtime entry.
@@ -639,32 +598,6 @@ static void GenerateRangeError(Assembler* assembler, bool with_fpu_regs) {
       /*allow_return=*/false, perform_runtime_call);
 }
 
-void StubCodeCompiler::GenerateRangeErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateRangeError(assembler, /*with_fpu_regs=*/false);
-}
-
-void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateRangeError(assembler, /*with_fpu_regs=*/true);
-}
-
-void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kStackOverflowRuntimeEntry,
-      target::Thread::stack_overflow_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/true);
-}
-
-void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/true, &kStackOverflowRuntimeEntry,
-      target::Thread::stack_overflow_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/true);
-}
-
 // Input parameters:
 //   LR : return address.
 //   SP : address of return value.
@@ -693,7 +626,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
     Label ok;
     // Check that we are always entering from Dart code.
     __ LoadFromOffset(R6, THR, target::Thread::vm_tag_offset());
-    __ CompareImmediate(R6, VMTag::kDartCompiledTagId);
+    __ CompareImmediate(R6, VMTag::kDartTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -745,8 +678,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ mov(R1, R5);  // Pass the function entrypoint to call.
 
   // Call native function invocation wrapper or redirection via simulator.
-  __ ldr(LR, wrapper);
-  __ blr(LR);
+  __ Call(wrapper);
 
   // Restore SP and CSP.
   __ mov(SP, CSP);
@@ -756,7 +688,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ RestorePinnedRegisters();
 
   // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
+  __ LoadImmediate(R2, VMTag::kDartTagId);
   __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
 
   // Mark that the thread has not exited generated Dart code.
@@ -1091,7 +1023,7 @@ void StubCodeCompiler::GenerateDeoptimizeLazyFromReturnStub(
   __ LoadImmediate(TMP, kZapCodeReg);
   __ Push(TMP);
   // Return address for "call" to deopt stub.
-  __ LoadImmediate(LR, kZapReturnAddress);
+  WRITES_RETURN_ADDRESS_TO_LR(__ LoadImmediate(LR, kZapReturnAddress));
   __ ldr(CODE_REG,
          Address(THR, target::Thread::lazy_deopt_from_return_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
@@ -1106,7 +1038,7 @@ void StubCodeCompiler::GenerateDeoptimizeLazyFromThrowStub(
   __ LoadImmediate(TMP, kZapCodeReg);
   __ Push(TMP);
   // Return address for "call" to deopt stub.
-  __ LoadImmediate(LR, kZapReturnAddress);
+  WRITES_RETURN_ADDRESS_TO_LR(__ LoadImmediate(LR, kZapReturnAddress));
   __ ldr(CODE_REG,
          Address(THR, target::Thread::lazy_deopt_from_throw_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
@@ -1257,16 +1189,16 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // R2: array length as Smi.
     // R3: array size.
     // R7: new object end address.
-    const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
+    const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
-    __ CompareImmediate(R3, target::ObjectLayout::kSizeTagMaxSizeTag);
+    __ CompareImmediate(R3, target::UntaggedObject::kSizeTagMaxSizeTag);
     // If no size tag overflow, shift R1 left, else set R1 to zero.
     __ LslImmediate(TMP, R3, shift);
     __ csel(R1, TMP, R1, LS);
     __ csel(R1, ZR, R1, HI);
 
     // Get the class index and insert it into the tags.
-    const uint32_t tags =
+    const uword tags =
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
 
     __ LoadImmediate(TMP, tags);
@@ -1312,13 +1244,13 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   __ Pop(R1);
   __ Pop(R2);
   __ Pop(R0);
+  __ LeaveStubFrame();
 
   // Write-barrier elimination might be enabled for this array (depending on the
   // array length). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
   EnsureIsNewOrRemembered(assembler);
 
-  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -1333,12 +1265,13 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
 
     __ Bind(&slow_case);
   }
-  COMPILE_ASSERT(AllocateMintABI::kResultReg == R0);
+  COMPILE_ASSERT(AllocateMintABI::kResultReg ==
+                 SharedSlowPathStubABI::kResultReg);
   GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
                      &kAllocateMintRuntimeEntry,
                      target::Thread::allocate_mint_with_fpu_regs_stub_offset(),
                      /*allow_return=*/true,
-                     /*store_runtime_result_in_r0=*/true);
+                     /*store_runtime_result_in_result_register=*/true);
 }
 
 void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
@@ -1352,12 +1285,13 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
 
     __ Bind(&slow_case);
   }
-  COMPILE_ASSERT(AllocateMintABI::kResultReg == R0);
+  COMPILE_ASSERT(AllocateMintABI::kResultReg ==
+                 SharedSlowPathStubABI::kResultReg);
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/false, &kAllocateMintRuntimeEntry,
       target::Thread::allocate_mint_without_fpu_regs_stub_offset(),
       /*allow_return=*/true,
-      /*store_runtime_result_in_r0=*/true);
+      /*store_runtime_result_in_result_register=*/true);
 }
 
 // Called when invoking Dart code from C++ (VM code).
@@ -1376,7 +1310,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // from over-writing Dart frames.
   __ mov(SP, CSP);
   __ SetupCSPFromThread(R3);
-  __ Push(LR);  // Marker for the profiler.
+  READS_RETURN_ADDRESS_FROM_LR(__ Push(LR));  // Marker for the profiler.
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -1427,7 +1361,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Mark that the thread is executing Dart code. Do this after initializing the
   // exit link for the profiler.
-  __ LoadImmediate(R6, VMTag::kDartCompiledTagId);
+  __ LoadImmediate(R6, VMTag::kDartTagId);
   __ StoreToOffset(R6, THR, target::Thread::vm_tag_offset());
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
@@ -1494,168 +1428,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Pop(R4);
   __ StoreToOffset(R4, THR, target::Thread::vm_tag_offset());
 
-#if defined(TARGET_OS_FUCHSIA)
-  __ mov(R3, THR);
-#endif
-
-  __ PopNativeCalleeSavedRegisters();  // Clobbers THR
-
-#if defined(TARGET_OS_FUCHSIA)
-  __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
-#elif defined(USING_SHADOW_CALL_STACK)
-#error Unimplemented
-#endif
-
-  // Restore the frame pointer and C stack pointer and return.
-  __ LeaveFrame();
-  __ Drop(1);
-  __ RestoreCSP();
-  __ ret();
-}
-
-// Called when invoking compiled Dart code from interpreted Dart code.
-// Input parameters:
-//   LR : points to return address.
-//   R0 : raw code object of the Dart function to call.
-//   R1 : arguments raw descriptor array.
-//   R2 : address of first argument.
-//   R3 : current thread.
-void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
-    Assembler* assembler) {
-  if (FLAG_precompiled_mode) {
-    __ Stop("Not using interpreter");
-    return;
-  }
-
-  // Copy the C stack pointer (CSP/R31) into the stack pointer we'll actually
-  // use to access the stack (SP/R15) and set the C stack pointer to near the
-  // stack limit, loaded from the Thread held in R3, to prevent signal handlers
-  // from over-writing Dart frames.
-  __ mov(SP, CSP);
-  __ SetupCSPFromThread(R3);
-  __ Push(LR);  // Marker for the profiler.
-  __ EnterFrame(0);
-
-  // Push code object to PC marker slot.
-  __ ldr(TMP,
-         Address(R3,
-                 target::Thread::invoke_dart_code_from_bytecode_stub_offset()));
-  __ Push(TMP);
-
-#if defined(TARGET_OS_FUCHSIA)
-  __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
-#elif defined(USING_SHADOW_CALL_STACK)
-#error Unimplemented
-#endif
-
-  __ PushNativeCalleeSavedRegisters();
-
-  // Set up THR, which caches the current thread in Dart code.
-  if (THR != R3) {
-    __ mov(THR, R3);
-  }
-
-  // Refresh pinned registers values (inc. write barrier mask and null object).
-  __ RestorePinnedRegisters();
-
-  // Save the current VMTag on the stack.
-  __ LoadFromOffset(R4, THR, target::Thread::vm_tag_offset());
-  __ Push(R4);
-
-  // Save top resource and top exit frame info. Use R6 as a temporary register.
-  // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ LoadFromOffset(R6, THR, target::Thread::top_resource_offset());
-  __ StoreToOffset(ZR, THR, target::Thread::top_resource_offset());
-  __ Push(R6);
-
-  __ LoadFromOffset(R6, THR, target::Thread::exit_through_ffi_offset());
-  __ Push(R6);
-  __ LoadImmediate(R6, 0);
-  __ StoreToOffset(R6, THR, target::Thread::exit_through_ffi_offset());
-
-  __ LoadFromOffset(R6, THR, target::Thread::top_exit_frame_info_offset());
-  __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
-  // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
-  // with the code below.
-#if defined(TARGET_OS_FUCHSIA)
-  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -24);
-#else
-  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -23);
-#endif
-  __ Push(R6);
-
-  // Mark that the thread is executing Dart code. Do this after initializing the
-  // exit link for the profiler.
-  __ LoadImmediate(R6, VMTag::kDartCompiledTagId);
-  __ StoreToOffset(R6, THR, target::Thread::vm_tag_offset());
-
-  // Load arguments descriptor array into R4, which is passed to Dart code.
-  __ mov(R4, R1);
-
-  // Load number of arguments into R5 and adjust count for type arguments.
-  __ LoadFieldFromOffset(R5, R4, target::ArgumentsDescriptor::count_offset());
-  __ LoadFieldFromOffset(R3, R4,
-                         target::ArgumentsDescriptor::type_args_len_offset());
-  __ AddImmediate(TMP, R5, 1);  // Include the type arguments.
-  __ cmp(R3, Operand(0));
-  __ csinc(R5, R5, TMP, EQ);  // R5 <- (R3 == 0) ? R5 : TMP + 1 (R5 : R5 + 2).
-  __ SmiUntag(R5);
-
-  // R2 points to first argument.
-  // Set up arguments for the Dart call.
-  Label push_arguments;
-  Label done_push_arguments;
-  __ cmp(R5, Operand(0));
-  __ b(&done_push_arguments, EQ);  // check if there are arguments.
-  __ LoadImmediate(R1, 0);
-  __ Bind(&push_arguments);
-  __ ldr(R3, Address(R2));
-  __ Push(R3);
-  __ add(R1, R1, Operand(1));
-  __ add(R2, R2, Operand(target::kWordSize));
-  __ cmp(R1, Operand(R5));
-  __ b(&push_arguments, LT);
-  __ Bind(&done_push_arguments);
-
-  // We now load the pool pointer(PP) with a GC safe value as we are about to
-  // invoke dart code. We don't need a real object pool here.
-  // Smi zero does not work because ARM64 assumes PP to be untagged.
-  __ LoadObject(PP, NullObject());
-
-  // Call the Dart code entrypoint.
-  __ mov(CODE_REG, R0);
-  __ ldr(R0, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ blr(R0);  // R4 is the arguments descriptor array.
-
-  // Get rid of arguments pushed on the stack.
-  __ AddImmediate(
-      SP, FP,
-      target::frame_layout.exit_link_slot_from_entry_fp * target::kWordSize);
-
-  // Restore the saved top exit frame info and top resource back into the
-  // Isolate structure. Uses R6 as a temporary register for this.
-  __ Pop(R6);
-  __ StoreToOffset(R6, THR, target::Thread::top_exit_frame_info_offset());
-  __ Pop(R6);
-  __ StoreToOffset(R6, THR, target::Thread::exit_through_ffi_offset());
-  __ Pop(R6);
-  __ StoreToOffset(R6, THR, target::Thread::top_resource_offset());
-
-  // Restore the current VMTag from the stack.
-  __ Pop(R4);
-  __ StoreToOffset(R4, THR, target::Thread::vm_tag_offset());
-
-#if defined(TARGET_OS_FUCHSIA)
-  __ mov(R3, THR);
-#endif
-
-  __ PopNativeCalleeSavedRegisters();  // Clobbers THR
-
-#if defined(TARGET_OS_FUCHSIA)
-  __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
-#elif defined(USING_SHADOW_CALL_STACK)
-#error Unimplemented
-#endif
+  __ PopNativeCalleeSavedRegisters();
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
@@ -1669,7 +1442,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
 // Input:
 //   R1: number of context variables.
 // Output:
-//   R0: new allocated RawContext object.
+//   R0: new allocated Context object.
 // Clobbered:
 //   R2, R3, R4, TMP
 static void GenerateAllocateContextSpaceStub(Assembler* assembler,
@@ -1712,9 +1485,9 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // R0: new object.
   // R1: number of context variables.
   // R2: object size.
-  const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
+  const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
                          target::ObjectAlignment::kObjectAlignmentLog2;
-  __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
+  __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
   // If no size tag overflow, shift R2 left, else set R2 to zero.
   __ LslImmediate(TMP, R2, shift);
   __ csel(R2, TMP, R2, LS);
@@ -1722,7 +1495,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 
   // Get the class index and insert it into the tags.
   // R2: size and bit tags.
-  const uint32_t tags =
+  const uword tags =
       target::MakeTagWordForNewSpaceObject(kContextCid, /*instance_size=*/0);
 
   __ LoadImmediate(TMP, tags);
@@ -1739,7 +1512,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 // Input:
 //   R1: number of context variables.
 // Output:
-//   R0: new allocated RawContext object.
+//   R0: new allocated Context object.
 // Clobbered:
 //   R2, R3, R4, TMP
 void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
@@ -1803,7 +1576,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 // Input:
 //   R5: context variable to clone.
 // Output:
-//   R0: new allocated RawContext object.
+//   R0: new allocated Context object.
 // Clobbered:
 //   R1, (R2), R3, R4, (TMP)
 void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
@@ -1811,8 +1584,10 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
     Label slow_case;
 
     // Load num. variable (int32) in the existing context.
-    __ ldr(R1, FieldAddress(R5, target::Context::num_variables_offset()),
-           kWord);
+    __ ldr(
+        R1,
+        FieldAddress(R5, target::Context::num_variables_offset(), kFourBytes),
+        kFourBytes);
 
     GenerateAllocateContextSpaceStub(assembler, &slow_case);
 
@@ -1880,15 +1655,13 @@ void StubCodeCompiler::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
 
     Register reg = static_cast<Register>(i);
     intptr_t start = __ CodeSize();
-    __ Push(LR);
+    SPILLS_LR_TO_FRAME(__ Push(LR));
     __ Push(kWriteBarrierObjectReg);
     __ mov(kWriteBarrierObjectReg, reg);
-    __ ldr(LR,
-           Address(THR, target::Thread::write_barrier_entry_point_offset()));
-    __ blr(LR);
+    __ Call(Address(THR, target::Thread::write_barrier_entry_point_offset()));
     __ Pop(kWriteBarrierObjectReg);
-    __ Pop(LR);
-    __ ret(LR);
+    RESTORES_LR_FROM_FRAME(__ Pop(LR));
+    READS_RETURN_ADDRESS_FROM_LR(__ ret(LR));
     intptr_t end = __ CodeSize();
 
     RELEASE_ASSERT(end - start == kStoreBufferWrapperSize);
@@ -1913,13 +1686,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
          target::ObjectAlignment::kNewObjectBitPosition);
 
   if (cards) {
-    __ LoadFieldFromOffset(TMP, R1, target::Object::tags_offset(), kWord);
-    __ tbnz(&remember_card, TMP, target::ObjectLayout::kCardRememberedBit);
+    __ LoadFieldFromOffset(TMP, R1, target::Object::tags_offset(), kFourBytes);
+    __ tbnz(&remember_card, TMP, target::UntaggedObject::kCardRememberedBit);
   } else {
 #if defined(DEBUG)
     Label ok;
-    __ LoadFieldFromOffset(TMP, R1, target::Object::tags_offset(), kWord);
-    __ tbz(&ok, TMP, target::ObjectLayout::kCardRememberedBit);
+    __ LoadFieldFromOffset(TMP, R1, target::Object::tags_offset(), kFourBytes);
+    __ tbz(&ok, TMP, target::UntaggedObject::kCardRememberedBit);
     __ Stop("Wrong barrier");
     __ Bind(&ok);
 #endif
@@ -1934,21 +1707,19 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   ASSERT(target::Object::tags_offset() == 0);
   __ sub(R3, R1, Operand(kHeapObjectTag));
   // R3: Untagged address of header word (ldxr/stxr do not support offsets).
-  // Note that we use 32 bit operations here to match the size of the
-  // background sweeper which is also manipulating this 32 bit word.
   Label retry;
   __ Bind(&retry);
-  __ ldxr(R2, R3, kWord);
+  __ ldxr(R2, R3, kEightBytes);
   __ AndImmediate(R2, R2,
-                  ~(1 << target::ObjectLayout::kOldAndNotRememberedBit));
-  __ stxr(R4, R2, R3, kWord);
+                  ~(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+  __ stxr(R4, R2, R3, kEightBytes);
   __ cbnz(&retry, R4);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
   __ LoadFromOffset(R4, THR, target::Thread::store_buffer_block_offset());
   __ LoadFromOffset(R2, R4, target::StoreBufferBlock::top_offset(),
-                    kUnsignedWord);
+                    kUnsignedFourBytes);
   __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
   __ StoreToOffset(R1, R3, target::StoreBufferBlock::pointers_offset());
 
@@ -1958,7 +1729,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   Label overflow;
   __ add(R2, R2, Operand(1));
   __ StoreToOffset(R2, R4, target::StoreBufferBlock::top_offset(),
-                   kUnsignedWord);
+                   kUnsignedFourBytes);
   __ CompareImmediate(R2, target::StoreBufferBlock::kSize);
   // Restore values.
   __ Pop(R4);
@@ -1984,27 +1755,25 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ Push(R4);  // Spill.
 
   // Atomically clear kOldAndNotMarkedBit.
-  // Note that we use 32 bit operations here to match the size of the
-  // background sweeper which is also manipulating this 32 bit word.
   Label marking_retry, lost_race, marking_overflow;
   ASSERT(target::Object::tags_offset() == 0);
   __ sub(R3, R0, Operand(kHeapObjectTag));
   // R3: Untagged address of header word (ldxr/stxr do not support offsets).
   __ Bind(&marking_retry);
-  __ ldxr(R2, R3, kWord);
-  __ tbz(&lost_race, R2, target::ObjectLayout::kOldAndNotMarkedBit);
-  __ AndImmediate(R2, R2, ~(1 << target::ObjectLayout::kOldAndNotMarkedBit));
-  __ stxr(R4, R2, R3, kWord);
+  __ ldxr(R2, R3, kEightBytes);
+  __ tbz(&lost_race, R2, target::UntaggedObject::kOldAndNotMarkedBit);
+  __ AndImmediate(R2, R2, ~(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+  __ stxr(R4, R2, R3, kEightBytes);
   __ cbnz(&marking_retry, R4);
 
   __ LoadFromOffset(R4, THR, target::Thread::marking_stack_block_offset());
   __ LoadFromOffset(R2, R4, target::MarkingStackBlock::top_offset(),
-                    kUnsignedWord);
+                    kUnsignedFourBytes);
   __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
   __ StoreToOffset(R0, R3, target::MarkingStackBlock::pointers_offset());
   __ add(R2, R2, Operand(1));
   __ StoreToOffset(R2, R4, target::MarkingStackBlock::top_offset(),
-                   kUnsignedWord);
+                   kUnsignedFourBytes);
   __ CompareImmediate(R2, target::MarkingStackBlock::kSize);
   __ Pop(R4);  // Unspill.
   __ Pop(R3);  // Unspill.
@@ -2143,7 +1912,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
           FieldAddress(kTypeOffestReg,
                        target::Class::
                            host_type_arguments_field_offset_in_words_offset()),
-          kWord);
+          kFourBytes);
 
       // Set the type arguments in the new object.
       __ StoreIntoObjectNoBarrier(
@@ -2242,7 +2011,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   ASSERT(instance_size > 0);
   RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
 
-  const uint32_t tags =
+  const uword tags =
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
   // Note: Keep in sync with helper function.
@@ -2361,10 +2130,10 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement(
     __ LeaveStubFrame();
   }
   __ LoadFieldFromOffset(R7, func_reg, target::Function::usage_counter_offset(),
-                         kWord);
+                         kFourBytes);
   __ add(R7, R7, Operand(1));
   __ StoreFieldToOffset(R7, func_reg, target::Function::usage_counter_offset(),
-                        kWord);
+                        kFourBytes);
 }
 
 // Loads function into 'temp_reg'.
@@ -2380,11 +2149,11 @@ void StubCodeCompiler::GenerateUsageCounterIncrement(Assembler* assembler,
     ASSERT(temp_reg == R6);
     __ Comment("Increment function counter");
     __ LoadFieldFromOffset(func_reg, ic_reg, target::ICData::owner_offset());
-    __ LoadFieldFromOffset(R7, func_reg,
-                           target::Function::usage_counter_offset(), kWord);
+    __ LoadFieldFromOffset(
+        R7, func_reg, target::Function::usage_counter_offset(), kFourBytes);
     __ AddImmediate(R7, 1);
     __ StoreFieldToOffset(R7, func_reg,
-                          target::Function::usage_counter_offset(), kWord);
+                          target::Function::usage_counter_offset(), kFourBytes);
   }
 }
 
@@ -2515,7 +2284,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
     __ LoadFromOffset(R6, R5,
                       target::ICData::state_bits_offset() - kHeapObjectTag,
-                      kUnsignedWord);
+                      kUnsignedFourBytes);
     ASSERT(target::ICData::NumArgsTestedShift() == 0);  // No shift needed.
     __ andi(R6, R6, Immediate(target::ICData::NumArgsTestedMask()));
     __ CompareImmediate(R6, num_args);
@@ -2829,7 +2598,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
     // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
     __ LoadFromOffset(R6, R5,
                       target::ICData::state_bits_offset() - kHeapObjectTag,
-                      kUnsignedWord);
+                      kUnsignedFourBytes);
     ASSERT(target::ICData::NumArgsTestedShift() == 0);  // No shift needed.
     __ andi(R6, R6, Immediate(target::ICData::NumArgsTestedMask()));
     __ CompareImmediate(R6, 0);
@@ -2927,104 +2696,9 @@ void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
   __ Pop(R4);  // Restore arg desc.
   __ LeaveStubFrame();
 
-  // When using the interpreter, the function's code may now point to the
-  // InterpretCall stub. Make sure R0, R4, and R5 are preserved.
   __ LoadFieldFromOffset(CODE_REG, R0, target::Function::code_offset());
   __ LoadFieldFromOffset(R2, R0, target::Function::entry_point_offset());
   __ br(R2);
-}
-
-// Stub for interpreting a function call.
-// R4: Arguments descriptor.
-// R0: Function.
-void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
-  if (FLAG_precompiled_mode) {
-    __ Stop("Not using interpreter");
-    return;
-  }
-
-  __ SetPrologueOffset();
-  __ EnterStubFrame();
-
-#if defined(DEBUG)
-  {
-    Label ok;
-    // Check that we are always entering from Dart code.
-    __ LoadFromOffset(R8, THR, target::Thread::vm_tag_offset());
-    __ CompareImmediate(R8, VMTag::kDartCompiledTagId);
-    __ b(&ok, EQ);
-    __ Stop("Not coming from Dart code.");
-    __ Bind(&ok);
-  }
-#endif
-
-  // Adjust arguments count for type arguments vector.
-  __ LoadFieldFromOffset(R2, R4, target::ArgumentsDescriptor::count_offset());
-  __ SmiUntag(R2);
-  __ LoadFieldFromOffset(R1, R4,
-                         target::ArgumentsDescriptor::type_args_len_offset());
-  __ cmp(R1, Operand(0));
-  __ csinc(R2, R2, R2, EQ);  // R2 <- (R1 == 0) ? R2 : R2 + 1.
-
-  // Compute argv.
-  __ add(R3, ZR, Operand(R2, LSL, 3));
-  __ add(R3, FP, Operand(R3));
-  __ AddImmediate(R3,
-                  target::frame_layout.param_end_from_fp * target::kWordSize);
-
-  // Indicate decreasing memory addresses of arguments with negative argc.
-  __ neg(R2, R2);
-
-  // Align frame before entering C++ world. No shadow stack space required.
-  __ ReserveAlignedFrameSpace(0 * target::kWordSize);
-
-  // Pass arguments in registers.
-  // R0: Function.
-  __ mov(R1, R4);  // Arguments descriptor.
-  // R2: Negative argc.
-  // R3: Argv.
-  __ mov(R4, THR);  // Thread.
-
-  // Save exit frame information to enable stack walking as we are about
-  // to transition to Dart VM C++ code.
-  __ StoreToOffset(FP, THR, target::Thread::top_exit_frame_info_offset());
-
-  // Mark that the thread exited generated code through a runtime call.
-  __ LoadImmediate(R5, target::Thread::exit_through_runtime_call());
-  __ StoreToOffset(R5, THR, target::Thread::exit_through_ffi_offset());
-
-  // Mark that the thread is executing VM code.
-  __ LoadFromOffset(R5, THR,
-                    target::Thread::interpret_call_entry_point_offset());
-  __ StoreToOffset(R5, THR, target::Thread::vm_tag_offset());
-
-  // We are entering runtime code, so the C stack pointer must be restored from
-  // the stack limit to the top of the stack. We cache the stack limit address
-  // in a callee-saved register.
-  __ mov(R25, CSP);
-  __ mov(CSP, SP);
-
-  __ blr(R5);
-
-  // Restore SP and CSP.
-  __ mov(SP, CSP);
-  __ mov(CSP, R25);
-
-  // Refresh pinned registers values (inc. write barrier mask and null object).
-  __ RestorePinnedRegisters();
-
-  // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
-  __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
-
-  // Mark that the thread has not exited generated Dart code.
-  __ StoreToOffset(ZR, THR, target::Thread::exit_through_ffi_offset());
-
-  // Reset exit frame information in Isolate's mutator thread structure.
-  __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
-
-  __ LeaveStubFrame();
-  __ ret();
 }
 
 // R5: Contains an ICData.
@@ -3101,64 +2775,72 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 }
 
 // Used to check class and type arguments. Arguments passed in registers:
-// LR: return address.
-// R0: instance (must be preserved).
-// R2: instantiator type arguments (only if n == 4, can be raw_null).
-// R1: function type arguments (only if n == 4, can be raw_null).
-// R3: target::SubtypeTestCache.
 //
-// Preserves R0/R2/R8.
+// Inputs (mostly from TypeTestABI struct):
+//   - kSubtypeTestCacheReg: UntaggedSubtypeTestCache
+//   - kInstanceReg: instance to test against.
+//   - kDstTypeReg: destination type (for n>=3).
+//   - kInstantiatorTypeArgumentsReg: instantiator type arguments (for n=5).
+//   - kFunctionTypeArgumentsReg: function type arguments (for n=5).
+//   - LR: return address.
 //
-// Result in R1: null -> not found, otherwise result (true or false).
+// All input registers are preserved except for kSubtypeTestCacheReg, which
+// should be saved by the caller if needed.
+//
+// Result in SubtypeTestCacheABI::kResultReg: null -> not found, otherwise
+// result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT(n == 1 || n == 2 || n == 4 || n == 6);
+  ASSERT(n == 1 || n == 3 || n == 5 || n == 7);
 
-  const Register kInstanceCidOrFunction = R6;
-  const Register kInstanceInstantiatorTypeArgumentsReg = R4;
-  const Register kInstanceParentFunctionTypeArgumentsReg = R9;
-  const Register kInstanceDelayedFunctionTypeArgumentsReg = R10;
-
-  const Register kNullReg = R7;
-
+  // Until we have the result, we use the result register to store the null
+  // value for quick access. This has the side benefit of initializing the
+  // result to null, so it only needs to be changed if found.
+  const Register kNullReg = TypeTestABI::kSubtypeTestCacheResultReg;
   __ LoadObject(kNullReg, NullObject());
+
+  const Register kCacheArrayReg = TypeTestABI::kSubtypeTestCacheReg;
+  const Register kScratchReg = TypeTestABI::kScratchReg;
+
+  // All of these must be distinct from TypeTestABI::kSubtypeTestCacheResultReg
+  // since it is used for kNullReg as well.
 
   // Loop initialization (moved up here to avoid having all dependent loads
   // after each other).
 
   // We avoid a load-acquire barrier here by relying on the fact that all other
   // loads from the array are data-dependent loads.
-  __ ldr(TypeTestABI::kSubtypeTestCacheReg,
+  __ ldr(kCacheArrayReg,
          FieldAddress(TypeTestABI::kSubtypeTestCacheReg,
                       target::SubtypeTestCache::cache_offset()));
-  __ AddImmediate(TypeTestABI::kSubtypeTestCacheReg,
+  __ AddImmediate(kCacheArrayReg,
                   target::Array::data_offset() - kHeapObjectTag);
 
   Label loop, not_closure;
-  if (n >= 4) {
-    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction,
+  if (n >= 5) {
+    __ LoadClassIdMayBeSmi(STCInternalRegs::kInstanceCidOrFunctionReg,
                            TypeTestABI::TypeTestABI::kInstanceReg);
   } else {
-    __ LoadClassId(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
+    __ LoadClassId(STCInternalRegs::kInstanceCidOrFunctionReg,
+                   TypeTestABI::kInstanceReg);
   }
-  __ CompareImmediate(kInstanceCidOrFunction, kClosureCid);
+  __ CompareImmediate(STCInternalRegs::kInstanceCidOrFunctionReg, kClosureCid);
   __ b(&not_closure, NE);
 
   // Closure handling.
   {
-    __ ldr(kInstanceCidOrFunction,
+    __ ldr(STCInternalRegs::kInstanceCidOrFunctionReg,
            FieldAddress(TypeTestABI::kInstanceReg,
                         target::Closure::function_offset()));
-    if (n >= 2) {
+    if (n >= 3) {
       __ ldr(
-          kInstanceInstantiatorTypeArgumentsReg,
+          STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
           FieldAddress(TypeTestABI::kInstanceReg,
                        target::Closure::instantiator_type_arguments_offset()));
-      if (n >= 6) {
-        ASSERT(n == 6);
-        __ ldr(kInstanceParentFunctionTypeArgumentsReg,
+      if (n >= 7) {
+        __ ldr(STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg,
                FieldAddress(TypeTestABI::kInstanceReg,
                             target::Closure::function_type_arguments_offset()));
-        __ ldr(kInstanceDelayedFunctionTypeArgumentsReg,
+        __ ldr(STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg,
                FieldAddress(TypeTestABI::kInstanceReg,
                             target::Closure::delayed_type_arguments_offset()));
       }
@@ -3169,96 +2851,113 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Non-Closure handling.
   {
     __ Bind(&not_closure);
-    if (n >= 2) {
+    if (n >= 3) {
       Label has_no_type_arguments;
-      __ LoadClassById(R5, kInstanceCidOrFunction);
-      __ mov(kInstanceInstantiatorTypeArgumentsReg, kNullReg);
+      __ LoadClassById(kScratchReg, STCInternalRegs::kInstanceCidOrFunctionReg);
+      __ mov(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg, kNullReg);
       __ LoadFieldFromOffset(
-          R5, R5,
+          kScratchReg, kScratchReg,
           target::Class::host_type_arguments_field_offset_in_words_offset(),
-          kWord);
-      __ CompareImmediate(R5, target::Class::kNoTypeArguments);
+          kFourBytes);
+      __ CompareImmediate(kScratchReg, target::Class::kNoTypeArguments);
       __ b(&has_no_type_arguments, EQ);
-      __ add(R5, TypeTestABI::kInstanceReg, Operand(R5, LSL, 3));
-      __ ldr(kInstanceInstantiatorTypeArgumentsReg, FieldAddress(R5, 0));
+      __ add(kScratchReg, TypeTestABI::kInstanceReg,
+             Operand(kScratchReg, LSL, 3));
+      __ ldr(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
+             FieldAddress(kScratchReg, 0));
       __ Bind(&has_no_type_arguments);
 
-      if (n >= 6) {
-        __ mov(kInstanceParentFunctionTypeArgumentsReg, kNullReg);
-        __ mov(kInstanceDelayedFunctionTypeArgumentsReg, kNullReg);
+      if (n >= 7) {
+        __ mov(STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg,
+               kNullReg);
+        __ mov(STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg,
+               kNullReg);
       }
     }
-    __ SmiTag(kInstanceCidOrFunction);
+    __ SmiTag(STCInternalRegs::kInstanceCidOrFunctionReg);
   }
 
-  Label found, not_found, next_iteration;
+  Label found, done, next_iteration;
 
   // Loop header
   __ Bind(&loop);
-  __ ldr(R5, Address(TypeTestABI::kSubtypeTestCacheReg,
-                     target::kWordSize *
-                         target::SubtypeTestCache::kInstanceClassIdOrFunction));
-  __ cmp(R5, Operand(kNullReg));
-  __ b(&not_found, EQ);
-  __ cmp(R5, Operand(kInstanceCidOrFunction));
+  __ ldr(kScratchReg,
+         Address(kCacheArrayReg,
+                 target::kWordSize *
+                     target::SubtypeTestCache::kInstanceClassIdOrFunction));
+  __ cmp(kScratchReg, Operand(kNullReg));
+  __ b(&done, EQ);
+  __ cmp(kScratchReg, Operand(STCInternalRegs::kInstanceCidOrFunctionReg));
   if (n == 1) {
     __ b(&found, EQ);
   } else {
     __ b(&next_iteration, NE);
-    __ ldr(R5, Address(TypeTestABI::kSubtypeTestCacheReg,
-                       target::kWordSize *
-                           target::SubtypeTestCache::kInstanceTypeArguments));
-    __ cmp(R5, Operand(kInstanceInstantiatorTypeArgumentsReg));
-    if (n == 2) {
+    __ ldr(kScratchReg,
+           Address(
+               kCacheArrayReg,
+               target::kWordSize * target::SubtypeTestCache::kDestinationType));
+    __ cmp(kScratchReg, Operand(TypeTestABI::kDstTypeReg));
+    __ b(&next_iteration, NE);
+    __ ldr(kScratchReg,
+           Address(kCacheArrayReg,
+                   target::kWordSize *
+                       target::SubtypeTestCache::kInstanceTypeArguments));
+    __ cmp(kScratchReg,
+           Operand(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg));
+    if (n == 3) {
       __ b(&found, EQ);
     } else {
       __ b(&next_iteration, NE);
-      __ ldr(R5,
-             Address(TypeTestABI::kSubtypeTestCacheReg,
+      __ ldr(kScratchReg,
+             Address(kCacheArrayReg,
                      target::kWordSize *
                          target::SubtypeTestCache::kInstantiatorTypeArguments));
-      __ cmp(R5, Operand(TypeTestABI::kInstantiatorTypeArgumentsReg));
+      __ cmp(kScratchReg, Operand(TypeTestABI::kInstantiatorTypeArgumentsReg));
       __ b(&next_iteration, NE);
-      __ ldr(R5, Address(TypeTestABI::kSubtypeTestCacheReg,
-                         target::kWordSize *
-                             target::SubtypeTestCache::kFunctionTypeArguments));
-      __ cmp(R5, Operand(TypeTestABI::kFunctionTypeArgumentsReg));
-      if (n == 4) {
+      __ ldr(kScratchReg,
+             Address(kCacheArrayReg,
+                     target::kWordSize *
+                         target::SubtypeTestCache::kFunctionTypeArguments));
+      __ cmp(kScratchReg, Operand(TypeTestABI::kFunctionTypeArgumentsReg));
+      if (n == 5) {
         __ b(&found, EQ);
       } else {
-        ASSERT(n == 6);
+        ASSERT(n == 7);
         __ b(&next_iteration, NE);
 
-        __ ldr(R5, Address(TypeTestABI::kSubtypeTestCacheReg,
-                           target::kWordSize *
-                               target::SubtypeTestCache::
-                                   kInstanceParentFunctionTypeArguments));
-        __ cmp(R5, Operand(kInstanceParentFunctionTypeArgumentsReg));
+        __ ldr(kScratchReg,
+               Address(kCacheArrayReg,
+                       target::kWordSize *
+                           target::SubtypeTestCache::
+                               kInstanceParentFunctionTypeArguments));
+        __ cmp(
+            kScratchReg,
+            Operand(STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg));
         __ b(&next_iteration, NE);
 
-        __ ldr(R5, Address(TypeTestABI::kSubtypeTestCacheReg,
-                           target::kWordSize *
-                               target::SubtypeTestCache::
-                                   kInstanceDelayedFunctionTypeArguments));
-        __ cmp(R5, Operand(kInstanceDelayedFunctionTypeArgumentsReg));
+        __ ldr(kScratchReg,
+               Address(kCacheArrayReg,
+                       target::kWordSize *
+                           target::SubtypeTestCache::
+                               kInstanceDelayedFunctionTypeArguments));
+        __ cmp(
+            kScratchReg,
+            Operand(STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg));
         __ b(&found, EQ);
       }
     }
   }
   __ Bind(&next_iteration);
   __ AddImmediate(
-      TypeTestABI::kSubtypeTestCacheReg,
+      kCacheArrayReg,
       target::kWordSize * target::SubtypeTestCache::kTestEntryLength);
   __ b(&loop);
 
   __ Bind(&found);
-  __ ldr(R1,
-         Address(TypeTestABI::kSubtypeTestCacheReg,
+  __ ldr(TypeTestABI::kSubtypeTestCacheResultReg,
+         Address(kCacheArrayReg,
                  target::kWordSize * target::SubtypeTestCache::kTestResult));
-  __ ret();
-
-  __ Bind(&not_found);
-  __ mov(R1, kNullReg);
+  __ Bind(&done);
   __ ret();
 }
 
@@ -3268,248 +2967,18 @@ void StubCodeCompiler::GenerateSubtype1TestCacheStub(Assembler* assembler) {
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype2TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 2);
+void StubCodeCompiler::GenerateSubtype3TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 3);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype4TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 4);
+void StubCodeCompiler::GenerateSubtype5TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 5);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype6TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 6);
-}
-
-// Used to test whether a given value is of a given type (different variants,
-// all have the same calling convention).
-//
-// Inputs:
-//   - R0 : instance to test against.
-//   - R2 : instantiator type arguments (if needed).
-//   - R1 : function type arguments (if needed).
-//
-//   - R3 : subtype test cache.
-//
-//   - R8 : type to test against.
-//   - R4 : name of destination variable.
-//
-// Preserves R0/R2.
-//
-// Note of warning: The caller will not populate CODE_REG and we have therefore
-// no access to the pool.
-void StubCodeCompiler::GenerateDefaultTypeTestStub(Assembler* assembler) {
-  // Tail call the [SubtypeTestCache]-based implementation.
-  __ ldr(CODE_REG, Address(THR, target::Thread::slow_type_test_stub_offset()));
-  __ ldr(R9, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ br(R9);
-}
-
-// Used instead of DefaultTypeTestStub when null is assignable.
-void StubCodeCompiler::GenerateDefaultNullableTypeTestStub(
-    Assembler* assembler) {
-  Label done;
-
-  // Fast case for 'null'.
-  __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
-  __ BranchIf(EQUAL, &done);
-
-  // Tail call the [SubtypeTestCache]-based implementation.
-  __ ldr(CODE_REG, Address(THR, target::Thread::slow_type_test_stub_offset()));
-  __ ldr(R9, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ br(R9);
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-void StubCodeCompiler::GenerateTopTypeTypeTestStub(Assembler* assembler) {
-  __ Ret();
-}
-
-void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
-  __ Breakpoint();
-}
-
-static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
-                                            TypeCheckMode mode) {
-  __ PushObject(NullObject());  // Make room for result.
-  __ Push(TypeTestABI::kInstanceReg);
-  __ Push(TypeTestABI::kDstTypeReg);
-  __ Push(TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ Push(TypeTestABI::kFunctionTypeArgumentsReg);
-  __ PushObject(NullObject());
-  __ Push(TypeTestABI::kSubtypeTestCacheReg);
-  __ PushImmediate(target::ToRawSmi(mode));
-  __ CallRuntime(kTypeCheckRuntimeEntry, 7);
-  __ Drop(1);  // mode
-  __ Pop(TypeTestABI::kSubtypeTestCacheReg);
-  __ Drop(1);  // dst_name
-  __ Pop(TypeTestABI::kFunctionTypeArgumentsReg);
-  __ Pop(TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ Pop(TypeTestABI::kDstTypeReg);
-  __ Pop(TypeTestABI::kInstanceReg);
-  __ Drop(1);  // Discard return value.
-}
-
-void StubCodeCompiler::GenerateLazySpecializeTypeTestStub(
-    Assembler* assembler) {
-  __ ldr(CODE_REG,
-         Address(THR, target::Thread::lazy_specialize_type_test_stub_offset()));
-  __ EnterStubFrame();
-  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromLazySpecializeStub);
-  __ LeaveStubFrame();
-  __ Ret();
-}
-
-// Used instead of LazySpecializeTypeTestStub when null is assignable.
-void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
-    Assembler* assembler) {
-  Label done;
-
-  __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
-  __ BranchIf(EQUAL, &done);
-
-  __ ldr(CODE_REG,
-         Address(THR, target::Thread::lazy_specialize_type_test_stub_offset()));
-  __ EnterStubFrame();
-  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromLazySpecializeStub);
-  __ LeaveStubFrame();
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-static void BuildTypeParameterTypeTestStub(Assembler* assembler,
-                                           bool allow_null) {
-  Label done;
-
-  if (allow_null) {
-    __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
-    __ BranchIf(EQUAL, &done);
-  }
-
-  Label function_type_param;
-  __ ldr(TypeTestABI::kScratchReg,
-         FieldAddress(TypeTestABI::kDstTypeReg,
-                      TypeParameter::parameterized_class_id_offset()),
-         kUnsignedHalfword);
-  __ cmp(TypeTestABI::kScratchReg, Operand(kFunctionCid));
-  __ BranchIf(EQUAL, &function_type_param);
-
-  auto handle_case = [&](Register tav) {
-    __ CompareObject(tav, NullObject());
-    __ BranchIf(EQUAL, &done);
-    __ ldr(
-        TypeTestABI::kScratchReg,
-        FieldAddress(TypeTestABI::kDstTypeReg, TypeParameter::index_offset()),
-        kUnsignedHalfword);
-    __ add(TypeTestABI::kScratchReg, tav,
-           Operand(TypeTestABI::kScratchReg, LSL, 8));
-    __ ldr(TypeTestABI::kScratchReg,
-           FieldAddress(TypeTestABI::kScratchReg,
-                        target::TypeArguments::InstanceSize()));
-    __ ldr(TypeTestABI::kScratchReg,
-           FieldAddress(TypeTestABI::kScratchReg,
-                        AbstractType::type_test_stub_entry_point_offset()));
-    __ br(TypeTestABI::kScratchReg);
-  };
-
-  // Class type parameter: If dynamic we're done, otherwise dereference type
-  // parameter and tail call.
-  handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
-
-  // Function type parameter: If dynamic we're done, otherwise dereference type
-  // parameter and tail call.
-  __ Bind(&function_type_param);
-  handle_case(TypeTestABI::kFunctionTypeArgumentsReg);
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-void StubCodeCompiler::GenerateNullableTypeParameterTypeTestStub(
-    Assembler* assembler) {
-  BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/true);
-}
-
-void StubCodeCompiler::GenerateTypeParameterTypeTestStub(Assembler* assembler) {
-  BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/false);
-}
-
-void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
-  Label done, call_runtime;
-
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
-    __ ldr(CODE_REG,
-           Address(THR, target::Thread::slow_type_test_stub_offset()));
-  }
-  __ EnterStubFrame();
-
-  // If the subtype-cache is null, it needs to be lazily-created by the runtime.
-  __ CompareObject(TypeTestABI::kSubtypeTestCacheReg, NullObject());
-  __ BranchIf(EQUAL, &call_runtime);
-
-  const Register kTmp = R9;
-
-  // If this is not a [Type] object, we'll go to the runtime.
-  Label is_simple_case, is_complex_case;
-  __ LoadClassId(kTmp, TypeTestABI::kDstTypeReg);
-  __ cmp(kTmp, Operand(kTypeCid));
-  __ BranchIf(NOT_EQUAL, &is_complex_case);
-
-  // Check whether this [Type] is instantiated/uninstantiated.
-  __ ldr(
-      kTmp,
-      FieldAddress(TypeTestABI::kDstTypeReg, target::Type::type_state_offset()),
-      kByte);
-  __ cmp(kTmp,
-         Operand(target::AbstractTypeLayout::kTypeStateFinalizedInstantiated));
-  __ BranchIf(NOT_EQUAL, &is_complex_case);
-
-  // Check whether this [Type] is a function type.
-  __ ldr(kTmp, FieldAddress(TypeTestABI::kDstTypeReg,
-                            target::Type::signature_offset()));
-  __ CompareObject(kTmp, NullObject());
-  __ BranchIf(NOT_EQUAL, &is_complex_case);
-
-  // This [Type] could be a FutureOr. Subtype2TestCache does not support Smi.
-  __ BranchIfSmi(TypeTestABI::kInstanceReg, &is_complex_case);
-
-  // Fall through to &is_simple_case
-
-  __ Bind(&is_simple_case);
-  {
-    __ PushPair(TypeTestABI::kFunctionTypeArgumentsReg,
-                TypeTestABI::kSubtypeTestCacheReg);
-    __ BranchLink(StubCodeSubtype2TestCache());
-    __ CompareObject(R1, CastHandle<Object>(TrueObject()));
-    __ PopPair(TypeTestABI::kFunctionTypeArgumentsReg,
-               TypeTestABI::kSubtypeTestCacheReg);
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
-    __ Jump(&call_runtime);
-  }
-
-  __ Bind(&is_complex_case);
-  {
-    __ PushPair(TypeTestABI::kFunctionTypeArgumentsReg,
-                TypeTestABI::kSubtypeTestCacheReg);
-    __ BranchLink(StubCodeSubtype6TestCache());
-    __ CompareObject(R1, CastHandle<Object>(TrueObject()));
-    __ PopPair(TypeTestABI::kFunctionTypeArgumentsReg,
-               TypeTestABI::kSubtypeTestCacheReg);
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
-    // Fall through to runtime_call
-  }
-
-  __ Bind(&call_runtime);
-
-  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromSlowStub);
-
-  __ Bind(&done);
-  __ LeaveStubFrame();
-  __ Ret();
+void StubCodeCompiler::GenerateSubtype7TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 7);
 }
 
 void StubCodeCompiler::GenerateGetCStackPointerStub(Assembler* assembler) {
@@ -3524,12 +2993,15 @@ void StubCodeCompiler::GenerateGetCStackPointerStub(Assembler* assembler) {
 // R2: frame_pointer.
 // R3: thread.
 // Does not return.
+//
+// Notice: We need to keep this in sync with `Simulator::JumpToFrame()`.
 void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == R0);
   ASSERT(kStackTraceObjectReg == R1);
-  __ mov(LR, R0);  // Program counter.
-  __ mov(SP, R1);  // Stack pointer.
-  __ mov(FP, R2);  // Frame_pointer.
+  __ set_lr_state(compiler::LRState::Clobbered());
+  __ mov(CALLEE_SAVED_TEMP, R0);  // Program counter.
+  __ mov(SP, R1);                 // Stack pointer.
+  __ mov(FP, R2);                 // Frame_pointer.
   __ mov(THR, R3);
   __ SetupCSPFromThread(THR);
 #if defined(TARGET_OS_FUCHSIA)
@@ -3551,7 +3023,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   // Refresh pinned registers values (inc. write barrier mask and null object).
   __ RestorePinnedRegisters();
   // Set the tag.
-  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
+  __ LoadImmediate(R2, VMTag::kDartTagId);
   __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
   // Clear top exit frame.
   __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
@@ -3562,7 +3034,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   } else {
     __ LoadPoolPointer();
   }
-  __ ret();  // Jump to continuation point.
+  __ ret(CALLEE_SAVED_TEMP);  // Jump to continuation point.
 }
 
 // Run an exception handler.  Execution comes from JumpToFrame
@@ -3571,7 +3043,8 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 // The arguments are stored in the Thread object.
 // Does not return.
 void StubCodeCompiler::GenerateRunExceptionHandlerStub(Assembler* assembler) {
-  __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset());
+  WRITES_RETURN_ADDRESS_TO_LR(
+      __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset()));
 
   word offset_from_thread = 0;
   bool ok = target::CanLoadFromThread(NullObject(), &offset_from_thread);
@@ -3598,7 +3071,8 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
   __ Push(TMP);
 
   // Load the deopt pc into LR.
-  __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset());
+  WRITES_RETURN_ADDRESS_TO_LR(
+      __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset()));
   GenerateDeoptimizationSequence(assembler, kEagerDeopt);
 
   // After we have deoptimized, jump to the correct frame.
@@ -3922,10 +3396,14 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   Label miss;
   __ LoadClassIdMayBeSmi(R1, R0);
-  __ ldr(R2, FieldAddress(R5, target::SingleTargetCache::lower_limit_offset()),
-         kUnsignedHalfword);
-  __ ldr(R3, FieldAddress(R5, target::SingleTargetCache::upper_limit_offset()),
-         kUnsignedHalfword);
+  __ ldr(R2,
+         FieldAddress(R5, target::SingleTargetCache::lower_limit_offset(),
+                      kTwoBytes),
+         kUnsignedTwoBytes);
+  __ ldr(R3,
+         FieldAddress(R5, target::SingleTargetCache::upper_limit_offset(),
+                      kTwoBytes),
+         kUnsignedTwoBytes);
 
   __ cmp(R1, Operand(R2));
   __ b(&miss, LT);
@@ -4067,6 +3545,125 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
 
   __ Bind(&cache_lookup);
   GenerateInstantiateTypeArgumentsStub(assembler);
+}
+
+static int GetScaleFactor(intptr_t size) {
+  switch (size) {
+    case 1:
+      return 0;
+    case 2:
+      return 1;
+    case 4:
+      return 2;
+    case 8:
+      return 3;
+    case 16:
+      return 4;
+  }
+  UNREACHABLE();
+  return -1;
+}
+
+void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
+                                                          intptr_t cid) {
+  const intptr_t element_size = TypedDataElementSizeInBytes(cid);
+  const intptr_t max_len = TypedDataMaxNewSpaceElements(cid);
+  const intptr_t scale_shift = GetScaleFactor(element_size);
+
+  COMPILE_ASSERT(AllocateTypedDataArrayABI::kLengthReg == R4);
+  COMPILE_ASSERT(AllocateTypedDataArrayABI::kResultReg == R0);
+
+  Label call_runtime;
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R2, &call_runtime));
+  __ mov(R2, AllocateTypedDataArrayABI::kLengthReg);
+  /* Check that length is a positive Smi. */
+  /* R2: requested array length argument. */
+  __ BranchIfNotSmi(R2, &call_runtime);
+  __ CompareRegisters(R2, ZR);
+  __ b(&call_runtime, LT);
+  __ SmiUntag(R2);
+  /* Check for maximum allowed length. */
+  /* R2: untagged array length. */
+  __ CompareImmediate(R2, max_len);
+  __ b(&call_runtime, GT);
+  __ LslImmediate(R2, R2, scale_shift);
+  const intptr_t fixed_size_plus_alignment_padding =
+      target::TypedData::InstanceSize() +
+      target::ObjectAlignment::kObjectAlignment - 1;
+  __ AddImmediate(R2, fixed_size_plus_alignment_padding);
+  __ andi(R2, R2, Immediate(~(target::ObjectAlignment::kObjectAlignment - 1)));
+  __ ldr(R0, Address(THR, target::Thread::top_offset()));
+
+  /* R2: allocation size. */
+  __ adds(R1, R0, Operand(R2));
+  __ b(&call_runtime, CS); /* Fail on unsigned overflow. */
+
+  /* Check if the allocation fits into the remaining space. */
+  /* R0: potential new object start. */
+  /* R1: potential next object start. */
+  /* R2: allocation size. */
+  __ ldr(R6, Address(THR, target::Thread::end_offset()));
+  __ cmp(R1, Operand(R6));
+  __ b(&call_runtime, CS);
+
+  /* Successfully allocated the object(s), now update top to point to */
+  /* next object start and initialize the object. */
+  __ str(R1, Address(THR, target::Thread::top_offset()));
+  __ AddImmediate(R0, kHeapObjectTag);
+  /* Initialize the tags. */
+  /* R0: new object start as a tagged pointer. */
+  /* R1: new object end address. */
+  /* R2: allocation size. */
+  {
+    __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
+    __ LslImmediate(R2, R2,
+                    target::UntaggedObject::kTagBitsSizeTagPos -
+                        target::ObjectAlignment::kObjectAlignmentLog2);
+    __ csel(R2, ZR, R2, HI);
+
+    /* Get the class index and insert it into the tags. */
+    uword tags = target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+    __ LoadImmediate(TMP, tags);
+    __ orr(R2, R2, Operand(TMP));
+    __ str(R2, FieldAddress(R0, target::Object::tags_offset())); /* Tags. */
+  }
+  /* Set the length field. */
+  /* R0: new object start as a tagged pointer. */
+  /* R1: new object end address. */
+  __ mov(R2, AllocateTypedDataArrayABI::kLengthReg); /* Array length. */
+  __ StoreIntoObjectNoBarrier(
+      R0, FieldAddress(R0, target::TypedDataBase::length_offset()), R2);
+  /* Initialize all array elements to 0. */
+  /* R0: new object start as a tagged pointer. */
+  /* R1: new object end address. */
+  /* R2: iterator which initially points to the start of the variable */
+  /* R3: scratch register. */
+  /* data area to be initialized. */
+  __ mov(R3, ZR);
+  __ AddImmediate(R2, R0, target::TypedData::InstanceSize() - 1);
+  __ StoreInternalPointer(
+      R0, FieldAddress(R0, target::TypedDataBase::data_field_offset()), R2);
+  Label init_loop, done;
+  __ Bind(&init_loop);
+  __ cmp(R2, Operand(R1));
+  __ b(&done, CS);
+  __ str(R3, Address(R2, 0));
+  __ add(R2, R2, Operand(target::kWordSize));
+  __ b(&init_loop);
+  __ Bind(&done);
+
+  __ Ret();
+
+  __ Bind(&call_runtime);
+  __ EnterStubFrame();
+  __ Push(ZR);                                     // Result slot.
+  __ PushImmediate(target::ToRawSmi(cid));         // Cid
+  __ Push(AllocateTypedDataArrayABI::kLengthReg);  // Array length
+  __ CallRuntime(kAllocateTypedDataRuntimeEntry, 2);
+  __ Drop(2);  // Drop arguments.
+  __ Pop(AllocateTypedDataArrayABI::kResultReg);
+  __ LeaveStubFrame();
+  __ Ret();
 }
 
 }  // namespace compiler

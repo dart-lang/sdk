@@ -39,7 +39,7 @@ bool isPotentiallyConstantTypeExpression(TypeAnnotation node) {
 
 bool _isConstantTypeName(Identifier name) {
   var element = name.staticElement;
-  if (element is ClassElement || element is GenericTypeAliasElement) {
+  if (element is ClassElement || element is TypeAliasElement) {
     if (name is PrefixedIdentifier) {
       if (name.isDeferred) {
         return false;

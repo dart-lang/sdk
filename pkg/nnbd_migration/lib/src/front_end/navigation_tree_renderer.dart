@@ -38,7 +38,11 @@ class NavigationTreeRenderer {
   /// Renders the navigation link tree.
   List<NavigationTreeNode> render() {
     var linkData = migrationInfo.unitLinks();
-    return _renderNavigationSubtree(linkData, 0);
+    var tree = _renderNavigationSubtree(linkData, 0);
+    for (var node in tree) {
+      node.parent = null;
+    }
+    return tree;
   }
 
   /// Renders the navigation link subtree at [depth].
@@ -50,16 +54,21 @@ class NavigationTreeRenderer {
 
     return [
       for (var entry in linksGroupedByDirectory.entries)
-        NavigationTreeNode.directory(
+        NavigationTreeDirectoryNode(
           name: entry.key,
+          path: pathContext
+              .dirname(pathContext.joinAll(entry.value.first.pathParts)),
           subtree: _renderNavigationSubtree(entry.value, depth + 1),
-        ),
+        )..setSubtreeParents(),
       for (var link in links.where((link) => link.depth == depth))
-        NavigationTreeNode.file(
+        NavigationTreeFileNode(
           name: link.fileName,
           path: pathContext.joinAll(link.pathParts),
           href: pathMapper.map(link.fullPath),
           editCount: link.editCount,
+          wasExplicitlyOptedOut: link.wasExplicitlyOptedOut,
+          migrationStatus: link.migrationStatus,
+          migrationStatusCanBeChanged: link.migrationStatusCanBeChanged,
         ),
     ];
   }

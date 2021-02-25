@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:meta/meta.dart';
@@ -43,6 +44,7 @@ class CiderFixesComputer {
         if (errorLine == requestLine) {
           var workspace = DartChangeWorkspace([resolvedUnit.session]);
           var context = DartFixContextImpl(
+            InstrumentationService.NULL_SERVICE,
             workspace,
             resolvedUnit,
             error,

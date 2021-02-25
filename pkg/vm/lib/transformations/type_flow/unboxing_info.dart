@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/external_name.dart' show getExternalName;
 import 'package:vm/metadata/procedure_attributes.dart';
+import 'package:vm/transformations/pragma.dart';
 import 'package:vm/transformations/type_flow/analysis.dart';
 import 'package:vm/transformations/type_flow/calls.dart';
 import 'package:vm/transformations/type_flow/native_code.dart';
@@ -57,8 +58,8 @@ class UnboxingInfoManager {
             final getterId = tableSelectorAssigner.getterSelectorId(field);
             final setterId =
                 tableSelectorAssigner.methodOrSetterSelectorId(field);
-            assertx(getterId != kInvalidSelectorId);
-            assertx(setterId != kInvalidSelectorId);
+            assert(getterId != kInvalidSelectorId);
+            assert(setterId != kInvalidSelectorId);
             selectorUnionFind.union(getterId, setterId);
           }
         }
@@ -85,7 +86,7 @@ class UnboxingInfoManager {
             member is Field || member is Procedure && member.isGetter
                 ? tableSelectorAssigner.getterSelectorId(member)
                 : tableSelectorAssigner.methodOrSetterSelectorId(member);
-        assertx(selectorId != kInvalidSelectorId);
+        assert(selectorId != kInvalidSelectorId);
         selectorId = selectorUnionFind.find(selectorId);
         info = selectorIdToInfo[selectorId];
         if (info == null) {
@@ -126,13 +127,13 @@ class UnboxingInfoManager {
       }
       if (member is Procedure || member is Constructor) {
         final Args<Type> argTypes = typeFlowAnalysis.argumentTypes(member);
-        assertx(argTypes != null);
+        assert(argTypes != null);
 
         final int firstParamIndex =
             numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
 
         final positionalParams = member.function.positionalParameters;
-        assertx(argTypes.positionalCount ==
+        assert(argTypes.positionalCount ==
             firstParamIndex + positionalParams.length);
 
         for (int i = 0; i < positionalParams.length; i++) {
@@ -156,7 +157,7 @@ class UnboxingInfoManager {
         }
         _applyToReturn(unboxingInfo, fieldValue);
       } else {
-        assertx(false);
+        assert(false, "Unexpected member: $member");
       }
     }
   }
@@ -199,18 +200,11 @@ class UnboxingInfoManager {
     // have boxed parameters and return values.
     return _isNative(member) ||
         _nativeCodeOracle.isMemberReferencedFromNativeCode(member) ||
-        _isEnclosingClassSubtypeOfNum(member);
+        _nativeCodeOracle.isRecognized(member, const [
+          PragmaRecognizedType.AsmIntrinsic,
+          PragmaRecognizedType.Other
+        ]);
   }
 
   bool _isNative(Member member) => getExternalName(member) != null;
-
-  // TODO(dartbug.com/33549): Calls to these methods could be replaced by
-  // CheckedSmiOpInstr, so in order to allow the parameters and return
-  // value to be unboxed, the slow path for such instructions should be
-  // updated to be consistent with the representations from the target interface.
-  bool _isEnclosingClassSubtypeOfNum(Member member) {
-    return (member.enclosingClass != null &&
-        ConeType(_typeHierarchy.getTFClass(member.enclosingClass))
-            .isSubtypeOf(_typeHierarchy, _coreTypes.numClass));
-  }
 }

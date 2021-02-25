@@ -19,6 +19,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceRange;
@@ -141,7 +142,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
-    var builder = ChangeBuilder(session: sessionHelper.session);
+    var builder =
+        ChangeBuilder(session: sessionHelper.session, eol: utils.endOfLine);
     await builder.addDartFileEdit(resolveResult.path, (builder) {
       if (_expression != null) {
         builder.addReplacement(range.node(_expression), (builder) {
@@ -426,8 +428,12 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
               // Add parameters for fields, local, and method parameters.
               for (var parameter in _parameters) {
                 builder.write('    ');
-                builder.write('@');
-                builder.writeReference(accessorRequired);
+                if (_isNonNullable) {
+                  builder.write('required');
+                } else {
+                  builder.write('@');
+                  builder.writeReference(accessorRequired);
+                }
                 builder.write(' ');
                 if (parameter.constructorName != parameter.name) {
                   builder.writeType(parameter.type);
@@ -590,7 +596,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element == null) {
       return;
     }

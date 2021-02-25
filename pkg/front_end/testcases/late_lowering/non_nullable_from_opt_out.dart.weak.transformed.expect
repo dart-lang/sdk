@@ -1,0 +1,183 @@
+library;
+import self as self;
+import "non_nullable_from_opt_out_lib.dart" as non;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///non_nullable_from_opt_out_lib.dart";
+
+static method main() → dynamic {
+  non::topLevelField = null;
+  non::finalTopLevelField = null;
+  non::Class<core::int*>* c = new non::Class::•<core::int*>();
+  c.{non::Class::instanceField} = null;
+  c.{non::Class::finalInstanceField} = null;
+  c.{non::Class::instanceTypeVariable} = null;
+  c.{non::Class::finalInstanceTypeVariable} = null;
+  non::Class::staticField = null;
+  non::Class::staticFinalField = null;
+  non::expect(null, non::topLevelField);
+  non::expect(null, non::finalTopLevelField);
+  non::expect(null, c.{non::Class::instanceField});
+  non::expect(null, c.{non::Class::finalInstanceField});
+  non::expect(null, c.{non::Class::instanceTypeVariable});
+  non::expect(null, c.{non::Class::finalInstanceTypeVariable});
+  non::expect(null, non::Class::staticField);
+  non::expect(null, non::Class::staticFinalField);
+  non::throws(() → Null => non::finalTopLevelField = null);
+  non::throws(() → Null => c.{non::Class::finalInstanceField} = null);
+  non::throws(() → Null => c.{non::Class::finalInstanceTypeVariable} = null);
+  non::throws(() → Null => non::Class::staticFinalField = null);
+  non::method<Null>(true, null, null);
+}
+
+library /*isNonNullableByDefault*/;
+import self as non;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Class<T extends core::Object = core::Object> extends core::Object {
+  field core::int? _#Class#instanceField = null;
+  field core::bool _#Class#instanceField#isSet = false;
+  field dynamic _#Class#finalInstanceField = null;
+  field core::bool _#Class#finalInstanceField#isSet = false;
+  generic-covariant-impl field non::Class::T? _#Class#instanceTypeVariable = null;
+  field core::bool _#Class#instanceTypeVariable#isSet = false;
+  field non::Class::T? _#Class#finalInstanceTypeVariable = null;
+  field core::bool _#Class#finalInstanceTypeVariable#isSet = false;
+  static field core::int? _#staticField = null;
+  static field core::bool _#staticField#isSet = false;
+  static field dynamic _#staticFinalField = null;
+  static field core::bool _#staticFinalField#isSet = false;
+  synthetic constructor •() → non::Class<non::Class::T>
+    : super core::Object::•()
+    ;
+  get instanceField() → core::int
+    return this.{non::Class::_#Class#instanceField#isSet} ?{core::int} let final core::int? #t1 = this.{non::Class::_#Class#instanceField} in #t1{core::int} : throw new _in::LateError::fieldNI("instanceField");
+  set instanceField(core::int #t2) → void {
+    this.{non::Class::_#Class#instanceField#isSet} = true;
+    this.{non::Class::_#Class#instanceField} = #t2;
+  }
+  get finalInstanceField() → dynamic
+    return this.{non::Class::_#Class#finalInstanceField#isSet} ?{dynamic} this.{non::Class::_#Class#finalInstanceField} : throw new _in::LateError::fieldNI("finalInstanceField");
+  set finalInstanceField(dynamic #t3) → void
+    if(this.{non::Class::_#Class#finalInstanceField#isSet})
+      throw new _in::LateError::fieldAI("finalInstanceField");
+    else {
+      this.{non::Class::_#Class#finalInstanceField#isSet} = true;
+      this.{non::Class::_#Class#finalInstanceField} = #t3;
+    }
+  get instanceTypeVariable() → non::Class::T
+    return this.{non::Class::_#Class#instanceTypeVariable#isSet} ?{non::Class::T} let final non::Class::T? #t4 = this.{non::Class::_#Class#instanceTypeVariable} in #t4{non::Class::T} : throw new _in::LateError::fieldNI("instanceTypeVariable");
+  set instanceTypeVariable(generic-covariant-impl non::Class::T #t5) → void {
+    this.{non::Class::_#Class#instanceTypeVariable#isSet} = true;
+    this.{non::Class::_#Class#instanceTypeVariable} = #t5;
+  }
+  get finalInstanceTypeVariable() → non::Class::T
+    return this.{non::Class::_#Class#finalInstanceTypeVariable#isSet} ?{non::Class::T} let final non::Class::T? #t6 = this.{non::Class::_#Class#finalInstanceTypeVariable} in #t6{non::Class::T} : throw new _in::LateError::fieldNI("finalInstanceTypeVariable");
+  set finalInstanceTypeVariable(non::Class::T #t7) → void
+    if(this.{non::Class::_#Class#finalInstanceTypeVariable#isSet})
+      throw new _in::LateError::fieldAI("finalInstanceTypeVariable");
+    else {
+      this.{non::Class::_#Class#finalInstanceTypeVariable#isSet} = true;
+      this.{non::Class::_#Class#finalInstanceTypeVariable} = #t7;
+    }
+  static get staticField() → core::int
+    return non::Class::_#staticField#isSet ?{core::int} let final core::int? #t8 = non::Class::_#staticField in #t8{core::int} : throw new _in::LateError::fieldNI("staticField");
+  static set staticField(core::int #t9) → void {
+    non::Class::_#staticField#isSet = true;
+    non::Class::_#staticField = #t9;
+  }
+  static get staticFinalField() → dynamic
+    return non::Class::_#staticFinalField#isSet ?{dynamic} non::Class::_#staticFinalField : throw new _in::LateError::fieldNI("staticFinalField");
+  static set staticFinalField(dynamic #t10) → void
+    if(non::Class::_#staticFinalField#isSet)
+      throw new _in::LateError::fieldAI("staticFinalField");
+    else {
+      non::Class::_#staticFinalField#isSet = true;
+      non::Class::_#staticFinalField = #t10;
+    }
+}
+static field core::int? _#topLevelField = null;
+static field core::bool _#topLevelField#isSet = false;
+static field dynamic _#finalTopLevelField = null;
+static field core::bool _#finalTopLevelField#isSet = false;
+static get topLevelField() → core::int
+  return non::_#topLevelField#isSet ?{core::int} let final core::int? #t11 = non::_#topLevelField in #t11{core::int} : throw new _in::LateError::fieldNI("topLevelField");
+static set topLevelField(core::int #t12) → void {
+  non::_#topLevelField#isSet = true;
+  non::_#topLevelField = #t12;
+}
+static get finalTopLevelField() → dynamic
+  return non::_#finalTopLevelField#isSet ?{dynamic} non::_#finalTopLevelField : throw new _in::LateError::fieldNI("finalTopLevelField");
+static set finalTopLevelField(dynamic #t13) → void
+  if(non::_#finalTopLevelField#isSet)
+    throw new _in::LateError::fieldAI("finalTopLevelField");
+  else {
+    non::_#finalTopLevelField#isSet = true;
+    non::_#finalTopLevelField = #t13;
+  }
+static method method<T extends core::Object = core::Object>(core::bool b, core::int i, non::method::T t) → dynamic {
+  lowered core::int? #local;
+  lowered core::bool #local#isSet = false;
+  function #local#get() → core::int
+    return #local#isSet ?{core::int} #local{core::int} : throw new _in::LateError::localNI("local");
+  function #local#set(core::int #t14) → dynamic {
+    #local#isSet = true;
+    return #local = #t14;
+  }
+  lowered final dynamic #finalLocal;
+  lowered core::bool #finalLocal#isSet = false;
+  function #finalLocal#get() → dynamic
+    return #finalLocal#isSet ?{dynamic} #finalLocal : throw new _in::LateError::localNI("finalLocal");
+  function #finalLocal#set(dynamic #t15) → dynamic
+    if(#finalLocal#isSet)
+      throw new _in::LateError::localAI("finalLocal");
+    else {
+      #finalLocal#isSet = true;
+      return #finalLocal = #t15;
+    }
+  lowered non::method::T? #localTypeVariable;
+  lowered core::bool #localTypeVariable#isSet = false;
+  function #localTypeVariable#get() → non::method::T
+    return #localTypeVariable#isSet ?{non::method::T} #localTypeVariable{non::method::T} : throw new _in::LateError::localNI("localTypeVariable");
+  function #localTypeVariable#set(non::method::T #t16) → dynamic {
+    #localTypeVariable#isSet = true;
+    return #localTypeVariable = #t16;
+  }
+  lowered final non::method::T? #finalLocalTypeVariable;
+  lowered core::bool #finalLocalTypeVariable#isSet = false;
+  function #finalLocalTypeVariable#get() → non::method::T
+    return #finalLocalTypeVariable#isSet ?{non::method::T} #finalLocalTypeVariable{non::method::T} : throw new _in::LateError::localNI("finalLocalTypeVariable");
+  function #finalLocalTypeVariable#set(non::method::T #t17) → dynamic
+    if(#finalLocalTypeVariable#isSet)
+      throw new _in::LateError::localAI("finalLocalTypeVariable");
+    else {
+      #finalLocalTypeVariable#isSet = true;
+      return #finalLocalTypeVariable = #t17;
+    }
+  if(b) {
+    #local#set.call(i);
+    #finalLocal#set.call(i);
+    #localTypeVariable#set.call(t);
+    #finalLocalTypeVariable#set.call(t);
+    non::expect(i, #local#get.call());
+    non::expect(i, #finalLocal#get.call());
+    non::expect(t, #localTypeVariable#get.call());
+    non::expect(t, #finalLocalTypeVariable#get.call());
+  }
+  non::throws(() → void => #finalLocal#set.call(i));
+  non::throws(() → void => #finalLocalTypeVariable#set.call(t));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → void f) → dynamic {
+  try {
+    f.call();
+  }
+  on core::Object catch(final core::Object _) {
+    return;
+  }
+  throw "Missing exception";
+}

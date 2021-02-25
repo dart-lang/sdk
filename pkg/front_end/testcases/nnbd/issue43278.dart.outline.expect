@@ -1,0 +1,31 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int? foo;
+  field self::A bar;
+  constructor •(self::A bar) → self::A
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    ;
+}
+extension Extension on self::B {
+  get fooExtension = self::Extension|get#fooExtension;
+  get barExtension = self::Extension|get#barExtension;
+  set fooExtension = self::Extension|set#fooExtension;
+}
+static method test<T extends self::A? = self::A?>(self::A? a, self::test::T% t, dynamic d, core::int x) → dynamic
+  ;
+static method Extension|get#fooExtension(lowered final self::B #this) → core::int?
+  ;
+static method Extension|set#fooExtension(lowered final self::B #this, core::int? value) → void
+  ;
+static method Extension|get#barExtension(lowered final self::B #this) → self::B
+  ;
+static method testExtension<T extends self::B? = self::B?>(self::B? b, self::testExtension::T% t, core::int x) → dynamic
+  ;
+static method main() → dynamic
+  ;

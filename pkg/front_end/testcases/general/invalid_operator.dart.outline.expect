@@ -560,39 +560,39 @@ library;
 //   operator ~<T>() => true;
 //              ^
 //
+// pkg/front_end/testcases/general/invalid_operator.dart:137:12: Error: Can't infer types for '==' as the overridden members don't have a combined signature.
+// Try adding explicit types.
+//   operator ==<T>(a) => true;
+//            ^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:21:17: Context: This is one of the overridden members.
+//   bool operator ==(Object other) native "Object_equals";
+//                 ^^
+//
 // pkg/front_end/testcases/general/invalid_operator.dart:6:12: Error: The method 'Operators1.==' has fewer positional arguments than those of overridden method 'Object.=='.
 //   operator ==() => true;
 //            ^
-// sdk/lib/_internal/vm/lib/object_patch.dart:18:17: Context: This is the overridden method ('==').
+// sdk/lib/_internal/vm/lib/object_patch.dart:21:17: Context: This is the overridden method ('==').
 //   bool operator ==(Object other) native "Object_equals";
 //                 ^
 //
 // pkg/front_end/testcases/general/invalid_operator.dart:27:12: Error: The method 'Operators2.==' has more required arguments than those of overridden method 'Object.=='.
 //   operator ==(a, b) => true;
 //            ^
-// sdk/lib/_internal/vm/lib/object_patch.dart:18:17: Context: This is the overridden method ('==').
+// sdk/lib/_internal/vm/lib/object_patch.dart:21:17: Context: This is the overridden method ('==').
 //   bool operator ==(Object other) native "Object_equals";
 //                 ^
 //
 // pkg/front_end/testcases/general/invalid_operator.dart:71:12: Error: The method 'Operators4.==' has fewer positional arguments than those of overridden method 'Object.=='.
 //   operator ==({a}) => true;
 //            ^
-// sdk/lib/_internal/vm/lib/object_patch.dart:18:17: Context: This is the overridden method ('==').
+// sdk/lib/_internal/vm/lib/object_patch.dart:21:17: Context: This is the overridden method ('==').
 //   bool operator ==(Object other) native "Object_equals";
 //                 ^
 //
 // pkg/front_end/testcases/general/invalid_operator.dart:137:12: Error: Declared type variables of 'Operators7.==' doesn't match those on overridden method 'Object.=='.
 //   operator ==<T>(a) => true;
 //            ^
-// sdk/lib/_internal/vm/lib/object_patch.dart:18:17: Context: This is the overridden method ('==').
-//   bool operator ==(Object other) native "Object_equals";
-//                 ^
-//
-// pkg/front_end/testcases/general/invalid_operator.dart:137:12: Error: The return type of the method 'Operators7.==' is 'dynamic', which does not match the return type, 'bool', of the overridden method, 'Object.=='.
-// Change to a subtype of 'bool'.
-//   operator ==<T>(a) => true;
-//            ^
-// sdk/lib/_internal/vm/lib/object_patch.dart:18:17: Context: This is the overridden method ('==').
+// sdk/lib/_internal/vm/lib/object_patch.dart:21:17: Context: This is the overridden method ('==').
 //   bool operator ==(Object other) native "Object_equals";
 //                 ^
 //
@@ -906,7 +906,7 @@ class Operators6 extends core::Object {
 class Operators7 extends core::Object {
   synthetic constructor •() → self::Operators7*
     ;
-  operator ==<T extends core::Object* = dynamic>(dynamic a) → dynamic
+  operator ==<T extends core::Object* = dynamic>(invalid-type a) → invalid-type
     ;
   operator ><T extends core::Object* = dynamic>(dynamic a) → dynamic
     ;

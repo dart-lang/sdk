@@ -62,7 +62,7 @@ class ProgramInfo {
       void Function(
               String pkg, String lib, String cls, String fun, ProgramInfoNode n)
           callback) {
-    final context = List<String>(NodeType.values.length);
+    final context = List<String>.filled(NodeType.values.length, null);
 
     void recurse(ProgramInfoNode node) {
       final prevContext = context[node._type];

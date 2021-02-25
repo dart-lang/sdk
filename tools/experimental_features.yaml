@@ -10,13 +10,17 @@
 #
 # ### Code Generation
 #
-# When you change this file, run the following to update analyzer and kernel:
+# When you change this file, run the following to update analyzer, kernel, and
+# vm:
 #
 # analyzer:
 #   dart pkg/analyzer/tool/experiments/generate.dart
 #
 # kernel:
 #   pkg/front_end/tool/fasta generate-experimental-flags
+#
+# vm:
+#   dart tools/generate_experimental_flags.dart
 #
 # ### Overview
 #
@@ -93,13 +97,9 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '2.10.0'
+current-version: '2.12.0'
 
 features:
-  non-nullable:
-    help: "Non Nullable by default"
-    experimentalReleaseVersion: '2.10.0'
-
   triple-shift:
     help: "Triple-shift operator"
 
@@ -120,26 +120,31 @@ features:
 # on the command line, and will eventually be removed.
 #
 
+  non-nullable:
+    help: "Non Nullable by default"
+    experimentalReleaseVersion: '2.10.0'
+    enabledIn: '2.12.0'
+
   extension-methods:
     help: "Extension Methods"
     enabledIn: '2.6.0'
 
   constant-update-2018:
     help: "Enhanced constant expressions"
-    enabledIn: '2.4.1'
+    enabledIn: '2.0.0'
     expired: true
 
   control-flow-collections:
     help: "Control Flow Collections"
-    enabledIn: '2.2.2'
+    enabledIn: '2.0.0'
     expired: true
 
   set-literals:
     help: "Set Literals"
-    enabledIn: 2.2
+    enabledIn: '2.0.0'
     expired: true
 
   spread-collections:
     help: "Spread Collections"
-    enabledIn: '2.2.2'
+    enabledIn: '2.0.0'
     expired: true

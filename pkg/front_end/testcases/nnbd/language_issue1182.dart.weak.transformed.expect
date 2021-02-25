@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Foo<S extends core::num = core::num> extends core::Object {
+  synthetic constructor •() → self::Foo<self::Foo::S>
+    : super core::Object::•()
+    ;
+  method test1(generic-covariant-impl self::Foo::S x) → void {
+    (self::Foo::S) → self::Foo::S f = self::Test|get#test<self::Foo::S>(x);
+  }
+}
+extension Test<T extends core::Object? = dynamic> on T% {
+  get test = self::Test|get#test;
+}
+static method Test|get#test<T extends core::Object? = dynamic>(lowered final self::Test|get#test::T% #this) → (self::Test|get#test::T%) → self::Test|get#test::T%
+  return (self::Test|get#test::T% a) → self::Test|get#test::T% => #this;
+static method main() → void {}

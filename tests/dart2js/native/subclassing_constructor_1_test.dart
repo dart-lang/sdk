@@ -65,9 +65,9 @@ void setup() {
 (function(){
   function B() { this.a2 = 102; }
 
-  makeB = function(){return new B()};
+  self.makeB = function(){return new B()};
 
-  getBPrototype = function(){return B.prototype;};
+  self.getBPrototype = function(){return B.prototype;};
 })()""");
 }
 

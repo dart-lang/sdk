@@ -51,9 +51,9 @@ void setup() {
   N2.prototype.foo = function() { return "foo:" + this.text; };
   function BB() {}
   BB.prototype.__proto__ = N2.prototype;
-  makeBB = function(){return new BB()};
+  self.makeBB = function(){return new BB()};
 
-  getBBPrototype = function(){return BB.prototype;};
+  self.getBBPrototype = function(){return BB.prototype;};
 })()""");
 }
 

@@ -9,9 +9,7 @@
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#include <platform/globals.h>
-
-#include "vm/compiler/backend/locations.h"
+#include "platform/globals.h"
 #include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/ffi/native_type.h"
 
@@ -23,43 +21,39 @@ namespace ffi {
 
 using NativeLocations = ZoneGrowableArray<const NativeLocation*>;
 
-
-// Values below 0 index result (result might be multiple if composite).
-const intptr_t kResultIndex = -1;
-
 // Calculates native calling convention, is not aware of Dart calling
 // convention constraints.
 //
-// This class is meant to be extended or embedded in a class that is aware
-// of Dart calling convention constraints.
+// This class is meant to be embedded in a class that is aware of Dart calling
+// convention constraints.
 class NativeCallingConvention : public ZoneAllocated {
  public:
-  NativeCallingConvention(Zone* zone, const Function& c_signature);
+  static const NativeCallingConvention& FromSignature(
+      Zone* zone,
+      const NativeFunctionType& signature);
 
-  // Excluding the #0 argument which is the function pointer.
-  intptr_t num_args() const;
-
-  // The C Type (expressed in a Dart Type) of the argument at `arg_index`.
-  //
-  // Excluding the #0 argument which is the function pointer.
-  AbstractTypePtr CType(intptr_t arg_index) const;
-
-  // The location of the argument at `arg_index`.
-  const NativeLocation& Location(intptr_t arg_index) const {
-    if (arg_index == kResultIndex) {
-      return result_loc_;
-    }
-    return *arg_locs_.At(arg_index);
+  const NativeLocations& argument_locations() const {
+    return argument_locations_;
   }
+  const NativeLocation& return_location() const { return return_location_; }
 
   intptr_t StackTopInBytes() const;
 
- protected:
-  Zone* const zone_;
-  // Contains the function pointer as argument #0.
-  const Function& c_signature_;
-  const NativeLocations& arg_locs_;
-  const NativeLocation& result_loc_;
+  void PrintTo(BaseTextBuffer* f, bool multi_line = false) const;
+  void PrintToMultiLine(BaseTextBuffer* f) const;
+  const char* ToCString(Zone* zone, bool multi_line = false) const;
+#if !defined(FFI_UNIT_TESTS)
+  const char* ToCString(bool multi_line = false) const;
+#endif
+
+ private:
+  NativeCallingConvention(const NativeLocations& argument_locations,
+                          const NativeLocation& return_location)
+      : argument_locations_(argument_locations),
+        return_location_(return_location) {}
+
+  const NativeLocations& argument_locations_;
+  const NativeLocation& return_location_;
 };
 
 }  // namespace ffi

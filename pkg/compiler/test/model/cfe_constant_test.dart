@@ -15,7 +15,6 @@ import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
-import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -24,7 +23,7 @@ import '../helpers/shared_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script
-        .resolve('../../../../pkg/_fe_analyzer_shared/test/constants/data'));
+        .resolve('../../../../pkg/_fe_analyzer_shared/test/constants/data_2'));
     await checkTests<String>(dataDir, new ConstantDataComputer(),
         args: args, testedConfigs: [sharedConfig]);
   });

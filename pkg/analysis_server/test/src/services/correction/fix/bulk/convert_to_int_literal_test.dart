@@ -19,7 +19,7 @@ class ConvertToIntLiteralTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_int_literals;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 const double d1 = 42.0;
 double d2 = 7.0e2;
 ''');

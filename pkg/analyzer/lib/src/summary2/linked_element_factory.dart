@@ -9,10 +9,8 @@ import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/core_types.dart';
-import 'package:analyzer/src/summary2/lazy_ast.dart';
-import 'package:analyzer/src/summary2/linked_bundle_context.dart';
+import 'package:analyzer/src/summary2/bundle_reader.dart';
+import 'package:analyzer/src/summary2/linked_library_context.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
@@ -20,9 +18,8 @@ class LinkedElementFactory {
   final AnalysisContextImpl analysisContext;
   final AnalysisSessionImpl analysisSession;
   final Reference rootReference;
-  final Map<String, LinkedLibraryContext> libraryMap = {};
-
-  CoreTypes _coreTypes;
+  final Map<String, List<Reference>> linkingExports = {};
+  final Map<String, LibraryReader> libraryReaders = {};
 
   LinkedElementFactory(
     this.analysisContext,
@@ -31,13 +28,7 @@ class LinkedElementFactory {
   ) {
     ArgumentError.checkNotNull(analysisContext, 'analysisContext');
     ArgumentError.checkNotNull(analysisSession, 'analysisSession');
-    var dartCoreRef = rootReference.getChild('dart:core');
-    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
-    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
-  }
-
-  CoreTypes get coreTypes {
-    return _coreTypes ??= CoreTypes(this);
+    _declareDartCoreDynamicNever();
   }
 
   Reference get dynamicRef {
@@ -45,11 +36,15 @@ class LinkedElementFactory {
   }
 
   bool get hasDartCore {
-    return libraryMap.containsKey('dart:core');
+    return libraryReaders.containsKey('dart:core');
   }
 
-  void addBundle(LinkedBundleContext context) {
-    libraryMap.addAll(context.libraryMap);
+  void addBundle(BundleReader bundle) {
+    addLibraries(bundle.libraryMap);
+  }
+
+  void addLibraries(Map<String, LibraryReader> libraries) {
+    libraryReaders.addAll(libraries);
   }
 
   Namespace buildExportNamespace(Uri uri) {
@@ -73,9 +68,150 @@ class LinkedElementFactory {
     return Namespace(exportedNames);
   }
 
+  LibraryElementImpl createLibraryElementForLinking(
+    LinkedLibraryContext libraryContext,
+  ) {
+    var sourceFactory = analysisContext.sourceFactory;
+    var libraryUriStr = libraryContext.uriStr;
+    var librarySource = sourceFactory.forUri(libraryUriStr);
+
+    // The URI cannot be resolved, we don't know the library.
+    if (librarySource == null) return null;
+
+    var definingUnitContext = libraryContext.units[0];
+    var definingUnitNode = definingUnitContext.unit;
+
+    // TODO(scheglov) Do we need this?
+    var name = '';
+    var nameOffset = -1;
+    var nameLength = 0;
+    for (var directive in definingUnitNode.directives) {
+      if (directive is LibraryDirective) {
+        name = directive.name.components.map((e) => e.name).join('.');
+        nameOffset = directive.name.offset;
+        nameLength = directive.name.length;
+        break;
+      }
+    }
+
+    var libraryElement = LibraryElementImpl.forLinkedNode(
+      analysisContext,
+      analysisSession,
+      name,
+      nameOffset,
+      nameLength,
+      definingUnitContext,
+      libraryContext.reference,
+      definingUnitNode,
+    );
+    _setLibraryTypeSystem(libraryElement);
+
+    var units = <CompilationUnitElementImpl>[];
+    var unitContainerRef = libraryContext.reference.getChild('@unit');
+    for (var unitContext in libraryContext.units) {
+      var unitNode = unitContext.unit;
+
+      var unitSource = sourceFactory.forUri(unitContext.uriStr);
+      var unitElement = CompilationUnitElementImpl.forLinkedNode(
+        libraryElement,
+        unitContext,
+        unitContext.reference,
+        unitNode,
+      );
+      unitElement.lineInfo = unitNode.lineInfo;
+      unitElement.source = unitSource;
+      unitElement.librarySource = librarySource;
+      unitElement.uri = unitContext.partUriStr;
+      units.add(unitElement);
+      unitContainerRef.getChild(unitContext.uriStr).element = unitElement;
+    }
+
+    libraryElement.definingCompilationUnit = units[0];
+    libraryElement.parts = units.skip(1).toList();
+    libraryContext.reference.element = libraryElement;
+
+    return libraryElement;
+  }
+
+  LibraryElementImpl createLibraryElementForReading(String uriStr) {
+    var sourceFactory = analysisContext.sourceFactory;
+    var librarySource = sourceFactory.forUri(uriStr);
+
+    // The URI cannot be resolved, we don't know the library.
+    if (librarySource == null) return null;
+
+    var reader = libraryReaders[uriStr];
+    if (reader == null) {
+      throw ArgumentError(
+        'Missing library: $uriStr\n'
+        'Available libraries: ${libraryReaders.keys.toList()}',
+      );
+    }
+
+    var libraryContext = LinkedLibraryContext(this, uriStr, reader.reference);
+    var unitContainerRef = reader.reference.getChild('@unit');
+
+    var unitContexts = <LinkedUnitContext>[];
+    var indexInLibrary = 0;
+    var unitReaders = reader.units;
+    for (var unitReader in unitReaders) {
+      var unitReference = unitContainerRef.getChild(unitReader.uriStr);
+      var unitContext = LinkedUnitContext(
+        libraryContext,
+        indexInLibrary++,
+        unitReader.partUriStr,
+        unitReader.uriStr,
+        unitReference,
+        unitReader.isSynthetic,
+        unit: unitReader.unit,
+        unitReader: unitReader,
+      );
+      unitContexts.add(unitContext);
+      libraryContext.units.add(unitContext);
+    }
+
+    var definingUnitContext = unitContexts[0];
+    var libraryElement = LibraryElementImpl.forLinkedNode(
+      analysisContext,
+      analysisSession,
+      reader.name,
+      reader.nameOffset,
+      reader.nameLength,
+      definingUnitContext,
+      reader.reference,
+      unitReaders.first.unit,
+    );
+    _setLibraryTypeSystem(libraryElement);
+
+    var units = <CompilationUnitElementImpl>[];
+    for (var unitContext in unitContexts) {
+      var unitNode = unitContext.unit;
+
+      var unitSource = sourceFactory.forUri(unitContext.uriStr);
+      var unitElement = CompilationUnitElementImpl.forLinkedNode(
+        libraryElement,
+        unitContext,
+        unitContext.reference,
+        unitNode,
+      );
+      unitElement.lineInfo = unitNode.lineInfo;
+      unitElement.source = unitSource;
+      unitElement.librarySource = librarySource;
+      unitElement.uri = unitContext.partUriStr;
+      units.add(unitElement);
+      unitContainerRef.getChild(unitContext.uriStr).element = unitElement;
+    }
+
+    libraryElement.definingCompilationUnit = units[0];
+    libraryElement.parts = units.skip(1).toList();
+    reader.reference.element = libraryElement;
+
+    return libraryElement;
+  }
+
   void createTypeProviders(
-    LibraryElementImpl dartCore,
-    LibraryElementImpl dartAsync,
+    LibraryElementImpl /*!*/ dartCore,
+    LibraryElementImpl /*!*/ dartAsync,
   ) {
     if (analysisContext.typeProviderNonNullableByDefault != null) {
       return;
@@ -112,34 +248,146 @@ class LinkedElementFactory {
       return null;
     }
 
-    return _ElementRequest(this, reference).elementOfReference(reference);
+    if (reference.isLibrary) {
+      var uriStr = reference.name;
+      return createLibraryElementForReading(uriStr);
+    }
+
+    var parent = reference.parent.parent;
+    var parentElement = elementOfReference(parent);
+
+    // Named formal parameters are created when we apply resolution to the
+    // executable declaration, e.g. a constructor, or a method.
+    if (reference.isParameter) {
+      (parentElement as ExecutableElement).parameters;
+      assert(reference.element != null);
+      return reference.element;
+    }
+
+    // The default constructor might be synthetic, and has no node.
+    // TODO(scheglov) We resynthesize all constructors here.
+    if (reference.isConstructor && reference.name == '') {
+      return (parentElement as ClassElement).unnamedConstructor;
+    }
+
+    if (parentElement is EnumElementImpl) {
+      parentElement.constants;
+      assert(reference.element != null);
+      return reference.element;
+    }
+
+    if (reference.element != null) {
+      return reference.element;
+    }
+
+    if (reference.isUnit) {
+      assert(reference.element != null);
+      return reference.element;
+    }
+
+    if (reference.isPrefix) {
+      (parentElement as LibraryElement).prefixes;
+      assert(reference.element != null);
+      return reference.element;
+    }
+
+    // For class, mixin, extension - index members.
+    parent.nodeAccessor.readIndex();
+
+    // For any element - class, method, etc - read the node.
+    var node = reference.nodeAccessor.node;
+
+    if (node is ClassDeclaration) {
+      ClassElementImpl.forLinkedNode(parentElement, reference, node);
+      assert(reference.element != null);
+      return reference.element;
+    } else if (node is ClassTypeAlias) {
+      ClassElementImpl.forLinkedNode(parentElement, reference, node);
+      assert(reference.element != null);
+      return reference.element;
+    } else if (node is ConstructorDeclaration) {
+      ConstructorElementImpl.forLinkedNode(parentElement, reference, node);
+      var element = reference.element as ConstructorElementImpl;
+      assert(element != null);
+      return element;
+    } else if (node is EnumDeclaration) {
+      EnumElementImpl.forLinkedNode(parentElement, reference, node);
+      assert(reference.element != null);
+      return reference.element;
+    } else if (node is ExtensionDeclaration) {
+      ExtensionElementImpl.forLinkedNode(parentElement, reference, node);
+      assert(reference.element != null);
+      return reference.element;
+    } else if (node is FieldDeclaration) {
+      var variable = _variableDeclaration(node.fields, reference.name);
+      if (variable.isConst) {
+        ConstFieldElementImpl.forLinkedNode(parentElement, reference, variable);
+      } else {
+        FieldElementImpl.forLinkedNodeFactory(
+            parentElement, reference, variable);
+      }
+      assert(reference.element != null);
+      return reference.element;
+    } else if (node is FunctionDeclaration) {
+      if (node.propertyKeyword != null) {
+        _topLevelPropertyAccessor(parent, parentElement, reference, node);
+      } else {
+        FunctionElementImpl.forLinkedNode(parentElement, reference, node);
+      }
+      assert(reference.element != null);
+      return reference.element;
+    } else if (node is FunctionTypeAlias || node is GenericTypeAlias) {
+      TypeAliasElementImpl.forLinkedNodeFactory(parentElement, reference, node);
+      assert(reference.element != null);
+      return reference.element;
+    } else if (node is MethodDeclaration) {
+      if (node.propertyKeyword != null) {
+        PropertyAccessorElementImpl.forLinkedNode(
+            parentElement, reference, node);
+      } else {
+        MethodElementImpl.forLinkedNode(parentElement, reference, node);
+      }
+      assert(reference.element != null);
+      return reference.element;
+    } else if (node is MixinDeclaration) {
+      MixinElementImpl.forLinkedNode(parentElement, reference, node);
+      assert(reference.element != null);
+      return reference.element;
+    } else if (node is TopLevelVariableDeclaration) {
+      var variable = _variableDeclaration(node.variables, reference.name);
+      if (variable.isConst) {
+        ConstTopLevelVariableElementImpl.forLinkedNode(
+            parentElement, reference, variable);
+      } else {
+        TopLevelVariableElementImpl.forLinkedNode(
+            parentElement, reference, variable);
+      }
+      assert(reference.element != null);
+      return reference.element;
+    }
+
+    throw UnimplementedError('$reference');
   }
 
   List<Reference> exportsOfLibrary(String uriStr) {
-    var library = libraryMap[uriStr];
+    var linkingExportedReferences = linkingExports[uriStr];
+    if (linkingExportedReferences != null) {
+      return linkingExportedReferences;
+    }
+
+    var library = libraryReaders[uriStr];
     if (library == null) return const [];
 
-    // Ask for source to trigger dependency tracking.
-    //
-    // Usually we record a dependency because we request an element from a
-    // library, so we build its library element, so request its source.
-    // However if a library is just exported, and the exporting library is not
-    // imported itself, we just copy references, without computing elements.
-    analysisContext.sourceFactory.forUri(uriStr);
+    return library.exports;
+  }
 
-    var exportIndexList = library.node.exports;
-    var exportReferences = List<Reference>(exportIndexList.length);
-    for (var i = 0; i < exportIndexList.length; ++i) {
-      var index = exportIndexList[i];
-      var reference = library.context.referenceOfIndex(index);
-      exportReferences[i] = reference;
-    }
-    return exportReferences;
+  bool hasLibrary(String uriStr) {
+    return libraryReaders[uriStr] != null;
   }
 
   bool isLibraryUri(String uriStr) {
-    var libraryContext = libraryMap[uriStr];
-    return !libraryContext.definingUnit.hasPartOfDirective;
+    var libraryContext = libraryReaders[uriStr];
+    return !libraryContext.hasPartOfDirective;
   }
 
   LibraryElementImpl libraryOfUri(String uriStr) {
@@ -149,39 +397,47 @@ class LinkedElementFactory {
 
   /// We have linked the bundle, and need to disconnect its libraries, so
   /// that the client can re-add the bundle, this time read from bytes.
-  void removeBundle(LinkedBundleContext context) {
-    var uriStrList = context.libraryMap.keys.toList();
-    removeLibraries(uriStrList);
+  void removeBundle(Set<String> uriStrSet) {
+    removeLibraries(uriStrSet);
+
+    // This is the bundle with dart:core and dart:async, based on full ASTs.
+    // To link them, the linker set the type provider. We are removing these
+    // libraries, and we should also remove the type provider.
+    if (uriStrSet.contains('dart:core')) {
+      if (!uriStrSet.contains('dart:async')) {
+        throw StateError(
+          'Expected to link dart:core and dart:async together: '
+          '${uriStrSet.toList()}',
+        );
+      }
+      if (libraryReaders.isNotEmpty) {
+        throw StateError(
+          'Expected to link dart:core and dart:async first: '
+          '${libraryReaders.keys.toList()}',
+        );
+      }
+      analysisContext.clearTypeProvider();
+      _declareDartCoreDynamicNever();
+    }
   }
 
   /// Remove libraries with the specified URIs from the reference tree, and
   /// any session level caches.
-  void removeLibraries(List<String> uriStrList) {
-    for (var uriStr in uriStrList) {
-      libraryMap.remove(uriStr);
+  void removeLibraries(Set<String> uriStrSet) {
+    for (var uriStr in uriStrSet) {
+      libraryReaders.remove(uriStr);
+      linkingExports.remove(uriStr);
       rootReference.removeChild(uriStr);
     }
 
-    var uriStrSet = uriStrList.toSet();
     analysisSession.classHierarchy.removeOfLibraries(uriStrSet);
     analysisSession.inheritanceManager.removeOfLibraries(uriStrSet);
   }
 
-  /// Set optional informative data for the unit.
-  void setInformativeData(
-    String libraryUriStr,
-    String unitUriStr,
-    List<UnlinkedInformativeData> informativeData,
-  ) {
-    var libraryContext = libraryMap[libraryUriStr];
-    if (libraryContext != null) {
-      for (var unitContext in libraryContext.units) {
-        if (unitContext.uriStr == unitUriStr) {
-          unitContext.informativeData = informativeData;
-          return;
-        }
-      }
-    }
+  void _declareDartCoreDynamicNever() {
+    var dartCoreRef = rootReference.getChild('dart:core');
+    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
+    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
   }
 
   void _setLibraryTypeSystem(LibraryElementImpl libraryElement) {
@@ -202,341 +458,49 @@ class LinkedElementFactory {
 
     libraryElement.createLoadLibraryFunction();
   }
-}
 
-class _ElementRequest {
-  final LinkedElementFactory elementFactory;
-  final Reference input;
-
-  _ElementRequest(this.elementFactory, this.input);
-
-  ElementImpl elementOfReference(Reference reference) {
-    if (reference.element != null) {
-      return reference.element;
-    }
-
-    var parent2 = reference.parent.parent;
-    if (parent2 == null) {
-      return _createLibraryElement(reference);
-    }
-
-    var parentName = reference.parent.name;
-
-    if (parentName == '@class') {
-      var unit = elementOfReference(parent2);
-      return _class(unit, reference);
-    }
-
-    if (parentName == '@constructor') {
-      var class_ = elementOfReference(parent2);
-      return _constructor(class_, reference);
-    }
-
-    if (parentName == '@enum') {
-      var unit = elementOfReference(parent2);
-      return _enum(unit, reference);
-    }
-
-    if (parentName == '@extension') {
-      var unit = elementOfReference(parent2);
-      return _extension(unit, reference);
-    }
-
-    if (parentName == '@field') {
-      var enclosing = elementOfReference(parent2);
-      return _field(enclosing, reference);
-    }
-
-    if (parentName == '@function') {
-      CompilationUnitElementImpl enclosing = elementOfReference(parent2);
-      return _function(enclosing, reference);
-    }
-
-    if (parentName == '@getter' || parentName == '@setter') {
-      var enclosing = elementOfReference(parent2);
-      return _accessor(enclosing, reference);
-    }
-
-    if (parentName == '@method') {
-      var enclosing = elementOfReference(parent2);
-      return _method(enclosing, reference);
-    }
-
-    if (parentName == '@mixin') {
-      var unit = elementOfReference(parent2);
-      return _mixin(unit, reference);
-    }
-
-    if (parentName == '@parameter') {
-      ExecutableElementImpl enclosing = elementOfReference(parent2);
-      return _parameter(enclosing, reference);
-    }
-
-    if (parentName == '@prefix') {
-      LibraryElementImpl enclosing = elementOfReference(parent2);
-      return _prefix(enclosing, reference);
-    }
-
-    if (parentName == '@typeAlias') {
-      var unit = elementOfReference(parent2);
-      return _typeAlias(unit, reference);
-    }
-
-    if (parentName == '@typeParameter') {
-      var enclosing = elementOfReference(parent2);
-      if (enclosing is ParameterElement) {
-        (enclosing as ParameterElement).typeParameters;
-      } else {
-        (enclosing as TypeParameterizedElement).typeParameters;
-      }
-      assert(reference.element != null);
-      return reference.element;
-    }
-
-    if (parentName == '@unit') {
-      elementOfReference(parent2);
-      // Creating a library fills all its units.
-      assert(reference.element != null);
-      return reference.element;
-    }
-
-    if (reference.name == '@function' && parent2.name == '@typeAlias') {
-      var parent = reference.parent;
-      GenericTypeAliasElementImpl alias = elementOfReference(parent);
-      return alias.function;
-    }
-
-    throw StateError('Not found: $input');
-  }
-
-  PropertyAccessorElementImpl _accessor(
-      ElementImpl enclosing, Reference reference) {
-    if (enclosing is ClassElementImpl) {
-      enclosing.accessors;
-    } else if (enclosing is CompilationUnitElementImpl) {
-      enclosing.accessors;
-    } else if (enclosing is EnumElementImpl) {
-      enclosing.accessors;
-    } else if (enclosing is ExtensionElementImpl) {
-      enclosing.accessors;
-    } else {
-      throw StateError('${enclosing.runtimeType}');
-    }
-    // Requesting accessors sets elements for accessors and variables.
-    assert(reference.element != null);
-    return reference.element;
-  }
-
-  ClassElementImpl _class(
-      CompilationUnitElementImpl unit, Reference reference) {
-    if (reference.node == null) {
-      _indexUnitElementDeclarations(unit);
-      assert(reference.node != null, '$reference');
-    }
-    ClassElementImpl.forLinkedNode(unit, reference, reference.node);
-    return reference.element;
-  }
-
-  ConstructorElementImpl _constructor(
-      ClassElementImpl enclosing, Reference reference) {
-    enclosing.constructors;
-    // Requesting constructors sets elements for all of them.
-    assert(reference.element != null);
-    return reference.element;
-  }
-
-  LibraryElementImpl _createLibraryElement(Reference reference) {
-    var uriStr = reference.name;
-
-    var sourceFactory = elementFactory.analysisContext.sourceFactory;
-    var librarySource = sourceFactory.forUri(uriStr);
-
-    // The URI cannot be resolved, we don't know the library.
-    if (librarySource == null) return null;
-
-    var libraryContext = elementFactory.libraryMap[uriStr];
-    if (libraryContext == null) {
-      throw ArgumentError(
-        'Missing library: $uriStr\n'
-        'Available libraries: ${elementFactory.libraryMap.keys.toList()}',
-      );
-    }
-    var libraryNode = libraryContext.node;
-    var hasName = libraryNode.name.isNotEmpty;
-
-    var definingUnitContext = libraryContext.definingUnit;
-
-    var libraryElement = LibraryElementImpl.forLinkedNode(
-      elementFactory.analysisContext,
-      elementFactory.analysisSession,
-      libraryNode.name,
-      hasName ? libraryNode.nameOffset : -1,
-      libraryNode.nameLength,
-      definingUnitContext,
-      reference,
-      definingUnitContext.unit_withDeclarations,
-    );
-    elementFactory._setLibraryTypeSystem(libraryElement);
-
-    var units = <CompilationUnitElementImpl>[];
-    var unitContainerRef = reference.getChild('@unit');
-    for (var unitContext in libraryContext.units) {
-      var unitNode = unitContext.unit_withDeclarations;
-
-      var unitSource = sourceFactory.forUri(unitContext.uriStr);
-      var unitElement = CompilationUnitElementImpl.forLinkedNode(
-        libraryElement,
-        unitContext,
-        unitContext.reference,
-        unitNode,
-      );
-      unitElement.lineInfo = unitNode.lineInfo;
-      unitElement.source = unitSource;
-      unitElement.librarySource = librarySource;
-      unitElement.uri = unitContext.partUriStr;
-      units.add(unitElement);
-      unitContainerRef.getChild(unitContext.uriStr).element = unitElement;
-    }
-
-    libraryElement.definingCompilationUnit = units[0];
-    libraryElement.parts = units.skip(1).toList();
-    reference.element = libraryElement;
-
-    return libraryElement;
-  }
-
-  EnumElementImpl _enum(CompilationUnitElementImpl unit, Reference reference) {
-    if (reference.node == null) {
-      _indexUnitElementDeclarations(unit);
-      assert(reference.node != null, '$reference');
-    }
-    EnumElementImpl.forLinkedNode(unit, reference, reference.node);
-    return reference.element;
-  }
-
-  ExtensionElementImpl _extension(
-      CompilationUnitElementImpl unit, Reference reference) {
-    if (reference.node == null) {
-      _indexUnitElementDeclarations(unit);
-      assert(reference.node != null, '$reference');
-    }
-    ExtensionElementImpl.forLinkedNode(unit, reference, reference.node);
-    return reference.element;
-  }
-
-  FieldElementImpl _field(ClassElementImpl enclosing, Reference reference) {
-    enclosing.fields;
-    // Requesting fields sets elements for all fields.
-    assert(reference.element != null);
-    return reference.element;
-  }
-
-  Element _function(CompilationUnitElementImpl enclosing, Reference reference) {
-    enclosing.functions;
-    assert(reference.element != null);
-    return reference.element;
-  }
-
-  void _indexUnitElementDeclarations(CompilationUnitElementImpl unit) {
-    var unitContext = unit.linkedContext;
-    var unitRef = unit.reference;
-    var unitNode = unit.linkedNode;
-    _indexUnitDeclarations(unitContext, unitRef, unitNode);
-  }
-
-  MethodElementImpl _method(ElementImpl enclosing, Reference reference) {
-    if (enclosing is ClassElementImpl) {
-      enclosing.methods;
-    } else if (enclosing is ExtensionElementImpl) {
-      enclosing.methods;
-    } else {
-      throw StateError('${enclosing.runtimeType}');
-    }
-    // Requesting methods sets elements for all of them.
-    assert(reference.element != null);
-    return reference.element;
-  }
-
-  MixinElementImpl _mixin(
-      CompilationUnitElementImpl unit, Reference reference) {
-    if (reference.node == null) {
-      _indexUnitElementDeclarations(unit);
-      assert(reference.node != null, '$reference');
-    }
-    MixinElementImpl.forLinkedNode(unit, reference, reference.node);
-    return reference.element;
-  }
-
-  Element _parameter(ExecutableElementImpl enclosing, Reference reference) {
-    enclosing.parameters;
-    assert(reference.element != null);
-    return reference.element;
-  }
-
-  PrefixElementImpl _prefix(LibraryElementImpl library, Reference reference) {
-    for (var import in library.imports) {
-      import.prefix;
-    }
-    assert(reference.element != null);
-    return reference.element;
-  }
-
-  GenericTypeAliasElementImpl _typeAlias(
-      CompilationUnitElementImpl unit, Reference reference) {
-    if (reference.node == null) {
-      _indexUnitElementDeclarations(unit);
-      assert(reference.node != null, '$reference');
-    }
-    GenericTypeAliasElementImpl.forLinkedNode(unit, reference, reference.node);
-    return reference.element;
-  }
-
-  /// Index nodes for which we choose to create elements individually,
-  /// for example [ClassDeclaration], so that its [Reference] has the node,
-  /// and we can call the [ClassElementImpl] constructor.
-  static void _indexUnitDeclarations(
-    LinkedUnitContext unitContext,
-    Reference unitRef,
-    CompilationUnit unitNode,
+  void _topLevelPropertyAccessor(
+    Reference parentReference,
+    CompilationUnitElementImpl parentElement,
+    Reference reference,
+    FunctionDeclaration node,
   ) {
-    var classRef = unitRef.getChild('@class');
-    var enumRef = unitRef.getChild('@enum');
-    var extensionRef = unitRef.getChild('@extension');
-    var functionRef = unitRef.getChild('@function');
-    var mixinRef = unitRef.getChild('@mixin');
-    var typeAliasRef = unitRef.getChild('@typeAlias');
-    var variableRef = unitRef.getChild('@variable');
-    for (var declaration in unitNode.declarations) {
-      if (declaration is ClassDeclaration) {
-        var name = declaration.name.name;
-        classRef.getChild(name).node = declaration;
-      } else if (declaration is ClassTypeAlias) {
-        var name = declaration.name.name;
-        classRef.getChild(name).node = declaration;
-      } else if (declaration is ExtensionDeclaration) {
-        var refName = LazyExtensionDeclaration.get(declaration).refName;
-        extensionRef.getChild(refName).node = declaration;
-      } else if (declaration is EnumDeclaration) {
-        var name = declaration.name.name;
-        enumRef.getChild(name).node = declaration;
-      } else if (declaration is FunctionDeclaration) {
-        var name = declaration.name.name;
-        functionRef.getChild(name).node = declaration;
-      } else if (declaration is FunctionTypeAlias) {
-        var name = declaration.name.name;
-        typeAliasRef.getChild(name).node = declaration;
-      } else if (declaration is GenericTypeAlias) {
-        var name = declaration.name.name;
-        typeAliasRef.getChild(name).node = declaration;
-      } else if (declaration is MixinDeclaration) {
-        var name = declaration.name.name;
-        mixinRef.getChild(name).node = declaration;
-      } else if (declaration is TopLevelVariableDeclaration) {
-        for (var variable in declaration.variables.variables) {
-          var name = variable.name.name;
-          variableRef.getChild(name).node = declaration;
-        }
+    var accessor = PropertyAccessorElementImpl.forLinkedNode(
+        parentElement, reference, node);
+
+    var name = reference.name;
+    var fieldRef = parentReference.getChild('@field').getChild(name);
+    var field = fieldRef.element as TopLevelVariableElementImpl;
+    if (field == null) {
+      field = TopLevelVariableElementImpl(name, -1);
+      fieldRef.element = field;
+      field.enclosingElement = parentElement;
+      field.isFinal = true;
+      field.isSynthetic = true;
+    }
+
+    var isSetter = node.isSetter;
+    if (isSetter) {
+      field.isFinal = false;
+    }
+
+    accessor.variable = field;
+    if (isSetter) {
+      field.setter = accessor;
+    } else {
+      field.getter = accessor;
+    }
+  }
+
+  static VariableDeclaration _variableDeclaration(
+    VariableDeclarationList variableList,
+    String name,
+  ) {
+    for (var variable in variableList.variables) {
+      if (variable.name.name == name) {
+        return variable;
       }
     }
+    throw StateError('No "$name" in: $variableList');
   }
 }

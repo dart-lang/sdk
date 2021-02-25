@@ -14,8 +14,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_interpreter);
-
 VM_UNIT_TEST_CASE(Mutex) {
   // This unit test case needs a running isolate.
   TestCase::CreateTestIsolate();
@@ -87,7 +85,7 @@ class ObjectCounter : public ObjectPointerVisitor {
 
   virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
     for (ObjectPtr* current = first; current <= last; ++current) {
-      if (*current == obj_->raw()) {
+      if (*current == obj_->ptr()) {
         ++count_;
       }
     }
@@ -176,8 +174,6 @@ ISOLATE_UNIT_TEST_CASE(ManyTasksWithZones) {
   Monitor sync[kTaskCount];
   bool done[kTaskCount];
   Isolate* isolate = thread->isolate();
-  EXPECT(isolate->heap()->GrowthControlState());
-  isolate->heap()->DisableGrowthControl();
   for (int i = 0; i < kTaskCount; i++) {
     done[i] = false;
     Dart::thread_pool()->Run<TaskWithZoneAllocation>(isolate, &sync[i],
@@ -299,8 +295,10 @@ ISOLATE_UNIT_TEST_CASE(ManySimpleTasksWithZones) {
   intptr_t done_count = 0;
   bool wait = true;
 
-  EXPECT(isolate->heap()->GrowthControlState());
-  isolate->heap()->DisableGrowthControl();
+  EXPECT(isolate->group()->heap()->GrowthControlState());
+
+  NoHeapGrowthControlScope no_heap_growth_scope;
+
   for (intptr_t i = 0; i < kTaskCount; i++) {
     Dart::thread_pool()->Run<SimpleTaskWithZoneAllocation>(
         (i + 1), isolate, &threads[i], &sync, &monitor, &done_count, &wait);
@@ -313,37 +311,6 @@ ISOLATE_UNIT_TEST_CASE(ManySimpleTasksWithZones) {
     }
     // Reset the done counter for use later.
     done_count = 0;
-  }
-
-  // Get the information for the current isolate.
-  // We only need to check the current isolate since all tasks are spawned
-  // inside this single isolate.
-  JSONStream stream;
-  isolate->PrintJSON(&stream, false);
-  const char* json = stream.ToCString();
-
-  Thread* current_thread = Thread::Current();
-
-  // Confirm all expected entries are in the JSON output.
-  for (intptr_t i = 0; i < kTaskCount; i++) {
-    Thread* thread = threads[i];
-    StackZone stack_zone(current_thread);
-    Zone* current_zone = current_thread->zone();
-
-    // Check the thread exists and is the correct size.
-    char* thread_info_buf = OS::SCreate(
-        current_zone,
-        "\"type\":\"_Thread\","
-        "\"id\":\"threads\\/%" Pd
-        "\","
-        "\"kind\":\"%s\","
-        "\"_zoneHighWatermark\":\"%" Pu
-        "\","
-        "\"_zoneCapacity\":\"%" Pu "\"",
-        OSThread::ThreadIdToIntPtr(thread->os_thread()->trace_id()),
-        Thread::TaskKindToCString(thread->task_kind()),
-        thread->zone_high_watermark(), thread->current_zone_capacity());
-    EXPECT_SUBSTRING(thread_info_buf, json);
   }
 
   // Unblock the tasks so they can finish.
@@ -464,9 +431,10 @@ static Function* CreateFunction(const char* name) {
       Class::New(lib, class_name, script, TokenPosition::kNoSource));
   const String& function_name =
       String::ZoneHandle(Symbols::New(Thread::Current(), name));
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   Function& function = Function::ZoneHandle(Function::New(
-      function_name, FunctionLayout::kRegularFunction, true, false, false,
-      false, false, owner_class, TokenPosition::kNoSource));
+      signature, function_name, UntaggedFunction::kRegularFunction, true, false,
+      false, false, false, owner_class, TokenPosition::kNoSource));
   return &function;
 }
 
@@ -576,7 +544,7 @@ class SafepointTestTask : public ThreadPool::Task {
           EXPECT_EQ(*expected_count_, counter.count());
         }
         UserTag& tag = UserTag::Handle(zone, isolate_->current_tag());
-        if (tag.raw() != isolate_->default_tag()) {
+        if (tag.ptr() != isolate_->default_tag()) {
           String& label = String::Handle(zone, tag.label());
           EXPECT(label.Equals("foo"));
           MonitorLocker ml(monitor_);
@@ -640,7 +608,7 @@ TEST_CASE(SafepointTestDart) {
 #if defined(USING_SIMULATOR)
   const intptr_t kLoopCount = 12345678;
 #else
-  const intptr_t kLoopCount = FLAG_enable_interpreter ? 12345678 : 1234567890;
+  const intptr_t kLoopCount = 1234567890;
 #endif  // defined(USING_SIMULATOR)
   char buffer[1024];
   Utils::SNPrint(buffer, sizeof(buffer),
@@ -876,7 +844,7 @@ class AllocAndGCTask : public ThreadPool::Task {
       Zone* zone = stack_zone.GetZone();
       HANDLESCOPE(thread);
       String& old_str = String::Handle(zone, String::New("old", Heap::kOld));
-      isolate_->heap()->CollectAllGarbage();
+      isolate_->group()->heap()->CollectAllGarbage();
       EXPECT(old_str.Equals("old"));
     }
     Thread::ExitIsolateAsHelper();
@@ -1029,6 +997,99 @@ ISOLATE_UNIT_TEST_CASE(SafepointRwLockWriteToReadLock) {
   }
   DEBUG_ONLY(EXPECT(!lock.IsCurrentThreadReader()));
   EXPECT(!lock.IsCurrentThreadWriter());
+}
+
+template <typename LockType, typename LockerType>
+static void RunLockerWithLongJumpTest() {
+  const intptr_t kNumIterations = 5;
+  intptr_t execution_count = 0;
+  intptr_t thrown_count = 0;
+  LockType lock;
+  for (intptr_t i = 0; i < kNumIterations; ++i) {
+    LongJumpScope jump;
+    if (setjmp(*jump.Set()) == 0) {
+      LockerType locker(Thread::Current(), &lock);
+      execution_count++;
+      Thread::Current()->long_jump_base()->Jump(
+          1, Object::background_compilation_error());
+    } else {
+      thrown_count++;
+    }
+  }
+  EXPECT_EQ(kNumIterations, execution_count);
+  EXPECT_EQ(kNumIterations, thrown_count);
+}
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockWriteWithLongJmp) {
+  RunLockerWithLongJumpTest<SafepointRwLock, SafepointWriteRwLocker>();
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockReadWithLongJmp) {
+  RunLockerWithLongJumpTest<SafepointRwLock, SafepointReadRwLocker>();
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointMutexLockerWithLongJmp) {
+  RunLockerWithLongJumpTest<Mutex, SafepointMutexLocker>();
+}
+
+struct ReaderThreadState {
+  ThreadJoinId reader_id = OSThread::kInvalidThreadJoinId;
+  SafepointRwLock* rw_lock = nullptr;
+  IsolateGroup* isolate_group = nullptr;
+  intptr_t elapsed_us = 0;
+};
+
+void Helper(uword arg) {
+  auto state = reinterpret_cast<ReaderThreadState*>(arg);
+  state->reader_id = OSThread::GetCurrentThreadJoinId(OSThread::Current());
+
+  const bool kBypassSafepoint = false;
+  Thread::EnterIsolateGroupAsHelper(state->isolate_group, Thread::kUnknownTask,
+                                    kBypassSafepoint);
+  {
+    auto thread = Thread::Current();
+    const auto before_us = OS::GetCurrentMonotonicMicros();
+    intptr_t after_us = before_us;
+    {
+      SafepointReadRwLocker reader(thread, state->rw_lock);
+      after_us = OS::GetCurrentMonotonicMicros();
+    }
+    state->elapsed_us = (after_us - before_us);
+  }
+  Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockExclusiveNestedWriter_Regress44000) {
+  auto isolate_group = IsolateGroup::Current();
+
+  SafepointRwLock lock;
+  ReaderThreadState state;
+  state.rw_lock = &lock;
+  state.isolate_group = isolate_group;
+  {
+    // Hold one writer lock.
+    SafepointWriteRwLocker locker(Thread::Current(), &lock);
+    {
+      // Hold another, nested, writer lock.
+      SafepointWriteRwLocker locker2(Thread::Current(), &lock);
+
+      // Start a thread, it will try to acquire read lock but it will have to
+      // wait until we have exited both writer scopes.
+      if (OSThread::Start("DartWorker", &Helper,
+                          reinterpret_cast<uword>(&state)) != 0) {
+        FATAL("Could not start worker thread");
+      }
+      // Give thread a little time to actually start running.
+      OS::Sleep(20);
+
+      OS::Sleep(500);
+    }
+    OS::Sleep(500);
+  }
+  // Join the other thread.
+  OSThread::Join(state.reader_id);
+
+  // Ensure the reader thread had to wait for around 1 second.
+  EXPECT(state.elapsed_us > 2 * 500 * 1000);
 }
 
 }  // namespace dart

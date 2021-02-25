@@ -67,6 +67,25 @@ class GetSuggestionAvailableTest extends GetSuggestionsBase {
     expect(includedIdSet, contains(asyncSet.id));
   }
 
+  Future<void> test_dart_afterRecovery() async {
+    addTestFile('');
+    // Wait for a known set to be available.
+    await waitForSetWithUri('dart:math');
+
+    // Ensure the set is returned in the results.
+    var results = await _getSuggestions(testFile, 0);
+    expect(results.includedSuggestionSets, isNotEmpty);
+
+    // Force the server to rebuild all contexts, as happens when the file watcher
+    // fails on Windows.
+    // https://github.com/dart-lang/sdk/issues/44650
+    server.contextManager.refresh(null);
+
+    // Ensure the set is still returned after the rebuild.
+    results = await _getSuggestions(testFile, 0);
+    expect(results.includedSuggestionSets, isNotEmpty);
+  }
+
   Future<void> test_dart_instanceCreationExpression() async {
     addTestFile(r'''
 main() {
@@ -102,8 +121,8 @@ void ggg({int aaa, @required int bbb, @required int ccc}) {}
     expect(fff.defaultArgumentListTextRanges, [0, 3, 5, 3]);
 
     var ggg = aSet.items.singleWhere((e) => e.label == 'ggg');
-    expect(ggg.defaultArgumentListString, 'bbb: null, ccc: null');
-    expect(ggg.defaultArgumentListTextRanges, [5, 4, 16, 4]);
+    expect(ggg.defaultArgumentListString, 'bbb: bbb, ccc: ccc');
+    expect(ggg.defaultArgumentListTextRanges, [5, 3, 15, 3]);
   }
 
   Future<void> test_displayUri_file() async {
@@ -205,7 +224,6 @@ main() {
   }
 
   Future<void> test_relevanceTags_constructorBeforeClass() async {
-    server.options.useNewRelevance = true;
     addTestFile(r'''
 void foo(List<int> a) {}
 
@@ -253,8 +271,7 @@ void f(MyEnum e) {
       testCode.indexOf(' // ref'),
     );
 
-    if (server.options.useNewRelevance) {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
 [
   {
     "tag": "ElementKind.PREFIX",
@@ -302,16 +319,6 @@ void f(MyEnum e) {
   }
 ]
 ''');
-    } else {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
-[
-  {
-    "tag": "package:test/a.dart::MyEnum",
-    "relevanceBoost": 1100
-  }
-]
-''');
-    }
   }
 
   Future<void> test_relevanceTags_location_argumentList_named() async {
@@ -328,8 +335,7 @@ main() {
       testCode.indexOf('); // ref'),
     );
 
-    if (server.options.useNewRelevance) {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
 [
   {
     "tag": "ElementKind.PREFIX",
@@ -377,16 +383,6 @@ main() {
   }
 ]
 ''');
-    } else {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
-[
-  {
-    "tag": "dart:core::String",
-    "relevanceBoost": 10
-  }
-]
-''');
-    }
   }
 
   Future<void> test_relevanceTags_location_argumentList_positional() async {
@@ -403,8 +399,7 @@ main() {
       testCode.indexOf('); // ref'),
     );
 
-    if (server.options.useNewRelevance) {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
 [
   {
     "tag": "ElementKind.MIXIN",
@@ -460,16 +455,6 @@ main() {
   }
 ]
 ''');
-    } else {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
-[
-  {
-    "tag": "dart:core::double",
-    "relevanceBoost": 10
-  }
-]
-''');
-    }
   }
 
   Future<void> test_relevanceTags_location_assignment() async {
@@ -485,8 +470,7 @@ main() {
       testCode.indexOf(' // ref'),
     );
 
-    if (server.options.useNewRelevance) {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
 [
   {
     "tag": "ElementKind.PREFIX",
@@ -534,16 +518,6 @@ main() {
   }
 ]
 ''');
-    } else {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
-[
-  {
-    "tag": "dart:core::int",
-    "relevanceBoost": 10
-  }
-]
-''');
-    }
   }
 
   Future<void> test_relevanceTags_location_initializer() async {
@@ -556,8 +530,7 @@ int v = // ref;
       testCode.indexOf(' // ref'),
     );
 
-    if (server.options.useNewRelevance) {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
 [
   {
     "tag": "ElementKind.MIXIN",
@@ -613,16 +586,6 @@ int v = // ref;
   }
 ]
 ''');
-    } else {
-      assertJsonText(results.includedSuggestionRelevanceTags, r'''
-[
-  {
-    "tag": "dart:core::int",
-    "relevanceBoost": 10
-  }
-]
-''');
-    }
   }
 
   Future<void> test_relevanceTags_location_listLiteral() async {

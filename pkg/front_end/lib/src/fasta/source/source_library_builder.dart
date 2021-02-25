@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.source_library_builder;
 
 import 'dart:convert' show jsonEncode;
@@ -12,6 +14,9 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
+
+import 'package:front_end/src/fasta/dill/dill_library_builder.dart'
+    show DillLibraryBuilder;
 
 import 'package:kernel/ast.dart'
     show
@@ -26,7 +31,6 @@ import 'package:kernel/ast.dart'
         Extension,
         Field,
         FunctionNode,
-        FunctionType,
         InterfaceType,
         InvalidType,
         Library,
@@ -38,6 +42,7 @@ import 'package:kernel/ast.dart'
         Name,
         NeverType,
         NonNullableByDefaultCompiledMode,
+        NullType,
         Nullability,
         Procedure,
         ProcedureKind,
@@ -58,16 +63,17 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 
 import 'package:kernel/reference_from_index.dart'
-    show IndexedClass, IndexedLibrary;
+    show IndexedClass, IndexedContainer, IndexedLibrary;
 
 import 'package:kernel/src/bounds_checks.dart'
     show
         TypeArgumentIssue,
         findTypeArgumentIssues,
         findTypeArgumentIssuesForInvocation,
-        getGenericTypeName;
+        getGenericTypeName,
+        isGenericFunctionTypeOrAlias;
 
-import 'package:kernel/type_algebra.dart' show substitute;
+import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
@@ -178,7 +184,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   final List<ConstructorReferenceBuilder> constructorReferences =
       <ConstructorReferenceBuilder>[];
 
-  final List<SourceLibraryBuilder> parts = <SourceLibraryBuilder>[];
+  final List<LibraryBuilder> parts = <LibraryBuilder>[];
 
   // Can I use library.parts instead? See SourceLibraryBuilder.addPart.
   final List<int> partOffsets = <int>[];
@@ -247,8 +253,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // default nullability of the corresponding type-parameter types.  This list
   // is used to collect such type-parameter types in order to set the
   // nullability after the bounds are built.
-  final List<TypeParameterType> pendingNullabilities =
-      new List<TypeParameterType>();
+  final List<TypeParameterType> pendingNullabilities = <TypeParameterType>[];
 
   // A library to use for Names generated when compiling code in this library.
   // This allows code generated in one library to use the private namespace of
@@ -332,13 +337,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         importUri.scheme != 'dart' || _packageUri == null,
         "Package uri '$_packageUri' set on dart: library with import uri "
         "'${importUri}'.");
-    updateLibraryNNBDSettings();
   }
 
   bool _enableVarianceInLibrary;
   bool _enableNonfunctionTypeAliasesInLibrary;
   bool _enableNonNullableInLibrary;
-  Version _enableNonNullableVersionCache;
+  Version _enableNonNullableVersionInLibrary;
   bool _enableTripleShiftInLibrary;
   bool _enableExtensionMethodsInLibrary;
 
@@ -358,10 +362,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// a version that is too low for opting in to the experiment.
   bool get enableNonNullableInLibrary => _enableNonNullableInLibrary ??=
       loader.target.isExperimentEnabledInLibrary(
-          ExperimentalFlag.nonNullable, _packageUri ?? importUri);
+              ExperimentalFlag.nonNullable, _packageUri ?? importUri) &&
+          !isOptOutTest(library.importUri);
 
-  Version get _enableNonNullableVersion => _enableNonNullableVersionCache ??=
-      loader.target.getExperimentEnabledVersion(ExperimentalFlag.nonNullable);
+  Version get enableNonNullableVersionInLibrary =>
+      _enableNonNullableVersionInLibrary ??= loader.target
+          .getExperimentEnabledVersionInLibrary(
+              ExperimentalFlag.nonNullable, _packageUri ?? importUri);
 
   bool get enableTripleShiftInLibrary => _enableTripleShiftInLibrary ??=
       loader.target.isExperimentEnabledInLibrary(
@@ -391,7 +398,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     } else {
       library.nonNullableByDefaultCompiledMode =
-          NonNullableByDefaultCompiledMode.Disabled;
+          NonNullableByDefaultCompiledMode.Weak;
     }
   }
 
@@ -434,11 +441,30 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return type;
   }
 
+  bool _isNonNullableByDefault;
+
   @override
-  bool get isNonNullableByDefault =>
+  bool get isNonNullableByDefault {
+    assert(
+        _isNonNullableByDefault == null ||
+            _isNonNullableByDefault == _computeIsNonNullableByDefault(),
+        "Unstable isNonNullableByDefault property, changed "
+        "from ${_isNonNullableByDefault} to "
+        "${_computeIsNonNullableByDefault()}");
+    return _ensureIsNonNullableByDefault();
+  }
+
+  bool _ensureIsNonNullableByDefault() {
+    if (_isNonNullableByDefault == null) {
+      _isNonNullableByDefault = _computeIsNonNullableByDefault();
+      updateLibraryNNBDSettings();
+    }
+    return _isNonNullableByDefault;
+  }
+
+  bool _computeIsNonNullableByDefault() =>
       enableNonNullableInLibrary &&
-      languageVersion.version >= _enableNonNullableVersion &&
-      !isOptOutTest(library.importUri);
+      languageVersion.version >= enableNonNullableVersionInLibrary;
 
   static bool isOptOutTest(Uri uri) {
     String path = uri.path;
@@ -458,6 +484,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     'ffi_2',
     'language_2/',
     'lib_2/',
+    'samples_2/',
+    'service_2/',
     'standalone_2/',
     'vm/dart_2/', // in runtime/tests
   ];
@@ -465,27 +493,23 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   LanguageVersion get languageVersion => _languageVersion;
 
   void markLanguageVersionFinal() {
-    if (enableNonNullableInLibrary &&
+    if (!isNonNullableByDefault &&
         (loader.nnbdMode == NnbdMode.Strong ||
             loader.nnbdMode == NnbdMode.Agnostic)) {
       // In strong and agnostic mode, the language version is not allowed to
       // opt a library out of nnbd.
-      if (!isNonNullableByDefault) {
-        if (_languageVersion.isExplicit) {
-          addPostponedProblem(messageStrongModeNNBDButOptOut,
-              _languageVersion.charOffset, _languageVersion.charCount, fileUri);
-        } else {
-          loader.registerStrongOptOutLibrary(this);
-        }
-        _languageVersion = new InvalidLanguageVersion(
-            fileUri,
-            _languageVersion.charOffset,
-            _languageVersion.charCount,
-            _languageVersion.isExplicit,
-            loader.target.currentSdkVersion);
+      if (_languageVersion.isExplicit) {
+        addPostponedProblem(messageStrongModeNNBDButOptOut,
+            _languageVersion.charOffset, _languageVersion.charCount, fileUri);
+      } else {
+        loader.registerStrongOptOutLibrary(this);
       }
+      library.nonNullableByDefaultCompiledMode =
+          NonNullableByDefaultCompiledMode.Invalid;
+      loader.hasInvalidNnbdModeLibrary = true;
     }
     _languageVersion.isFinal = true;
+    _ensureIsNonNullableByDefault();
   }
 
   @override
@@ -788,15 +812,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   Builder addBuilder(String name, Builder declaration, int charOffset,
-      {Reference reference}) {
+      {Reference getterReference, Reference setterReference}) {
     // TODO(ahe): Set the parent correctly here. Could then change the
     // implementation of MemberBuilder.isTopLevel to test explicitly for a
     // LibraryBuilder.
     if (name == null) {
       unhandled("null", "name", charOffset, fileUri);
     }
-    if (reference != null) {
-      loader.buildersCreatedWithReferences[reference] = declaration;
+    if (getterReference != null) {
+      loader.buildersCreatedWithReferences[getterReference] = declaration;
+    }
+    if (setterReference != null) {
+      loader.buildersCreatedWithReferences[setterReference] = declaration;
     }
     if (currentTypeParameterScopeBuilder == libraryDeclaration) {
       if (declaration is MemberBuilder) {
@@ -910,6 +937,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return true;
   }
 
+  /// Builds the core AST structure of this library as needed for the outline.
   Library build(LibraryBuilder coreLibrary, {bool modifyTarget}) {
     assert(implementationBuilders.isEmpty);
     canAddImplementationBuilders = true;
@@ -953,16 +981,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     library.procedures.sort(compareProcedures);
 
     if (unserializableExports != null) {
-      Field referenceFrom = referencesFromIndexed?.lookupField("_exports#");
-      library.addMember(new Field(new Name("_exports#", library),
+      Name fieldName = new Name("_exports#", library);
+      Reference getterReference =
+          referencesFromIndexed?.lookupGetterReference(fieldName);
+      library.addField(new Field.immutable(fieldName,
           initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
           isConst: true,
-          reference: referenceFrom?.reference));
+          getterReference: getterReference));
     }
 
-    // TODO(CFE Team): Is this really needed in two places?
-    updateLibraryNNBDSettings();
     return library;
   }
 
@@ -1009,7 +1037,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void includeParts(Set<Uri> usedParts) {
     Set<Uri> seenParts = new Set<Uri>();
     for (int i = 0; i < parts.length; i++) {
-      SourceLibraryBuilder part = parts[i];
+      LibraryBuilder part = parts[i];
       int partOffset = partOffsets[i];
       if (part == this) {
         addProblem(messagePartOfSelf, -1, noLength, fileUri);
@@ -1037,28 +1065,39 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  bool includePart(
-      SourceLibraryBuilder part, Set<Uri> usedParts, int partOffset) {
-    if (part.partOfUri != null) {
-      if (uriIsValid(part.partOfUri) && part.partOfUri != importUri) {
-        // This is an error, but the part is not removed from the list of parts,
-        // so that metadata annotations can be associated with it.
-        addProblem(
-            templatePartOfUriMismatch.withArguments(
-                part.fileUri, importUri, part.partOfUri),
-            partOffset,
-            noLength,
-            fileUri);
-        return false;
-      }
-    } else if (part.partOfName != null) {
-      if (name != null) {
-        if (part.partOfName != name) {
+  bool includePart(LibraryBuilder part, Set<Uri> usedParts, int partOffset) {
+    if (part is SourceLibraryBuilder) {
+      if (part.partOfUri != null) {
+        if (uriIsValid(part.partOfUri) && part.partOfUri != importUri) {
           // This is an error, but the part is not removed from the list of
           // parts, so that metadata annotations can be associated with it.
           addProblem(
-              templatePartOfLibraryNameMismatch.withArguments(
-                  part.fileUri, name, part.partOfName),
+              templatePartOfUriMismatch.withArguments(
+                  part.fileUri, importUri, part.partOfUri),
+              partOffset,
+              noLength,
+              fileUri);
+          return false;
+        }
+      } else if (part.partOfName != null) {
+        if (name != null) {
+          if (part.partOfName != name) {
+            // This is an error, but the part is not removed from the list of
+            // parts, so that metadata annotations can be associated with it.
+            addProblem(
+                templatePartOfLibraryNameMismatch.withArguments(
+                    part.fileUri, name, part.partOfName),
+                partOffset,
+                noLength,
+                fileUri);
+            return false;
+          }
+        } else {
+          // This is an error, but the part is not removed from the list of
+          // parts, so that metadata annotations can be associated with it.
+          addProblem(
+              templatePartOfUseUri.withArguments(
+                  part.fileUri, fileUri, part.partOfName),
               partOffset,
               noLength,
               fileUri);
@@ -1067,119 +1106,124 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else {
         // This is an error, but the part is not removed from the list of parts,
         // so that metadata annotations can be associated with it.
-        addProblem(
-            templatePartOfUseUri.withArguments(
-                part.fileUri, fileUri, part.partOfName),
-            partOffset,
-            noLength,
-            fileUri);
+        assert(!part.isPart);
+        if (uriIsValid(part.fileUri)) {
+          addProblem(templateMissingPartOf.withArguments(part.fileUri),
+              partOffset, noLength, fileUri);
+        }
         return false;
       }
+
+      // Language versions have to match. Except if (at least) one of them is
+      // invalid in which case we've already gotten an error about this.
+      if (languageVersion != part.languageVersion &&
+          languageVersion.valid &&
+          part.languageVersion.valid) {
+        // This is an error, but the part is not removed from the list of
+        // parts, so that metadata annotations can be associated with it.
+        List<LocatedMessage> context = <LocatedMessage>[];
+        if (languageVersion.isExplicit) {
+          context.add(messageLanguageVersionLibraryContext.withLocation(
+              languageVersion.fileUri,
+              languageVersion.charOffset,
+              languageVersion.charCount));
+        }
+        if (part.languageVersion.isExplicit) {
+          context.add(messageLanguageVersionPartContext.withLocation(
+              part.languageVersion.fileUri,
+              part.languageVersion.charOffset,
+              part.languageVersion.charCount));
+        }
+        addProblem(
+            messageLanguageVersionMismatchInPart, partOffset, noLength, fileUri,
+            context: context);
+      }
+
+      part.validatePart(this, usedParts);
+      NameIterator partDeclarations = part.nameIterator;
+      while (partDeclarations.moveNext()) {
+        String name = partDeclarations.name;
+        Builder declaration = partDeclarations.current;
+
+        if (declaration.next != null) {
+          List<Builder> duplicated = <Builder>[];
+          while (declaration.next != null) {
+            duplicated.add(declaration);
+            partDeclarations.moveNext();
+            declaration = partDeclarations.current;
+          }
+          duplicated.add(declaration);
+          // Handle duplicated declarations in the part.
+          //
+          // Duplicated declarations are handled by creating a linked list using
+          // the `next` field. This is preferred over making all scope entries
+          // be a `List<Declaration>`.
+          //
+          // We maintain the linked list so that the last entry is easy to
+          // recognize (it's `next` field is null). This means that it is
+          // reversed with respect to source code order. Since kernel doesn't
+          // allow duplicated declarations, we ensure that we only add the first
+          // declaration to the kernel tree.
+          //
+          // Since the duplicated declarations are stored in reverse order, we
+          // iterate over them in reverse order as this is simpler and normally
+          // not a problem. However, in this case we need to call [addBuilder]
+          // in source order as it would otherwise create cycles.
+          //
+          // We also need to be careful preserving the order of the links. The
+          // part library still keeps these declarations in its scope so that
+          // DietListener can find them.
+          for (int i = duplicated.length; i > 0; i--) {
+            Builder declaration = duplicated[i - 1];
+            // No reference: There should be no duplicates when using
+            // references.
+            addBuilder(name, declaration, declaration.charOffset);
+          }
+        } else {
+          // No reference: The part is in the same loader so the reference
+          // - if needed - was already added.
+          addBuilder(name, declaration, declaration.charOffset);
+        }
+      }
+      types.addAll(part.types);
+      constructorReferences.addAll(part.constructorReferences);
+      part.partOfLibrary = this;
+      part.scope.becomePartOf(scope);
+      // TODO(ahe): Include metadata from part?
+
+      nativeMethods.addAll(part.nativeMethods);
+      boundlessTypeVariables.addAll(part.boundlessTypeVariables);
+      // Check that the targets are different. This is not normally a problem
+      // but is for patch files.
+      if (library != part.library && part.library.problemsAsJson != null) {
+        library.problemsAsJson ??= <String>[];
+        library.problemsAsJson.addAll(part.library.problemsAsJson);
+      }
+      List<FieldBuilder> partImplicitlyTypedFields =
+          part.takeImplicitlyTypedFields();
+      if (partImplicitlyTypedFields != null) {
+        if (_implicitlyTypedFields == null) {
+          _implicitlyTypedFields = partImplicitlyTypedFields;
+        } else {
+          _implicitlyTypedFields.addAll(partImplicitlyTypedFields);
+        }
+      }
+      return true;
     } else {
-      // This is an error, but the part is not removed from the list of parts,
-      // so that metadata annotations can be associated with it.
-      assert(!part.isPart);
+      assert(part is DillLibraryBuilder);
+      // Trying to add a dill library builder as a part means that it exists
+      // as a stand-alone library in the dill file.
+      // This means, that it's not a part (if it had been it would be been
+      // "merged in" to the real library and thus not been a library on its own)
+      // so we behave like if it's a library with a missing "part of"
+      // declaration (i.e. as it was a SourceLibraryBuilder without a "part of"
+      // declaration).
       if (uriIsValid(part.fileUri)) {
         addProblem(templateMissingPartOf.withArguments(part.fileUri),
             partOffset, noLength, fileUri);
       }
       return false;
     }
-
-    // Language versions have to match. Except if (at least) one of them is
-    // invalid in which case we've already gotten an error about this.
-    if (languageVersion != part.languageVersion &&
-        languageVersion.valid &&
-        part.languageVersion.valid) {
-      // This is an error, but the part is not removed from the list of
-      // parts, so that metadata annotations can be associated with it.
-      List<LocatedMessage> context = <LocatedMessage>[];
-      if (languageVersion.isExplicit) {
-        context.add(messageLanguageVersionLibraryContext.withLocation(
-            languageVersion.fileUri,
-            languageVersion.charOffset,
-            languageVersion.charCount));
-      }
-      if (part.languageVersion.isExplicit) {
-        context.add(messageLanguageVersionPartContext.withLocation(
-            part.languageVersion.fileUri,
-            part.languageVersion.charOffset,
-            part.languageVersion.charCount));
-      }
-      addProblem(
-          messageLanguageVersionMismatchInPart, partOffset, noLength, fileUri,
-          context: context);
-    }
-
-    part.validatePart(this, usedParts);
-    NameIterator partDeclarations = part.nameIterator;
-    while (partDeclarations.moveNext()) {
-      String name = partDeclarations.name;
-      Builder declaration = partDeclarations.current;
-
-      if (declaration.next != null) {
-        List<Builder> duplicated = <Builder>[];
-        while (declaration.next != null) {
-          duplicated.add(declaration);
-          partDeclarations.moveNext();
-          declaration = partDeclarations.current;
-        }
-        duplicated.add(declaration);
-        // Handle duplicated declarations in the part.
-        //
-        // Duplicated declarations are handled by creating a linked list using
-        // the `next` field. This is preferred over making all scope entries be
-        // a `List<Declaration>`.
-        //
-        // We maintain the linked list so that the last entry is easy to
-        // recognize (it's `next` field is null). This means that it is
-        // reversed with respect to source code order. Since kernel doesn't
-        // allow duplicated declarations, we ensure that we only add the first
-        // declaration to the kernel tree.
-        //
-        // Since the duplicated declarations are stored in reverse order, we
-        // iterate over them in reverse order as this is simpler and normally
-        // not a problem. However, in this case we need to call [addBuilder] in
-        // source order as it would otherwise create cycles.
-        //
-        // We also need to be careful preserving the order of the links. The
-        // part library still keeps these declarations in its scope so that
-        // DietListener can find them.
-        for (int i = duplicated.length; i > 0; i--) {
-          Builder declaration = duplicated[i - 1];
-          // No reference: There should be no duplicates when using references.
-          addBuilder(name, declaration, declaration.charOffset);
-        }
-      } else {
-        // No reference: The part is in the same loader so the reference
-        // - if needed - was already added.
-        addBuilder(name, declaration, declaration.charOffset);
-      }
-    }
-    types.addAll(part.types);
-    constructorReferences.addAll(part.constructorReferences);
-    part.partOfLibrary = this;
-    part.scope.becomePartOf(scope);
-    // TODO(ahe): Include metadata from part?
-
-    nativeMethods.addAll(part.nativeMethods);
-    boundlessTypeVariables.addAll(part.boundlessTypeVariables);
-    // Check that the targets are different. This is not normally a problem
-    // but is for patch files.
-    if (library != part.library && part.library.problemsAsJson != null) {
-      library.problemsAsJson ??= <String>[];
-      library.problemsAsJson.addAll(part.library.problemsAsJson);
-    }
-    List<FieldBuilder> partImplicitlyTypedFields =
-        part.takeImplicitlyTypedFields();
-    if (partImplicitlyTypedFields != null) {
-      if (_implicitlyTypedFields == null) {
-        _implicitlyTypedFields = partImplicitlyTypedFields;
-      } else {
-        _implicitlyTypedFields.addAll(partImplicitlyTypedFields);
-      }
-    }
-    return true;
   }
 
   void buildInitialScopes() {
@@ -1240,7 +1284,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               } else if (memberLast is ExtensionBuilder) {
                 library.additionalExports.add(memberLast.extension.reference);
               } else if (memberLast is MemberBuilder) {
-                library.additionalExports.add(memberLast.member.reference);
+                for (Member member in memberLast.exportedMembers) {
+                  if (member is Field) {
+                    // For fields add both getter and setter references
+                    // so replacing a field with a getter/setter pair still
+                    // exports correctly.
+                    library.additionalExports.add(member.getterReference);
+                    if (member.hasSetter) {
+                      library.additionalExports.add(member.setterReference);
+                    }
+                  } else {
+                    library.additionalExports.add(member.reference);
+                  }
+                }
               } else {
                 unhandled('member', 'exportScope', memberLast.charOffset,
                     memberLast.fileUri);
@@ -1346,6 +1402,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         new NeverTypeDeclarationBuilder(
             const NeverType(Nullability.nonNullable), this, -1),
         -1);
+  }
+
+  void addSyntheticDeclarationOfNull() {
+    // TODO(dmitryas): Uncomment the following when the Null class is removed
+    // from the SDK.
+    //addBuilder("Null", new NullTypeBuilder(const NullType(), this, -1), -1);
   }
 
   TypeBuilder addNamedType(Object name, NullabilityBuilder nullabilityBuilder,
@@ -1575,7 +1637,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
     addBuilder(className, classBuilder, nameOffset,
-        reference: referencesFromClass?.reference);
+        getterReference: referencesFromClass?.reference);
   }
 
   Map<String, TypeVariableBuilder> checkTypeVariables(
@@ -1614,6 +1676,100 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     return typeVariablesByName;
+  }
+
+  void checkGetterSetterTypes(ProcedureBuilder getterBuilder,
+      ProcedureBuilder setterBuilder, TypeEnvironment typeEnvironment) {
+    DartType getterType;
+    List<TypeParameter> getterExtensionTypeParameters;
+    if (getterBuilder.isExtensionInstanceMember) {
+      // An extension instance getter
+      //
+      //     extension E<T> on A {
+      //       T get property => ...
+      //     }
+      //
+      // is encoded as a top level method
+      //
+      //   T# E#get#property<T#>(A #this) => ...
+      //
+      Procedure procedure = getterBuilder.procedure;
+      getterType = procedure.function.returnType;
+      getterExtensionTypeParameters = procedure.function.typeParameters;
+    } else {
+      getterType = getterBuilder.procedure.getterType;
+    }
+    DartType setterType;
+    if (setterBuilder.isExtensionInstanceMember) {
+      // An extension instance setter
+      //
+      //     extension E<T> on A {
+      //       void set property(T value) { ... }
+      //     }
+      //
+      // is encoded as a top level method
+      //
+      //   void E#set#property<T#>(A #this, T# value) { ... }
+      //
+      Procedure procedure = setterBuilder.procedure;
+      setterType = procedure.function.positionalParameters[1].type;
+      if (getterExtensionTypeParameters != null &&
+          getterExtensionTypeParameters.isNotEmpty) {
+        // We substitute the setter type parameters for the getter type
+        // parameters to check them below in a shared context.
+        List<TypeParameter> setterExtensionTypeParameters =
+            procedure.function.typeParameters;
+        assert(getterExtensionTypeParameters.length ==
+            setterExtensionTypeParameters.length);
+        setterType = Substitution.fromPairs(
+                setterExtensionTypeParameters,
+                new List<DartType>.generate(
+                    getterExtensionTypeParameters.length,
+                    (int index) => new TypeParameterType.forAlphaRenaming(
+                        setterExtensionTypeParameters[index],
+                        getterExtensionTypeParameters[index])))
+            .substituteType(setterType);
+      }
+    } else {
+      setterType = setterBuilder.procedure.setterType;
+    }
+
+    if (getterType is InvalidType || setterType is InvalidType) {
+      // Don't report a problem as something else is wrong that has already
+      // been reported.
+    } else {
+      bool isValid = typeEnvironment.isSubtypeOf(
+          getterType,
+          setterType,
+          library.isNonNullableByDefault
+              ? SubtypeCheckMode.withNullabilities
+              : SubtypeCheckMode.ignoringNullabilities);
+      if (!isValid && !library.isNonNullableByDefault) {
+        // Allow assignability in legacy libraries.
+        isValid = typeEnvironment.isSubtypeOf(
+            setterType, getterType, SubtypeCheckMode.ignoringNullabilities);
+      }
+      if (!isValid) {
+        String getterMemberName = getterBuilder.fullNameForErrors;
+        String setterMemberName = setterBuilder.fullNameForErrors;
+        Template<Message Function(DartType, String, DartType, String, bool)>
+            template = library.isNonNullableByDefault
+                ? templateInvalidGetterSetterType
+                : templateInvalidGetterSetterTypeLegacy;
+        addProblem(
+            template.withArguments(getterType, getterMemberName, setterType,
+                setterMemberName, library.isNonNullableByDefault),
+            getterBuilder.charOffset,
+            getterBuilder.name.length,
+            getterBuilder.fileUri,
+            context: [
+              templateInvalidGetterSetterTypeSetterContext
+                  .withArguments(setterMemberName)
+                  .withLocation(setterBuilder.fileUri, setterBuilder.charOffset,
+                      setterBuilder.name.length)
+            ]);
+      }
+    }
   }
 
   void addExtensionDeclaration(
@@ -1691,7 +1847,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
     addBuilder(extensionName, extensionBuilder, nameOffset,
-        reference: referenceFrom?.reference);
+        getterReference: referenceFrom?.reference);
   }
 
   TypeBuilder applyMixins(TypeBuilder type, int startCharOffset, int charOffset,
@@ -1903,7 +2059,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           isMixinDeclaration ? null : supertype,
           isNamedMixinApplication
               ? interfaces
-              : isMixinDeclaration ? [supertype, mixin] : null,
+              : isMixinDeclaration
+                  ? [supertype, mixin]
+                  : null,
           null, // No `on` clause types.
           new Scope(
               local: <String, MemberBuilder>{},
@@ -1930,7 +2088,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // handle that :(
         application.cls.isAnonymousMixin = !isNamedMixinApplication;
         addBuilder(fullname, application, charOffset,
-            reference: referencesFromClass?.reference);
+            getterReference: referencesFromClass?.reference);
         supertype = addNamedType(fullname, const NullabilityBuilder.omitted(),
             applicationTypeArguments, charOffset);
       }
@@ -1980,12 +2138,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
-    Field referenceFrom;
-    Field lateIsSetReferenceFrom;
-    Procedure getterReferenceFrom;
-    Procedure setterReferenceFrom;
     final bool fieldIsLateWithLowering = (modifiers & lateMask) != 0 &&
-        !loader.target.backendTarget.supportsLateFields;
+        loader.target.backendTarget.isLateFieldLoweringEnabled(
+            hasInitializer: hasInitializer,
+            isFinal: (modifiers & finalMask) != 0,
+            isStatic: isTopLevel || (modifiers & staticMask) != 0);
     final bool isInstanceMember = currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.classDeclaration &&
         (modifiers & staticMask) == 0;
@@ -1999,6 +2156,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (isExtension) {
       extensionName = currentTypeParameterScopeBuilder.name;
     }
+
+    Reference fieldGetterReference;
+    Reference fieldSetterReference;
+    Reference lateIsSetGetterReference;
+    Reference lateIsSetSetterReference;
+    Reference getterReference;
+    Reference setterReference;
     if (referencesFrom != null) {
       String nameToLookup = SourceFieldBuilder.createFieldName(
           FieldNameType.Field, name,
@@ -2007,79 +2171,58 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           isExtensionMethod: isExtension,
           extensionName: extensionName,
           isSynthesized: fieldIsLateWithLowering);
-
-      if (_currentClassReferencesFromIndexed != null) {
-        referenceFrom =
-            _currentClassReferencesFromIndexed.lookupField(nameToLookup);
-        if (fieldIsLateWithLowering) {
-          lateIsSetReferenceFrom = _currentClassReferencesFromIndexed
-              .lookupField(SourceFieldBuilder.createFieldName(
-                  FieldNameType.IsSetField, name,
-                  isInstanceMember: isInstanceMember,
-                  className: className,
-                  isExtensionMethod: isExtension,
-                  extensionName: extensionName,
-                  isSynthesized: fieldIsLateWithLowering));
-          getterReferenceFrom =
-              _currentClassReferencesFromIndexed.lookupProcedureNotSetter(
-                  SourceFieldBuilder.createFieldName(FieldNameType.Getter, name,
-                      isInstanceMember: isInstanceMember,
-                      className: className,
-                      isExtensionMethod: isExtension,
-                      extensionName: extensionName,
-                      isSynthesized: fieldIsLateWithLowering));
-          setterReferenceFrom =
-              _currentClassReferencesFromIndexed.lookupProcedureSetter(
-                  SourceFieldBuilder.createFieldName(FieldNameType.Setter, name,
-                      isInstanceMember: isInstanceMember,
-                      className: className,
-                      isExtensionMethod: isExtension,
-                      extensionName: extensionName,
-                      isSynthesized: fieldIsLateWithLowering));
-        }
-      } else {
-        referenceFrom = referencesFromIndexed.lookupField(nameToLookup);
-        if (fieldIsLateWithLowering) {
-          lateIsSetReferenceFrom = referencesFromIndexed.lookupField(
-              SourceFieldBuilder.createFieldName(FieldNameType.IsSetField, name,
-                  isInstanceMember: isInstanceMember,
-                  className: className,
-                  isExtensionMethod: isExtension,
-                  extensionName: extensionName,
-                  isSynthesized: fieldIsLateWithLowering));
-          getterReferenceFrom = referencesFromIndexed.lookupProcedureNotSetter(
-              SourceFieldBuilder.createFieldName(FieldNameType.Getter, name,
-                  isInstanceMember: isInstanceMember,
-                  className: className,
-                  isExtensionMethod: isExtension,
-                  extensionName: extensionName,
-                  isSynthesized: fieldIsLateWithLowering));
-          setterReferenceFrom = referencesFromIndexed.lookupProcedureSetter(
-              SourceFieldBuilder.createFieldName(FieldNameType.Setter, name,
-                  isInstanceMember: isInstanceMember,
-                  className: className,
-                  isExtensionMethod: isExtension,
-                  extensionName: extensionName,
-                  isSynthesized: fieldIsLateWithLowering));
-        }
+      IndexedContainer indexedContainer =
+          _currentClassReferencesFromIndexed ?? referencesFromIndexed;
+      Name nameToLookupName = new Name(nameToLookup, indexedContainer.library);
+      fieldGetterReference =
+          indexedContainer.lookupGetterReference(nameToLookupName);
+      fieldSetterReference =
+          indexedContainer.lookupSetterReference(nameToLookupName);
+      if (fieldIsLateWithLowering) {
+        String lateIsSetName = SourceFieldBuilder.createFieldName(
+            FieldNameType.IsSetField, name,
+            isInstanceMember: isInstanceMember,
+            className: className,
+            isExtensionMethod: isExtension,
+            extensionName: extensionName,
+            isSynthesized: fieldIsLateWithLowering);
+        Name lateIsSetNameName =
+            new Name(lateIsSetName, indexedContainer.library);
+        lateIsSetGetterReference =
+            indexedContainer.lookupGetterReference(lateIsSetNameName);
+        lateIsSetSetterReference =
+            indexedContainer.lookupSetterReference(lateIsSetNameName);
+        getterReference = indexedContainer.lookupGetterReference(new Name(
+            SourceFieldBuilder.createFieldName(FieldNameType.Getter, name,
+                isInstanceMember: isInstanceMember,
+                className: className,
+                isExtensionMethod: isExtension,
+                extensionName: extensionName,
+                isSynthesized: fieldIsLateWithLowering),
+            indexedContainer.library));
+        setterReference = indexedContainer.lookupSetterReference(new Name(
+            SourceFieldBuilder.createFieldName(FieldNameType.Setter, name,
+                isInstanceMember: isInstanceMember,
+                className: className,
+                isExtensionMethod: isExtension,
+                extensionName: extensionName,
+                isSynthesized: fieldIsLateWithLowering),
+            indexedContainer.library));
       }
     }
-    SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
-        metadata,
-        type,
-        name,
-        modifiers,
-        isTopLevel,
-        this,
-        charOffset,
-        charEndOffset,
-        referenceFrom,
-        lateIsSetReferenceFrom,
-        getterReferenceFrom,
-        setterReferenceFrom);
+
+    SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(metadata, type,
+        name, modifiers, isTopLevel, this, charOffset, charEndOffset,
+        fieldGetterReference: fieldGetterReference,
+        fieldSetterReference: fieldSetterReference,
+        lateIsSetGetterReference: lateIsSetGetterReference,
+        lateIsSetSetterReference: lateIsSetSetterReference,
+        getterReference: getterReference,
+        setterReference: setterReference);
     fieldBuilder.constInitializerToken = constInitializerToken;
     addBuilder(name, fieldBuilder, charOffset,
-        reference: referenceFrom?.reference);
+        getterReference: fieldGetterReference,
+        setterReference: fieldSetterReference);
     if (type == null && fieldBuilder.next == null) {
       // Only the first one (the last one in the linked list of next pointers)
       // are added to the tree, had parent pointers and can infer correctly.
@@ -2115,10 +2258,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String nativeMethodName,
       {Token beginInitializers}) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
-    Constructor referenceFrom;
+    Member referenceFrom;
     if (_currentClassReferencesFromIndexed != null) {
-      referenceFrom =
-          _currentClassReferencesFromIndexed.lookupConstructor(constructorName);
+      referenceFrom = _currentClassReferencesFromIndexed.lookupConstructor(
+          new Name(
+              constructorName, _currentClassReferencesFromIndexed.library));
     }
     ConstructorBuilder constructorBuilder = new ConstructorBuilderImpl(
         metadata,
@@ -2140,7 +2284,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         constructorBuilder.constructor, name);
     checkTypeVariables(typeVariables, constructorBuilder);
     addBuilder(constructorName, constructorBuilder, charOffset,
-        reference: referenceFrom?.reference);
+        getterReference: referenceFrom?.reference);
     if (nativeMethodName != null) {
       addNativeMethod(constructorBuilder);
     }
@@ -2168,26 +2312,32 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charEndOffset,
       String nativeMethodName,
       AsyncMarker asyncModifier,
-      {bool isTopLevel}) {
+      {bool isTopLevel,
+      bool isExtensionInstanceMember}) {
+    assert(isTopLevel != null);
+    assert(isExtensionInstanceMember != null);
+
     MetadataCollector metadataCollector = loader.target.metadataCollector;
     if (returnType == null) {
       if (kind == ProcedureKind.Operator &&
-          identical(name, indexSetName.name)) {
+          identical(name, indexSetName.text)) {
         returnType = addVoidType(charOffset);
       } else if (kind == ProcedureKind.Setter) {
         returnType = addVoidType(charOffset);
       }
     }
-    Procedure referenceFrom;
-    Procedure tearOffReferenceFrom;
+    Reference procedureReference;
+    Reference tearOffReference;
     if (referencesFrom != null) {
       if (_currentClassReferencesFromIndexed != null) {
         if (kind == ProcedureKind.Setter) {
-          referenceFrom =
-              _currentClassReferencesFromIndexed.lookupProcedureSetter(name);
+          procedureReference =
+              _currentClassReferencesFromIndexed.lookupSetterReference(
+                  new Name(name, _currentClassReferencesFromIndexed.library));
         } else {
-          referenceFrom =
-              _currentClassReferencesFromIndexed.lookupProcedureNotSetter(name);
+          procedureReference =
+              _currentClassReferencesFromIndexed.lookupGetterReference(
+                  new Name(name, _currentClassReferencesFromIndexed.library));
         }
       } else {
         if (currentTypeParameterScopeBuilder.kind ==
@@ -2200,11 +2350,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               currentTypeParameterScopeBuilder.name,
               name);
           if (extensionIsStatic && kind == ProcedureKind.Setter) {
-            referenceFrom =
-                referencesFromIndexed.lookupProcedureSetter(nameToLookup);
+            procedureReference = referencesFromIndexed.lookupSetterReference(
+                new Name(nameToLookup, referencesFromIndexed.library));
           } else {
-            referenceFrom =
-                referencesFromIndexed.lookupProcedureNotSetter(nameToLookup);
+            procedureReference = referencesFromIndexed.lookupGetterReference(
+                new Name(nameToLookup, referencesFromIndexed.library));
           }
           if (kind == ProcedureKind.Method) {
             String tearOffNameToLookup =
@@ -2214,15 +2364,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     ProcedureKind.Getter,
                     currentTypeParameterScopeBuilder.name,
                     name);
-            tearOffReferenceFrom = referencesFromIndexed
-                .lookupProcedureNotSetter(tearOffNameToLookup);
+            tearOffReference = referencesFromIndexed.lookupGetterReference(
+                new Name(tearOffNameToLookup, referencesFromIndexed.library));
           }
         } else {
           if (kind == ProcedureKind.Setter) {
-            referenceFrom = referencesFromIndexed.lookupProcedureSetter(name);
+            procedureReference = referencesFromIndexed.lookupSetterReference(
+                new Name(name, referencesFromIndexed.library));
           } else {
-            referenceFrom =
-                referencesFromIndexed.lookupProcedureNotSetter(name);
+            procedureReference = referencesFromIndexed.lookupGetterReference(
+                new Name(name, referencesFromIndexed.library));
           }
         }
       }
@@ -2240,15 +2391,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charOffset,
         charOpenParenOffset,
         charEndOffset,
-        referenceFrom,
-        tearOffReferenceFrom,
+        procedureReference,
+        tearOffReference,
         asyncModifier,
+        isExtensionInstanceMember,
         nativeMethodName);
     metadataCollector?.setDocumentationComment(
         procedureBuilder.procedure, documentationComment);
     checkTypeVariables(typeVariables, procedureBuilder);
     addBuilder(name, procedureBuilder, charOffset,
-        reference: referenceFrom?.reference);
+        getterReference: procedureReference);
     if (nativeMethodName != null) {
       addNativeMethod(procedureBuilder);
     }
@@ -2286,8 +2438,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       procedureName = name;
     }
 
-    Procedure referenceFrom = _currentClassReferencesFromIndexed
-        ?.lookupProcedureNotSetter(procedureName);
+    Reference reference = _currentClassReferencesFromIndexed
+        ?.lookupConstructor(
+            new Name(procedureName, _currentClassReferencesFromIndexed.library))
+        ?.reference;
 
     ProcedureBuilder procedureBuilder;
     if (redirectionTarget != null) {
@@ -2306,7 +2460,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           charOffset,
           charOpenParenOffset,
           charEndOffset,
-          referenceFrom,
+          reference,
           nativeMethodName,
           redirectionTarget);
     } else {
@@ -2326,9 +2480,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           charOffset,
           charOpenParenOffset,
           charEndOffset,
-          referenceFrom,
+          reference,
           null,
           asyncModifier,
+          /* isExtensionInstanceMember = */ false,
           nativeMethodName);
     }
 
@@ -2350,7 +2505,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     factoryDeclaration.resolveTypes(procedureBuilder.typeVariables, this);
     addBuilder(procedureName, procedureBuilder, charOffset,
-        reference: referenceFrom?.reference);
+        getterReference: reference);
     if (nativeMethodName != null) {
       addNativeMethod(procedureBuilder);
     }
@@ -2384,7 +2539,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         referencesFromClass,
         referencesFromIndexedClass);
     addBuilder(name, builder, charOffset,
-        reference: referencesFromClass?.reference);
+        getterReference: referencesFromClass?.reference);
     metadataCollector?.setDocumentationComment(
         builder.cls, documentationComment);
   }
@@ -2412,7 +2567,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     endNestedDeclaration(TypeParameterScopeKind.typedef, "#typedef")
         .resolveTypes(typeVariables, this);
     addBuilder(name, typedefBuilder, charOffset,
-        reference: referenceFrom?.reference);
+        getterReference: referenceFrom?.reference);
   }
 
   FunctionTypeBuilder addFunctionType(
@@ -2443,7 +2598,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       modifiers |= initializingFormalMask;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-        metadata, modifiers, type, name, this, charOffset, fileUri)
+        metadata, modifiers, type, name, this, charOffset,
+        fileUri: fileUri)
       ..initializerToken = initializerToken
       ..hasDeclaredInitializer = (initializerToken != null);
     return formal;
@@ -2462,6 +2618,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     MetadataBuilder.buildAnnotations(library, metadata, this, null, null);
   }
 
+  /// Builds the core AST structures for [declaration] needed for the outline.
   void buildBuilder(Builder declaration, LibraryBuilder coreLibrary) {
     String findDuplicateSuffix(Builder declaration) {
       if (declaration.next != null) {
@@ -2493,11 +2650,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           (Member member, BuiltMemberKind memberKind) {
         if (member is Field) {
           member.isStatic = true;
+          if (!declaration.isPatch && !declaration.isDuplicate) {
+            library.addField(member);
+          }
         } else if (member is Procedure) {
           member.isStatic = true;
-        }
-        if (!declaration.isPatch && !declaration.isDuplicate) {
-          library.addMember(member);
+          if (!declaration.isPatch && !declaration.isDuplicate) {
+            library.addProcedure(member);
+          }
+        } else {
+          unhandled("${member.runtimeType}:${memberKind}", "buildBuilder",
+              declaration.charOffset, declaration.fileUri);
         }
       });
     } else if (declaration is SourceTypeAliasBuilder) {
@@ -2581,8 +2744,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    for (SourceLibraryBuilder part in parts) {
-      part.addDependencies(library, seen);
+    for (LibraryBuilder part in parts) {
+      if (part is SourceLibraryBuilder) {
+        part.addDependencies(library, seen);
+      }
     }
   }
 
@@ -2692,7 +2857,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (Import import in imports) {
       if (import.deferred) {
         Procedure tearoff = import.prefixBuilder.loadLibraryBuilder.tearoff;
-        if (tearoff != null) library.addMember(tearoff);
+        if (tearoff != null) library.addProcedure(tearoff);
         total++;
       }
     }
@@ -2736,7 +2901,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         VariableDeclaration originNamed = originNamedMap[forwarderNamed.name];
         if (originNamed == null) {
           return unhandled(
-              "null", forwarder.name.name, origin.fileOffset, origin.fileUri);
+              "null", forwarder.name.text, origin.fileOffset, origin.fileUri);
         }
         if (originNamed.initializer == null) continue;
         forwarderNamed.initializer = cloner.clone(originNamed.initializer);
@@ -3074,7 +3239,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           inferredTypes.contains(argument);
       offset =
           typeArgumentsInfo?.getOffsetForIndex(issue.index, offset) ?? offset;
-      if (argument is FunctionType && argument.typeParameters.length > 0) {
+      if (isGenericFunctionTypeOrAlias(argument)) {
         if (issueInferred) {
           message = templateGenericFunctionTypeInferredAsActualTypeArgument
               .withArguments(argument, isNonNullableByDefault);
@@ -3125,20 +3290,30 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
 
-      reportTypeArgumentIssue(message, fileUri, offset, typeParameter);
+      reportTypeArgumentIssue(message, fileUri, offset,
+          typeParameter: typeParameter,
+          superBoundedAttempt: issue.enclosingType,
+          superBoundedAttemptInverted: issue.invertedType);
     }
   }
 
   void reportTypeArgumentIssue(Message message, Uri fileUri, int fileOffset,
-      TypeParameter typeParameter) {
+      {TypeParameter typeParameter,
+      DartType superBoundedAttempt,
+      DartType superBoundedAttemptInverted}) {
     List<LocatedMessage> context;
     if (typeParameter != null && typeParameter.fileOffset != -1) {
       // It looks like when parameters come from patch files, they don't
       // have a reportable location.
-      context = <LocatedMessage>[
-        messageIncorrectTypeArgumentVariable.withLocation(
-            typeParameter.location.file, typeParameter.fileOffset, noLength)
-      ];
+      (context ??= <LocatedMessage>[]).add(
+          messageIncorrectTypeArgumentVariable.withLocation(
+              typeParameter.location.file, typeParameter.fileOffset, noLength));
+    }
+    if (superBoundedAttemptInverted != null && superBoundedAttempt != null) {
+      (context ??= <LocatedMessage>[]).add(templateSuperBoundedHint
+          .withArguments(superBoundedAttempt, superBoundedAttemptInverted,
+              isNonNullableByDefault)
+          .withLocation(fileUri, fileOffset, noLength));
     }
     addProblem(message, fileOffset, noLength, fileUri, context: context);
   }
@@ -3195,13 +3370,62 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
+  void checkBoundsInTypeParameters(TypeEnvironment typeEnvironment,
+      List<TypeParameter> typeParameters, Uri fileUri) {
+    // Check in bounds of own type variables.
+    for (TypeParameter parameter in typeParameters) {
+      List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+          library,
+          parameter.bound,
+          typeEnvironment,
+          isNonNullableByDefault
+              ? SubtypeCheckMode.withNullabilities
+              : SubtypeCheckMode.ignoringNullabilities,
+          allowSuperBounded: true);
+      for (TypeArgumentIssue issue in issues) {
+        DartType argument = issue.argument;
+        TypeParameter typeParameter = issue.typeParameter;
+        if (inferredTypes.contains(argument)) {
+          // Inference in type expressions in the supertypes boils down to
+          // instantiate-to-bound which shouldn't produce anything that breaks
+          // the bounds after the non-simplicity checks are done.  So, any
+          // violation here is the result of non-simple bounds, and the error
+          // is reported elsewhere.
+          continue;
+        }
+
+        if (isGenericFunctionTypeOrAlias(argument)) {
+          reportTypeArgumentIssue(
+              messageGenericFunctionTypeUsedAsActualTypeArgument,
+              fileUri,
+              parameter.fileOffset,
+              typeParameter: null);
+        } else {
+          reportTypeArgumentIssue(
+              templateIncorrectTypeArgument.withArguments(
+                  argument,
+                  typeParameter.bound,
+                  typeParameter.name,
+                  getGenericTypeName(issue.enclosingType),
+                  library.isNonNullableByDefault),
+              fileUri,
+              parameter.fileOffset,
+              typeParameter: typeParameter,
+              superBoundedAttempt: issue.enclosingType,
+              superBoundedAttemptInverted: issue.invertedType);
+        }
+      }
+    }
+  }
+
   void checkBoundsInFunctionNodeParts(
       TypeEnvironment typeEnvironment, Uri fileUri, int fileOffset,
       {List<TypeParameter> typeParameters,
       List<VariableDeclaration> positionalParameters,
       List<VariableDeclaration> namedParameters,
       DartType returnType,
-      int requiredParameterCount}) {
+      int requiredParameterCount,
+      bool skipReturnType = false}) {
     if (typeParameters != null) {
       for (TypeParameter parameter in typeParameters) {
         checkBoundsInType(
@@ -3225,21 +3449,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             allowSuperBounded: true);
       }
     }
-    if (returnType != null) {
-      final DartType bottomType = isNonNullableByDefault
-          ? const NeverType(Nullability.nonNullable)
-          : typeEnvironment.nullType;
-      Set<TypeArgumentIssue> issues = {};
-      issues.addAll(findTypeArgumentIssues(library, returnType, typeEnvironment,
-              SubtypeCheckMode.ignoringNullabilities, bottomType,
-              allowSuperBounded: true) ??
-          const []);
-      if (isNonNullableByDefault) {
-        issues.addAll(findTypeArgumentIssues(library, returnType,
-                typeEnvironment, SubtypeCheckMode.withNullabilities, bottomType,
-                allowSuperBounded: true) ??
-            const []);
-      }
+    if (!skipReturnType && returnType != null) {
+      List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+          library,
+          returnType,
+          typeEnvironment,
+          isNonNullableByDefault
+              ? SubtypeCheckMode.withNullabilities
+              : SubtypeCheckMode.ignoringNullabilities,
+          allowSuperBounded: true);
       for (TypeArgumentIssue issue in issues) {
         DartType argument = issue.argument;
         TypeParameter typeParameter = issue.typeParameter;
@@ -3247,12 +3465,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // We don't need to check if [argument] was inferred or specified
         // here, because inference in return types boils down to instantiate-
         // -to-bound, and it can't provide a type that violates the bound.
-        if (argument is FunctionType && argument.typeParameters.length > 0) {
+        if (isGenericFunctionTypeOrAlias(argument)) {
           reportTypeArgumentIssue(
               messageGenericFunctionTypeUsedAsActualTypeArgument,
               fileUri,
               fileOffset,
-              null);
+              typeParameter: null);
         } else {
           reportTypeArgumentIssue(
               templateIncorrectTypeArgumentInReturnType.withArguments(
@@ -3263,21 +3481,53 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   isNonNullableByDefault),
               fileUri,
               fileOffset,
-              typeParameter);
+              typeParameter: typeParameter,
+              superBoundedAttempt: issue.enclosingType,
+              superBoundedAttemptInverted: issue.invertedType);
         }
       }
     }
   }
 
+  void checkTypesInProcedureBuilder(
+      ProcedureBuilder procedureBuilder, TypeEnvironment typeEnvironment) {
+    checkBoundsInFunctionNode(procedureBuilder.procedure.function,
+        typeEnvironment, procedureBuilder.fileUri);
+    if (procedureBuilder.formals != null &&
+        !(procedureBuilder.isAbstract || procedureBuilder.isExternal)) {
+      checkInitializersInFormals(procedureBuilder.formals, typeEnvironment);
+    }
+  }
+
+  void checkTypesInConstructorBuilder(
+      ConstructorBuilder constructorBuilder, TypeEnvironment typeEnvironment) {
+    checkBoundsInFunctionNode(
+        constructorBuilder.constructor.function, typeEnvironment, fileUri);
+    if (!constructorBuilder.isExternal && constructorBuilder.formals != null) {
+      checkInitializersInFormals(constructorBuilder.formals, typeEnvironment);
+    }
+  }
+
+  void checkTypesInRedirectingFactoryBuilder(
+      RedirectingFactoryBuilder redirectingFactoryBuilder,
+      TypeEnvironment typeEnvironment) {
+    checkBoundsInFunctionNode(redirectingFactoryBuilder.procedure.function,
+        typeEnvironment, redirectingFactoryBuilder.fileUri);
+    // Default values are not required on redirecting factory constructors so
+    // we don't call [checkInitializersInFormals].
+  }
+
   void checkBoundsInFunctionNode(
-      FunctionNode function, TypeEnvironment typeEnvironment, Uri fileUri) {
+      FunctionNode function, TypeEnvironment typeEnvironment, Uri fileUri,
+      {bool skipReturnType = false}) {
     checkBoundsInFunctionNodeParts(
         typeEnvironment, fileUri, function.fileOffset,
         typeParameters: function.typeParameters,
         positionalParameters: function.positionalParameters,
         namedParameters: function.namedParameters,
         returnType: function.returnType,
-        requiredParameterCount: function.requiredParameterCount);
+        requiredParameterCount: function.requiredParameterCount,
+        skipReturnType: skipReturnType);
   }
 
   void checkBoundsInListLiteral(
@@ -3308,20 +3558,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkBoundsInType(
       DartType type, TypeEnvironment typeEnvironment, Uri fileUri, int offset,
       {bool inferred, bool allowSuperBounded = true}) {
-    final DartType bottomType = isNonNullableByDefault
-        ? const NeverType(Nullability.nonNullable)
-        : typeEnvironment.nullType;
-    Set<TypeArgumentIssue> issues = {};
-    issues.addAll(findTypeArgumentIssues(library, type, typeEnvironment,
-            SubtypeCheckMode.ignoringNullabilities, bottomType,
-            allowSuperBounded: allowSuperBounded) ??
-        const []);
-    if (isNonNullableByDefault) {
-      issues.addAll(findTypeArgumentIssues(library, type, typeEnvironment,
-              SubtypeCheckMode.withNullabilities, bottomType,
-              allowSuperBounded: allowSuperBounded) ??
-          const []);
-    }
+    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+        library,
+        type,
+        typeEnvironment,
+        isNonNullableByDefault
+            ? SubtypeCheckMode.withNullabilities
+            : SubtypeCheckMode.ignoringNullabilities,
+        allowSuperBounded: allowSuperBounded);
     reportTypeArgumentIssues(issues, fileUri, offset, inferred: inferred);
   }
 
@@ -3377,33 +3621,23 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     final DartType bottomType = isNonNullableByDefault
         ? const NeverType(Nullability.nonNullable)
-        : typeEnvironment.nullType;
-    Set<TypeArgumentIssue> issues = {};
-    issues.addAll(findTypeArgumentIssuesForInvocation(
-            library,
-            parameters,
-            arguments,
-            typeEnvironment,
-            SubtypeCheckMode.ignoringNullabilities,
-            bottomType) ??
-        const []);
-    if (isNonNullableByDefault) {
-      issues.addAll(findTypeArgumentIssuesForInvocation(
-              library,
-              parameters,
-              arguments,
-              typeEnvironment,
-              SubtypeCheckMode.withNullabilities,
-              bottomType) ??
-          const []);
-    }
+        : const NullType();
+    List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
+        library,
+        parameters,
+        arguments,
+        typeEnvironment,
+        isNonNullableByDefault
+            ? SubtypeCheckMode.withNullabilities
+            : SubtypeCheckMode.ignoringNullabilities,
+        bottomType);
     if (issues.isNotEmpty) {
       DartType targetReceiver;
       if (klass != null) {
         targetReceiver =
             new InterfaceType(klass, klass.enclosingLibrary.nonNullable);
       }
-      String targetName = node.target.name.name;
+      String targetName = node.target.name.text;
       reportTypeArgumentIssues(issues, fileUri, node.fileOffset,
           typeArgumentsInfo: typeArgumentsInfo,
           targetReceiver: targetReceiver,
@@ -3464,30 +3698,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     final DartType bottomType = isNonNullableByDefault
         ? const NeverType(Nullability.nonNullable)
-        : typeEnvironment.nullType;
-    Set<TypeArgumentIssue> issues = {};
-    issues.addAll(findTypeArgumentIssuesForInvocation(
-            library,
-            instantiatedMethodParameters,
-            arguments.types,
-            typeEnvironment,
-            SubtypeCheckMode.ignoringNullabilities,
-            bottomType) ??
-        const []);
-    if (isNonNullableByDefault) {
-      issues.addAll(findTypeArgumentIssuesForInvocation(
-              library,
-              instantiatedMethodParameters,
-              arguments.types,
-              typeEnvironment,
-              SubtypeCheckMode.withNullabilities,
-              bottomType) ??
-          const []);
-    }
+        : const NullType();
+    List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
+        library,
+        instantiatedMethodParameters,
+        arguments.types,
+        typeEnvironment,
+        isNonNullableByDefault
+            ? SubtypeCheckMode.withNullabilities
+            : SubtypeCheckMode.ignoringNullabilities,
+        bottomType);
     reportTypeArgumentIssues(issues, fileUri, offset,
         typeArgumentsInfo: getTypeArgumentsInfo(arguments),
         targetReceiver: receiverType,
-        targetName: name.name);
+        targetName: name.text);
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
@@ -3497,13 +3721,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (declaration is FieldBuilder) {
         checkTypesInField(declaration, typeEnvironment);
       } else if (declaration is ProcedureBuilder) {
-        checkBoundsInFunctionNode(declaration.procedure.function,
-            typeEnvironment, declaration.fileUri);
-        if (declaration.formals != null) {
-          checkInitializersInFormals(declaration.formals, typeEnvironment);
+        checkTypesInProcedureBuilder(declaration, typeEnvironment);
+        if (declaration.isGetter) {
+          Builder setterDeclaration =
+              scope.lookupLocalMember(declaration.name, setter: true);
+          if (setterDeclaration != null) {
+            checkGetterSetterTypes(
+                declaration, setterDeclaration, typeEnvironment);
+          }
         }
       } else if (declaration is SourceClassBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
+      } else if (declaration is SourceExtensionBuilder) {
+        declaration.checkTypesInOutline(typeEnvironment);
+      } else {
+        //assert(false, "Unexpected declaration ${declaration.runtimeType}");
       }
     }
     inferredTypes.clear();
@@ -3550,15 +3782,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     } else if (referencesFrom != null) {
       _currentClassReferencesFromIndexed =
           referencesFromIndexed.lookupIndexedClass(name);
-    }
-  }
-
-  Procedure lookupLibraryReferenceProcedure(String name, bool setter) {
-    if (referencesFrom == null) return null;
-    if (setter) {
-      return referencesFromIndexed.lookupProcedureSetter(name);
-    } else {
-      return referencesFromIndexed.lookupProcedureNotSetter(name);
     }
   }
 }

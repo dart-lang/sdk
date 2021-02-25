@@ -6,10 +6,16 @@
 
 @pragma("vm:entry-point")
 class _List<E> extends FixedLengthListBase<E> {
+  @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type",
       <dynamic>[_List, "result-type-uses-passed-type-arguments"])
   @pragma("vm:prefer-inline")
   factory _List(length) native "List_allocate";
+
+  // Specialization of List.empty constructor for growable == false.
+  // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
+  @pragma("vm:prefer-inline")
+  factory _List.empty() => _List<E>(0);
 
   // Specialization of List.filled constructor for growable == false.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
@@ -34,14 +40,84 @@ class _List<E> extends FixedLengthListBase<E> {
     return result;
   }
 
+  // Specialization of List.of constructor for growable == false.
+  factory _List.of(Iterable<E> elements) {
+    if (elements is _GrowableList) {
+      return _List._ofGrowableList(unsafeCast(elements));
+    }
+    if (elements is _List) {
+      return _List._ofList(unsafeCast(elements));
+    }
+    if (elements is _ImmutableList) {
+      return _List._ofImmutableList(unsafeCast(elements));
+    }
+    if (elements is EfficientLengthIterable) {
+      return _List._ofEfficientLengthIterable(unsafeCast(elements));
+    }
+    return _List._ofOther(elements);
+  }
+
+  factory _List._ofGrowableList(_GrowableList<E> elements) {
+    final int length = elements.length;
+    final list = _List<E>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
+    }
+    return list;
+  }
+
+  factory _List._ofList(_List<E> elements) {
+    final int length = elements.length;
+    final list = _List<E>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
+    }
+    return list;
+  }
+
+  factory _List._ofImmutableList(_ImmutableList<E> elements) {
+    final int length = elements.length;
+    final list = _List<E>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
+    }
+    return list;
+  }
+
+  factory _List._ofEfficientLengthIterable(
+      EfficientLengthIterable<E> elements) {
+    final int length = elements.length;
+    final list = _List<E>(length);
+    if (length > 0) {
+      int i = 0;
+      for (var element in elements) {
+        list[i++] = element;
+      }
+      if (i != length) throw ConcurrentModificationError(elements);
+    }
+    return list;
+  }
+
+  factory _List._ofOther(Iterable<E> elements) {
+    // The static type of `makeListFixedLength` is `List<E>`, not `_List<E>`,
+    // but we know that is what it does.  `makeListFixedLength` is too generally
+    // typed since it is available on the web platform which has different
+    // system List types.
+    return unsafeCast(makeListFixedLength(_GrowableList<E>._ofOther(elements)));
+  }
+
+  @pragma("vm:recognized", "graph-intrinsic")
   E operator [](int index) native "List_getIndexed";
 
+  @pragma("vm:recognized", "other")
   void operator []=(int index, E value) {
     _setIndexed(index, value);
   }
 
+  @pragma("vm:recognized", "graph-intrinsic")
   void _setIndexed(int index, E value) native "List_setIndexed";
 
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
   int get length native "List_getLength";
@@ -188,8 +264,10 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
   factory _ImmutableList._from(List from, int offset, int length)
       native "ImmutableList_from";
 
+  @pragma("vm:recognized", "graph-intrinsic")
   E operator [](int index) native "List_getIndexed";
 
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
   int get length native "List_getLength";
@@ -273,10 +351,7 @@ class _FixedSizeArrayIterator<E> implements Iterator<E> {
     assert(array is _List<E> || array is _ImmutableList<E>);
   }
 
-  E get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as E;
-  }
+  E get current => _current as E;
 
   @pragma("vm:prefer-inline")
   bool moveNext() {

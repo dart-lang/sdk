@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.39
+# Dart VM Service Protocol 3.42
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.39_ of the Dart VM Service Protocol. This
+This document describes of _version 3.42_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -47,6 +47,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getIsolateGroup](#getisolategroup)
   - [getMemoryUsage](#getmemoryusage)
   - [getObject](#getobject)
+  - [getPorts](#getports)
   - [getProcessMemoryUsage](#getprocessmemoryusage)
   - [getRetainingPath](#getretainingpath)
   - [getScripts](#getscripts)
@@ -102,6 +103,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [Instance](#instance)
   - [InstanceSet](#instanceset)
   - [Isolate](#isolate)
+  - [IsolateFlag](#isolateflag)
   - [IsolateGroup](#isolategroup)
   - [Library](#library)
   - [LibraryDependency](#librarydependency)
@@ -112,6 +114,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [NativeFunction](#nativefunction)
   - [Null](#null)
   - [Object](#object)
+  - [PortList](#portlist)
   - [ReloadReport](#reloadreport)
   - [Response](#response)
   - [RetainingObject](#retainingobject)
@@ -935,6 +938,17 @@ Int32List, Int64List, Flooat32List, Float64List, Inst32x3List,
 Float32x4List, and Float64x2List.  These parameters are otherwise
 ignored.
 
+### getPorts
+
+```
+PortList getPorts(string isolateId)
+```
+
+The _getPorts_ RPC is used to retrieve the list of `ReceivePort` instances for a
+given isolate.
+
+See [PortList](#portlist).
+
 ### getRetainingPath
 
 ```
@@ -981,11 +995,16 @@ removal or addition of any bucket.
 ### getStack
 
 ```
-Stack|Sentinel getStack(string isolateId)
+Stack|Sentinel getStack(string isolateId, int limit [optional])
 ```
 
 The _getStack_ RPC is used to retrieve the current execution stack and
 message queue for an isolate. The isolate does not need to be paused.
+
+If _limit_ is provided, up to _limit_ frames from the top of the stack will be
+returned. If the stack depth is smaller than _limit_ the entire stack is
+returned. Note: this limit also applies to the `asyncCausalFrames` and
+`awaiterFrames` stack representations in the _Stack_ response.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
@@ -2231,8 +2250,9 @@ class Field extends Object {
   // Is this field static?
   bool static;
 
-  // The value of this field, if the field is static.
-  @Instance staticValue [optional];
+  // The value of this field, if the field is static. If uninitialized,
+  // this will take the value of an uninitialized Sentinel.
+  @Instance|Sentinel staticValue [optional];
 
   // The location of this field in the source code.
   SourceLocation location [optional];
@@ -2425,6 +2445,24 @@ class @Instance extends @Object {
   // Provided for instance kinds:
   //   Closure
   @Context closureContext [optional];
+
+  // The port ID for a ReceivePort.
+  //
+  // Provided for instance kinds:
+  //   ReceivePort
+  int portId [optional];
+
+  // The stack trace associated with the allocation of a ReceivePort.
+  //
+  // Provided for instance kinds:
+  //   ReceivePort
+  @Instance allocationLocation [optional];
+
+  // A name associated with a ReceivePort used for debugging purposes.
+  //
+  // Provided for instance kinds:
+  //   ReceivePort
+  string debugName [optional];
 }
 ```
 
@@ -2445,6 +2483,7 @@ class Instance extends Object {
   //   Double (suitable for passing to Double.parse())
   //   Int (suitable for passing to int.parse())
   //   String (value may be truncated)
+  //   StackTrace
   string valueAsString [optional];
 
   // The valueAsString for String references may be truncated. If so,
@@ -2657,6 +2696,24 @@ class Instance extends Object {
   //   BoundedType
   //   TypeParameter
   @Instance bound [optional];
+
+  // The port ID for a ReceivePort.
+  //
+  // Provided for instance kinds:
+  //   ReceivePort
+  int portId [optional];
+
+  // The stack trace associated with the allocation of a ReceivePort.
+  //
+  // Provided for instance kinds:
+  //   ReceivePort
+  @Instance allocationLocation [optional];
+
+  // A name associated with a ReceivePort used for debugging purposes.
+  //
+  // Provided for instance kinds:
+  //   ReceivePort
+  string debugName [optional];
 }
 ```
 
@@ -2741,6 +2798,9 @@ enum InstanceKind {
 
   // An instance of the Dart class BoundedType.
   BoundedType,
+
+  // An instance of the Dart class ReceivePort.
+  ReceivePort,
 }
 ```
 
@@ -2784,6 +2844,10 @@ class Isolate extends Response {
   // Specifies whether the isolate was spawned by the VM or embedder for
   // internal use. If `false`, this isolate is likely running user code.
   bool isSystemIsolate;
+
+  // The list of isolate flags provided to this isolate. See Dart_IsolateFlags
+  // in dart_api.h for the list of accepted isolate flags.
+  IsolateFlag[] isolateFlags;
 
   // The time that the VM started in milliseconds since the epoch.
   //
@@ -2830,6 +2894,20 @@ class Isolate extends Response {
 
 An _Isolate_ object provides information about one isolate in the VM.
 
+### IsolateFlag
+
+```
+class IsolateFlag {
+  // The name of the flag.
+  string name;
+
+  // The value of this flag as a string.
+  string valueAsString;
+}
+```
+
+Represents the value of a single isolate flag. See [Isolate](#isolate).
+
 ### IsolateGroup
 
 ```
@@ -2845,7 +2923,7 @@ class @IsolateGroup extends Response {
 
   // Specifies whether the isolate group was spawned by the VM or embedder for
   // internal use. If `false`, this isolate group is likely running user code.
-  bool isSystemIsolateGroup;  
+  bool isSystemIsolateGroup;
 }
 ```
 
@@ -2865,7 +2943,7 @@ class IsolateGroup extends Response {
 
   // Specifies whether the isolate group was spawned by the VM or embedder for
   // internal use. If `false`, this isolate group is likely running user code.
-  bool isSystemIsolateGroup;  
+  bool isSystemIsolateGroup;
 
   // A list of all isolates in this isolate group.
   @Isolate[] isolates;
@@ -3164,6 +3242,18 @@ class Object extends Response {
 ```
 
 An _Object_ is a  persistent object that is owned by some isolate.
+
+### PortList
+
+```
+class PortList extends Response {
+  @Instance[] ports;
+}
+```
+
+A _PortList_ contains a list of ports associated with some isolate.
+
+See [getPort](#getPort).
 
 ### ProfileFunction
 
@@ -3562,12 +3652,32 @@ and therefore will not contain a _type_ property.
 
 ```
 class Stack extends Response {
+  // A list of frames that make up the synchronous stack, rooted at the message
+  // loop (i.e., the frames since the last asynchronous gap or the isolate's
+  // entrypoint).
   Frame[] frames;
+
+  // A list of frames representing the asynchronous path. Comparable to
+  // `awaiterFrames`, if provided, although some frames may be different.
   Frame[] asyncCausalFrames [optional];
+
+  // A list of frames representing the asynchronous path. Comparable to
+  // `asyncCausalFrames`, if provided, although some frames may be different.
   Frame[] awaiterFrames [optional];
+
+  // A list of messages in the isolate's message queue.
   Message[] messages;
+
+  // Specifies whether or not this stack is complete or has been artificially
+  // truncated.
+  bool truncated;
 }
 ```
+
+The _Stack_ class represents the various components of a Dart stack trace for a
+given isolate.
+
+See [getStack](#getStack).
 
 ### ExceptionPauseMode
 
@@ -3835,5 +3945,8 @@ version | comments
 3.37 | Added `getWebSocketTarget` RPC and `WebSocketTarget` object.
 3.38 | Added `isSystemIsolate` property to `@Isolate` and `Isolate`, `isSystemIsolateGroup` property to `@IsolateGroup` and `IsolateGroup`, and properties `systemIsolates` and `systemIsolateGroups` to `VM`.
 3.39 | Removed the following deprecated RPCs and objects: `getClientName`, `getWebSocketTarget`, `setClientName`, `requireResumeApproval`, `ClientName`, and `WebSocketTarget`.
+3.40 | Added `IsolateFlag` object and `isolateFlags` property to `Isolate`.
+3.41 | Added `PortList` object, `ReceivePort` `InstanceKind`, and `getPorts` RPC.
+3.42 | Added `limit` optional parameter to `getStack` RPC.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

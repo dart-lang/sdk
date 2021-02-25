@@ -7,6 +7,8 @@ library deferred_load;
 import 'dart:collection' show Queue;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
+import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import 'common/metrics.dart' show Metric, Metrics, CountMetric, DurationMetric;
 import 'common/tasks.dart' show CompilerTask;
@@ -18,12 +20,13 @@ import 'constants/values.dart'
     show
         ConstantValue,
         ConstructedConstantValue,
-        TypeConstantValue,
         DeferredGlobalConstantValue,
         InstantiationConstantValue;
 import 'elements/types.dart';
 import 'elements/entities.dart';
+import 'ir/util.dart';
 import 'kernel/kelements.dart' show KLocalFunction;
+import 'kernel/element_map.dart';
 import 'serialization/serialization.dart';
 import 'options.dart';
 import 'universe/use.dart';
@@ -81,6 +84,13 @@ class OutputUnit implements Comparable<OutputUnit> {
 
   Set<ImportEntity> get importsForTesting => _imports;
 
+  void merge(OutputUnit that) {
+    assert(this != that);
+    // We don't currently support merging code into the main output unit.
+    assert(!isMainOutput);
+    this._imports.addAll(that._imports);
+  }
+
   @override
   String toString() => "OutputUnit($name, $_imports)";
 }
@@ -102,7 +112,7 @@ class _DeferredLoadTaskMetrics implements Metrics {
 /// For each deferred import, find elements and constants to be loaded when that
 /// import is loaded. Elements that are used by several deferred imports are in
 /// shared OutputUnits.
-abstract class DeferredLoadTask extends CompilerTask {
+class DeferredLoadTask extends CompilerTask {
   @override
   String get name => 'Deferred Loading';
 
@@ -149,17 +159,15 @@ abstract class DeferredLoadTask extends CompilerTask {
 
   final Compiler compiler;
 
+  KernelToElementMap _elementMap;
+
   @override
   final _DeferredLoadTaskMetrics metrics = _DeferredLoadTaskMetrics();
 
   bool get disableProgramSplit => compiler.options.disableProgramSplit;
-  bool get newDeferredSplit => compiler.options.newDeferredSplit;
-  bool get reportInvalidInferredDeferredTypes =>
-      compiler.options.reportInvalidInferredDeferredTypes;
-  bool get deferClassTypes => compiler.options.deferClassTypes;
 
-  DeferredLoadTask(this.compiler) : super(compiler.measurer) {
-    _mainOutputUnit = OutputUnit(true, 'main', <ImportEntity>{});
+  DeferredLoadTask(this.compiler, this._elementMap) : super(compiler.measurer) {
+    _mainOutputUnit = OutputUnit(true, 'main', {});
     importSets.mainSet.unit = _mainOutputUnit;
     _allOutputUnits.add(_mainOutputUnit);
   }
@@ -171,27 +179,6 @@ abstract class DeferredLoadTask extends CompilerTask {
   DartTypes get dartTypes => commonElements.dartTypes;
 
   DiagnosticReporter get reporter => compiler.reporter;
-
-  /// Given [imports] that refer to an element from a library, determine whether
-  /// the element is explicitly deferred.
-  static bool _isExplicitlyDeferred(Iterable<ImportEntity> imports) {
-    // If the element is not imported explicitly, it is implicitly imported
-    // not deferred.
-    if (imports.isEmpty) return false;
-    // An element could potentially be loaded by several imports. If all of them
-    // is explicitly deferred, we say the element is explicitly deferred.
-    // TODO(sigurdm): We might want to give a warning if the imports do not
-    // agree.
-    return imports.every((ImportEntity import) => import.isDeferred);
-  }
-
-  /// Returns every [ImportEntity] that imports [element] into [library].
-  Iterable<ImportEntity> classImportsTo(
-      ClassEntity element, LibraryEntity library);
-
-  /// Returns every [ImportEntity] that imports [element] into [library].
-  Iterable<ImportEntity> memberImportsTo(
-      MemberEntity element, LibraryEntity library);
 
   /// Collects all direct dependencies of [element].
   ///
@@ -275,30 +262,37 @@ abstract class DeferredLoadTask extends CompilerTask {
     // they are processed as part of the class.
   }
 
-  /// Extract the set of constants that are used in annotations of [element].
-  ///
-  /// If the underlying system doesn't support mirrors, then no constants are
-  /// added.
-  void collectConstantsFromMetadata(
-      Entity element, Set<ConstantValue> constants);
-
   /// Extract the set of constants that are used in the body of [element].
-  void collectConstantsInBody(MemberEntity element, Dependencies dependencies);
+  void collectConstantsInBody(MemberEntity element, Dependencies dependencies) {
+    ir.Member node = _elementMap.getMemberNode(element);
+
+    // Fetch the internal node in order to skip annotations on the member.
+    // TODO(sigmund): replace this pattern when the kernel-ast provides a better
+    // way to skip annotations (issue 31565).
+    var visitor = new ConstantCollector(
+        _elementMap, _elementMap.getStaticTypeContext(element), dependencies);
+    if (node is ir.Field) {
+      node.initializer?.accept(visitor);
+      return;
+    }
+
+    if (node is ir.Constructor) {
+      node.initializers.forEach((i) => i.accept(visitor));
+    }
+    node.function?.accept(visitor);
+  }
 
   /// Recursively collects all the dependencies of [type].
   void _collectTypeDependencies(DartType type, Dependencies dependencies,
       [ImportEntity import]) {
-    TypeDependencyVisitor(dependencies, import, commonElements,
-            collectClassesAndTypes: !deferClassTypes)
-        .visit(type);
+    TypeDependencyVisitor(dependencies, import, commonElements).visit(type);
   }
 
   void _collectTypeArgumentDependencies(
       Iterable<DartType> typeArguments, Dependencies dependencies,
       [ImportEntity import]) {
     if (typeArguments == null) return;
-    TypeDependencyVisitor(dependencies, import, commonElements,
-            collectClassesAndTypes: !deferClassTypes)
+    TypeDependencyVisitor(dependencies, import, commonElements)
         .visitList(typeArguments);
   }
 
@@ -600,62 +594,6 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// same nodes we have already seen.
   _shouldAddDeferredDependency(ImportSet newSet) => newSet.length <= 1;
 
-  void _fixDependencyInfo(DependencyInfo info, List<ImportEntity> imports,
-      String prefix, String name, Spannable context) {
-    var isDeferred = _isExplicitlyDeferred(imports);
-    if (isDeferred) {
-      if (!newDeferredSplit) {
-        info.isDeferred = true;
-        info.imports = imports;
-      }
-      if (reportInvalidInferredDeferredTypes) {
-        reporter.reportErrorMessage(context, MessageKind.GENERIC, {
-          'text': "$prefix '$name' is deferred but appears to be inferred as"
-              " a return type or a type parameter (dartbug.com/35311)."
-        });
-      }
-    }
-  }
-
-  // The following 3 methods are used to check whether the new deferred split
-  // algorithm and the old one match. Because of a soundness bug in the old
-  // algorithm the new algorithm can pull in a lot of code to the main output
-  // unit. This logic detects it and will make it easier for us to migrate code
-  // off it incrementally.
-  // Note: we only expect discrepancies on class-dependency-info due to how
-  // inferred types expose deferred types in type-variables and return types
-  // (Issue #35311). We added the other two methods to test our transition, but
-  // we don't expect to detect any mismatches there.
-  //
-  // TODO(sigmund): delete once the new implementation is on by default.
-  void _fixClassDependencyInfo(DependencyInfo info, ClassEntity cls,
-      LibraryEntity library, Spannable context) {
-    if (info.isDeferred) return;
-    if (newDeferredSplit && !reportInvalidInferredDeferredTypes) return;
-    var imports = classImportsTo(cls, library);
-    _fixDependencyInfo(info, imports, "Class", cls.name, context);
-  }
-
-  void _fixMemberDependencyInfo(DependencyInfo info, MemberEntity member,
-      LibraryEntity library, Spannable context) {
-    if (info.isDeferred || compiler.options.newDeferredSplit) return;
-    var imports = memberImportsTo(member, library);
-    _fixDependencyInfo(info, imports, "Member", member.name, context);
-  }
-
-  void _fixConstantDependencyInfo(DependencyInfo info, ConstantValue constant,
-      LibraryEntity library, Spannable context) {
-    if (info.isDeferred || compiler.options.newDeferredSplit) return;
-    if (constant is TypeConstantValue) {
-      var type = constant.representedType.withoutNullability;
-      if (type is InterfaceType) {
-        var imports = classImportsTo(type.element, library);
-        _fixDependencyInfo(
-            info, imports, "Class (in constant) ", type.element.name, context);
-      }
-    }
-  }
-
   void _processDependencies(
       KClosedWorld closedWorld,
       LibraryEntity library,
@@ -665,7 +603,6 @@ abstract class DeferredLoadTask extends CompilerTask {
       WorkQueue queue,
       Spannable context) {
     dependencies.classes.forEach((ClassEntity cls, DependencyInfo info) {
-      _fixClassDependencyInfo(info, cls, library, context);
       if (info.isDeferred) {
         if (_shouldAddDeferredDependency(newSet)) {
           for (ImportEntity deferredImport in info.imports) {
@@ -678,7 +615,6 @@ abstract class DeferredLoadTask extends CompilerTask {
     });
 
     dependencies.classType.forEach((ClassEntity cls, DependencyInfo info) {
-      _fixClassDependencyInfo(info, cls, library, context);
       if (info.isDeferred) {
         if (_shouldAddDeferredDependency(newSet)) {
           for (ImportEntity deferredImport in info.imports) {
@@ -691,7 +627,6 @@ abstract class DeferredLoadTask extends CompilerTask {
     });
 
     dependencies.members.forEach((MemberEntity member, DependencyInfo info) {
-      _fixMemberDependencyInfo(info, member, library, context);
       if (info.isDeferred) {
         if (_shouldAddDeferredDependency(newSet)) {
           for (ImportEntity deferredImport in info.imports) {
@@ -709,7 +644,6 @@ abstract class DeferredLoadTask extends CompilerTask {
 
     dependencies.constants
         .forEach((ConstantValue constant, DependencyInfo info) {
-      _fixConstantDependencyInfo(info, constant, library, context);
       if (info.isDeferred) {
         if (_shouldAddDeferredDependency(newSet)) {
           for (ImportEntity deferredImport in info.imports) {
@@ -948,10 +882,8 @@ abstract class DeferredLoadTask extends CompilerTask {
     _localFunctionToSet = null;
     _constantToSet = null;
     importSets = null;
-    cleanup();
     return OutputUnitData(
         this.isProgramSplit && !disableProgramSplit,
-        deferClassTypes,
         this._mainOutputUnit,
         classMap,
         classTypeMap,
@@ -964,15 +896,11 @@ abstract class DeferredLoadTask extends CompilerTask {
         _deferredImportDescriptions);
   }
 
-  /// Frees up strategy-specific temporary data.
-  void cleanup() {}
-
   void beforeResolution(Uri rootLibraryUri, Iterable<Uri> libraries) {
     measureSubtask('prepare', () {
       for (Uri uri in libraries) {
         LibraryEntity library = elementEnvironment.lookupLibrary(uri);
         reporter.withCurrentElement(library, () {
-          checkForDeferredErrorCases(library);
           for (ImportEntity import in elementEnvironment.getImports(library)) {
             if (import.isDeferred) {
               _deferredImportDescriptions[import] =
@@ -984,13 +912,6 @@ abstract class DeferredLoadTask extends CompilerTask {
       }
     });
   }
-
-  /// Detects errors like duplicate uses of a prefix or using the old deferred
-  /// loading syntax.
-  ///
-  /// These checks are already done by the shared front-end, so they can be
-  /// skipped by the new compiler pipeline.
-  void checkForDeferredErrorCases(LibraryEntity library);
 
   bool ignoreEntityInDump(Entity element) => false;
 
@@ -1014,7 +935,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     });
     _memberToSet.forEach((MemberEntity element, ImportSet importSet) {
       if (ignoreEntityInDump(element)) return;
-      var elements = elementMap.putIfAbsent(importSet.unit, () => <String>[]);
+      var elements = elementMap.putIfAbsent(importSet.unit, () => []);
       var id = element.name ?? '$element';
       var cls = element.enclosingClass?.name;
       if (cls != null) id = '$cls.$id';
@@ -1024,7 +945,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     });
     _localFunctionToSet.forEach((Local element, ImportSet importSet) {
       if (ignoreEntityInDump(element)) return;
-      var elements = elementMap.putIfAbsent(importSet.unit, () => <String>[]);
+      var elements = elementMap.putIfAbsent(importSet.unit, () => []);
       var id = element.name ?? '$element';
       var context = (element as dynamic).memberContext.name;
       id = element.name == null || element.name == '' ? '<anonymous>' : id;
@@ -1037,7 +958,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       // if they are shared, they end up duplicated anyways across output units.
       if (value.isPrimitive) return;
       constantMap
-          .putIfAbsent(importSet.unit, () => <String>[])
+          .putIfAbsent(importSet.unit, () => [])
           .add(value.toStructuredText(dartTypes));
     });
 
@@ -1464,7 +1385,6 @@ class OutputUnitData {
   static const String tag = 'output-unit-data';
 
   final bool isProgramSplit;
-  final bool deferClassTypes;
   final OutputUnit mainOutputUnit;
   final Map<ClassEntity, OutputUnit> _classToUnit;
   final Map<ClassEntity, OutputUnit> _classTypeToUnit;
@@ -1489,7 +1409,6 @@ class OutputUnitData {
 
   OutputUnitData(
       this.isProgramSplit,
-      this.deferClassTypes,
       this.mainOutputUnit,
       this._classToUnit,
       this._classTypeToUnit,
@@ -1532,13 +1451,12 @@ class OutputUnitData {
 
     return OutputUnitData(
         other.isProgramSplit,
-        other.deferClassTypes,
         other.mainOutputUnit,
         classToUnit,
         classTypeToUnit,
         memberToUnit,
         // Local functions only make sense in the K-world model.
-        const <Local, OutputUnit>{},
+        const {},
         constantToUnit,
         other.outputUnits,
         other._importDeferName,
@@ -1550,7 +1468,6 @@ class OutputUnitData {
   factory OutputUnitData.readFromDataSource(DataSource source) {
     source.begin(tag);
     bool isProgramSplit = source.readBool();
-    bool deferClassTypes = source.readBool();
     List<OutputUnit> outputUnits = source.readList(() {
       bool isMainOutput = source.readBool();
       String name = source.readString();
@@ -1589,13 +1506,12 @@ class OutputUnitData {
     source.end(tag);
     return OutputUnitData(
         isProgramSplit,
-        deferClassTypes,
         mainOutputUnit,
         classToUnit,
         classTypeToUnit,
         memberToUnit,
         // Local functions only make sense in the K-world model.
-        const <Local, OutputUnit>{},
+        const {},
         constantToUnit,
         outputUnits,
         importDeferName,
@@ -1607,7 +1523,6 @@ class OutputUnitData {
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
     sink.writeBool(isProgramSplit);
-    sink.writeBool(deferClassTypes);
     Map<OutputUnit, int> outputUnitIndices = {};
     sink.writeList(outputUnits, (OutputUnit outputUnit) {
       outputUnitIndices[outputUnit] = outputUnitIndices.length;
@@ -1661,18 +1576,13 @@ class OutputUnitData {
   // TODO(joshualitt): see above TODO regarding allowNull.
   OutputUnit outputUnitForClassType(ClassEntity cls, {bool allowNull: false}) {
     if (!isProgramSplit) return mainOutputUnit;
-    OutputUnit unit;
-    if (deferClassTypes) {
-      unit = _classTypeToUnit[cls];
-    } else {
-      unit = _classToUnit[cls];
-    }
+    OutputUnit unit = _classTypeToUnit[cls];
     assert(allowNull || unit != null, 'No output unit for type $cls');
     return unit ?? mainOutputUnit;
   }
 
   OutputUnit outputUnitForClassTypeForTesting(ClassEntity cls) =>
-      deferClassTypes ? _classTypeToUnit[cls] : _classToUnit[cls];
+      _classTypeToUnit[cls];
 
   /// Returns the [OutputUnit] where [member] belongs.
   OutputUnit outputUnitForMember(MemberEntity member) {
@@ -1801,10 +1711,8 @@ class OutputUnitData {
 
       Map<String, dynamic> libraryMap = mapping.putIfAbsent(
           description.importingUri,
-          () => <String, dynamic>{
-                "name": getName(description._importingLibrary),
-                "imports": <String, List<String>>{}
-              });
+          () =>
+              {"name": getName(description._importingLibrary), "imports": {}});
 
       List<String> partFileNames = outputUnits
           .where((outputUnit) => !omittedUnits.contains(outputUnit))
@@ -1874,16 +1782,11 @@ class DependencyInfo {
 }
 
 class TypeDependencyVisitor implements DartTypeVisitor<void, Null> {
-  // If true, collect classes and types, otherwise just collect types.
-  // Note: When collecting classes, types are added implicitly by the
-  // dependencies class.
-  final bool collectClassesAndTypes;
   final Dependencies _dependencies;
   final ImportEntity _import;
   final CommonElements _commonElements;
 
-  TypeDependencyVisitor(this._dependencies, this._import, this._commonElements,
-      {this.collectClassesAndTypes});
+  TypeDependencyVisitor(this._dependencies, this._import, this._commonElements);
 
   @override
   void visit(DartType type, [_]) {
@@ -1906,11 +1809,7 @@ class TypeDependencyVisitor implements DartTypeVisitor<void, Null> {
 
   @override
   void visitFutureOrType(FutureOrType type, Null argument) {
-    if (collectClassesAndTypes) {
-      _dependencies.addClass(_commonElements.futureClass);
-    } else {
-      _dependencies.addClassType(_commonElements.futureClass);
-    }
+    _dependencies.addClassType(_commonElements.futureClass);
     visit(type.typeArgument);
   }
 
@@ -1937,11 +1836,7 @@ class TypeDependencyVisitor implements DartTypeVisitor<void, Null> {
   @override
   void visitInterfaceType(InterfaceType type, Null argument) {
     visitList(type.typeArguments);
-    if (collectClassesAndTypes) {
-      _dependencies.addClass(type.element, _import);
-    } else {
-      _dependencies.addClassType(type.element, _import);
-    }
+    _dependencies.addClassType(type.element, _import);
   }
 
   @override
@@ -1968,5 +1863,110 @@ class TypeDependencyVisitor implements DartTypeVisitor<void, Null> {
   @override
   void visitVoidType(VoidType type, Null argument) {
     // Nothing to add.
+  }
+}
+
+class ConstantCollector extends ir.RecursiveVisitor {
+  final KernelToElementMap elementMap;
+  final Dependencies dependencies;
+  final ir.StaticTypeContext staticTypeContext;
+
+  ConstantCollector(this.elementMap, this.staticTypeContext, this.dependencies);
+
+  CommonElements get commonElements => elementMap.commonElements;
+
+  void add(ir.Expression node, {bool required: true}) {
+    ConstantValue constant = elementMap
+        .getConstantValue(staticTypeContext, node, requireConstant: required);
+    if (constant != null) {
+      dependencies.addConstant(
+          constant, elementMap.getImport(getDeferredImport(node)));
+    }
+  }
+
+  @override
+  void visitIntLiteral(ir.IntLiteral literal) {}
+
+  @override
+  void visitDoubleLiteral(ir.DoubleLiteral literal) {}
+
+  @override
+  void visitBoolLiteral(ir.BoolLiteral literal) {}
+
+  @override
+  void visitStringLiteral(ir.StringLiteral literal) {}
+
+  @override
+  void visitSymbolLiteral(ir.SymbolLiteral literal) => add(literal);
+
+  @override
+  void visitNullLiteral(ir.NullLiteral literal) {}
+
+  @override
+  void visitListLiteral(ir.ListLiteral literal) {
+    if (literal.isConst) {
+      add(literal);
+    } else {
+      super.visitListLiteral(literal);
+    }
+  }
+
+  @override
+  void visitSetLiteral(ir.SetLiteral literal) {
+    if (literal.isConst) {
+      add(literal);
+    } else {
+      super.visitSetLiteral(literal);
+    }
+  }
+
+  @override
+  void visitMapLiteral(ir.MapLiteral literal) {
+    if (literal.isConst) {
+      add(literal);
+    } else {
+      super.visitMapLiteral(literal);
+    }
+  }
+
+  @override
+  void visitConstructorInvocation(ir.ConstructorInvocation node) {
+    if (node.isConst) {
+      add(node);
+    } else {
+      super.visitConstructorInvocation(node);
+    }
+  }
+
+  @override
+  void visitTypeParameter(ir.TypeParameter node) {
+    // We avoid visiting metadata on the type parameter declaration. The bound
+    // cannot hold constants so we skip that as well.
+  }
+
+  @override
+  void visitVariableDeclaration(ir.VariableDeclaration node) {
+    // We avoid visiting metadata on the parameter declaration by only visiting
+    // the initializer. The type cannot hold constants so can kan skip that
+    // as well.
+    node.initializer?.accept(this);
+  }
+
+  @override
+  void visitTypeLiteral(ir.TypeLiteral node) {
+    if (node.type is! ir.TypeParameterType) add(node);
+  }
+
+  @override
+  void visitInstantiation(ir.Instantiation node) {
+    // TODO(johnniwinther): The CFE should mark constant instantiations as
+    // constant.
+    add(node, required: false);
+    super.visitInstantiation(node);
+  }
+
+  @override
+  void visitConstantExpression(ir.ConstantExpression node) {
+    add(node);
   }
 }

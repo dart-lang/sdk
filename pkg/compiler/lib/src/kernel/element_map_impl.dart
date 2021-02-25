@@ -11,7 +11,6 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/src/bounds_checks.dart' as ir;
-import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
@@ -117,7 +116,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   KernelToElementMapImpl(
       this.reporter, this._environment, this._frontendStrategy, this.options) {
     _elementEnvironment = new KernelElementEnvironment(this);
-    _typeConverter = new DartTypeConverter(options, this);
+    _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this, options);
     _commonElements = new CommonElementsImpl(_types, _elementEnvironment);
     _constantValuefier = new ConstantValuefier(this);
@@ -423,32 +422,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       }
     }
     throw new UnsupportedError("Unexpected member: $node");
-  }
-
-  @override
-  MemberEntity getSuperMember(MemberEntity context, ir.Name name,
-      {bool setter: false}) {
-    // We can no longer trust the interface target of the super access since it
-    // might be a member that we have cloned.
-    ClassEntity cls = context.enclosingClass;
-    assert(
-        cls != null,
-        failedAt(context,
-            "No enclosing class for super member access in $context."));
-    IndexedClass superclass = getSuperType(cls)?.element;
-    while (superclass != null) {
-      KClassEnv env = classes.getEnv(superclass);
-      MemberEntity superMember =
-          env.lookupMember(this, name.name, setter: setter);
-      if (superMember != null) {
-        if (!superMember.isInstanceMember) return null;
-        if (!superMember.isAbstract) {
-          return superMember;
-        }
-      }
-      superclass = getSuperType(superclass)?.element;
-    }
-    return null;
   }
 
   @override
@@ -816,8 +789,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       reportLocatedMessage(reporter, message, context);
     },
         environment: _environment.toMap(),
-        enableTripleShift:
-            options.languageExperiments[ir.ExperimentalFlag.tripleShift],
+        enableTripleShift: options.enableTripleShift,
         evaluationMode: options.useLegacySubtyping
             ? ir.EvaluationMode.weak
             : ir.EvaluationMode.strong);
@@ -826,7 +798,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   @override
   Name getName(ir.Name name) {
     return new Name(
-        name.name, name.isPrivate ? getLibrary(name.library) : null);
+        name.text, name.isPrivate ? getLibrary(name.library) : null);
   }
 
   @override
@@ -855,7 +827,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         requiredNamedParameters.add(variable.name);
       }
     }
-    return new ParameterStructure(
+    return ParameterStructure(
         requiredPositionalParameters,
         positionalParameters,
         namedParameters,
@@ -887,13 +859,13 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   Selector getGetterSelector(ir.Name irName) {
     Name name = new Name(
-        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
+        irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.getter(name);
   }
 
   Selector getSetterSelector(ir.Name irName) {
     Name name = new Name(
-        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
+        irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.setter(name);
   }
 
@@ -911,18 +883,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   TypeLookup _typeLookup({bool resolveAsRaw: true}) {
     bool cachedMayLookupInMain;
-    bool mayLookupInMain() {
-      var mainUri = elementEnvironment.mainLibrary.canonicalUri;
-      // Tests permit lookup outside of dart: libraries.
-      return mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js/internal')) ||
-          mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js/native')) ||
-          mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/internal')) ||
-          mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/native'));
-    }
 
     DartType lookup(String typeName, {bool required}) {
       DartType findInLibrary(LibraryEntity library) {
@@ -945,8 +905,11 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       // TODO(johnniwinther): Narrow the set of lookups based on the depending
       // library.
       // TODO(johnniwinther): Cache more results to avoid redundant lookups?
+      cachedMayLookupInMain ??=
+          // Tests permit lookup outside of dart: libraries.
+          allowedNativeTest(elementEnvironment.mainLibrary.canonicalUri);
       DartType type;
-      if (cachedMayLookupInMain ??= mayLookupInMain()) {
+      if (cachedMayLookupInMain) {
         type ??= findInLibrary(elementEnvironment.mainLibrary);
       }
       type ??= findIn(Uris.dart_core);
@@ -1379,7 +1342,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     bool isStatic = node.isStatic;
     IndexedField field = createField(library, enclosingClass, name,
         isStatic: isStatic,
-        isAssignable: node.isMutable,
+        isAssignable: node.hasSetter,
         isConst: node.isConst);
     return members.register<IndexedField, KFieldData>(
         field, new KFieldDataImpl(node));
@@ -1430,12 +1393,15 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
           new ir.StaticTypeContext(node, typeEnvironment));
       return converter.convert(impactData);
     } else {
+      StaticTypeCacheImpl staticTypeCache = new StaticTypeCacheImpl();
       KernelImpactBuilder builder = new KernelImpactBuilder(
           this,
           member,
           reporter,
           options,
-          new ir.StaticTypeContext(node, typeEnvironment),
+          new ir.StaticTypeContext(node, typeEnvironment,
+              cache: staticTypeCache),
+          staticTypeCache,
           variableScopeModel,
           annotations,
           _constantValuefier);
@@ -1534,7 +1500,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   @override
   ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (commonElements.isForeignHelper(getMember(node.target))) {
-      switch (node.target.name.name) {
+      switch (node.target.name.text) {
         case Identifiers.JS:
           return ForeignKind.JS;
         case Identifiers.JS_BUILTIN:
@@ -1558,6 +1524,12 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     ir.Node argument = node.arguments.positional.first;
     if (argument is ir.TypeLiteral && argument.type is ir.InterfaceType) {
       return getInterfaceType(argument.type);
+    } else if (argument is ir.ConstantExpression &&
+        argument.constant is ir.TypeLiteralConstant) {
+      ir.TypeLiteralConstant constant = argument.constant;
+      if (constant.type is ir.InterfaceType) {
+        return getInterfaceType(constant.type);
+      }
     }
     return null;
   }
@@ -1939,10 +1911,6 @@ class KernelBehaviorBuilder extends BehaviorBuilder {
 
   KernelBehaviorBuilder(this.elementEnvironment, this.commonElements,
       this.nativeBasicData, this.reporter, this.options);
-
-  @override
-  bool get trustJSInteropTypeAnnotations =>
-      options.trustJSInteropTypeAnnotations;
 }
 
 class KernelNativeMemberResolver implements NativeMemberResolver {
@@ -2037,7 +2005,7 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
   /// defaulting to the Dart name.
   void _setNativeName(ir.Member node, IrAnnotationData annotationData) {
     String name = _findJsNameFromAnnotation(node, annotationData);
-    name ??= node.name.name;
+    name ??= node.name.text;
     _nativeDataBuilder.setNativeMemberName(_elementMap.getMember(node), name);
   }
 
@@ -2052,7 +2020,7 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
   void _setNativeNameForStaticMethod(
       ir.Member node, IrAnnotationData annotationData) {
     String name = _findJsNameFromAnnotation(node, annotationData);
-    name ??= node.name.name;
+    name ??= node.name.text;
     if (_isIdentifier(name)) {
       ClassEntity cls = _elementMap.getClass(node.enclosingClass);
       List<String> nativeNames = _nativeBasicData.getNativeTagsOfClass(cls);

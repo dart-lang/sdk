@@ -29,16 +29,17 @@ makeQ() native;
 void setup() {
   JS('', r"""
 (function(){
-makeA = function(){return {hello: 123};};
+self.makeA = function(){return {hello: 123};};
 
 function BB(){}
-makeB = function(){return new BB();};
+self.makeB = function(){return new BB();};
 
 function QQ(){}
-makeQ = function(){return new QQ();};
+self.makeQ = function(){return new QQ();};
 
 self.nativeConstructor(QQ);
 })()""");
+  applyTestExtensions(['QQ']);
 }
 
 class Is<T> {

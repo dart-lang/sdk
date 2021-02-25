@@ -20,7 +20,7 @@ class InsertSemicolonTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.INSERT_SEMICOLON;
 
   Future<void> test_expectedToken_semicolon() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print(0)
 }

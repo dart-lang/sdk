@@ -19,7 +19,7 @@ abstract class DataSourceMixin implements DataSource {
   List<E> readList<E>(E f(), {bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>(count);
+    List<E> list = new List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = f();
     }
@@ -48,7 +48,7 @@ abstract class DataSourceMixin implements DataSource {
   List<String> readStrings({bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<String> list = new List<String>(count);
+    List<String> list = new List<String>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = readString();
     }
@@ -59,7 +59,7 @@ abstract class DataSourceMixin implements DataSource {
   List<DartType> readDartTypes({bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<DartType> list = new List<DartType>(count);
+    List<DartType> list = new List<DartType>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = readDartType();
     }
@@ -70,7 +70,8 @@ abstract class DataSourceMixin implements DataSource {
   List<ir.TypeParameter> readTypeParameterNodes({bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<ir.TypeParameter> list = new List<ir.TypeParameter>(count);
+    List<ir.TypeParameter> list =
+        new List<ir.TypeParameter>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = readTypeParameterNode();
     }
@@ -81,7 +82,7 @@ abstract class DataSourceMixin implements DataSource {
   List<E> readMembers<E extends MemberEntity>({bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>(count);
+    List<E> list = new List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       MemberEntity member = readMember();
       list[i] = member;
@@ -93,7 +94,7 @@ abstract class DataSourceMixin implements DataSource {
   List<E> readMemberNodes<E extends ir.Member>({bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>(count);
+    List<E> list = new List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       ir.Member value = readMemberNode();
       list[i] = value;
@@ -105,7 +106,7 @@ abstract class DataSourceMixin implements DataSource {
   List<E> readClasses<E extends ClassEntity>({bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>(count);
+    List<E> list = new List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       ClassEntity cls = readClass();
       list[i] = cls;
@@ -187,7 +188,7 @@ abstract class DataSourceMixin implements DataSource {
   List<E> readLocals<E extends Local>({bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>(count);
+    List<E> list = new List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       Local local = readLocal();
       list[i] = local;
@@ -212,7 +213,7 @@ abstract class DataSourceMixin implements DataSource {
   List<E> readTreeNodes<E extends ir.TreeNode>({bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>(count);
+    List<E> list = new List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       ir.TreeNode node = readTreeNode();
       list[i] = node;
@@ -282,7 +283,7 @@ abstract class DataSourceMixin implements DataSource {
   List<E> readConstants<E extends ConstantValue>({bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>(count);
+    List<E> list = new List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       ConstantValue value = readConstant();
       list[i] = value;
@@ -326,7 +327,7 @@ abstract class DataSourceMixin implements DataSource {
   List<ImportEntity> readImports({bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<ImportEntity> list = new List<ImportEntity>(count);
+    List<ImportEntity> list = new List<ImportEntity>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = readImport();
     }
@@ -350,7 +351,7 @@ abstract class DataSourceMixin implements DataSource {
   List<ir.DartType> readDartTypeNodes({bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<ir.DartType> list = new List<ir.DartType>(count);
+    List<ir.DartType> list = new List<ir.DartType>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = readDartTypeNode();
     }
@@ -763,7 +764,7 @@ abstract class DataSinkMixin implements DataSink {
 
   @override
   void writeName(ir.Name value) {
-    writeString(value.name);
+    writeString(value.text);
     writeValueOrNull(value.library, writeLibraryNode);
   }
 

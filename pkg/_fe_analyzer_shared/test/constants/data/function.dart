@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 T method1<T>(T t) => t;
 Map<T, S> method2<T, S>(T t, S s) => {t: s};
 

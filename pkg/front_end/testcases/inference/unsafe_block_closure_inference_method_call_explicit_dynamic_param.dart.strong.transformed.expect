@@ -7,7 +7,7 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   method f<T extends core::Object* = dynamic>(() →* self::C::f::T* g) → core::List<self::C::f::T*>*
-    return <self::C::f::T*>[g.call()];
+    return core::_GrowableList::_literal1<self::C::f::T*>(g.call());
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

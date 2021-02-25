@@ -610,9 +610,8 @@ DART_EXPORT int64_t* NullableInt64ElemAt1(int64_t* a) {
 }
 
 // A struct designed to exercise all kinds of alignment rules.
-// Note that offset32A (System V ia32) aligns doubles on 4 bytes while offset32B
-// (Arm 32 bit and MSVC ia32) aligns on 8 bytes.
-// TODO(37271): Support nested structs.
+// Note that offset32A (System V ia32, iOS arm) aligns doubles on 4 bytes while
+// offset32B (Arm 32 bit and MSVC ia32) aligns on 8 bytes.
 // TODO(37470): Add uncommon primitive data types when we want to support them.
 struct VeryLargeStruct {
   //                             size32 size64 offset32A offset32B offset64
@@ -750,12 +749,73 @@ DART_EXPORT float InventFloatValue() {
   return retval;
 }
 
+// Can't easily share this with the generated file.
+struct Struct20BytesHomogeneousInt32Copy {
+  int32_t a0;
+  int32_t a1;
+  int32_t a2;
+  int32_t a3;
+  int32_t a4;
+};
+
+DART_EXPORT Struct20BytesHomogeneousInt32Copy PassStructRecursive(
+    int64_t recursionCounter,
+    Struct20BytesHomogeneousInt32Copy a0,
+    Struct20BytesHomogeneousInt32Copy (*f)(int64_t,
+                                           Struct20BytesHomogeneousInt32Copy)) {
+  std::cout << "PassStruct20BytesHomogeneousInt32x10"
+            << "(" << recursionCounter << ", (" << a0.a0 << ", " << a0.a1
+            << ", " << a0.a2 << ", " << a0.a3 << ", " << a0.a4 << "), "
+            << reinterpret_cast<void*>(f) << ")\n";
+  a0.a0++;
+  const int32_t a0_a0_saved = a0.a0;
+
+  if (recursionCounter <= 0) {
+    return a0;
+  }
+
+  Struct20BytesHomogeneousInt32Copy result = f(recursionCounter - 1, a0);
+  result.a0++;
+  if (a0_a0_saved != a0.a0) {
+    result.a4 = 0;
+  }
+
+  return result;
+}
+
+// Can't easily share this with the generated file.
+struct Struct4BytesHomogeneousInt16Copy {
+  int16_t a0;
+  int16_t a1;
+};
+
+// Can't easily share this with the generated file.
+struct Struct8BytesNestedIntCopy {
+  Struct4BytesHomogeneousInt16Copy a0;
+  Struct4BytesHomogeneousInt16Copy a1;
+};
+
+DART_EXPORT void CallbackWithStruct(void (*f)(Struct8BytesNestedIntCopy)) {
+  std::cout << "CallbackWithStruct"
+            << "(" << reinterpret_cast<void*>(f) << ")\n";
+
+  Struct8BytesNestedIntCopy arg;
+  arg.a0.a0 = 10;
+  arg.a0.a1 = 11;
+  arg.a1.a0 = 12;
+  arg.a1.a1 = 13;
+
+  f(arg);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Tests for callbacks.
 
 // Sanity test.
 DART_EXPORT intptr_t TestSimpleAddition(intptr_t (*add)(int, int)) {
-  CHECK_EQ(add(10, 20), 30);
+  const intptr_t result = add(10, 20);
+  std::cout << "result " << result << "\n";
+  CHECK_EQ(result, 30);
   return 0;
 }
 
@@ -764,7 +824,9 @@ DART_EXPORT intptr_t TestSimpleAddition(intptr_t (*add)(int, int)) {
 
 DART_EXPORT intptr_t
 TestIntComputation(int64_t (*fn)(int8_t, int16_t, int32_t, int64_t)) {
-  CHECK_EQ(fn(125, 250, 500, 1000), 625);
+  const int64_t result = fn(125, 250, 500, 1000);
+  std::cout << "result " << result << "\n";
+  CHECK_EQ(result, 625);
   CHECK_EQ(0x7FFFFFFFFFFFFFFFLL, fn(0, 0, 0, 0x7FFFFFFFFFFFFFFFLL));
   CHECK_EQ(((int64_t)-0x8000000000000000LL),
            fn(0, 0, 0, -0x8000000000000000LL));
@@ -1040,6 +1102,15 @@ DART_EXPORT void CallbackNativeTypePointerReturn(void* (*f)()) {
 
 DART_EXPORT int32_t PassStruct(void*) {
   return 42;
+}
+
+struct Struct43693 {
+  void* pSomePtr;
+  uint64_t someValue;
+};
+
+DART_EXPORT uint64_t Regress43693(Struct43693* my_struct) {
+  return my_struct->someValue;
 }
 
 }  // namespace dart

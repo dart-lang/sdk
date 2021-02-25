@@ -57,17 +57,17 @@ class NewPage {
     uword addr = object_start();
     uword end = object_end();
     while (addr < end) {
-      ObjectPtr obj = ObjectLayout::FromAddr(addr);
+      ObjectPtr obj = UntaggedObject::FromAddr(addr);
       visitor->VisitObject(obj);
-      addr += obj->ptr()->HeapSize();
+      addr += obj->untag()->HeapSize();
     }
   }
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const {
     uword addr = object_start();
     uword end = object_end();
     while (addr < end) {
-      ObjectPtr obj = ObjectLayout::FromAddr(addr);
-      intptr_t size = obj->ptr()->VisitPointers(visitor);
+      ObjectPtr obj = UntaggedObject::FromAddr(addr);
+      intptr_t size = obj->untag()->VisitPointers(visitor);
       addr += size;
     }
   }
@@ -184,7 +184,6 @@ class SemiSpace {
   NewPage* head() const { return head_; }
 
   void AddList(NewPage* head, NewPage* tail);
-  void MergeFrom(SemiSpace* donor);
 
  private:
   // Size of NewPages in this semi-space.
@@ -281,8 +280,6 @@ class Scavenger {
   // Promote all live objects.
   void Evacuate();
 
-  void MergeFrom(Scavenger* donor);
-
   int64_t UsedInWords() const {
     MutexLocker ml(&space_lock_);
     return to_->capacity_in_words();
@@ -376,7 +373,7 @@ class Scavenger {
 
   uword TryAllocateFromTLAB(Thread* thread, intptr_t size) {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
-    ASSERT(heap_ != Dart::vm_isolate()->heap());
+    ASSERT(heap_ != Dart::vm_isolate_group()->heap());
 
     const uword result = thread->top();
     const intptr_t remaining = thread->end() - result;
@@ -429,7 +426,7 @@ class Scavenger {
   bool scavenging_;
   bool early_tenure_ = false;
   RelaxedAtomic<intptr_t> root_slices_started_;
-  StoreBufferBlock* blocks_;
+  StoreBufferBlock* blocks_ = nullptr;
 
   int64_t gc_time_micros_;
   intptr_t collections_;

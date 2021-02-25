@@ -24,7 +24,7 @@ class RemoveUnnecessaryNewTest extends FixProcessorLintTest {
   String get lintCode => LintNames.unnecessary_new;
 
   Future<void> test_constructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A { A(); }
 f() {
   final a = new A();

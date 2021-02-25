@@ -12,14 +12,19 @@ import 'commands/fix_test.dart' as fix;
 import 'commands/flag_test.dart' as flag;
 import 'commands/format_test.dart' as format;
 import 'commands/help_test.dart' as help;
+import 'commands/language_server_test.dart' as language_server;
 import 'commands/migrate_test.dart' as migrate;
 import 'commands/pub_test.dart' as pub;
 import 'commands/run_test.dart' as run;
 import 'commands/test_test.dart' as test;
 import 'core_test.dart' as core;
-import 'events_test.dart' as events;
 import 'experiments_test.dart' as experiments;
+import 'fix_driver_test.dart' as fix_driver;
+import 'no_such_file_test.dart' as no_such_file;
 import 'sdk_test.dart' as sdk;
+import 'smoke/implicit_smoke_test.dart' as implicit_smoke;
+import 'smoke/invalid_smoke_test.dart' as invalid_smoke;
+import 'smoke/smoke_test.dart' as smoke;
 import 'utils_test.dart' as utils;
 
 void main() {
@@ -27,19 +32,24 @@ void main() {
     analytics.main();
     analyze.main();
     create.main();
-    events.main();
     experiments.main();
     fix.main();
+    fix_driver.main();
     flag.main();
     format.main();
     help.main();
+    implicit_smoke.main();
+    invalid_smoke.main();
+    language_server.main();
     migrate.main();
+    no_such_file.main();
     pub.main();
     run.main();
     compile.main();
     test.main();
     core.main();
     sdk.main();
+    smoke.main();
     utils.main();
   });
 }

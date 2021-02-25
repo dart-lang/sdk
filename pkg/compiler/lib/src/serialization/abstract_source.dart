@@ -143,7 +143,7 @@ abstract class AbstractDataSource extends DataSourceMixin
   List<ir.DartType> _readDartTypeNodes(
       List<ir.TypeParameter> functionTypeVariables) {
     int count = readInt();
-    List<ir.DartType> types = new List<ir.DartType>(count);
+    List<ir.DartType> types = new List<ir.DartType>.filled(count, null);
     for (int index = 0; index < count; index++) {
       types[index] = _readDartTypeNode(functionTypeVariables);
     }
@@ -229,7 +229,7 @@ abstract class AbstractDataSource extends DataSourceMixin
             _readDartTypeNodes(functionTypeVariables);
         int namedParameterCount = readInt();
         List<ir.NamedType> namedParameters =
-            new List<ir.NamedType>(namedParameterCount);
+            new List<ir.NamedType>.filled(namedParameterCount, null);
         for (int index = 0; index < namedParameterCount; index++) {
           String name = readString();
           bool isRequired = readBool();
@@ -276,6 +276,8 @@ abstract class AbstractDataSource extends DataSourceMixin
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         ir.DartType typeArgument = _readDartTypeNode(functionTypeVariables);
         return new ir.FutureOrType(typeArgument, nullability);
+      case DartTypeNodeKind.nullType:
+        return const ir.NullType();
     }
     throw new UnsupportedError("Unexpected DartTypeKind $kind");
   }
@@ -425,7 +427,7 @@ abstract class AbstractDataSource extends DataSourceMixin
       {bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>(count);
+    List<E> list = new List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       ir.TreeNode node = readTreeNodeInContextInternal(currentMemberData);
       list[i] = node;
@@ -544,6 +546,8 @@ abstract class AbstractDataSource extends DataSourceMixin
         return new DeferredGlobalConstantValue(constant, unit);
       case ConstantValueKind.DUMMY_INTERCEPTOR:
         return DummyInterceptorConstantValue();
+      case ConstantValueKind.LATE_SENTINEL:
+        return LateSentinelConstantValue();
       case ConstantValueKind.UNREACHABLE:
         return UnreachableConstantValue();
       case ConstantValueKind.JS_NAME:

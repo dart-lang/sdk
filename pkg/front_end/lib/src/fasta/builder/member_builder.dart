@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.member_builder;
 
 import 'dart:core' hide MapEntry;
@@ -54,6 +56,13 @@ abstract class MemberBuilder implements ModifierBuilder {
   /// a factory this is the [member] itself. For a setter this is `null`.
   Member get invokeTarget;
 
+  /// The members from this builder that are accessible in exports through
+  /// the name of the builder.
+  ///
+  /// This is used to allow a single builder to create separate members for
+  /// the getter and setter capabilities.
+  Iterable<Member> get exportedMembers;
+
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   ProcedureKind get kind;
 
@@ -91,10 +100,10 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
 
   MemberDataForTesting dataForTesting;
 
-  MemberBuilderImpl(this.parent, int charOffset)
+  MemberBuilderImpl(this.parent, int charOffset, [Uri fileUri])
       : dataForTesting =
             retainDataForTesting ? new MemberDataForTesting() : null,
-        super(parent, charOffset);
+        super(parent, charOffset, fileUri);
 
   @override
   bool get isDeclarationInstanceMember => isDeclarationMember && !isStatic;
@@ -149,6 +158,7 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {}
 
+  /// Builds the core AST structures for this member as needed for the outline.
   void buildMembers(
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f);
 
@@ -243,9 +253,6 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isStatic => memberBuilder.isStatic;
 
   @override
-  Member getMember(ClassHierarchyBuilder hierarchy) => memberBuilder.member;
-
-  @override
   bool isObjectMember(ClassBuilder objectClass) {
     return classBuilder == objectClass;
   }
@@ -254,20 +261,10 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isAbstract => memberBuilder.member.isAbstract;
 
   @override
-  bool get needsComputation => false;
-
-  @override
   bool get isSynthesized => false;
 
   @override
   bool get isInternalImplementation => false;
-
-  @override
-  bool get isInheritableConflict => false;
-
-  @override
-  ClassMember withParent(ClassBuilder classBuilder) =>
-      throw new UnsupportedError("$runtimeType.withParent");
 
   @override
   bool get hasDeclarations => false;
@@ -277,16 +274,7 @@ abstract class BuilderClassMember implements ClassMember {
       throw new UnsupportedError("$runtimeType.declarations");
 
   @override
-  ClassMember get abstract => this;
-
-  @override
-  ClassMember get concrete => this;
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return false;
-  }
+  ClassMember get interfaceMember => this;
 
   @override
   String toString() => '$runtimeType($fullName,forSetter=${forSetter})';

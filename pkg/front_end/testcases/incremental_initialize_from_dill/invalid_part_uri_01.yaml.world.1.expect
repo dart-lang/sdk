@@ -1,5 +1,12 @@
 main = <No Member>;
 library from "org-dartlang-malformed-uri:?+package%3Afoo%2Fbar.dart" as ?+p {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:2:6: Error: Expected a URI.
+// part ' package:foo/bar.dart';
+//      ^
+//
 
 }
 library from "org-dartlang-test:///main.dart" as main {

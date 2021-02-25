@@ -5,6 +5,8 @@
 
 // Update the flakiness data with a set of fresh results.
 
+// @dart = 2.9
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -39,14 +41,19 @@ ${parser.usage}''');
       ? await loadResultsMap(options['input'])
       : <String, Map<String, dynamic>>{};
 
+  final resultsForInactiveFlakiness = {
+    for (final flakyTest in data.keys)
+      if (data[flakyTest]['active'] == false) flakyTest: <String>{}
+  };
   // Incrementally update the flakiness data with each observed result.
   for (final path in parameters) {
     final results = await loadResults(path);
     for (final resultObject in results) {
-      final String configuration = resultObject['configuration'];
-      final String name = resultObject['name'];
-      final String result = resultObject['result'];
+      final String configuration = resultObject['configuration'] /*!*/;
+      final String name = resultObject['name'] /*!*/;
+      final String result = resultObject['result'] /*!*/;
       final key = '$configuration:$name';
+      resultsForInactiveFlakiness[key]?.add(result);
       Map<String, dynamic> newMap() => {};
       final testData = data.putIfAbsent(key, newMap);
       testData['configuration'] = configuration;
@@ -94,10 +101,20 @@ ${parser.usage}''');
   for (final key in keys) {
     final testData = data[key];
     if (testData['outcomes'].length < 2) continue;
-    // Forgive tests that have been stable for 100 builds.
-    if (!options['no-forgive'] && testData['current_counter'] >= 100) {
-      continue;
+    // Reactivate inactive flaky results that are flaky again.
+    if (testData['active'] == false) {
+      if (resultsForInactiveFlakiness[key].length > 1) {
+        testData['active'] = true;
+        testData['reactivation_count'] =
+            (testData['reactivation_count'] ?? 0) + 1;
+      }
+    } else if (!options['no-forgive'] && testData['current_counter'] >= 100) {
+      // Forgive tests that have been stable for 100 builds.
+      testData['active'] = false;
+    } else {
+      testData['active'] = true;
     }
+
     sink.writeln(jsonEncode(testData));
   }
 }

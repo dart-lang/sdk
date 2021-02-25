@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
@@ -81,7 +83,9 @@ main(List<String> args) async {
 class TextRepresentationConfig extends TestConfig {
   const TextRepresentationConfig(String marker, String name)
       : super(marker, name,
-            experimentalFlags: const {ExperimentalFlag.nonNullable: true},
+            explicitExperimentalFlags: const {
+              ExperimentalFlag.nonNullable: true
+            },
             nnbdMode: NnbdMode.Strong);
 
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {
@@ -134,8 +138,8 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
 
   @override
   visitProcedure(Procedure node) {
-    if (!node.name.name.startsWith(expressionMarker) &&
-        !node.name.name.startsWith(statementMarker)) {
+    if (!node.name.text.startsWith(expressionMarker) &&
+        !node.name.text.startsWith(statementMarker)) {
       node.function.accept(this);
     }
     computeForMember(node);
@@ -143,8 +147,8 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
 
   @override
   visitField(Field node) {
-    if (!node.name.name.startsWith(expressionMarker) &&
-        !node.name.name.startsWith(statementMarker)) {
+    if (!node.name.text.startsWith(expressionMarker) &&
+        !node.name.text.startsWith(statementMarker)) {
       node.initializer?.accept(this);
     }
     computeForMember(node);
@@ -152,10 +156,10 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
 
   @override
   String computeMemberValue(Id id, Member node) {
-    if (node.name.name == 'stmtVariableDeclarationMulti') {
+    if (node.name.text == 'stmtVariableDeclarationMulti') {
       print(node);
     }
-    if (node.name.name.startsWith(expressionMarker)) {
+    if (node.name.text.startsWith(expressionMarker)) {
       if (node is Procedure) {
         Statement body = node.function.body;
         if (body is ReturnStatement) {
@@ -164,7 +168,7 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
       } else if (node is Field && node.initializer != null) {
         return node.initializer.toText(strategy);
       }
-    } else if (node.name.name.startsWith(statementMarker)) {
+    } else if (node.name.text.startsWith(statementMarker)) {
       if (node is Procedure) {
         Statement body = node.function.body;
         if (body is Block && body.statements.length == 1) {

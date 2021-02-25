@@ -1,0 +1,971 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:8:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {...a}, // Error.
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:9:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {...b}, // Error.
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:10:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {...c}, // Error.
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:11:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {...d}, // Error.
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:12:19: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     <int, int>{...a}, // Error.
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:12:19: Error: Unexpected type 'List<int>?' of a map spread entry.  Expected 'dynamic' or a Map.
+//  - 'List' is from 'dart:core'.
+//     <int, int>{...a}, // Error.
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:13:14: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     <int>{...d}, // Error.
+//              ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:13:14: Error: Unexpected type 'Map<int, int>?' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+//     <int>{...d}, // Error.
+//              ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:14:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {if (condition) ...a}, // Error.
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:15:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {if (condition) ...b}, // Error.
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:16:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {if (condition) ...c}, // Error.
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:17:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {if (condition) ...d}, // Error.
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:18:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (dynamic e in iterable) ...a}, // Error.
+//                                     ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:19:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (dynamic e in iterable) ...b}, // Error.
+//                                     ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:20:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (dynamic e in iterable) ...c}, // Error.
+//                                     ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:21:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (dynamic e in iterable) ...d}, // Error.
+//                                     ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:22:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (int i = 0; i < 42; ++i) ...a}, // Error.
+//                                      ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:23:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (int i = 0; i < 42; ++i) ...b}, // Error.
+//                                      ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:24:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (int i = 0; i < 42; ++i) ...c}, // Error.
+//                                      ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:25:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (int i = 0; i < 42; ++i) ...d}, // Error.
+//                                      ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:50:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {...x}, // Error.
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:51:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {...y}, // Error.
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:52:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {...z}, // Error.
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:53:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {...w}, // Error.
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:54:19: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     <int, int>{...x}, // Error.
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:54:19: Error: Unexpected type 'X' of a map spread entry.  Expected 'dynamic' or a Map.
+//     <int, int>{...x}, // Error.
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:55:14: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     <int>{...w}, // Error.
+//              ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:55:14: Error: Unexpected type 'W' of a spread.  Expected 'dynamic' or an Iterable.
+//     <int>{...w}, // Error.
+//              ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:56:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {if (condition) ...x}, // Error.
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:57:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {if (condition) ...y}, // Error.
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:58:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {if (condition) ...z}, // Error.
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:59:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {if (condition) ...w}, // Error.
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:60:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (dynamic e in iterable) ...x}, // Error.
+//                                     ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:61:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (dynamic e in iterable) ...y}, // Error.
+//                                     ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:62:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (dynamic e in iterable) ...z}, // Error.
+//                                     ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:63:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (dynamic e in iterable) ...w}, // Error.
+//                                     ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:64:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (int i = 0; i < 42; ++i) ...x}, // Error.
+//                                      ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:65:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (int i = 0; i < 42; ++i) ...y}, // Error.
+//                                      ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:66:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (int i = 0; i < 42; ++i) ...z}, // Error.
+//                                      ^
+//
+// pkg/front_end/testcases/nnbd/issue43495.dart:67:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     {for (int i = 0; i < 42; ++i) ...w}, // Error.
+//                                      ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::List<core::int>? a, core::Set<core::int>? b, core::Iterable<core::int>? c, core::Map<core::int, core::int>? d) → dynamic {
+  return <core::Object>[ block {
+    final core::Set<core::int> #t1 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (final dynamic #t2 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:8:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {...a}, // Error.
+        ^") {
+      final core::int #t3 = #t2 as{TypeError,ForNonNullableByDefault} core::int;
+      #t1.{core::Set::add}{Invariant}(#t3);
+    }
+  } =>#t1, block {
+    final core::Set<core::int> #t4 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (final dynamic #t5 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:9:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {...b}, // Error.
+        ^") {
+      final core::int #t6 = #t5 as{TypeError,ForNonNullableByDefault} core::int;
+      #t4.{core::Set::add}{Invariant}(#t6);
+    }
+  } =>#t4, block {
+    final core::Set<core::int> #t7 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (final dynamic #t8 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:10:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {...c}, // Error.
+        ^") {
+      final core::int #t9 = #t8 as{TypeError,ForNonNullableByDefault} core::int;
+      #t7.{core::Set::add}{Invariant}(#t9);
+    }
+  } =>#t7, <core::int, core::int>{invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:11:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {...d}, // Error.
+        ^": null}, <core::int, core::int>{invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:12:19: Error: Unexpected type 'List<int>?' of a map spread entry.  Expected 'dynamic' or a Map.
+ - 'List' is from 'dart:core'.
+    <int, int>{...a}, // Error.
+                  ^": null}, block {
+    final core::Set<core::int> #t10 = new col::_CompactLinkedHashSet::•<core::int>();
+    #t10.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:13:14: Error: Unexpected type 'Map<int, int>?' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+    <int>{...d}, // Error.
+             ^");
+  } =>#t10, block {
+    final core::Set<core::int> #t11 = new col::_CompactLinkedHashSet::•<core::int>();
+    if(condition)
+      for (final dynamic #t12 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:14:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {if (condition) ...a}, // Error.
+                       ^") {
+        final core::int #t13 = #t12 as{TypeError,ForNonNullableByDefault} core::int;
+        #t11.{core::Set::add}{Invariant}(#t13);
+      }
+  } =>#t11, block {
+    final core::Set<core::int> #t14 = new col::_CompactLinkedHashSet::•<core::int>();
+    if(condition)
+      for (final dynamic #t15 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:15:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {if (condition) ...b}, // Error.
+                       ^") {
+        final core::int #t16 = #t15 as{TypeError,ForNonNullableByDefault} core::int;
+        #t14.{core::Set::add}{Invariant}(#t16);
+      }
+  } =>#t14, block {
+    final core::Set<core::int> #t17 = new col::_CompactLinkedHashSet::•<core::int>();
+    if(condition)
+      for (final dynamic #t18 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:16:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {if (condition) ...c}, // Error.
+                       ^") {
+        final core::int #t19 = #t18 as{TypeError,ForNonNullableByDefault} core::int;
+        #t17.{core::Set::add}{Invariant}(#t19);
+      }
+  } =>#t17, block {
+    final core::Map<core::int, core::int> #t20 = <core::int, core::int>{};
+    if(condition)
+      #t20.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:17:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {if (condition) ...d}, // Error.
+                       ^", null);
+  } =>#t20, block {
+    final core::Set<core::int> #t21 = new col::_CompactLinkedHashSet::•<core::int>();
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        for (final dynamic #t22 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:18:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (dynamic e in iterable) ...a}, // Error.
+                                    ^") {
+          final core::int #t23 = #t22 as{TypeError,ForNonNullableByDefault} core::int;
+          #t21.{core::Set::add}{Invariant}(#t23);
+        }
+      }
+    }
+  } =>#t21, block {
+    final core::Set<core::int> #t24 = new col::_CompactLinkedHashSet::•<core::int>();
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        for (final dynamic #t25 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:19:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (dynamic e in iterable) ...b}, // Error.
+                                    ^") {
+          final core::int #t26 = #t25 as{TypeError,ForNonNullableByDefault} core::int;
+          #t24.{core::Set::add}{Invariant}(#t26);
+        }
+      }
+    }
+  } =>#t24, block {
+    final core::Set<core::int> #t27 = new col::_CompactLinkedHashSet::•<core::int>();
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        for (final dynamic #t28 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:20:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (dynamic e in iterable) ...c}, // Error.
+                                    ^") {
+          final core::int #t29 = #t28 as{TypeError,ForNonNullableByDefault} core::int;
+          #t27.{core::Set::add}{Invariant}(#t29);
+        }
+      }
+    }
+  } =>#t27, block {
+    final core::Map<core::int, core::int> #t30 = <core::int, core::int>{};
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        #t30.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:21:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (dynamic e in iterable) ...d}, // Error.
+                                    ^", null);
+      }
+    }
+  } =>#t30, block {
+    final core::Set<core::int> #t31 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
+      for (final dynamic #t32 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:22:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (int i = 0; i < 42; ++i) ...a}, // Error.
+                                     ^") {
+        final core::int #t33 = #t32 as{TypeError,ForNonNullableByDefault} core::int;
+        #t31.{core::Set::add}{Invariant}(#t33);
+      }
+  } =>#t31, block {
+    final core::Set<core::int> #t34 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
+      for (final dynamic #t35 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:23:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (int i = 0; i < 42; ++i) ...b}, // Error.
+                                     ^") {
+        final core::int #t36 = #t35 as{TypeError,ForNonNullableByDefault} core::int;
+        #t34.{core::Set::add}{Invariant}(#t36);
+      }
+  } =>#t34, block {
+    final core::Set<core::int> #t37 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
+      for (final dynamic #t38 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:24:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (int i = 0; i < 42; ++i) ...c}, // Error.
+                                     ^") {
+        final core::int #t39 = #t38 as{TypeError,ForNonNullableByDefault} core::int;
+        #t37.{core::Set::add}{Invariant}(#t39);
+      }
+  } =>#t37, block {
+    final core::Map<core::int, core::int> #t40 = <core::int, core::int>{};
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
+      #t40.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:25:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (int i = 0; i < 42; ++i) ...d}, // Error.
+                                     ^", null);
+  } =>#t40, block {
+    final core::Set<core::int> #t41 = new col::_CompactLinkedHashSet::•<core::int>();
+    final core::Iterable<dynamic>? #t42 = a;
+    if(!#t42.{core::Object::==}(null)) {
+      core::Iterator<dynamic> :sync-for-iterator = #t42{core::Iterable<dynamic>}.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t43 = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::int #t44 = #t43 as{TypeError,ForNonNullableByDefault} core::int;
+          #t41.{core::Set::add}{Invariant}(#t44);
+        }
+      }
+    }
+  } =>#t41, block {
+    final core::Set<core::int> #t45 = new col::_CompactLinkedHashSet::•<core::int>();
+    final core::Iterable<dynamic>? #t46 = b;
+    if(!#t46.{core::Object::==}(null)) {
+      core::Iterator<dynamic> :sync-for-iterator = #t46{core::Iterable<dynamic>}.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t47 = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::int #t48 = #t47 as{TypeError,ForNonNullableByDefault} core::int;
+          #t45.{core::Set::add}{Invariant}(#t48);
+        }
+      }
+    }
+  } =>#t45, block {
+    final core::Set<core::int> #t49 = new col::_CompactLinkedHashSet::•<core::int>();
+    final core::Iterable<dynamic>? #t50 = c;
+    if(!#t50.{core::Object::==}(null)) {
+      core::Iterator<dynamic> :sync-for-iterator = #t50{core::Iterable<dynamic>}.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t51 = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::int #t52 = #t51 as{TypeError,ForNonNullableByDefault} core::int;
+          #t49.{core::Set::add}{Invariant}(#t52);
+        }
+      }
+    }
+  } =>#t49, block {
+    final core::Map<core::int, core::int> #t53 = <core::int, core::int>{};
+    final core::Map<core::int, core::int>? #t54 = d;
+    if(!#t54.{core::Object::==}(null)) {
+      core::Iterator<core::MapEntry<core::int, core::int>> :sync-for-iterator = #t54{core::Map<core::int, core::int>}.{core::Map::entries}.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final core::MapEntry<core::int, core::int> #t55 = :sync-for-iterator.{core::Iterator::current};
+        #t53.{core::Map::[]=}{Invariant}(#t55.{core::MapEntry::key}, #t55.{core::MapEntry::value});
+      }
+    }
+  } =>#t53, block {
+    final core::Set<core::int> #t56 = new col::_CompactLinkedHashSet::•<core::int>();
+    if(condition) {
+      final core::Iterable<dynamic>? #t57 = a;
+      if(!#t57.{core::Object::==}(null)) {
+        core::Iterator<dynamic> :sync-for-iterator = #t57{core::Iterable<dynamic>}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final dynamic #t58 = :sync-for-iterator.{core::Iterator::current};
+          {
+            final core::int #t59 = #t58 as{TypeError,ForNonNullableByDefault} core::int;
+            #t56.{core::Set::add}{Invariant}(#t59);
+          }
+        }
+      }
+    }
+  } =>#t56, block {
+    final core::Set<core::int> #t60 = new col::_CompactLinkedHashSet::•<core::int>();
+    if(condition) {
+      final core::Iterable<dynamic>? #t61 = b;
+      if(!#t61.{core::Object::==}(null)) {
+        core::Iterator<dynamic> :sync-for-iterator = #t61{core::Iterable<dynamic>}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final dynamic #t62 = :sync-for-iterator.{core::Iterator::current};
+          {
+            final core::int #t63 = #t62 as{TypeError,ForNonNullableByDefault} core::int;
+            #t60.{core::Set::add}{Invariant}(#t63);
+          }
+        }
+      }
+    }
+  } =>#t60, block {
+    final core::Set<core::int> #t64 = new col::_CompactLinkedHashSet::•<core::int>();
+    if(condition) {
+      final core::Iterable<dynamic>? #t65 = c;
+      if(!#t65.{core::Object::==}(null)) {
+        core::Iterator<dynamic> :sync-for-iterator = #t65{core::Iterable<dynamic>}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final dynamic #t66 = :sync-for-iterator.{core::Iterator::current};
+          {
+            final core::int #t67 = #t66 as{TypeError,ForNonNullableByDefault} core::int;
+            #t64.{core::Set::add}{Invariant}(#t67);
+          }
+        }
+      }
+    }
+  } =>#t64, block {
+    final core::Map<core::int, core::int> #t68 = <core::int, core::int>{};
+    if(condition) {
+      final core::Map<core::int, core::int>? #t69 = d;
+      if(!#t69.{core::Object::==}(null)) {
+        core::Iterator<core::MapEntry<core::int, core::int>> :sync-for-iterator = #t69{core::Map<core::int, core::int>}.{core::Map::entries}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final core::MapEntry<core::int, core::int> #t70 = :sync-for-iterator.{core::Iterator::current};
+          #t68.{core::Map::[]=}{Invariant}(#t70.{core::MapEntry::key}, #t70.{core::MapEntry::value});
+        }
+      }
+    }
+  } =>#t68, block {
+    final core::Set<core::int> #t71 = new col::_CompactLinkedHashSet::•<core::int>();
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::Iterable<dynamic>? #t72 = a;
+          if(!#t72.{core::Object::==}(null)) {
+            core::Iterator<dynamic> :sync-for-iterator = #t72{core::Iterable<dynamic>}.{core::Iterable::iterator};
+            for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+              final dynamic #t73 = :sync-for-iterator.{core::Iterator::current};
+              {
+                final core::int #t74 = #t73 as{TypeError,ForNonNullableByDefault} core::int;
+                #t71.{core::Set::add}{Invariant}(#t74);
+              }
+            }
+          }
+        }
+      }
+    }
+  } =>#t71, block {
+    final core::Set<core::int> #t75 = new col::_CompactLinkedHashSet::•<core::int>();
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::Iterable<dynamic>? #t76 = b;
+          if(!#t76.{core::Object::==}(null)) {
+            core::Iterator<dynamic> :sync-for-iterator = #t76{core::Iterable<dynamic>}.{core::Iterable::iterator};
+            for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+              final dynamic #t77 = :sync-for-iterator.{core::Iterator::current};
+              {
+                final core::int #t78 = #t77 as{TypeError,ForNonNullableByDefault} core::int;
+                #t75.{core::Set::add}{Invariant}(#t78);
+              }
+            }
+          }
+        }
+      }
+    }
+  } =>#t75, block {
+    final core::Set<core::int> #t79 = new col::_CompactLinkedHashSet::•<core::int>();
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::Iterable<dynamic>? #t80 = c;
+          if(!#t80.{core::Object::==}(null)) {
+            core::Iterator<dynamic> :sync-for-iterator = #t80{core::Iterable<dynamic>}.{core::Iterable::iterator};
+            for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+              final dynamic #t81 = :sync-for-iterator.{core::Iterator::current};
+              {
+                final core::int #t82 = #t81 as{TypeError,ForNonNullableByDefault} core::int;
+                #t79.{core::Set::add}{Invariant}(#t82);
+              }
+            }
+          }
+        }
+      }
+    }
+  } =>#t79, block {
+    final core::Map<core::int, core::int> #t83 = <core::int, core::int>{};
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::Map<core::int, core::int>? #t84 = d;
+          if(!#t84.{core::Object::==}(null)) {
+            core::Iterator<core::MapEntry<core::int, core::int>> :sync-for-iterator = #t84{core::Map<core::int, core::int>}.{core::Map::entries}.{core::Iterable::iterator};
+            for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+              final core::MapEntry<core::int, core::int> #t85 = :sync-for-iterator.{core::Iterator::current};
+              #t83.{core::Map::[]=}{Invariant}(#t85.{core::MapEntry::key}, #t85.{core::MapEntry::value});
+            }
+          }
+        }
+      }
+    }
+  } =>#t83, block {
+    final core::Set<core::int> #t86 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
+      final core::Iterable<dynamic>? #t87 = a;
+      if(!#t87.{core::Object::==}(null)) {
+        core::Iterator<dynamic> :sync-for-iterator = #t87{core::Iterable<dynamic>}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final dynamic #t88 = :sync-for-iterator.{core::Iterator::current};
+          {
+            final core::int #t89 = #t88 as{TypeError,ForNonNullableByDefault} core::int;
+            #t86.{core::Set::add}{Invariant}(#t89);
+          }
+        }
+      }
+    }
+  } =>#t86, block {
+    final core::Set<core::int> #t90 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
+      final core::Iterable<dynamic>? #t91 = b;
+      if(!#t91.{core::Object::==}(null)) {
+        core::Iterator<dynamic> :sync-for-iterator = #t91{core::Iterable<dynamic>}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final dynamic #t92 = :sync-for-iterator.{core::Iterator::current};
+          {
+            final core::int #t93 = #t92 as{TypeError,ForNonNullableByDefault} core::int;
+            #t90.{core::Set::add}{Invariant}(#t93);
+          }
+        }
+      }
+    }
+  } =>#t90, block {
+    final core::Set<core::int> #t94 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
+      final core::Iterable<dynamic>? #t95 = c;
+      if(!#t95.{core::Object::==}(null)) {
+        core::Iterator<dynamic> :sync-for-iterator = #t95{core::Iterable<dynamic>}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final dynamic #t96 = :sync-for-iterator.{core::Iterator::current};
+          {
+            final core::int #t97 = #t96 as{TypeError,ForNonNullableByDefault} core::int;
+            #t94.{core::Set::add}{Invariant}(#t97);
+          }
+        }
+      }
+    }
+  } =>#t94, block {
+    final core::Map<core::int, core::int> #t98 = <core::int, core::int>{};
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
+      final core::Map<core::int, core::int>? #t99 = d;
+      if(!#t99.{core::Object::==}(null)) {
+        core::Iterator<core::MapEntry<core::int, core::int>> :sync-for-iterator = #t99{core::Map<core::int, core::int>}.{core::Map::entries}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final core::MapEntry<core::int, core::int> #t100 = :sync-for-iterator.{core::Iterator::current};
+          #t98.{core::Map::[]=}{Invariant}(#t100.{core::MapEntry::key}, #t100.{core::MapEntry::value});
+        }
+      }
+    }
+  } =>#t98];
+}
+static method bar<X extends core::List<core::int>? = core::List<core::int>?, Y extends core::Set<core::int>? = core::Set<core::int>?, Z extends core::Iterable<core::int>? = core::Iterable<core::int>?, W extends core::Map<core::int, core::int>? = core::Map<core::int, core::int>?>(core::bool condition, core::Iterable<dynamic> iterable, self::bar::X% x, self::bar::Y% y, self::bar::Z% z, self::bar::W% w) → dynamic {
+  return <core::Object>[ block {
+    final core::Set<core::int> #t101 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (final dynamic #t102 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:50:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {...x}, // Error.
+        ^") {
+      final core::int #t103 = #t102 as{TypeError,ForNonNullableByDefault} core::int;
+      #t101.{core::Set::add}{Invariant}(#t103);
+    }
+  } =>#t101, block {
+    final core::Set<core::int> #t104 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (final dynamic #t105 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:51:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {...y}, // Error.
+        ^") {
+      final core::int #t106 = #t105 as{TypeError,ForNonNullableByDefault} core::int;
+      #t104.{core::Set::add}{Invariant}(#t106);
+    }
+  } =>#t104, block {
+    final core::Set<core::int> #t107 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (final dynamic #t108 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:52:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {...z}, // Error.
+        ^") {
+      final core::int #t109 = #t108 as{TypeError,ForNonNullableByDefault} core::int;
+      #t107.{core::Set::add}{Invariant}(#t109);
+    }
+  } =>#t107, <core::int, core::int>{invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:53:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {...w}, // Error.
+        ^": null}, <core::int, core::int>{invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:54:19: Error: Unexpected type 'X' of a map spread entry.  Expected 'dynamic' or a Map.
+    <int, int>{...x}, // Error.
+                  ^": null}, block {
+    final core::Set<core::int> #t110 = new col::_CompactLinkedHashSet::•<core::int>();
+    #t110.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:55:14: Error: Unexpected type 'W' of a spread.  Expected 'dynamic' or an Iterable.
+    <int>{...w}, // Error.
+             ^");
+  } =>#t110, block {
+    final core::Set<core::int> #t111 = new col::_CompactLinkedHashSet::•<core::int>();
+    if(condition)
+      for (final dynamic #t112 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:56:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {if (condition) ...x}, // Error.
+                       ^") {
+        final core::int #t113 = #t112 as{TypeError,ForNonNullableByDefault} core::int;
+        #t111.{core::Set::add}{Invariant}(#t113);
+      }
+  } =>#t111, block {
+    final core::Set<core::int> #t114 = new col::_CompactLinkedHashSet::•<core::int>();
+    if(condition)
+      for (final dynamic #t115 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:57:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {if (condition) ...y}, // Error.
+                       ^") {
+        final core::int #t116 = #t115 as{TypeError,ForNonNullableByDefault} core::int;
+        #t114.{core::Set::add}{Invariant}(#t116);
+      }
+  } =>#t114, block {
+    final core::Set<core::int> #t117 = new col::_CompactLinkedHashSet::•<core::int>();
+    if(condition)
+      for (final dynamic #t118 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:58:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {if (condition) ...z}, // Error.
+                       ^") {
+        final core::int #t119 = #t118 as{TypeError,ForNonNullableByDefault} core::int;
+        #t117.{core::Set::add}{Invariant}(#t119);
+      }
+  } =>#t117, block {
+    final core::Map<core::int, core::int> #t120 = <core::int, core::int>{};
+    if(condition)
+      #t120.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:59:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {if (condition) ...w}, // Error.
+                       ^", null);
+  } =>#t120, block {
+    final core::Set<core::int> #t121 = new col::_CompactLinkedHashSet::•<core::int>();
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        for (final dynamic #t122 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:60:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (dynamic e in iterable) ...x}, // Error.
+                                    ^") {
+          final core::int #t123 = #t122 as{TypeError,ForNonNullableByDefault} core::int;
+          #t121.{core::Set::add}{Invariant}(#t123);
+        }
+      }
+    }
+  } =>#t121, block {
+    final core::Set<core::int> #t124 = new col::_CompactLinkedHashSet::•<core::int>();
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        for (final dynamic #t125 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:61:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (dynamic e in iterable) ...y}, // Error.
+                                    ^") {
+          final core::int #t126 = #t125 as{TypeError,ForNonNullableByDefault} core::int;
+          #t124.{core::Set::add}{Invariant}(#t126);
+        }
+      }
+    }
+  } =>#t124, block {
+    final core::Set<core::int> #t127 = new col::_CompactLinkedHashSet::•<core::int>();
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        for (final dynamic #t128 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:62:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (dynamic e in iterable) ...z}, // Error.
+                                    ^") {
+          final core::int #t129 = #t128 as{TypeError,ForNonNullableByDefault} core::int;
+          #t127.{core::Set::add}{Invariant}(#t129);
+        }
+      }
+    }
+  } =>#t127, block {
+    final core::Map<core::int, core::int> #t130 = <core::int, core::int>{};
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        #t130.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:63:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (dynamic e in iterable) ...w}, // Error.
+                                    ^", null);
+      }
+    }
+  } =>#t130, block {
+    final core::Set<core::int> #t131 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
+      for (final dynamic #t132 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:64:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (int i = 0; i < 42; ++i) ...x}, // Error.
+                                     ^") {
+        final core::int #t133 = #t132 as{TypeError,ForNonNullableByDefault} core::int;
+        #t131.{core::Set::add}{Invariant}(#t133);
+      }
+  } =>#t131, block {
+    final core::Set<core::int> #t134 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
+      for (final dynamic #t135 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:65:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (int i = 0; i < 42; ++i) ...y}, // Error.
+                                     ^") {
+        final core::int #t136 = #t135 as{TypeError,ForNonNullableByDefault} core::int;
+        #t134.{core::Set::add}{Invariant}(#t136);
+      }
+  } =>#t134, block {
+    final core::Set<core::int> #t137 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
+      for (final dynamic #t138 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:66:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (int i = 0; i < 42; ++i) ...z}, // Error.
+                                     ^") {
+        final core::int #t139 = #t138 as{TypeError,ForNonNullableByDefault} core::int;
+        #t137.{core::Set::add}{Invariant}(#t139);
+      }
+  } =>#t137, block {
+    final core::Map<core::int, core::int> #t140 = <core::int, core::int>{};
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
+      #t140.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:67:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    {for (int i = 0; i < 42; ++i) ...w}, // Error.
+                                     ^", null);
+  } =>#t140, block {
+    final core::Set<core::int> #t141 = new col::_CompactLinkedHashSet::•<core::int>();
+    final core::Iterable<dynamic>? #t142 = x;
+    if(!#t142.{core::Object::==}(null)) {
+      core::Iterator<dynamic> :sync-for-iterator = #t142{core::Iterable<dynamic>}.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t143 = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::int #t144 = #t143 as{TypeError,ForNonNullableByDefault} core::int;
+          #t141.{core::Set::add}{Invariant}(#t144);
+        }
+      }
+    }
+  } =>#t141, block {
+    final core::Set<core::int> #t145 = new col::_CompactLinkedHashSet::•<core::int>();
+    final core::Iterable<dynamic>? #t146 = y;
+    if(!#t146.{core::Object::==}(null)) {
+      core::Iterator<dynamic> :sync-for-iterator = #t146{core::Iterable<dynamic>}.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t147 = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::int #t148 = #t147 as{TypeError,ForNonNullableByDefault} core::int;
+          #t145.{core::Set::add}{Invariant}(#t148);
+        }
+      }
+    }
+  } =>#t145, block {
+    final core::Set<core::int> #t149 = new col::_CompactLinkedHashSet::•<core::int>();
+    final core::Iterable<dynamic>? #t150 = z;
+    if(!#t150.{core::Object::==}(null)) {
+      core::Iterator<dynamic> :sync-for-iterator = #t150{core::Iterable<dynamic>}.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t151 = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::int #t152 = #t151 as{TypeError,ForNonNullableByDefault} core::int;
+          #t149.{core::Set::add}{Invariant}(#t152);
+        }
+      }
+    }
+  } =>#t149, block {
+    final core::Map<core::int, core::int> #t153 = <core::int, core::int>{};
+    final core::Map<core::int, core::int>? #t154 = w;
+    if(!#t154.{core::Object::==}(null)) {
+      core::Iterator<core::MapEntry<core::int, core::int>> :sync-for-iterator = #t154{core::Map<core::int, core::int>}.{core::Map::entries}.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final core::MapEntry<core::int, core::int> #t155 = :sync-for-iterator.{core::Iterator::current};
+        #t153.{core::Map::[]=}{Invariant}(#t155.{core::MapEntry::key}, #t155.{core::MapEntry::value});
+      }
+    }
+  } =>#t153, block {
+    final core::Set<core::int> #t156 = new col::_CompactLinkedHashSet::•<core::int>();
+    if(condition) {
+      final core::Iterable<dynamic>? #t157 = x;
+      if(!#t157.{core::Object::==}(null)) {
+        core::Iterator<dynamic> :sync-for-iterator = #t157{core::Iterable<dynamic>}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final dynamic #t158 = :sync-for-iterator.{core::Iterator::current};
+          {
+            final core::int #t159 = #t158 as{TypeError,ForNonNullableByDefault} core::int;
+            #t156.{core::Set::add}{Invariant}(#t159);
+          }
+        }
+      }
+    }
+  } =>#t156, block {
+    final core::Set<core::int> #t160 = new col::_CompactLinkedHashSet::•<core::int>();
+    if(condition) {
+      final core::Iterable<dynamic>? #t161 = y;
+      if(!#t161.{core::Object::==}(null)) {
+        core::Iterator<dynamic> :sync-for-iterator = #t161{core::Iterable<dynamic>}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final dynamic #t162 = :sync-for-iterator.{core::Iterator::current};
+          {
+            final core::int #t163 = #t162 as{TypeError,ForNonNullableByDefault} core::int;
+            #t160.{core::Set::add}{Invariant}(#t163);
+          }
+        }
+      }
+    }
+  } =>#t160, block {
+    final core::Set<core::int> #t164 = new col::_CompactLinkedHashSet::•<core::int>();
+    if(condition) {
+      final core::Iterable<dynamic>? #t165 = z;
+      if(!#t165.{core::Object::==}(null)) {
+        core::Iterator<dynamic> :sync-for-iterator = #t165{core::Iterable<dynamic>}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final dynamic #t166 = :sync-for-iterator.{core::Iterator::current};
+          {
+            final core::int #t167 = #t166 as{TypeError,ForNonNullableByDefault} core::int;
+            #t164.{core::Set::add}{Invariant}(#t167);
+          }
+        }
+      }
+    }
+  } =>#t164, block {
+    final core::Map<core::int, core::int> #t168 = <core::int, core::int>{};
+    if(condition) {
+      final core::Map<core::int, core::int>? #t169 = w;
+      if(!#t169.{core::Object::==}(null)) {
+        core::Iterator<core::MapEntry<core::int, core::int>> :sync-for-iterator = #t169{core::Map<core::int, core::int>}.{core::Map::entries}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final core::MapEntry<core::int, core::int> #t170 = :sync-for-iterator.{core::Iterator::current};
+          #t168.{core::Map::[]=}{Invariant}(#t170.{core::MapEntry::key}, #t170.{core::MapEntry::value});
+        }
+      }
+    }
+  } =>#t168, block {
+    final core::Set<core::int> #t171 = new col::_CompactLinkedHashSet::•<core::int>();
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::Iterable<dynamic>? #t172 = x;
+          if(!#t172.{core::Object::==}(null)) {
+            core::Iterator<dynamic> :sync-for-iterator = #t172{core::Iterable<dynamic>}.{core::Iterable::iterator};
+            for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+              final dynamic #t173 = :sync-for-iterator.{core::Iterator::current};
+              {
+                final core::int #t174 = #t173 as{TypeError,ForNonNullableByDefault} core::int;
+                #t171.{core::Set::add}{Invariant}(#t174);
+              }
+            }
+          }
+        }
+      }
+    }
+  } =>#t171, block {
+    final core::Set<core::int> #t175 = new col::_CompactLinkedHashSet::•<core::int>();
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::Iterable<dynamic>? #t176 = y;
+          if(!#t176.{core::Object::==}(null)) {
+            core::Iterator<dynamic> :sync-for-iterator = #t176{core::Iterable<dynamic>}.{core::Iterable::iterator};
+            for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+              final dynamic #t177 = :sync-for-iterator.{core::Iterator::current};
+              {
+                final core::int #t178 = #t177 as{TypeError,ForNonNullableByDefault} core::int;
+                #t175.{core::Set::add}{Invariant}(#t178);
+              }
+            }
+          }
+        }
+      }
+    }
+  } =>#t175, block {
+    final core::Set<core::int> #t179 = new col::_CompactLinkedHashSet::•<core::int>();
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::Iterable<dynamic>? #t180 = z;
+          if(!#t180.{core::Object::==}(null)) {
+            core::Iterator<dynamic> :sync-for-iterator = #t180{core::Iterable<dynamic>}.{core::Iterable::iterator};
+            for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+              final dynamic #t181 = :sync-for-iterator.{core::Iterator::current};
+              {
+                final core::int #t182 = #t181 as{TypeError,ForNonNullableByDefault} core::int;
+                #t179.{core::Set::add}{Invariant}(#t182);
+              }
+            }
+          }
+        }
+      }
+    }
+  } =>#t179, block {
+    final core::Map<core::int, core::int> #t183 = <core::int, core::int>{};
+    {
+      core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = :sync-for-iterator.{core::Iterator::current};
+        {
+          final core::Map<core::int, core::int>? #t184 = w;
+          if(!#t184.{core::Object::==}(null)) {
+            core::Iterator<core::MapEntry<core::int, core::int>> :sync-for-iterator = #t184{core::Map<core::int, core::int>}.{core::Map::entries}.{core::Iterable::iterator};
+            for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+              final core::MapEntry<core::int, core::int> #t185 = :sync-for-iterator.{core::Iterator::current};
+              #t183.{core::Map::[]=}{Invariant}(#t185.{core::MapEntry::key}, #t185.{core::MapEntry::value});
+            }
+          }
+        }
+      }
+    }
+  } =>#t183, block {
+    final core::Set<core::int> #t186 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
+      final core::Iterable<dynamic>? #t187 = x;
+      if(!#t187.{core::Object::==}(null)) {
+        core::Iterator<dynamic> :sync-for-iterator = #t187{core::Iterable<dynamic>}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final dynamic #t188 = :sync-for-iterator.{core::Iterator::current};
+          {
+            final core::int #t189 = #t188 as{TypeError,ForNonNullableByDefault} core::int;
+            #t186.{core::Set::add}{Invariant}(#t189);
+          }
+        }
+      }
+    }
+  } =>#t186, block {
+    final core::Set<core::int> #t190 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
+      final core::Iterable<dynamic>? #t191 = y;
+      if(!#t191.{core::Object::==}(null)) {
+        core::Iterator<dynamic> :sync-for-iterator = #t191{core::Iterable<dynamic>}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final dynamic #t192 = :sync-for-iterator.{core::Iterator::current};
+          {
+            final core::int #t193 = #t192 as{TypeError,ForNonNullableByDefault} core::int;
+            #t190.{core::Set::add}{Invariant}(#t193);
+          }
+        }
+      }
+    }
+  } =>#t190, block {
+    final core::Set<core::int> #t194 = new col::_CompactLinkedHashSet::•<core::int>();
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
+      final core::Iterable<dynamic>? #t195 = z;
+      if(!#t195.{core::Object::==}(null)) {
+        core::Iterator<dynamic> :sync-for-iterator = #t195{core::Iterable<dynamic>}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final dynamic #t196 = :sync-for-iterator.{core::Iterator::current};
+          {
+            final core::int #t197 = #t196 as{TypeError,ForNonNullableByDefault} core::int;
+            #t194.{core::Set::add}{Invariant}(#t197);
+          }
+        }
+      }
+    }
+  } =>#t194, block {
+    final core::Map<core::int, core::int> #t198 = <core::int, core::int>{};
+    for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
+      final core::Map<core::int, core::int>? #t199 = w;
+      if(!#t199.{core::Object::==}(null)) {
+        core::Iterator<core::MapEntry<core::int, core::int>> :sync-for-iterator = #t199{core::Map<core::int, core::int>}.{core::Map::entries}.{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final core::MapEntry<core::int, core::int> #t200 = :sync-for-iterator.{core::Iterator::current};
+          #t198.{core::Map::[]=}{Invariant}(#t200.{core::MapEntry::key}, #t200.{core::MapEntry::value});
+        }
+      }
+    }
+  } =>#t198];
+}
+static method main() → dynamic {}

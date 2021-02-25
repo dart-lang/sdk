@@ -35,7 +35,7 @@ static method main() → dynamic {
   }
   for (; false; ) {
   }
-  core::List<core::String*>* list = <core::String*>["Hello, World!"];
+  core::List<core::String*>* list = core::_GrowableList::_literal1<core::String*>("Hello, World!");
   core::print(list.{core::List::[]}(i));
   list.{core::List::[]=}(i, "Hello, Brave New World!");
   core::print(list.{core::List::[]}(i));
@@ -51,31 +51,31 @@ static method main() → dynamic {
   core::print(#C2);
   core::print(core::_List::•<core::String*>(2).{core::Object::runtimeType});
   self::foo(fisk: "Blorp gulp");
-  function f() → core::Null? {
+  function f() → Null {
     core::print("f was called");
   }
   self::caller(f);
-  self::caller(() → core::Null? {
+  self::caller(() → Null {
     core::print("<anon> was called");
   });
-  function g([dynamic message = #C1]) → core::Null? {
+  function g([dynamic message = #C1]) → Null {
     core::print(message);
   }
   g.call("Hello, World");
-  self::caller(([dynamic x = #C1]) → core::Null? {
+  self::caller(([dynamic x = #C1]) → Null {
     core::print("<anon> was called with ${x}");
   });
-  function h({dynamic message = #C1}) → core::Null? {
+  function h({dynamic message = #C1}) → Null {
     core::print(message);
   }
   h.call(message: "Hello, World");
-  self::caller(({dynamic x = #C1}) → core::Null? {
+  self::caller(({dynamic x = #C1}) → Null {
     core::print("<anon> was called with ${x}");
   });
-  core::print(core::int*.{core::Object::toString}());
-  core::print(core::int*);
-  core::print(let final core::Type* #t5 = core::int* in block {
-    #t5.{core::Object::toString}();
+  core::print((#C3).{core::Type::toString}());
+  core::print(#C3);
+  core::print(let final core::Type* #t5 = #C3 in block {
+    #t5.{core::Type::toString}();
   } =>#t5);
   try {
     core::print(invalid-expression "pkg/front_end/testcases/general/expressions.dart:74:16: Error: Method not found: 'int.toString'.
@@ -92,4 +92,16 @@ static method main() → dynamic {
 constants  {
   #C1 = null
   #C2 = core::Object {}
+  #C3 = TypeLiteralConstant(core::int*)
 }
+
+Extra constant evaluation status:
+Evaluated: StringConcatenation @ org-dartlang-testcase:///expressions.dart:21:8 -> StringConstant("foobar")
+Evaluated: VariableGetImpl @ org-dartlang-testcase:///expressions.dart:72:9 -> TypeLiteralConstant(int*)
+Evaluated: VariableGet @ org-dartlang-testcase:///expressions.dart:72:9 -> TypeLiteralConstant(int*)
+Extra constant evaluation: evaluated: 135, effectively constant: 3
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///expressions.dart:
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

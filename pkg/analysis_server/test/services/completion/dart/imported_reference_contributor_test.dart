@@ -5,19 +5,21 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../abstract_context.dart';
 import 'completion_contributor_util.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportedReferenceContributorTest);
+    defineReflectiveTests(ImportedReferenceContributorWithNullSafetyTest);
   });
 }
 
-@reflectiveTest
-class ImportedReferenceContributorTest extends DartCompletionContributorTest {
+mixin ImportedReferenceContributorMixin on DartCompletionContributorTest {
   @override
   bool get isNullExpectedReturnTypeConsideredDynamic => false;
 
@@ -25,10 +27,14 @@ class ImportedReferenceContributorTest extends DartCompletionContributorTest {
   DartCompletionContributor createContributor() {
     return ImportedReferenceContributor();
   }
+}
 
+@reflectiveTest
+class ImportedReferenceContributorTest extends DartCompletionContributorTest
+    with ImportedReferenceContributorMixin {
   /// Sanity check.  Permutations tested in local_ref_contributor.
   Future<void> test_ArgDefaults_function_with_required_named() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
 
     resolveSource('/home/test/lib/b.dart', '''
 lib B;
@@ -43,8 +49,7 @@ import 'b.dart';
 void main() {f^}''');
     await computeSuggestions();
 
-    assertSuggestFunction('foo', 'bool',
-        defaultArgListString: 'bar, baz: null');
+    assertSuggestFunction('foo', 'bool', defaultArgListString: 'bar, baz: baz');
   }
 
   Future<void> test_ArgumentList() async {
@@ -309,7 +314,12 @@ void main() {f^}''');
     assertNotSuggested('==');
   }
 
+  @failingTest
   Future<void> test_AsExpression_type_subtype_extends_filter() async {
+    // This test fails because we are not filtering out the class `A` when
+    // suggesting types. We ought to do so because there's no reason to cast a
+    // value to the type it already has.
+
     // SimpleIdentifier  TypeName  AsExpression  IfStatement
     addSource('/home/test/lib/b.dart', '''
           foo() { }
@@ -331,7 +341,12 @@ void main() {f^}''');
     assertNotSuggested('main');
   }
 
+  @failingTest
   Future<void> test_AsExpression_type_subtype_implements_filter() async {
+    // This test fails because we are not filtering out the class `A` when
+    // suggesting types. We ought to do so because there's no reason to cast a
+    // value to the type it already has.
+
     // SimpleIdentifier  TypeName  AsExpression  IfStatement
     addSource('/home/test/lib/b.dart', '''
           foo() { }
@@ -1191,7 +1206,8 @@ class B extends A {
   }
 
   Future<void> test_Block_unimported() async {
-    addPackageFile('aaa', 'a.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
+
     addTestSource('main() { ^ }');
 
     await computeSuggestions();
@@ -2868,7 +2884,6 @@ main() {
     }
     assertSuggestTopLevelVar('T1', null);
     assertSuggestFunction('F1', null);
-    assertNotSuggested('D1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
     assertNotSuggested('D2');
@@ -3020,7 +3035,12 @@ main() {
     assertSuggestClass('Object');
   }
 
+  @failingTest
   Future<void> test_IsExpression_type_subtype_extends_filter() async {
+    // This test fails because we are not filtering out the class `A` when
+    // suggesting types. We ought to do so because there's no reason to cast a
+    // value to the type it already has.
+
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addSource('/home/test/lib/b.dart', '''
         foo() { }
@@ -3042,7 +3062,12 @@ main() {
     assertNotSuggested('main');
   }
 
+  @failingTest
   Future<void> test_IsExpression_type_subtype_implements_filter() async {
+    // This test fails because we are not filtering out the class `A` when
+    // suggesting types. We ought to do so because there's no reason to cast a
+    // value to the type it already has.
+
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addSource('/home/test/lib/b.dart', '''
         foo() { }
@@ -3395,7 +3420,7 @@ class B {
     assertNotSuggested('_g');
     assertSuggestClass('bool');
     if (suggestConstructorsWithoutNew) {
-      assertSuggestConstructor('List');
+      assertSuggestConstructor('List.filled');
     }
   }
 
@@ -3712,12 +3737,12 @@ class B extends A {
 
   Future<void> test_partFile_TypeName() async {
     // SimpleIdentifier  TypeName  ConstructorName
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         library libA;
         import 'b.dart';
         part "test.dart";
@@ -3727,6 +3752,8 @@ class B extends A {
         part of libA;
         class B { B.bar(int x); }
         main() {new ^}''');
+
+    await resolveFile('$testPackageLibPath/a.dart');
 
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -4689,5 +4716,73 @@ void main() async* {
 
     // Sanity check any completions.
     assertSuggestClass('Object');
+  }
+}
+
+@reflectiveTest
+class ImportedReferenceContributorWithNullSafetyTest
+    extends DartCompletionContributorTest
+    with WithNullSafetyMixin, ImportedReferenceContributorMixin {
+  Future<void> test_function_parameters_nnbd_required() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    resolveSource('/home/test/lib/a.dart', '''
+void m(int? nullable, int nonNullable) {}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {^}
+''');
+    await computeSuggestions();
+    var suggestion = assertSuggestFunction('m', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'nullable');
+    expect(suggestion.parameterTypes[0], 'int?');
+    expect(suggestion.parameterNames[1], 'nonNullable');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 2);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  Future<void> test_function_parameters_nnbd_required_into_legacy() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    resolveSource('/home/test/lib/a.dart', '''
+void m(int? nullable, int nonNullable) {}
+''');
+    addTestSource('''
+// @dart = 2.8
+import 'a.dart';
+
+main() {^}
+''');
+    await computeSuggestions();
+    var suggestion = assertSuggestFunction('m', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'nullable');
+    expect(suggestion.parameterTypes[0], 'int');
+    expect(suggestion.parameterNames[1], 'nonNullable');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 2);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  Future<void> test_function_parameters_nnbd_required_legacy() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    resolveSource('/home/test/lib/a.dart', '''
+// @dart = 2.8
+void m(int param) {}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {^}
+''');
+    await computeSuggestions();
+    var suggestion = assertSuggestFunction('m', 'void');
+    expect(suggestion.parameterNames, hasLength(1));
+    expect(suggestion.parameterNames[0], 'param');
+    expect(suggestion.parameterTypes[0], 'int*');
+    expect(suggestion.requiredParameterCount, 1);
+    expect(suggestion.hasNamedParameters, false);
   }
 }

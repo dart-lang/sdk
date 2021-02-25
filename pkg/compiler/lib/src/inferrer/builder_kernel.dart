@@ -206,7 +206,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   TypeInformation run() {
     if (_analyzedMember.isField) {
-      if (_analyzedNode == null || _analyzedNode is ir.NullLiteral) {
+      if (_analyzedNode == null || isNullLiteral(_analyzedNode)) {
         // Eagerly bailout, because computing the closure data only
         // works for functions and field assignments.
         return _types.nullType;
@@ -301,8 +301,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           assert(definition.kind == MemberKind.regular);
           ir.Field node = definition.node;
           if (type == null &&
-              (node.initializer == null ||
-                  node.initializer is ir.NullLiteral)) {
+              (node.initializer == null || isNullLiteral(node.initializer))) {
             _inferrer.recordTypeOfField(member, _types.nullType);
           }
         }
@@ -1188,7 +1187,34 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return null;
   }
 
-  /// Returns `true` if
+  /// Find the base type for a system List constructor from the value passed to
+  /// the 'growable' argument. [defaultGrowable] is the default value of the
+  /// 'growable' parameter.
+  TypeInformation _listBaseType(ir.Arguments arguments,
+      {bool defaultGrowable}) {
+    TypeInformation finish(bool /*?*/ growable) {
+      if (growable == true) return _types.growableListType;
+      if (growable == false) return _types.fixedListType;
+      return _types.mutableArrayType;
+    }
+
+    for (ir.NamedExpression named in arguments.named) {
+      if (named.name == 'growable') {
+        ir.Expression argument = named.value;
+        if (argument is ir.BoolLiteral) return finish(argument.value);
+        if (argument is ir.ConstantExpression) {
+          ir.Constant constant = argument.constant;
+          if (constant is ir.BoolConstant) return finish(constant.value);
+        }
+        // 'growable' is present, but indeterminate.
+        return finish(null);
+      }
+    }
+    // 'growable' is missing.
+    return finish(defaultGrowable);
+  }
+
+  /// Returns `true` for constructors of typed arrays.
   bool _isConstructorOfTypedArraySubclass(ConstructorEntity constructor) {
     ClassEntity cls = constructor.enclosingClass;
     return cls.library.canonicalUri == Uris.dart__native_typed_data &&
@@ -1208,7 +1234,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       ArgumentsTypes argumentsTypes) {
     TypeInformation returnType =
         handleStaticInvoke(node, selector, constructor, argumentsTypes);
-    if (_elementMap.commonElements.isUnnamedListConstructor(constructor)) {
+
+    // See if we can replace the returned type with one that better describes
+    // the operation. For system List constructors we can treat this as the
+    // allocation point of a new collection. The static invoke above ensures
+    // that the implementation of the constructor sees the arguments.
+
+    var commonElements = _elementMap.commonElements;
+
+    if (commonElements.isUnnamedListConstructor(constructor)) {
       // We have `new List(...)`.
       if (arguments.positional.isEmpty && arguments.named.isEmpty) {
         // We have `new List()`.
@@ -1224,18 +1258,103 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
             () => _types.allocateList(_types.fixedListType, node,
                 _analyzedMember, _types.nullType, length));
       }
-    } else if (_elementMap.commonElements
-        .isFilledListConstructor(constructor)) {
-      // We have `new Uint32List(len, fill)`.
+    }
+
+    if (commonElements.isNamedListConstructor('filled', constructor)) {
+      // We have something like `List.filled(len, fill)`.
       int length = _findLength(arguments);
       TypeInformation elementType = argumentsTypes.positional[1];
+      TypeInformation baseType =
+          _listBaseType(arguments, defaultGrowable: false);
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(
+              baseType, node, _analyzedMember, elementType, length));
+    }
 
+    if (commonElements.isNamedListConstructor('generate', constructor)) {
+      // We have something like `List.generate(len, generator)`.
+      int length = _findLength(arguments);
+      TypeInformation baseType =
+          _listBaseType(arguments, defaultGrowable: true);
+      TypeInformation closureArgumentInfo = argumentsTypes.positional[1];
+      // If the argument is an immediate closure, the element type is that
+      // returned by the closure.
+      TypeInformation elementType;
+      if (closureArgumentInfo is ClosureTypeInformation) {
+        FunctionEntity closure = closureArgumentInfo.closure;
+        elementType = _types.getInferredTypeOfMember(closure);
+      }
+      elementType ??= _types.dynamicType;
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(
+              baseType, node, _analyzedMember, elementType, length));
+    }
+
+    if (commonElements.isNamedListConstructor('empty', constructor)) {
+      // We have something like `List.empty(growable: true)`.
+      TypeInformation baseType =
+          _listBaseType(arguments, defaultGrowable: false);
+      TypeInformation elementType = _types.nonNullEmpty(); // No elements!
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(
+              baseType, node, _analyzedMember, elementType, 0));
+    }
+    if (commonElements.isNamedListConstructor('of', constructor) ||
+        commonElements.isNamedListConstructor('from', constructor)) {
+      // We have something like `List.of(elements)`.
+      TypeInformation baseType =
+          _listBaseType(arguments, defaultGrowable: true);
+      // TODO(sra): Use static type to bound the element type, preferably as a
+      // narrowing of all inputs.
+      TypeInformation elementType = _types.dynamicType;
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(
+              baseType, node, _analyzedMember, elementType));
+    }
+
+    // `JSArray.fixed` corresponds to `new Array(length)`, which is a list
+    // filled with `null`.
+    if (commonElements.isNamedJSArrayConstructor('fixed', constructor)) {
+      int length = _findLength(arguments);
+      TypeInformation elementType = _types.nullType;
       return _inferrer.concreteTypes.putIfAbsent(
           node,
           () => _types.allocateList(_types.fixedListType, node, _analyzedMember,
               elementType, length));
-    } else if (_isConstructorOfTypedArraySubclass(constructor)) {
-      // We have something like `new List.filled(len, fill)`.
+    }
+
+    // `JSArray.allocateFixed` creates an array with 'no elements'. The contract
+    // is that the caller will assign a value to each member before any element
+    // is accessed. We can start tracking the element type as 'bottom'.
+    if (commonElements.isNamedJSArrayConstructor(
+        'allocateFixed', constructor)) {
+      int length = _findLength(arguments);
+      TypeInformation elementType = _types.nonNullEmpty();
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(_types.fixedListType, node, _analyzedMember,
+              elementType, length));
+    }
+
+    // `JSArray.allocateGrowable` creates an array with 'no elements'. The
+    // contract is that the caller will assign a value to each member before any
+    // element is accessed. We can start tracking the element type as 'bottom'.
+    if (commonElements.isNamedJSArrayConstructor(
+        'allocateGrowable', constructor)) {
+      int length = _findLength(arguments);
+      TypeInformation elementType = _types.nonNullEmpty();
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(_types.growableListType, node,
+              _analyzedMember, elementType, length));
+    }
+
+    if (_isConstructorOfTypedArraySubclass(constructor)) {
+      // We have something like `Uint32List(len)`.
       int length = _findLength(arguments);
       MemberEntity member = _elementMap.elementEnvironment
           .lookupClassMember(constructor.enclosingClass, '[]');
@@ -1248,9 +1367,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
               _analyzedMember,
               elementType,
               length));
-    } else {
-      return returnType;
     }
+
+    return returnType;
   }
 
   TypeInformation handleStaticInvoke(ir.Node node, Selector selector,
@@ -1386,13 +1505,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
-  TypeInformation visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    TypeInformation receiverType = thisType;
-    return handlePropertyGet(node, node.receiver, receiverType, node.target,
-        isThis: true);
-  }
-
-  @override
   TypeInformation visitPropertySet(ir.PropertySet node) {
     TypeInformation receiverType = visit(node.receiver);
     Selector selector = _elementMap.getSelector(node);
@@ -1522,7 +1634,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitLogicalExpression(ir.LogicalExpression node) {
-    if (node.operator == '&&') {
+    if (node.operatorEnum == ir.LogicalExpressionOperator.AND) {
       LocalState stateBefore = _state;
       _state = new LocalState.childPath(stateBefore);
       TypeInformation leftInfo = handleCondition(node.left);
@@ -1547,7 +1659,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       }
       // TODO(sra): Add a selector/mux node to improve precision.
       return _types.boolType;
-    } else if (node.operator == '||') {
+    } else if (node.operatorEnum == ir.LogicalExpressionOperator.OR) {
       LocalState stateBefore = _state;
       _state = new LocalState.childPath(stateBefore);
       TypeInformation leftInfo = handleCondition(node.left);
@@ -1574,7 +1686,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       return _types.boolType;
     }
     failedAt(CURRENT_ELEMENT_SPANNABLE,
-        "Unexpected logical operator '${node.operator}'.");
+        "Unexpected logical operator '${node.operatorEnum}'.");
     return null;
   }
 
@@ -1794,10 +1906,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // are calling does not expose this.
     _state.markThisAsExposed();
 
-    MemberEntity member =
-        _elementMap.getSuperMember(_analyzedMember, node.name);
-    assert(member != null, "No member found for super property get: $node");
+    ir.Member target = getEffectiveSuperTarget(node.interfaceTarget);
     Selector selector = new Selector.getter(_elementMap.getName(node.name));
+    if (target == null) {
+      // TODO(johnniwinther): Remove this when the CFE checks for missing
+      //  concrete super targets.
+      return handleSuperNoSuchMethod(node, selector, null);
+    }
+    MemberEntity member = _elementMap.getMember(target);
+    assert(member != null, "No member found for super property get: $node");
     TypeInformation type = handleStaticInvoke(node, selector, member, null);
     if (member.isGetter) {
       FunctionType functionType =
@@ -1825,11 +1942,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _state.markThisAsExposed();
 
     TypeInformation rhsType = visit(node.value);
-    MemberEntity member =
-        _elementMap.getSuperMember(_analyzedMember, node.name, setter: true);
-    assert(member != null, "No member found for super property set: $node");
+    ir.Member target = getEffectiveSuperTarget(node.interfaceTarget);
     Selector selector = new Selector.setter(_elementMap.getName(node.name));
     ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);
+    if (target == null) {
+      // TODO(johnniwinther): Remove this when the CFE checks for missing
+      //  concrete super targets.
+      return handleSuperNoSuchMethod(node, selector, arguments);
+    }
+    MemberEntity member = _elementMap.getMember(target);
+    assert(member != null, "No member found for super property set: $node");
     handleStaticInvoke(node, selector, member, arguments);
     return rhsType;
   }
@@ -1840,29 +1962,29 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // are calling does not expose this.
     _state.markThisAsExposed();
 
-    MemberEntity member =
-        _elementMap.getSuperMember(_analyzedMember, node.name);
+    ir.Member target = getEffectiveSuperTarget(node.interfaceTarget);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = _elementMap.getSelector(node);
-    if (member == null) {
-      // TODO(johnniwinther): This shouldn't be necessary.
+    if (target == null) {
+      // TODO(johnniwinther): Remove this when the CFE checks for missing
+      //  concrete super targets.
+      return handleSuperNoSuchMethod(node, selector, arguments);
+    }
+    MemberEntity member = _elementMap.getMember(target);
+    assert(member.isFunction, "Unexpected super invocation target: $member");
+    if (isIncompatibleInvoke(member, arguments)) {
       return handleSuperNoSuchMethod(node, selector, arguments);
     } else {
-      assert(member.isFunction, "Unexpected super invocation target: $member");
-      if (isIncompatibleInvoke(member, arguments)) {
-        return handleSuperNoSuchMethod(node, selector, arguments);
-      } else {
-        TypeInformation type =
-            handleStaticInvoke(node, selector, member, arguments);
-        FunctionType functionType =
-            _elementMap.elementEnvironment.getFunctionType(member);
-        if (functionType.returnType.containsFreeTypeVariables) {
-          // The return type varies with the call site so we narrow the static
-          // return type.
-          type = _types.narrowType(type, _getStaticType(node));
-        }
-        return type;
+      TypeInformation type =
+          handleStaticInvoke(node, selector, member, arguments);
+      FunctionType functionType =
+          _elementMap.elementEnvironment.getFunctionType(member);
+      if (functionType.returnType.containsFreeTypeVariables) {
+        // The return type varies with the call site so we narrow the static
+        // return type.
+        type = _types.narrowType(type, _getStaticType(node));
       }
+      return type;
     }
   }
 

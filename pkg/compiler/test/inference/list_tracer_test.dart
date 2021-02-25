@@ -237,9 +237,7 @@ doTest(String allocation, {bool nullify}) async {
   checkType('listEscapingInSetterValue', commonMasks.numType);
   checkType('listEscapingInIndex', commonMasks.numType);
   checkType('listEscapingInIndexSet', commonMasks.uint31Type);
-  // TODO(johnniwinther): Since Iterable.iterableToString is part of the closed
-  // world we find the `dynamicType` instead of `numType`.
-  checkType('listEscapingTwiceInIndexSet', commonMasks.dynamicType);
+  checkType('listEscapingTwiceInIndexSet', commonMasks.numType);
   checkType('listSetInNonFinalField', commonMasks.numType);
   checkType('listWithChangedLength', commonMasks.uint31Type.nullable());
 

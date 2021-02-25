@@ -97,9 +97,9 @@ void OldPage::VisitObjects(ObjectVisitor* visitor) const {
   uword obj_addr = object_start();
   uword end_addr = object_end();
   while (obj_addr < end_addr) {
-    ObjectPtr raw_obj = ObjectLayout::FromAddr(obj_addr);
+    ObjectPtr raw_obj = UntaggedObject::FromAddr(obj_addr);
     visitor->VisitObject(raw_obj);
-    obj_addr += raw_obj->ptr()->HeapSize();
+    obj_addr += raw_obj->untag()->HeapSize();
   }
   ASSERT(obj_addr == end_addr);
 }
@@ -111,8 +111,8 @@ void OldPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   uword obj_addr = object_start();
   uword end_addr = object_end();
   while (obj_addr < end_addr) {
-    ObjectPtr raw_obj = ObjectLayout::FromAddr(obj_addr);
-    obj_addr += raw_obj->ptr()->VisitPointers(visitor);
+    ObjectPtr raw_obj = UntaggedObject::FromAddr(obj_addr);
+    obj_addr += raw_obj->untag()->VisitPointers(visitor);
   }
   ASSERT(obj_addr == end_addr);
 }
@@ -128,11 +128,12 @@ void OldPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
 
   bool table_is_empty = false;
 
-  ArrayPtr obj = static_cast<ArrayPtr>(ObjectLayout::FromAddr(object_start()));
+  ArrayPtr obj =
+      static_cast<ArrayPtr>(UntaggedObject::FromAddr(object_start()));
   ASSERT(obj->IsArray());
-  ASSERT(obj->ptr()->IsCardRemembered());
-  ObjectPtr* obj_from = obj->ptr()->from();
-  ObjectPtr* obj_to = obj->ptr()->to(Smi::Value(obj->ptr()->length_));
+  ASSERT(obj->untag()->IsCardRemembered());
+  ObjectPtr* obj_from = obj->untag()->from();
+  ObjectPtr* obj_to = obj->untag()->to(Smi::Value(obj->untag()->length_));
 
   const intptr_t size = card_table_size();
   for (intptr_t i = 0; i < size; i++) {
@@ -183,10 +184,10 @@ ObjectPtr OldPage::FindObject(FindObjectVisitor* visitor) const {
   uword end_addr = object_end();
   if (visitor->VisitRange(obj_addr, end_addr)) {
     while (obj_addr < end_addr) {
-      ObjectPtr raw_obj = ObjectLayout::FromAddr(obj_addr);
-      uword next_obj_addr = obj_addr + raw_obj->ptr()->HeapSize();
+      ObjectPtr raw_obj = UntaggedObject::FromAddr(obj_addr);
+      uword next_obj_addr = obj_addr + raw_obj->untag()->HeapSize();
       if (visitor->VisitRange(obj_addr, next_obj_addr) &&
-          raw_obj->ptr()->FindObject(visitor)) {
+          raw_obj->untag()->FindObject(visitor)) {
         return raw_obj;  // Found object, return it.
       }
       obj_addr = next_obj_addr;
@@ -249,6 +250,8 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
   for (intptr_t i = 0; i < num_freelists_; i++) {
     freelists_[i].Reset();
   }
+
+  TryReserveForOOM();
 }
 
 PageSpace::~PageSpace() {
@@ -366,7 +369,7 @@ OldPage* PageSpace::AllocatePage(OldPage::PageType type, bool link) {
 
   page->set_object_end(page->memory_->end());
   if ((type != OldPage::kExecutable) && (heap_ != nullptr) &&
-      (heap_->isolate_group() != Dart::vm_isolate()->group())) {
+      (!heap_->is_vm_isolate())) {
     page->AllocateForwardingPage();
   }
   return page;
@@ -452,6 +455,7 @@ void PageSpace::FreePages(OldPage* pages) {
 
 void PageSpace::EvaluateConcurrentMarking(GrowthPolicy growth_policy) {
   if (growth_policy != kForceGrowth) {
+    ASSERT(GrowthControlState());
     if (heap_ != NULL) {  // Some unit tests.
       Thread* thread = Thread::Current();
       if (thread->CanCollectGarbage()) {
@@ -884,7 +888,7 @@ class HeapMapAsJSONVisitor : public ObjectVisitor {
  public:
   explicit HeapMapAsJSONVisitor(JSONArray* array) : array_(array) {}
   virtual void VisitObject(ObjectPtr obj) {
-    array_->AddValue(obj->ptr()->HeapSize() / kObjectAlignment);
+    array_->AddValue(obj->untag()->HeapSize() / kObjectAlignment);
     array_->AddValue(obj->GetClassId());
   }
 
@@ -892,7 +896,7 @@ class HeapMapAsJSONVisitor : public ObjectVisitor {
   JSONArray* array_;
 };
 
-void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
+void PageSpace::PrintHeapMapToJSONStream(IsolateGroup* isolate_group,
                                          JSONStream* stream) const {
   JSONObject heap_map(stream);
   heap_map.AddProperty("type", "HeapMap");
@@ -902,7 +906,7 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
   heap_map.AddProperty("pageSizeBytes", kOldPageSizeInWords * kWordSize);
   {
     JSONObject class_list(&heap_map, "classList");
-    isolate->class_table()->PrintToJSONObject(&class_list);
+    isolate_group->class_table()->PrintToJSONObject(&class_list);
   }
   {
     // "pages" is an array [page0, page1, ..., pageN], each page of the form
@@ -1019,7 +1023,50 @@ bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
   return estimated_mark_compact_completion <= deadline;
 }
 
+void PageSpace::TryReleaseReservation() {
+  if (oom_reservation_ == nullptr) return;
+  uword addr = reinterpret_cast<uword>(oom_reservation_);
+  intptr_t size = oom_reservation_->HeapSize();
+  oom_reservation_ = nullptr;
+  freelists_[OldPage::kData].Free(addr, size);
+}
+
+bool PageSpace::MarkReservation() {
+  if (oom_reservation_ == nullptr) {
+    return false;
+  }
+  UntaggedObject* ptr = reinterpret_cast<UntaggedObject*>(oom_reservation_);
+  if (!ptr->IsMarked()) {
+    ptr->SetMarkBit();
+  }
+  return true;
+}
+
+void PageSpace::TryReserveForOOM() {
+  if (oom_reservation_ == nullptr) {
+    uword addr = TryAllocate(kOOMReservationSize, OldPage::kData,
+                             kForceGrowth /* Don't re-enter GC */);
+    if (addr != 0) {
+      oom_reservation_ = FreeListElement::AsElement(addr, kOOMReservationSize);
+    }
+  }
+}
+
+void PageSpace::VisitRoots(ObjectPointerVisitor* visitor) {
+  if (oom_reservation_ != nullptr) {
+    // FreeListElements are generally held untagged, but ObjectPointerVisitors
+    // expect tagged pointers.
+    ObjectPtr ptr =
+        UntaggedObject::FromAddr(reinterpret_cast<uword>(oom_reservation_));
+    visitor->VisitPointer(&ptr);
+    oom_reservation_ =
+        reinterpret_cast<FreeListElement*>(UntaggedObject::ToAddr(ptr));
+  }
+}
+
 void PageSpace::CollectGarbage(bool compact, bool finalize) {
+  ASSERT(GrowthControlState());
+
   if (!finalize) {
 #if defined(TARGET_ARCH_IA32)
     return;  // Barrier not implemented.
@@ -1183,17 +1230,21 @@ void PageSpace::CollectGarbageHelper(bool compact,
     mid3 = OS::GetCurrentMonotonicMicros();
   }
 
+  bool has_reservation = MarkReservation();
+
   if (compact) {
     SweepLarge();
     Compact(thread);
     set_phase(kDone);
-  } else if (FLAG_concurrent_sweep) {
+  } else if (FLAG_concurrent_sweep && has_reservation) {
     ConcurrentSweep(isolate_group);
   } else {
     SweepLarge();
     Sweep();
     set_phase(kDone);
   }
+
+  TryReserveForOOM();
 
   // Make code pages read-only.
   if (finalize) WriteProtectCode(true);
@@ -1386,7 +1437,7 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
 }
 
 bool PageSpace::IsObjectFromImagePages(dart::ObjectPtr object) {
-  uword object_addr = ObjectLayout::ToAddr(object);
+  uword object_addr = UntaggedObject::ToAddr(object);
   OldPage* image_page = image_pages_;
   while (image_page != nullptr) {
     if (image_page->Contains(object_addr)) {
@@ -1395,95 +1446,6 @@ bool PageSpace::IsObjectFromImagePages(dart::ObjectPtr object) {
     image_page = image_page->next();
   }
   return false;
-}
-
-static void AppendList(OldPage** pages,
-                       OldPage** pages_tail,
-                       OldPage** other_pages,
-                       OldPage** other_pages_tail) {
-  ASSERT((*pages == nullptr) == (*pages_tail == nullptr));
-  ASSERT((*other_pages == nullptr) == (*other_pages_tail == nullptr));
-
-  if (*other_pages != nullptr) {
-    if (*pages_tail == nullptr) {
-      *pages = *other_pages;
-      *pages_tail = *other_pages_tail;
-    } else {
-      const bool is_execute = FLAG_write_protect_code &&
-                              (*pages_tail)->type() == OldPage::kExecutable;
-      if (is_execute) {
-        (*pages_tail)->WriteProtect(false);
-      }
-      (*pages_tail)->set_next(*other_pages);
-      if (is_execute) {
-        (*pages_tail)->WriteProtect(true);
-      }
-      *pages_tail = *other_pages_tail;
-    }
-    *other_pages = nullptr;
-    *other_pages_tail = nullptr;
-  }
-}
-
-static void EnsureEqualImagePages(OldPage* pages, OldPage* other_pages) {
-#if defined(DEBUG)
-  while (pages != nullptr) {
-    ASSERT((pages == nullptr) == (other_pages == nullptr));
-    ASSERT(pages->object_start() == other_pages->object_start());
-    ASSERT(pages->object_end() == other_pages->object_end());
-    pages = pages->next();
-    other_pages = other_pages->next();
-  }
-#endif
-}
-
-void PageSpace::MergeFrom(PageSpace* donor) {
-  donor->AbandonBumpAllocation();
-
-  ASSERT(donor->tasks_ == 0);
-  ASSERT(donor->concurrent_marker_tasks_ == 0);
-  ASSERT(donor->phase_ == kDone);
-  DEBUG_ASSERT(donor->iterating_thread_ == nullptr);
-  ASSERT(donor->marker_ == nullptr);
-
-  for (intptr_t i = 0; i < num_freelists_; ++i) {
-    ASSERT(donor->freelists_[i].top() == 0);
-    ASSERT(donor->freelists_[i].end() == 0);
-    const bool is_protected =
-        FLAG_write_protect_code && i == OldPage::kExecutable;
-    freelists_[i].MergeFrom(&donor->freelists_[i], is_protected);
-    donor->freelists_[i].Reset();
-  }
-
-  // The freelist locks will be taken in MergeOtherFreelist above, and the
-  // locking order is the freelist locks are taken before the page list locks,
-  // so don't take the pages lock until after MergeOtherFreelist.
-  MutexLocker ml(&pages_lock_);
-  MutexLocker ml2(&donor->pages_lock_);
-
-  AppendList(&pages_, &pages_tail_, &donor->pages_, &donor->pages_tail_);
-  AppendList(&exec_pages_, &exec_pages_tail_, &donor->exec_pages_,
-             &donor->exec_pages_tail_);
-  AppendList(&large_pages_, &large_pages_tail_, &donor->large_pages_,
-             &donor->large_pages_tail_);
-  // We intentionall do not merge [image_pages_] beause [this] and [other] have
-  // the same mmap()ed image page areas.
-  EnsureEqualImagePages(image_pages_, donor->image_pages_);
-
-  // We intentionaly do not increase [max_capacity_in_words_] because this can
-  // lead [max_capacity_in_words_] to become larger and larger and eventually
-  // wrap-around and become negative.
-  allocated_black_in_words_ += donor->allocated_black_in_words_;
-  gc_time_micros_ += donor->gc_time_micros_;
-  collections_ += donor->collections_;
-
-  usage_.capacity_in_words += donor->usage_.capacity_in_words;
-  usage_.used_in_words += donor->usage_.used_in_words;
-  usage_.external_in_words += donor->usage_.external_in_words;
-
-  page_space_controller_.MergeFrom(&donor->page_space_controller_);
-
-  ASSERT(FLAG_concurrent_mark || donor->enable_concurrent_mark_ == false);
 }
 
 PageSpaceController::PageSpaceController(Heap* heap,
@@ -1548,9 +1510,10 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       before.CombinedUsedInWords() - last_usage_.CombinedUsedInWords();
   intptr_t grow_heap;
   if (allocated_since_previous_gc > 0) {
-    const intptr_t garbage =
+    intptr_t garbage =
         before.CombinedUsedInWords() - after.CombinedUsedInWords();
-    ASSERT(garbage >= 0);
+    // Garbage may be negative if when the OOM reservation is refilled.
+    garbage = Utils::Maximum(static_cast<intptr_t>(0), garbage);
     // It makes no sense to expect that each kb allocated will cause more than
     // one kb of garbage, so we clamp k at 1.0.
     const double k = Utils::Minimum(
@@ -1718,12 +1681,6 @@ void PageSpaceController::HintFreed(intptr_t size) {
   }
 
   // TODO(rmacnak): Hasten the soft threshold at some discount?
-}
-
-void PageSpaceController::MergeFrom(PageSpaceController* donor) {
-  last_usage_.capacity_in_words += donor->last_usage_.capacity_in_words;
-  last_usage_.used_in_words += donor->last_usage_.used_in_words;
-  last_usage_.external_in_words += donor->last_usage_.external_in_words;
 }
 
 void PageSpaceGarbageCollectionHistory::AddGarbageCollectionTime(int64_t start,

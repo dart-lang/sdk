@@ -5,20 +5,34 @@ class Number {
   bool operator ==(Object other) => other is Number && value == other.value;
   String toString() => 'Number($value)';
 }
-extension NumberExtension ;
-on Number (){}
+
+extension NumberExtension on Number {
+  Number operator +(Object other) {}
+  Number operator -(Object other) {}
+}
+
 class Class {
   Number field;
   Class(this.field);
 }
-extension ClassExtension ;
-on Class (){}
+
+extension ClassExtension on Class {
+  Number get property => field;
+  void set property(Number value) {}
+  testImplicitProperties() {}
+}
+
 class IntClass {
   int field;
   IntClass(this.field);
 }
-extension IntClassExtension ;
-on IntClass (){}
+
+extension IntClassExtension on IntClass {
+  int get property => field;
+  void set property(int value) {}
+  testImplicitProperties() {}
+}
+
 main() {}
 testLocals() {}
 testProperties() {}

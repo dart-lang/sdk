@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:io';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
@@ -50,7 +52,7 @@ void main() {
     });
     test('Map', () async {
       await expectNotNull('main() { print({"x": null}); }',
-          '<dart.core::String*, dart.core::Null?>{"x": null}, "x"');
+          '<dart.core::String*, Null>{"x": null}, "x"');
     });
 
     test('Symbol', () async {
@@ -256,7 +258,7 @@ void main() {
 
   test('function expression', () async {
     await expectNotNull(
-        'main() { () => null; f() {}; f; }', 'dart.core::Null? () => null, f');
+        'main() { () => null; f() {}; f; }', 'Null () => null, f');
   });
 
   test('cascades (kernel BlockExpression)', () async {
@@ -308,7 +310,7 @@ void main() {
         var y = (x = null) == null;
         print(x);
         print(y);
-      }''', '1, (x = null).{dart.core::Object.==}(null), y');
+      }''', '1, (x = null) == null, y');
     });
     test('declaration from variable transitive', () async {
       await expectNotNull('''main() {
@@ -367,6 +369,7 @@ void main() {
           var z = 1;
           print(z);
         }
+        f;
         f(42);
       }''', '0, void () => dart.core::print("g"), "g", g, y, 1, z, f, 42');
     });
@@ -376,6 +379,7 @@ void main() {
         f(x) {
           y = x;
         }
+        f;
         f(42);
         print(y);
       }''', '0, f, 42');
@@ -397,7 +401,7 @@ void main() {
       await expectNotNull('''main() {
         var x = () => 42;
         var y = (() => x = null);
-      }''', 'dart.core::int* () => 42, 42, dart.core::Null? () => x = null');
+      }''', 'dart.core::int* () => 42, 42, Null () => x = null');
     });
     test('do not depend on unrelated variables', () async {
       await expectNotNull('''main() {
@@ -495,6 +499,7 @@ void main() {
 /// to be produced in the set of expressions that cannot be null by DDC's null
 /// inference.
 Future expectNotNull(String code, String expectedNotNull) async {
+  code = '// @dart = 2.9\n$code';
   var result = await kernelCompile(code);
   var collector = NotNullCollector(result.librariesFromDill);
   result.component.accept(collector);
@@ -523,6 +528,7 @@ Future expectNotNull(String code, String expectedNotNull) async {
 
 /// Given the Dart [code], expects all the expressions inferred to be not-null.
 Future expectAllNotNull(String code) async {
+  code = '// @dart = 2.9\n$code';
   var result = (await kernelCompile(code));
   result.component.accept(ExpectAllNotNull(result.librariesFromDill));
 }
@@ -672,7 +678,7 @@ const nullCheck = const _NullCheck();
   _compilerState = await fe.initializeCompiler(oldCompilerState, false, null,
       sdkUri, packagesUri, null, [], DevCompilerTarget(TargetFlags()),
       fileSystem: _fileSystem,
-      experiments: const {},
+      explicitExperimentalFlags: const {},
       environmentDefines: const {},
       nnbdMode: fe.NnbdMode.Weak);
   if (!identical(oldCompilerState, _compilerState)) inference = null;

@@ -1,6 +1,9 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 library kernel.checks;
 
 import 'ast.dart';
@@ -49,6 +52,8 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   final Set<Class> classes = new Set<Class>();
   final Set<Typedef> typedefs = new Set<Typedef>();
   Set<TypeParameter> typeParametersInScope = new Set<TypeParameter>();
+  Set<VariableDeclaration> variableDeclarationsInScope =
+      new Set<VariableDeclaration>();
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final Map<Typedef, TypedefState> typedefState = <Typedef, TypedefState>{};
   final Set<Constant> seenConstants = <Constant>{};
@@ -63,6 +68,8 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   /// a verification error for anything that should have been removed by it.
   final bool afterConst;
 
+  AsyncMarker currentAsyncMarker = AsyncMarker.Sync;
+
   bool inCatchBlock = false;
 
   bool inUnevaluatedConstant = false;
@@ -73,9 +80,12 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
 
   Class currentClass;
 
+  Extension currentExtension;
+
   TreeNode currentParent;
 
-  TreeNode get currentClassOrMember => currentMember ?? currentClass;
+  TreeNode get currentClassOrExtensionOrMember =>
+      currentMember ?? currentClass ?? currentExtension;
 
   static void check(Component component, {bool isOutline, bool afterConst}) {
     component.accept(
@@ -104,7 +114,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   problem(TreeNode node, String details, {TreeNode context}) {
-    context ??= currentClassOrMember;
+    context ??= currentClassOrExtensionOrMember;
     throw new VerificationError(context, node, details);
   }
 
@@ -117,7 +127,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
           " but found: '${node.parent.runtimeType}'.",
           context: currentParent);
     }
-    var oldParent = currentParent;
+    TreeNode oldParent = currentParent;
     currentParent = node;
     return oldParent;
   }
@@ -136,7 +146,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   void visitChildren(TreeNode node) {
-    var oldParent = enterParent(node);
+    TreeNode oldParent = enterParent(node);
     node.visitChildren(this);
     exitParent(oldParent);
   }
@@ -160,20 +170,20 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   void declareVariable(VariableDeclaration variable) {
-    if (variable.flags & VariableDeclaration.FlagInScope != 0) {
+    if (variableDeclarationsInScope.contains(variable)) {
       problem(variable, "Variable '$variable' declared more than once.");
     }
-    variable.flags |= VariableDeclaration.FlagInScope;
+    variableDeclarationsInScope.add(variable);
     variableStack.add(variable);
   }
 
   void undeclareVariable(VariableDeclaration variable) {
-    variable.flags &= ~VariableDeclaration.FlagInScope;
+    variableDeclarationsInScope.remove(variable);
   }
 
   void declareTypeParameters(List<TypeParameter> parameters) {
     for (int i = 0; i < parameters.length; ++i) {
-      var parameter = parameters[i];
+      TypeParameter parameter = parameters[i];
       if (parameter.bound == null) {
         problem(
             currentParent, "Missing bound for type parameter '$parameter'.");
@@ -193,34 +203,34 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   void checkVariableInScope(VariableDeclaration variable, TreeNode where) {
-    if (variable.flags & VariableDeclaration.FlagInScope == 0) {
+    if (!variableDeclarationsInScope.contains(variable)) {
       problem(where, "Variable '$variable' used out of scope.");
     }
   }
 
   visitComponent(Component component) {
     try {
-      for (var library in component.libraries) {
-        for (var class_ in library.classes) {
+      for (Library library in component.libraries) {
+        for (Class class_ in library.classes) {
           if (!classes.add(class_)) {
             problem(class_, "Class '$class_' declared more than once.");
           }
         }
-        for (var typedef_ in library.typedefs) {
+        for (Typedef typedef_ in library.typedefs) {
           if (!typedefs.add(typedef_)) {
             problem(typedef_, "Typedef '$typedef_' declared more than once.");
           }
         }
         library.members.forEach(declareMember);
-        for (var class_ in library.classes) {
+        for (Class class_ in library.classes) {
           class_.members.forEach(declareMember);
         }
       }
       visitChildren(component);
     } finally {
-      for (var library in component.libraries) {
+      for (Library library in component.libraries) {
         library.members.forEach(undeclareMember);
-        for (var class_ in library.classes) {
+        for (Class class_ in library.classes) {
           class_.members.forEach(undeclareMember);
         }
       }
@@ -235,24 +245,26 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   visitExtension(Extension node) {
+    currentExtension = node;
     declareTypeParameters(node.typeParameters);
-    final oldParent = enterParent(node);
+    final TreeNode oldParent = enterParent(node);
     node.visitChildren(this);
     exitParent(oldParent);
     undeclareTypeParameters(node.typeParameters);
+    currentExtension = null;
   }
 
   void checkTypedef(Typedef node) {
-    var state = typedefState[node];
+    TypedefState state = typedefState[node];
     if (state == TypedefState.Done) return;
     if (state == TypedefState.BeingChecked) {
       problem(node, "The typedef '$node' refers to itself", context: node);
     }
     assert(state == null);
     typedefState[node] = TypedefState.BeingChecked;
-    var savedTypeParameters = typeParametersInScope;
+    Set<TypeParameter> savedTypeParameters = typeParametersInScope;
     typeParametersInScope = node.typeParameters.toSet();
-    var savedParent = currentParent;
+    TreeNode savedParent = currentParent;
     currentParent = node;
     // Visit children without checking the parent pointer on the typedef itself
     // since this can be called from a context other than its true parent.
@@ -270,15 +282,36 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
 
   visitField(Field node) {
     currentMember = node;
-    var oldParent = enterParent(node);
+    TreeNode oldParent = enterParent(node);
     bool isTopLevel = node.parent == currentLibrary;
     if (isTopLevel && !node.isStatic) {
-      problem(node, "The top-level field '${node.name.name}' should be static",
+      problem(node, "The top-level field '${node.name.text}' should be static",
           context: node);
     }
     if (node.isConst && !node.isStatic) {
-      problem(node, "The const field '${node.name.name}' should be static",
+      problem(node, "The const field '${node.name.text}' should be static",
           context: node);
+    }
+    bool isImmutable = node.isLate
+        ? (node.isFinal && node.initializer != null)
+        : (node.isFinal || node.isConst);
+    if (isImmutable == node.hasSetter) {
+      if (node.hasSetter) {
+        problem(node,
+            "The immutable field '${node.name.text}' has a setter reference",
+            context: node);
+      } else {
+        if (isOutline && node.isLate) {
+          // TODO(johnniwinther): Should we add a flag on Field for having
+          // a declared initializer?
+          // The initializer is not included in the outline so we can't tell
+          // whether it has an initializer or not.
+        } else {
+          problem(node,
+              "The mutable field '${node.name.text}' has no setter reference",
+              context: node);
+        }
+      }
     }
     classTypeParametersAreInScope = !node.isStatic;
     node.initializer?.accept(this);
@@ -291,7 +324,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
 
   visitProcedure(Procedure node) {
     currentMember = node;
-    var oldParent = enterParent(node);
+    TreeNode oldParent = enterParent(node);
     classTypeParametersAreInScope = !node.isStatic;
     if (node.isAbstract && node.isExternal) {
       problem(node, "Procedure cannot be both abstract and external.");
@@ -318,14 +351,14 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
       problem(
           node, "Member signature must have a member signature origin $node.");
     }
-    if (node.forwardingStubInterfaceTarget != null &&
+    if (node.abstractForwardingStubTarget != null &&
         !(node.isForwardingStub || node.isForwardingSemiStub)) {
       problem(
           node,
           "Only forwarding stubs can have a forwarding stub interface target "
           "$node.");
     }
-    if (node.forwardingStubSuperTarget != null &&
+    if (node.concreteForwardingStubTarget != null &&
         !(node.isForwardingStub || node.isForwardingSemiStub)) {
       problem(
           node,
@@ -344,7 +377,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
     classTypeParametersAreInScope = true;
     // The constructor member needs special treatment due to parameters being
     // in scope in the initializer list.
-    var oldParent = enterParent(node);
+    TreeNode oldParent = enterParent(node);
     int stackHeight = enterLocalScope();
     visitChildren(node.function);
     visitList(node.initializers, this);
@@ -362,7 +395,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   visitClass(Class node) {
     currentClass = node;
     declareTypeParameters(node.typeParameters);
-    var oldParent = enterParent(node);
+    TreeNode oldParent = enterParent(node);
     classTypeParametersAreInScope = false;
     visitList(node.annotations, this);
     classTypeParametersAreInScope = true;
@@ -378,9 +411,12 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   visitFunctionNode(FunctionNode node) {
     declareTypeParameters(node.typeParameters);
     bool savedInCatchBlock = inCatchBlock;
+    AsyncMarker savedAsyncMarker = currentAsyncMarker;
+    currentAsyncMarker = node.asyncMarker;
     inCatchBlock = false;
     visitWithLocalScope(node);
     inCatchBlock = savedInCatchBlock;
+    currentAsyncMarker = savedAsyncMarker;
     undeclareTypeParameters(node.typeParameters);
   }
 
@@ -392,7 +428,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
       }
     }
     declareTypeParameters(node.typeParameters);
-    for (var typeParameter in node.typeParameters) {
+    for (TypeParameter typeParameter in node.typeParameters) {
       typeParameter.bound?.accept(this);
       if (typeParameter.annotations.isNotEmpty) {
         problem(
@@ -444,6 +480,44 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   @override
+  void visitReturnStatement(ReturnStatement node) {
+    switch (currentAsyncMarker) {
+      case AsyncMarker.Sync:
+      case AsyncMarker.Async:
+      case AsyncMarker.SyncYielding:
+        // ok
+        break;
+      case AsyncMarker.SyncStar:
+      case AsyncMarker.AsyncStar:
+        problem(
+            node,
+            "Return statement in function with async marker: "
+            "$currentAsyncMarker");
+        break;
+    }
+    super.visitReturnStatement(node);
+  }
+
+  @override
+  void visitYieldStatement(YieldStatement node) {
+    switch (currentAsyncMarker) {
+      case AsyncMarker.Sync:
+      case AsyncMarker.Async:
+        problem(
+            node,
+            "Yield statement in function with async marker: "
+            "$currentAsyncMarker");
+        break;
+      case AsyncMarker.SyncStar:
+      case AsyncMarker.AsyncStar:
+      case AsyncMarker.SyncYielding:
+        // ok
+        break;
+    }
+    super.visitYieldStatement(node);
+  }
+
+  @override
   visitRethrow(Rethrow node) {
     if (!inCatchBlock) {
       problem(node, "Rethrow must be inside a Catch block.");
@@ -451,7 +525,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   visitVariableDeclaration(VariableDeclaration node) {
-    var parent = node.parent;
+    TreeNode parent = node.parent;
     if (parent is! Block &&
         !(parent is Catch && parent.body != node) &&
         !(parent is FunctionNode && parent.body != node) &&
@@ -574,45 +648,6 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   @override
-  visitDirectPropertyGet(DirectPropertyGet node) {
-    visitChildren(node);
-    if (node.target == null) {
-      problem(node, "DirectPropertyGet without target.");
-    }
-    if (!node.target.hasGetter) {
-      problem(node, "DirectPropertyGet of '${node.target}' without getter.");
-    }
-    if (!node.target.isInstanceMember) {
-      problem(
-          node,
-          "DirectPropertyGet of '${node.target}' that isn't an"
-          " instance member.");
-    }
-  }
-
-  @override
-  visitDirectPropertySet(DirectPropertySet node) {
-    visitChildren(node);
-    if (node.target == null) {
-      problem(node, "DirectPropertySet without target.");
-    }
-    if (!node.target.hasSetter) {
-      problem(node, "DirectPropertySet of '${node.target}' without setter.");
-    }
-    if (!node.target.isInstanceMember) {
-      problem(node, "DirectPropertySet of '${node.target}' that is static.");
-    }
-  }
-
-  @override
-  visitDirectMethodInvocation(DirectMethodInvocation node) {
-    checkTargetedInvocation(node.target, node);
-    if (node.receiver == null) {
-      problem(node, "DirectMethodInvocation without receiver.");
-    }
-  }
-
-  @override
   visitConstructorInvocation(ConstructorInvocation node) {
     checkTargetedInvocation(node.target, node);
     if (node.target.enclosingClass.isAbstract) {
@@ -638,7 +673,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
     }
     namedLoop:
     for (int i = 0; i < arguments.named.length; ++i) {
-      var argument = arguments.named[i];
+      NamedExpression argument = arguments.named[i];
       String name = argument.name;
       for (int j = 0; j < function.namedParameters.length; ++j) {
         if (function.namedParameters[j].name == name) continue namedLoop;
@@ -771,7 +806,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
 
   @override
   visitTypeParameterType(TypeParameterType node) {
-    var parameter = node.parameter;
+    TypeParameter parameter = node.parameter;
     if (!typeParametersInScope.contains(parameter)) {
       problem(
           currentParent,
@@ -811,6 +846,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
       }
       problem(currentParent, "Type $node references an anonymous mixin class.");
     }
+    defaultDartType(node);
   }
 
   @override
@@ -904,7 +940,7 @@ class CheckParentPointers extends Visitor {
           "is '${node.parent.runtimeType}' "
           "but should be '${parent.runtimeType}'.");
     }
-    var oldParent = parent;
+    TreeNode oldParent = parent;
     parent = node;
     node.visitChildren(this);
     parent = oldParent;

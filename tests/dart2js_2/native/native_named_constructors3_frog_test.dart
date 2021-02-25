@@ -32,9 +32,10 @@ void setup() {
   // This code is inside 'setup' and so not accessible from the global scope.
   function A(arg) { this._x = arg; }
   A.prototype.foo = function(){ return this._x; };
-  makeA = function(arg) { return new A(arg); };
+  self.makeA = function(arg) { return new A(arg); };
   self.nativeConstructor(A);
 })()""");
+  applyTestExtensions(['A']);
 }
 
 main() {

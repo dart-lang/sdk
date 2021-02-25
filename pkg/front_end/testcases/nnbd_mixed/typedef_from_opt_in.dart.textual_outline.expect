@@ -1,0 +1,6 @@
+// @dart = 2.9
+import 'typedef_from_opt_in_lib.dart';
+
+Handler method1() => (Request r) async => new Response();
+Typedef method2() => (r) => 0;
+main() {}

@@ -50,7 +50,7 @@ main() {
 
   // e1?.v = e2 is equivalent to ((x) => x == null ? null : x.v = e2)(e1).
 
-  { C? c = new C(1); Expect.equals(2, c?.v = 2); Expect.equals(2, c!.v); }
+  { var c = new C(1) as C?; Expect.equals(2, c?.v = 2); Expect.equals(2, c!.v); }
 
   // C?.v = e2 is equivalent to C.v = e2.
 

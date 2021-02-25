@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Directory, File, Platform, Process, stderr, stdout;
@@ -25,6 +27,7 @@ class ModuleConfiguration {
   final String moduleName;
   final String jsFileName;
   final String fullDillFileName;
+  final String summaryDillFileName;
 
   ModuleConfiguration(
       {this.root,
@@ -32,17 +35,20 @@ class ModuleConfiguration {
       this.moduleName,
       this.libraryUri,
       this.jsFileName,
-      this.fullDillFileName});
+      this.fullDillFileName,
+      this.summaryDillFileName});
 
   Uri get jsPath => root.resolve('$outputDir/$jsFileName');
   Uri get fullDillPath => root.resolve('$outputDir/$fullDillFileName');
+  Uri get summaryDillPath => root.resolve('$outputDir/$summaryDillFileName');
 }
 
 class TestProjectConfiguration {
   final Directory rootDirectory;
   final String outputDir = 'out';
+  final bool soundNullSafety;
 
-  TestProjectConfiguration(this.rootDirectory);
+  TestProjectConfiguration(this.rootDirectory, this.soundNullSafety);
 
   ModuleConfiguration get mainModule => ModuleConfiguration(
       root: root,
@@ -50,7 +56,8 @@ class TestProjectConfiguration {
       moduleName: 'packages/_testPackage/main',
       libraryUri: 'org-dartlang-app:/lib/main.dart',
       jsFileName: 'main.js',
-      fullDillFileName: 'main.full.dill');
+      fullDillFileName: 'main.full.dill',
+      summaryDillFileName: 'main.dill');
 
   ModuleConfiguration get testModule => ModuleConfiguration(
       root: root,
@@ -58,23 +65,39 @@ class TestProjectConfiguration {
       moduleName: 'packages/_testPackage/test_library',
       libraryUri: 'package:_testPackage/test_library.dart',
       jsFileName: 'test_library.js',
-      fullDillFileName: 'test_library.full.dill');
+      fullDillFileName: 'test_library.full.dill',
+      summaryDillFileName: 'test_library.dill');
 
+  // TODO(annagrin): E.g. this module should have a file included that's not
+  // directly reachable from the libraryUri (i.e. where "too much" has been
+  // bundled).
   ModuleConfiguration get testModule2 => ModuleConfiguration(
       root: root,
       outputDir: outputDir,
       moduleName: 'packages/_testPackage/test_library2',
       libraryUri: 'package:_testPackage/test_library2.dart',
       jsFileName: 'test_library2.js',
-      fullDillFileName: 'test_library2.full.dill');
+      fullDillFileName: 'test_library2.full.dill',
+      summaryDillFileName: 'test_library2.dill');
+
+  ModuleConfiguration get testModule3 => ModuleConfiguration(
+      root: root,
+      outputDir: outputDir,
+      moduleName: 'packages/_testPackage/test_library3',
+      libraryUri: 'package:_testPackage/test_library3.dart',
+      jsFileName: 'test_library3.js',
+      fullDillFileName: 'test_library3.full.dill',
+      summaryDillFileName: 'test_library3.dill');
 
   String get rootPath => rootDirectory.path;
   Uri get root => rootDirectory.uri;
   Uri get outputPath => root.resolve(outputDir);
-  Uri get packagesPath => root.resolve('.packages');
+  Uri get packagesPath => root.resolve('package_config.json');
 
   Uri get sdkRoot => computePlatformBinariesLocation();
-  Uri get sdkSummaryPath => sdkRoot.resolve('ddc_sdk.dill');
+  Uri get sdkSummaryPath => soundNullSafety
+      ? sdkRoot.resolve('ddc_outline_sound.dill')
+      : sdkRoot.resolve('ddc_sdk.dill');
   Uri get librariesPath => sdkRoot.resolve('lib/libraries.json');
 
   void createTestProject() {
@@ -89,28 +112,51 @@ environment:
   sdk: '>=2.8.0 <3.0.0'
 ''');
 
-    var packages = root.resolve('.packages');
-    File.fromUri(packages)
+    File.fromUri(packagesPath)
       ..createSync()
       ..writeAsStringSync('''
-_testPackage:lib/
-''');
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "_testPackage",
+            "rootUri": "./lib",
+            "packageUri": "./"
+          }
+        ]
+      }
+      ''');
 
     var main = root.resolve('lib/main.dart');
     File.fromUri(main)
       ..createSync(recursive: true)
       ..writeAsStringSync('''
+
 import 'package:_testPackage/test_library.dart';
+import 'package:_testPackage/test_library3.dart';
 
 var global = 0;
 
 void main() {
   var count = 0;
-  // line 7
+  // line 9
   print('Global is: \${++global}');
   print('Count is: \${++count}');
 
   B b = new B();
+}
+
+extension NumberParsing on String {
+  int parseInt() {
+    var ret = int.parse(this);
+    // line 19
+    return ret;
+  }
+}
+
+void linkToImports() {
+  testLibraryFunction(42);
+  testLibraryFunction3(42);
 }
 ''');
 
@@ -118,18 +164,22 @@ void main() {
     File.fromUri(testLibrary)
       ..createSync()
       ..writeAsStringSync('''
+
 import 'package:_testPackage/test_library2.dart';
 
 int testLibraryFunction(int formal) {
-  return formal; // line 4
+  return formal; // line 5
 }
 
 int callLibraryFunction2(int formal) {
-  return testLibraryFunction2(formal); // line 8
+  return testLibraryFunction2(formal); // line 9
 }
 
 class B {
   C c() => new C();
+  void printNumber() {
+    print(c().getNumber() + 1);
+  }
 }
 ''');
 
@@ -137,367 +187,513 @@ class B {
     File.fromUri(testLibrary2)
       ..createSync()
       ..writeAsStringSync('''
+
 int testLibraryFunction2(int formal) {
-  return formal; // line 2
+  return formal; // line 3
 }
 
 class C {
   int getNumber() => 42;
 }
 ''');
+
+    var testLibrary3 = root.resolve('lib/test_library3.dart');
+    File.fromUri(testLibrary3)
+      ..createSync()
+      ..writeAsStringSync('''
+
+int testLibraryFunction3(int formal) {
+  return formal; // line 3
+}
+''');
   }
 }
 
 void main() async {
-  group('Expression compiler worker (webdev simulation) - ', () {
-    ExpressionCompilerWorker worker;
-    Future workerDone;
-    StreamController<Map<String, dynamic>> requestController;
-    StreamController<Map<String, dynamic>> responseController;
-    Directory tempDir;
-    TestProjectConfiguration config;
-    List inputs;
+  for (var soundNullSafety in [true, false]) {
+    group('${soundNullSafety ? "sound" : "unsound"} null safety -', () {
+      for (var summarySupport in [true, false]) {
+        group('${summarySupport ? "" : "no "}debugger summary support -', () {
+          group('expression compiler worker', () {
+            ExpressionCompilerWorker worker;
+            Future workerDone;
+            StreamController<Map<String, dynamic>> requestController;
+            StreamController<Map<String, dynamic>> responseController;
+            Directory tempDir;
+            TestProjectConfiguration config;
+            List inputs;
 
-    setUpAll(() async {
-      tempDir = Directory.systemTemp.createTempSync('foo bar');
-      config = TestProjectConfiguration(tempDir);
+            setUpAll(() async {
+              tempDir = Directory.systemTemp.createTempSync('foo bar');
+              config = TestProjectConfiguration(tempDir, soundNullSafety);
 
-      // simulate webdev
-      config.createTestProject();
-      var kernelGenerator = DDCKernelGenerator(config);
-      await kernelGenerator.generate();
+              // simulate webdev
+              config.createTestProject();
+              var kernelGenerator = DDCKernelGenerator(config);
+              await kernelGenerator.generate();
 
-      inputs = [
-        {
-          'path': config.mainModule.fullDillPath.path,
-          'moduleName': config.mainModule.moduleName
-        },
-        {
-          'path': config.testModule.fullDillPath.path,
-          'moduleName': config.testModule.moduleName
-        },
-        {
-          'path': config.testModule2.fullDillPath.path,
-          'moduleName': config.testModule2.moduleName
-        },
-      ];
+              inputs = [
+                {
+                  'path': config.mainModule.fullDillPath.path,
+                  if (summarySupport)
+                    'summaryPath': config.mainModule.summaryDillPath.path,
+                  'moduleName': config.mainModule.moduleName
+                },
+                {
+                  'path': config.testModule.fullDillPath.path,
+                  if (summarySupport)
+                    'summaryPath': config.testModule.summaryDillPath.path,
+                  'moduleName': config.testModule.moduleName
+                },
+                {
+                  'path': config.testModule2.fullDillPath.path,
+                  if (summarySupport)
+                    'summaryPath': config.testModule2.summaryDillPath.path,
+                  'moduleName': config.testModule2.moduleName
+                },
+                {
+                  'path': config.testModule3.fullDillPath.path,
+                  if (summarySupport)
+                    'summaryPath': config.testModule3.summaryDillPath.path,
+                  'moduleName': config.testModule3.moduleName
+                },
+              ];
+            });
+
+            tearDownAll(() async {
+              tempDir.deleteSync(recursive: true);
+            });
+
+            setUp(() async {
+              var fileSystem = MultiRootFileSystem('org-dartlang-app',
+                  [tempDir.uri], StandardFileSystem.instance);
+
+              requestController = StreamController<Map<String, dynamic>>();
+              responseController = StreamController<Map<String, dynamic>>();
+              worker = await ExpressionCompilerWorker.create(
+                librariesSpecificationUri: config.librariesPath,
+                // We should be able to load everything from dill and not require
+                // source parsing. Webdev and google3 integration currently rely on
+                // that. Make the test fail on source reading by not providing a
+                // packages file.
+                packagesFile: null,
+                sdkSummary: config.sdkSummaryPath,
+                fileSystem: fileSystem,
+                requestStream: requestController.stream,
+                sendResponse: responseController.add,
+                soundNullSafety: soundNullSafety,
+                verbose: verbose,
+              );
+              workerDone = worker.start();
+            });
+
+            tearDown(() async {
+              unawaited(requestController.close());
+              await workerDone;
+              unawaited(responseController.close());
+            });
+
+            test('can load dependencies and compile expressions in sdk',
+                () async {
+              requestController.add({
+                'command': 'UpdateDeps',
+                'inputs': inputs,
+              });
+
+              requestController.add({
+                'command': 'CompileExpression',
+                'expression': 'other',
+                'line': 107,
+                'column': 1,
+                'jsModules': {},
+                'jsScope': {'other': 'other'},
+                'libraryUri': 'dart:collection',
+                'moduleName': 'dart_sdk',
+              });
+
+              expect(
+                  responseController.stream,
+                  emitsInOrder([
+                    equals({
+                      'succeeded': true,
+                    }),
+                    equals({
+                      'succeeded': true,
+                      'errors': isEmpty,
+                      'warnings': isEmpty,
+                      'infos': isEmpty,
+                      'compiledProcedure': contains('return other;'),
+                    })
+                  ]));
+            }, skip: 'Evaluating expressions in SDK is not supported yet');
+
+            test('can load dependencies and compile expressions in a library',
+                () async {
+              requestController.add({
+                'command': 'UpdateDeps',
+                'inputs': inputs,
+              });
+
+              requestController.add({
+                'command': 'CompileExpression',
+                'expression': 'formal',
+                'line': 5,
+                'column': 1,
+                'jsModules': {},
+                'jsScope': {'formal': 'formal'},
+                'libraryUri': config.testModule.libraryUri,
+                'moduleName': config.testModule.moduleName,
+              });
+
+              expect(
+                  responseController.stream,
+                  emitsInOrder([
+                    equals({
+                      'succeeded': true,
+                    }),
+                    equals({
+                      'succeeded': true,
+                      'errors': isEmpty,
+                      'warnings': isEmpty,
+                      'infos': isEmpty,
+                      'compiledProcedure': contains('return formal;'),
+                    })
+                  ]));
+            });
+
+            test('can load dependencies and compile expressions in main',
+                () async {
+              requestController.add({
+                'command': 'UpdateDeps',
+                'inputs': inputs,
+              });
+
+              requestController.add({
+                'command': 'CompileExpression',
+                'expression': 'count',
+                'line': 9,
+                'column': 1,
+                'jsModules': {},
+                'jsScope': {'count': 'count'},
+                'libraryUri': config.mainModule.libraryUri,
+                'moduleName': config.mainModule.moduleName,
+              });
+
+              expect(
+                  responseController.stream,
+                  emitsInOrder([
+                    equals({
+                      'succeeded': true,
+                    }),
+                    equals({
+                      'succeeded': true,
+                      'errors': isEmpty,
+                      'warnings': isEmpty,
+                      'infos': isEmpty,
+                      'compiledProcedure': contains('return count;'),
+                    })
+                  ]));
+            });
+
+            test(
+                'can load dependencies and compile expressions in main (extension method)',
+                () async {
+              requestController.add({
+                'command': 'UpdateDeps',
+                'inputs': inputs,
+              });
+
+              requestController.add({
+                'command': 'CompileExpression',
+                'expression': 'ret',
+                'line': 19,
+                'column': 1,
+                'jsModules': {},
+                'jsScope': {'ret': 'ret'},
+                'libraryUri': config.mainModule.libraryUri,
+                'moduleName': config.mainModule.moduleName,
+              });
+
+              expect(
+                  responseController.stream,
+                  emitsInOrder([
+                    equals({
+                      'succeeded': true,
+                    }),
+                    equals({
+                      'succeeded': true,
+                      'errors': isEmpty,
+                      'warnings': isEmpty,
+                      'infos': isEmpty,
+                      'compiledProcedure': contains('return ret;'),
+                    })
+                  ]));
+            });
+
+            test(
+                'can load dependencies and compile transitive expressions in main',
+                () async {
+              requestController.add({
+                'command': 'UpdateDeps',
+                'inputs': inputs,
+              });
+
+              requestController.add({
+                'command': 'CompileExpression',
+                'expression': 'B().c().getNumber()',
+                'line': 9,
+                'column': 1,
+                'jsModules': {},
+                'jsScope': {},
+                'libraryUri': config.mainModule.libraryUri,
+                'moduleName': config.mainModule.moduleName,
+              });
+
+              expect(
+                  responseController.stream,
+                  emitsInOrder([
+                    equals({
+                      'succeeded': true,
+                    }),
+                    equals({
+                      'succeeded': true,
+                      'errors': isEmpty,
+                      'warnings': isEmpty,
+                      'infos': isEmpty,
+                      'compiledProcedure': contains(
+                          'return new test_library.B.new().c().getNumber()'),
+                    })
+                  ]));
+            });
+
+            test('can compile series of expressions in various libraries',
+                () async {
+              requestController.add({
+                'command': 'UpdateDeps',
+                'inputs': inputs,
+              });
+
+              requestController.add({
+                'command': 'CompileExpression',
+                'expression': 'B().c().getNumber()',
+                'line': 8,
+                'column': 1,
+                'jsModules': {},
+                'jsScope': {},
+                'libraryUri': config.mainModule.libraryUri,
+                'moduleName': config.mainModule.moduleName,
+              });
+
+              requestController.add({
+                'command': 'CompileExpression',
+                'expression': 'formal',
+                'line': 5,
+                'column': 1,
+                'jsModules': {},
+                'jsScope': {'formal': 'formal'},
+                'libraryUri': config.testModule.libraryUri,
+                'moduleName': config.testModule.moduleName,
+              });
+
+              requestController.add({
+                'command': 'CompileExpression',
+                'expression': 'formal',
+                'line': 3,
+                'column': 1,
+                'jsModules': {},
+                'jsScope': {'formal': 'formal'},
+                'libraryUri': config.testModule2.libraryUri,
+                'moduleName': config.testModule2.moduleName,
+              });
+
+              requestController.add({
+                'command': 'CompileExpression',
+                'expression': 'formal',
+                'line': 3,
+                'column': 1,
+                'jsModules': {},
+                'jsScope': {'formal': 'formal'},
+                'libraryUri': config.testModule3.libraryUri,
+                'moduleName': config.testModule3.moduleName,
+              });
+
+              requestController.add({
+                'command': 'CompileExpression',
+                'expression': 'B().printNumber()',
+                'line': 9,
+                'column': 1,
+                'jsModules': {},
+                'jsScope': {},
+                'libraryUri': config.mainModule.libraryUri,
+                'moduleName': config.mainModule.moduleName,
+              });
+
+              expect(
+                  responseController.stream,
+                  emitsInOrder([
+                    equals({
+                      'succeeded': true,
+                    }),
+                    equals({
+                      'succeeded': true,
+                      'errors': isEmpty,
+                      'warnings': isEmpty,
+                      'infos': isEmpty,
+                      'compiledProcedure':
+                          contains('new test_library.B.new().c().getNumber()'),
+                    }),
+                    equals({
+                      'succeeded': true,
+                      'errors': isEmpty,
+                      'warnings': isEmpty,
+                      'infos': isEmpty,
+                      'compiledProcedure': contains('return formal;'),
+                    }),
+                    equals({
+                      'succeeded': true,
+                      'errors': isEmpty,
+                      'warnings': isEmpty,
+                      'infos': isEmpty,
+                      'compiledProcedure': contains('return formal;'),
+                    }),
+                    equals({
+                      'succeeded': true,
+                      'errors': isEmpty,
+                      'warnings': isEmpty,
+                      'infos': isEmpty,
+                      'compiledProcedure': contains('return formal;'),
+                    }),
+                    equals({
+                      'succeeded': true,
+                      'errors': isEmpty,
+                      'warnings': isEmpty,
+                      'infos': isEmpty,
+                      'compiledProcedure':
+                          contains('test_library.B.new().printNumber()'),
+                    })
+                  ]));
+            });
+
+            test('can compile after dependency update', () async {
+              requestController.add({
+                'command': 'UpdateDeps',
+                'inputs': inputs,
+              });
+
+              requestController.add({
+                'command': 'CompileExpression',
+                'expression': 'B().c().getNumber()',
+                'line': 8,
+                'column': 1,
+                'jsModules': {},
+                'jsScope': {},
+                'libraryUri': config.mainModule.libraryUri,
+                'moduleName': config.mainModule.moduleName,
+              });
+
+              requestController.add({
+                'command': 'CompileExpression',
+                'expression': 'formal',
+                'line': 5,
+                'column': 1,
+                'jsModules': {},
+                'jsScope': {'formal': 'formal'},
+                'libraryUri': config.testModule.libraryUri,
+                'moduleName': config.testModule.moduleName,
+              });
+
+              requestController.add({
+                'command': 'CompileExpression',
+                'expression': 'B().printNumber()',
+                'line': 9,
+                'column': 1,
+                'jsModules': {},
+                'jsScope': {},
+                'libraryUri': config.mainModule.libraryUri,
+                'moduleName': config.mainModule.moduleName,
+              });
+
+              requestController.add({
+                'command': 'UpdateDeps',
+                'inputs': inputs,
+              });
+
+              requestController.add({
+                'command': 'CompileExpression',
+                'expression': 'B().c().getNumber()',
+                'line': 8,
+                'column': 1,
+                'jsModules': {},
+                'jsScope': {},
+                'libraryUri': config.mainModule.libraryUri,
+                'moduleName': config.mainModule.moduleName,
+              });
+
+              requestController.add({
+                'command': 'CompileExpression',
+                'expression': 'formal',
+                'line': 3,
+                'column': 1,
+                'jsModules': {},
+                'jsScope': {'formal': 'formal'},
+                'libraryUri': config.testModule3.libraryUri,
+                'moduleName': config.testModule3.moduleName,
+              });
+
+              expect(
+                  responseController.stream,
+                  emitsInOrder([
+                    equals({
+                      'succeeded': true,
+                    }),
+                    equals({
+                      'succeeded': true,
+                      'errors': isEmpty,
+                      'warnings': isEmpty,
+                      'infos': isEmpty,
+                      'compiledProcedure':
+                          contains('new test_library.B.new().c().getNumber()'),
+                    }),
+                    equals({
+                      'succeeded': true,
+                      'errors': isEmpty,
+                      'warnings': isEmpty,
+                      'infos': isEmpty,
+                      'compiledProcedure': contains('return formal;'),
+                    }),
+                    equals({
+                      'succeeded': true,
+                      'errors': isEmpty,
+                      'warnings': isEmpty,
+                      'infos': isEmpty,
+                      'compiledProcedure':
+                          contains('test_library.B.new().printNumber()'),
+                    }),
+                    equals({
+                      'succeeded': true,
+                    }),
+                    equals({
+                      'succeeded': true,
+                      'errors': isEmpty,
+                      'warnings': isEmpty,
+                      'infos': isEmpty,
+                      'compiledProcedure':
+                          contains('new test_library.B.new().c().getNumber()'),
+                    }),
+                    equals({
+                      'succeeded': true,
+                      'errors': isEmpty,
+                      'warnings': isEmpty,
+                      'infos': isEmpty,
+                      'compiledProcedure': contains('return formal;'),
+                    }),
+                  ]));
+            });
+          });
+        });
+      }
     });
-
-    tearDownAll(() async {
-      tempDir.deleteSync(recursive: true);
-    });
-
-    setUp(() async {
-      var fileSystem = MultiRootFileSystem(
-          'org-dartlang-app', [tempDir.uri], StandardFileSystem.instance);
-
-      requestController = StreamController<Map<String, dynamic>>();
-      responseController = StreamController<Map<String, dynamic>>();
-      worker = await ExpressionCompilerWorker.create(
-        librariesSpecificationUri: config.librariesPath,
-        // We should be able to load everything from dill and not require
-        // source parsing. Webdev and google3 integration currently rely on
-        // that. Make the test fail on source reading by not providing a
-        // packages file.
-        packagesFile: null,
-        sdkSummary: config.sdkSummaryPath,
-        fileSystem: fileSystem,
-        requestStream: requestController.stream,
-        sendResponse: responseController.add,
-        verbose: verbose,
-      );
-      workerDone = worker.start();
-    });
-
-    tearDown(() async {
-      unawaited(requestController.close());
-      await workerDone;
-      unawaited(responseController.close());
-    });
-
-    test('can load dependencies and compile expressions in sdk', () async {
-      requestController.add({
-        'command': 'UpdateDeps',
-        'inputs': inputs,
-      });
-
-      requestController.add({
-        'command': 'CompileExpression',
-        'expression': 'other',
-        'line': 107,
-        'column': 1,
-        'jsModules': {},
-        'jsScope': {'other': 'other'},
-        'libraryUri': 'dart:collection',
-        'moduleName': 'dart_sdk',
-      });
-
-      expect(
-          responseController.stream,
-          emitsInOrder([
-            equals({
-              'succeeded': true,
-            }),
-            equals({
-              'succeeded': true,
-              'errors': isEmpty,
-              'warnings': isEmpty,
-              'compiledProcedure': contains('return other;'),
-            })
-          ]));
-    }, skip: 'Evaluating expressions in SDK is not supported yet');
-
-    test('can load dependencies and compile expressions in a library',
-        () async {
-      requestController.add({
-        'command': 'UpdateDeps',
-        'inputs': inputs,
-      });
-
-      requestController.add({
-        'command': 'CompileExpression',
-        'expression': 'formal',
-        'line': 4,
-        'column': 1,
-        'jsModules': {},
-        'jsScope': {'formal': 'formal'},
-        'libraryUri': config.testModule.libraryUri,
-        'moduleName': config.testModule.moduleName,
-      });
-
-      expect(
-          responseController.stream,
-          emitsInOrder([
-            equals({
-              'succeeded': true,
-            }),
-            equals({
-              'succeeded': true,
-              'errors': isEmpty,
-              'warnings': isEmpty,
-              'compiledProcedure': contains('return formal;'),
-            })
-          ]));
-    });
-
-    test('can load dependencies and compile expressions in main', () async {
-      requestController.add({
-        'command': 'UpdateDeps',
-        'inputs': inputs,
-      });
-
-      requestController.add({
-        'command': 'CompileExpression',
-        'expression': 'count',
-        'line': 7,
-        'column': 1,
-        'jsModules': {},
-        'jsScope': {'count': 'count'},
-        'libraryUri': config.mainModule.libraryUri,
-        'moduleName': config.mainModule.moduleName,
-      });
-
-      expect(
-          responseController.stream,
-          emitsInOrder([
-            equals({
-              'succeeded': true,
-            }),
-            equals({
-              'succeeded': true,
-              'errors': isEmpty,
-              'warnings': isEmpty,
-              'compiledProcedure': contains('return count;'),
-            })
-          ]));
-    });
-
-    test('can load dependencies and compile transitive expressions in main',
-        () async {
-      requestController.add({
-        'command': 'UpdateDeps',
-        'inputs': inputs,
-      });
-
-      requestController.add({
-        'command': 'CompileExpression',
-        'expression': 'B().c().getNumber()',
-        'line': 7,
-        'column': 1,
-        'jsModules': {},
-        'jsScope': {},
-        'libraryUri': config.mainModule.libraryUri,
-        'moduleName': config.mainModule.moduleName,
-      });
-
-      expect(
-          responseController.stream,
-          emitsInOrder([
-            equals({
-              'succeeded': true,
-            }),
-            equals({
-              'succeeded': true,
-              'errors': isEmpty,
-              'warnings': isEmpty,
-              'compiledProcedure':
-                  contains('return new test_library.B.new().c().getNumber()'),
-            })
-          ]));
-    });
-  });
-
-  group('Expression compiler worker (google3 simulation) - ', () {
-    ExpressionCompilerWorker worker;
-    Future workerDone;
-    StreamController<Map<String, dynamic>> requestController;
-    StreamController<Map<String, dynamic>> responseController;
-    Directory tempDir;
-    TestProjectConfiguration config;
-    List inputs;
-
-    setUpAll(() async {
-      tempDir = Directory.systemTemp.createTempSync('foo bar');
-      config = TestProjectConfiguration(tempDir);
-
-      // simulate google3
-      config.createTestProject();
-      var kernelGenerator = BazelKernelWorkerGenerator(config);
-      await kernelGenerator.generate();
-
-      inputs = [
-        {
-          'path': config.mainModule.fullDillPath.path,
-          'moduleName': config.mainModule.moduleName
-        },
-      ];
-    });
-
-    tearDownAll(() async {
-      tempDir.deleteSync(recursive: true);
-    });
-
-    setUp(() async {
-      var fileSystem = MultiRootFileSystem(
-          'org-dartlang-app', [tempDir.uri], StandardFileSystem.instance);
-
-      requestController = StreamController<Map<String, dynamic>>();
-      responseController = StreamController<Map<String, dynamic>>();
-      worker = await ExpressionCompilerWorker.create(
-        librariesSpecificationUri: config.librariesPath,
-        packagesFile: null,
-        sdkSummary: config.sdkSummaryPath,
-        fileSystem: fileSystem,
-        requestStream: requestController.stream,
-        sendResponse: responseController.add,
-        verbose: verbose,
-      );
-      workerDone = worker.start();
-    });
-
-    tearDown(() async {
-      unawaited(requestController.close());
-      await workerDone;
-      unawaited(responseController.close());
-    });
-
-    test('can load dependencies and compile expressions in sdk', () async {
-      requestController.add({
-        'command': 'UpdateDeps',
-        'inputs': inputs,
-      });
-
-      requestController.add({
-        'command': 'CompileExpression',
-        'expression': 'other',
-        'line': 107,
-        'column': 1,
-        'jsModules': {},
-        'jsScope': {'other': 'other'},
-        'libraryUri': 'dart:collection',
-        'moduleName': 'dart_sdk',
-      });
-
-      expect(
-          responseController.stream,
-          emitsInOrder([
-            equals({
-              'succeeded': true,
-            }),
-            equals({
-              'succeeded': true,
-              'errors': isEmpty,
-              'warnings': isEmpty,
-              'compiledProcedure': contains('return other;'),
-            })
-          ]));
-    }, skip: 'Evaluating expressions in SDK is not supported yet');
-
-    test('can load dependencies and compile expressions in a library',
-        () async {
-      requestController.add({
-        'command': 'UpdateDeps',
-        'inputs': inputs,
-      });
-
-      requestController.add({
-        'command': 'CompileExpression',
-        'expression': 'formal',
-        'line': 4,
-        'column': 1,
-        'jsModules': {},
-        'jsScope': {'formal': 'formal'},
-        'libraryUri': config.testModule.libraryUri,
-        'moduleName': config.mainModule.moduleName,
-      });
-
-      expect(
-          responseController.stream,
-          emitsInOrder([
-            equals({
-              'succeeded': true,
-            }),
-            equals({
-              'succeeded': true,
-              'errors': isEmpty,
-              'warnings': isEmpty,
-              'compiledProcedure': contains('return formal;'),
-            })
-          ]));
-    });
-
-    test('can load dependencies and compile expressions in main', () async {
-      requestController.add({
-        'command': 'UpdateDeps',
-        'inputs': inputs,
-      });
-
-      requestController.add({
-        'command': 'CompileExpression',
-        'expression': 'count',
-        'line': 7,
-        'column': 1,
-        'jsModules': {},
-        'jsScope': {'count': 'count'},
-        'libraryUri': config.mainModule.libraryUri,
-        'moduleName': config.mainModule.moduleName,
-      });
-
-      expect(
-          responseController.stream,
-          emitsInOrder([
-            equals({
-              'succeeded': true,
-            }),
-            equals({
-              'succeeded': true,
-              'errors': isEmpty,
-              'warnings': isEmpty,
-              'compiledProcedure': contains('return count;'),
-            })
-          ]));
-    });
-  }, skip: 'bazel kernel worker does not support full kernel generation yet');
+  }
 }
 
 /// Uses DDC to generate kernel from the test code
@@ -514,11 +710,35 @@ class DDCKernelGenerator {
 
     Directory.fromUri(config.outputPath)..createSync();
 
-    // generate test_library2.full.dill
+    // generate test_library3.full.dill
     var args = [
       dartdevc,
+      config.testModule3.libraryUri,
+      '-o',
+      config.testModule3.jsPath.toFilePath(),
+      '--source-map',
+      '--experimental-emit-debug-metadata',
+      '--experimental-output-compiled-kernel',
+      '--dart-sdk-summary',
+      config.sdkSummaryPath.path,
+      '--multi-root',
+      '${config.root}',
+      '--multi-root-scheme',
+      'org-dartlang-app',
+      '--packages',
+      config.packagesPath.path,
+      config.soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety'
+    ];
+
+    var exitCode = await runProcess(dart, args, config.rootPath);
+    if (exitCode != 0) {
+      return exitCode;
+    }
+
+    // generate test_library2.full.dill
+    args = [
+      dartdevc,
       config.testModule2.libraryUri,
-      '--no-summarize',
       '-o',
       config.testModule2.jsPath.toFilePath(),
       '--source-map',
@@ -532,9 +752,10 @@ class DDCKernelGenerator {
       'org-dartlang-app',
       '--packages',
       config.packagesPath.path,
+      if (config.soundNullSafety) '--sound-null-safety',
     ];
 
-    var exitCode = await runProcess(dart, args, config.rootPath);
+    exitCode = await runProcess(dart, args, config.rootPath);
     if (exitCode != 0) {
       return exitCode;
     }
@@ -543,9 +764,8 @@ class DDCKernelGenerator {
     args = [
       dartdevc,
       config.testModule.libraryUri,
-      '--no-summarize',
       '--summary',
-      '${config.testModule2.fullDillPath}=${config.testModule2.moduleName}',
+      '${config.testModule2.summaryDillPath}=${config.testModule2.moduleName}',
       '-o',
       config.testModule.jsPath.toFilePath(),
       '--source-map',
@@ -559,6 +779,7 @@ class DDCKernelGenerator {
       'org-dartlang-app',
       '--packages',
       config.packagesPath.path,
+      if (config.soundNullSafety) '--sound-null-safety',
     ];
 
     exitCode = await runProcess(dart, args, config.rootPath);
@@ -570,11 +791,10 @@ class DDCKernelGenerator {
     args = [
       dartdevc,
       config.mainModule.libraryUri,
-      '--no-summarize',
       '--summary',
-      '${config.testModule2.fullDillPath}=${config.testModule2.moduleName}',
+      '${config.testModule3.summaryDillPath}=${config.testModule3.moduleName}',
       '--summary',
-      '${config.testModule.fullDillPath}=${config.testModule.moduleName}',
+      '${config.testModule.summaryDillPath}=${config.testModule.moduleName}',
       '-o',
       config.mainModule.jsPath.toFilePath(),
       '--source-map',
@@ -587,48 +807,8 @@ class DDCKernelGenerator {
       '--multi-root-scheme',
       'org-dartlang-app',
       '--packages',
-      config.packagesPath.path,
-    ];
-
-    return await runProcess(dart, args, config.rootPath);
-  }
-}
-
-/// Uses bazel kernel worker to generate kernel from test code
-/// in order to simulate google3 environment
-/// TODO: split into 3 modules
-class BazelKernelWorkerGenerator {
-  TestProjectConfiguration config;
-
-  BazelKernelWorkerGenerator(this.config);
-
-  Future<void> generate() async {
-    var dart = Platform.resolvedExecutable;
-    var kernelWorker =
-        p.join(p.dirname(dart), 'snapshots', 'kernel_worker.dart.snapshot');
-
-    var args = [
-      kernelWorker,
-      '--target',
-      'ddc',
-      '--output',
-      config.mainModule.fullDillPath.path,
-      '--dart-sdk-summary',
-      config.sdkSummaryPath.path,
-      '--exclude-non-sources',
-      '--source',
-      config.mainModule.libraryUri,
-      '--source',
-      config.testModule.libraryUri,
-      '--source',
-      config.testModule2.libraryUri,
-      '--multi-root',
-      '${config.root}',
-      '--multi-root-scheme',
-      'org-dartlang-app',
-      '--packages-file',
-      '.packages',
-      '--verbose'
+      config.packagesPath.toFilePath(),
+      if (config.soundNullSafety) '--sound-null-safety',
     ];
 
     return await runProcess(dart, args, config.rootPath);

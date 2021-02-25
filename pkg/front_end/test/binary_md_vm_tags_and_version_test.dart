@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show File, Platform;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -111,29 +113,29 @@ main() async {
     Map<int, String> tagToName = {};
     for (Field f in compareMe.tagClass.fields) {
       // Class doesn't only contain tag stuff.
-      if (f.name.name.endsWith("Mask")) continue;
-      if (f.name.name.endsWith("HighBit")) continue;
-      if (f.name.name.endsWith("Bias")) continue;
-      if (f.name.name == "ComponentFile") continue;
+      if (f.name.text.endsWith("Mask")) continue;
+      if (f.name.text.endsWith("HighBit")) continue;
+      if (f.name.text.endsWith("Bias")) continue;
+      if (f.name.text == "ComponentFile") continue;
       ConstantExpression value = f.initializer;
       IntConstant intConstant = value.constant;
       int intValue = intConstant.value;
-      if (f.name.name == "BinaryFormatVersion") {
+      if (f.name.text == "BinaryFormatVersion") {
         tagVersion = intValue;
         continue;
       }
 
       int end = intValue + 1;
       // There are a few special cases that takes up a total of 8 tags.
-      if (uses8Tags(f.name.name)) {
+      if (uses8Tags(f.name.text)) {
         end = intValue + 8;
       }
       for (; intValue < end; intValue++) {
         if (tagToName[intValue] != null) {
           throw "Double entry for ${intValue}: "
-              "${f.name.name} and ${tagToName[intValue]}";
+              "${f.name.text} and ${tagToName[intValue]}";
         }
-        tagToName[intValue] = f.name.name;
+        tagToName[intValue] = f.name.text;
       }
     }
 

@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'mocks.dart';
@@ -189,6 +190,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     handleSuccessfulRequest(request);
   }
 
+  @mustCallSuper
   void setUp() {
     serverChannel = MockServerChannel();
     projectPath = convertPath('/project');
@@ -205,6 +207,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     });
   }
 
+  @mustCallSuper
   void tearDown() {
     server.done();
     handler = null;
@@ -222,5 +225,29 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   Future<Response> waitResponse(Request request,
       {bool throwOnError = true}) async {
     return serverChannel.sendRequest(request, throwOnError: throwOnError);
+  }
+}
+
+mixin WithNonFunctionTypeAliasesMixin on AbstractAnalysisTest {
+  @override
+  void createProject({Map<String, String> packageRoots}) {
+    addAnalysisOptionsFile('''
+analyzer:
+  enable-experiment:
+    - nonfunction-type-aliases
+''');
+    super.createProject(packageRoots: packageRoots);
+  }
+}
+
+mixin WithNullSafetyMixin on AbstractAnalysisTest {
+  @override
+  void createProject({Map<String, String> packageRoots}) {
+    addAnalysisOptionsFile('''
+analyzer:
+  enable-experiment:
+    - non-nullable
+''');
+    super.createProject(packageRoots: packageRoots);
   }
 }

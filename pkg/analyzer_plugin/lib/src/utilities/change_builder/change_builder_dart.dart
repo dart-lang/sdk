@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -19,12 +17,12 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/src/utilities/charcodes.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:charcode/ascii.dart';
 import 'package:dart_style/dart_style.dart';
 
 /// A [ChangeBuilder] used to build changes in Dart files.
@@ -309,6 +307,29 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
+  void writeImportedName(List<Uri> uris, String name) {
+    assert(uris.isNotEmpty);
+    var imports = <ImportElement>[];
+    for (var uri in uris) {
+      imports.addAll(dartFileEditBuilder._getImportsForUri(uri));
+    }
+    var import = _getBestImportForName(imports, name);
+    if (import == null) {
+      var library = dartFileEditBuilder._importLibrary(uris[0]);
+      if (library.prefix != null) {
+        write(library.prefix);
+        write('.');
+      }
+    } else {
+      if (import.prefix != null) {
+        write(import.prefix.displayName);
+        write('.');
+      }
+    }
+    write(name);
+  }
+
+  @override
   void writeLocalVariableDeclaration(String name,
       {void Function() initializerWriter,
       bool isConst = false,
@@ -406,10 +427,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     // return type
     var returnType = element.returnType;
-    var typeWritten = writeType(returnType,
-        groupName: returnTypeGroupName, methodBeingCopied: element);
-    if (typeWritten) {
-      write(' ');
+    if (!isSetter) {
+      var typeWritten = writeType(returnType,
+          groupName: returnTypeGroupName, methodBeingCopied: element);
+      if (typeWritten) {
+        write(' ');
+      }
     }
     if (isGetter) {
       write(Keyword.GET.lexeme);
@@ -940,6 +963,33 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     return name;
   }
 
+  /// Given a list of [imports] that do, or can, make the [name] visible in
+  /// scope, return the one that will lead to the cleanest code.
+  ImportElement _getBestImportForName(
+      List<ImportElement> imports, String name) {
+    if (imports.isEmpty) {
+      return null;
+    } else if (imports.length == 1) {
+      return imports[0];
+    }
+    imports.sort((first, second) {
+      // Prefer imports that make the name visible.
+      var firstDefinesName = first.namespace.definedNames.containsKey(name);
+      var secondDefinesName = second.namespace.definedNames.containsKey(name);
+      if (firstDefinesName != secondDefinesName) {
+        return firstDefinesName ? -1 : 1;
+      }
+      // Prefer imports without prefixes.
+      var firstHasPrefix = first.prefix != null;
+      var secondHasPrefix = second.prefix != null;
+      if (firstHasPrefix != secondHasPrefix) {
+        return firstHasPrefix ? 1 : -1;
+      }
+      return 0;
+    });
+    return imports[0];
+  }
+
   /// Returns all variants of names by removing leading words one by one.
   List<String> _getCamelWordCombinations(String name) {
     var result = <String>[];
@@ -1100,28 +1150,45 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// If a [methodBeingCopied] is provided, then the type parameters of that
   /// method will be duplicated in the copy and will therefore be visible.
   ///
+  /// If [required] it `true`, then the type will be written even if it would
+  /// normally be omitted, such as with `dynamic`.
+  ///
   /// Causes any libraries whose elements are used by the generated code, to be
   /// imported.
-  bool _writeType(DartType type, {ExecutableElement methodBeingCopied}) {
+  bool _writeType(DartType type,
+      {ExecutableElement methodBeingCopied, bool required = false}) {
     type = _getVisibleType(type, methodBeingCopied: methodBeingCopied);
 
     // If not a useful type, don't write it.
-    if (type == null || type.isDynamic || type.isBottom) {
+    if (type == null) {
       return false;
     }
-
-    var element = type.element;
-
+    if (type.isDynamic) {
+      if (required) {
+        write('dynamic');
+        return true;
+      }
+      return false;
+    }
+    if (type.isBottom) {
+      var library = dartFileEditBuilder.resolvedUnit.libraryElement;
+      if (library.isNonNullableByDefault) {
+        write('Never');
+        return true;
+      }
+      return false;
+    }
     // The type `void` does not have an element.
     if (type is VoidType) {
       write('void');
       return true;
     }
 
+    var element = type.element;
     // Typedef(s) are represented as GenericFunctionTypeElement(s).
     if (element is GenericFunctionTypeElement &&
         element.typeParameters.isEmpty &&
-        element.enclosingElement is GenericTypeAliasElement) {
+        element.enclosingElement is FunctionTypeAliasElement) {
       element = element.enclosingElement;
     }
 
@@ -1143,9 +1210,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     // Write the simple name.
     var name = element.displayName;
     write(name);
-    if (type.nullabilitySuffix == NullabilitySuffix.question) {
-      write('?');
-    }
 
     // Write type arguments.
     if (type is ParameterizedType) {
@@ -1167,10 +1231,15 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           if (i != 0) {
             write(', ');
           }
-          _writeType(argument, methodBeingCopied: methodBeingCopied);
+          _writeType(argument,
+              required: true, methodBeingCopied: methodBeingCopied);
         }
         write('>');
       }
+    }
+
+    if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      write('?');
     }
 
     return true;
@@ -1240,6 +1309,23 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       });
     }
     _replaceReturnTypeWithFuture(body, typeProvider);
+  }
+
+  @override
+  DartFileEditBuilderImpl copyWith(ChangeBuilderImpl changeBuilder,
+      {Map<DartFileEditBuilderImpl, DartFileEditBuilderImpl> editBuilderMap =
+          const {}}) {
+    var copy = DartFileEditBuilderImpl(changeBuilder, resolvedUnit,
+        fileEdit.fileStamp, editBuilderMap[libraryChangeBuilder]);
+    copy.fileEdit.edits.addAll(fileEdit.edits);
+    copy.importPrefixGenerator = importPrefixGenerator;
+    for (var entry in librariesToImport.entries) {
+      copy.librariesToImport[entry.key] = entry.value;
+    }
+    for (var entry in librariesToRelativelyImport.entries) {
+      copy.librariesToRelativelyImport[entry.key] = entry.value;
+    }
+    return copy;
   }
 
   @override
@@ -1533,6 +1619,15 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       }
     }
     return null;
+  }
+
+  Iterable<ImportElement> _getImportsForUri(Uri uri) sync* {
+    for (var import in resolvedUnit.libraryElement.imports) {
+      var importUri = import.importedLibrary.source.uri;
+      if (importUri == uri) {
+        yield import;
+      }
+    }
   }
 
   /// Computes the best URI to import [uri] into the target library.

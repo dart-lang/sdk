@@ -55,7 +55,17 @@ FutureOr<Map<int, String>> f() {
     assertType(setOrMapLiteral('{};'), 'Map<int, String>');
   }
 
-  test_context_noTypeArgs_noEntries() async {
+  test_context_noTypeArgs_noEntries_fromParameterType() async {
+    await assertNoErrorsInCode('''
+void f() {
+  useMap({});
+}
+void useMap(Map<int, String> _) {}
+''');
+    assertType(setOrMapLiteral('{})'), 'Map<int, String>');
+  }
+
+  test_context_noTypeArgs_noEntries_fromVariableType() async {
     await assertNoErrorsInCode('''
 Map<String, String> a = {};
 ''');
@@ -292,7 +302,7 @@ var a = {...b, ...c};
     await assertNoErrorsInCode(r'''
 mixin M on Map<String, int> {}
 
-main(M m1) {
+void f(M m1) {
   // ignore:unused_local_variable
   var m2 = {...m1};
 }

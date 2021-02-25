@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Test to ensure that desugaring APIs used by clients like dart2js are
 /// always up to date.
 ///
@@ -63,7 +65,7 @@ void checkIsRedirectingFactory(ir.Component component, String uriPath,
       component.libraries.firstWhere((l) => l.importUri.path.endsWith(uriPath));
   var cls = lib.classes.firstWhere((c) => c.name == className);
   ir.Procedure member =
-      cls.members.firstWhere((m) => m.name.name == constructorName);
+      cls.members.firstWhere((m) => m.name.text == constructorName);
   Expect.isTrue(
       member.kind == ir.ProcedureKind.Factory, "$member is not a factory");
   Expect.isTrue(api.isRedirectingFactory(member));

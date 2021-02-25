@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io';
 
 import 'package:kernel/kernel.dart';
@@ -19,8 +21,8 @@ class CommandLineHelper {
   static requireVariableArgumentCount(
       List<int> ok, List<String> args, void Function() usage) {
     if (!ok.contains(args.length)) {
-      print(
-          "Expected the argument count to be one of ${ok}, got ${args.length}.");
+      print("Expected the argument count to be one of ${ok}, got "
+          "${args.length}.");
       usage();
     }
   }

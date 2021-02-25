@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -9,19 +10,40 @@ import 'server_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalyzerStatusTest);
+    defineReflectiveTests(AnalysisStandardProgressTest);
+    defineReflectiveTests(AnalyzerCustomStatusTest);
   });
 }
 
+/// Tests analysis status notifications using LSP-standard $/progress
+/// notifications.
 @reflectiveTest
-class AnalyzerStatusTest extends AbstractLspAnalysisServerTest {
+class AnalysisStandardProgressTest extends AnalyzerStatusTest {
+  @override
+  bool get progressSupport => true;
+}
+
+/// Tests analysis status notifications using (legacy) custom notifications.
+@reflectiveTest
+class AnalyzerCustomStatusTest extends AnalyzerStatusTest {
+  @override
+  bool get progressSupport => false;
+}
+
+abstract class AnalyzerStatusTest extends AbstractLspAnalysisServerTest {
+  bool get progressSupport;
+
+  ClientCapabilitiesWindow get _windowCapabilities => progressSupport
+      ? withWorkDoneProgressSupport(emptyWindowClientCapabilities)
+      : emptyWindowClientCapabilities;
+
   Future<void> test_afterDocumentEdits() async {
     const initialContents = 'int a = 1;';
     newFile(mainFilePath, content: initialContents);
 
     final initialAnalysis = waitForAnalysisComplete();
 
-    await initialize();
+    await initialize(windowCapabilities: _windowCapabilities);
     await initialAnalysis;
 
     // Set up futures to wait for the new events.

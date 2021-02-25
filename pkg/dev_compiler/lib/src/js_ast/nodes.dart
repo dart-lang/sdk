@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // ignore_for_file: slash_for_doc_comments, prefer_single_quotes
 // ignore_for_file: always_declare_return_types, prefer_final_fields
 // ignore_for_file: always_require_non_null_named_parameters
@@ -904,28 +906,19 @@ abstract class Expression extends Node {
 
 class LiteralExpression extends Expression {
   final String template;
-  final List<Expression> inputs;
-
-  LiteralExpression(this.template) : inputs = const [];
-  LiteralExpression.withData(this.template, this.inputs);
+  LiteralExpression(this.template);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitLiteralExpression(this);
 
   @override
-  void visitChildren(NodeVisitor visitor) {
-    if (inputs != null) {
-      for (Expression expr in inputs) {
-        expr.accept(visitor);
-      }
-    }
-  }
+  void visitChildren(NodeVisitor visitor) {}
 
   @override
-  LiteralExpression _clone() => LiteralExpression.withData(template, inputs);
+  LiteralExpression _clone() => LiteralExpression(template);
 
-  // Code that uses JS must take care of operator precedences, and
-  // put parenthesis if needed.
+  // Code that uses LiteralExpression must take care of operator precedences,
+  // and put parenthesis if needed.
   @override
   int get precedenceLevel => PRIMARY;
 }

@@ -21,7 +21,7 @@ class IntroduceLocalCastTypeTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.INTRODUCE_LOCAL_CAST_TYPE;
 
   Future<void> test_introduceLocalTestedType_if_is() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyTypeName {}
 main(p) {
   if (p is MyTypeName) {
@@ -49,7 +49,7 @@ main(p) {
   }
 
   Future<void> test_introduceLocalTestedType_if_isNot() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyTypeName {}
 main(p) {
   if (p is! MyTypeName) {
@@ -77,7 +77,7 @@ main(p) {
   }
 
   Future<void> test_introduceLocalTestedType_notBlock() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(p) {
   if (p is String)
     print('not a block');
@@ -87,7 +87,7 @@ main(p) {
   }
 
   Future<void> test_introduceLocalTestedType_notIsExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(p) {
   if (p == null) {
   }
@@ -97,7 +97,7 @@ main(p) {
   }
 
   Future<void> test_introduceLocalTestedType_notStatement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   bool b;
   C(v) : b = v is int;
@@ -106,7 +106,7 @@ class C {
   }
 
   Future<void> test_introduceLocalTestedType_while() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(p) {
   while (p is String) {
   }

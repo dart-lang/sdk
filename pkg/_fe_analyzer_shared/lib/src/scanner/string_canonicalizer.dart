@@ -11,7 +11,7 @@ class Node {
   int start;
   int end;
   String payload;
-  Node next;
+  Node? next;
   Node(this.data, this.start, this.end, this.payload, this.next);
 }
 
@@ -34,7 +34,7 @@ class StringCanonicalizer {
   int _count = 0;
 
   /// The table itself.
-  List<Node> _nodes = new List<Node>(INITIAL_SIZE);
+  List<Node?> _nodes = new List<Node?>.filled(INITIAL_SIZE, null);
 
   static String decode(List<int> data, int start, int end, bool asciiOnly) {
     String s;
@@ -64,15 +64,15 @@ class StringCanonicalizer {
 
   rehash() {
     int newSize = _size * 2;
-    List<Node> newNodes = new List<Node>(newSize);
+    List<Node?> newNodes = new List<Node?>.filled(newSize, null);
     for (int i = 0; i < _size; i++) {
-      Node t = _nodes[i];
+      Node? t = _nodes[i];
       while (t != null) {
-        Node n = t.next;
+        Node? n = t.next;
         int newIndex = t.data is String
             ? hashString(t.data, t.start, t.end) & (newSize - 1)
             : hashBytes(t.data, t.start, t.end) & (newSize - 1);
-        Node s = newNodes[newIndex];
+        Node? s = newNodes[newIndex];
         t.next = s;
         newNodes[newIndex] = t;
         t = n;
@@ -88,8 +88,8 @@ class StringCanonicalizer {
         ? hashString(data, start, end)
         : hashBytes(data, start, end);
     index = index & (_size - 1);
-    Node s = _nodes[index];
-    Node t = s;
+    Node? s = _nodes[index];
+    Node? t = s;
     int len = end - start;
     while (t != null) {
       if (t.end - t.start == len) {
@@ -117,7 +117,7 @@ class StringCanonicalizer {
 
   clear() {
     _size = INITIAL_SIZE;
-    _nodes = new List<Node>(_size);
+    _nodes = new List<Node?>.filled(_size, null);
     _count = 0;
   }
 }

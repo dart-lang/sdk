@@ -2,7 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:collection/collection.dart';
+
+class CacheData {
+  final int id;
+  final List<int> bytes;
+
+  CacheData(this.id, this.bytes);
+}
 
 /// Store of bytes associated with string keys and a hash.
 ///
@@ -17,35 +25,60 @@ abstract class CiderByteStore {
   /// [signature].
   ///
   /// Return `null` if the association does not exist.
-  List<int> get(String key, List<int> signature);
+  CacheData get(String key, List<int> signature);
 
-  /// Associate the given [bytes] with the [key] and [digest].
-  void put(String key, List<int> signature, List<int> bytes);
+  /// Associate the given [bytes] with the [key] and [signature]. Return the
+  /// [CacheData].
+  CacheData putGet(String key, List<int> signature, List<int> bytes);
+
+  ///  Used to decrement reference count for the given ids, if implemented.
+  void release(Iterable<int> ids);
 }
 
-class CiderCacheEntry {
-  final List<int> signature;
-  final List<int> bytes;
-
-  CiderCacheEntry(this.signature, this.bytes);
+class CiderByteStoreTestView {
+  int length = 0;
 }
 
-class CiderMemoryByteStore implements CiderByteStore {
-  final Map<String, CiderCacheEntry> _map = {};
+class CiderCachedByteStore implements CiderByteStore {
+  final Cache<String, CiderCacheEntry> _cache;
+  int idCounter = 0;
+
+  /// This field gets value only during testing.
+  CiderByteStoreTestView testView;
+
+  CiderCachedByteStore(int maxCacheSize)
+      : _cache = Cache<String, CiderCacheEntry>(
+            maxCacheSize, (v) => v.data.bytes.length);
 
   @override
-  List<int> get(String key, List<int> signature) {
-    var entry = _map[key];
+  CacheData get(String key, List<int> signature) {
+    var entry = _cache.get(key, () => null);
 
     if (entry != null &&
         const ListEquality<int>().equals(entry.signature, signature)) {
-      return entry.bytes;
+      return entry.data;
     }
     return null;
   }
 
   @override
-  void put(String key, List<int> signature, List<int> bytes) {
-    _map[key] = CiderCacheEntry(signature, bytes);
+  CacheData putGet(String key, List<int> signature, List<int> bytes) {
+    idCounter++;
+    var entry = CiderCacheEntry(signature, CacheData(idCounter, bytes));
+    _cache.put(key, entry);
+    testView?.length++;
+    return entry.data;
   }
+
+  @override
+  void release(Iterable<int> ids) {
+    // do nothing
+  }
+}
+
+class CiderCacheEntry {
+  final CacheData data;
+  final List<int> signature;
+
+  CiderCacheEntry(this.signature, this.data);
 }

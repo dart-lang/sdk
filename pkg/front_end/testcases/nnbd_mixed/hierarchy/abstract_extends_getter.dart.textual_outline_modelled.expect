@@ -1,0 +1,19 @@
+abstract class AbstractClass extends AbstractSuper {
+  int get declaredAbstractExtendsAbstractGetter;
+  int get declaredAbstractExtendsConcreteGetter;
+  int get declaredAbstractGetter;
+  int get declaredConcreteExtendsAbstractGetter => 0;
+  int get declaredConcreteExtendsConcreteGetter => 0;
+  int get declaredConcreteGetter => 0;
+}
+
+abstract class AbstractSuper {
+  int get declaredAbstractExtendsAbstractGetter;
+  int get declaredAbstractExtendsConcreteGetter => 0;
+  int get declaredConcreteExtendsAbstractGetter;
+  int get declaredConcreteExtendsConcreteGetter => 0;
+  int get extendedAbstractGetter;
+  int get extendedConcreteGetter => 0;
+}
+
+main() {}

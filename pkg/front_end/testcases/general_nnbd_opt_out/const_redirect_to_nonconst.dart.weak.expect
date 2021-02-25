@@ -43,3 +43,11 @@ static method main() → dynamic {
   core::print(new self::A::•());
   core::print(new self::B::•());
 }
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_redirect_to_nonconst.dart:
+- A. (from org-dartlang-testcase:///const_redirect_to_nonconst.dart:8:9)
+- A.bad (from org-dartlang-testcase:///const_redirect_to_nonconst.dart:10:3)
+- B. (from org-dartlang-testcase:///const_redirect_to_nonconst.dart:14:9)

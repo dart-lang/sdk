@@ -65,7 +65,7 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  static field dynamic _redirecting# = <dynamic>[self::C::fact2];
+  static final field dynamic _redirecting# = <dynamic>[self::C::fact2];
   constructor •() → self::C*
     : super core::Object::•()
     ;
@@ -104,7 +104,7 @@ static method bad() → dynamic {
  - 'Object' is from 'dart:core'.
 Change the type of the list literal or the context in which it is used.
   List<int> a = <Object>[];
-                        ^" in <core::Object*>[];
+                        ^" in core::_GrowableList::•<core::Object*>(0);
   core::Map<core::int*, core::String*>* b = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/invalid_cast.dart:23:40: Error: The map literal type 'Map<Object, String>' isn't of expected type 'Map<int, String>'.
  - 'Map' is from 'dart:core'.
  - 'Object' is from 'dart:core'.
@@ -154,7 +154,7 @@ Change the type of the function or the context in which it is used.
 }
 static method ok() → dynamic {
   function localFunction(core::int* i) → void {}
-  core::List<core::int*>* a = <core::int*>[];
+  core::List<core::int*>* a = core::_GrowableList::•<core::int*>(0);
   core::Map<core::int*, core::String*>* b = <core::int*, core::String*>{};
   core::Map<core::int*, core::String*>* c = <core::int*, core::String*>{};
   (core::int*) →* core::int* d = (core::int* i) → core::int* => i;

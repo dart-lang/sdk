@@ -33,8 +33,9 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.COULD_NOT_INFER, 154, 3),
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 154, 1),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 154, 3),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 154, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 154, 1),
     ]);
   }
 

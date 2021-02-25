@@ -401,7 +401,7 @@ TypedDataPtr BytecodeRegExpMacroAssembler::GetBytecode() {
   NoSafepointScope no_safepoint;
   memmove(bytecode.DataAddr(0), buffer_->data(), len);
 
-  return bytecode.raw();
+  return bytecode.ptr();
 }
 
 intptr_t BytecodeRegExpMacroAssembler::length() {
@@ -452,6 +452,9 @@ static intptr_t Prepare(const RegExp& regexp,
 
     RegExpEngine::CompilationResult result = RegExpEngine::CompileBytecode(
         compile_data, regexp, is_one_byte, sticky, zone);
+    if (result.error_message != nullptr) {
+      Exceptions::ThrowUnsupportedError(result.error_message);
+    }
     ASSERT(result.bytecode != NULL);
     ASSERT(regexp.num_registers(is_one_byte) == -1 ||
            regexp.num_registers(is_one_byte) == result.num_registers);
@@ -502,9 +505,9 @@ static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
   }
   if (result == IrregexpInterpreter::RE_EXCEPTION) {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
+    auto isolate_group = thread->isolate_group();
     const Instance& exception =
-        Instance::Handle(isolate->object_store()->stack_overflow());
+        Instance::Handle(isolate_group->object_store()->stack_overflow());
     Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }
@@ -551,7 +554,7 @@ InstancePtr BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
               capture_register_count * sizeof(int32_t));
     }
 
-    return result.raw();
+    return result.ptr();
   }
   if (result == IrregexpInterpreter::RE_EXCEPTION) {
     UNREACHABLE();

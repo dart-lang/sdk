@@ -25,9 +25,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
 
   /// Initialize a newly created handler to handle requests for the given
   /// [server].
-  SearchDomainHandler(AnalysisServer server)
-      : server = server,
-        searchEngine = server.searchEngine;
+  SearchDomainHandler(this.server) : searchEngine = server.searchEngine;
 
   Future findElementReferences(protocol.Request request) async {
     var params =

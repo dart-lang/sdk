@@ -18,6 +18,7 @@ import 'dart:convert';
 import 'dart:developer' hide log;
 import 'dart:_internal'
     show Since, valueOfNonNullableParamWithDefault, HttpStatus;
+import 'dart:isolate' show Isolate;
 import 'dart:math';
 import 'dart:io';
 import 'dart:typed_data';
@@ -1473,8 +1474,14 @@ abstract class HttpClient {
   ///
   /// Default is `false`.
   static set enableTimelineLogging(bool value) {
-    _enableTimelineLogging =
-        valueOfNonNullableParamWithDefault<bool>(value, false);
+    final enabled = valueOfNonNullableParamWithDefault<bool>(value, false);
+    if (enabled != _enableTimelineLogging) {
+      postEvent('HttpTimelineLoggingStateChange', {
+        'isolateId': Service.getIsolateID(Isolate.current),
+        'enabled': enabled,
+      });
+    }
+    _enableTimelineLogging = enabled;
   }
 
   /// Current state of HTTP request logging from all [HttpClient]s to the
@@ -1938,8 +1945,9 @@ abstract class HttpClientRequest implements IOSink {
    * and only for the status codes [HttpStatus.movedPermanently]
    * (301), [HttpStatus.found] (302),
    * [HttpStatus.movedTemporarily] (302, alias for
-   * [HttpStatus.found]), [HttpStatus.seeOther] (303) and
-   * [HttpStatus.temporaryRedirect] (307). For
+   * [HttpStatus.found]), [HttpStatus.seeOther] (303),
+   * [HttpStatus.temporaryRedirect] (307) and
+   * [HttpStatus.permanentRedirect] (308). For
    * [HttpStatus.seeOther] (303) automatic redirect will also happen
    * for "POST" requests with the method changed to "GET" when
    * following the redirect.

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:glob/glob.dart';
 import 'package:path/path.dart';
 
 /// An implementation of a context root.
@@ -15,10 +16,14 @@ class ContextRootImpl implements ContextRoot {
   final Folder root;
 
   @override
-  final List<Resource> included = <Resource>[];
+  final List<Resource> included = [];
 
   @override
-  final List<Resource> excluded = <Resource>[];
+  final List<Resource> excluded = [];
+
+  /// A list of the globs for excluded files that were read from the analysis
+  /// options file.
+  List<Glob> excludedGlobs = [];
 
   @override
   File optionsFile;
@@ -107,6 +112,11 @@ class ContextRootImpl implements ContextRoot {
             return true;
           }
         }
+      }
+    }
+    for (Glob pattern in excludedGlobs) {
+      if (pattern.matches(path)) {
+        return true;
       }
     }
     return false;

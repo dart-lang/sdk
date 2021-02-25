@@ -100,14 +100,18 @@ class AcqRelAtomic {
   bool compare_exchange_weak(
       T& expected,  // NOLINT
       T desired,
-      std::memory_order order = std::memory_order_acq_rel) {
-    return value_.compare_exchange_weak(expected, desired, order, order);
+      std::memory_order success_order = std::memory_order_acq_rel,
+      std::memory_order failure_order = std::memory_order_seq_cst) {
+    return value_.compare_exchange_weak(expected, desired, success_order,
+                                        failure_order);
   }
   bool compare_exchange_strong(
       T& expected,  // NOLINT
       T desired,
-      std::memory_order order = std::memory_order_acq_rel) {
-    return value_.compare_exchange_strong(expected, desired, order, order);
+      std::memory_order success_order = std::memory_order_acq_rel,
+      std::memory_order failure_order = std::memory_order_seq_cst) {
+    return value_.compare_exchange_strong(expected, desired, success_order,
+                                          failure_order);
   }
 
   // Require explicit loads and stores.

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.implicit_type;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
@@ -112,8 +114,7 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
       for (ImplicitFieldType overridden in _overriddenFields) {
         DartType overriddenType = overridden.inferType();
         if (!fieldBuilder.library.isNonNullableByDefault) {
-          overriddenType = legacyErasure(
-              fieldBuilder.library.loader.coreTypes, overriddenType);
+          overriddenType = legacyErasure(overriddenType);
         }
         if (inferredType == null) {
           inferredType = overriddenType;
@@ -166,14 +167,12 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
       for (ImplicitFieldType overridden in _overriddenFields) {
         DartType overriddenType = overridden.inferType();
         if (!fieldBuilder.library.isNonNullableByDefault) {
-          overriddenType = legacyErasure(
-              fieldBuilder.library.loader.coreTypes, overriddenType);
+          overriddenType = legacyErasure(overriddenType);
         }
         if (type != overriddenType) {
           String name = fieldBuilder.fullNameForErrors;
           fieldBuilder.classBuilder.addProblem(
-              templateCantInferTypeDueToInconsistentOverrides
-                  .withArguments(name),
+              templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
               fieldBuilder.charOffset,
               name.length,
               wasHandled: true);

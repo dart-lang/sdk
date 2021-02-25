@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 
 import 'server_abstract.dart';
@@ -45,7 +46,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
       [String wantedTitle]) {
     for (var codeAction in actions) {
       final id = codeAction.map(
-          (cmd) => cmd.command, (action) => action.command.command);
+          (cmd) => cmd.command, (action) => action.command?.command);
       final title =
           codeAction.map((cmd) => cmd.title, (action) => action.title);
       if (id == commandID && (wantedTitle == null || wantedTitle == title)) {
@@ -74,19 +75,30 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     }).toList();
   }
 
+  Future<Either2<Command, CodeAction>> getFixAllAction(
+      String title, Uri uri, String content) async {
+    final codeActions =
+        await getCodeActions(uri.toString(), range: rangeFromMarkers(content));
+    final fixAction =
+        findCommand(codeActions, Commands.fixAllOfErrorCodeInFile, title);
+    return fixAction;
+  }
+
   /// Verifies that executing the given code actions command on the server
   /// results in an edit being sent in the client that updates the file to match
   /// the expected content.
   Future verifyCodeActionEdits(Either2<Command, CodeAction> codeAction,
       String content, String expectedContent,
-      {bool expectDocumentChanges = false}) async {
+      {bool expectDocumentChanges = false,
+      Either2<num, String> workDoneToken}) async {
     final command = codeAction.map(
       (command) => command,
       (codeAction) => codeAction.command,
     );
 
     await verifyCommandEdits(command, content, expectedContent,
-        expectDocumentChanges: expectDocumentChanges);
+        expectDocumentChanges: expectDocumentChanges,
+        workDoneToken: workDoneToken);
   }
 
   /// Verifies that executing the given command on the server results in an edit
@@ -94,13 +106,15 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   /// content.
   Future<void> verifyCommandEdits(
       Command command, String content, String expectedContent,
-      {bool expectDocumentChanges = false}) async {
+      {bool expectDocumentChanges = false,
+      Either2<num, String> workDoneToken}) async {
     ApplyWorkspaceEditParams editParams;
 
     final commandResponse = await handleExpectedRequest<Object,
         ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
       Method.workspace_applyEdit,
-      () => executeCommand(command),
+      ApplyWorkspaceEditParams.fromJson,
+      () => executeCommand(command, workDoneToken: workDoneToken),
       handler: (edit) {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).

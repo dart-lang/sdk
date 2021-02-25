@@ -226,9 +226,11 @@ class MonitorLeaveScope : public ValueObject {
  *      ...
  *    }
  */
-class SafepointMutexLocker : public ValueObject {
+class SafepointMutexLocker : public StackResource {
  public:
-  explicit SafepointMutexLocker(Mutex* mutex);
+  explicit SafepointMutexLocker(Mutex* mutex)
+      : SafepointMutexLocker(ThreadState::Current(), mutex) {}
+  SafepointMutexLocker(ThreadState* thread, Mutex* mutex);
   virtual ~SafepointMutexLocker() { mutex_->Unlock(); }
 
  private:
@@ -320,20 +322,7 @@ class SafepointRwLock {
   SafepointRwLock() {}
   ~SafepointRwLock() {}
 
-#if defined(DEBUG)
-  bool IsCurrentThreadReader() {
-    ThreadId id = OSThread::GetCurrentThreadId();
-    if (IsCurrentThreadWriter()) {
-      return true;
-    }
-    for (intptr_t i = readers_ids_.length() - 1; i >= 0; i--) {
-      if (readers_ids_.At(i) == id) {
-        return true;
-      }
-    }
-    return false;
-  }
-#endif // defined(DEBUG)
+  DEBUG_ONLY(bool IsCurrentThreadReader());
 
   bool IsCurrentThreadWriter() {
     return writer_id_ == OSThread::GetCurrentThreadId();
@@ -343,75 +332,33 @@ class SafepointRwLock {
   friend class SafepointReadRwLocker;
   friend class SafepointWriteRwLocker;
 
-  // returns [true] if read lock was acuired,
+  // returns [true] if read lock was acquired,
   // returns [false] if the thread didn't have to acquire read lock due
   // to the thread already holding write lock
-  bool EnterRead() {
-    SafepointMonitorLocker ml(&monitor_);
-    if (IsCurrentThreadWriter()) {
-      return false;
-    }
-    while (state_ == -1) {
-      ml.Wait();
-    }
-#if defined(DEBUG)
-    readers_ids_.Add(OSThread::GetCurrentThreadId());
-#endif
-    ++state_;
-    return true;
-  }
-  void LeaveRead() {
-    SafepointMonitorLocker ml(&monitor_);
-    ASSERT(state_ > 0);
-#if defined(DEBUG)
-    intptr_t i = readers_ids_.length() - 1;
-    ThreadId id = OSThread::GetCurrentThreadId();
-    while (i >= 0) {
-      if (readers_ids_.At(i) == id) {
-        readers_ids_.RemoveAt(i);
-        break;
-      }
-      i--;
-    }
-    ASSERT(i >= 0);
-#endif
-    if (--state_ == 0) {
-      ml.NotifyAll();
-    }
-  }
+  bool EnterRead();
+  bool TryEnterRead(bool can_block, bool* acquired_read_lock);
+  void LeaveRead();
 
-  void EnterWrite() {
-    SafepointMonitorLocker ml(&monitor_);
-    if (IsCurrentThreadWriter()) {
-      state_--;
-      return;
-    }
-    while (state_ != 0) {
-      ml.Wait();
-    }
-    writer_id_ = OSThread::GetCurrentThreadId();
-    state_ = -1;
-  }
-  void LeaveWrite() {
-    SafepointMonitorLocker ml(&monitor_);
-    ASSERT(state_ < 0);
-    state_++;
-    if (state_ < 0) {
-      return;
-    }
-    writer_id_ = OSThread::kInvalidThreadId;
-    ml.NotifyAll();
-  }
+  void EnterWrite();
+  bool TryEnterWrite(bool can_block);
+  void LeaveWrite();
 
+  // We maintain an invariant that this monitor is never locked for long periods
+  // of time: Any thread that acquired this monitor must always be able to do
+  // it's work and release it (or wait on the monitor which will also release
+  // it).
+  //
+  // In particular we must ensure the monitor is never held and then a potential
+  // safepoint operation is triggered, since another thread could try to acquire
+  // the lock and it would deadlock.
   Monitor monitor_;
+
   // [state_] > 0  : The lock is held by multiple readers.
   // [state_] == 0 : The lock is free (no readers/writers).
-  // [state_] == -1: The lock is held by a single writer.
+  // [state_] < 0  : The lock is held by a single writer (possibly nested).
   intptr_t state_ = 0;
 
-#if defined(DEBUG)
-  MallocGrowableArray<ThreadId> readers_ids_;
-#endif
+  DEBUG_ONLY(MallocGrowableArray<ThreadId> readers_ids_);
   ThreadId writer_id_ = OSThread::kInvalidThreadId;
 };
 

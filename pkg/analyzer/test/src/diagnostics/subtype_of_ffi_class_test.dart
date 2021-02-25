@@ -75,7 +75,9 @@ class C extends Int8 {}
   test_Pointer() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Pointer {}
+class C extends Pointer {
+  external factory C();
+}
 ''', [
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 7),
     ]);
@@ -84,7 +86,9 @@ class C extends Pointer {}
   test_Struct() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct {}
+class C extends Struct {
+  Pointer notEmpty;
+}
 ''');
   }
 

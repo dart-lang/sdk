@@ -119,6 +119,8 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _EXTERNAL_LATE_FIELD,
   _ABSTRACT_EXTERNAL_FIELD,
   _ANNOTATION_ON_TYPE_ARGUMENT,
+  _BINARY_OPERATOR_WRITTEN_OUT,
+  _EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
@@ -147,6 +149,11 @@ const ParserErrorCode _ANNOTATION_ON_TYPE_ARGUMENT = ParserErrorCode(
 const ParserErrorCode _ANNOTATION_WITH_TYPE_ARGUMENTS = ParserErrorCode(
     'ANNOTATION_WITH_TYPE_ARGUMENTS',
     r"An annotation (metadata) can't use type arguments.");
+
+const ParserErrorCode _BINARY_OPERATOR_WRITTEN_OUT = ParserErrorCode(
+    'BINARY_OPERATOR_WRITTEN_OUT',
+    r"Binary operator '#string' is written as '#string2' instead of the written out word.",
+    correction: "Try replacing '#string' with '#string2'.");
 
 const ParserErrorCode _BREAK_OUTSIDE_OF_LOOP = ParserErrorCode(
     'BREAK_OUTSIDE_OF_LOOP',
@@ -262,6 +269,11 @@ const ParserErrorCode _EXPECTED_BODY = ParserErrorCode(
 
 const ParserErrorCode _EXPECTED_ELSE_OR_COMMA =
     ParserErrorCode('EXPECTED_ELSE_OR_COMMA', r"Expected 'else' or comma.");
+
+const ParserErrorCode _EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD = ParserErrorCode(
+    'EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD',
+    r"'#lexeme' can't be used as an identifier because it's a keyword.",
+    correction: "Try renaming this to be an identifier that isn't a keyword.");
 
 const ParserErrorCode _EXPECTED_INSTEAD =
     ParserErrorCode('EXPECTED_INSTEAD', r"Expected '#string' instead of this.");

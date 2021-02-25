@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dartdev/src/commands/analyze_impl.dart';
+import 'package:cli_util/cli_logging.dart';
+import 'package:dartdev/src/analysis_server.dart';
+import 'package:dartdev/src/commands/analyze.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -62,7 +64,7 @@ void defineAnalyze() {
 
   test('--help', () {
     p = project();
-    var result = p.runSync('analyze', ['--help']);
+    var result = p.runSync(['analyze', '--help']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -72,7 +74,7 @@ void defineAnalyze() {
 
   test('multiple directories', () {
     p = project();
-    var result = p.runSync('analyze', ['/no/such/dir1/', '/no/such/dir2/']);
+    var result = p.runSync(['analyze', '/no/such/dir1/', '/no/such/dir2/']);
 
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);
@@ -82,7 +84,7 @@ void defineAnalyze() {
 
   test('no such directory', () {
     p = project();
-    var result = p.runSync('analyze', ['/no/such/dir1/']);
+    var result = p.runSync(['analyze', '/no/such/dir1/']);
 
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);
@@ -93,7 +95,7 @@ void defineAnalyze() {
   test('current working directory', () {
     p = project(mainSrc: 'int get foo => 1;\n');
 
-    var result = p.runSync('analyze', [], workingDir: p.dirPath);
+    var result = p.runSync(['analyze'], workingDir: p.dirPath);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -102,7 +104,7 @@ void defineAnalyze() {
 
   test('no errors', () {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync('analyze', [p.dirPath]);
+    var result = p.runSync(['analyze', p.dirPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -111,7 +113,7 @@ void defineAnalyze() {
 
   test('one error', () {
     p = project(mainSrc: "int get foo => 'str';\n");
-    var result = p.runSync('analyze', [p.dirPath]);
+    var result = p.runSync(['analyze', p.dirPath]);
 
     expect(result.exitCode, 3);
     expect(result.stderr, isEmpty);
@@ -123,7 +125,7 @@ void defineAnalyze() {
 
   test('two errors', () {
     p = project(mainSrc: "int get foo => 'str';\nint get bar => 'str';\n");
-    var result = p.runSync('analyze', [p.dirPath]);
+    var result = p.runSync(['analyze', p.dirPath]);
 
     expect(result.exitCode, 3);
     expect(result.stderr, isEmpty);
@@ -134,7 +136,7 @@ void defineAnalyze() {
     p = project(
         mainSrc: _unusedImportCodeSnippet,
         analysisOptions: _unusedImportAnalysisOptions);
-    var result = p.runSync('analyze', ['--fatal-warnings', p.dirPath]);
+    var result = p.runSync(['analyze', '--fatal-warnings', p.dirPath]);
 
     expect(result.exitCode, equals(2));
     expect(result.stderr, isEmpty);
@@ -145,7 +147,7 @@ void defineAnalyze() {
     p = project(
         mainSrc: _unusedImportCodeSnippet,
         analysisOptions: _unusedImportAnalysisOptions);
-    var result = p.runSync('analyze', [p.dirPath]);
+    var result = p.runSync(['analyze', p.dirPath]);
 
     expect(result.exitCode, equals(2));
     expect(result.stderr, isEmpty);
@@ -156,7 +158,7 @@ void defineAnalyze() {
     p = project(
         mainSrc: _unusedImportCodeSnippet,
         analysisOptions: _unusedImportAnalysisOptions);
-    var result = p.runSync('analyze', ['--no-fatal-warnings', p.dirPath]);
+    var result = p.runSync(['analyze', '--no-fatal-warnings', p.dirPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -164,8 +166,8 @@ void defineAnalyze() {
   });
 
   test('info implicit no --fatal-infos', () {
-    p = project(mainSrc: 'String foo() {}');
-    var result = p.runSync('analyze', [p.dirPath]);
+    p = project(mainSrc: dartVersionFilePrefix2_9 + 'String foo() {}');
+    var result = p.runSync(['analyze', p.dirPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -173,8 +175,8 @@ void defineAnalyze() {
   });
 
   test('info --fatal-infos', () {
-    p = project(mainSrc: 'String foo() {}');
-    var result = p.runSync('analyze', ['--fatal-infos', p.dirPath]);
+    p = project(mainSrc: dartVersionFilePrefix2_9 + 'String foo() {}');
+    var result = p.runSync(['analyze', '--fatal-infos', p.dirPath]);
 
     expect(result.exitCode, 1);
     expect(result.stderr, isEmpty);
@@ -188,7 +190,7 @@ int f() {
   var one = 1;
   return result;
 }''');
-    var result = p.runSync('analyze', ['--verbose', p.dirPath]);
+    var result = p.runSync(['analyze', '--verbose', p.dirPath]);
 
     expect(result.exitCode, 3);
     expect(result.stderr, isEmpty);
@@ -201,4 +203,96 @@ int f() {
         contains(
             'https://dart.dev/tools/diagnostic-messages#referenced_before_declaration'));
   });
+
+  group('display mode', () {
+    final sampleInfoJson = {
+      'severity': 'INFO',
+      'type': 'TODO',
+      'code': 'dead_code',
+      'location': {
+        'file': 'lib/test.dart',
+        'offset': 362,
+        'length': 72,
+        'startLine': 15,
+        'startColumn': 4
+      },
+      'message': 'Foo bar baz.',
+      'hasFix': false,
+    };
+
+    test('default', () {
+      final logger = TestLogger(false);
+      final errors = [AnalysisError(sampleInfoJson)];
+
+      AnalyzeCommand.emitDefaultFormat(logger, errors);
+
+      expect(logger.stderrBuffer, isEmpty);
+      expect(
+        logger.stdoutBuffer.toString().trim(),
+        contains('info - Foo bar baz at lib/test.dart:15:4 - (dead_code)'),
+      );
+    });
+
+    test('machine', () {
+      final logger = TestLogger(false);
+      final errors = [AnalysisError(sampleInfoJson)];
+
+      AnalyzeCommand.emitMachineFormat(logger, errors);
+
+      expect(logger.stderrBuffer, isEmpty);
+      expect(
+        logger.stdoutBuffer.toString().trim(),
+        'INFO|TODO|DEAD_CODE|lib/test.dart|15|4|72|Foo bar baz.',
+      );
+    });
+  });
+}
+
+class TestLogger implements Logger {
+  final stdoutBuffer = StringBuffer();
+
+  final stderrBuffer = StringBuffer();
+
+  @override
+  final bool isVerbose;
+
+  TestLogger(this.isVerbose);
+
+  @override
+  Ansi get ansi => Ansi(false);
+
+  @override
+  void flush() {}
+
+  @override
+  Progress progress(String message) {
+    return SimpleProgress(this, message);
+  }
+
+  @override
+  void stderr(String message) {
+    stderrBuffer.writeln(message);
+  }
+
+  @override
+  void stdout(String message) {
+    stdoutBuffer.writeln(message);
+  }
+
+  @override
+  void trace(String message) {
+    if (isVerbose) {
+      stdoutBuffer.writeln(message);
+    }
+  }
+
+  @override
+  void write(String message) {
+    stdoutBuffer.write(message);
+  }
+
+  @override
+  void writeCharCode(int charCode) {
+    stdoutBuffer.writeCharCode(charCode);
+  }
 }

@@ -22,9 +22,13 @@ class TransformSetManager {
   /// Return the transform sets associated with the [library].
   List<TransformSet> forLibrary(LibraryElement library) {
     var transformSets = <TransformSet>[];
-    var workspace = library.session.analysisContext.workspace;
+    var analysisContext = library.session.analysisContext;
+    var workspace = analysisContext.workspace;
     var libraryPath = library.source.fullName;
     var package = workspace.findPackageFor(libraryPath);
+    if (package == null) {
+      return transformSets;
+    }
     var packageMap = package.packagesAvailableTo(libraryPath);
     for (var entry in packageMap.entries) {
       var directory = entry.value[0];
@@ -34,7 +38,14 @@ class TransformSetManager {
         transformSets.add(transformSet);
       }
     }
-    // TODO(brianwilkerson) Consider looking for a data file in the SDK.
+    var sdkRoot = analysisContext.sdkRoot;
+    if (sdkRoot != null) {
+      var file = sdkRoot.getChildAssumingFile('lib/_internal/$dataFileName');
+      var transformSet = _loadTransformSet(file);
+      if (transformSet != null) {
+        transformSets.add(transformSet);
+      }
+    }
     return transformSets;
   }
 
@@ -45,8 +56,10 @@ class TransformSetManager {
     try {
       // TODO(brianwilkerson) Consider caching the transform sets.
       var content = file.readAsStringSync();
-      var parser = TransformSetParser(ErrorReporter(
-          AnalysisErrorListener.NULL_LISTENER, file.createSource()));
+      var parser = TransformSetParser(
+          ErrorReporter(
+              AnalysisErrorListener.NULL_LISTENER, file.createSource()),
+          file.parent.parent.shortName);
       return parser.parse(content);
     } on FileSystemException {
       // Fall through to return `null`.

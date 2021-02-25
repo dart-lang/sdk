@@ -400,17 +400,6 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateExpressionFingerprint();          // read value.
       CalculateSetterNameFingerprint();  // read interface_target_reference.
       return;
-    case kDirectPropertyGet:
-      ReadPosition();                       // read position.
-      CalculateExpressionFingerprint();     // read receiver.
-      CalculateInterfaceMemberNameFingerprint();  // read target_reference.
-      return;
-    case kDirectPropertySet:
-      ReadPosition();                       // read position.
-      CalculateExpressionFingerprint();     // read receiver.
-      CalculateInterfaceMemberNameFingerprint();  // read target_reference.
-      CalculateExpressionFingerprint();     // read value·
-      return;
     case kStaticGet:
       ReadPosition();                       // read position.
       CalculateCanonicalNameFingerprint();  // read target_reference.
@@ -421,6 +410,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateExpressionFingerprint();     // read expression.
       return;
     case kMethodInvocation:
+      ReadFlags();                               // read flags.
       ReadPosition();                            // read position.
       CalculateExpressionFingerprint();          // read receiver.
       BuildHash(ReadNameAsMethodName().Hash());  // read name.
@@ -432,12 +422,6 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       BuildHash(ReadNameAsMethodName().Hash());  // read name.
       CalculateArgumentsFingerprint();           // read arguments.
       CalculateInterfaceMemberNameFingerprint();  // read target_reference.
-      return;
-    case kDirectMethodInvocation:
-      ReadPosition();                       // read position.
-      CalculateExpressionFingerprint();     // read receiver.
-      CalculateInterfaceMemberNameFingerprint();  // read target_reference.
-      CalculateArgumentsFingerprint();      // read arguments.
       return;
     case kStaticInvocation:
       ReadPosition();                       // read position.
@@ -600,6 +584,8 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       CalculateExpressionFingerprint();  // read expression.
       return;
     case kBlock:
+      ReadPosition();  // read file offset.
+      ReadPosition();  // read file end offset.
       CalculateStatementListFingerprint();
       return;
     case kEmptyStatement:
@@ -798,6 +784,7 @@ uint32_t KernelFingerprintHelper::CalculateFunctionFingerprint() {
   BuildHash(procedure_helper.kind_);
   BuildHash(procedure_helper.flags_);
   BuildHash(procedure_helper.annotation_count_);
+  BuildHash(procedure_helper.stub_kind_);
   BuildHash(name.Hash());
   return hash_;
 }
@@ -805,16 +792,9 @@ uint32_t KernelFingerprintHelper::CalculateFunctionFingerprint() {
 uint32_t KernelSourceFingerprintHelper::CalculateClassFingerprint(
     const Class& klass) {
   Zone* zone = Thread::Current()->zone();
-
-  // Handle typedefs.
-  if (klass.IsTypedefClass()) {
-    const Function& func = Function::Handle(zone, klass.signature_function());
-    return CalculateFunctionFingerprint(func);
-  }
-
   String& name = String::Handle(zone, klass.Name());
   const Array& fields = Array::Handle(zone, klass.fields());
-  const Array& functions = Array::Handle(zone, klass.functions());
+  const Array& functions = Array::Handle(zone, klass.current_functions());
   const Array& interfaces = Array::Handle(zone, klass.interfaces());
   AbstractType& type = AbstractType::Handle(zone);
 

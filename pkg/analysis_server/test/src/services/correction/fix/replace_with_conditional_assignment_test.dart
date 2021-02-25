@@ -24,7 +24,7 @@ class ReplaceWithConditionalAssignmentTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_conditional_assignment;
 
   Future<void> test_withCodeBeforeAndAfter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Person {
   String _fullName;
   void foo() {
@@ -51,7 +51,7 @@ class Person {
   }
 
   Future<void> test_withOneBlock() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Person {
   String _fullName;
   void foo() {
@@ -74,7 +74,7 @@ class Person {
   }
 
   Future<void> test_withoutBlock() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Person {
   String _fullName;
   void foo() {
@@ -96,7 +96,7 @@ class Person {
   }
 
   Future<void> test_withTwoBlock() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Person {
   String _fullName;
   void foo() {

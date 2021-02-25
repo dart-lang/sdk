@@ -27,7 +27,7 @@ class D {}
 ''');
     testFile = convertPath('/home/test/lib/src/test.dart');
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/bar.dart';
 import 'package:test/foo.dart';
 C c;

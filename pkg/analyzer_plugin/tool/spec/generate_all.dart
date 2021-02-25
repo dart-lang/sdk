@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:analysis_tool/tools.dart';
+import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 
 import 'codegen_dart_protocol.dart' as codegen_dart_protocol;
@@ -27,7 +27,8 @@ List<GeneratedContent> get allTargets {
   targets.add(codegen_dart_protocol.target(true));
   targets.add(codegen_inttest_methods.target);
   targets.add(codegen_matchers.target);
-  targets.add(codegen_protocol_common.target(true));
+  targets.add(codegen_protocol_common.pluginTarget(true));
+  targets.add(codegen_protocol_common.clientTarget(true));
   targets.add(codegen_protocol_constants.target);
   targets.add(to_html.target);
   return targets;

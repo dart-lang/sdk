@@ -29,7 +29,7 @@ static bool Equals(const Object& expected, const Object& actual) {
   }
   if (expected.IsSmi()) {
     if (actual.IsSmi()) {
-      return expected.raw() == actual.raw();
+      return expected.ptr() == actual.ptr();
     }
     return false;
   }
@@ -37,25 +37,19 @@ static bool Equals(const Object& expected, const Object& actual) {
     if (actual.IsDouble()) {
       Double& dbl1 = Double::Handle();
       Double& dbl2 = Double::Handle();
-      dbl1 ^= expected.raw();
-      dbl2 ^= actual.raw();
+      dbl1 ^= expected.ptr();
+      dbl2 ^= actual.ptr();
       return dbl1.value() == dbl2.value();
     }
     return false;
   }
   if (expected.IsBool()) {
     if (actual.IsBool()) {
-      return expected.raw() == actual.raw();
+      return expected.ptr() == actual.ptr();
     }
     return false;
   }
   return false;
-}
-
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  return reinterpret_cast<uint8_t*>(realloc(ptr, new_size));
 }
 
 // Compare two Dart_CObject object graphs rooted in first and
@@ -387,7 +381,6 @@ ISOLATE_UNIT_TEST_CASE(SerializeSingletons) {
   TEST_ROUND_TRIP_IDENTICAL(Object::script_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::library_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::code_class());
-  TEST_ROUND_TRIP_IDENTICAL(Object::bytecode_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::instructions_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::pc_descriptors_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::exception_handlers_class());
@@ -755,10 +748,14 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
     // Write snapshot with object content.
-    FullSnapshotWriter writer(Snapshot::kFull, NULL,
-                              &isolate_snapshot_data_buffer, &malloc_allocator,
-                              NULL, /*image_writer*/ nullptr);
+    MallocWriteStream isolate_snapshot_data(FullSnapshotWriter::kInitialSize);
+    FullSnapshotWriter writer(
+        Snapshot::kFull, /*vm_snapshot_data=*/nullptr, &isolate_snapshot_data,
+        /*vm_image_writer=*/nullptr, /*iso_image_writer=*/nullptr);
     writer.WriteFullSnapshot();
+    // Take ownership so it doesn't get freed by the stream destructor.
+    intptr_t unused;
+    isolate_snapshot_data_buffer = isolate_snapshot_data.Steal(&unused);
   }
 
   // Now Create another isolate using the snapshot and execute a method
@@ -2019,8 +2016,6 @@ ISOLATE_UNIT_TEST_CASE(OmittedObjectEncodingLength) {
   // For performance, we'd like single-byte headers when ids are omitted.
   // If this starts failing, consider renumbering the snapshot ids.
   EXPECT_EQ(1, writer.BytesWritten());
-
-  free(writer.buffer());
 }
 
 TEST_CASE(IsKernelNegative) {
@@ -2069,18 +2064,19 @@ VM_UNIT_TEST_CASE(LegacyErasureDetectionInFullSnapshot) {
     Type& type = Type::Handle();
     type ^= Api::UnwrapHandle(cls);  // Dart_GetClass actually returns a Type.
     const Class& clazz = Class::Handle(type.type_class());
-    const bool required = clazz.RequireLegacyErasureOfConstants(zone.GetZone());
-    EXPECT(required == isolate->null_safety());
+    const bool required =
+        clazz.RequireCanonicalTypeErasureOfConstants(zone.GetZone());
+    EXPECT(required == isolate->group()->null_safety());
 
     // Verify that snapshot writing succeeds if erasure is not required.
     if (!required) {
       // Write snapshot with object content.
-      uint8_t* isolate_snapshot_data_buffer;
+      MallocWriteStream isolate_snapshot_data(FullSnapshotWriter::kInitialSize);
       FullSnapshotWriter writer(
-          Snapshot::kFull, NULL, &isolate_snapshot_data_buffer,
-          &malloc_allocator, NULL, /*image_writer*/ nullptr);
+          Snapshot::kFullCore, /*vm_snapshot_data=*/nullptr,
+          &isolate_snapshot_data,
+          /*vm_image_writer=*/nullptr, /*iso_image_writer=*/nullptr);
       writer.WriteFullSnapshot();
-      free(isolate_snapshot_data_buffer);
     }
   }
 }

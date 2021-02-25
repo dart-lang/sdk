@@ -33,10 +33,21 @@ class B extends core::Object implements self::A<core::int*> {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   no-such-method-forwarder get foo() → core::List<core::int*>*
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::List<core::int*>*;
-  no-such-method-forwarder set foo(core::List<core::int*>* value) → void
+  no-such-method-forwarder set foo(generic-covariant-impl core::List<core::int*>* value) → void
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#foo=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 static method expectTypeError(() →* dynamic callback) → void
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_with_substitution.dart:18:11 -> SymbolConstant(#foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_with_substitution.dart:18:11 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_with_substitution.dart:18:11 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_with_substitution.dart:18:11 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_with_substitution.dart:18:11 -> SymbolConstant(#foo=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_with_substitution.dart:18:11 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_with_substitution.dart:18:11 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Extra constant evaluation: evaluated: 19, effectively constant: 7

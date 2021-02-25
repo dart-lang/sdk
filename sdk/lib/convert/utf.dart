@@ -16,10 +16,11 @@ const int unicodeBomCharacterRune = 0xFEFF;
 /// use cases.
 ///
 /// Examples:
-///
-///     var encoded = utf8.encode("Îñţérñåţîöñåļîžåţîờñ");
-///     var decoded = utf8.decode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
-///                                0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
+/// ```dart
+/// var encoded = utf8.encode("Îñţérñåţîöñåļîžåţîờñ");
+/// var decoded = utf8.decode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
+///                            0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
+/// ```
 const Utf8Codec utf8 = Utf8Codec();
 
 /// A [Utf8Codec] encodes strings to utf-8 code units (bytes) and decodes

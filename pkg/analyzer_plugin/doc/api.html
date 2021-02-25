@@ -1174,7 +1174,10 @@ a:focus, a:hover {
         <p>
           An overriding implementation of a class member is being suggested.
         </p>
-      </dd><dt class="value">PARAMETER</dt></dl></dd><dt class="typeDefinition"><a name="type_ContextRoot">ContextRoot: object</a></dt><dd>
+      </dd><dt class="value">PARAMETER</dt><dt class="value">PACKAGE_NAME</dt><dd>
+        
+        <p>The name of a pub package is being suggested.</p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_ContextRoot">ContextRoot: object</a></dt><dd>
     <p>
       A description of an analysis context.
     </p>
@@ -1291,7 +1294,7 @@ a:focus, a:hover {
       An enumeration of the kinds of elements.
     </p>
     
-  <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">CONSTRUCTOR_INVOCATION</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">EXTENSION</dt><dt class="value">FIELD</dt><dt class="value">FILE</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_INVOCATION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">MIXIN</dt><dt class="value">PARAMETER</dt><dt class="value">PREFIX</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_FilePath">FilePath: String</a></dt><dd>
+  <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">CONSTRUCTOR_INVOCATION</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">EXTENSION</dt><dt class="value">FIELD</dt><dt class="value">FILE</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_INVOCATION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">MIXIN</dt><dt class="value">PARAMETER</dt><dt class="value">PREFIX</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_ALIAS</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_FilePath">FilePath: String</a></dt><dd>
     
     <p>
       The absolute, normalized path of a file.
@@ -1306,7 +1309,7 @@ a:focus, a:hover {
       An enumeration of the kinds of folding regions.
     </p>
     
-  <dl><dt class="value">ANNOTATIONS</dt><dt class="value">BLOCK</dt><dt class="value">CLASS_BODY</dt><dt class="value">DIRECTIVES</dt><dt class="value">DOCUMENTATION_COMMENT</dt><dt class="value">FILE_HEADER</dt><dt class="value">FUNCTION_BODY</dt><dt class="value">INVOCATION</dt><dt class="value">LITERAL</dt></dl></dd><dt class="typeDefinition"><a name="type_FoldingRegion">FoldingRegion: object</a></dt><dd>
+  <dl><dt class="value">ANNOTATIONS</dt><dt class="value">BLOCK</dt><dt class="value">CLASS_BODY</dt><dt class="value">COMMENT</dt><dt class="value">DIRECTIVES</dt><dt class="value">DOCUMENTATION_COMMENT</dt><dt class="value">FILE_HEADER</dt><dt class="value">FUNCTION_BODY</dt><dt class="value">INVOCATION</dt><dt class="value">LITERAL</dt></dl></dd><dt class="typeDefinition"><a name="type_FoldingRegion">FoldingRegion: object</a></dt><dd>
     <p>
       A description of a region that can be folded.
     </p>
@@ -1354,152 +1357,47 @@ a:focus, a:hover {
     
   <dl><dt class="value">ANNOTATION</dt><dt class="value">BUILT_IN</dt><dt class="value">CLASS</dt><dt class="value">COMMENT_BLOCK</dt><dt class="value">COMMENT_DOCUMENTATION</dt><dt class="value">COMMENT_END_OF_LINE</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">DIRECTIVE</dt><dt class="value">DYNAMIC_TYPE</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
-      </dd><dt class="value">DYNAMIC_LOCAL_VARIABLE_DECLARATION</dt><dd>
+        <p>Deprecated - no longer sent.</p>
+      </dd><dt class="value">DYNAMIC_LOCAL_VARIABLE_DECLARATION</dt><dt class="value">DYNAMIC_LOCAL_VARIABLE_REFERENCE</dt><dt class="value">DYNAMIC_PARAMETER_DECLARATION</dt><dt class="value">DYNAMIC_PARAMETER_REFERENCE</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">FIELD</dt><dd>
         
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">DYNAMIC_LOCAL_VARIABLE_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">DYNAMIC_PARAMETER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">DYNAMIC_PARAMETER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">FIELD</dt><dd>
-        
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">FIELD_STATIC</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">FUNCTION</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">FUNCTION_DECLARATION</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER_DECLARATION</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
-      </dd><dt class="value">IDENTIFIER_DEFAULT</dt><dt class="value">IMPORT_PREFIX</dt><dt class="value">INSTANCE_FIELD_DECLARATION</dt><dd>
+        <p>Deprecated - no longer sent.</p>
+      </dd><dt class="value">IDENTIFIER_DEFAULT</dt><dt class="value">IMPORT_PREFIX</dt><dt class="value">INSTANCE_FIELD_DECLARATION</dt><dt class="value">INSTANCE_FIELD_REFERENCE</dt><dt class="value">INSTANCE_GETTER_DECLARATION</dt><dt class="value">INSTANCE_GETTER_REFERENCE</dt><dt class="value">INSTANCE_METHOD_DECLARATION</dt><dt class="value">INSTANCE_METHOD_REFERENCE</dt><dt class="value">INSTANCE_SETTER_DECLARATION</dt><dt class="value">INSTANCE_SETTER_REFERENCE</dt><dt class="value">INVALID_STRING_ESCAPE</dt><dt class="value">KEYWORD</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY_NAME</dt><dt class="value">LITERAL_BOOLEAN</dt><dt class="value">LITERAL_DOUBLE</dt><dt class="value">LITERAL_INTEGER</dt><dt class="value">LITERAL_LIST</dt><dt class="value">LITERAL_MAP</dt><dt class="value">LITERAL_STRING</dt><dt class="value">LOCAL_FUNCTION_DECLARATION</dt><dt class="value">LOCAL_FUNCTION_REFERENCE</dt><dt class="value">LOCAL_VARIABLE</dt><dd>
         
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INSTANCE_FIELD_REFERENCE</dt><dd>
+        <p>Deprecated - no longer sent.</p>
+      </dd><dt class="value">LOCAL_VARIABLE_DECLARATION</dt><dt class="value">LOCAL_VARIABLE_REFERENCE</dt><dt class="value">METHOD</dt><dd>
         
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INSTANCE_GETTER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INSTANCE_GETTER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INSTANCE_METHOD_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INSTANCE_METHOD_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INSTANCE_SETTER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INSTANCE_SETTER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">INVALID_STRING_ESCAPE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">KEYWORD</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY_NAME</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">LITERAL_BOOLEAN</dt><dt class="value">LITERAL_DOUBLE</dt><dt class="value">LITERAL_INTEGER</dt><dt class="value">LITERAL_LIST</dt><dt class="value">LITERAL_MAP</dt><dt class="value">LITERAL_STRING</dt><dt class="value">LOCAL_FUNCTION_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">LOCAL_FUNCTION_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">LOCAL_VARIABLE</dt><dd>
-        
-        <p>Only for version 1 of highlight.</p>
-      </dd><dt class="value">LOCAL_VARIABLE_DECLARATION</dt><dt class="value">LOCAL_VARIABLE_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">METHOD</dt><dd>
-        
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">METHOD_DECLARATION</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">METHOD_DECLARATION_STATIC</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">METHOD_STATIC</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">PARAMETER</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">SETTER_DECLARATION</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
+        <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">TOP_LEVEL_VARIABLE</dt><dd>
         
-        <p>Only for version 1 of highlight.</p>
-      </dd><dt class="value">PARAMETER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">PARAMETER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">STATIC_FIELD_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">STATIC_GETTER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">STATIC_GETTER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">STATIC_METHOD_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">STATIC_METHOD_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">STATIC_SETTER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">STATIC_SETTER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TOP_LEVEL_FUNCTION_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TOP_LEVEL_FUNCTION_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TOP_LEVEL_GETTER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TOP_LEVEL_GETTER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TOP_LEVEL_SETTER_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TOP_LEVEL_SETTER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TOP_LEVEL_VARIABLE_DECLARATION</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">TYPE_NAME_DYNAMIC</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNRESOLVED_INSTANCE_MEMBER_REFERENCE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd><dt class="value">VALID_STRING_ESCAPE</dt><dd>
-        
-        <p>Only for version 2 of highlight.</p>
-      </dd></dl></dd><dt class="typeDefinition"><a name="type_KytheEntry">KytheEntry: object</a></dt><dd>
+        <p>Deprecated - no longer sent.</p>
+      </dd><dt class="value">PARAMETER_DECLARATION</dt><dt class="value">PARAMETER_REFERENCE</dt><dt class="value">STATIC_FIELD_DECLARATION</dt><dt class="value">STATIC_GETTER_DECLARATION</dt><dt class="value">STATIC_GETTER_REFERENCE</dt><dt class="value">STATIC_METHOD_DECLARATION</dt><dt class="value">STATIC_METHOD_REFERENCE</dt><dt class="value">STATIC_SETTER_DECLARATION</dt><dt class="value">STATIC_SETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_FUNCTION_DECLARATION</dt><dt class="value">TOP_LEVEL_FUNCTION_REFERENCE</dt><dt class="value">TOP_LEVEL_GETTER_DECLARATION</dt><dt class="value">TOP_LEVEL_GETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_SETTER_DECLARATION</dt><dt class="value">TOP_LEVEL_SETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_VARIABLE_DECLARATION</dt><dt class="value">TYPE_ALIAS</dt><dt class="value">TYPE_NAME_DYNAMIC</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNRESOLVED_INSTANCE_MEMBER_REFERENCE</dt><dt class="value">VALID_STRING_ESCAPE</dt></dl></dd><dt class="typeDefinition"><a name="type_KytheEntry">KytheEntry: object</a></dt><dd>
     <p>
       This object matches the format and documentation of the Entry object
       documented in the

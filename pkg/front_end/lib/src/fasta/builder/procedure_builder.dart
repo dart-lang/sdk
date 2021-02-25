@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:core' hide MapEntry;
 
 import 'package:front_end/src/fasta/dill/dill_member_builder.dart';
@@ -13,6 +15,7 @@ import 'package:kernel/type_algebra.dart';
 import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/forest.dart';
 import '../kernel/internal_ast.dart';
+import '../kernel/member_covariance.dart';
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../loader.dart' show Loader;
@@ -81,6 +84,8 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
   @override
   Procedure get actualProcedure => _procedure;
 
+  final bool isExtensionInstanceMember;
+
   ProcedureBuilderImpl(
       List<MetadataBuilder> metadata,
       int modifiers,
@@ -94,11 +99,12 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
-      Procedure referenceFrom,
+      Reference procedureReference,
+      this.isExtensionInstanceMember,
       [String nativeMethodName])
-      : _procedure = new Procedure(null, kind, null,
-            fileUri: compilationUnit.fileUri,
-            reference: referenceFrom?.reference)
+      : _procedure = new Procedure(
+            null, isExtensionInstanceMember ? ProcedureKind.Method : kind, null,
+            fileUri: compilationUnit.fileUri, reference: procedureReference)
           ..startFileOffset = startCharOffset
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
@@ -197,7 +203,7 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
 }
 
 class SourceProcedureBuilder extends ProcedureBuilderImpl {
-  final Procedure _tearOffReferenceFrom;
+  final Reference _tearOffReference;
 
   /// If this is an extension instance method then [_extensionTearOff] holds
   /// the synthetically created tear off function.
@@ -224,9 +230,10 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
-      Procedure referenceFrom,
-      this._tearOffReferenceFrom,
+      Reference procedureReference,
+      this._tearOffReference,
       AsyncMarker asyncModifier,
+      bool isExtensionInstanceMember,
       [String nativeMethodName])
       : super(
             metadata,
@@ -241,7 +248,8 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
             charOffset,
             charOpenParenOffset,
             charEndOffset,
-            referenceFrom,
+            procedureReference,
+            isExtensionInstanceMember,
             nativeMethodName) {
     this.asyncModifier = asyncModifier;
   }
@@ -249,9 +257,13 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
   bool _typeEnsured = false;
   Set<ClassMember> _overrideDependencies;
 
-  void registerOverrideDependency(ClassMember overriddenMember) {
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
+    assert(
+        overriddenMembers.every((overriddenMember) =>
+            overriddenMember.classBuilder != classBuilder),
+        "Unexpected override dependencies for $this: $overriddenMembers");
     _overrideDependencies ??= {};
-    _overrideDependencies.add(overriddenMember);
+    _overrideDependencies.addAll(overriddenMembers);
   }
 
   void _ensureTypes(ClassHierarchyBuilder hierarchy) {
@@ -313,6 +325,9 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
   }
 
   @override
+  Iterable<Member> get exportedMembers => [procedure];
+
+  @override
   void buildMembers(
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     Member member = build(library);
@@ -358,7 +373,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
         _procedure.isExtensionMember = true;
         _procedure.isStatic = true;
         if (isExtensionInstanceMember) {
-          _procedure.kind = ProcedureKind.Method;
+          assert(_procedure.kind == ProcedureKind.Method);
         }
         _procedure.name = new Name(
             createProcedureName(true, !isExtensionInstanceMember, kind,
@@ -468,7 +483,9 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
         VariableDeclaration parameter, DartType type,
         {bool isOptional}) {
       VariableDeclaration newParameter = new VariableDeclaration(parameter.name,
-          type: type, isFinal: parameter.isFinal)
+          type: type,
+          isFinal: parameter.isFinal,
+          isLowered: parameter.isLowered)
         ..fileOffset = parameter.fileOffset;
       _extensionTearOffParameterMap[parameter] = newParameter;
       return newParameter;
@@ -520,26 +537,29 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
           ..fileOffset = fileOffset)
       ..fileOffset = fileOffset;
 
-    FunctionExpression closure = new FunctionExpression(new FunctionNode(
-        closureBody,
-        typeParameters: closureTypeParameters,
-        positionalParameters: closurePositionalParameters,
-        namedParameters: closureNamedParameters,
-        requiredParameterCount: _procedure.function.requiredParameterCount - 1,
-        returnType: closureReturnType,
-        asyncMarker: _procedure.function.asyncMarker,
-        dartAsyncMarker: _procedure.function.dartAsyncMarker))
+    FunctionExpression closure = new FunctionExpression(
+        new FunctionNode(closureBody,
+            typeParameters: closureTypeParameters,
+            positionalParameters: closurePositionalParameters,
+            namedParameters: closureNamedParameters,
+            requiredParameterCount:
+                _procedure.function.requiredParameterCount - 1,
+            returnType: closureReturnType)
+          ..fileOffset = fileOffset
+          ..fileEndOffset = fileEndOffset)
       ..fileOffset = fileOffset;
 
     _extensionTearOff
       ..name = new Name(
           '${extensionBuilder.name}|get#${name}', libraryBuilder.library)
-      ..function = new FunctionNode(
+      ..function = (new FunctionNode(
           new ReturnStatement(closure)..fileOffset = fileOffset,
           typeParameters: tearOffTypeParameters,
           positionalParameters: [extensionThis],
           requiredParameterCount: 1,
           returnType: closure.function.computeFunctionType(library.nonNullable))
+        ..fileOffset = fileOffset
+        ..fileEndOffset = fileEndOffset)
       ..fileUri = fileUri
       ..fileOffset = fileOffset
       ..fileEndOffset = fileEndOffset;
@@ -549,9 +569,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
   Procedure get extensionTearOff {
     if (isExtensionInstanceMember && kind == ProcedureKind.Method) {
       _extensionTearOff ??= new Procedure(null, ProcedureKind.Method, null,
-          isStatic: true,
-          isExtensionMember: true,
-          reference: _tearOffReferenceFrom?.reference)
+          isStatic: true, isExtensionMember: true, reference: _tearOffReference)
         ..isNonNullableByDefault = library.isNonNullableByDefault;
     }
     return _extensionTearOff;
@@ -583,6 +601,8 @@ class SourceProcedureMember extends BuilderClassMember {
   @override
   final SourceProcedureBuilder memberBuilder;
 
+  Covariance _covariance;
+
   SourceProcedureMember(this.memberBuilder);
 
   @override
@@ -594,14 +614,20 @@ class SourceProcedureMember extends BuilderClassMember {
   }
 
   @override
-  void registerOverrideDependency(ClassMember overriddenMember) {
-    memberBuilder.registerOverrideDependency(overriddenMember);
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
+    memberBuilder.registerOverrideDependency(overriddenMembers);
   }
 
   @override
   Member getMember(ClassHierarchyBuilder hierarchy) {
     memberBuilder._ensureTypes(hierarchy);
     return memberBuilder.member;
+  }
+
+  @override
+  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+    return _covariance ??=
+        new Covariance.fromMember(getMember(hierarchy), forSetter: forSetter);
   }
 
   @override
@@ -613,7 +639,10 @@ class SourceProcedureMember extends BuilderClassMember {
       memberBuilder.kind == ProcedureKind.Setter;
 
   @override
-  bool get isFunction => !isProperty;
+  bool isSameDeclaration(ClassMember other) {
+    return other is SourceProcedureMember &&
+        memberBuilder == other.memberBuilder;
+  }
 }
 
 class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
@@ -632,7 +661,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
-      Procedure referenceFrom,
+      Reference reference,
       [String nativeMethodName,
       this.redirectionTarget])
       : super(
@@ -648,7 +677,8 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
             charOffset,
             charOpenParenOffset,
             charEndOffset,
-            referenceFrom,
+            reference,
+            /* isExtensionInstanceMember = */ false,
             nativeMethodName);
 
   @override
@@ -659,6 +689,9 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
 
   @override
   Member get invokeTarget => procedure;
+
+  @override
+  Iterable<Member> get exportedMembers => [procedure];
 
   @override
   Statement get body => bodyInternal;
@@ -687,7 +720,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
                   actualOrigin.function.typeParameters[i], library.library);
         }
         List<DartType> newTypeArguments =
-            new List<DartType>(typeArguments.length);
+            new List<DartType>.filled(typeArguments.length, null);
         for (int i = 0; i < newTypeArguments.length; i++) {
           newTypeArguments[i] = substitute(typeArguments[i], substitution);
         }
@@ -720,8 +753,8 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
     }
     _procedure.isRedirectingFactoryConstructor = true;
     if (redirectionTarget.typeArguments != null) {
-      typeArguments =
-          new List<DartType>(redirectionTarget.typeArguments.length);
+      typeArguments = new List<DartType>.filled(
+          redirectionTarget.typeArguments.length, null);
       for (int i = 0; i < typeArguments.length; i++) {
         typeArguments[i] = redirectionTarget.typeArguments[i].build(library);
       }
@@ -734,7 +767,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
     super.buildOutlineExpressions(library, coreTypes);
     LibraryBuilder thisLibrary = this.library;
     if (thisLibrary is SourceLibraryBuilder) {
-      RedirectingFactoryBody redirectingFactoryBody = member.function.body;
+      RedirectingFactoryBody redirectingFactoryBody = procedure.function.body;
       if (redirectingFactoryBody.typeArguments != null &&
           redirectingFactoryBody.typeArguments.any((t) => t is UnknownType)) {
         TypeInferrerImpl inferrer = thisLibrary.loader.typeInferenceEngine
@@ -758,6 +791,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
           List<Expression> positionalArguments = <Expression>[];
           for (VariableDeclaration parameter
               in member.function.positionalParameters) {
+            inferrer.flowAnalysis?.declare(parameter, true);
             positionalArguments.add(new VariableGetImpl(
                 parameter,
                 inferrer.typePromoter.getFactForAccess(parameter, 0),
@@ -767,6 +801,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
           List<NamedExpression> namedArguments = <NamedExpression>[];
           for (VariableDeclaration parameter
               in member.function.namedParameters) {
+            inferrer.flowAnalysis?.declare(parameter, true);
             namedArguments.add(new NamedExpression(
                 parameter.name,
                 new VariableGetImpl(
@@ -785,7 +820,8 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
             function.returnType,
             charOffset,
             target.function.computeFunctionType(Nullability.nonNullable),
-            targetInvocationArguments);
+            targetInvocationArguments,
+            staticTarget: target);
         List<DartType> typeArguments;
         if (result.inferredType is InterfaceType) {
           typeArguments = (result.inferredType as InterfaceType).typeArguments;

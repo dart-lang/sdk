@@ -53,11 +53,11 @@ static method test3() → dynamic {
   core::String s2 = let final core::String? #t9 = s in #t9.{core::String::==}(null) ?{core::String} s = "bar" : #t9{core::String};
 }
 static method test4() → dynamic {
-  core::List<core::String?> list = <core::String?>[null];
+  core::List<core::String?> list = core::_GrowableList::_literal1<core::String?>(null);
   core::String s = let final core::List<core::String?> #t10 = list in let final core::int #t11 = 0 in let final core::String? #t12 = #t10.{core::List::[]}(#t11) in #t12.{core::String::==}(null) ?{core::String} let final core::String #t13 = "bar" in let final void #t14 = #t10.{core::List::[]=}(#t11, #t13) in #t13 : #t12{core::String};
 }
-static method E6|[]=(final core::double #this, core::int index, core::String? value) → void {}
-static method E6|[](final core::double #this, core::int index) → core::String?
+static method E6|[]=(lowered final core::double #this, core::int index, core::String? value) → void {}
+static method E6|[](lowered final core::double #this, core::int index) → core::String?
   return null;
 static method test6() → dynamic {
   core::String s = let final core::double #t15 = 3.14 in let final core::int #t16 = 0 in let final core::String? #t17 = self::E6|[](#t15, #t16) in #t17.{core::String::==}(null) ?{core::String} let final core::String #t18 = "bar" in let final void #t19 = self::E6|[]=(#t15, #t16, #t18) in #t18 : #t17{core::String};
@@ -67,3 +67,21 @@ static method test7(self::A7? a) → dynamic {
   core::String? s2 = let final self::A7? #t22 = a in #t22.{core::Object::==}(null) ?{core::String?} null : let final core::String? #t23 = #t22.{self::A7::bar} in #t23.{core::String::==}(null) ?{core::String} #t22.{self::A7::bar} = "bar" : #t23{core::String};
 }
 static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:49:20 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:49:20 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:49:27 -> StringConstant("bar")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:49:27 -> StringConstant("bar")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:38:17 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:38:17 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:38:24 -> StringConstant("bar")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:38:24 -> StringConstant("bar")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:15 -> DoubleConstant(3.14)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:21 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:15 -> DoubleConstant(3.14)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:21 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:28 -> StringConstant("bar")
+Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:28 -> StringConstant("bar")
+Extra constant evaluation: evaluated: 112, effectively constant: 14

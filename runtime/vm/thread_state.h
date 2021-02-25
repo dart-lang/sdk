@@ -50,9 +50,6 @@ class ThreadState : public BaseThread {
 
   void IncrementMemoryCapacity(uintptr_t value) {
     current_zone_capacity_ += value;
-    if (current_zone_capacity_ > zone_high_watermark_) {
-      zone_high_watermark_ = current_zone_capacity_;
-    }
   }
 
   void DecrementMemoryCapacity(uintptr_t value) {
@@ -61,9 +58,6 @@ class ThreadState : public BaseThread {
   }
 
   uintptr_t current_zone_capacity() const { return current_zone_capacity_; }
-  uintptr_t zone_high_watermark() const { return zone_high_watermark_; }
-
-  void ResetHighWatermark() { zone_high_watermark_ = current_zone_capacity_; }
 
   StackResource* top_resource() const { return top_resource_; }
   void set_top_resource(StackResource* value) { top_resource_ = value; }
@@ -101,7 +95,6 @@ class ThreadState : public BaseThread {
   OSThread* os_thread_ = nullptr;
   Zone* zone_ = nullptr;
   uintptr_t current_zone_capacity_ = 0;
-  uintptr_t zone_high_watermark_ = 0;
   StackResource* top_resource_ = nullptr;
   LongJumpScope* long_jump_base_ = nullptr;
 

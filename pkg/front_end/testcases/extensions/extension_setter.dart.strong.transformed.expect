@@ -48,35 +48,35 @@ extension Extension on self::Class* {
 extension GenericExtension<T extends core::Object* = dynamic> on self::GenericClass<T*>* {
   set setter = self::GenericExtension|set#setter;
 }
-static method Extension|get#simpleSetter(final self::Class* #this) → core::int*
+static method Extension|get#simpleSetter(lowered final self::Class* #this) → core::int*
   return #this.{self::Class::field};
-static method Extension|set#simpleSetter(final self::Class* #this, core::int* value) → void {
+static method Extension|set#simpleSetter(lowered final self::Class* #this, core::int* value) → void {
   #this.{self::Class::field} = value;
 }
-static method Extension|get#mutatingSetter(final self::Class* #this) → core::int*
+static method Extension|get#mutatingSetter(lowered final self::Class* #this) → core::int*
   return #this.{self::Class::field};
-static method Extension|set#mutatingSetter(final self::Class* #this, core::int* value) → void {
+static method Extension|set#mutatingSetter(lowered final self::Class* #this, core::int* value) → void {
   value = value.{core::num::+}(1);
   #this.{self::Class::field} = value;
 }
-static method Extension|get#setterWithReturn(final self::Class* #this) → core::int*
+static method Extension|get#setterWithReturn(lowered final self::Class* #this) → core::int*
   return #this.{self::Class::field};
-static method Extension|set#setterWithReturn(final self::Class* #this, core::int* value) → void {
+static method Extension|set#setterWithReturn(lowered final self::Class* #this, core::int* value) → void {
   if(value.{core::num::<}(0)) {
     #this.{self::Class::field} = value.{core::int::unary-}();
     return;
   }
   #this.{self::Class::field} = value;
 }
-static method Extension|get#setterWithClosure(final self::Class* #this) → core::int*
+static method Extension|get#setterWithClosure(lowered final self::Class* #this) → core::int*
   return #this.{self::Class::field};
-static method Extension|set#setterWithClosure(final self::Class* #this, core::int* value) → void {
+static method Extension|set#setterWithClosure(lowered final self::Class* #this, core::int* value) → void {
   function abs(dynamic value) → dynamic {
     return value.<(0) as{TypeError,ForDynamic} core::bool* ?{dynamic} value.unary-() : value;
   }
   #this.{self::Class::field} = abs.call(value) as{TypeError,ForDynamic} core::int*;
 }
-static method Extension|testInternal(final self::Class* #this) → dynamic {
+static method Extension|testInternal(lowered final self::Class* #this) → dynamic {
   self::expect(null, #this.{self::Class::field});
   self::Extension|set#simpleSetter(#this, 0);
   self::expect(0, #this.{self::Class::field});
@@ -102,9 +102,9 @@ static method Extension|testInternal(final self::Class* #this) → dynamic {
   self::expect(4.{core::int::unary-}(), let final core::int* #t11 = 4.{core::int::unary-}() in let final void #t12 = self::Extension|set#setterWithClosure(#this, #t11) in #t11);
   self::expect(4, #this.{self::Class::field});
 }
-static method Extension|get#testInternal(final self::Class* #this) → () →* dynamic
+static method Extension|get#testInternal(lowered final self::Class* #this) → () →* dynamic
   return () → dynamic => self::Extension|testInternal(#this);
-static method GenericExtension|set#setter<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|set#setter::T*>* #this, self::GenericExtension|set#setter::T* value) → void {}
+static method GenericExtension|set#setter<T extends core::Object* = dynamic>(lowered final self::GenericClass<self::GenericExtension|set#setter::T*>* #this, self::GenericExtension|set#setter::T* value) → void {}
 static method main() → dynamic {
   self::Class* c = new self::Class::•();
   self::expect(null, c.{self::Class::field});
@@ -206,11 +206,11 @@ static method main() → dynamic {
   self::expect(1, let final self::Class* #t106 = c in let final core::int* #t107 = self::Extension|get#simpleSetter(#t106) in #t107.{core::num::==}(null) ?{core::int*} let final core::int* #t108 = 2 in let final void #t109 = self::Extension|set#simpleSetter(#t106, #t108) in #t108 : #t107);
   c.{self::Class::field} = null;
   self::expect(2, let final self::Class* #t110 = c in let final core::int* #t111 = self::Extension|get#simpleSetter(#t110) in #t111.{core::num::==}(null) ?{core::int*} let final core::int* #t112 = 2 in let final void #t113 = self::Extension|set#simpleSetter(#t110, #t112) in #t112 : #t111);
-  let final self::Class* #t114 = c in #t114.{self::Class::==}(null) ?{core::Null?} null : #t114.{self::Class::field} = null;
+  let final self::Class* #t114 = c in #t114.{self::Class::==}(null) ?{Null} null : #t114.{self::Class::field} = null;
   let final self::Class* #t115 = c in #t115.{self::Class::==}(null) ?{core::int*} null : self::Extension|get#simpleSetter(#t115).{core::num::==}(null) ?{core::int*} self::Extension|set#simpleSetter(#t115, 1) : null;
   self::expect(1, let final self::Class* #t116 = c in #t116.{self::Class::==}(null) ?{core::int*} null : #t116.{self::Class::field});
   self::expect(1, let final self::Class* #t117 = c in #t117.{self::Class::==}(null) ?{core::int*} null : let final core::int* #t118 = self::Extension|get#simpleSetter(#t117) in #t118.{core::num::==}(null) ?{core::int*} let final core::int* #t119 = 2 in let final void #t120 = self::Extension|set#simpleSetter(#t117, #t119) in #t119 : #t118);
-  let final self::Class* #t121 = c in #t121.{self::Class::==}(null) ?{core::Null?} null : #t121.{self::Class::field} = null;
+  let final self::Class* #t121 = c in #t121.{self::Class::==}(null) ?{Null} null : #t121.{self::Class::field} = null;
   self::expect(2, let final self::Class* #t122 = c in #t122.{self::Class::==}(null) ?{core::int*} null : let final core::int* #t123 = self::Extension|get#simpleSetter(#t122) in #t123.{core::num::==}(null) ?{core::int*} let final core::int* #t124 = 2 in let final void #t125 = self::Extension|set#simpleSetter(#t122, #t124) in #t124 : #t123);
   self::Extension|testInternal(new self::Class::•());
   self::GenericClass<core::int*>* genericClass = new self::GenericClass::•<core::int*>();
@@ -221,3 +221,107 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
     throw "Mismatch: expected=${expected}, actual=${actual}";
   }
 }
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:47:30 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:47:30 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:51:32 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:51:32 -> IntConstant(2)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:56:24 -> IntConstant(-2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:58:34 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:58:34 -> IntConstant(3)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:60:12 -> IntConstant(-4)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:60:35 -> IntConstant(-4)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:60:35 -> IntConstant(-4)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:60:35 -> IntConstant(-4)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:65:25 -> IntConstant(-2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:67:35 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:67:35 -> IntConstant(3)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:69:12 -> IntConstant(-4)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:69:36 -> IntConstant(-4)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:69:36 -> IntConstant(-4)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:69:36 -> IntConstant(-4)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:86:30 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:86:30 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:89:41 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:89:41 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:93:32 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:93:32 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:97:43 -> IntConstant(6)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:97:43 -> IntConstant(6)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:102:24 -> IntConstant(-2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:104:34 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:104:34 -> IntConstant(3)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:106:10 -> IntConstant(-4)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:106:35 -> IntConstant(-4)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:106:35 -> IntConstant(-4)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:106:35 -> IntConstant(-4)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:110:35 -> IntConstant(-6)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:112:45 -> IntConstant(7)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:112:45 -> IntConstant(7)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:114:10 -> IntConstant(-8)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:114:46 -> IntConstant(-8)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:114:46 -> IntConstant(-8)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:114:46 -> IntConstant(-8)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:119:25 -> IntConstant(-2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:121:35 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:121:35 -> IntConstant(3)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:123:10 -> IntConstant(-4)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:123:36 -> IntConstant(-4)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:123:36 -> IntConstant(-4)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:123:36 -> IntConstant(-4)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:127:36 -> IntConstant(-6)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:129:46 -> IntConstant(7)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:129:46 -> IntConstant(7)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:131:10 -> IntConstant(-8)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:131:47 -> IntConstant(-8)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:131:47 -> IntConstant(-8)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:131:47 -> IntConstant(-8)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:136:31 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:136:31 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:139:41 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:139:41 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:143:33 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:143:33 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:147:43 -> IntConstant(6)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:147:43 -> IntConstant(6)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:152:25 -> IntConstant(-2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:154:35 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:154:35 -> IntConstant(3)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:156:10 -> IntConstant(-4)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:156:36 -> IntConstant(-4)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:156:36 -> IntConstant(-4)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:156:36 -> IntConstant(-4)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:160:35 -> IntConstant(-6)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:162:45 -> IntConstant(7)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:162:45 -> IntConstant(7)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:164:10 -> IntConstant(-8)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:164:46 -> IntConstant(-8)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:164:46 -> IntConstant(-8)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:164:46 -> IntConstant(-8)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:169:26 -> IntConstant(-2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:171:36 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:171:36 -> IntConstant(3)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:173:10 -> IntConstant(-4)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:173:37 -> IntConstant(-4)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:173:37 -> IntConstant(-4)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:173:37 -> IntConstant(-4)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:177:36 -> IntConstant(-6)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:179:46 -> IntConstant(7)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:179:46 -> IntConstant(7)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:181:10 -> IntConstant(-8)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///extension_setter.dart:181:47 -> IntConstant(-8)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:181:47 -> IntConstant(-8)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:181:47 -> IntConstant(-8)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:187:32 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:187:32 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:189:32 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:189:32 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:194:33 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:194:33 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:196:33 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:196:33 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:201:53 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///extension_setter.dart:201:53 -> IntConstant(1)
+Extra constant evaluation: evaluated: 836, effectively constant: 100

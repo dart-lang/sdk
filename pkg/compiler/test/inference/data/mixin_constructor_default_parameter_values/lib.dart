@@ -15,13 +15,12 @@ class C {
   /*member: C.x:[exact=JSUInt31]*/
   final int x;
 
-  /*member: C.y:Union(null, [exact=JSString], [exact=_SECRET])*/
+  /*member: C.y:Union([exact=JSString], [exact=_SECRET])*/
   final y;
 
   /*member: C.a:[exact=C]*/
   C.a(int /*[exact=JSUInt31]*/ x,
-      [var /*Value([null|exact=JSString], value: "overt")*/ b =
-          const _SECRET()])
+      [var /*Union([exact=JSString], [exact=_SECRET])*/ b = const _SECRET()])
       : this.x = x,
         this.y = b;
 

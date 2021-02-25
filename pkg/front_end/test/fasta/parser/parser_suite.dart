@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show ParserError, parse;
 
 import 'package:testing/testing.dart'
-    show Chain, ChainContext, Future, Result, Step, runMe;
+    show Chain, ChainContext, Result, Step, runMe;
 
 import '../../utils/scanner_chain.dart' show Read, Scan, ScannedFile;
 

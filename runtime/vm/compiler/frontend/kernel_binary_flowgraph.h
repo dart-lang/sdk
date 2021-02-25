@@ -9,7 +9,6 @@
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
@@ -41,7 +40,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                          &constant_reader_,
                          active_class_,
                          /* finalize= */ true),
-        bytecode_metadata_helper_(this, active_class_),
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this, &constant_reader_),
         procedure_attributes_metadata_helper_(this),
@@ -63,7 +61,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void ReadForwardingStubTarget(const Function& function);
   void EvaluateConstFieldValue(const Field& field);
   void SetupDefaultParameterValues();
-  void ReadDefaultFunctionTypeArguments(const Function& function);
 
   FlowGraph* BuildGraphOfFieldInitializer();
   Fragment BuildFieldInitializer(const Field& field,
@@ -97,11 +94,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment ShortcutForUserDefinedEquals(const Function& dart_function,
                                         LocalVariable* first_parameter);
   Fragment TypeArgumentsHandling(const Function& dart_function);
-  void CheckArgumentTypesAsNecessary(const Function& dart_function,
-                                     intptr_t type_parameters_offset,
-                                     Fragment* explicit_checks,
-                                     Fragment* implicit_checks,
-                                     Fragment* implicit_redefinitions);
   Fragment CompleteBodyWithYieldContinuations(Fragment body);
 
   static UncheckedEntryPointStyle ChooseEntryPointStyle(
@@ -163,7 +155,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment LoadLocal(LocalVariable* variable);
   Fragment Return(
       TokenPosition position,
-      intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex);
+      intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
   Fragment EvaluateAssertion();
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment ThrowNoSuchMethodError(const Function& target);
@@ -225,8 +217,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment StringInterpolate(TokenPosition position);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
-  Fragment ThrowLateInitializationError(TokenPosition position,
-                                        const String& name);
   Fragment LoadInstantiatorTypeArguments();
   Fragment LoadFunctionTypeArguments();
   Fragment InstantiateType(const AbstractType& type);
@@ -295,12 +285,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                                              Fragment build_rest_of_actuals);
   Fragment BuildSuperPropertyGet(TokenPosition* position);
   Fragment BuildSuperPropertySet(TokenPosition* position);
-  Fragment BuildDirectPropertyGet(TokenPosition* position);
-  Fragment BuildDirectPropertySet(TokenPosition* position);
   Fragment BuildStaticGet(TokenPosition* position);
   Fragment BuildStaticSet(TokenPosition* position);
   Fragment BuildMethodInvocation(TokenPosition* position);
-  Fragment BuildDirectMethodInvocation(TokenPosition* position);
   Fragment BuildSuperMethodInvocation(TokenPosition* position);
   Fragment BuildStaticInvocation(TokenPosition* position);
   Fragment BuildConstructorInvocation(TokenPosition* position);
@@ -366,11 +353,57 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   // Kernel buffer and pushes the resulting Function object.
   Fragment BuildFfiNativeCallbackFunction();
 
+  // Piece of a StringConcatenation.
+  // Represents either a StringLiteral, or a Reader offset to the expression.
+  struct ConcatPiece {
+    intptr_t offset;
+    const String* literal;
+  };
+
+  // Collector that automatically concatenates adjacent string ConcatPieces.
+  struct PiecesCollector {
+    explicit PiecesCollector(Zone* z, TranslationHelper* translation_helper)
+        : pieces(5),
+          literal_run(z, 1),
+          translation_helper(translation_helper) {}
+
+    GrowableArray<ConcatPiece> pieces;
+    GrowableHandlePtrArray<const String> literal_run;
+    TranslationHelper* translation_helper;
+
+    void Add(const ConcatPiece& piece) {
+      if (piece.literal != nullptr) {
+        literal_run.Add(*piece.literal);
+      } else {
+        FlushRun();
+        pieces.Add(piece);
+      }
+    }
+
+    void FlushRun() {
+      switch (literal_run.length()) {
+        case 0:
+          return;
+        case 1:
+          pieces.Add({-1, &literal_run[0]});
+          break;
+        default:
+          pieces.Add({-1, &translation_helper->DartString(literal_run)});
+      }
+      literal_run.Clear();
+    }
+  };
+
+  // Flattens and collects pieces of StringConcatenations such that:
+  //   ["a", "", "b"] => ["ab"]
+  //   ["a", StringConcat("b", "c")] => ["abc"]
+  //   ["a", "", StringConcat("b", my_var), "c"] => ["ab", my_var, "c"]
+  void FlattenStringConcatenation(PiecesCollector* collector);
+
   FlowGraphBuilder* flow_graph_builder_;
   ActiveClass* const active_class_;
   ConstantReader constant_reader_;
   TypeTranslator type_translator_;
-  BytecodeMetadataHelper bytecode_metadata_helper_;
   DirectCallMetadataHelper direct_call_metadata_helper_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;

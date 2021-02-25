@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart';
 
 import 'package:front_end/src/fasta/kernel/type_labeler.dart';
@@ -182,17 +184,17 @@ main() {
   check({funGenericBar: "T Function<T extends Bar<T>>(T)"}, 1);
 
   // Add some members for testing instance constants
-  Field booField = new Field(new Name("boo"), type: boolType);
+  Field booField = new Field.immutable(new Name("boo"), type: boolType);
   fooClass.fields.add(booField);
-  Field valueField = new Field(new Name("value"), type: intType);
+  Field valueField = new Field.immutable(new Name("value"), type: intType);
   foo2Class.fields.add(valueField);
-  Field nextField = new Field(new Name("next"), type: foo2);
+  Field nextField = new Field.immutable(new Name("next"), type: foo2);
   foo2Class.fields.add(nextField);
-  Field xField = new Field(new Name("x"),
+  Field xField = new Field.immutable(new Name("x"),
       type: new TypeParameterType(
           bazClass.typeParameters[0], Nullability.legacy));
   bazClass.fields.add(xField);
-  Field yField = new Field(new Name("y"),
+  Field yField = new Field.immutable(new Name("y"),
       type: new TypeParameterType(
           bazClass.typeParameters[1], Nullability.legacy));
   bazClass.fields.add(yField);
@@ -223,22 +225,28 @@ main() {
   check({symConst: "#foo", symLibConst: "#dart:core::bar"}, 0);
 
   Constant fooConst = new InstanceConstant(
-      fooClass.reference, [], {booField.reference: trueConst});
+      fooClass.reference, [], {booField.getterReference: trueConst});
   check({fooConst: "Foo {boo: true}"}, 1);
 
-  Constant foo2Const = new InstanceConstant(foo2Class.reference, [],
-      {nextField.reference: nullConst, valueField.reference: intConst});
+  Constant foo2Const = new InstanceConstant(foo2Class.reference, [], {
+    nextField.getterReference: nullConst,
+    valueField.getterReference: intConst
+  });
   check({foo2Const: "Foo {value: 2, next: null}"}, 1);
 
   Constant foo2nConst = new InstanceConstant(foo2Class.reference, [], {
-    valueField.reference: intConst,
-    nextField.reference: new InstanceConstant(foo2Class.reference, [],
-        {valueField.reference: intConst, nextField.reference: nullConst}),
+    valueField.getterReference: intConst,
+    nextField.getterReference: new InstanceConstant(foo2Class.reference, [], {
+      valueField.getterReference: intConst,
+      nextField.getterReference: nullConst
+    }),
   });
   check({foo2nConst: "Foo {value: 2, next: Foo {value: 2, next: null}}"}, 1);
 
-  Constant bazFooFoo2Const = new InstanceConstant(bazClass.reference,
-      [foo, foo2], {xField.reference: fooConst, yField.reference: foo2Const});
+  Constant bazFooFoo2Const = new InstanceConstant(
+      bazClass.reference,
+      [foo, foo2],
+      {xField.getterReference: fooConst, yField.getterReference: foo2Const});
   check({
     bazFooFoo2Const: "Baz<Foo/*1*/, Foo/*2*/> "
         "{x: Foo/*1*/ {boo: true}, y: Foo/*2*/ {value: 2, next: null}}"

@@ -1,0 +1,20 @@
+main = main::main;
+library from "package:bar/bar.dart" as bar {
+
+  static field dart.core::int y = 42;
+}
+library from "package:baz/main.dart" as main {
+
+  import "package:foo/foo.dart" as foo;
+  import "package:bar/bar.dart" as bar;
+
+  static method main() → dynamic {
+    dart.core::print(foo::x);
+    dart.core::print(bar::y);
+    dart.core::print("done");
+  }
+}
+library from "package:foo/foo.dart" as foo {
+
+  static field dart.core::int x = 42;
+}

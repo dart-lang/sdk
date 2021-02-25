@@ -26,7 +26,7 @@ class FeatureComputerTest extends AbstractSingleUnitTest {
       fail('Missing node offset marker (^) in content');
     }
     content = content.substring(0, index) + content.substring(index + 1);
-    await resolveTestUnit(content);
+    await resolveTestCode(content);
     // TODO(jwren) Consider changing this from the NodeLocator to the optype
     // node finding logic to be more consistent with what the user behavior
     // here will be.

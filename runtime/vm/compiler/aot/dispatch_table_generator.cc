@@ -444,8 +444,8 @@ void DispatchTableGenerator::NumberSelectors() {
   for (classid_t cid = kIllegalCid + 1; cid < num_classes_; cid++) {
     obj = classes_->At(cid);
     if (obj.IsClass()) {
-      klass = Class::RawCast(obj.raw());
-      functions = klass.functions();
+      klass = Class::RawCast(obj.ptr());
+      functions = klass.current_functions();
       if (!functions.IsNull()) {
         for (intptr_t j = 0; j < functions.Length(); j++) {
           function ^= functions.At(j);
@@ -489,7 +489,7 @@ void DispatchTableGenerator::SetupSelectorRows() {
     if (cid > kIllegalCid) {
       obj = classes_->At(cid);
       if (obj.IsClass()) {
-        klass = Class::RawCast(obj.raw());
+        klass = Class::RawCast(obj.ptr());
         concrete = !klass.is_abstract();
         klass = klass.SuperClass();
         if (!klass.IsNull()) {
@@ -558,10 +558,10 @@ void DispatchTableGenerator::SetupSelectorRows() {
   for (classid_t cid = kIllegalCid + 1; cid < num_classes_; cid++) {
     obj = classes_->At(cid);
     if (obj.IsClass()) {
-      klass = Class::RawCast(obj.raw());
+      klass = Class::RawCast(obj.ptr());
       GrowableArray<Interval>& subclasss_cid_ranges = cid_subclass_ranges[cid];
 
-      functions = klass.functions();
+      functions = klass.current_functions();
       if (!functions.IsNull()) {
         const int16_t depth = cid_depth[cid];
         for (intptr_t j = 0; j < functions.Length(); j++) {
@@ -572,7 +572,7 @@ void DispatchTableGenerator::SetupSelectorRows() {
             if (sid != SelectorMap::kInvalidSelectorId) {
               auto MakeIntervals = [&](const Function& function, int32_t sid) {
                 // A function handle that survives until the table is built.
-                auto& function_handle = Function::ZoneHandle(Z, function.raw());
+                auto& function_handle = Function::ZoneHandle(Z, function.ptr());
 
                 for (intptr_t i = 0; i < subclasss_cid_ranges.length(); i++) {
                   Interval& subclass_cid_range = subclasss_cid_ranges[i];
@@ -667,7 +667,7 @@ ArrayPtr DispatchTableGenerator::BuildCodeArray() {
     table_rows_[i]->FillTable(classes_, entries);
   }
   entries.MakeImmutable();
-  return entries.raw();
+  return entries.ptr();
 }
 
 }  // namespace compiler

@@ -44,6 +44,7 @@ void main() {
       expect(
         dds.sseUri,
         serviceUri.replace(
+          scheme: 'sse',
           pathSegments: ['\$debugHandler'],
         ),
       );
@@ -73,6 +74,7 @@ void main() {
       expect(
         dds.sseUri,
         serviceUri.replace(
+          scheme: 'sse',
           pathSegments: [authCode, '\$debugHandler'],
         ),
       );

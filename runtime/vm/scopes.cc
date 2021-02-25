@@ -32,8 +32,8 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       function_level_(function_level),
       loop_level_(loop_level),
       context_level_(LocalScope::kUninitializedContextLevel),
-      begin_token_pos_(TokenPosition::kNoSourcePos),
-      end_token_pos_(TokenPosition::kNoSourcePos),
+      begin_token_pos_(TokenPosition::kNoSource),
+      end_token_pos_(TokenPosition::kNoSource),
       variables_(),
       labels_(),
       context_variables_(),
@@ -110,7 +110,7 @@ NameReference* LocalScope::FindReference(const String& name) const {
   ASSERT(name.IsSymbol());
   intptr_t num_references = referenced_.length();
   for (intptr_t i = 0; i < num_references; i++) {
-    if (name.raw() == referenced_[i]->name().raw()) {
+    if (name.ptr() == referenced_[i]->name().ptr()) {
       return referenced_[i];
     }
   }
@@ -210,36 +210,39 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
       first_parameter_index;  // Current free frame index.
 
   LocalVariable* await_jump_var = nullptr;
-  LocalVariable* async_completer = nullptr;
+  LocalVariable* async_future = nullptr;
   LocalVariable* controller = nullptr;
   LocalVariable* chained_future = nullptr;
+  LocalVariable* is_sync = nullptr;
   for (intptr_t i = 0; i < num_variables(); i++) {
     LocalVariable* variable = VariableAt(i);
     if (variable->owner() == this) {
       if (variable->is_captured()) {
         if (variable->name().Equals(Symbols::AwaitJumpVar())) {
           await_jump_var = variable;
-        } else if (variable->name().Equals(Symbols::AsyncCompleter())) {
-          async_completer = variable;
+        } else if (variable->name().Equals(Symbols::AsyncFuture())) {
+          async_future = variable;
         } else if (variable->name().Equals(Symbols::Controller())) {
           controller = variable;
         } else if (variable->is_chained_future()) {
           chained_future = variable;
+        } else if (variable->name().Equals(Symbols::is_sync())) {
+          is_sync = variable;
         }
       }
     }
   }
   // If we are in an async/async* function, force :await_jump_var and
-  // :async_completer_var to be at fixed locations in the slot.
+  // :async_future to be at fixed locations in the slot.
   if (await_jump_var != nullptr) {
     AllocateContextVariable(await_jump_var, &context_owner);
     *found_captured_variables = true;
     ASSERT(await_jump_var->index().value() == Context::kAwaitJumpVarIndex);
   }
-  if (async_completer != nullptr) {
-    AllocateContextVariable(async_completer, &context_owner);
+  if (async_future != nullptr) {
+    AllocateContextVariable(async_future, &context_owner);
     *found_captured_variables = true;
-    ASSERT(async_completer->index().value() == Context::kAsyncCompleterIndex);
+    ASSERT(async_future->index().value() == Context::kAsyncFutureIndex);
   }
   if (controller != nullptr) {
     AllocateContextVariable(controller, &context_owner);
@@ -251,6 +254,11 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
     *found_captured_variables = true;
     ASSERT(chained_future->index().value() ==
            chained_future->expected_context_index());
+  }
+  if (is_sync != nullptr) {
+    AllocateContextVariable(is_sync, &context_owner);
+    *found_captured_variables = true;
+    ASSERT(is_sync->index().value() == Context::kIsSyncIndex);
   }
 
   while (pos < num_parameters) {
@@ -281,8 +289,9 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
     if (variable->owner() == this) {
       if (variable->is_captured()) {
         // Skip the variables already pre-allocated above.
-        if (variable != await_jump_var && variable != async_completer &&
-            variable != controller && variable != chained_future) {
+        if (variable != await_jump_var && variable != async_future &&
+            variable != controller && variable != chained_future &&
+            variable != is_sync) {
           AllocateContextVariable(variable, &context_owner);
           *found_captured_variables = true;
         }
@@ -316,27 +325,27 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
 // The parser creates internal variables that start with ":"
 static bool IsFilteredIdentifier(const String& str) {
   ASSERT(str.Length() > 0);
-  if (str.raw() == Symbols::AsyncOperation().raw()) {
+  if (str.ptr() == Symbols::AsyncOperation().ptr()) {
     // Keep :async_op for asynchronous debugging.
     return false;
   }
-  if (str.raw() == Symbols::AsyncCompleter().raw()) {
-    // Keep :async_completer for asynchronous debugging.
+  if (str.ptr() == Symbols::AsyncFuture().ptr()) {
+    // Keep :async_future for asynchronous debugging.
     return false;
   }
-  if (str.raw() == Symbols::ControllerStream().raw()) {
+  if (str.ptr() == Symbols::ControllerStream().ptr()) {
     // Keep :controller_stream for asynchronous debugging.
     return false;
   }
-  if (str.raw() == Symbols::AwaitJumpVar().raw()) {
+  if (str.ptr() == Symbols::AwaitJumpVar().ptr()) {
     // Keep :await_jump_var for asynchronous debugging.
     return false;
   }
-  if (str.raw() == Symbols::AsyncStackTraceVar().raw()) {
-    // Keep :async_stack_trace for asynchronous debugging.
+  if (str.ptr() == Symbols::is_sync().ptr()) {
+    // Keep :is_sync for asynchronous debugging.
     return false;
   }
-  if (str.raw() == Symbols::FunctionTypeArgumentsVar().raw()) {
+  if (str.ptr() == Symbols::FunctionTypeArgumentsVar().ptr()) {
     // Keep :function_type_arguments for accessing type variables in debugging.
     return false;
   }
@@ -356,9 +365,9 @@ LocalVarDescriptorsPtr LocalScope::GetVarDescriptors(
     ASSERT(func.IsLocalFunction());
     for (int i = 0; i < context_scope.num_variables(); i++) {
       String& name = String::Handle(context_scope.NameAt(i));
-      LocalVarDescriptorsLayout::VarInfoKind kind;
+      UntaggedLocalVarDescriptors::VarInfoKind kind;
       if (!IsFilteredIdentifier(name)) {
-        kind = LocalVarDescriptorsLayout::kContextVar;
+        kind = UntaggedLocalVarDescriptors::kContextVar;
       } else {
         continue;
       }
@@ -390,12 +399,12 @@ void LocalScope::CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
   for (int i = 0; i < this->variables_.length(); i++) {
     LocalVariable* var = variables_[i];
     if ((var->owner() == this) && !var->is_invisible()) {
-      if (var->name().raw() == Symbols::CurrentContextVar().raw()) {
+      if (var->name().ptr() == Symbols::CurrentContextVar().ptr()) {
         // This is the local variable in which the function saves its
         // own context before calling a closure function.
         LocalVarDescriptorsBuilder::VarDesc desc;
         desc.name = &var->name();
-        desc.info.set_kind(LocalVarDescriptorsLayout::kSavedCurrentContext);
+        desc.info.set_kind(UntaggedLocalVarDescriptors::kSavedCurrentContext);
         desc.info.scope_id = 0;
         desc.info.declaration_pos = TokenPosition::kMinSource;
         desc.info.begin_pos = TokenPosition::kMinSource;
@@ -407,12 +416,12 @@ void LocalScope::CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
         LocalVarDescriptorsBuilder::VarDesc desc;
         desc.name = &var->name();
         if (var->is_captured()) {
-          desc.info.set_kind(LocalVarDescriptorsLayout::kContextVar);
+          desc.info.set_kind(UntaggedLocalVarDescriptors::kContextVar);
           ASSERT(var->owner() != NULL);
           ASSERT(var->owner()->context_level() >= 0);
           desc.info.scope_id = var->owner()->context_level();
         } else {
-          desc.info.set_kind(LocalVarDescriptorsLayout::kStackVar);
+          desc.info.set_kind(UntaggedLocalVarDescriptors::kStackVar);
           desc.info.scope_id = *scope_id;
         }
         desc.info.set_index(var->index().value());
@@ -434,7 +443,7 @@ SourceLabel* LocalScope::LocalLookupLabel(const String& name) const {
   ASSERT(name.IsSymbol());
   for (intptr_t i = 0; i < labels_.length(); i++) {
     SourceLabel* label = labels_[i];
-    if (label->name().raw() == name.raw()) {
+    if (label->name().ptr() == name.ptr()) {
       return label;
     }
   }
@@ -446,7 +455,7 @@ LocalVariable* LocalScope::LocalLookupVariable(const String& name) const {
   for (intptr_t i = 0; i < variables_.length(); i++) {
     LocalVariable* var = variables_[i];
     ASSERT(var->name().IsSymbol());
-    if (var->name().raw() == name.raw()) {
+    if (var->name().ptr() == name.ptr()) {
       return var;
     }
   }
@@ -632,7 +641,7 @@ ContextScopePtr LocalScope::PreserveOuterScope(
     }
   }
   ASSERT(context_scope.num_variables() == captured_idx);  // Verify count.
-  return context_scope.raw();
+  return context_scope.ptr();
 }
 
 LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
@@ -684,12 +693,11 @@ void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
     for (intptr_t i = 0; i < scope->num_variables(); i++) {
       LocalVariable* variable = scope->VariableAt(i);
       if (variable->is_forced_stack() ||
-          (variable->name().raw() == Symbols::StackTraceVar().raw()) ||
-          (variable->name().raw() == Symbols::ExceptionVar().raw()) ||
-          (variable->name().raw() == Symbols::SavedTryContextVar().raw()) ||
-          (variable->name().raw() == Symbols::ArgDescVar().raw()) ||
-          (variable->name().raw() ==
-           Symbols::FunctionTypeArgumentsVar().raw())) {
+          (variable->name().ptr() == Symbols::ExceptionVar().ptr()) ||
+          (variable->name().ptr() == Symbols::SavedTryContextVar().ptr()) ||
+          (variable->name().ptr() == Symbols::ArgDescVar().ptr()) ||
+          (variable->name().ptr() ==
+           Symbols::FunctionTypeArgumentsVar().ptr())) {
         // Don't capture those variables because the VM expects them to be on
         // the stack.
         continue;
@@ -719,7 +727,7 @@ ContextScopePtr LocalScope::CreateImplicitClosureScope(const Function& func) {
   context_scope.SetContextIndexAt(0, 0);
   context_scope.SetContextLevelAt(0, 0);
   ASSERT(context_scope.num_variables() == kNumCapturedVars);  // Verify count.
-  return context_scope.raw();
+  return context_scope.ptr();
 }
 
 bool LocalVariable::Equals(const LocalVariable& other) const {
@@ -769,10 +777,11 @@ void LocalVarDescriptorsBuilder::AddDeoptIdToContextLevelMappings(
 
     VarDesc desc;
     desc.name = &Symbols::Empty();  // No name.
-    desc.info.set_kind(LocalVarDescriptorsLayout::kContextLevel);
+    desc.info.set_kind(UntaggedLocalVarDescriptors::kContextLevel);
     desc.info.scope_id = 0;
-    desc.info.begin_pos = TokenPosition(start_deopt_id);
-    desc.info.end_pos = TokenPosition(end_deopt_id);
+    // We repurpose the token position fields to store deopt IDs in this case.
+    desc.info.begin_pos = TokenPosition::Deserialize(start_deopt_id);
+    desc.info.end_pos = TokenPosition::Deserialize(end_deopt_id);
     desc.info.set_index(start_context_level);
     Add(desc);
 
@@ -782,14 +791,14 @@ void LocalVarDescriptorsBuilder::AddDeoptIdToContextLevelMappings(
 
 LocalVarDescriptorsPtr LocalVarDescriptorsBuilder::Done() {
   if (vars_.is_empty()) {
-    return Object::empty_var_descriptors().raw();
+    return Object::empty_var_descriptors().ptr();
   }
   const LocalVarDescriptors& var_desc =
       LocalVarDescriptors::Handle(LocalVarDescriptors::New(vars_.length()));
   for (int i = 0; i < vars_.length(); i++) {
     var_desc.SetVar(i, *(vars_[i].name), &vars_[i].info);
   }
-  return var_desc.raw();
+  return var_desc.ptr();
 }
 
 }  // namespace dart

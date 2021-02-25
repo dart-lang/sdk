@@ -1,0 +1,86 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    ;
+  operator [](self::Class* cls) → self::Class*
+    ;
+  operator []=(self::Class* cls, self::Class* value) → void
+    ;
+  operator +(self::Class* cls) → self::Class*
+    ;
+  method indexGetSetForEffect(core::Map<self::Class*, self::Class*>* map) → void
+    ;
+  method indexGetSetForValue(core::Map<self::Class*, self::Class*>* map) → void
+    ;
+  method implicitExtensionGetSetForEffect(core::int* i) → void
+    ;
+  method implicitExtensionGetSetForValue(core::int* i) → void
+    ;
+  method explicitExtensionGetSetForEffect(core::int* i) → void
+    ;
+  method explicitExtensionGetSetForValue(core::int* i) → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Subclass extends self::Class {
+  synthetic constructor •() → self::Subclass*
+    ;
+  method superIndexGetSetForEffect() → void
+    ;
+  method superIndexGetSetForValue() → void
+    ;
+}
+class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2*
+    ;
+  operator +(self::Class2* cls) → self::Class2*
+    ;
+  method implicitExtensionGetSetForEffect() → void
+    ;
+  method implicitExtensionGetSetForValue() → void
+    ;
+  method explicitExtensionGetSetForEffect() → void
+    ;
+  method explicitExtensionGetSetForValue() → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension on core::int* {
+  operator [] = self::Extension|[];
+  operator []= = self::Extension|[]=;
+}
+extension Extension2 on self::Class2* {
+  operator [] = self::Extension2|[];
+  operator []= = self::Extension2|[]=;
+}
+static method Extension|[](lowered final core::int* #this, self::Class* cls) → self::Class*
+  ;
+static method Extension|[]=(lowered final core::int* #this, self::Class* cls, self::Class* value) → void
+  ;
+static method Extension2|[](lowered final self::Class2* #this, self::Class2* cls) → self::Class2*
+  ;
+static method Extension2|[]=(lowered final self::Class2* #this, self::Class2* cls, self::Class2* value) → void
+  ;
+static method main() → dynamic
+  ;

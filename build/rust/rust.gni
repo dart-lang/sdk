@@ -74,7 +74,7 @@ template("rust_library") {
   } else {
     if (is_win) {
       output_file = "${invoker.lib_name}.lib"
-    }else {
+    } else {
       output_file = "lib${invoker.lib_name}.a"
     }
   }
@@ -89,7 +89,7 @@ template("rust_library") {
   config("${target_name}_cargo_config") {
     if (!shared) {
       libs = [ invoker.lib_name ]
-      lib_dirs = [ out_dir ]
+      lib_dirs = [ target_out_dir ]
     }
   }
 
@@ -97,7 +97,7 @@ template("rust_library") {
   # So we need to copy it to target_out_dir to make it easier for dependees to
   # locate the library.
   copy(target_name) {
-    deps = [ ":${target_name}_cargo" ]
+    public_deps = [ ":${target_name}_cargo" ]
     sources = [ "${cargo_out_dir}/${output_file}" ]
     outputs = [ "${target_out_dir}/${output_file}" ]
   }

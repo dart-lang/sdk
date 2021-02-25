@@ -35,7 +35,7 @@ abstract class B2 extends nsm::A implements self::C2 {
   method noSuchMethod(core::Invocation* invocation) → dynamic {
     return super.{core::Object::noSuchMethod}(invocation);
   }
-  abstract forwarding-stub method method(core::int* i, {dynamic optional = #C2}) → core::int*;
+  abstract member-signature method method(core::int* i, {dynamic optional = #C2}) → core::int*; -> self::C2::method
   abstract member-signature method genericMethod1<T extends core::Object* = dynamic>(self::B2::genericMethod1::T* t) → self::B2::genericMethod1::T*; -> nsm::A::genericMethod1
   abstract member-signature method genericMethod2<T extends core::Object* = core::Object*>(self::B2::genericMethod2::T* t) → self::B2::genericMethod2::T*; -> nsm::A::genericMethod2
   abstract member-signature method genericMethod3<T extends core::Object* = core::Object*>(self::B2::genericMethod3::T* t) → self::B2::genericMethod3::T*; -> nsm::A::genericMethod3
@@ -95,7 +95,7 @@ abstract class B1 extends nsm::A implements nsm::C1 {
   method noSuchMethod(core::Invocation invocation) → dynamic {
     return super.{core::Object::noSuchMethod}(invocation);
   }
-  abstract forwarding-stub method method(core::int? i, {dynamic optional = #C2}) → core::int;
+  abstract member-signature method method(core::int? i, {dynamic optional = #C2}) → core::int; -> nsm::C1::method
 }
 abstract class C1 extends core::Object {
   synthetic constructor •() → nsm::C1

@@ -10,7 +10,7 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
@@ -27,12 +27,9 @@ void main() {
     defineReflectiveTests(BuildModeTest);
     defineReflectiveTests(BuildModeSummaryDependenciesTest);
     defineReflectiveTests(ExitCodesTest);
-    defineReflectiveTests(ExitCodesTest_PreviewDart2);
     defineReflectiveTests(LinterTest);
-    defineReflectiveTests(LinterTest_PreviewDart2);
     defineReflectiveTests(NonDartFilesTest);
     defineReflectiveTests(OptionsTest);
-    defineReflectiveTests(OptionsTest_PreviewDart2);
   }, name: 'Driver');
 }
 
@@ -93,8 +90,6 @@ class BaseTest {
 
   AnalysisOptions get analysisOptions => driver.analysisDriver.analysisOptions;
 
-  bool get usePreviewDart2 => false;
-
   /// Normalize text with bullets.
   String bulletToDash(StringSink item) => '$item'.replaceAll('•', '-');
 
@@ -118,7 +113,7 @@ class BaseTest {
   }) async {
     options = _posixToPlatformPath(options);
 
-    driver = Driver(isTesting: true);
+    driver = Driver();
     var cmd = <String>[];
     if (options != null) {
       cmd = <String>[
@@ -127,9 +122,6 @@ class BaseTest {
       ];
     }
     cmd..addAll(sources.map(_adjustFileSpec))..addAll(args);
-    if (usePreviewDart2) {
-      cmd.insert(0, '--preview-dart-2');
-    }
 
     await driver.start(cmd);
   }
@@ -256,39 +248,25 @@ Object x = B().f;
   Future<void> test_import2_usedAsSupertype() async {
     await _withTempDir(() async {
       var a = await _buildPackage('a', [], 'class A {}');
-      var b = await _buildPackage('b', [a], '''
+      var b = await _buildPackage('b', [], 'class B {}');
+      var c = await _buildPackage('c', [a], '''
 import 'package:a/a.dart';
-class B extends A {}
+import 'package:b/b.dart';
+class C1 extends A {}
+class C2 extends B {}
 ''');
 
-      // We don't invoke anything on class `B`, so don't ask its supertype.
-      // So, no dependency on "a".
-      await _assertDependencies('c', [a, b], '''
-import 'package:b/b.dart';
-B x;
-''', [b]);
-
-      // We infer the type of `x` to `B`.
-      // But we don't ask `B` for its supertype.
-      // So, no dependency on "a".
-      await _assertDependencies('c', [a, b], '''
-import 'package:b/b.dart';
-var x = B();
-''', [b]);
-
-      // We perform full analysis, and check that `new B()` is assignable
-      // to `B x`. This is trivially true, we don't need the supertype of `B`.
-      // So, no dependency on "a".
-      await _assertDependencies(
-        'c',
-        [a, b],
-        '''
-import 'package:b/b.dart';
-var x = B();
-''',
-        [b],
-        summaryOnly: false,
-      );
+      // When we instantiate `C1`, we ask `C1` for its type parameters.
+      // So, we apply resolution to the whole `C1` header (not members).
+      // So, we request `A` that is the superclass of `C1`.
+      // So, dependency on "a".
+      //
+      // But we don't access `C2`, so don't use its supertype `B`.
+      // So, no dependency on "b".
+      await _assertDependencies('d', [a, b, c], '''
+import 'package:c/c.dart';
+C1 x;
+''', [a, c]);
     });
   }
 
@@ -450,13 +428,12 @@ class BuildModeTest extends AbstractBuildModeTest {
       ]);
       var output = File(outputPath);
       expect(output.existsSync(), isTrue);
-      var bundle = PackageBundle.fromBuffer(await output.readAsBytes());
+      var bundle = PackageBundleReader(await output.readAsBytes());
       var testFileUri = 'file:///test_file.dart';
 
-      var bundle2 = bundle.bundle2;
-      expect(_linkedLibraryUriList(bundle2), [testFileUri]);
+      expect(_linkedLibraryUriList(bundle), [testFileUri]);
       expect(
-        _linkedLibraryUnitUriList(bundle2, testFileUri),
+        _linkedLibraryUnitUriList(bundle, testFileUri),
         [testFileUri],
       );
 
@@ -480,10 +457,9 @@ part '[invalid]';
           fileUri: aUri, additionalArgs: ['--build-summary-output=$aSum']);
       expect(exitCode, ErrorSeverity.ERROR.ordinal);
       var bytes = File(aSum).readAsBytesSync();
-      var bundle = PackageBundle.fromBuffer(bytes);
-      var bundle2 = bundle.bundle2;
-      expect(_linkedLibraryUriList(bundle2), [aUri]);
-      expect(_linkedLibraryUnitUriList(bundle2, aUri), [aUri, '']);
+      var bundle = PackageBundleReader(bytes);
+      expect(_linkedLibraryUriList(bundle), [aUri]);
+      expect(_linkedLibraryUnitUriList(bundle, aUri), [aUri]);
     });
   }
 
@@ -530,10 +506,9 @@ var b = new B();
             fileUri: aUri, additionalArgs: ['--build-summary-output=$aSum']);
         expect(exitCode, 0);
         var bytes = File(aSum).readAsBytesSync();
-        var bundle = PackageBundle.fromBuffer(bytes);
-        var bundle2 = bundle.bundle2;
-        expect(_linkedLibraryUriList(bundle2), [aUri]);
-        expect(_linkedLibraryUnitUriList(bundle2, aUri), [aUri]);
+        var bundle = PackageBundleReader(bytes);
+        expect(_linkedLibraryUriList(bundle), [aUri]);
+        expect(_linkedLibraryUnitUriList(bundle, aUri), [aUri]);
       }
 
       // Analyze package:bbb/b.dart and compute summary.
@@ -544,10 +519,9 @@ var b = new B();
         ]);
         expect(exitCode, 0);
         var bytes = File(bSum).readAsBytesSync();
-        var bundle = PackageBundle.fromBuffer(bytes);
-        var bundle2 = bundle.bundle2;
-        expect(_linkedLibraryUriList(bundle2), [bUri]);
-        expect(_linkedLibraryUnitUriList(bundle2, bUri), [bUri]);
+        var bundle = PackageBundleReader(bytes);
+        expect(_linkedLibraryUriList(bundle), [bUri]);
+        expect(_linkedLibraryUnitUriList(bundle, bUri), [bUri]);
       }
 
       // Analyze package:ccc/c.dart and compute summary.
@@ -558,10 +532,9 @@ var b = new B();
         ]);
         expect(exitCode, 0);
         var bytes = File(cSum).readAsBytesSync();
-        var bundle = PackageBundle.fromBuffer(bytes);
-        var bundle2 = bundle.bundle2;
-        expect(_linkedLibraryUriList(bundle2), [cUri]);
-        expect(_linkedLibraryUnitUriList(bundle2, cUri), [cUri]);
+        var bundle = PackageBundleReader(bytes);
+        expect(_linkedLibraryUriList(bundle), [cUri]);
+        expect(_linkedLibraryUnitUriList(bundle, cUri), [cUri]);
       }
     });
   }
@@ -723,16 +696,16 @@ extension E on int {}
   }
 
   Iterable<String> _linkedLibraryUnitUriList(
-    LinkedNodeBundle bundle2,
+    PackageBundleReader bundle,
     String libraryUriStr,
   ) {
-    var libraries = bundle2.libraries;
+    var libraries = bundle.libraries;
     var library = libraries.singleWhere((l) => l.uriStr == libraryUriStr);
     return library.units.map((u) => u.uriStr).toList();
   }
 
-  Iterable<String> _linkedLibraryUriList(LinkedNodeBundle bundle2) {
-    var libraries = bundle2.libraries;
+  Iterable<String> _linkedLibraryUriList(PackageBundleReader bundle) {
+    var libraries = bundle.libraries;
     return libraries.map((l) => l.uriStr).toList();
   }
 }
@@ -750,7 +723,7 @@ class ExitCodesTest extends BaseTest {
       var origWorkingDir = Directory.current;
       try {
         Directory.current = path.join(tempDirPath, 'proj');
-        var driver = Driver(isTesting: true);
+        var driver = Driver();
         try {
           await driver.start([
             path.join('lib', 'file.dart'),
@@ -770,12 +743,6 @@ class ExitCodesTest extends BaseTest {
         Directory.current = origWorkingDir;
       }
     });
-  }
-
-  Future<void> test_enableAssertInitializer() async {
-    await drive('data/file_with_assert_initializers.dart',
-        args: ['--enable-assert-initializers']);
-    expect(exitCode, 0);
   }
 
   Future<void> test_fatalErrors() async {
@@ -826,19 +793,13 @@ class ExitCodesTest extends BaseTest {
   }
 
   Future<void> test_partFile_reversed() async {
-    var driver = Driver(isTesting: true);
+    var driver = Driver();
     await driver.start([
       path.join(testDirectory, 'data/library_and_parts/part1.dart'),
       path.join(testDirectory, 'data/library_and_parts/lib.dart')
     ]);
     expect(exitCode, 0);
   }
-}
-
-@reflectiveTest
-class ExitCodesTest_PreviewDart2 extends ExitCodesTest {
-  @override
-  bool get usePreviewDart2 => true;
 }
 
 @reflectiveTest
@@ -898,9 +859,10 @@ linter:
     /// Lints should be enabled.
     expect(analysisOptions.lint, isTrue);
 
-    /// The analysis options file only specifies 'camel_case_types'.
+    /// The analysis options file specifies 'camel_case_types' and 'sort_pub_dependencies'.
     var lintNames = analysisOptions.lintRules.map((r) => r.name);
-    expect(lintNames, orderedEquals(['camel_case_types']));
+    expect(lintNames,
+        orderedEquals(['camel_case_types', 'sort_pub_dependencies']));
   }
 
   Future<void> test_noLints_lintsDisabled() async {
@@ -916,6 +878,12 @@ linter:
   Future<void> test_noLints_noRegisteredLints() async {
     await _runLinter_noLintsFlag();
     expect(analysisOptions.lintRules, isEmpty);
+  }
+
+  Future<void> test_pubspec_lintsInOptions_generatedLints() async {
+    await drive('data/linter_project/pubspec.yaml',
+        options: 'data/linter_project/$optionsFileName');
+    expect(bulletToDash(outSink), contains('lint - Sort pub dependencies'));
   }
 
   YamlMap _parseOptions(String src) =>
@@ -935,12 +903,6 @@ linter:
     await drive('data/no_lints_project/test_file.dart',
         options: 'data/no_lints_project/$optionsFileName');
   }
-}
-
-@reflectiveTest
-class LinterTest_PreviewDart2 extends LinterTest {
-  @override
-  bool get usePreviewDart2 => true;
 }
 
 @reflectiveTest
@@ -1091,8 +1053,7 @@ class OptionsTest extends BaseTest {
       options: path.join(testDir, 'analysis_options.yaml'),
     );
     expect(exitCode, 3);
-    expect(outSink.toString(),
-        contains('but doesn\'t end with a return statement'));
+    expect(outSink.toString(), contains('Unnecessary cast.'));
     expect(outSink.toString(), contains('isn\'t defined'));
     expect(outSink.toString(), contains('Avoid empty else statements'));
   }
@@ -1131,12 +1092,6 @@ class OptionsTest extends BaseTest {
         isNot(contains("error - Undefined class 'ExcludedUndefinedClass'")));
     expect(outSink.toString(), contains('1 error found.'));
   }
-}
-
-@reflectiveTest
-class OptionsTest_PreviewDart2 extends OptionsTest {
-  @override
-  bool get usePreviewDart2 => true;
 }
 
 class TestSource implements Source {

@@ -25,7 +25,7 @@ class RemoveEmptyConstructorBodyTest extends FixProcessorLintTest {
   String get lintCode => LintNames.empty_constructor_bodies;
 
   Future<void> test_empty() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   C() {}
 }
@@ -38,7 +38,7 @@ class C {
   }
 
   Future<void> test_incompleteComment() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   A() {/*
 ''');

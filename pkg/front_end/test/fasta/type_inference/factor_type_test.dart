@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:_fe_analyzer_shared/src/flow_analysis/factory_type_test_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
@@ -63,7 +65,7 @@ class FactorTypeTest extends FactorTypeTestMixin<DartType> {
   DartType get intStar => coreTypes.intLegacyRawType;
 
   @override
-  DartType get nullNone => coreTypes.nullType;
+  DartType get nullNone => const NullType();
 
   @override
   DartType get numNone => coreTypes.numNonNullableRawType;
@@ -102,7 +104,7 @@ class FactorTypeTest extends FactorTypeTestMixin<DartType> {
 
 main() async {
   CompilerOptions options = new CompilerOptions()
-    ..experimentalFlags[ExperimentalFlag.nonNullable] = true;
+    ..explicitExperimentalFlags[ExperimentalFlag.nonNullable] = true;
   InternalCompilerResult result = await compileScript('',
       options: options, requireMain: false, retainDataForTesting: true);
   new FactorTypeTest(

@@ -33,15 +33,15 @@ extension Extension on core::String* {
   static method toString = self::Extension|toString;
   set hashCode = self::Extension|set#hashCode;
 }
-static method Extension|get#noSuchMethod(final core::String* #this) → core::int*
+static method Extension|get#noSuchMethod(lowered final core::String* #this) → core::int*
   ;
-static method Extension|set#hashCode(final core::String* #this, core::int* value) → void
+static method Extension|set#hashCode(lowered final core::String* #this, core::int* value) → void
   ;
-static method Extension|runtimeType(final core::String* #this) → core::int*
+static method Extension|runtimeType(lowered final core::String* #this) → core::int*
   ;
-static method Extension|get#runtimeType(final core::String* #this) → () →* core::int*
+static method Extension|get#runtimeType(lowered final core::String* #this) → () →* core::int*
   return () → core::int* => self::Extension|runtimeType(#this);
-static method Extension|==(final core::String* #this, dynamic other) → dynamic
+static method Extension|==(lowered final core::String* #this, dynamic other) → dynamic
   ;
 static method Extension|toString() → core::String*
   ;

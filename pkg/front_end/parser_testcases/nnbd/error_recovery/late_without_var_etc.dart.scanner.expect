@@ -1,0 +1,35 @@
+void main() {
+late x;
+}
+
+late y;
+
+class Foo {
+late z;
+
+void foo() {
+late x;
+}
+
+static void bar() {
+late x;
+}
+}
+
+void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+late[KeywordToken] x[StringToken];[SimpleToken]
+}[SimpleToken]
+
+late[KeywordToken] y[StringToken];[SimpleToken]
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+late[KeywordToken] z[StringToken];[SimpleToken]
+
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+late[KeywordToken] x[StringToken];[SimpleToken]
+}[SimpleToken]
+
+static[KeywordToken] void[KeywordToken] bar[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+late[KeywordToken] x[StringToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken][SimpleToken]

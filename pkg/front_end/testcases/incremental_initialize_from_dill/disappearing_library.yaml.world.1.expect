@@ -1,4 +1,4 @@
-main = <No Member>;
+main = mai::main;
 library bLibrary from "org-dartlang-test:///b.dart" as bLi {
 
   static method foo() → dynamic {

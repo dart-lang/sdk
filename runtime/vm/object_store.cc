@@ -55,17 +55,6 @@ void IsolateObjectStore::PrintToJSONObject(JSONObject* jsobj) {
 }
 #endif  // !PRODUCT
 
-static UnhandledExceptionPtr CreatePreallocatedUnandledException(
-    Zone* zone,
-    const Object& out_of_memory) {
-  // Allocate pre-allocated unhandled exception object initialized with the
-  // pre-allocated OutOfMemoryError.
-  const UnhandledException& unhandled_exception =
-      UnhandledException::Handle(UnhandledException::New(
-          Instance::Cast(out_of_memory), StackTrace::Handle(zone)));
-  return unhandled_exception.raw();
-}
-
 static StackTracePtr CreatePreallocatedStackTrace(Zone* zone) {
   const Array& code_array = Array::Handle(
       zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
@@ -76,7 +65,7 @@ static StackTracePtr CreatePreallocatedStackTrace(Zone* zone) {
   // Expansion of inlined functions requires additional memory at run time,
   // avoid it.
   stack_trace.set_expand_inlined(false);
-  return stack_trace.raw();
+  return stack_trace.ptr();
 }
 
 ErrorPtr IsolateObjectStore::PreallocateObjects() {
@@ -93,10 +82,12 @@ ErrorPtr IsolateObjectStore::PreallocateObjects() {
   // pre-allocated OutOfMemoryError.
   const Object& out_of_memory =
       Object::Handle(zone, object_store_->out_of_memory());
+  const StackTrace& preallocated_stack_trace =
+      StackTrace::Handle(zone, CreatePreallocatedStackTrace(zone));
+  set_preallocated_stack_trace(preallocated_stack_trace);
   set_preallocated_unhandled_exception(UnhandledException::Handle(
-      CreatePreallocatedUnandledException(zone, out_of_memory)));
-  set_preallocated_stack_trace(
-      StackTrace::Handle(CreatePreallocatedStackTrace(zone)));
+      zone, UnhandledException::New(Instance::Cast(out_of_memory),
+                                    preallocated_stack_trace)));
 
   return Error::null();
 }
@@ -153,12 +144,9 @@ static InstancePtr AllocateObjectByClassName(const Library& library,
 ErrorPtr ObjectStore::PreallocateObjects() {
   Thread* thread = Thread::Current();
   IsolateGroup* isolate_group = thread->isolate_group();
-  Isolate* isolate = thread->isolate();
   // Either we are the object store on isolate group, or isolate group has no
   // object store and we are the object store on the isolate.
-  ASSERT(isolate_group != NULL && (isolate_group->object_store() == this ||
-                                   (isolate_group->object_store() == nullptr &&
-                                    isolate->object_store() == this)));
+  ASSERT(isolate_group != nullptr && isolate_group->object_store() == this);
 
   if (this->stack_overflow() != Instance::null()) {
     ASSERT(this->out_of_memory() != Instance::null());
@@ -174,13 +162,13 @@ ErrorPtr ObjectStore::PreallocateObjects() {
 
   result = AllocateObjectByClassName(library, Symbols::StackOverflowError());
   if (result.IsError()) {
-    return Error::Cast(result).raw();
+    return Error::Cast(result).ptr();
   }
   set_stack_overflow(Instance::Cast(result));
 
   result = AllocateObjectByClassName(library, Symbols::OutOfMemoryError());
   if (result.IsError()) {
-    return Error::Cast(result).raw();
+    return Error::Cast(result).ptr();
   }
   set_out_of_memory(Instance::Cast(result));
 
@@ -191,11 +179,13 @@ FunctionPtr ObjectStore::PrivateObjectLookup(const String& name) {
   const Library& core_lib = Library::Handle(core_library());
   const String& mangled = String::ZoneHandle(core_lib.PrivateName(name));
   const Class& cls = Class::Handle(object_class());
-  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  Thread* thread = Thread::Current();
+  const auto& error = cls.EnsureIsFinalized(thread);
   ASSERT(error == Error::null());
-  const Function& result = Function::Handle(cls.LookupDynamicFunction(mangled));
+  const Function& result = Function::Handle(
+      Resolver::ResolveDynamicFunction(thread->zone(), cls, mangled));
   ASSERT(!result.IsNull());
-  return result.raw();
+  return result.ptr();
 }
 
 void ObjectStore::InitKnownObjects() {
@@ -211,8 +201,8 @@ void ObjectStore::InitKnownObjects() {
   // The rest of these objects are only needed for code generation.
   return;
 #else
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL && isolate->object_store() == this);
+  auto isolate_group = thread->isolate_group();
+  ASSERT(isolate_group != nullptr && isolate_group->object_store() == this);
 
   const Library& async_lib = Library::Handle(zone, async_library());
   ASSERT(!async_lib.IsNull());
@@ -225,19 +215,6 @@ void ObjectStore::InitKnownObjects() {
 
   String& function_name = String::Handle(zone);
   Function& function = Function::Handle(zone);
-  function_name = async_lib.PrivateName(Symbols::SetAsyncThreadStackTrace());
-  ASSERT(!function_name.IsNull());
-  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
-                                     function_name, 0, 1, Object::null_array());
-  ASSERT(!function.IsNull());
-  set_async_set_thread_stack_trace(function);
-
-  function_name = async_lib.PrivateName(Symbols::ClearAsyncThreadStackTrace());
-  ASSERT(!function_name.IsNull());
-  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
-                                     function_name, 0, 0, Object::null_array());
-  ASSERT(!function.IsNull());
-  set_async_clear_thread_stack_trace(function);
 
   function_name = async_lib.PrivateName(Symbols::AsyncStarMoveNextHelper());
   ASSERT(!function_name.IsNull());
@@ -249,11 +226,23 @@ void ObjectStore::InitKnownObjects() {
   function_name = async_lib.PrivateName(Symbols::_CompleteOnAsyncReturn());
   ASSERT(!function_name.IsNull());
   function = Resolver::ResolveStatic(async_lib, Object::null_string(),
-                                     function_name, 0, 2, Object::null_array());
+                                     function_name, 0, 3, Object::null_array());
   ASSERT(!function.IsNull());
   set_complete_on_async_return(function);
   if (FLAG_async_debugger) {
     // Disable debugging and inlining the _CompleteOnAsyncReturn function.
+    function.set_is_debuggable(false);
+    function.set_is_inlinable(false);
+  }
+
+  function_name = async_lib.PrivateName(Symbols::_CompleteOnAsyncError());
+  ASSERT(!function_name.IsNull());
+  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                     function_name, 0, 4, Object::null_array());
+  ASSERT(!function.IsNull());
+  set_complete_on_async_error(function);
+  if (FLAG_async_debugger) {
+    // Disable debugging and inlining the _CompleteOnAsyncError function.
     function.set_is_debuggable(false);
     function.set_is_inlinable(false);
   }
@@ -266,7 +255,7 @@ void ObjectStore::InitKnownObjects() {
   if (FLAG_async_debugger) {
     // Disable debugging and inlining of all functions on the
     // _AsyncStarStreamController class.
-    const Array& functions = Array::Handle(zone, cls.functions());
+    const Array& functions = Array::Handle(zone, cls.current_functions());
     for (intptr_t i = 0; i < functions.Length(); i++) {
       function ^= functions.At(i);
       if (function.IsNull()) {
@@ -375,19 +364,17 @@ void ObjectStore::LazyInitFutureTypes() {
     ASSERT(!type.IsNull());
     type_args = TypeArguments::New(1);
     type_args.SetTypeAt(0, type);
-    type = Type::New(cls, type_args, TokenPosition::kNoSource,
-                     Nullability::kNonNullable);
+    type = Type::New(cls, type_args, Nullability::kNonNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(thread, nullptr);
     set_non_nullable_future_never_type(type);
     type = null_type();
     ASSERT(!type.IsNull());
     type_args = TypeArguments::New(1);
     type_args.SetTypeAt(0, type);
-    type = Type::New(cls, type_args, TokenPosition::kNoSource,
-                     Nullability::kNullable);
+    type = Type::New(cls, type_args, Nullability::kNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(thread, nullptr);
     set_nullable_future_null_type(type);
     type ^= cls.RareType();
     set_non_nullable_future_rare_type(type);

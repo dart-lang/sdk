@@ -23,7 +23,6 @@ TypeTestingStubNamer::TypeTestingStubNamer()
     : lib_(Library::Handle()),
       klass_(Class::Handle()),
       type_(AbstractType::Handle()),
-      type_arguments_(TypeArguments::Handle()),
       string_(String::Handle()) {}
 
 const char* TypeTestingStubNamer::StubNameForType(
@@ -36,9 +35,9 @@ const char* TypeTestingStubNamer::StringifyType(
     const AbstractType& type) const {
   NoSafepointScope no_safepoint;
   Zone* Z = Thread::Current()->zone();
-  if (type.IsType() && !type.IsFunctionType()) {
+  if (type.IsType()) {
     const intptr_t cid = Type::Cast(type).type_class_id();
-    ClassTable* class_table = Isolate::Current()->class_table();
+    ClassTable* class_table = IsolateGroup::Current()->class_table();
     klass_ = class_table->At(cid);
     ASSERT(!klass_.IsNull());
 
@@ -56,16 +55,18 @@ const char* TypeTestingStubNamer::StringifyType(
         OS::SCreate(Z, "%s_%s", curl, klass_.ScrubbedNameCString()));
 
     const intptr_t type_parameters = klass_.NumTypeParameters();
+    auto& type_arguments = TypeArguments::Handle();
     if (type.arguments() != TypeArguments::null() && type_parameters > 0) {
-      type_arguments_ = type.arguments();
-      ASSERT(type_arguments_.Length() >= type_parameters);
-      const intptr_t length = type_arguments_.Length();
+      type_arguments = type.arguments();
+      ASSERT(type_arguments.Length() >= type_parameters);
+      const intptr_t length = type_arguments.Length();
       for (intptr_t i = 0; i < type_parameters; ++i) {
-        type_ = type_arguments_.TypeAt(length - type_parameters + i);
+        type_ = type_arguments.TypeAt(length - type_parameters + i);
         concatenated =
             OS::SCreate(Z, "%s__%s", concatenated, StringifyType(type_));
       }
     }
+
     return concatenated;
   } else if (type.IsTypeParameter()) {
     string_ = TypeParameter::Cast(type).name();
@@ -91,11 +92,12 @@ const char* TypeTestingStubNamer::AssemblerSafeName(char* cname) {
 CodePtr TypeTestingStubGenerator::DefaultCodeForType(
     const AbstractType& type,
     bool lazy_specialize /* = true */) {
-  auto isolate = Isolate::Current();
+  auto isolate_group = IsolateGroup::Current();
 
   if (type.IsTypeRef()) {
-    return isolate->null_safety() ? StubCode::DefaultTypeTest().raw()
-                                  : StubCode::DefaultNullableTypeTest().raw();
+    return isolate_group->use_strict_null_safety_checks()
+               ? StubCode::DefaultTypeTest().ptr()
+               : StubCode::DefaultNullableTypeTest().ptr();
   }
 
   // During bootstrapping we have no access to stubs yet, so we'll just return
@@ -108,30 +110,36 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
   }
 
   if (type.IsTopTypeForSubtyping()) {
-    return StubCode::TopTypeTypeTest().raw();
+    return StubCode::TopTypeTypeTest().ptr();
   }
   if (type.IsTypeParameter()) {
     const bool nullable = Instance::NullIsAssignableTo(type);
     if (nullable) {
-      return StubCode::NullableTypeParameterTypeTest().raw();
+      return StubCode::NullableTypeParameterTypeTest().ptr();
     } else {
-      return StubCode::TypeParameterTypeTest().raw();
+      return StubCode::TypeParameterTypeTest().ptr();
     }
+  }
+
+  if (type.IsFunctionType()) {
+    const bool nullable = Instance::NullIsAssignableTo(type);
+    return nullable ? StubCode::DefaultNullableTypeTest().ptr()
+                    : StubCode::DefaultTypeTest().ptr();
   }
 
   if (type.IsType()) {
     const bool should_specialize = !FLAG_precompiled_mode && lazy_specialize;
     const bool nullable = Instance::NullIsAssignableTo(type);
     if (should_specialize) {
-      return nullable ? StubCode::LazySpecializeNullableTypeTest().raw()
-                      : StubCode::LazySpecializeTypeTest().raw();
+      return nullable ? StubCode::LazySpecializeNullableTypeTest().ptr()
+                      : StubCode::LazySpecializeTypeTest().ptr();
     } else {
-      return nullable ? StubCode::DefaultNullableTypeTest().raw()
-                      : StubCode::DefaultTypeTest().raw();
+      return nullable ? StubCode::DefaultNullableTypeTest().ptr()
+                      : StubCode::DefaultTypeTest().ptr();
     }
   }
 
-  return StubCode::UnreachableTypeTest().raw();
+  return StubCode::UnreachableTypeTest().ptr();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -146,7 +154,7 @@ void TypeTestingStubGenerator::SpecializeStubFor(Thread* thread,
 #endif
 
 TypeTestingStubGenerator::TypeTestingStubGenerator()
-    : object_store_(Isolate::Current()->object_store()) {}
+    : object_store_(IsolateGroup::Current()->object_store()) {}
 
 CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
     const AbstractType& type) {
@@ -159,7 +167,7 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
   }
 
   if (type.IsTopTypeForSubtyping()) {
-    return StubCode::TopTypeTypeTest().raw();
+    return StubCode::TopTypeTypeTest().ptr();
   }
 
   if (type.IsCanonical()) {
@@ -168,7 +176,7 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
       const Code& code = Code::Handle(
           TypeTestingStubGenerator::BuildCodeForType(Type::Cast(type)));
       if (!code.IsNull()) {
-        return code.raw();
+        return code.ptr();
       }
 
       // Fall back to default.
@@ -203,7 +211,7 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
 
   auto& slow_tts_stub = Code::ZoneHandle(zone);
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    slow_tts_stub = thread->isolate()->object_store()->slow_tts_stub();
+    slow_tts_stub = thread->isolate_group()->object_store()->slow_tts_stub();
   }
 
   // To use the already-defined __ Macro !
@@ -235,6 +243,7 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   //   a) We allocate an instructions object, which might cause us to
   //      temporarily flip page protections from (RX -> RW -> RX).
   //
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   thread->isolate_group()->RunWithStoppedMutators(install_code_fun,
                                                   /*use_force_growth=*/true);
 
@@ -255,7 +264,7 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   }
 #endif  // !PRODUCT
 
-  return code.raw();
+  return code.ptr();
 }
 
 void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
@@ -280,7 +289,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     __ Bind(&continue_checking);
 
   } else if (type.IsObjectType()) {
-    ASSERT(type.IsNonNullable() && Isolate::Current()->null_safety());
+    ASSERT(type.IsNonNullable() &&
+           IsolateGroup::Current()->use_strict_null_safety_checks());
     compiler::Label continue_checking;
     __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
     __ BranchIf(EQUAL, &continue_checking);
@@ -492,8 +502,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     // Weak NNBD mode uses LEGACY_SUBTYPE which ignores nullability.
     // We don't need to check nullability of LHS for nullable and legacy RHS
     // ("Right Legacy", "Right Nullable" rules).
-    if (Isolate::Current()->null_safety() && !type_arg.IsNullable() &&
-        !type_arg.IsLegacy()) {
+    if (IsolateGroup::Current()->use_strict_null_safety_checks() &&
+        !type_arg.IsNullable() && !type_arg.IsLegacy()) {
       // Nullable type is not a subtype of non-nullable type.
       // TODO(dartbug.com/40736): Allocate a register for instance type argument
       // and avoid reloading it.
@@ -523,8 +533,8 @@ void RegisterTypeArgumentsUse(const Function& function,
   //      type_arguments <- Constant(#TypeArguments: [ ... ])
   //
   //   Case b)
-  //      type_arguments <- InstantiateTypeArguments(
-  //          <type-expr-with-parameters>, ita, fta)
+  //      type_arguments <- InstantiateTypeArguments(ita, fta, uta)
+  //      (where uta may not be a constant non-null TypeArguments object)
   //
   //   Case c)
   //      type_arguments <- LoadField(vx)
@@ -539,13 +549,16 @@ void RegisterTypeArgumentsUse(const Function& function,
     const Object& object = constant->value();
     ASSERT(object.IsNull() || object.IsTypeArguments());
     const TypeArguments& type_arguments =
-        TypeArguments::Handle(TypeArguments::RawCast(object.raw()));
+        TypeArguments::Handle(TypeArguments::RawCast(object.ptr()));
     type_usage_info->UseTypeArgumentsInInstanceCreation(klass, type_arguments);
   } else if (InstantiateTypeArgumentsInstr* instantiate =
                  type_arguments->AsInstantiateTypeArguments()) {
-    const TypeArguments& ta = instantiate->type_arguments();
-    ASSERT(!ta.IsNull());
-    type_usage_info->UseTypeArgumentsInInstanceCreation(klass, ta);
+    if (instantiate->type_arguments()->BindsToConstant() &&
+        !instantiate->type_arguments()->BoundConstant().IsNull()) {
+      const auto& ta =
+          TypeArguments::Cast(instantiate->type_arguments()->BoundConstant());
+      type_usage_info->UseTypeArgumentsInInstanceCreation(klass, ta);
+    }
   } else if (LoadFieldInstr* load_field = type_arguments->AsLoadField()) {
     Definition* instance = load_field->instance()->definition();
     intptr_t cid = instance->Type()->ToNullableCid();
@@ -566,7 +579,7 @@ void RegisterTypeArgumentsUse(const Function& function,
     }
     if (cid != kDynamicCid) {
       const Class& instance_klass =
-          Class::Handle(Isolate::Current()->class_table()->At(cid));
+          Class::Handle(IsolateGroup::Current()->class_table()->At(cid));
       if (load_field->slot().IsTypeArguments() && instance_klass.IsGeneric() &&
           compiler::target::Class::TypeArgumentsFieldOffset(instance_klass) ==
               load_field->slot().offset_in_bytes()) {
@@ -641,7 +654,7 @@ const TypeArguments& TypeArgumentInstantiator::InstantiateTypeArguments(
             AbstractType::Handle(TypeRef::Cast(type_).type()).IsCanonical()));
   }
   *instantiated_type_arguments =
-      instantiated_type_arguments->Canonicalize(NULL);
+      instantiated_type_arguments->Canonicalize(Thread::Current(), nullptr);
   return *instantiated_type_arguments;
 }
 
@@ -669,7 +682,7 @@ AbstractTypePtr TypeArgumentInstantiator::InstantiateType(
     return nullptr;
   } else if (type.IsType()) {
     if (type.IsInstantiated() || type.arguments() == TypeArguments::null()) {
-      return type.raw();
+      return type.ptr();
     }
 
     const Type& from = Type::Cast(type);
@@ -679,14 +692,14 @@ AbstractTypePtr TypeArgumentInstantiator::InstantiateType(
     ScopedHandle<TypeArguments> to_type_arguments(&type_arguments_handles_);
 
     *to_type_arguments = TypeArguments::null();
-    *to = Type::New(klass_, *to_type_arguments, type.token_pos());
+    *to = Type::New(klass_, *to_type_arguments);
 
     *to_type_arguments = from.arguments();
     to->set_arguments(InstantiateTypeArguments(klass_, *to_type_arguments));
     to->SetIsFinalized();
-    *to ^= to->Canonicalize(NULL);
+    *to ^= to->Canonicalize(Thread::Current(), nullptr);
 
-    return to->raw();
+    return to->ptr();
   }
   UNREACHABLE();
   return NULL;
@@ -698,7 +711,8 @@ TypeUsageInfo::TypeUsageInfo(Thread* thread)
       finder_(zone_),
       assert_assignable_types_(),
       instance_creation_arguments_(
-          new TypeArgumentsSet[thread->isolate()->class_table()->NumCids()]),
+          new TypeArgumentsSet
+              [thread->isolate_group()->class_table()->NumCids()]),
       klass_(Class::Handle(zone_)) {
   thread->set_type_usage_info(this);
 }
@@ -740,12 +754,12 @@ void TypeUsageInfo::UseTypeArgumentsInInstanceCreation(
       return;
     }
 
-    klass_ = klass.raw();
+    klass_ = klass.ptr();
     while (klass_.NumTypeArguments() > 0) {
       const intptr_t cid = klass_.id();
       TypeArgumentsSet& set = instance_creation_arguments_[cid];
       if (!set.HasKey(&ta)) {
-        set.Insert(&TypeArguments::ZoneHandle(zone_, ta.raw()));
+        set.Insert(&TypeArguments::ZoneHandle(zone_, ta.ptr()));
       }
       klass_ = klass_.SuperClass();
     }
@@ -753,7 +767,7 @@ void TypeUsageInfo::UseTypeArgumentsInInstanceCreation(
 }
 
 void TypeUsageInfo::BuildTypeUsageInformation() {
-  ClassTable* class_table = thread()->isolate()->class_table();
+  ClassTable* class_table = thread()->isolate_group()->class_table();
   const intptr_t cid_count = class_table->NumCids();
 
   // Step 1) Propagate instantiated type argument vectors.
@@ -806,7 +820,7 @@ void TypeUsageInfo::PropagateTypeArguments(ClassTable* class_table,
           if (!klass.IsNull()) {
             // We know that "klass<type_arguments[0:N]>" happens inside
             // [enclosing_class].
-            if (enclosing_class.raw() != klass.raw()) {
+            if (enclosing_class.ptr() != klass.ptr()) {
               // Now we try to instantiate [type_arguments] with all the known
               // instantiator type argument vectors of the [enclosing_class].
               const intptr_t enclosing_class_cid = enclosing_class.id();
@@ -849,7 +863,7 @@ void TypeUsageInfo::PropagateTypeArguments(ClassTable* class_table,
                 TypeArguments::RawCast(delayed_type_argument_set.At(i));
             if (!type_argument_set.HasKey(&temp_type_arguments)) {
               type_argument_set.Insert(
-                  &TypeArguments::ZoneHandle(zone_, temp_type_arguments.raw()));
+                  &TypeArguments::ZoneHandle(zone_, temp_type_arguments.ptr()));
             }
           }
           klass = klass.SuperClass();
@@ -921,16 +935,16 @@ void TypeUsageInfo::AddToSetIfParameter(TypeParameterSet* set,
                                         const AbstractType* type,
                                         TypeParameter* param) {
   if (type->IsTypeParameter()) {
-    *param ^= type->raw();
+    *param ^= type->ptr();
     if (!param->IsNull() && !set->HasKey(param)) {
-      set->Insert(&TypeParameter::Handle(zone_, param->raw()));
+      set->Insert(&TypeParameter::Handle(zone_, param->ptr()));
     }
   }
 }
 
 void TypeUsageInfo::AddTypeToSet(TypeSet* set, const AbstractType* type) {
   if (!set->HasKey(type)) {
-    set->Insert(&AbstractType::ZoneHandle(zone_, type->raw()));
+    set->Insert(&AbstractType::ZoneHandle(zone_, type->ptr()));
   }
 }
 

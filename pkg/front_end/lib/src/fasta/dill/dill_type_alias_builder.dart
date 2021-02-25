@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.dill_typedef_builder;
 
-import 'package:kernel/ast.dart'
-    show DartType, InterfaceType, InvalidType, Typedef;
+import 'package:kernel/ast.dart' show DartType, InvalidType, NullType, Typedef;
 
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -90,14 +91,5 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   @override
-  bool get isNullAlias {
-    DartType dartType = typedef.type;
-    if (dartType is InterfaceType) {
-      Uri importUri = dartType.classNode.enclosingLibrary.importUri;
-      return dartType.classNode.name == "Null" &&
-          importUri.scheme == "dart" &&
-          importUri.path == "core";
-    }
-    return false;
-  }
+  bool get isNullAlias => typedef.type is NullType;
 }

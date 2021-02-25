@@ -46,16 +46,19 @@ declare_args() {
 # ......snapshots/
 # ........analysis_server.dart.snapshot
 # ........dart2js.dart.snapshot
+# ........dart2native.dart.snapshot (if not on ia32)
 # ........dartanalyzer.dart.snapshot
-# ........dds.dart.snapshot
+# ........dartdev.dart.snapshot
+# ........dartdev.dill
+# ........dartdevc.dart.snapshot
 # ........dartdoc.dart.snapshot
 # ........dartfmt.dart.snapshot
-# ........dartdevc.dart.snapshot
+# ........dds.dart.snapshot
+# ........frontend_server.dart.snapshot
 # ........gen_kernel.dart.snapshot (if not on ia32)
-# ........dart2native.dart.snapshot (if not on ia32)
+# ........kernel-service.dart.snapshot
 # ........kernel_worker.dart.snapshot
 # ........pub.dart.snapshot
-# ........frontend_server.dart.snapshot
 # ......resources/
 # ........dartdoc/
 # ...........packages
@@ -73,7 +76,6 @@ declare_args() {
 # ........dart2js_server_platform.dill
 # ........dart2js_platform_strong.dill
 # ........dart2js_server_platform_strong.dill
-# ........dartdev.dill
 # ........vm_platform_strong.dill
 # ........dev_compiler/
 # ......async/
@@ -90,7 +92,6 @@ declare_args() {
 # ......math/
 # ......mirrors/
 # ......typed_data/
-# ......wasm/
 # ......api_readme.md
 
 # Scripts that go under bin/
@@ -118,6 +119,10 @@ _platform_sdk_snapshots = [
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
   ],
   [
+    "dartdev",
+    "../utils/dartdev:dartdev",
+  ],
+  [
     "dartdoc",
     "../utils/dartdoc",
   ],
@@ -153,62 +158,24 @@ if (dart_target_arch != "arm") {
       ] ]
 }
 
-_full_sdk_snapshots = [
-  [
-    "dart2js",
-    "../utils/compiler:dart2js",
-  ],
-  [
-    "dartanalyzer",
-    "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
-  ],
-  [
-    "dartdevc",
-    "../utils/dartdevc",
-  ],
-  [
-    "dartdoc",
-    "../utils/dartdoc",
-  ],
-  [
-    "dartfmt",
-    "../utils/dartfmt",
-  ],
-  [
-    "dds",
-    "../utils/dds:dds",
-  ],
-  [
-    "kernel_worker",
-    "../utils/bazel:kernel_worker",
-  ],
-  [
-    "pub",
-    "../utils/pub",
-  ],
-  [
-    "frontend_server",
-    "../utils/kernel-service:frontend_server",
-  ],
-]
-if (dart_target_arch != "ia32") {
-  _full_sdk_snapshots += [ [
-        "dart2native",
-        "../utils/dart2native:generate_dart2native_snapshot",
-      ] ]
-}
-if (create_kernel_service_snapshot) {
-  _full_sdk_snapshots += [ [
-        "kernel-service",
-        "../utils/kernel-service:kernel-service_snapshot",
-      ] ]
-}
-if (dart_target_arch != "arm") {
-  _full_sdk_snapshots += [ [
-        "analysis_server",
-        "../utils/analysis_server",
-      ] ]
-}
+_full_sdk_snapshots = _platform_sdk_snapshots + [
+                        [
+                          "dart2js",
+                          "../utils/compiler:dart2js",
+                        ],
+                        [
+                          "dartdevc",
+                          "../utils/dartdevc",
+                        ],
+                        [
+                          "kernel_worker",
+                          "../utils/bazel:kernel_worker",
+                        ],
+                        [
+                          "frontend_server",
+                          "../utils/kernel-service:frontend_server",
+                        ],
+                      ]
 
 # Libraries that go under lib/
 _full_sdk_libraries = [
@@ -232,7 +199,6 @@ _full_sdk_libraries = [
   "mirrors",
   "svg",
   "typed_data",
-  "wasm",
   "web_audio",
   "web_gl",
   "web_sql",
@@ -315,45 +281,6 @@ if (is_win) {
       ignore_patterns = ".svn"
     },
   ]
-}
-
-if (target_cpu == "x64") {
-  if (is_linux || is_android || is_fuchsia) {
-    copy_tree_specs += [
-      {
-        target = "copy_libtensorflowlite_c"
-        visibility = [ ":create_common_sdk" ]
-        deps = [ ":copy_libraries" ]
-        source = "../third_party/pkg/tflite_native/lib/src/blobs"
-        dest = "$root_out_dir/dart-sdk/bin/snapshots"
-        ignore_patterns = "*.dll,*mac64.so"
-      },
-    ]
-  }
-  if (is_mac) {
-    copy_tree_specs += [
-      {
-        target = "copy_libtensorflowlite_c"
-        visibility = [ ":create_common_sdk" ]
-        deps = [ ":copy_libraries" ]
-        source = "../third_party/pkg/tflite_native/lib/src/blobs"
-        dest = "$root_out_dir/dart-sdk/bin/snapshots"
-        ignore_patterns = "*.dll,*linux64.so"
-      },
-    ]
-  }
-  if (is_win) {
-    copy_tree_specs += [
-      {
-        target = "copy_libtensorflowlite_c"
-        visibility = [ ":create_common_sdk" ]
-        deps = [ ":copy_libraries" ]
-        source = "../third_party/pkg/tflite_native/lib/src/blobs"
-        dest = "$root_out_dir/dart-sdk/bin/snapshots"
-        ignore_patterns = "*.so"
-      },
-    ]
-  }
 }
 
 # This generates targets for everything in copy_tree_specs. The targets have the
@@ -586,16 +513,23 @@ copy("copy_wasmer") {
   visibility = [ ":create_common_sdk" ]
   deps = [
     ":copy_libraries",
-    "../third_party/wasmer:wasmer_lib",
+    "../third_party/wasmer:wasmer_wrap",
   ]
-  outputs = [ "$root_out_dir/dart-sdk/bin/third_party/wasmer/{{source_file_part}}" ]
   if (is_win) {
-    sources = [ "$target_out_dir/../third_party/wasmer/wasmer.dll" ]
+    prefix = ""
+    suffix = "dll"
   } else if (is_mac) {
-    sources = [ "$target_out_dir/../third_party/wasmer/libwasmer.dylib" ]
+    prefix = "lib"
+    suffix = "dylib"
   } else {
-    sources = [ "$target_out_dir/../third_party/wasmer/libwasmer.so" ]
+    # TODO(dartbug.com/37882): Support Fuchsia.
+    prefix = "lib"
+    suffix = "so"
   }
+  sources = [ "$root_out_dir/${prefix}wasmer_wrap.$suffix" ]
+  outputs = [
+    "$root_out_dir/dart-sdk/bin/third_party/wasmer/${prefix}wasmer.$suffix",
+  ]
 }
 
 # This rule copies dill files to lib/_internal.
@@ -616,7 +550,7 @@ copy("copy_dartdev_dill_files") {
     "../utils/dartdev:dartdev",
   ]
   sources = [ "$root_out_dir/dartdev.dill" ]
-  outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
+  outputs = [ "$root_out_dir/dart-sdk/bin/snapshots/{{source_file_part}}" ]
 }
 
 copy("copy_dart2js_dill_files") {
@@ -754,13 +688,16 @@ copy("copy_headers") {
   visibility = [ ":create_common_sdk" ]
   sources = [
     "../runtime/include/dart_api.h",
+    "../runtime/include/dart_api_dl.c",
     "../runtime/include/dart_api_dl.h",
     "../runtime/include/dart_native_api.h",
     "../runtime/include/dart_tools_api.h",
     "../runtime/include/dart_version.h",
     "../runtime/include/internal/dart_api_dl_impl.h",
   ]
-  outputs = [ "$root_out_dir/dart-sdk/include/{{source_file_part}}" ]
+
+  # Some magic to recover the folder structure inside the include folder.
+  outputs = [ "$root_out_dir/dart-sdk/include/{{source_root_relative_dir}}/../../{{source_file_part}}" ]
 }
 
 # This rule copies libraries.json files to lib/
@@ -914,9 +851,6 @@ group("create_common_sdk") {
 
   if (is_win) {
     public_deps += [ ":copy_7zip" ]
-  }
-  if (target_cpu == "x64") {
-    public_deps += [ ":copy_libtensorflowlite_c" ]
   }
 
   # CIPD only has versions of the Rust compiler for linux and mac x64 hosts.

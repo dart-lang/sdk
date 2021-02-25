@@ -5,23 +5,26 @@ import "dart:_internal" as _in;
 
 class A extends core::Object {
   field core::int? _#A#x = null;
+  field core::bool _#A#x#isSet = false;
   field core::int? _#A#y = null;
   field core::bool _#A#y#isSet = false;
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   get x() → core::int
-    return let final core::int? #t1 = this.{self::A::_#A#x} in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'x' has not been initialized.") : #t1{core::int};
+    return this.{self::A::_#A#x#isSet} ?{core::int} let final core::int? #t1 = this.{self::A::_#A#x} in #t1{core::int} : throw new _in::LateError::fieldNI("x");
   set x(core::int #t2) → void
-    if(this.{self::A::_#A#x}.==(null))
+    if(this.{self::A::_#A#x#isSet})
+      throw new _in::LateError::fieldAI("x");
+    else {
+      this.{self::A::_#A#x#isSet} = true;
       this.{self::A::_#A#x} = #t2;
-    else
-      throw new _in::LateInitializationErrorImpl::•("Field 'x' has already been initialized.");
+    }
   get y() → core::int?
-    return this.{self::A::_#A#y#isSet} ?{core::int?} this.{self::A::_#A#y} : throw new _in::LateInitializationErrorImpl::•("Field 'y' has not been initialized.");
+    return this.{self::A::_#A#y#isSet} ?{core::int?} this.{self::A::_#A#y} : throw new _in::LateError::fieldNI("y");
   set y(core::int? #t3) → void
     if(this.{self::A::_#A#y#isSet})
-      throw new _in::LateInitializationErrorImpl::•("Field 'y' has already been initialized.");
+      throw new _in::LateError::fieldAI("y");
     else {
       this.{self::A::_#A#y#isSet} = true;
       this.{self::A::_#A#y} = #t3;
@@ -38,18 +41,27 @@ class B extends self::A {
 }
 class C extends self::A {
   field core::int? _#C#x = null;
+  field core::bool _#C#x#isSet = false;
   field core::int? _#C#y = null;
   field core::bool _#C#y#isSet = false;
   synthetic constructor •() → self::C
     : super self::A::•()
     ;
-  get x() → core::int
-    return let final core::int? #t4 = this.{self::C::_#C#x} in #t4.==(null) ?{core::int} let final core::int #t5 = 2 in this.{self::C::_#C#x}.==(null) ?{core::int} this.{self::C::_#C#x} = #t5 : throw new _in::LateInitializationErrorImpl::•("Field 'x' has been assigned during initialization.") : #t4{core::int};
+  get x() → core::int {
+    if(!this.{self::C::_#C#x#isSet}) {
+      final core::int #t4 = 2;
+      if(this.{self::C::_#C#x#isSet})
+        throw new _in::LateError::fieldADI("x");
+      this.{self::C::_#C#x} = #t4;
+      this.{self::C::_#C#x#isSet} = true;
+    }
+    return let final core::int? #t5 = this.{self::C::_#C#x} in #t5{core::int};
+  }
   get y() → core::int? {
     if(!this.{self::C::_#C#y#isSet}) {
       final core::int? #t6 = 2;
       if(this.{self::C::_#C#y#isSet})
-        throw new _in::LateInitializationErrorImpl::•("Field 'y' has been assigned during initialization.");
+        throw new _in::LateError::fieldADI("y");
       this.{self::C::_#C#y} = #t6;
       this.{self::C::_#C#y#isSet} = true;
     }
@@ -81,7 +93,7 @@ static method throws(() → dynamic f, core::String message) → dynamic {
   try {
     value = f.call();
   }
-  on core::LateInitializationError catch(final core::LateInitializationError e) {
+  on core::Error catch(final core::Error e) {
     core::print(e);
     return;
   }

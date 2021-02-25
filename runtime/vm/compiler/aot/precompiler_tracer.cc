@@ -32,6 +32,7 @@ PrecompilerTracer* PrecompilerTracer::StartTracingIfRequested(
 PrecompilerTracer::PrecompilerTracer(Precompiler* precompiler, void* stream)
     : zone_(Thread::Current()->zone()),
       precompiler_(precompiler),
+      buffer_(1024),
       stream_(stream),
       strings_(HashTables::New<StringTable>(1024)),
       entities_(HashTables::New<EntityTable>(1024)),
@@ -46,6 +47,11 @@ void PrecompilerTracer::Finalize() {
   Write(",");
   WriteStringTable();
   Write("}\n");
+
+  const intptr_t output_length = buffer_.length();
+  char* output = buffer_.Steal();
+  Dart::file_write_callback()(output, output_length, stream_);
+  free(output);
   Dart::file_close_callback()(stream_);
 
   strings_.Release();
@@ -147,7 +153,7 @@ intptr_t PrecompilerTracer::InternEntity(const Object& obj) {
     } else if (obj.IsField()) {
       cls_ = Field::Cast(obj).Owner();
     }
-    if (cls_.raw() != Class::null()) {
+    if (cls_.ptr() != Class::null()) {
       InternEntity(cls_);
     }
   }

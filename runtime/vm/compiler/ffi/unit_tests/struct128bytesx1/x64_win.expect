@@ -1,0 +1,4 @@
+P(rdx int64) Compound(size: 128)
+r8 int32
+=>
+P(rcx int64, ret:rax int64) Compound(size: 128)

@@ -68,9 +68,9 @@ class ScannerResult {
 
 /// Scan/tokenize the given UTF8 [bytes].
 ScannerResult scan(List<int> bytes,
-    {ScannerConfiguration configuration,
+    {ScannerConfiguration? configuration,
     bool includeComments: false,
-    LanguageVersionChanged languageVersionChanged}) {
+    LanguageVersionChanged? languageVersionChanged}) {
   if (bytes.last != 0) {
     throw new ArgumentError("[bytes]: the last byte must be null.");
   }
@@ -83,9 +83,10 @@ ScannerResult scan(List<int> bytes,
 
 /// Scan/tokenize the given [source].
 ScannerResult scanString(String source,
-    {ScannerConfiguration configuration,
+    {ScannerConfiguration? configuration,
     bool includeComments: false,
-    LanguageVersionChanged languageVersionChanged}) {
+    LanguageVersionChanged? languageVersionChanged}) {
+  // ignore: unnecessary_null_comparison
   assert(source != null, 'source must not be null');
   StringScanner scanner = new StringScanner(source,
       configuration: configuration,
@@ -95,10 +96,10 @@ ScannerResult scanString(String source,
 }
 
 ScannerResult _tokenizeAndRecover(Scanner scanner,
-    {List<int> bytes, String source}) {
+    {List<int>? bytes, String? source}) {
   Token tokens = scanner.tokenize();
   if (scanner.hasErrors) {
-    if (bytes == null) bytes = utf8.encode(source);
+    if (bytes == null) bytes = utf8.encode(source!);
     tokens = scannerRecovery(bytes, tokens, scanner.lineStarts);
   }
   return new ScannerResult(tokens, scanner.lineStarts, scanner.hasErrors);

@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -16,15 +16,12 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveQuestionMarkTest extends FixProcessorTest {
-  @override
-  List<String> get experiments => [EnableString.non_nullable];
-
+class RemoveQuestionMarkTest extends FixProcessorTest with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.REMOVE_QUESTION_MARK;
 
   Future<void> test_catchClause() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 void f() {
   try {
@@ -43,7 +40,7 @@ void f() {
   }
 
   Future<void> test_extendsClause() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 class B extends A? {}
 ''');
@@ -54,7 +51,7 @@ class B extends A {}
   }
 
   Future<void> test_implementsClause() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 class B implements A? {}
 ''');
@@ -65,7 +62,7 @@ class B implements A {}
   }
 
   Future<void> test_onClause_class() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 mixin B on A? {}
 ''');
@@ -76,7 +73,7 @@ mixin B on A {}
   }
 
   Future<void> test_withClause_class() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 class B with A? {}
 ''');
@@ -87,7 +84,7 @@ class B with A {}
   }
 
   Future<void> test_withClause_mixin() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 mixin A {}
 class B with A? {}
 ''');

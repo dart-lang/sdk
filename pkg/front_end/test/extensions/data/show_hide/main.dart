@@ -2,7 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*library: scope=[lib1.dart.ShownExtension1,lib2.dart.ShownExtension2]*/
+// @dart = 2.9
+
+/*library: scope=[
+  async.dart.FutureExtensions,
+  lib1.dart.ShownExtension1,
+  lib2.dart.ShownExtension2]*/
 
 import 'lib1.dart' show ShownExtension1;
 import 'lib2.dart' hide HiddenExtension2;

@@ -74,11 +74,6 @@ abstract class JsToElementMap {
   /// Returns the [ClassEntity] corresponding to the class [node].
   ClassEntity getClass(ir.Class node);
 
-  /// Returns the super [MemberEntity] for a super invocation, get or set of
-  /// [name] from the member [context].
-  MemberEntity getSuperMember(MemberEntity context, ir.Name name,
-      {bool setter: false});
-
   /// Returns the `noSuchMethod` [FunctionEntity] call from a
   /// `super.noSuchMethod` invocation within [cls].
   FunctionEntity getSuperNoSuchMethod(ClassEntity cls);
@@ -173,9 +168,6 @@ abstract class KernelToTypeInferenceMap {
 
   /// Returns the inferred receiver type of the dynamic [read].
   AbstractValue receiverTypeOfGet(ir.PropertyGet read);
-
-  /// Returns the inferred receiver type of the direct [read].
-  AbstractValue receiverTypeOfDirectGet(ir.DirectPropertyGet read);
 
   /// Returns the inferred receiver type of the dynamic [write].
   AbstractValue receiverTypeOfSet(
@@ -520,7 +512,7 @@ ir.Node getFieldInitializer(JsToElementMap elementMap, FieldEntity field) {
   ir.Field node = definition.node;
   if (node.isInstanceMember &&
       !node.isFinal &&
-      node.initializer is ir.NullLiteral) {
+      isNullLiteral(node.initializer)) {
     return null;
   }
   return node.initializer;

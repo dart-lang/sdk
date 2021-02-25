@@ -10,6 +10,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -27,6 +28,7 @@ import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
+import 'package:analyzer/src/error/ignore_validator.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/override_verifier.dart';
@@ -191,9 +193,8 @@ class LibraryAnalyzer {
 
   void _computeConstantErrors(
       ErrorReporter errorReporter, CompilationUnit unit) {
-    ConstantVerifier constantVerifier = ConstantVerifier(
-        errorReporter, _libraryElement, _declaredVariables,
-        featureSet: unit.featureSet);
+    ConstantVerifier constantVerifier =
+        ConstantVerifier(errorReporter, _libraryElement, _declaredVariables);
     unit.accept(constantVerifier);
   }
 
@@ -244,6 +245,16 @@ class LibraryAnalyzer {
         }
       });
     }
+
+    // This must happen after all other diagnostics have been computed but
+    // before the list of diagnostics has been filtered.
+    for (var file in _library.libraryFiles) {
+      if (file.source != null) {
+        IgnoreValidator(_getErrorReporter(file), _getErrorListener(file).errors,
+                _fileToIgnoreInfo[file], _fileToLineInfo[file])
+            .reportErrors();
+      }
+    }
   }
 
   void _computeHints(FileState file, CompilationUnit unit) {
@@ -277,7 +288,7 @@ class LibraryAnalyzer {
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
         analysisOptions: _context.analysisOptions,
-        workspacePackage: null, // TODO(scheglov) implement it
+        workspacePackage: _library.workspacePackage,
       ),
     );
 
@@ -702,13 +713,24 @@ class LibraryAnalyzer {
         _inheritance, _libraryElement, source, _typeProvider, errorListener,
         featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper);
 
+    var donePartialResolution = false;
     if (completionOffset != null) {
       var node = NodeLocator(completionOffset).searchWithin(unit);
-      var enclosingExecutable = node?.thisOrAncestorMatching((e) {
-        return e.parent is ClassDeclaration || e.parent is CompilationUnit;
+      var nodeToResolve = node?.thisOrAncestorMatching((e) {
+        return e.parent is ClassDeclaration ||
+            e.parent is CompilationUnit ||
+            e.parent is MixinDeclaration;
       });
-      enclosingExecutable?.accept(resolverVisitor);
-    } else {
+      if (nodeToResolve != null) {
+        var can = resolverVisitor.prepareForResolving(nodeToResolve);
+        if (can) {
+          nodeToResolve?.accept(resolverVisitor);
+          donePartialResolution = true;
+        }
+      }
+    }
+
+    if (!donePartialResolution) {
       unit.accept(resolverVisitor);
     }
   }
@@ -789,7 +811,7 @@ class LibraryAnalyzer {
     }
     StringLiteral uriLiteral = directive.uri;
     CompileTimeErrorCode errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-    if (_isGenerated(source)) {
+    if (isGeneratedSource(source)) {
       errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
     }
     _getErrorReporter(file)
@@ -804,30 +826,6 @@ class LibraryAnalyzer {
         _validateUriBasedDirective(file, directive);
       }
     }
-  }
-
-  /// Return `true` if the given [source] refers to a file that is assumed to be
-  /// generated.
-  static bool _isGenerated(Source source) {
-    if (source == null) {
-      return false;
-    }
-    // TODO(brianwilkerson) Generalize this mechanism.
-    const List<String> suffixes = <String>[
-      '.g.dart',
-      '.pb.dart',
-      '.pbenum.dart',
-      '.pbserver.dart',
-      '.pbjson.dart',
-      '.template.dart'
-    ];
-    String fullName = source.fullName;
-    for (String suffix in suffixes) {
-      if (fullName.endsWith(suffix)) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 

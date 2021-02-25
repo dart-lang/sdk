@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -70,7 +69,7 @@ class FunctionExpressionResolver {
       if (_flowAnalysis.flow != null && !isFunctionDeclaration) {
         var bodyContext = BodyInferenceContext.of(node.body);
         _resolver.checkForBodyMayCompleteNormally(
-          returnType: bodyContext.contextType,
+          returnType: bodyContext?.contextType,
           body: body,
           errorNode: body,
         );
@@ -99,7 +98,7 @@ class FunctionExpressionResolver {
         // corresponding parameter in the context type schema with type
         // schema `K`, the parameter is given an inferred type `T` where `T`
         // is derived from `K` as follows.
-        inferredType = _typeSystem.greatestClosure(inferredType);
+        inferredType = _typeSystem.greatestClosureOfSchema(inferredType);
 
         // If the greatest closure of `K` is `S` and `S` is a subtype of
         // `Null`, then `T` is `Object?`. Otherwise, `T` is `S`.
@@ -112,7 +111,7 @@ class FunctionExpressionResolver {
           inferredType = _migrationResolutionHooks.modifyInferredParameterType(
               p, inferredType);
         } else {
-          inferredType = nonNullifyType(_typeSystem, inferredType);
+          inferredType = _typeSystem.nonNullifyLegacy(inferredType);
         }
         if (!inferredType.isDynamic) {
           p.type = inferredType;

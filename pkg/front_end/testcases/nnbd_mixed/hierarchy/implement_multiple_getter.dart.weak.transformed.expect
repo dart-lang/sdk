@@ -1,0 +1,103 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:21:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - ConcreteClass.declareAbstractImplementMultipleGetter
+//  - Interface1.implementMultipleGetter
+//  - Interface2.implementMultipleGetter
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass implements Interface1, Interface2 {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:24:11: Context: 'ConcreteClass.declareAbstractImplementMultipleGetter' is defined here.
+//   int get declareAbstractImplementMultipleGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:6:11: Context: 'Interface1.implementMultipleGetter' is defined here.
+//   int get implementMultipleGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:14:11: Context: 'Interface2.implementMultipleGetter' is defined here.
+//   int get implementMultipleGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:33:7: Error: The non-abstract class 'ConcreteSub' is missing implementations for these members:
+//  - AbstractClass.declareAbstractImplementMultipleGetter
+//  - Interface1.declareAbstractImplementMultipleGetter
+//  - Interface1.implementMultipleGetter
+//  - Interface2.declareAbstractImplementMultipleGetter
+//  - Interface2.implementMultipleGetter
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteSub extends AbstractClass {}
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:30:11: Context: 'AbstractClass.declareAbstractImplementMultipleGetter' is defined here.
+//   int get declareAbstractImplementMultipleGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:10:11: Context: 'Interface1.declareAbstractImplementMultipleGetter' is defined here.
+//   int get declareAbstractImplementMultipleGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:6:11: Context: 'Interface1.implementMultipleGetter' is defined here.
+//   int get implementMultipleGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:18:11: Context: 'Interface2.declareAbstractImplementMultipleGetter' is defined here.
+//   int get declareAbstractImplementMultipleGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:14:11: Context: 'Interface2.implementMultipleGetter' is defined here.
+//   int get implementMultipleGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Interface1 extends core::Object {
+  synthetic constructor •() → self::Interface1
+    : super core::Object::•()
+    ;
+  get implementMultipleGetter() → core::int
+    return 0;
+  get declareConcreteImplementMultipleGetter() → core::int
+    return 0;
+  get declareAbstractImplementMultipleGetter() → core::int
+    return 0;
+}
+class Interface2 extends core::Object {
+  synthetic constructor •() → self::Interface2
+    : super core::Object::•()
+    ;
+  get implementMultipleGetter() → core::int
+    return 0;
+  get declareConcreteImplementMultipleGetter() → core::int
+    return 0;
+  get declareAbstractImplementMultipleGetter() → core::int
+    return 0;
+}
+class ConcreteClass extends core::Object implements self::Interface1, self::Interface2 {
+  synthetic constructor •() → self::ConcreteClass
+    : super core::Object::•()
+    ;
+  get declareConcreteImplementMultipleGetter() → core::int
+    return 0;
+  abstract get declareAbstractImplementMultipleGetter() → core::int;
+}
+abstract class AbstractClass extends core::Object implements self::Interface1, self::Interface2 {
+  synthetic constructor •() → self::AbstractClass
+    : super core::Object::•()
+    ;
+  get declareConcreteImplementMultipleGetter() → core::int
+    return 0;
+  abstract get declareAbstractImplementMultipleGetter() → core::int;
+}
+class ConcreteSub extends self::AbstractClass {
+  synthetic constructor •() → self::ConcreteSub
+    : super self::AbstractClass::•()
+    ;
+}
+static method main() → dynamic {}

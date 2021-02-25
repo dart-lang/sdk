@@ -930,7 +930,7 @@ TEST_CASE(DartAPI_InstanceGetType) {
   {
     TransitionNativeToVM transition(thread);
     const Type& null_type_obj = Api::UnwrapTypeHandle(zone, type);
-    EXPECT(null_type_obj.raw() == Type::NullType());
+    EXPECT(null_type_obj.ptr() == Type::NullType());
   }
 
   Dart_Handle instance = Dart_True();
@@ -940,7 +940,7 @@ TEST_CASE(DartAPI_InstanceGetType) {
   {
     TransitionNativeToVM transition(thread);
     const Type& bool_type_obj = Api::UnwrapTypeHandle(zone, type);
-    EXPECT(bool_type_obj.raw() == Type::BoolType());
+    EXPECT(bool_type_obj.ptr() == Type::BoolType());
   }
 
   // Errors propagate.
@@ -1430,9 +1430,7 @@ TEST_CASE(DartAPI_ArrayValues) {
   }
 }
 
-static void NoopFinalizer(void* isolate_callback_data,
-                          Dart_WeakPersistentHandle handle,
-                          void* peer) {}
+static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
 
 TEST_CASE(DartAPI_IsString) {
   uint8_t latin1[] = {'o', 'n', 'e', 0xC2, 0xA2};
@@ -1581,7 +1579,6 @@ TEST_CASE(DartAPI_MalformedStringToUTF8) {
 }
 
 static void ExternalStringCallbackFinalizer(void* isolate_callback_data,
-                                            Dart_WeakPersistentHandle handle,
                                             void* peer) {
   *static_cast<int*>(peer) *= 2;
 }
@@ -1966,7 +1963,7 @@ TEST_CASE(DartAPI_TypedDataViewListGetAsBytes) {
 
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
-      "List main(int size) {\n"
+      "List testMain(int size) {\n"
       "  var a = new Int8List(size);\n"
       "  var view = new Int8List.view(a.buffer, 0, size);\n"
       "  return view;\n"
@@ -1977,7 +1974,7 @@ TEST_CASE(DartAPI_TypedDataViewListGetAsBytes) {
   // Test with a typed data view object.
   Dart_Handle dart_args[1];
   dart_args[0] = Dart_NewInteger(kSize);
-  Dart_Handle view_obj = Dart_Invoke(lib, NewString("main"), 1, dart_args);
+  Dart_Handle view_obj = Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
   EXPECT_VALID(view_obj);
   for (intptr_t i = 0; i < kSize; ++i) {
     EXPECT_VALID(Dart_ListSetAt(view_obj, i, Dart_NewInteger(i & 0xff)));
@@ -1998,7 +1995,7 @@ TEST_CASE(DartAPI_TypedDataViewListIsTypedData) {
 
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
-      "List main(int size) {\n"
+      "List testMain(int size) {\n"
       "  var a = new Int8List(size);\n"
       "  var view = new Int8List.view(a.buffer, 0, size);\n"
       "  return view;\n"
@@ -2009,7 +2006,7 @@ TEST_CASE(DartAPI_TypedDataViewListIsTypedData) {
   // Create a typed data view object.
   Dart_Handle dart_args[1];
   dart_args[0] = Dart_NewInteger(kSize);
-  Dart_Handle view_obj = Dart_Invoke(lib, NewString("main"), 1, dart_args);
+  Dart_Handle view_obj = Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
   EXPECT_VALID(view_obj);
   // Test that the API considers it a TypedData object.
   EXPECT(Dart_IsTypedData(view_obj));
@@ -2258,9 +2255,7 @@ TEST_CASE(DartAPI_ExternalByteDataAccess) {
 }
 
 static bool byte_data_finalizer_run = false;
-void ByteDataFinalizer(void* isolate_data,
-                       Dart_WeakPersistentHandle handle,
-                       void* peer) {
+void ByteDataFinalizer(void* isolate_data, void* peer) {
   ASSERT(!byte_data_finalizer_run);
   free(peer);
   byte_data_finalizer_run = true;
@@ -2789,22 +2784,13 @@ TEST_CASE(DartAPI_ExternalUint8ClampedArrayAccess) {
   EXPECT(value);
 }
 
-static void NopCallback(void* isolate_callback_data,
-                        Dart_WeakPersistentHandle handle,
-                        void* peer) {}
 static void NopCallback(void* isolate_callback_data, void* peer) {}
 
-static void UnreachedCallback(void* isolate_callback_data,
-                              Dart_WeakPersistentHandle handle,
-                              void* peer) {
-  UNREACHABLE();
-}
 static void UnreachedCallback(void* isolate_callback_data, void* peer) {
   UNREACHABLE();
 }
 
 static void ExternalTypedDataFinalizer(void* isolate_callback_data,
-                                       Dart_WeakPersistentHandle handle,
                                        void* peer) {
   *static_cast<int*>(peer) = 42;
 }
@@ -2855,22 +2841,24 @@ TEST_CASE(DartAPI_SlowFinalizer) {
   EXPECT_EQ(20, count);
 }
 
-static void SlowWeakPersistentHandle(void* isolate_callback_data,
-                                     Dart_WeakPersistentHandle handle,
-                                     void* peer) {
+static void SlowWeakPersistentHandle(void* isolate_callback_data, void* peer) {
   OS::Sleep(10);
   intptr_t* count = reinterpret_cast<intptr_t*>(peer);
   (*count)++;
 }
 
 TEST_CASE(DartAPI_SlowWeakPersistenhandle) {
+  Dart_WeakPersistentHandle handles[20];
   intptr_t count = 0;
+
   for (intptr_t i = 0; i < 10; i++) {
     Dart_EnterScope();
     Dart_Handle str1 = Dart_NewStringFromCString("Live fast");
-    Dart_NewWeakPersistentHandle(str1, &count, 0, SlowWeakPersistentHandle);
+    handles[i] =
+        Dart_NewWeakPersistentHandle(str1, &count, 0, SlowWeakPersistentHandle);
     Dart_Handle str2 = Dart_NewStringFromCString("Die young");
-    Dart_NewWeakPersistentHandle(str2, &count, 0, SlowWeakPersistentHandle);
+    handles[i + 10] =
+        Dart_NewWeakPersistentHandle(str2, &count, 0, SlowWeakPersistentHandle);
     Dart_ExitScope();
 
     {
@@ -2880,6 +2868,10 @@ TEST_CASE(DartAPI_SlowWeakPersistenhandle) {
   }
 
   EXPECT_EQ(20, count);
+
+  for (intptr_t i = 0; i < 20; i++) {
+    Dart_DeleteWeakPersistentHandle(handles[i]);
+  }
 }
 
 static void CheckFloat32x4Data(Dart_Handle obj) {
@@ -2950,7 +2942,7 @@ VM_UNIT_TEST_CASE(DartAPI_EnterExitScope) {
     HANDLESCOPE(thread);
     String& str1 = String::Handle();
     str1 = String::New("Test String");
-    Dart_Handle ref = Api::NewHandle(thread, str1.raw());
+    Dart_Handle ref = Api::NewHandle(thread, str1.ptr());
     String& str2 = String::Handle();
     str2 ^= Api::UnwrapHandle(ref);
     EXPECT(str1.Equals(str2));
@@ -3004,22 +2996,22 @@ VM_UNIT_TEST_CASE(DartAPI_PersistentHandles) {
     HANDLESCOPE(thread);
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
-      str ^= PersistentHandle::Cast(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->ptr();
       EXPECT(str.Equals(kTestString1));
     }
     for (int i = 500; i < 1000; i++) {
       String& str = String::Handle();
-      str ^= PersistentHandle::Cast(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->ptr();
       EXPECT(str.Equals(kTestString2));
     }
     for (int i = 1000; i < 1500; i++) {
       String& str = String::Handle();
-      str ^= PersistentHandle::Cast(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->ptr();
       EXPECT(str.Equals(kTestString1));
     }
     for (int i = 1500; i < 2000; i++) {
       String& str = String::Handle();
-      str ^= PersistentHandle::Cast(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->ptr();
       EXPECT(str.Equals(kTestString2));
     }
   }
@@ -3079,7 +3071,7 @@ VM_UNIT_TEST_CASE(DartAPI_AssignToPersistentHandle) {
     TransitionNativeToVM transition(T);
     HANDLESCOPE(T);
     String& str = String::Handle();
-    str ^= PersistentHandle::Cast(obj)->raw();
+    str ^= PersistentHandle::Cast(obj)->ptr();
     EXPECT(str.Equals(kTestString1));
   }
 
@@ -3090,7 +3082,7 @@ VM_UNIT_TEST_CASE(DartAPI_AssignToPersistentHandle) {
     TransitionNativeToVM transition(T);
     HANDLESCOPE(T);
     String& str = String::Handle();
-    str ^= PersistentHandle::Cast(obj)->raw();
+    str ^= PersistentHandle::Cast(obj)->ptr();
     EXPECT(str.Equals(kTestString2));
   }
 
@@ -3119,54 +3111,40 @@ static Dart_Handle AsHandle(Dart_WeakPersistentHandle weak) {
   return Dart_HandleFromWeakPersistent(weak);
 }
 
-static Dart_WeakPersistentHandle weak_new_ref = NULL;
-static Dart_WeakPersistentHandle weak_old_ref = NULL;
-
-static void WeakPersistentHandleCallback(void* isolate_callback_data,
-                                         Dart_WeakPersistentHandle handle,
-                                         void* peer) {
-  if (handle == weak_new_ref) {
-    weak_new_ref = NULL;
-  } else if (handle == weak_old_ref) {
-    weak_old_ref = NULL;
-  }
-}
-
 TEST_CASE(DartAPI_WeakPersistentHandle) {
-  // GCs due to allocations or weak handle creation can cause early promotion
-  // and interfer with the scenario this test is verifying.
-  NoHeapGrowthControlScope force_growth;
-
-  Dart_Handle local_new_ref = Dart_Null();
-  weak_new_ref = Dart_NewWeakPersistentHandle(local_new_ref, NULL, 0,
-                                              WeakPersistentHandleCallback);
-
-  Dart_Handle local_old_ref = Dart_Null();
-  weak_old_ref = Dart_NewWeakPersistentHandle(local_old_ref, NULL, 0,
-                                              WeakPersistentHandleCallback);
+  Dart_WeakPersistentHandle weak_new_ref = nullptr;
+  Dart_WeakPersistentHandle weak_old_ref = nullptr;
 
   {
     Dart_EnterScope();
 
-    // Create an object in new space.
-    Dart_Handle new_ref = AllocateNewString("new string");
-    EXPECT_VALID(new_ref);
+    Dart_Handle new_ref, old_ref;
+    {
+      // GCs due to allocations or weak handle creation can cause early
+      // promotion and interfere with the scenario this test is verifying.
+      NoHeapGrowthControlScope force_growth;
 
-    // Create an object in old space.
-    Dart_Handle old_ref = AllocateOldString("old string");
-    EXPECT_VALID(old_ref);
+      // Create an object in new space.
+      new_ref = AllocateNewString("new string");
+      EXPECT_VALID(new_ref);
 
-    // Create a weak ref to the new space object.
-    weak_new_ref = Dart_NewWeakPersistentHandle(new_ref, NULL, 0,
-                                                WeakPersistentHandleCallback);
-    EXPECT_VALID(AsHandle(weak_new_ref));
-    EXPECT(!Dart_IsNull(AsHandle(weak_new_ref)));
+      // Create an object in old space.
+      old_ref = AllocateOldString("old string");
+      EXPECT_VALID(old_ref);
 
-    // Create a weak ref to the old space object.
-    weak_old_ref = Dart_NewWeakPersistentHandle(old_ref, NULL, 0,
-                                                WeakPersistentHandleCallback);
-    EXPECT_VALID(AsHandle(weak_old_ref));
-    EXPECT(!Dart_IsNull(AsHandle(weak_old_ref)));
+      // Create a weak ref to the new space object.
+      weak_new_ref =
+          Dart_NewWeakPersistentHandle(new_ref, nullptr, 0, NopCallback);
+      EXPECT_VALID(AsHandle(weak_new_ref));
+      EXPECT(!Dart_IsNull(AsHandle(weak_new_ref)));
+
+      // Create a weak ref to the old space object.
+      weak_old_ref =
+          Dart_NewWeakPersistentHandle(old_ref, nullptr, 0, NopCallback);
+
+      EXPECT_VALID(AsHandle(weak_old_ref));
+      EXPECT(!Dart_IsNull(AsHandle(weak_old_ref)));
+    }
 
     {
       TransitionNativeToVM transition(thread);
@@ -3221,7 +3199,8 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
   {
     Dart_EnterScope();
     // Weak ref to new space object should now be cleared.
-    EXPECT(weak_new_ref == NULL);
+    EXPECT_VALID(AsHandle(weak_new_ref));
+    EXPECT(Dart_IsNull(AsHandle(weak_new_ref)));
     EXPECT_VALID(AsHandle(weak_old_ref));
     EXPECT(!Dart_IsNull(AsHandle(weak_old_ref)));
     Dart_ExitScope();
@@ -3236,8 +3215,10 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
   {
     Dart_EnterScope();
     // Weak ref to old space object should now be cleared.
-    EXPECT(weak_new_ref == NULL);
-    EXPECT(weak_old_ref == NULL);
+    EXPECT_VALID(AsHandle(weak_new_ref));
+    EXPECT(Dart_IsNull(AsHandle(weak_new_ref)));
+    EXPECT_VALID(AsHandle(weak_old_ref));
+    EXPECT(Dart_IsNull(AsHandle(weak_old_ref)));
     Dart_ExitScope();
   }
 
@@ -3246,6 +3227,9 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
     // Garbage collect one last time to revisit deleted handles.
     GCTestHelper::CollectAllGarbage();
   }
+
+  Dart_DeleteWeakPersistentHandle(weak_new_ref);
+  Dart_DeleteWeakPersistentHandle(weak_old_ref);
 }
 
 static Dart_FinalizableHandle finalizable_new_ref = nullptr;
@@ -3264,10 +3248,6 @@ static void FinalizableHandleCallback(void* isolate_callback_data, void* peer) {
 }
 
 TEST_CASE(DartAPI_FinalizableHandle) {
-  // GCs due to allocations or weak handle creation can cause early promotion
-  // and interfer with the scenario this test is verifying.
-  NoHeapGrowthControlScope force_growth;
-
   void* peer = reinterpret_cast<void*>(0);
   Dart_Handle local_new_ref = Dart_Null();
   finalizable_new_ref = Dart_NewFinalizableHandle(local_new_ref, peer, 0,
@@ -3283,25 +3263,32 @@ TEST_CASE(DartAPI_FinalizableHandle) {
   {
     Dart_EnterScope();
 
-    // Create an object in new space.
-    Dart_Handle new_ref = AllocateNewString("new string");
-    EXPECT_VALID(new_ref);
+    Dart_Handle new_ref, old_ref;
+    {
+      // GCs due to allocations or weak handle creation can cause early
+      // promotion and interfere with the scenario this test is verifying.
+      NoHeapGrowthControlScope force_growth;
 
-    // Create an object in old space.
-    Dart_Handle old_ref = AllocateOldString("old string");
-    EXPECT_VALID(old_ref);
+      // Create an object in new space.
+      new_ref = AllocateNewString("new string");
+      EXPECT_VALID(new_ref);
 
-    // Create a weak ref to the new space object.
-    peer = reinterpret_cast<void*>(2);
-    finalizable_new_ref =
-        Dart_NewFinalizableHandle(new_ref, peer, 0, FinalizableHandleCallback);
-    finalizable_new_ref_peer = peer;
+      // Create an object in old space.
+      old_ref = AllocateOldString("old string");
+      EXPECT_VALID(old_ref);
 
-    // Create a weak ref to the old space object.
-    peer = reinterpret_cast<void*>(3);
-    finalizable_old_ref =
-        Dart_NewFinalizableHandle(old_ref, peer, 0, FinalizableHandleCallback);
-    finalizable_old_ref_peer = peer;
+      // Create a weak ref to the new space object.
+      peer = reinterpret_cast<void*>(2);
+      finalizable_new_ref = Dart_NewFinalizableHandle(
+          new_ref, peer, 0, FinalizableHandleCallback);
+      finalizable_new_ref_peer = peer;
+
+      // Create a weak ref to the old space object.
+      peer = reinterpret_cast<void*>(3);
+      finalizable_old_ref = Dart_NewFinalizableHandle(
+          old_ref, peer, 0, FinalizableHandleCallback);
+      finalizable_old_ref_peer = peer;
+    }
 
     {
       TransitionNativeToVM transition(thread);
@@ -3378,7 +3365,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleErrors) {
   Dart_Handle obj2 = Dart_NewInteger(0);
   EXPECT_VALID(obj2);
   Dart_WeakPersistentHandle ref2 =
-      Dart_NewWeakPersistentHandle(obj2, NULL, 0, WeakPersistentHandleCallback);
+      Dart_NewWeakPersistentHandle(obj2, NULL, 0, NopCallback);
   EXPECT_EQ(ref2, static_cast<void*>(NULL));
 
   Dart_ExitScope();
@@ -3410,19 +3397,14 @@ static Dart_WeakPersistentHandle weak_persistent_handle3;
 
 static void WeakPersistentHandlePeerCleanupFinalizer(
     void* isolate_callback_data,
-    Dart_WeakPersistentHandle handle,
     void* peer) {
   Dart_DeletePersistentHandle(persistent_handle1);
   Dart_DeleteWeakPersistentHandle(weak_persistent_handle2);
   *static_cast<int*>(peer) = 42;
 }
 
-static void WeakPersistentHandleNoopCallback(void* isolate_callback_data,
-                                             Dart_WeakPersistentHandle handle,
-                                             void* peer) {}
-
 TEST_CASE(DartAPI_WeakPersistentHandleCleanupFinalizer) {
-  Heap* heap = Isolate::Current()->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
 
   const char* kTestString1 = "Test String1";
   Dart_EnterScope();
@@ -3431,8 +3413,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleCleanupFinalizer) {
   persistent_handle1 = Dart_NewPersistentHandle(ref1);
   Dart_Handle ref2 = Dart_NewStringFromCString(kTestString1);
   int peer2 = 0;
-  weak_persistent_handle2 = Dart_NewWeakPersistentHandle(
-      ref2, &peer2, 0, WeakPersistentHandleNoopCallback);
+  weak_persistent_handle2 =
+      Dart_NewWeakPersistentHandle(ref2, &peer2, 0, NopCallback);
   int peer3 = 0;
   {
     Dart_EnterScope();
@@ -3448,6 +3430,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleCleanupFinalizer) {
     EXPECT(peer3 == 42);
   }
   Dart_ExitScope();
+
+  Dart_DeleteWeakPersistentHandle(weak_persistent_handle3);
 }
 
 static Dart_FinalizableHandle finalizable_handle3;
@@ -3460,7 +3444,7 @@ static void FinalizableHandlePeerCleanupFinalizer(void* isolate_callback_data,
 }
 
 TEST_CASE(DartAPI_FinalizableHandleCleanupFinalizer) {
-  Heap* heap = Isolate::Current()->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
 
   const char* kTestString1 = "Test String1";
   Dart_EnterScope();
@@ -3489,7 +3473,6 @@ TEST_CASE(DartAPI_FinalizableHandleCleanupFinalizer) {
 }
 
 static void WeakPersistentHandlePeerFinalizer(void* isolate_callback_data,
-                                              Dart_WeakPersistentHandle handle,
                                               void* peer) {
   *static_cast<int*>(peer) = 42;
 }
@@ -3514,6 +3497,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleCallback) {
     GCTestHelper::CollectNewSpace();
     EXPECT(peer == 42);
   }
+  Dart_DeleteWeakPersistentHandle(weak_ref);
 }
 
 static void FinalizableHandlePeerFinalizer(void* isolate_callback_data,
@@ -3522,14 +3506,12 @@ static void FinalizableHandlePeerFinalizer(void* isolate_callback_data,
 }
 
 TEST_CASE(DartAPI_FinalizableHandleCallback) {
-  Dart_FinalizableHandle weak_ref = nullptr;
   int peer = 0;
   {
     Dart_EnterScope();
     Dart_Handle obj = NewString("new string");
     EXPECT_VALID(obj);
-    weak_ref = Dart_NewFinalizableHandle(obj, &peer, 0,
-                                         FinalizableHandlePeerFinalizer);
+    Dart_NewFinalizableHandle(obj, &peer, 0, FinalizableHandlePeerFinalizer);
     EXPECT(peer == 0);
     Dart_ExitScope();
   }
@@ -3595,13 +3577,53 @@ TEST_CASE(DartAPI_FinalizableHandleNoCallback) {
 
 Dart_WeakPersistentHandle delete_on_finalization;
 
+static void DeleteWeakHandleOnFinalization(void* isolate_callback_data,
+                                           void* peer) {
+  *static_cast<int*>(peer) = 42;
+  Dart_DeleteWeakPersistentHandle(delete_on_finalization);
+  delete_on_finalization = nullptr;
+}
+
+static void DontDeleteWeakHandleOnFinalization(void* isolate_callback_data,
+                                               void* peer) {
+  *static_cast<int*>(peer) = 42;
+  delete_on_finalization = nullptr;
+}
+
+// Mimicking the old handle behavior by deleting the handle itself in the
+// finalizer.
+TEST_CASE(DartAPI_WeakPersistentHandleCallbackSelfDelete) {
+  int peer = 0;
+  {
+    Dart_EnterScope();
+    Dart_Handle obj = NewString("new string");
+    EXPECT_VALID(obj);
+    delete_on_finalization = Dart_NewWeakPersistentHandle(
+        obj, &peer, 0, DeleteWeakHandleOnFinalization);
+    EXPECT_VALID(AsHandle(delete_on_finalization));
+    EXPECT(peer == 0);
+    Dart_ExitScope();
+  }
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectOldSpace();
+    EXPECT(peer == 0);
+    GCTestHelper::CollectNewSpace();
+    EXPECT(peer == 42);
+    ASSERT(delete_on_finalization == nullptr);
+  }
+}
+
+// Checking that the finalizer gets run on shutdown, but that the delete
+// handle does not get invoked. (The handles have already been deleted by
+// releasing the LocalApiState.)
 VM_UNIT_TEST_CASE(DartAPI_WeakPersistentHandlesCallbackShutdown) {
   TestCase::CreateTestIsolate();
   Dart_EnterScope();
   Dart_Handle ref = Dart_True();
   int peer = 1234;
-  Dart_NewWeakPersistentHandle(ref, &peer, 0,
-                               WeakPersistentHandlePeerFinalizer);
+  delete_on_finalization = Dart_NewWeakPersistentHandle(
+      ref, &peer, 0, DontDeleteWeakHandleOnFinalization);
   Dart_ExitScope();
   Dart_ShutdownIsolate();
   EXPECT(peer == 42);
@@ -3619,7 +3641,7 @@ VM_UNIT_TEST_CASE(DartAPI_FinalizableHandlesCallbackShutdown) {
 }
 
 TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
-  Heap* heap = Isolate::Current()->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
   EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
   EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
   Dart_WeakPersistentHandle weak1 = NULL;
@@ -3664,32 +3686,30 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
     GCTestHelper::CollectOldSpace();
     EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
   }
+  Dart_DeleteWeakPersistentHandle(weak1);
+  Dart_DeleteWeakPersistentHandle(weak2);
 }
 
 TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSize) {
-  Heap* heap = Isolate::Current()->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
   EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
   EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
-  Dart_FinalizableHandle weak1 = nullptr;
   static const intptr_t kWeak1ExternalSize = 1 * KB;
   {
     Dart_EnterScope();
     Dart_Handle obj = NewString("weakly referenced string");
     EXPECT_VALID(obj);
-    weak1 = Dart_NewFinalizableHandle(obj, nullptr, kWeak1ExternalSize,
-                                      NopCallback);
+    Dart_NewFinalizableHandle(obj, nullptr, kWeak1ExternalSize, NopCallback);
     Dart_ExitScope();
   }
   Dart_PersistentHandle strong_ref = nullptr;
-  Dart_FinalizableHandle weak2 = nullptr;
   static const intptr_t kWeak2ExternalSize = 2 * KB;
   {
     Dart_EnterScope();
     Dart_Handle obj = NewString("strongly referenced string");
     EXPECT_VALID(obj);
     strong_ref = Dart_NewPersistentHandle(obj);
-    weak2 = Dart_NewFinalizableHandle(obj, nullptr, kWeak2ExternalSize,
-                                      NopCallback);
+    Dart_NewFinalizableHandle(obj, nullptr, kWeak2ExternalSize, NopCallback);
     EXPECT_VALID(AsHandle(strong_ref));
     Dart_ExitScope();
   }
@@ -3713,7 +3733,7 @@ TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSize) {
 }
 
 TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeNewspaceGC) {
-  Heap* heap = Isolate::Current()->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_WeakPersistentHandle weak1 = NULL;
   // Large enough to exceed any new space limit. Not actually allocated.
   const intptr_t kWeak1ExternalSize = 500 * MB;
@@ -3755,7 +3775,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeNewspaceGC) {
 }
 
 TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSizeNewspaceGC) {
-  Heap* heap = Isolate::Current()->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_FinalizableHandle weak1 = nullptr;
   Dart_PersistentHandle strong1 = nullptr;
   // Large enough to exceed any new space limit. Not actually allocated.
@@ -3799,16 +3819,15 @@ TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSizeNewspaceGC) {
 
 TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
   // Check that external allocation in old space can trigger GC.
-  Isolate* isolate = Isolate::Current();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_EnterScope();
   Dart_Handle live = AllocateOldString("live");
   EXPECT_VALID(live);
   Dart_WeakPersistentHandle weak = NULL;
-  Dart_WeakPersistentHandle weak2 = NULL;
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
-    EXPECT_EQ(0, isolate->heap()->ExternalInWords(Heap::kOld));
+    EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
   }
   const intptr_t kSmallExternalSize = 1 * KB;
   {
@@ -3824,48 +3843,47 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
     TransitionNativeToVM transition(thread);
     GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
     EXPECT_EQ(kSmallExternalSize,
-              isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
+              heap->ExternalInWords(Heap::kOld) * kWordSize);
   }
   // Large enough to trigger GC in old space. Not actually allocated.
   const intptr_t kHugeExternalSize = (kWordSize == 4) ? 513 * MB : 1025 * MB;
-  weak2 =
+  Dart_WeakPersistentHandle weak2 =
       Dart_NewWeakPersistentHandle(live, NULL, kHugeExternalSize, NopCallback);
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
     // Expect small garbage to be collected.
-    EXPECT_EQ(kHugeExternalSize,
-              isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
+    EXPECT_EQ(kHugeExternalSize, heap->ExternalInWords(Heap::kOld) * kWordSize);
   }
   Dart_ExitScope();
+  Dart_DeleteWeakPersistentHandle(weak);
+  Dart_DeleteWeakPersistentHandle(weak2);
 }
 
 TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSizeOldspaceGC) {
   // Check that external allocation in old space can trigger GC.
-  Isolate* isolate = Isolate::Current();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_EnterScope();
   Dart_Handle live = AllocateOldString("live");
   EXPECT_VALID(live);
-  Dart_FinalizableHandle weak = NULL;
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
-    EXPECT_EQ(0, isolate->heap()->ExternalInWords(Heap::kOld));
+    EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
   }
   const intptr_t kSmallExternalSize = 1 * KB;
   {
     Dart_EnterScope();
     Dart_Handle dead = AllocateOldString("dead");
     EXPECT_VALID(dead);
-    weak = Dart_NewFinalizableHandle(dead, nullptr, kSmallExternalSize,
-                                     NopCallback);
+    Dart_NewFinalizableHandle(dead, nullptr, kSmallExternalSize, NopCallback);
     Dart_ExitScope();
   }
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
     EXPECT_EQ(kSmallExternalSize,
-              isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
+              heap->ExternalInWords(Heap::kOld) * kWordSize);
   }
   // Large enough to trigger GC in old space. Not actually allocated.
   const intptr_t kHugeExternalSize = (kWordSize == 4) ? 513 * MB : 1025 * MB;
@@ -3874,14 +3892,13 @@ TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSizeOldspaceGC) {
     TransitionNativeToVM transition(thread);
     GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
     // Expect small garbage to be collected.
-    EXPECT_EQ(kHugeExternalSize,
-              isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
+    EXPECT_EQ(kHugeExternalSize, heap->ExternalInWords(Heap::kOld) * kWordSize);
   }
   Dart_ExitScope();
 }
 
 TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOddReferents) {
-  Heap* heap = Isolate::Current()->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_WeakPersistentHandle weak1 = NULL;
   static const intptr_t kWeak1ExternalSize = 1 * KB;
   Dart_WeakPersistentHandle weak2 = NULL;
@@ -3915,7 +3932,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOddReferents) {
 }
 
 TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSizeOddReferents) {
-  Heap* heap = Isolate::Current()->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_FinalizableHandle weak1 = nullptr;
   Dart_PersistentHandle strong1 = nullptr;
   static const intptr_t kWeak1ExternalSize = 1 * KB;
@@ -3988,13 +4005,11 @@ static Dart_NativeFunction ExampleResourceNativeResolver(
 }
 
 struct ExampleResource {
-  Dart_WeakPersistentHandle self;
+  Dart_FinalizableHandle self;
   void* lots_of_memory;
 };
 
-void ExampleResourceFinalizer(void* isolate_peer,
-                              Dart_WeakPersistentHandle handle,
-                              void* peer) {
+void ExampleResourceFinalizer(void* isolate_peer, void* peer) {
   ExampleResource* resource = reinterpret_cast<ExampleResource*>(peer);
   free(resource->lots_of_memory);
   delete resource;
@@ -4005,8 +4020,8 @@ void FUNCTION_NAME(ExampleResource_Allocate)(Dart_NativeArguments native_args) {
   intptr_t external_size = 10 * MB;
   ExampleResource* resource = new ExampleResource();
   resource->lots_of_memory = malloc(external_size);
-  resource->self = Dart_NewWeakPersistentHandle(
-      receiver, resource, external_size, ExampleResourceFinalizer);
+  resource->self = Dart_NewFinalizableHandle(receiver, resource, external_size,
+                                             ExampleResourceFinalizer);
   EXPECT_VALID(Dart_SetNativeInstanceField(
       receiver, 0, reinterpret_cast<intptr_t>(resource)));
   // Some pretend resource initialization.
@@ -4036,7 +4051,7 @@ void FUNCTION_NAME(ExampleResource_Dispose)(Dart_NativeArguments native_args) {
   if (resource->lots_of_memory != nullptr) {
     free(resource->lots_of_memory);
     resource->lots_of_memory = nullptr;
-    Dart_UpdateExternalSize(resource->self, 0);
+    Dart_UpdateFinalizableExternalSize(resource->self, receiver, 0);
   }
 }
 
@@ -4076,13 +4091,12 @@ static Dart_WeakPersistentHandle weak2 = NULL;
 static Dart_WeakPersistentHandle weak3 = NULL;
 
 static void ImplicitReferencesCallback(void* isolate_callback_data,
-                                       Dart_WeakPersistentHandle handle,
                                        void* peer) {
-  if (handle == weak1) {
+  if (peer == &weak1) {
     weak1 = NULL;
-  } else if (handle == weak2) {
+  } else if (peer == &weak2) {
     weak2 = NULL;
-  } else if (handle == weak3) {
+  } else if (peer == &weak3) {
     weak3 = NULL;
   }
 }
@@ -4107,19 +4121,19 @@ TEST_CASE(DartAPI_ImplicitReferencesOldSpace) {
 
     weak1 =
         Dart_NewWeakPersistentHandle(AllocateOldString("weakly reachable 1"),
-                                     NULL, 0, ImplicitReferencesCallback);
+                                     &weak1, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak1)));
     EXPECT_VALID(AsHandle(weak1));
 
     weak2 =
         Dart_NewWeakPersistentHandle(AllocateOldString("weakly reachable 2"),
-                                     NULL, 0, ImplicitReferencesCallback);
+                                     &weak2, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak2)));
     EXPECT_VALID(AsHandle(weak2));
 
     weak3 =
         Dart_NewWeakPersistentHandle(AllocateOldString("weakly reachable 3"),
-                                     NULL, 0, ImplicitReferencesCallback);
+                                     &weak3, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     EXPECT_VALID(AsHandle(weak3));
   }
@@ -4148,6 +4162,11 @@ TEST_CASE(DartAPI_ImplicitReferencesOldSpace) {
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     Dart_ExitScope();
   }
+
+  Dart_DeleteWeakPersistentHandle(strong_weak);
+  Dart_DeleteWeakPersistentHandle(weak1);
+  Dart_DeleteWeakPersistentHandle(weak2);
+  Dart_DeleteWeakPersistentHandle(weak3);
 }
 
 TEST_CASE(DartAPI_ImplicitReferencesNewSpace) {
@@ -4170,19 +4189,19 @@ TEST_CASE(DartAPI_ImplicitReferencesNewSpace) {
 
     weak1 =
         Dart_NewWeakPersistentHandle(AllocateNewString("weakly reachable 1"),
-                                     NULL, 0, ImplicitReferencesCallback);
+                                     &weak1, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak1)));
     EXPECT_VALID(AsHandle(weak1));
 
     weak2 =
         Dart_NewWeakPersistentHandle(AllocateNewString("weakly reachable 2"),
-                                     NULL, 0, ImplicitReferencesCallback);
+                                     &weak2, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak2)));
     EXPECT_VALID(AsHandle(weak2));
 
     weak3 =
         Dart_NewWeakPersistentHandle(AllocateNewString("weakly reachable 3"),
-                                     NULL, 0, ImplicitReferencesCallback);
+                                     &weak3, 0, ImplicitReferencesCallback);
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     EXPECT_VALID(AsHandle(weak3));
   }
@@ -4210,6 +4229,11 @@ TEST_CASE(DartAPI_ImplicitReferencesNewSpace) {
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     Dart_ExitScope();
   }
+
+  Dart_DeleteWeakPersistentHandle(strong_weak);
+  Dart_DeleteWeakPersistentHandle(weak1);
+  Dart_DeleteWeakPersistentHandle(weak2);
+  Dart_DeleteWeakPersistentHandle(weak3);
 }
 
 // Unit test for creating multiple scopes and local handles within them.
@@ -4540,7 +4564,6 @@ TEST_CASE(DartAPI_TypeGetNonParamtericTypes) {
 }
 
 TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
-  // TODO(dartbug.com/40176): Clean up this test once the API supports NNBD.
   const char* kScriptChars =
       "class MyClass0<A, B> {\n"
       "}\n"
@@ -4614,7 +4637,10 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
 
   // Now create objects of the type and validate the object type matches
   // the one returned above. Also get the runtime type of the object and
-  // verify that it matches the type returned above.
+  // verify that it matches the type returned above. Note: we use
+  // Dart_ObjectEquals instead of Dart_IdentityEquals since we are comparing
+  // type literals with non-literals which would fail in unsound null safety
+  // mode.
   // MyClass0<int, double> type.
   Dart_Handle type0_obj = Dart_Invoke(lib, NewString("getMyClass0"), 0, NULL);
   EXPECT_VALID(type0_obj);
@@ -4623,7 +4649,10 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   EXPECT(instanceOf);
   type0_obj = Dart_Invoke(lib, NewString("getMyClass0Type"), 0, NULL);
   EXPECT_VALID(type0_obj);
-  EXPECT(Dart_IdentityEquals(type0_obj, myclass0_type));
+
+  bool equal = false;
+  EXPECT_VALID(Dart_ObjectEquals(type0_obj, myclass0_type, &equal));
+  EXPECT(equal);
 
   // MyClass1<List<int>, List> type.
   Dart_Handle type1_obj = Dart_Invoke(lib, NewString("getMyClass1"), 0, NULL);
@@ -4632,7 +4661,9 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   EXPECT(instanceOf);
   type1_obj = Dart_Invoke(lib, NewString("getMyClass1Type"), 0, NULL);
   EXPECT_VALID(type1_obj);
-  EXPECT(Dart_IdentityEquals(type1_obj, myclass1_type));
+
+  EXPECT_VALID(Dart_ObjectEquals(type1_obj, myclass1_type, &equal));
+  EXPECT(equal);
 
   // MyClass0<double, int> type.
   type0_obj = Dart_Invoke(lib, NewString("getMyClass0_1"), 0, NULL);
@@ -4641,7 +4672,8 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   EXPECT(!instanceOf);
   type0_obj = Dart_Invoke(lib, NewString("getMyClass0_1Type"), 0, NULL);
   EXPECT_VALID(type0_obj);
-  EXPECT(!Dart_IdentityEquals(type0_obj, myclass0_type));
+  EXPECT_VALID(Dart_ObjectEquals(type0_obj, myclass0_type, &equal));
+  EXPECT(!equal);
 
   // MyClass1<List<int>, List<double>> type.
   type1_obj = Dart_Invoke(lib, NewString("getMyClass1_1"), 0, NULL);
@@ -4650,7 +4682,8 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   EXPECT(instanceOf);
   type1_obj = Dart_Invoke(lib, NewString("getMyClass1_1Type"), 0, NULL);
   EXPECT_VALID(type1_obj);
-  EXPECT(!Dart_IdentityEquals(type1_obj, myclass1_type));
+  EXPECT_VALID(Dart_ObjectEquals(type1_obj, myclass1_type, &equal));
+  EXPECT(!equal);
 }
 
 static void TestFieldOk(Dart_Handle container,
@@ -5070,7 +5103,7 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
   // (1 + 2) * kWordSize + size of object header.
   // We check to make sure the instance size computed by the VM matches
   // our expectations.
-  intptr_t header_size = sizeof(ObjectLayout);
+  intptr_t header_size = sizeof(UntaggedObject);
   EXPECT_EQ(
       Utils::RoundUp(((1 + 2) * kWordSize) + header_size, kObjectAlignment),
       cls.host_instance_size());
@@ -5528,9 +5561,6 @@ TEST_CASE(DartAPI_New) {
       "  factory MyClass.multiply(value) {\n"
       "    return new MyClass.named(value * 100);\n"
       "  }\n"
-      "  factory MyClass.nullo() {\n"
-      "    return null;\n"
-      "  }\n"
       "  var foo;\n"
       "}\n"
       "\n"
@@ -5542,7 +5572,13 @@ TEST_CASE(DartAPI_New) {
       "  factory MyInterface.named(value) = MyExtraHop.hop;\n"
       "  factory MyInterface.multiply(value) = MyClass.multiply;\n"
       "  MyInterface.notfound(value);\n"
-      "}\n";
+      "}\n"
+      "\n"
+      "class _MyClass {\n"
+      "  _MyClass._() : foo = 7 {}\n"
+      "  var foo;\n"
+      "}\n"
+      "\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle type =
@@ -5551,6 +5587,10 @@ TEST_CASE(DartAPI_New) {
   Dart_Handle intf =
       Dart_GetNonNullableType(lib, NewString("MyInterface"), 0, NULL);
   EXPECT_VALID(intf);
+  Dart_Handle private_type =
+      Dart_GetNonNullableType(lib, NewString("_MyClass"), 0, NULL);
+  EXPECT_VALID(private_type);
+
   Dart_Handle args[1];
   args[0] = Dart_NewInteger(11);
   Dart_Handle bad_args[1];
@@ -5641,6 +5681,14 @@ TEST_CASE(DartAPI_New) {
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(-11, int_value);
 
+  // Invoke a hidden named constructor on a hidden type.
+  result = Dart_New(private_type, NewString("_"), 0, NULL);
+  EXPECT_VALID(result);
+  int_value = 0;
+  foo = Dart_GetField(result, NewString("foo"));
+  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+  EXPECT_EQ(7, int_value);
+
   // Allocate object and invoke a hidden named constructor.
   obj = Dart_Allocate(type);
   EXPECT_VALID(obj);
@@ -5672,11 +5720,6 @@ TEST_CASE(DartAPI_New) {
   foo = Dart_GetField(result, NewString("foo"));
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(1100, int_value);
-
-  // Invoke a factory constructor which returns null.
-  result = Dart_New(type, NewString("nullo"), 0, NULL);
-  EXPECT_VALID(result);
-  EXPECT(Dart_IsNull(result));
 
   // Pass an error class object.  Error is passed through.
   result = Dart_New(Dart_NewApiError("myerror"), NewString("named"), 1, args);
@@ -5953,6 +5996,13 @@ TEST_CASE(DartAPI_NewListOfTypeFilled) {
 
   // Null is always valid as the fill argument if we're creating an empty list.
   EXPECT_VALID(Dart_NewListOfTypeFilled(zxhandle_type, Dart_Null(), 0));
+
+  // Test creation of a non nullable list of strings.
+  Dart_Handle corelib = Dart_LookupLibrary(NewString("dart:core"));
+  EXPECT_VALID(corelib);
+  Dart_Handle string_type =
+      Dart_GetNonNullableType(corelib, NewString("String"), 0, NULL);
+  EXPECT_VALID(Dart_NewListOfTypeFilled(string_type, Dart_EmptyString(), 2));
 }
 
 static Dart_Handle PrivateLibName(Dart_Handle lib, const char* str) {
@@ -7321,7 +7371,9 @@ TEST_CASE(DartAPI_Multiroot_FailWhenUriIsWrong) {
       "foo1:///main.dart",
       /* multiroot_filepaths= */ "/bar,/baz",
       /* multiroot_scheme= */ "foo");
-  EXPECT_ERROR(lib, "Compilation failed FileSystemException(uri=foo1:");
+  EXPECT_ERROR(lib,
+               "Compilation failed Invalid argument(s): Exception when reading "
+               "'foo1:///.dart_tool");
 }
 
 void NewNativePort_send123(Dart_Port dest_port_id, Dart_CObject* message) {
@@ -7366,9 +7418,7 @@ TEST_CASE(DartAPI_IllegalPost) {
   EXPECT(!success);
 }
 
-static void UnreachableFinalizer(void* isolate_callback_data,
-                                 Dart_WeakPersistentHandle handle,
-                                 void* peer) {
+static void UnreachableFinalizer(void* isolate_callback_data, void* peer) {
   UNREACHABLE();
 }
 
@@ -7825,10 +7875,10 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateShutdownRunDartCode) {
       "}\n";
 
   // Create an isolate.
-  Dart_Isolate isolate = TestCase::CreateTestIsolate();
+  auto isolate = reinterpret_cast<Isolate*>(TestCase::CreateTestIsolate());
   EXPECT(isolate != NULL);
 
-  Isolate::SetShutdownCallback(IsolateShutdownRunDartCodeTestCallback);
+  isolate->set_on_shutdown_callback(IsolateShutdownRunDartCodeTestCallback);
 
   {
     Dart_EnterScope();
@@ -7845,8 +7895,6 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateShutdownRunDartCode) {
 
   // The shutdown callback has not been called.
   EXPECT_EQ(0, add_result);
-
-  EXPECT(isolate != NULL);
 
   // Shutdown the isolate.
   Dart_ShutdownIsolate();
@@ -8240,17 +8288,17 @@ TEST_CASE(DartAPI_InvalidGetSetPeer) {
 // the peer and checks that the count of peer objects is decremented
 // by one.
 TEST_CASE(DartAPI_OneNewSpacePeer) {
-  Isolate* isolate = Isolate::Current();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_Handle str = NewString("a string");
   EXPECT_VALID(str);
   EXPECT(Dart_IsString(str));
-  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  EXPECT_EQ(0, heap->PeerCount());
   void* out = &out;
   EXPECT_VALID(Dart_GetPeer(str, &out));
   EXPECT(out == NULL);
   int peer = 1234;
   EXPECT_VALID(Dart_SetPeer(str, &peer));
-  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  EXPECT_EQ(1, heap->PeerCount());
   out = &out;
   EXPECT_VALID(Dart_GetPeer(str, &out));
   EXPECT(out == reinterpret_cast<void*>(&peer));
@@ -8258,34 +8306,34 @@ TEST_CASE(DartAPI_OneNewSpacePeer) {
   out = &out;
   EXPECT_VALID(Dart_GetPeer(str, &out));
   EXPECT(out == NULL);
-  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  EXPECT_EQ(0, heap->PeerCount());
 }
 
 // Allocates an object in new space and assigns it a peer.  Allows the
 // peer referent to be garbage collected and checks that the count of
 // peer objects is decremented by one.
 TEST_CASE(DartAPI_CollectOneNewSpacePeer) {
-  Isolate* isolate = Isolate::Current();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_EnterScope();
   {
     CHECK_API_SCOPE(thread);
     Dart_Handle str = NewString("a string");
     EXPECT_VALID(str);
     EXPECT(Dart_IsString(str));
-    EXPECT_EQ(0, isolate->heap()->PeerCount());
+    EXPECT_EQ(0, heap->PeerCount());
     void* out = &out;
     EXPECT_VALID(Dart_GetPeer(str, &out));
     EXPECT(out == NULL);
     int peer = 1234;
     EXPECT_VALID(Dart_SetPeer(str, &peer));
-    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    EXPECT_EQ(1, heap->PeerCount());
     out = &out;
     EXPECT_VALID(Dart_GetPeer(str, &out));
     EXPECT(out == reinterpret_cast<void*>(&peer));
     {
       TransitionNativeToVM transition(thread);
       GCTestHelper::CollectNewSpace();
-      EXPECT_EQ(1, isolate->heap()->PeerCount());
+      EXPECT_EQ(1, heap->PeerCount());
     }
     out = &out;
     EXPECT_VALID(Dart_GetPeer(str, &out));
@@ -8295,7 +8343,7 @@ TEST_CASE(DartAPI_CollectOneNewSpacePeer) {
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::CollectNewSpace();
-    EXPECT_EQ(0, isolate->heap()->PeerCount());
+    EXPECT_EQ(0, heap->PeerCount());
   }
 }
 
@@ -8303,37 +8351,37 @@ TEST_CASE(DartAPI_CollectOneNewSpacePeer) {
 // the peers and checks that the count of peer objects is decremented
 // by two.
 TEST_CASE(DartAPI_TwoNewSpacePeers) {
-  Isolate* isolate = Isolate::Current();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_Handle s1 = NewString("s1");
   EXPECT_VALID(s1);
   EXPECT(Dart_IsString(s1));
   void* o1 = &o1;
   EXPECT_VALID(Dart_GetPeer(s1, &o1));
   EXPECT(o1 == NULL);
-  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  EXPECT_EQ(0, heap->PeerCount());
   int p1 = 1234;
   EXPECT_VALID(Dart_SetPeer(s1, &p1));
-  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  EXPECT_EQ(1, heap->PeerCount());
   EXPECT_VALID(Dart_GetPeer(s1, &o1));
   EXPECT(o1 == reinterpret_cast<void*>(&p1));
   Dart_Handle s2 = NewString("a string");
   EXPECT_VALID(s2);
   EXPECT(Dart_IsString(s2));
-  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  EXPECT_EQ(1, heap->PeerCount());
   void* o2 = &o2;
   EXPECT(Dart_GetPeer(s2, &o2));
   EXPECT(o2 == NULL);
   int p2 = 5678;
   EXPECT_VALID(Dart_SetPeer(s2, &p2));
-  EXPECT_EQ(2, isolate->heap()->PeerCount());
+  EXPECT_EQ(2, heap->PeerCount());
   EXPECT_VALID(Dart_GetPeer(s2, &o2));
   EXPECT(o2 == reinterpret_cast<void*>(&p2));
   EXPECT_VALID(Dart_SetPeer(s1, NULL));
-  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  EXPECT_EQ(1, heap->PeerCount());
   EXPECT(Dart_GetPeer(s1, &o1));
   EXPECT(o1 == NULL);
   EXPECT_VALID(Dart_SetPeer(s2, NULL));
-  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  EXPECT_EQ(0, heap->PeerCount());
   EXPECT(Dart_GetPeer(s2, &o2));
   EXPECT(o2 == NULL);
 }
@@ -8342,32 +8390,32 @@ TEST_CASE(DartAPI_TwoNewSpacePeers) {
 // the peer referents to be garbage collected and check that the count
 // of peer objects is decremented by two.
 TEST_CASE(DartAPI_CollectTwoNewSpacePeers) {
-  Isolate* isolate = Isolate::Current();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_EnterScope();
   {
     CHECK_API_SCOPE(thread);
     Dart_Handle s1 = NewString("s1");
     EXPECT_VALID(s1);
     EXPECT(Dart_IsString(s1));
-    EXPECT_EQ(0, isolate->heap()->PeerCount());
+    EXPECT_EQ(0, heap->PeerCount());
     void* o1 = &o1;
     EXPECT(Dart_GetPeer(s1, &o1));
     EXPECT(o1 == NULL);
     int p1 = 1234;
     EXPECT_VALID(Dart_SetPeer(s1, &p1));
-    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    EXPECT_EQ(1, heap->PeerCount());
     EXPECT_VALID(Dart_GetPeer(s1, &o1));
     EXPECT(o1 == reinterpret_cast<void*>(&p1));
     Dart_Handle s2 = NewString("s2");
     EXPECT_VALID(s2);
     EXPECT(Dart_IsString(s2));
-    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    EXPECT_EQ(1, heap->PeerCount());
     void* o2 = &o2;
     EXPECT(Dart_GetPeer(s2, &o2));
     EXPECT(o2 == NULL);
     int p2 = 5678;
     EXPECT_VALID(Dart_SetPeer(s2, &p2));
-    EXPECT_EQ(2, isolate->heap()->PeerCount());
+    EXPECT_EQ(2, heap->PeerCount());
     EXPECT_VALID(Dart_GetPeer(s2, &o2));
     EXPECT(o2 == reinterpret_cast<void*>(&p2));
   }
@@ -8375,7 +8423,7 @@ TEST_CASE(DartAPI_CollectTwoNewSpacePeers) {
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::CollectNewSpace();
-    EXPECT_EQ(0, isolate->heap()->PeerCount());
+    EXPECT_EQ(0, heap->PeerCount());
   }
 }
 
@@ -8383,7 +8431,7 @@ TEST_CASE(DartAPI_CollectTwoNewSpacePeers) {
 // garbage collections and checks that the peer count is stable.
 TEST_CASE(DartAPI_CopyNewSpacePeers) {
   const int kPeerCount = 10;
-  Isolate* isolate = Isolate::Current();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_Handle s[kPeerCount];
   for (int i = 0; i < kPeerCount; ++i) {
     s[i] = NewString("a string");
@@ -8393,22 +8441,22 @@ TEST_CASE(DartAPI_CopyNewSpacePeers) {
     EXPECT_VALID(Dart_GetPeer(s[i], &o));
     EXPECT(o == NULL);
   }
-  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  EXPECT_EQ(0, heap->PeerCount());
   int p[kPeerCount];
   for (int i = 0; i < kPeerCount; ++i) {
     EXPECT_VALID(Dart_SetPeer(s[i], &p[i]));
-    EXPECT_EQ(i + 1, isolate->heap()->PeerCount());
+    EXPECT_EQ(i + 1, heap->PeerCount());
     void* o = &o;
     EXPECT_VALID(Dart_GetPeer(s[i], &o));
     EXPECT(o == reinterpret_cast<void*>(&p[i]));
   }
-  EXPECT_EQ(kPeerCount, isolate->heap()->PeerCount());
+  EXPECT_EQ(kPeerCount, heap->PeerCount());
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::CollectNewSpace();
-    EXPECT_EQ(kPeerCount, isolate->heap()->PeerCount());
+    EXPECT_EQ(kPeerCount, heap->PeerCount());
     GCTestHelper::CollectNewSpace();
-    EXPECT_EQ(kPeerCount, isolate->heap()->PeerCount());
+    EXPECT_EQ(kPeerCount, heap->PeerCount());
   }
 }
 
@@ -8416,11 +8464,11 @@ TEST_CASE(DartAPI_CopyNewSpacePeers) {
 // the peer to old space.  Removes the peer and check that the count
 // of peer objects is decremented by one.
 TEST_CASE(DartAPI_OnePromotedPeer) {
-  Isolate* isolate = Isolate::Current();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_Handle str = NewString("a string");
   EXPECT_VALID(str);
   EXPECT(Dart_IsString(str));
-  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  EXPECT_EQ(0, heap->PeerCount());
   void* out = &out;
   EXPECT(Dart_GetPeer(str, &out));
   EXPECT(out == NULL);
@@ -8429,7 +8477,7 @@ TEST_CASE(DartAPI_OnePromotedPeer) {
   out = &out;
   EXPECT(Dart_GetPeer(str, &out));
   EXPECT(out == reinterpret_cast<void*>(&peer));
-  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  EXPECT_EQ(1, heap->PeerCount());
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::CollectNewSpace();
@@ -8445,36 +8493,36 @@ TEST_CASE(DartAPI_OnePromotedPeer) {
   }
   EXPECT_VALID(Dart_GetPeer(str, &out));
   EXPECT(out == reinterpret_cast<void*>(&peer));
-  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  EXPECT_EQ(1, heap->PeerCount());
   EXPECT_VALID(Dart_SetPeer(str, NULL));
   out = &out;
   EXPECT_VALID(Dart_GetPeer(str, &out));
   EXPECT(out == NULL);
-  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  EXPECT_EQ(0, heap->PeerCount());
 }
 
 // Allocates an object in old space and assigns it a peer.  Removes
 // the peer and checks that the count of peer objects is decremented
 // by one.
 TEST_CASE(DartAPI_OneOldSpacePeer) {
-  Isolate* isolate = Isolate::Current();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_Handle str = AllocateOldString("str");
   EXPECT_VALID(str);
   EXPECT(Dart_IsString(str));
-  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  EXPECT_EQ(0, heap->PeerCount());
   void* out = &out;
   EXPECT(Dart_GetPeer(str, &out));
   EXPECT(out == NULL);
   int peer = 1234;
   EXPECT_VALID(Dart_SetPeer(str, &peer));
-  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  EXPECT_EQ(1, heap->PeerCount());
   out = &out;
   EXPECT_VALID(Dart_GetPeer(str, &out));
   EXPECT(out == reinterpret_cast<void*>(&peer));
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::CollectOldSpace();
-    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    EXPECT_EQ(1, heap->PeerCount());
   }
   EXPECT_VALID(Dart_GetPeer(str, &out));
   EXPECT(out == reinterpret_cast<void*>(&peer));
@@ -8482,14 +8530,14 @@ TEST_CASE(DartAPI_OneOldSpacePeer) {
   out = &out;
   EXPECT_VALID(Dart_GetPeer(str, &out));
   EXPECT(out == NULL);
-  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  EXPECT_EQ(0, heap->PeerCount());
 }
 
 // Allocates an object in old space and assigns it a peer.  Allow the
 // peer referent to be garbage collected and check that the count of
 // peer objects is decremented by one.
 TEST_CASE(DartAPI_CollectOneOldSpacePeer) {
-  Isolate* isolate = Isolate::Current();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_EnterScope();
   {
     Thread* T = Thread::Current();
@@ -8497,20 +8545,20 @@ TEST_CASE(DartAPI_CollectOneOldSpacePeer) {
     Dart_Handle str = AllocateOldString("str");
     EXPECT_VALID(str);
     EXPECT(Dart_IsString(str));
-    EXPECT_EQ(0, isolate->heap()->PeerCount());
+    EXPECT_EQ(0, heap->PeerCount());
     void* out = &out;
     EXPECT(Dart_GetPeer(str, &out));
     EXPECT(out == NULL);
     int peer = 1234;
     EXPECT_VALID(Dart_SetPeer(str, &peer));
-    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    EXPECT_EQ(1, heap->PeerCount());
     out = &out;
     EXPECT_VALID(Dart_GetPeer(str, &out));
     EXPECT(out == reinterpret_cast<void*>(&peer));
     {
       TransitionNativeToVM transition(thread);
       GCTestHelper::CollectOldSpace();
-      EXPECT_EQ(1, isolate->heap()->PeerCount());
+      EXPECT_EQ(1, heap->PeerCount());
     }
     EXPECT_VALID(Dart_GetPeer(str, &out));
     EXPECT(out == reinterpret_cast<void*>(&peer));
@@ -8519,7 +8567,7 @@ TEST_CASE(DartAPI_CollectOneOldSpacePeer) {
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::CollectOldSpace();
-    EXPECT_EQ(0, isolate->heap()->PeerCount());
+    EXPECT_EQ(0, heap->PeerCount());
   }
 }
 
@@ -8527,40 +8575,40 @@ TEST_CASE(DartAPI_CollectOneOldSpacePeer) {
 // the peers and checks that the count of peer objects is decremented
 // by two.
 TEST_CASE(DartAPI_TwoOldSpacePeers) {
-  Isolate* isolate = Isolate::Current();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_Handle s1 = AllocateOldString("s1");
   EXPECT_VALID(s1);
   EXPECT(Dart_IsString(s1));
-  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  EXPECT_EQ(0, heap->PeerCount());
   void* o1 = &o1;
   EXPECT(Dart_GetPeer(s1, &o1));
   EXPECT(o1 == NULL);
   int p1 = 1234;
   EXPECT_VALID(Dart_SetPeer(s1, &p1));
-  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  EXPECT_EQ(1, heap->PeerCount());
   o1 = &o1;
   EXPECT_VALID(Dart_GetPeer(s1, &o1));
   EXPECT(o1 == reinterpret_cast<void*>(&p1));
   Dart_Handle s2 = AllocateOldString("s2");
   EXPECT_VALID(s2);
   EXPECT(Dart_IsString(s2));
-  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  EXPECT_EQ(1, heap->PeerCount());
   void* o2 = &o2;
   EXPECT(Dart_GetPeer(s2, &o2));
   EXPECT(o2 == NULL);
   int p2 = 5678;
   EXPECT_VALID(Dart_SetPeer(s2, &p2));
-  EXPECT_EQ(2, isolate->heap()->PeerCount());
+  EXPECT_EQ(2, heap->PeerCount());
   o2 = &o2;
   EXPECT_VALID(Dart_GetPeer(s2, &o2));
   EXPECT(o2 == reinterpret_cast<void*>(&p2));
   EXPECT_VALID(Dart_SetPeer(s1, NULL));
-  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  EXPECT_EQ(1, heap->PeerCount());
   o1 = &o1;
   EXPECT(Dart_GetPeer(s1, &o1));
   EXPECT(o1 == NULL);
   EXPECT_VALID(Dart_SetPeer(s2, NULL));
-  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  EXPECT_EQ(0, heap->PeerCount());
   o2 = &o2;
   EXPECT_VALID(Dart_GetPeer(s2, &o2));
   EXPECT(o2 == NULL);
@@ -8570,7 +8618,7 @@ TEST_CASE(DartAPI_TwoOldSpacePeers) {
 // the peer referents to be garbage collected and checks that the
 // count of peer objects is decremented by two.
 TEST_CASE(DartAPI_CollectTwoOldSpacePeers) {
-  Isolate* isolate = Isolate::Current();
+  Heap* heap = IsolateGroup::Current()->heap();
   Dart_EnterScope();
   {
     Thread* T = Thread::Current();
@@ -8578,26 +8626,26 @@ TEST_CASE(DartAPI_CollectTwoOldSpacePeers) {
     Dart_Handle s1 = AllocateOldString("s1");
     EXPECT_VALID(s1);
     EXPECT(Dart_IsString(s1));
-    EXPECT_EQ(0, isolate->heap()->PeerCount());
+    EXPECT_EQ(0, heap->PeerCount());
     void* o1 = &o1;
     EXPECT(Dart_GetPeer(s1, &o1));
     EXPECT(o1 == NULL);
     int p1 = 1234;
     EXPECT_VALID(Dart_SetPeer(s1, &p1));
-    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    EXPECT_EQ(1, heap->PeerCount());
     o1 = &o1;
     EXPECT_VALID(Dart_GetPeer(s1, &o1));
     EXPECT(o1 == reinterpret_cast<void*>(&p1));
     Dart_Handle s2 = AllocateOldString("s2");
     EXPECT_VALID(s2);
     EXPECT(Dart_IsString(s2));
-    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    EXPECT_EQ(1, heap->PeerCount());
     void* o2 = &o2;
     EXPECT(Dart_GetPeer(s2, &o2));
     EXPECT(o2 == NULL);
     int p2 = 5678;
     EXPECT_VALID(Dart_SetPeer(s2, &p2));
-    EXPECT_EQ(2, isolate->heap()->PeerCount());
+    EXPECT_EQ(2, heap->PeerCount());
     o2 = &o2;
     EXPECT_VALID(Dart_GetPeer(s2, &o2));
     EXPECT(o2 == reinterpret_cast<void*>(&p2));
@@ -8606,13 +8654,13 @@ TEST_CASE(DartAPI_CollectTwoOldSpacePeers) {
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::CollectOldSpace();
-    EXPECT_EQ(0, isolate->heap()->PeerCount());
+    EXPECT_EQ(0, heap->PeerCount());
   }
 }
 
 TEST_CASE(DartAPI_ExternalStringIndexOf) {
   const char* kScriptChars =
-      "main(String pattern) {\n"
+      "testMain(String pattern) {\n"
       "  var str = 'Hello World';\n"
       "  return str.indexOf(pattern);\n"
       "}\n";
@@ -8627,7 +8675,7 @@ TEST_CASE(DartAPI_ExternalStringIndexOf) {
 
   Dart_Handle dart_args[1];
   dart_args[0] = ext8;
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 1, dart_args);
+  Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
   int64_t value = 0;
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
@@ -8957,10 +9005,7 @@ TEST_CASE(DartAPI_InvokeVMServiceMethod) {
 
   Dart_Handle bytes = Dart_NewExternalTypedDataWithFinalizer(
       Dart_TypedData_kUint8, response_json, response_json_length, response_json,
-      response_json_length,
-      [](void* ignored, Dart_WeakPersistentHandle handle, void* peer) {
-        free(peer);
-      });
+      response_json_length, [](void* ignored, void* peer) { free(peer); });
   EXPECT_VALID(bytes);
 
   // We don't have a C++ JSON decoder so we'll invoke dart to validate the

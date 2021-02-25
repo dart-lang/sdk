@@ -27,6 +27,7 @@ enum ConstantValueKind {
   INTERCEPTOR,
   JS_NAME,
   DUMMY_INTERCEPTOR,
+  LATE_SENTINEL,
   UNREACHABLE,
   INSTANTIATION,
   DEFERRED_GLOBAL,
@@ -52,6 +53,8 @@ abstract class ConstantValueVisitor<R, A> {
       covariant InterceptorConstantValue constant, covariant A arg);
   R visitDummyInterceptor(
       covariant DummyInterceptorConstantValue constant, covariant A arg);
+  R visitLateSentinel(
+      covariant LateSentinelConstantValue constant, covariant A arg);
   R visitUnreachable(
       covariant UnreachableConstantValue constant, covariant A arg);
   R visitJsName(covariant JsNameConstantValue constant, covariant A arg);
@@ -892,6 +895,34 @@ class DummyInterceptorConstantValue extends ConstantValue {
 
   @override
   String toStructuredText(DartTypes dartTypes) => 'DummyInterceptorConstant()';
+}
+
+/// A constant used to represent the sentinel for uninitialized late fields and
+/// variables.
+class LateSentinelConstantValue extends ConstantValue {
+  factory LateSentinelConstantValue() => const LateSentinelConstantValue._();
+
+  const LateSentinelConstantValue._();
+
+  @override
+  List<ConstantValue> getDependencies() => const <ConstantValue>[];
+
+  @override
+  accept(ConstantValueVisitor visitor, arg) {
+    return visitor.visitLateSentinel(this, arg);
+  }
+
+  @override
+  DartType getType(CommonElements types) => types.dynamicType;
+
+  @override
+  ConstantValueKind get kind => ConstantValueKind.LATE_SENTINEL;
+
+  @override
+  String toDartText(DartTypes dartTypes) => 'late_sentinel()';
+
+  @override
+  String toStructuredText(DartTypes dartTypes) => 'LateSentinelConstant()';
 }
 
 // A constant with an empty type used in [HInstruction]s of an expression

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.function_type_builder;
 
 import 'package:kernel/ast.dart'
@@ -59,13 +61,13 @@ class FunctionTypeBuilder extends TypeBuilder {
     buffer.write("(");
     if (formals != null) {
       bool isFirst = true;
-      for (dynamic t in formals) {
+      for (FormalParameterBuilder t in formals) {
         if (!isFirst) {
           buffer.write(", ");
         } else {
           isFirst = false;
         }
-        buffer.write(t?.fullNameForErrors);
+        buffer.write(t.fullNameForErrors);
       }
     }
     buffer.write(") ->");
@@ -130,14 +132,16 @@ class FunctionTypeBuilder extends TypeBuilder {
   FunctionTypeBuilder clone(List<TypeBuilder> newTypes) {
     List<TypeVariableBuilder> clonedTypeVariables;
     if (typeVariables != null) {
-      clonedTypeVariables = new List<TypeVariableBuilder>(typeVariables.length);
+      clonedTypeVariables =
+          new List<TypeVariableBuilder>.filled(typeVariables.length, null);
       for (int i = 0; i < clonedTypeVariables.length; i++) {
         clonedTypeVariables[i] = typeVariables[i].clone(newTypes);
       }
     }
     List<FormalParameterBuilder> clonedFormals;
     if (formals != null) {
-      clonedFormals = new List<FormalParameterBuilder>(formals.length);
+      clonedFormals =
+          new List<FormalParameterBuilder>.filled(formals.length, null);
       for (int i = 0; i < clonedFormals.length; i++) {
         FormalParameterBuilder formal = formals[i];
         clonedFormals[i] = formal.clone(newTypes);

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async' show Future;
+// @dart = 2.9
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show messageMissingMain;
@@ -20,7 +20,8 @@ import 'package:kernel/ast.dart' as ir;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../api_prototype/compiler_options.dart' show CompilerOptions;
+import '../api_prototype/compiler_options.dart'
+    show CompilerOptions, InvocationMode, Verbosity;
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
@@ -42,7 +43,7 @@ import '../fasta/kernel/redirecting_factory_body.dart' as redirecting;
 
 import 'compiler_state.dart' show InitializedCompilerState;
 
-import 'util.dart' show equalLists, equalMaps;
+import 'util.dart' show equalLists, equalMaps, equalSets;
 
 export 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show LocatedMessage;
@@ -99,10 +100,15 @@ export 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show relativizeUri;
 
 export '../api_prototype/compiler_options.dart'
-    show CompilerOptions, parseExperimentalFlags, parseExperimentalArguments;
+    show
+        CompilerOptions,
+        InvocationMode,
+        Verbosity,
+        parseExperimentalFlags,
+        parseExperimentalArguments;
 
 export '../api_prototype/experimental_flags.dart'
-    show defaultExperimentalFlags, ExperimentalFlag;
+    show defaultExperimentalFlags, ExperimentalFlag, isExperimentEnabled;
 
 export '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
@@ -138,9 +144,11 @@ InitializedCompilerState initializeCompiler(
     Uri librariesSpecificationUri,
     List<Uri> additionalDills,
     Uri packagesFileUri,
-    {Map<ExperimentalFlag, bool> experimentalFlags,
+    {Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     bool verify: false,
-    NnbdMode nnbdMode}) {
+    NnbdMode nnbdMode,
+    Set<InvocationMode> invocationModes: const <InvocationMode>{},
+    Verbosity verbosity: Verbosity.all}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
   // We don't check `target` because it doesn't support '==' and each
@@ -150,9 +158,12 @@ InitializedCompilerState initializeCompiler(
       oldState.options.packagesFileUri == packagesFileUri &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
       equalLists(oldState.options.additionalDills, additionalDills) &&
-      equalMaps(oldState.options.experimentalFlags, experimentalFlags) &&
+      equalMaps(oldState.options.explicitExperimentalFlags,
+          explicitExperimentalFlags) &&
       oldState.options.verify == verify &&
-      oldState.options.nnbdMode == nnbdMode) {
+      oldState.options.nnbdMode == nnbdMode &&
+      equalSets(oldState.options.invocationModes, invocationModes) &&
+      oldState.options.verbosity == verbosity) {
     return oldState;
   }
 
@@ -161,8 +172,10 @@ InitializedCompilerState initializeCompiler(
     ..additionalDills = additionalDills
     ..librariesSpecificationUri = librariesSpecificationUri
     ..packagesFileUri = packagesFileUri
-    ..experimentalFlags = experimentalFlags
-    ..verify = verify;
+    ..explicitExperimentalFlags = explicitExperimentalFlags
+    ..verify = verify
+    ..invocationModes = invocationModes
+    ..verbosity = verbosity;
   if (nnbdMode != null) options.nnbdMode = nnbdMode;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);

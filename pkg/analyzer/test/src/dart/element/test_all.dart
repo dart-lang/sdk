@@ -13,6 +13,7 @@ import 'future_or_base_test.dart' as future_or_base;
 import 'future_value_type_test.dart' as future_value_type;
 import 'generic_inferrer_test.dart' as generic_inferrer;
 import 'inheritance_manager3_test.dart' as inheritance_manager3;
+import 'least_greatest_closure_test.dart' as least_greatest_closure_test;
 import 'least_upper_bound_helper_test.dart' as least_upper_bound_helper;
 import 'normalize_type_test.dart' as normalize_type;
 import 'nullability_eliminator_test.dart' as nullability_eliminator;
@@ -22,8 +23,10 @@ import 'runtime_type_equality_test.dart' as runtime_type_equality;
 import 'subtype_test.dart' as subtype;
 import 'top_merge_test.dart' as top_merge;
 import 'type_algebra_test.dart' as type_algebra;
+import 'type_bounded_test.dart' as type_bounded;
 import 'type_constraint_gatherer_test.dart' as type_constraint_gatherer;
 import 'type_parameter_element_test.dart' as type_parameter_element;
+import 'type_references_any_test.dart' as type_references_any;
 import 'type_visitor_test.dart' as type_visitor;
 import 'upper_lower_bound_test.dart' as upper_bound;
 
@@ -39,6 +42,7 @@ main() {
     future_value_type.main();
     generic_inferrer.main();
     inheritance_manager3.main();
+    least_greatest_closure_test.main();
     least_upper_bound_helper.main();
     normalize_type.main();
     nullability_eliminator.main();
@@ -48,8 +52,10 @@ main() {
     subtype.main();
     top_merge.main();
     type_algebra.main();
+    type_bounded.main();
     type_constraint_gatherer.main();
     type_parameter_element.main();
+    type_references_any.main();
     type_visitor.main();
     upper_bound.main();
   }, name: 'element');

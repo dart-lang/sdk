@@ -4,7 +4,7 @@
 
 import 'package:kernel/ast.dart';
 
-import 'utils.dart' show assertx, UnionFind;
+import 'utils.dart' show UnionFind;
 import '../../metadata/procedure_attributes.dart';
 import '../../metadata/table_selector.dart';
 
@@ -25,7 +25,7 @@ class TableSelectorAssigner {
         _memberIdsForClass(cls, getter: true);
       }
     }
-    _selectorIdForMemberId = List(_unionFind.size);
+    _selectorIdForMemberId = List.filled(_unionFind.size, null);
     // Assign all selector IDs eagerly to make them independent of how they are
     // queried in later phases. This makes TFA test expectation files (which
     // contain selector IDs) more stable under changes to how selector IDs are
@@ -101,7 +101,7 @@ class TableSelectorAssigner {
     final map = getter ? _getterMemberIds : _methodOrSetterMemberIds;
     int memberId = map[member.enclosingClass][member.name];
     if (memberId == null) {
-      assertx(member is Procedure &&
+      assert(member is Procedure &&
               ((identical(map, _getterMemberIds) &&
                       (member.kind == ProcedureKind.Operator ||
                           member.kind == ProcedureKind.Setter)) ||

@@ -1,0 +1,23 @@
+final external int i1;
+var external i2;
+
+class C {
+covariant external num i3;
+final external int i4;
+final external i5;
+static external final i6;
+static final external i7;
+final static external i8;
+}
+
+final[KeywordToken] external[KeywordToken] int[StringToken] i1[StringToken];[SimpleToken]
+var[KeywordToken] external[KeywordToken] i2[StringToken];[SimpleToken]
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+covariant[KeywordToken] external[KeywordToken] num[StringToken] i3[StringToken];[SimpleToken]
+final[KeywordToken] external[KeywordToken] int[StringToken] i4[StringToken];[SimpleToken]
+final[KeywordToken] external[KeywordToken] i5[StringToken];[SimpleToken]
+static[KeywordToken] external[KeywordToken] final[KeywordToken] i6[StringToken];[SimpleToken]
+static[KeywordToken] final[KeywordToken] external[KeywordToken] i7[StringToken];[SimpleToken]
+final[KeywordToken] static[KeywordToken] external[KeywordToken] i8[StringToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

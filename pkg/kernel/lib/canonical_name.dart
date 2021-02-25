@@ -1,6 +1,9 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 library kernel.canonical_name;
 
 import 'ast.dart';
@@ -105,7 +108,7 @@ class CanonicalName {
   }
 
   CanonicalName getChild(String name) {
-    var map = _children ??= <String, CanonicalName>{};
+    Map<String, CanonicalName> map = _children ??= <String, CanonicalName>{};
     return map[name] ??= new CanonicalName._(this, name);
   }
 
@@ -118,17 +121,40 @@ class CanonicalName {
 
   CanonicalName getChildFromQualifiedName(Name name) {
     return name.isPrivate
-        ? getChildFromUri(name.library.importUri).getChild(name.name)
-        : getChild(name.name);
+        ? getChildFromUri(name.library.importUri).getChild(name.text)
+        : getChild(name.text);
   }
 
-  CanonicalName getChildFromMember(Member member) {
-    return getChild(getMemberQualifier(member))
-        .getChildFromQualifiedName(member.name);
+  CanonicalName getChildFromProcedure(Procedure procedure) {
+    return getChild(getProcedureQualifier(procedure))
+        .getChildFromQualifiedName(procedure.name);
+  }
+
+  CanonicalName getChildFromField(Field field) {
+    return getChild('@fields').getChildFromQualifiedName(field.name);
+  }
+
+  CanonicalName getChildFromFieldSetter(Field field) {
+    return getChild('@=fields').getChildFromQualifiedName(field.name);
+  }
+
+  CanonicalName getChildFromConstructor(Constructor constructor) {
+    return getChild('@constructors')
+        .getChildFromQualifiedName(constructor.name);
+  }
+
+  CanonicalName getChildFromRedirectingFactoryConstructor(
+      RedirectingFactoryConstructor redirectingFactoryConstructor) {
+    return getChild('@factories')
+        .getChildFromQualifiedName(redirectingFactoryConstructor.name);
   }
 
   CanonicalName getChildFromFieldWithName(Name name) {
     return getChild('@fields').getChildFromQualifiedName(name);
+  }
+
+  CanonicalName getChildFromFieldSetterWithName(Name name) {
+    return getChild('@=fields').getChildFromQualifiedName(name);
   }
 
   CanonicalName getChildFromTypedef(Typedef typedef_) {
@@ -160,10 +186,18 @@ class CanonicalName {
   }
 
   void removeChild(String name) {
-    _children?.remove(name);
+    if (_children != null) {
+      _children.remove(name);
+      if (_children.isEmpty) {
+        _children = null;
+      }
+    }
   }
 
   void bindTo(Reference target) {
+    if (target == null) {
+      throw '$this cannot be bound to null';
+    }
     if (reference == target) return;
     if (reference != null) {
       throw '$this is already bound';
@@ -177,6 +211,16 @@ class CanonicalName {
   }
 
   void unbind() {
+    _unbindInternal();
+    // TODO(johnniwinther): To support replacement of fields with getters and
+    // setters (and the reverse) we need to remove canonical names from the
+    // canonical name tree. We need to establish better invariants about the
+    // state of the canonical name tree, since for instance [unbindAll] doesn't
+    // remove unneeded leaf nodes.
+    _parent.removeChild(name);
+  }
+
+  void _unbindInternal() {
     if (reference == null) return;
     assert(reference.canonicalName == this);
     if (reference.node is Class) {
@@ -190,7 +234,7 @@ class CanonicalName {
   }
 
   void unbindAll() {
-    unbind();
+    _unbindInternal();
     Iterable<CanonicalName> children_ = childrenOrNull;
     if (children_ != null) {
       for (CanonicalName child in children_) {
@@ -210,22 +254,10 @@ class CanonicalName {
     return reference ??= (new Reference()..canonicalName = this);
   }
 
-  static String getMemberQualifier(Member member) {
-    if (member is Procedure) {
-      if (member.isGetter) return '@getters';
-      if (member.isSetter) return '@setters';
-      if (member.isFactory) return '@factories';
-      return '@methods';
-    }
-    if (member is Field) {
-      return '@fields';
-    }
-    if (member is Constructor) {
-      return '@constructors';
-    }
-    if (member is RedirectingFactoryConstructor) {
-      return '@factories';
-    }
-    throw 'Unexpected member: $member';
+  static String getProcedureQualifier(Procedure procedure) {
+    if (procedure.isGetter) return '@getters';
+    if (procedure.isSetter) return '@setters';
+    if (procedure.isFactory) return '@factories';
+    return '@methods';
   }
 }

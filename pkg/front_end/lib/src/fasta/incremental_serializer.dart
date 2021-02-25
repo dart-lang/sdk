@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.incremental_serializer;
 
 import 'dart:typed_data' show Uint8List;
@@ -62,7 +64,7 @@ class IncrementalSerializer {
     // Add groups. Wrap in try because an exception will be thrown if a group
     // has a dependency that isn't being met.
     try {
-      List<SerializationGroup> newGroups = new List<SerializationGroup>();
+      List<SerializationGroup> newGroups = <SerializationGroup>[];
       for (int i = 0; i < goodViews.length; i++) {
         SubComponentView view = goodViews[i];
         List<int> data = new Uint8List(view.componentFileSize);
@@ -113,8 +115,8 @@ class IncrementalSerializer {
     component.computeCanonicalNames();
 
     // Split into package and non-package libraries.
-    List<Library> packageLibraries = new List<Library>();
-    List<Library> nonPackageLibraries = new List<Library>();
+    List<Library> packageLibraries = <Library>[];
+    List<Library> nonPackageLibraries = <Library>[];
     for (Library lib in component.libraries) {
       Uri uri = lib.importUri;
       if (uri.scheme == "package") {
@@ -196,7 +198,7 @@ class IncrementalSerializer {
   void removeInvalidated() {
     // Remove all directly invalidated entries.
     Set<SerializationGroup> removed = new Set<SerializationGroup>();
-    List<SerializationGroup> workList = new List<SerializationGroup>();
+    List<SerializationGroup> workList = <SerializationGroup>[];
     for (Uri uri in invalidatedUris) {
       removeUriFromMap(uri, removed, workList);
     }
@@ -302,6 +304,7 @@ class IncrementalSerializer {
         libraries: libraries,
         uriToSource: component.uriToSource,
         nameRoot: component.root);
+    singlePackageLibraries.setMainMethodAndMode(null, false, component.mode);
 
     ByteSink byteSink = new ByteSink();
     final BinaryPrinter printer = new BinaryPrinter(byteSink);

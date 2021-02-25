@@ -18,7 +18,7 @@ void switchBad(int value) {
       Expect.equals(x, 10);
       //            ^
       // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-      // [cfe] Non-nullable late variable 'x' without initializer is definitely unassigned.
+      // [cfe] Late variable 'x' without initializer is definitely unassigned.
       break;
     case 1:
       x = 10;

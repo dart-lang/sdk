@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async' show Future;
+// @dart = 2.9
 
 import 'dart:io' show Directory, File, FileSystemEntity;
 
@@ -30,12 +30,18 @@ import 'package:package_config/package_config.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
+import 'testing_utils.dart' show checkEnvironment, getGitFiles;
+
 main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new Context();
+  const Set<String> knownEnvironmentKeys = {"onlyInGit"};
+  checkEnvironment(environment, knownEnvironmentKeys);
+
+  bool onlyInGit = environment["onlyInGit"] != "false";
+  return new Context(onlyInGit: onlyInGit);
 }
 
 class LintTestDescription extends TestDescription {
@@ -70,6 +76,9 @@ class LintTestCache {
 }
 
 class Context extends ChainContext {
+  final bool onlyInGit;
+  Context({this.onlyInGit});
+
   final List<Step> steps = const <Step>[
     const LintStep(),
   ];
@@ -82,6 +91,11 @@ class Context extends ChainContext {
   }
 
   Stream<LintTestDescription> list(Chain suite) async* {
+    Set<Uri> gitFiles;
+    if (onlyInGit) {
+      gitFiles = await getGitFiles(suite.uri);
+    }
+
     Directory testRoot = new Directory.fromUri(suite.uri);
     if (await testRoot.exists()) {
       Stream<FileSystemEntity> files =
@@ -91,6 +105,7 @@ class Context extends ChainContext {
         String path = entity.uri.path;
         if (suite.exclude.any((RegExp r) => path.contains(r))) continue;
         if (suite.pattern.any((RegExp r) => path.contains(r))) {
+          if (onlyInGit && !gitFiles.contains(entity.uri)) continue;
           Uri root = suite.uri;
           String baseName = "${entity.uri}".substring("$root".length);
           baseName = baseName.substring(0, baseName.length - ".dart".length);
@@ -181,7 +196,7 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
 }
 
 class LintListener extends Listener {
-  List<String> problems = new List<String>();
+  List<String> problems = <String>[];
   LintTestDescription description;
   Uri uri;
 
@@ -191,7 +206,7 @@ class LintListener extends Listener {
 }
 
 class ExplicitTypeLintListener extends LintListener {
-  List<LatestType> _latestTypes = new List<LatestType>();
+  List<LatestType> _latestTypes = <LatestType>[];
 
   @override
   void beginVariablesDeclaration(

@@ -244,8 +244,9 @@ typedef struct _Dart_IsolateGroup* Dart_IsolateGroup;
  * the object is garbage collected. It is never safe to use these handles
  * unless you know the object is still reachable.
  *
- * WeakPersistentHandles are persistent handles which are auto deleted
- * when the object is garbage collected.
+ * WeakPersistentHandles are persistent handles which are automatically set
+ * to point Dart_Null when the object is garbage collected. They are not auto
+ * deleted, so it is safe to use them after the object has become unreachable.
  */
 typedef struct _Dart_Handle* Dart_Handle;
 typedef Dart_Handle Dart_PersistentHandle;
@@ -254,10 +255,6 @@ typedef struct _Dart_FinalizableHandle* Dart_FinalizableHandle;
 // These structs are versioned by DART_API_DL_MAJOR_VERSION, bump the
 // version when changing this struct.
 
-typedef void (*Dart_WeakPersistentHandleFinalizer)(
-    void* isolate_callback_data,
-    Dart_WeakPersistentHandle handle,
-    void* peer);
 typedef void (*Dart_HandleFinalizer)(void* isolate_callback_data, void* peer);
 
 /**
@@ -423,6 +420,8 @@ DART_EXPORT Dart_Handle Dart_HandleFromPersistent(Dart_PersistentHandle object);
 
 /**
  * Allocates a handle in the current scope from a weak persistent handle.
+ *
+ * This will be a handle to Dart_Null if the object has been garbage collected.
  */
 DART_EXPORT Dart_Handle
 Dart_HandleFromWeakPersistent(Dart_WeakPersistentHandle object);
@@ -461,24 +460,18 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
 /**
  * Allocates a weak persistent handle for an object.
  *
- * This handle has the lifetime of the current isolate unless the object
- * pointed to by the handle is garbage collected, in this case the VM
- * automatically deletes the handle after invoking the callback associated
- * with the handle. The handle can also be explicitly deallocated by
- * calling Dart_DeleteWeakPersistentHandle.
+ * This handle has the lifetime of the current isolate. The handle can also be
+ * explicitly deallocated by calling Dart_DeleteWeakPersistentHandle.
  *
- * If the object becomes unreachable the callback is invoked with the weak
- * persistent handle and the peer as arguments. The callback can be executed on
- * any thread, will have an isolate group, but will not have a current isolate.
- * The callback can only call Dart_DeletePersistentHandle or
- * Dart_DeleteWeakPersistentHandle. The callback must not call
- * Dart_DeleteWeakPersistentHandle for the handle being finalized, as it is
- * automatically deleted by the VM after the callback returns. This gives the
- * embedder the ability to cleanup data associated with the object and clear
- * out any cached references to the handle. All references to this handle after
- * the callback will be invalid. It is illegal to call into the VM with any
- * other Dart_* functions from the callback. If the handle is deleted before
- * the object becomes unreachable, the callback is never invoked.
+ * If the object becomes unreachable the callback is invoked with the peer as
+ * argument. The callback can be executed on any thread, will have a current
+ * isolate group, but will not have a current isolate. The callback can only
+ * call Dart_DeletePersistentHandle or Dart_DeleteWeakPersistentHandle. This
+ * gives the embedder the ability to cleanup data associated with the object.
+ * The handle will point to the Dart_Null object after the finalizer has been
+ * run. It is illegal to call into the VM with any other Dart_* functions from
+ * the callback. If the handle is deleted before the object becomes
+ * unreachable, the callback is never invoked.
  *
  * Requires there to be a current isolate.
  *
@@ -498,7 +491,7 @@ DART_EXPORT Dart_WeakPersistentHandle
 Dart_NewWeakPersistentHandle(Dart_Handle object,
                              void* peer,
                              intptr_t external_allocation_size,
-                             Dart_WeakPersistentHandleFinalizer callback);
+                             Dart_HandleFinalizer callback);
 
 /**
  * Deletes the given weak persistent [object] handle.
@@ -595,12 +588,6 @@ DART_EXPORT void Dart_UpdateFinalizableExternalSize(
  */
 DART_EXPORT const char* Dart_VersionString();
 
-typedef struct {
-  const char* library_uri;
-  const char* class_name;
-  const char* function_name;
-} Dart_QualifiedFunctionName;
-
 /**
  * Isolate specific flags are set when creating a new isolate using the
  * Dart_IsolateFlags structure.
@@ -617,7 +604,6 @@ typedef struct {
   bool use_field_guards;
   bool use_osr;
   bool obfuscate;
-  Dart_QualifiedFunctionName* entry_points;
   bool load_vmservice_library;
   bool copy_parent_code;
   bool null_safety;
@@ -921,7 +907,7 @@ typedef struct {
 /**
  * Initializes the VM.
  *
- * \param flags A struct containing initialization information. The version
+ * \param params A struct containing initialization information. The version
  *   field of the struct must be DART_INITIALIZE_PARAMS_CURRENT_VERSION.
  *
  * \return NULL if initialization is successful. Returns an error message
@@ -1014,6 +1000,37 @@ Dart_CreateIsolateGroup(const char* script_uri,
                         void* isolate_group_data,
                         void* isolate_data,
                         char** error);
+/**
+ * Creates a new isolate inside the isolate group of [group_member].
+ *
+ * Requires there to be no current isolate.
+ *
+ * \param group_member An isolate from the same group into which the newly created
+ *   isolate should be born into. Other threads may not have entered / enter this
+ *   member isolate.
+ * \param name A short name for the isolate for debugging purposes.
+ * \param shutdown_callback A callback to be called when the isolate is being
+ *   shutdown (may be NULL).
+ * \param cleanup_callback A callback to be called when the isolate is being
+ *   cleaned up (may be NULL).
+ * \param isolate_data The embedder-specific data associated with this isolate.
+ * \param error Set to NULL if creation is successful, set to an error
+ *   message otherwise. The caller is responsible for calling free() on the
+ *   error message.
+ *
+ * \return The newly created isolate on success, or NULL if isolate creation
+ *   failed.
+ *
+ * If successful, the newly created isolate will become the current isolate.
+ */
+DART_EXPORT Dart_Isolate
+Dart_CreateIsolateInGroup(Dart_Isolate group_member,
+                          const char* name,
+                          Dart_IsolateShutdownCallback shutdown_callback,
+                          Dart_IsolateCleanupCallback cleanup_callback,
+                          void* child_isolate_data,
+                          char** error);
+
 /* TODO(turnidge): Document behavior when there is already a current
  * isolate. */
 
@@ -1242,6 +1259,8 @@ DART_EXPORT void Dart_ExitIsolate();
  *   snapshot. This buffer is scope allocated and is only valid
  *   until the next call to Dart_ExitScope.
  * \param size Returns the size of the buffer.
+ * \param is_core Create a snapshot containing core libraries.
+ *                Such snapshot should be agnostic to null safety mode.
  *
  * \return A valid handle if no error occurs during the operation.
  */
@@ -1249,7 +1268,8 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
                     intptr_t* vm_snapshot_data_size,
                     uint8_t** isolate_snapshot_data_buffer,
-                    intptr_t* isolate_snapshot_data_size);
+                    intptr_t* isolate_snapshot_data_size,
+                    bool is_core);
 
 /**
  * Returns whether the buffer contains a kernel file.
@@ -1487,6 +1507,31 @@ DART_EXPORT bool Dart_HasServiceMessages();
  *   error handle is returned.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_RunLoop();
+
+/**
+ * Lets the VM run message processing for the isolate.
+ *
+ * This function expects there to a current isolate and the current isolate
+ * must not have an active api scope. The VM will take care of making the
+ * isolate runnable (if not already), handles its message loop and will take
+ * care of shutting the isolate down once it's done.
+ *
+ * \param errors_are_fatal Whether uncaught errors should be fatal.
+ * \param on_error_port A port to notify on uncaught errors (or ILLEGAL_PORT).
+ * \param on_exit_port A port to notify on exit (or ILLEGAL_PORT).
+ * \param error A non-NULL pointer which will hold an error message if the call
+ *   fails. The error has to be free()ed by the caller.
+ *
+ * \return If successfull the VM takes owernship of the isolate and takes care
+ *   of its message loop. If not successful the caller retains owernship of the
+ *   isolate.
+ */
+DART_EXPORT DART_WARN_UNUSED_RESULT bool Dart_RunLoopAsync(
+    bool errors_are_fatal,
+    Dart_Port on_error_port,
+    Dart_Port on_exit_port,
+    char** error);
+
 /* TODO(turnidge): Should this be removed from the public api? */
 
 /**
@@ -2043,7 +2088,7 @@ Dart_NewExternalLatin1String(const uint8_t* latin1_array,
                              intptr_t length,
                              void* peer,
                              intptr_t external_allocation_size,
-                             Dart_WeakPersistentHandleFinalizer callback);
+                             Dart_HandleFinalizer callback);
 
 /**
  * Returns a String which references an external array of UTF-16 encoded
@@ -2064,7 +2109,7 @@ Dart_NewExternalUTF16String(const uint16_t* utf16_array,
                             intptr_t length,
                             void* peer,
                             intptr_t external_allocation_size,
-                            Dart_WeakPersistentHandleFinalizer callback);
+                            Dart_HandleFinalizer callback);
 
 /**
  * Gets the C string representation of a String.
@@ -2437,13 +2482,13 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedData(Dart_TypedData_Type type,
  * \return The TypedData object if no error occurs. Otherwise returns
  *   an error handle.
  */
-DART_EXPORT Dart_Handle Dart_NewExternalTypedDataWithFinalizer(
-    Dart_TypedData_Type type,
-    void* data,
-    intptr_t length,
-    void* peer,
-    intptr_t external_allocation_size,
-    Dart_WeakPersistentHandleFinalizer callback);
+DART_EXPORT Dart_Handle
+Dart_NewExternalTypedDataWithFinalizer(Dart_TypedData_Type type,
+                                       void* data,
+                                       intptr_t length,
+                                       void* peer,
+                                       intptr_t external_allocation_size,
+                                       Dart_HandleFinalizer callback);
 
 /**
  * Returns a ByteBuffer object for the typed data.
@@ -3480,6 +3525,13 @@ typedef struct {
   intptr_t kernel_size;
 } Dart_KernelCompilationResult;
 
+typedef enum {
+  Dart_KernelCompilationVerbosityLevel_Error = 0,
+  Dart_KernelCompilationVerbosityLevel_Warning,
+  Dart_KernelCompilationVerbosityLevel_Info,
+  Dart_KernelCompilationVerbosityLevel_All,
+} Dart_KernelCompilationVerbosityLevel;
+
 DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate);
 DART_EXPORT bool Dart_KernelIsolateIsRunning();
 DART_EXPORT Dart_Port Dart_KernelPort();
@@ -3491,6 +3543,13 @@ DART_EXPORT Dart_Port Dart_KernelPort();
  * `vm_platform_strong.dill`). The VM does not take ownership of this memory.
  *
  * \param platform_kernel_size The length of the platform_kernel buffer.
+ *
+ * \param snapshot_compile Set to `true` when the compilation is for a snapshot.
+ * This is used by the frontend to determine if compilation related information
+ * should be printed to console (e.g., null safety mode).
+ *
+ * \param verbosity Specifies the logging behavior of the kernel compilation
+ * service.
  *
  * \return Returns the result of the compilation.
  *
@@ -3509,7 +3568,9 @@ Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
                      const intptr_t platform_kernel_size,
                      bool incremental_compile,
-                     const char* package_config);
+                     bool snapshot_compile,
+                     const char* package_config,
+                     Dart_KernelCompilationVerbosityLevel verbosity);
 
 typedef struct {
   const char* uri;
@@ -3695,22 +3756,28 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id);
 #define kSnapshotBuildIdCSymbol "kDartSnapshotBuildId"
 #define kVmSnapshotDataCSymbol "kDartVmSnapshotData"
 #define kVmSnapshotInstructionsCSymbol "kDartVmSnapshotInstructions"
+#define kVmSnapshotBssCSymbol "kDartVmSnapshotBss"
 #define kIsolateSnapshotDataCSymbol "kDartIsolateSnapshotData"
 #define kIsolateSnapshotInstructionsCSymbol "kDartIsolateSnapshotInstructions"
+#define kIsolateSnapshotBssCSymbol "kDartIsolateSnapshotBss"
 #else
 #define kSnapshotBuildIdCSymbol "_kDartSnapshotBuildId"
 #define kVmSnapshotDataCSymbol "_kDartVmSnapshotData"
 #define kVmSnapshotInstructionsCSymbol "_kDartVmSnapshotInstructions"
+#define kVmSnapshotBssCSymbol "_kDartVmSnapshotBss"
 #define kIsolateSnapshotDataCSymbol "_kDartIsolateSnapshotData"
 #define kIsolateSnapshotInstructionsCSymbol "_kDartIsolateSnapshotInstructions"
+#define kIsolateSnapshotBssCSymbol "_kDartIsolateSnapshotBss"
 #endif
 
 #define kSnapshotBuildIdAsmSymbol "_kDartSnapshotBuildId"
 #define kVmSnapshotDataAsmSymbol "_kDartVmSnapshotData"
 #define kVmSnapshotInstructionsAsmSymbol "_kDartVmSnapshotInstructions"
+#define kVmSnapshotBssAsmSymbol "_kDartVmSnapshotBss"
 #define kIsolateSnapshotDataAsmSymbol "_kDartIsolateSnapshotData"
 #define kIsolateSnapshotInstructionsAsmSymbol                                  \
   "_kDartIsolateSnapshotInstructions"
+#define kIsolateSnapshotBssAsmSymbol "_kDartIsolateSnapshotBss"
 
 /**
  *  Creates a precompiled snapshot.

@@ -9,7 +9,7 @@ class ListLiteral2NegativeTest<T> {
     // Type parameter is not allowed with const.
     var m = const <T>[];
     //             ^
-    // [analyzer] COMPILE_TIME_ERROR.INVALID_TYPE_ARGUMENT_IN_CONST_LIST
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
     // [cfe] Type variables can't be used as constants.
   }
 }

@@ -231,6 +231,7 @@ void f() {
   b;
 }
 ''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
       error(HintCode.UNNECESSARY_CAST, 39, 8),
     ]);
   }
@@ -241,13 +242,15 @@ void f() {
 int a = 0;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 void f() {
   var b = a as int?;
   b;
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
   }
 }

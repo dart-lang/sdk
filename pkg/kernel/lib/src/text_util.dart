@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import '../ast.dart';
 
 String nullabilityToString(Nullability nullability) {
@@ -22,9 +24,9 @@ String nameToString(Name node, {bool includeLibraryName: false}) {
   if (node == null) {
     return 'null';
   } else if (node.library != null && includeLibraryName) {
-    return '${libraryNameToString(node.library)}::${node.name}';
+    return '${libraryNameToString(node.library)}::${node.text}';
   } else {
-    return node.name;
+    return node.text;
   }
 }
 
@@ -205,7 +207,7 @@ String qualifiedMemberNameToStringByReference(Reference reference,
 }
 
 String memberNameToString(Member node) {
-  return node.name?.name ??
+  return node.name?.text ??
       "null-named member ${node.runtimeType} ${node.hashCode}";
 }
 

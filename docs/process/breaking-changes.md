@@ -35,7 +35,8 @@ abide by the following basic conditions:
 * Must access libraries via the public API (for example, must not reach into
   the internals of a package located in the `/src/` directory).
 
-* Must not rely on an [experiment flag](flags.md).
+* Must not rely on an [experiment flag](experimental-flags.md), or depend on
+  libraries or APIs that are documented as being experimental.
 
 * Must not circumvent clear restrictions documented in the public API
   documentation (for example, must not mixin a class clearly documented as
@@ -95,8 +96,8 @@ After the breaking change had been made, the person who made the change must:
 
 * Resolve the breaking change issue and make a note that the change has landed
 
-* Make a note in the [Dart SDK changelog](`changelog.md`) detailing the change.
-  This must be prefixed `** Breaking change:`.
+* Make a note in the [Dart SDK changelog](../../CHANGELOG.md) detailing the change.
+  This must be prefixed `**Breaking Change**`.
 
 * Reply to the original announcement email, and make a note that the change is
   being implemented.

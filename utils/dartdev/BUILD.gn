@@ -11,14 +11,11 @@ dartdev_files = exec_script("../../tools/list_dart_files.py",
                             ],
                             "list lines")
 
-dartfix_files = exec_script("../../tools/list_dart_files.py",
-                            [
-                              "absolute",
-                              rebase_path("../../pkg/dartfix"),
-                            ],
-                            "list lines")
 group("dartdev") {
-  public_deps = [ ":copy_dartdev_kernel" ]
+  public_deps = [
+    ":copy_dartdev_kernel",
+    ":copy_dartdev_snapshot",
+  ]
 }
 
 copy("copy_dartdev_kernel") {
@@ -33,6 +30,21 @@ application_snapshot("generate_dartdev_kernel") {
   main_dart = "../../pkg/dartdev/bin/dartdev.dart"
   training_args = []
   deps = [ "../dds:dds" ]
-  inputs = dartdev_files + dartfix_files
+  inputs = dartdev_files
   output = "$root_gen_dir/dartdev.dill"
+}
+
+copy("copy_dartdev_snapshot") {
+  visibility = [ ":dartdev" ]
+  public_deps = [ ":generate_dartdev_snapshot" ]
+  sources = [ "$root_gen_dir/dartdev.dart.snapshot" ]
+  outputs = [ "$root_out_dir/dartdev.dart.snapshot" ]
+}
+
+application_snapshot("generate_dartdev_snapshot") {
+  main_dart = "../../pkg/dartdev/bin/dartdev.dart"
+  training_args = [ "--help" ]
+  deps = [ "../dds:dds" ]
+  inputs = dartdev_files
+  output = "$root_gen_dir/dartdev.dart.snapshot"
 }

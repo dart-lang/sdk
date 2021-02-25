@@ -23,6 +23,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -32,7 +33,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 const String _TOKEN_SEPARATOR = '\uFFFF';
 
 Element _getLocalElement(SimpleIdentifier node) {
-  var element = node.staticElement;
+  var element = node.writeOrReadElement;
   if (element is LocalVariableElement ||
       element is ParameterElement ||
       element is FunctionElement &&
@@ -754,7 +755,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   Future<void> _initializeReturnType() async {
-    var typeProvider = await resolveResult.typeProvider;
+    var typeProvider = resolveResult.typeProvider;
     if (_selectionFunctionExpression != null) {
       variableType = '';
       returnType = '';
@@ -964,7 +965,7 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
         invalidSelection('Cannot extract the name part of a declaration.');
       }
       // method name
-      var element = node.staticElement;
+      var element = node.writeOrReadElement;
       if (element is FunctionElement || element is MethodElement) {
         invalidSelection('Cannot extract a single method name.');
       }
@@ -1215,7 +1216,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor {
         // add parameter
         var parameter = ref._parametersMap[name];
         if (parameter == null) {
-          var parameterType = node.staticType;
+          var parameterType = node.writeOrReadType;
           var parametersBuffer = StringBuffer();
           var parameterTypeCode = ref.utils.getTypeSource(
               parameterType, ref.librariesToImport,
@@ -1263,7 +1264,7 @@ class _IsUsedAfterSelectionVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var nodeElement = node.staticElement;
+    var nodeElement = node.writeOrReadElement;
     if (identical(nodeElement, element)) {
       var nodeOffset = node.offset;
       if (nodeOffset > ref.selectionRange.end) {

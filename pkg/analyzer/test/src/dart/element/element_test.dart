@@ -36,6 +36,7 @@ main() {
     defineReflectiveTests(ElementImplTest);
     defineReflectiveTests(LibraryElementImplTest);
     defineReflectiveTests(TopLevelVariableElementImplTest);
+    defineReflectiveTests(UniqueLocationTest);
   });
 }
 
@@ -57,6 +58,7 @@ class AbstractTypeTest with ElementsTypesMixin {
 
     testLibrary = library_(
       uriStr: 'package:test/test.dart',
+      analysisContext: _analysisContext,
       analysisSession: _analysisContext.analysisSession,
       typeSystem: typeSystem,
     );
@@ -1060,23 +1062,6 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     expect(typeStr, expected);
   }
 
-  void test_equality_recursive() {
-    var s = ElementFactory.genericTypeAliasElement('s');
-    var t = ElementFactory.genericTypeAliasElement('t');
-    var u = ElementFactory.genericTypeAliasElement('u');
-    var v = ElementFactory.genericTypeAliasElement('v');
-    s.function.returnType = functionTypeAliasType(t);
-    t.function.returnType = functionTypeAliasType(s);
-    u.function.returnType = functionTypeAliasType(v);
-    v.function.returnType = functionTypeAliasType(u);
-    // We don't care whether the types compare equal or not.  We just need the
-    // computation to terminate.
-    expect(
-      functionTypeAliasType(s) == functionTypeAliasType(u),
-      TypeMatcher<bool>(),
-    );
-  }
-
   void test_getNamedParameterTypes_namedParameters() {
     var type = functionTypeNone(
       typeFormals: [],
@@ -1204,30 +1189,6 @@ class FunctionTypeImplTest extends AbstractTypeTest {
 
     // Returns this.
     expect(type.resolveToBound(null), same(type));
-  }
-
-  void test_toString_recursive() {
-    var t = ElementFactory.genericTypeAliasElement("t");
-    var s = ElementFactory.genericTypeAliasElement("s");
-    t.function.returnType = functionTypeAliasType(s);
-    s.function.returnType = functionTypeAliasType(t);
-    assertType(
-      functionTypeAliasType(t),
-      'dynamic Function() Function()',
-    );
-  }
-
-  void test_toString_recursive_via_interface_type() {
-    var f = ElementFactory.genericTypeAliasElement('f');
-    ClassElementImpl c = ElementFactory.classElement2('C', ['T']);
-    f.function.returnType = c.instantiate(
-      typeArguments: [functionTypeAliasType(f)],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    assertType(
-      functionTypeAliasType(f),
-      'dynamic Function()',
-    );
   }
 }
 
@@ -1467,29 +1428,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     classA.methods = <MethodElement>[methodM];
     InterfaceType typeA = interfaceTypeStar(classA);
     expect(typeA.getMethod(methodName), same(methodM));
-  }
-
-  void test_getMethod_parameterized_doesNotUseTypeParameter() {
-    //
-    // class A<E> { B m() {} }
-    // class B {}
-    //
-    var classA = ElementFactory.classElement2("A", ["E"]);
-    InterfaceType typeB = interfaceTypeStar(class_(name: 'B'));
-    String methodName = "m";
-    MethodElementImpl methodM =
-        ElementFactory.methodElement(methodName, typeB, []);
-    classA.methods = <MethodElement>[methodM];
-    //
-    // A<I>
-    //
-    InterfaceType typeI = interfaceTypeStar(class_(name: 'I'));
-    InterfaceTypeImpl typeAI =
-        interfaceTypeStar(classA, typeArguments: <DartType>[typeI]);
-    MethodElement method = typeAI.getMethod(methodName);
-    expect(method, isNotNull);
-    FunctionType methodType = method.type;
-    expect(methodType.typeArguments, isEmpty);
   }
 
   void test_getMethod_parameterized_usesTypeParameter() {
@@ -2308,6 +2246,50 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
       result?.getDisplayString(withNullability: true),
       expected,
     );
+  }
+}
+
+@reflectiveTest
+class UniqueLocationTest extends PubPackageResolutionTest {
+  test_ambiguous_closure_in_executable() async {
+    await resolveTestCode('''
+void f() => [() => 0, () => 1];
+''');
+    expect(findNode.functionExpression('() => 0').declaredElement.location,
+        isNot(findNode.functionExpression('() => 1').declaredElement.location));
+  }
+
+  test_ambiguous_closure_in_local_variable() async {
+    await resolveTestCode('''
+void f() {
+  var x = [() => 0, () => 1];
+}
+''');
+    expect(findNode.functionExpression('() => 0').declaredElement.location,
+        isNot(findNode.functionExpression('() => 1').declaredElement.location));
+  }
+
+  test_ambiguous_closure_in_top_level_variable() async {
+    await resolveTestCode('''
+var x = [() => 0, () => 1];
+''');
+    expect(findNode.functionExpression('() => 0').declaredElement.location,
+        isNot(findNode.functionExpression('() => 1').declaredElement.location));
+  }
+
+  test_ambiguous_local_variable_in_executable() async {
+    await resolveTestCode('''
+f() {
+  {
+    int x = 0;
+  }
+  {
+    int x = 1;
+  }
+}
+''');
+    expect(findNode.variableDeclaration('x = 0').declaredElement.location,
+        isNot(findNode.variableDeclaration('x = 1').declaredElement.location));
   }
 }
 

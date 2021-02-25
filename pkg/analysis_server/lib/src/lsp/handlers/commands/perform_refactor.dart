@@ -6,11 +6,16 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
+import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
+
+final _manager = _RefactorManager();
 
 class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
   PerformRefactorCommandHandler(LspAnalysisServer server) : super(server);
@@ -19,7 +24,8 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Perform Refactor';
 
   @override
-  Future<ErrorOr<void>> handle(List<dynamic> arguments) async {
+  Future<ErrorOr<void>> handle(List<dynamic> arguments,
+      ProgressReporter reporter, CancellationToken cancellationToken) async {
     if (arguments == null ||
         arguments.length != 6 ||
         arguments[0] is! String || // kind
@@ -46,49 +52,93 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
 
     final result = await requireResolvedUnit(path);
     return result.mapResult((result) async {
-      return _getRefactoring(
-              RefactoringKind(kind), result, offset, length, options)
-          .mapResult((refactoring) async {
-        final status = await refactoring.checkAllConditions();
-
-        if (status.hasError) {
-          return error(ServerErrorCodes.RefactorFailed, status.message);
+      final refactoring = await _getRefactoring(
+          RefactoringKind(kind), result, offset, length, options);
+      return refactoring.mapResult((refactoring) async {
+        // If the token we were given is not cancellable, replace it with one that
+        // is for the rest of this request, as a future refactor may need to cancel
+        // this request.
+        if (cancellationToken is! CancelableToken) {
+          cancellationToken = CancelableToken();
         }
+        _manager.begin(cancellationToken);
 
-        final change = await refactoring.createChange();
+        try {
+          reporter.begin('Refactoring…');
+          final status = await refactoring.checkAllConditions();
 
-        // If the file changed while we were validating and preparing the change,
-        // we should fail to avoid sending bad edits.
-        if (docVersion != null &&
-            docVersion != server.getVersionedDocumentIdentifier(path).version) {
-          return error(ErrorCodes.ContentModified,
-              'Content was modified before refactor was applied');
+          if (status.hasError) {
+            return error(ServerErrorCodes.RefactorFailed, status.message);
+          }
+
+          if (cancellationToken.isCancellationRequested) {
+            return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+          }
+
+          final change = await refactoring.createChange();
+
+          if (cancellationToken.isCancellationRequested) {
+            return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+          }
+
+          // If the file changed while we were validating and preparing the change,
+          // we should fail to avoid sending bad edits.
+          if (fileHasBeenModified(path, docVersion)) {
+            return fileModifiedError;
+          }
+
+          final edit = createWorkspaceEdit(server, change.edits);
+          return await sendWorkspaceEditToClient(edit);
+        } on InconsistentAnalysisException {
+          return fileModifiedError;
+        } finally {
+          _manager.end(cancellationToken);
+          reporter.end();
         }
-
-        final edit = createWorkspaceEdit(server, change.edits);
-        return await sendWorkspaceEditToClient(edit);
       });
     });
   }
 
-  ErrorOr<Refactoring> _getRefactoring(
+  Future<ErrorOr<Refactoring>> _getRefactoring(
     RefactoringKind kind,
     ResolvedUnitResult result,
     int offset,
     int length,
     Map<String, dynamic> options,
-  ) {
+  ) async {
     switch (kind) {
       case RefactoringKind.EXTRACT_METHOD:
         final refactor = ExtractMethodRefactoring(
             server.searchEngine, result, offset, length);
-        // TODO(dantup): For now we don't have a good way to prompt the user
-        // for a method name so we just use a placeholder and expect them to
-        // rename (this is what C#/Omnisharp does), but there's an open request
-        // to handle this better.
-        // https://github.com/microsoft/language-server-protocol/issues/764
-        refactor.name =
-            (options != null ? options['name'] : null) ?? 'newMethod';
+
+        var preferredName = options != null ? options['name'] : null;
+        // checkInitialConditions will populate names with suggestions.
+        if (preferredName == null) {
+          await refactor.checkInitialConditions();
+          if (refactor.names.isNotEmpty) {
+            preferredName = refactor.names.first;
+          }
+        }
+        refactor.name = preferredName ?? 'newMethod';
+
+        // Defaults to true, but may be surprising if users didn't have an option
+        // to opt in.
+        refactor.extractAll = false;
+        return success(refactor);
+
+      case RefactoringKind.EXTRACT_LOCAL_VARIABLE:
+        final refactor = ExtractLocalRefactoring(result, offset, length);
+
+        var preferredName = options != null ? options['name'] : null;
+        // checkInitialConditions will populate names with suggestions.
+        if (preferredName == null) {
+          await refactor.checkInitialConditions();
+          if (refactor.names.isNotEmpty) {
+            preferredName = refactor.names.first;
+          }
+        }
+        refactor.name = preferredName ?? 'newVariable';
+
         // Defaults to true, but may be surprising if users didn't have an option
         // to opt in.
         refactor.extractAll = false;
@@ -109,6 +159,25 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
       default:
         return error(ServerErrorCodes.InvalidCommandArguments,
             'Unknown RefactoringKind $kind was supplied to $commandName');
+    }
+  }
+}
+
+/// Manages a running refactor to help ensure only one refactor runs at a time.
+class _RefactorManager {
+  /// The cancellation token for the current in-progress refactor (or null).
+  CancelableToken _currentRefactoringCancellationToken;
+
+  /// Begins a new refactor, cancelling any other in-progress refactors.
+  void begin(CancelableToken cancelToken) {
+    _currentRefactoringCancellationToken?.cancel();
+    _currentRefactoringCancellationToken = cancelToken;
+  }
+
+  /// Marks a refactor as no longer current.
+  void end(CancelableToken cancelToken) {
+    if (_currentRefactoringCancellationToken == cancelToken) {
+      _currentRefactoringCancellationToken = null;
     }
   }
 }

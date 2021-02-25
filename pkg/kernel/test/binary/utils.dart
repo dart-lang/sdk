@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show BytesBuilder;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
@@ -13,7 +15,9 @@ Library libRoundTrip(Library lib) {
 }
 
 List<Library> serializationRoundTrip(List<Library> libraries) {
-  Component c = new Component(libraries: libraries);
+  Component c = new Component(libraries: libraries)
+    ..setMainMethodAndMode(
+        null, false, libraries.first.nonNullableByDefaultCompiledMode);
   List<int> bytes = serializeComponent(c);
   Component c2 = loadComponentFromBytes(bytes);
   return c2.libraries;

@@ -13,11 +13,11 @@ namespace dart {
 
 void CHA::AddToGuardedClasses(const Class& cls, intptr_t subclass_count) {
   for (intptr_t i = 0; i < guarded_classes_.length(); i++) {
-    if (guarded_classes_[i].cls->raw() == cls.raw()) {
+    if (guarded_classes_[i].cls->ptr() == cls.ptr()) {
       return;
     }
   }
-  GuardedClassInfo info = {&Class::ZoneHandle(thread_->zone(), cls.raw()),
+  GuardedClassInfo info = {&Class::ZoneHandle(thread_->zone(), cls.ptr()),
                            subclass_count};
   guarded_classes_.Add(info);
   return;
@@ -43,13 +43,15 @@ bool CHA::HasSubclasses(const Class& cls) {
     // Class Object has subclasses, although we do not keep track of them.
     return true;
   }
+  Thread* thread = Thread::Current();
+  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   const GrowableObjectArray& direct_subclasses =
       GrowableObjectArray::Handle(cls.direct_subclasses());
   return !direct_subclasses.IsNull() && (direct_subclasses.Length() > 0);
 }
 
 bool CHA::HasSubclasses(intptr_t cid) const {
-  const ClassTable& class_table = *thread_->isolate()->class_table();
+  const ClassTable& class_table = *thread_->isolate_group()->class_table();
   Class& cls = Class::Handle(thread_->zone(), class_table.At(cid));
   return HasSubclasses(cls);
 }
@@ -63,8 +65,11 @@ bool CHA::ConcreteSubclasses(const Class& cls,
     class_ids->Add(cls.id());
   }
 
+  // This is invoked from precompiler only, we can use unsafe version of
+  // Class::direct_subclasses getter.
+  ASSERT(FLAG_precompiled_mode);
   const GrowableObjectArray& direct_subclasses =
-      GrowableObjectArray::Handle(cls.direct_subclasses());
+      GrowableObjectArray::Handle(cls.direct_subclasses_unsafe());
   if (direct_subclasses.IsNull()) {
     return true;
   }
@@ -79,8 +84,6 @@ bool CHA::ConcreteSubclasses(const Class& cls,
 }
 
 bool CHA::IsImplemented(const Class& cls) {
-  // Function type aliases have different type checking rules.
-  ASSERT(!cls.IsTypedefClass());
   // Can't track dependencies for classes on the VM heap since those are
   // read-only.
   // TODO(fschneider): Enable tracking of CHA dependent code for VM heap
@@ -135,6 +138,7 @@ bool CHA::HasOverride(const Class& cls,
     return true;
   }
 
+  SafepointReadRwLocker ml(thread_, thread_->isolate_group()->program_lock());
   const GrowableObjectArray& cls_direct_subclasses =
       GrowableObjectArray::Handle(thread_->zone(), cls.direct_subclasses());
   if (cls_direct_subclasses.IsNull()) {
@@ -149,7 +153,7 @@ bool CHA::HasOverride(const Class& cls,
       continue;
     }
 
-    if (direct_subclass.LookupDynamicFunction(function_name) !=
+    if (direct_subclass.LookupDynamicFunctionUnsafe(function_name) !=
         Function::null()) {
       return true;
     }

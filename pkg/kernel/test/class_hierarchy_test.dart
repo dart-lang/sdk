@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:expect/minitest.dart";
 
 import "package:kernel/ast.dart";
@@ -167,7 +169,7 @@ class B extends self::A {
         hierarchy.getDispatchTargets(a), unorderedEquals([methodA1, methodA2]));
 
     // Add a member to A, but only update A.
-    a.addMember(methodA3);
+    a.addProcedure(methodA3);
     hierarchy.applyMemberChanges([a]);
     expect(hierarchy.getDispatchTargets(b),
         unorderedEquals([methodA1, methodA2, methodB1]));
@@ -453,7 +455,8 @@ class B extends self::A {
 ''');
 
     // The documentation says:
-    // It is possible for two methods to override one another in both directions.
+    // It is possible for two methods to override one another in both
+    // directions.
     _assertOverridePairs(b, ['test::B.foo overrides test::A.foo']);
   }
 
@@ -697,8 +700,8 @@ class Z {}
     var abstractMethod = newEmptyMethod('abstractMethod', isAbstract: true);
     var abstractGetter = newEmptyGetter('abstractGetter', isAbstract: true);
     var abstractSetter = newEmptySetter('abstractSetter', isAbstract: true);
-    var nonFinalField = new Field(new Name('nonFinalField'));
-    var finalField = new Field(new Name('finalField'), isFinal: true);
+    var nonFinalField = new Field.mutable(new Name('nonFinalField'));
+    var finalField = new Field.immutable(new Name('finalField'), isFinal: true);
     var a = addClass(new Class(
         isAbstract: true,
         name: 'A',
@@ -928,8 +931,8 @@ class C implements self::B {}
     var abstractMethod = newEmptyMethod('abstractMethod', isAbstract: true);
     var abstractGetter = newEmptyGetter('abstractGetter', isAbstract: true);
     var abstractSetter = newEmptySetter('abstractSetter', isAbstract: true);
-    var nonFinalField = new Field(new Name('nonFinalField'));
-    var finalField = new Field(new Name('finalField'), isFinal: true);
+    var nonFinalField = new Field.mutable(new Name('nonFinalField'));
+    var finalField = new Field.immutable(new Name('finalField'), isFinal: true);
     var a = addClass(new Class(
         isAbstract: true,
         name: 'A',
@@ -983,8 +986,8 @@ abstract class A {
     var abstractMethod = newEmptyMethod('abstractMethod', isAbstract: true);
     var abstractGetter = newEmptyGetter('abstractGetter', isAbstract: true);
     var abstractSetter = newEmptySetter('abstractSetter', isAbstract: true);
-    var nonFinalField = new Field(new Name('nonFinalField'));
-    var finalField = new Field(new Name('finalField'), isFinal: true);
+    var nonFinalField = new Field.mutable(new Name('nonFinalField'));
+    var finalField = new Field.immutable(new Name('finalField'), isFinal: true);
 
     var a = addClass(new Class(name: 'A', supertype: objectSuper, fields: [
       nonFinalField,
@@ -1048,13 +1051,15 @@ class D = core::Object with self::A {}
     var method_a = newEmptyMethod('method');
     var getter_a = newEmptyGetter('getter');
     var setter_a = newEmptySetter('setter');
-    var nonFinalField_a = new Field(new Name('nonFinalField'));
-    var finalField_a = new Field(new Name('finalField'), isFinal: true);
+    var nonFinalField_a = new Field.mutable(new Name('nonFinalField'));
+    var finalField_a =
+        new Field.immutable(new Name('finalField'), isFinal: true);
     var method_b = newEmptyMethod('method');
     var getter_b = newEmptyGetter('getter');
     var setter_b = newEmptySetter('setter');
-    var nonFinalField_b = new Field(new Name('nonFinalField'));
-    var finalField_b = new Field(new Name('finalField'), isFinal: true);
+    var nonFinalField_b = new Field.mutable(new Name('nonFinalField'));
+    var finalField_b =
+        new Field.immutable(new Name('finalField'), isFinal: true);
 
     var a = addClass(new Class(
         name: 'A',
@@ -1118,13 +1123,15 @@ abstract class C implements self::A, self::B {}
     var getter_a = newEmptyGetter('getter');
     var setter_a = newEmptySetter('setter');
     var nonShadowedSetter_a = newEmptySetter('nonShadowedSetter');
-    var nonFinalField_a = new Field(new Name('nonFinalField'));
-    var finalField_a = new Field(new Name('finalField'), isFinal: true);
+    var nonFinalField_a = new Field.mutable(new Name('nonFinalField'));
+    var finalField_a =
+        new Field.immutable(new Name('finalField'), isFinal: true);
     var method_b = newEmptyMethod('method');
     var getter_b = newEmptyGetter('getter');
     var setter_b = newEmptySetter('setter');
-    var nonFinalField_b = new Field(new Name('nonFinalField'));
-    var finalField_b = new Field(new Name('finalField'), isFinal: true);
+    var nonFinalField_b = new Field.mutable(new Name('nonFinalField'));
+    var finalField_b =
+        new Field.immutable(new Name('finalField'), isFinal: true);
 
     var a = addClass(new Class(name: 'A', supertype: objectSuper, fields: [
       nonFinalField_a,
@@ -1216,10 +1223,9 @@ class B<T*> extends self::A<self::B::T*, core::bool*> {}
 ''');
 
     var b_int = new InterfaceType(b, Nullability.legacy, [int]);
-    expect(hierarchy.getTypeAsInstanceOf(b_int, a, library, coreTypes),
+    expect(hierarchy.getTypeAsInstanceOf(b_int, a, library),
         new InterfaceType(a, Nullability.legacy, [int, bool]));
-    expect(
-        hierarchy.getTypeAsInstanceOf(b_int, objectClass, library, coreTypes),
+    expect(hierarchy.getTypeAsInstanceOf(b_int, objectClass, library),
         new InterfaceType(objectClass, Nullability.legacy));
   }
 
@@ -1228,12 +1234,12 @@ class B<T*> extends self::A<self::B::T*, core::bool*> {}
     void callback(
         Member declaredMember, Member interfaceMember, bool isSetter) {
       var suffix = isSetter ? '=' : '';
-      String declaredName =
-          '${qualifiedMemberNameToString(declaredMember, includeLibraryName: true)}'
-          '$suffix';
-      String interfaceName =
-          '${qualifiedMemberNameToString(interfaceMember, includeLibraryName: true)}'
-          '$suffix';
+      String declaredMemberName =
+          qualifiedMemberNameToString(declaredMember, includeLibraryName: true);
+      String declaredName = '${declaredMemberName}$suffix';
+      String interfaceMemberName = qualifiedMemberNameToString(interfaceMember,
+          includeLibraryName: true);
+      String interfaceName = '${interfaceMemberName}$suffix';
       var desc = '$declaredName overrides $interfaceName';
       overrideDescriptions.add(desc);
     }

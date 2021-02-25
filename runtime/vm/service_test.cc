@@ -18,6 +18,7 @@
 #include "vm/os.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
+#include "vm/resolver.h"
 #include "vm/service.h"
 #include "vm/unit_test.h"
 
@@ -54,12 +55,12 @@ class ServiceTestMessageHandler : public MessageHandler {
     }
     if (response_obj.IsString()) {
       String& response = String::Handle();
-      response ^= response_obj.raw();
+      response ^= response_obj.ptr();
       _msg = Utils::StrDup(response.ToCString());
     } else {
       ASSERT(response_obj.IsArray());
       Array& response_array = Array::Handle();
-      response_array ^= response_obj.raw();
+      response_array ^= response_obj.ptr();
       ASSERT(response_array.Length() == 1);
       ExternalTypedData& response = ExternalTypedData::Handle();
       response ^= response_array.At(0);
@@ -100,7 +101,7 @@ static ArrayPtr Eval(Dart_Handle lib, const char* expr) {
   growable.Add(dummy_isolate_id);
   array = Array::MakeFixedLength(growable);
   result.SetAt(5, array);
-  return result.raw();
+  return result.ptr();
 }
 
 static ArrayPtr EvalF(Dart_Handle lib, const char* fmt, ...) {
@@ -119,17 +120,17 @@ static ArrayPtr EvalF(Dart_Handle lib, const char* fmt, ...) {
 }
 
 static FunctionPtr GetFunction(const Class& cls, const char* name) {
-  const Function& result = Function::Handle(
-      cls.LookupDynamicFunction(String::Handle(String::New(name))));
+  const Function& result = Function::Handle(Resolver::ResolveDynamicFunction(
+      Thread::Current()->zone(), cls, String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
-  return result.raw();
+  return result.ptr();
 }
 
 static ClassPtr GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
-  return cls.raw();
+  return cls.ptr();
 }
 
 static void HandleIsolateMessage(Isolate* isolate, const Array& msg) {
@@ -385,7 +386,7 @@ ISOLATE_UNIT_TEST_CASE(Service_PcDescriptors) {
       PcDescriptors::Handle(code_c.pc_descriptors());
   EXPECT(!descriptors.IsNull());
   ObjectIdRing* ring = isolate->EnsureObjectIdRing();
-  intptr_t id = ring->GetIdForObject(descriptors.raw());
+  intptr_t id = ring->GetIdForObject(descriptors.ptr());
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
@@ -456,7 +457,7 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
       LocalVarDescriptors::Handle(code_c.GetLocalVarDescriptors());
   // Generate an ID for this object.
   ObjectIdRing* ring = isolate->EnsureObjectIdRing();
-  intptr_t id = ring->GetIdForObject(descriptors.raw());
+  intptr_t id = ring->GetIdForObject(descriptors.ptr());
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
@@ -484,9 +485,7 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
   EXPECT_SUBSTRING("\"members\":[", handler.msg());
 }
 
-static void WeakHandleFinalizer(void* isolate_callback_data,
-                                Dart_WeakPersistentHandle handle,
-                                void* peer) {}
+static void WeakHandleFinalizer(void* isolate_callback_data, void* peer) {}
 
 ISOLATE_UNIT_TEST_CASE(Service_PersistentHandles) {
   const char* kScript =

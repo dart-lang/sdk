@@ -13,8 +13,10 @@ dependencies:
   collection: any
   crypto: any
   dart2js_info: any
-  front_end: any
-  kernel: any
+  front_end:
+    path: ../front_end
+  kernel:
+    path: ../kernel
 
   # Unpublished packages that can be used via path dependency
   _fe_analyzer_shared:
@@ -24,16 +26,18 @@ dependencies:
   js_ast:
     path: ../js_ast
   js_runtime:
-    path: ../../sdk/lib/_internal/js_runtime
+    path: ../js_runtime
 
 dev_dependencies:
   # Published packages - repo version ensured via dependency_overrides
   args: any
   http: any
-  js: any
+  js:
+    path: ../js
   package_config: any
   path: any
   source_maps: any
+  test: any
   # Unpublished packages that can be used via path dependency
   async_helper:
     path: ../async_helper
@@ -53,7 +57,7 @@ dependency_overrides:
   front_end:
     path: ../front_end
   kernel:
-    path: ../../pkg/kernel
+    path: ../kernel
   meta:
     path: ../meta
 

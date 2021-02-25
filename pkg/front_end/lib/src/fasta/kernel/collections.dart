@@ -1,6 +1,9 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 library fasta.collections;
 
 import 'dart:core' hide MapEntry;
@@ -50,6 +53,11 @@ mixin ControlFlowElement on Expression {
   @override
   DartType getStaticType(StaticTypeContext context) {
     return unsupported("getStaticType", fileOffset, getFileUri(this));
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    return unsupported("getStaticTypeInternal", fileOffset, getFileUri(this));
   }
 
   @override

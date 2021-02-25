@@ -53,7 +53,7 @@ main() {
     ClassEntity superB = lookupClass(elementEnvironment, 'SuperB');
     ClassEntity superClass = elementEnvironment.getSuperClass(cls);
 
-    Expect.isTrue(elementEnvironment.isSuperMixinApplication(superClass));
+    Expect.isTrue(elementEnvironment.isMixinApplicationWithMembers(superClass));
     Expect.equals(mixin, elementEnvironment.getEffectiveMixinClass(superClass));
     Expect.equals(superA, elementEnvironment.getSuperClass(mixin));
     Expect.equals(superB, elementEnvironment.getSuperClass(superClass));

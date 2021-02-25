@@ -21,7 +21,7 @@ import 'package:path/path.dart' as path;
 
 import 'src/package.dart';
 
-main(List<String> args) async {
+void main(List<String> args) async {
   ArgResults parsedArgs = parseArguments(args);
 
   Sdk sdk = Sdk(parsedArgs['sdk'] as String);
@@ -222,7 +222,7 @@ class ExceptionCategory {
   final List<MapEntry<String, int>> exceptionCountPerPackage;
 
   ExceptionCategory(this.topOfStack, Map<String, int> exceptions)
-      : this.exceptionCountPerPackage = exceptions.entries.toList()
+      : exceptionCountPerPackage = exceptions.entries.toList()
           ..sort((e1, e2) => e2.value.compareTo(e1.value));
 
   int get count => exceptionCountPerPackage.length;

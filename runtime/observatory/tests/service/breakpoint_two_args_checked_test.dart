@@ -19,7 +19,7 @@ const int LINE_C = 28;
 class NotGeneric {}
 
 testeeMain() {
-  var x = new List(1);
+  var x = new List<dynamic>.filled(1, null);
   var y = 7;
   debugger();
   print("Statement");
@@ -33,23 +33,23 @@ var tests = <IsolateTest>[
 
 // Add breakpoints.
   (Isolate isolate) async {
-    Library rootLib = await isolate.rootLibrary.load();
+    Library rootLib = await isolate.rootLibrary.load() as Library;
     var script = rootLib.scripts[0];
 
     var bpt1 = await isolate.addBreakpoint(script, LINE_A);
     print(bpt1);
     expect(bpt1.resolved, isTrue);
-    expect(await bpt1.location.getLine(), equals(LINE_A));
+    expect(await bpt1.location!.getLine(), equals(LINE_A));
 
     var bpt2 = await isolate.addBreakpoint(script, LINE_B);
     print(bpt2);
     expect(bpt2.resolved, isTrue);
-    expect(await bpt2.location.getLine(), equals(LINE_B));
+    expect(await bpt2.location!.getLine(), equals(LINE_B));
 
     var bpt3 = await isolate.addBreakpoint(script, LINE_C);
     print(bpt3);
     expect(bpt3.resolved, isTrue);
-    expect(await bpt3.location.getLine(), equals(LINE_C));
+    expect(await bpt3.location!.getLine(), equals(LINE_C));
   },
 
   resumeIsolate,

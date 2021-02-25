@@ -25,18 +25,59 @@ class InvalidUseOfVisibleForTestingMemberTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
-  test_export() async {
+  test_export_hide() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+import 'package:meta/meta.dart';
+
+@visibleForTesting
+class A {}
+
+class B {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: r'''
+export 'a.dart' hide A;
+''');
+
+    await _resolveFile('$testPackageLibPath/a.dart');
+    await _resolveFile('$testPackageLibPath/b.dart');
+  }
+
+  test_export_show() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+import 'package:meta/meta.dart';
+
+@visibleForTesting
+class A {}
+
+class B {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: r'''
+export 'a.dart' show A;
+''');
+
+    await _resolveFile('$testPackageLibPath/a.dart');
+    await _resolveFile('$testPackageLibPath/b.dart');
+  }
+
+  test_fromIntegrationTestDirectory() async {
     newFile('$testPackageRootPath/lib1.dart', content: r'''
 import 'package:meta/meta.dart';
-@visibleForTesting
-int fn0() => 1;
+class A {
+  @visibleForTesting
+  void a(){ }
+}
 ''');
-    newFile('$testPackageRootPath/lib2.dart', content: r'''
-export 'lib1.dart' show fn0;
+    newFile('$testPackageRootPath/integration_test/test.dart', content: r'''
+import '../lib1.dart';
+class B {
+  void b() => new A().a();
+}
 ''');
 
     await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/lib2.dart');
+    await _resolveFile('$testPackageRootPath/integration_test/test.dart');
   }
 
   test_fromTestDirectory() async {
@@ -56,6 +97,25 @@ class B {
 
     await _resolveFile('$testPackageRootPath/lib1.dart');
     await _resolveFile('$testPackageRootPath/test/test.dart');
+  }
+
+  test_fromTestDriverDirectory() async {
+    newFile('$testPackageRootPath/lib1.dart', content: r'''
+import 'package:meta/meta.dart';
+class A {
+  @visibleForTesting
+  void a(){ }
+}
+''');
+    newFile('$testPackageRootPath/test_driver/test.dart', content: r'''
+import '../lib1.dart';
+class B {
+  void b() => new A().a();
+}
+''');
+
+    await _resolveFile('$testPackageRootPath/lib1.dart');
+    await _resolveFile('$testPackageRootPath/test_driver/test.dart');
   }
 
   test_fromTestingDirectory() async {
@@ -135,6 +195,49 @@ void main() {
     await _resolveFile('$testPackageRootPath/lib1.dart');
     await _resolveFile('$testPackageRootPath/lib2.dart', [
       error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 44, 1),
+    ]);
+  }
+
+  test_import_hide() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+import 'package:meta/meta.dart';
+
+@visibleForTesting
+class A {}
+
+class B {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: r'''
+import 'a.dart' hide A;
+
+void f(B _) {}
+''');
+
+    await _resolveFile('$testPackageLibPath/a.dart');
+    await _resolveFile('$testPackageLibPath/b.dart');
+  }
+
+  test_import_show() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+import 'package:meta/meta.dart';
+
+@visibleForTesting
+class A {}
+
+class B {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: r'''
+import 'a.dart' show A;
+
+void f(A _) {}
+''');
+
+    await _resolveFile('$testPackageLibPath/a.dart');
+    await _resolveFile('$testPackageLibPath/b.dart', [
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 21, 1),
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 32, 1),
     ]);
   }
 
@@ -284,6 +387,25 @@ void main() {
     await _resolveFile('$testPackageRootPath/lib1.dart');
     await _resolveFile('$testPackageRootPath/lib2.dart', [
       error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 36, 3),
+    ]);
+  }
+
+  test_topLevelVariable() async {
+    newFile('$testPackageRootPath/lib1.dart', content: r'''
+import 'package:meta/meta.dart';
+@visibleForTesting
+int a = 7;
+''');
+    newFile('$testPackageRootPath/lib2.dart', content: r'''
+import 'lib1.dart';
+void main() {
+  a;
+}
+''');
+
+    await _resolveFile('$testPackageRootPath/lib1.dart');
+    await _resolveFile('$testPackageRootPath/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 36, 1),
     ]);
   }
 

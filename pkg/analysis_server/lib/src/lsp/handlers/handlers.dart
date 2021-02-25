@@ -13,6 +13,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_cancel_request.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -47,11 +48,21 @@ abstract class CommandHandler<P, R> with Handler<P, R> {
     this.server = server;
   }
 
-  Future<ErrorOr<void>> handle(List<dynamic> arguments);
+  Future<ErrorOr<void>> handle(List<dynamic> arguments,
+      ProgressReporter progress, CancellationToken cancellationToken);
 }
 
 mixin Handler<P, R> {
   LspAnalysisServer server;
+
+  final fileModifiedError = error<R>(ErrorCodes.ContentModified,
+      'Document was modified before operation completed', null);
+
+  bool fileHasBeenModified(String path, int clientVersion) {
+    final serverDocIdentifier = server.getVersionedDocumentIdentifier(path);
+    return clientVersion != null &&
+        clientVersion != serverDocIdentifier.version;
+  }
 
   ErrorOr<LineInfo> getLineInfo(String path) {
     final lineInfo = server.getLineInfo(path);

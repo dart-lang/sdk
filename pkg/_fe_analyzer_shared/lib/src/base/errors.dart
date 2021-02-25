@@ -14,9 +14,14 @@ abstract class ErrorCode {
    */
   final String name;
 
+  /**
+   * The unique name of this error code.
+   */
+  final String uniqueName;
+
   final String _message;
 
-  final String _correction;
+  final String? _correction;
 
   /**
    * Return `true` if diagnostics with this code have documentation for them
@@ -35,31 +40,43 @@ abstract class ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ErrorCode(this.name, String message,
-      [String correction, this.hasPublishedDocs = false])
-      : isUnresolvedIdentifier = false,
+  const ErrorCode({
+    String? correction,
+    this.hasPublishedDocs = false,
+    this.isUnresolvedIdentifier: false,
+    required String message,
+    required this.name,
+    required this.uniqueName,
+  })  : _correction = correction,
         _message = message,
-        _correction = correction;
+        // ignore: unnecessary_null_comparison
+        assert(hasPublishedDocs != null),
+        // ignore: unnecessary_null_comparison
+        assert(isUnresolvedIdentifier != null);
 
-  /**
-   * Initialize a newly created error code to have the given [name]. The message
-   * associated with the error will be created from the given [message]
-   * template. The correction associated with the error will be created from the
-   * given [correction] template.
-   */
-  const ErrorCode.temporary(this.name, String message,
-      {String correction,
-      this.isUnresolvedIdentifier: false,
-      this.hasPublishedDocs = false})
-      : _message = message,
-        _correction = correction;
+  @Deprecated('Use the default constructor')
+  const ErrorCode.temporary2({
+    String? correction,
+    bool hasPublishedDocs = false,
+    bool isUnresolvedIdentifier = false,
+    required String message,
+    required String name,
+    required String uniqueName,
+  }) : this(
+          correction: correction,
+          hasPublishedDocs: hasPublishedDocs,
+          isUnresolvedIdentifier: isUnresolvedIdentifier,
+          message: message,
+          name: name,
+          uniqueName: uniqueName,
+        );
 
   /**
    * The template used to create the correction to be displayed for this error,
    * or `null` if there is no correction information for this error. The
    * correction should indicate how the user can fix the error.
    */
-  String get correction => customizedCorrections[uniqueName] ?? _correction;
+  String? get correction => customizedCorrections[uniqueName] ?? _correction;
 
   /**
    * The severity of the error.
@@ -82,15 +99,10 @@ abstract class ErrorCode {
   ErrorType get type;
 
   /**
-   * The unique name of this error code.
-   */
-  String get uniqueName => "$runtimeType.$name";
-
-  /**
    * Return a URL that can be used to access documentation for diagnostics with
    * this code, or `null` if there is no published documentation.
    */
-  String get url {
+  String? get url {
     if (hasPublishedDocs) {
       return 'https://dart.dev/tools/diagnostic-messages#${name.toLowerCase()}';
     }

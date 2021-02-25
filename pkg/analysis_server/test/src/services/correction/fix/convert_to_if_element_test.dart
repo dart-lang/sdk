@@ -26,7 +26,7 @@ class ConvertToIfElementTest extends FixProcessorLintTest {
 
   // More coverage in the `convert_to_if_element_test.dart` assist test.
   Future<void> test_conditional_list() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(bool b) {
   return ['a', b ? 'c' : 'd', 'e'];
 }

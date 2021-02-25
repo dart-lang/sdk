@@ -5,6 +5,7 @@
 #include "vm/symbols.h"
 
 #include "platform/unicode.h"
+#include "vm/canonical_tables.h"
 #include "vm/handles.h"
 #include "vm/hash_table.h"
 #include "vm/heap/safepoint.h"
@@ -14,7 +15,6 @@
 #include "vm/raw_object.h"
 #include "vm/reusable_handles.h"
 #include "vm/snapshot_ids.h"
-#include "vm/type_table.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -44,151 +44,26 @@ StringPtr StringFrom(const uint16_t* data, intptr_t len, Heap::Space space) {
   return String::FromUTF16(data, len, space);
 }
 
-StringPtr StringFrom(const int32_t* data, intptr_t len, Heap::Space space) {
-  return String::FromUTF32(data, len, space);
-}
-
-template <typename CharType>
-class CharArray {
- public:
-  CharArray(const CharType* data, intptr_t len) : data_(data), len_(len) {
-    hash_ = String::Hash(data, len);
-  }
-  StringPtr ToSymbol() const {
-    String& result = String::Handle(StringFrom(data_, len_, Heap::kOld));
-    result.SetCanonical();
-    result.SetHash(hash_);
-    return result.raw();
-  }
-  bool Equals(const String& other) const {
-    ASSERT(other.HasHash());
-    if (other.Hash() != hash_) {
-      return false;
-    }
-    return other.Equals(data_, len_);
-  }
-  intptr_t Hash() const { return hash_; }
-
- private:
-  const CharType* data_;
-  intptr_t len_;
-  intptr_t hash_;
-};
-typedef CharArray<uint8_t> Latin1Array;
-typedef CharArray<uint16_t> UTF16Array;
-typedef CharArray<int32_t> UTF32Array;
-
-class StringSlice {
- public:
-  StringSlice(const String& str, intptr_t begin_index, intptr_t length)
-      : str_(str), begin_index_(begin_index), len_(length) {
-    hash_ = is_all() ? str.Hash() : String::Hash(str, begin_index, length);
-  }
-  StringPtr ToSymbol() const;
-  bool Equals(const String& other) const {
-    ASSERT(other.HasHash());
-    if (other.Hash() != hash_) {
-      return false;
-    }
-    return other.Equals(str_, begin_index_, len_);
-  }
-  intptr_t Hash() const { return hash_; }
-
- private:
-  bool is_all() const { return begin_index_ == 0 && len_ == str_.Length(); }
-  const String& str_;
-  intptr_t begin_index_;
-  intptr_t len_;
-  intptr_t hash_;
-};
-
 StringPtr StringSlice::ToSymbol() const {
   if (is_all() && str_.IsOld()) {
     str_.SetCanonical();
-    return str_.raw();
+    return str_.ptr();
   } else {
     String& result =
         String::Handle(String::SubString(str_, begin_index_, len_, Heap::kOld));
     result.SetCanonical();
     result.SetHash(hash_);
-    return result.raw();
+    return result.ptr();
   }
 }
-
-class ConcatString {
- public:
-  ConcatString(const String& str1, const String& str2)
-      : str1_(str1), str2_(str2), hash_(String::HashConcat(str1, str2)) {}
-  StringPtr ToSymbol() const;
-  bool Equals(const String& other) const {
-    ASSERT(other.HasHash());
-    if (other.Hash() != hash_) {
-      return false;
-    }
-    return other.EqualsConcat(str1_, str2_);
-  }
-  intptr_t Hash() const { return hash_; }
-
- private:
-  const String& str1_;
-  const String& str2_;
-  intptr_t hash_;
-};
 
 StringPtr ConcatString::ToSymbol() const {
   String& result = String::Handle(String::Concat(str1_, str2_, Heap::kOld));
   result.SetCanonical();
   result.SetHash(hash_);
-  return result.raw();
+  return result.ptr();
 }
 
-class SymbolTraits {
- public:
-  static const char* Name() { return "SymbolTraits"; }
-  static bool ReportStats() { return false; }
-
-  static bool IsMatch(const Object& a, const Object& b) {
-    const String& a_str = String::Cast(a);
-    const String& b_str = String::Cast(b);
-    ASSERT(a_str.HasHash());
-    ASSERT(b_str.HasHash());
-    if (a_str.Hash() != b_str.Hash()) {
-      return false;
-    }
-    intptr_t a_len = a_str.Length();
-    if (a_len != b_str.Length()) {
-      return false;
-    }
-    // Use a comparison which does not consider the state of the canonical bit.
-    return a_str.Equals(b_str, 0, a_len);
-  }
-  template <typename CharType>
-  static bool IsMatch(const CharArray<CharType>& array, const Object& obj) {
-    return array.Equals(String::Cast(obj));
-  }
-  static bool IsMatch(const StringSlice& slice, const Object& obj) {
-    return slice.Equals(String::Cast(obj));
-  }
-  static bool IsMatch(const ConcatString& concat, const Object& obj) {
-    return concat.Equals(String::Cast(obj));
-  }
-  static uword Hash(const Object& key) { return String::Cast(key).Hash(); }
-  template <typename CharType>
-  static uword Hash(const CharArray<CharType>& array) {
-    return array.Hash();
-  }
-  static uword Hash(const StringSlice& slice) { return slice.Hash(); }
-  static uword Hash(const ConcatString& concat) { return concat.Hash(); }
-  template <typename CharType>
-  static ObjectPtr NewKey(const CharArray<CharType>& array) {
-    return array.ToSymbol();
-  }
-  static ObjectPtr NewKey(const StringSlice& slice) { return slice.ToSymbol(); }
-  static ObjectPtr NewKey(const ConcatString& concat) {
-    return concat.ToSymbol();
-  }
-};
-typedef UnorderedHashSet<SymbolTraits> SymbolTable;
 
 const char* Symbols::Name(SymbolId symbol) {
   ASSERT((symbol > kIllegal) && (symbol < kNullCharId));
@@ -204,19 +79,20 @@ const String& Symbols::Token(Token::Kind token) {
   return *symbol_handles_[token_id];
 }
 
-void Symbols::Init(Isolate* vm_isolate) {
+void Symbols::Init(IsolateGroup* vm_isolate_group) {
   // Should only be run by the vm isolate.
-  ASSERT(Isolate::Current() == Dart::vm_isolate());
-  ASSERT(vm_isolate == Dart::vm_isolate());
+  ASSERT(IsolateGroup::Current() == Dart::vm_isolate_group());
+  ASSERT(vm_isolate_group == Dart::vm_isolate_group());
   Zone* zone = Thread::Current()->zone();
 
   // Create and setup a symbol table in the vm isolate.
-  SetupSymbolTable(vm_isolate);
+  SetupSymbolTable(vm_isolate_group);
 
   // Create all predefined symbols.
   ASSERT((sizeof(names) / sizeof(const char*)) == Symbols::kNullCharId);
 
-  SymbolTable table(zone, vm_isolate->object_store()->symbol_table());
+  CanonicalStringSet table(zone,
+                           vm_isolate_group->object_store()->symbol_table());
 
   // First set up all the predefined string symbols.
   // Create symbols for language keywords. Some keywords are equal to
@@ -243,20 +119,21 @@ void Symbols::Init(Isolate* vm_isolate) {
     *str ^= table.InsertOrGet(*str);
     ASSERT(predefined_[c] == nullptr);
     str->SetCanonical();  // Make canonical once entered.
-    predefined_[c] = str->raw();
+    predefined_[c] = str->ptr();
     symbol_handles_[idx] = str;
   }
 
-  vm_isolate->object_store()->set_symbol_table(table.Release());
+  vm_isolate_group->object_store()->set_symbol_table(table.Release());
 }
 
-void Symbols::InitFromSnapshot(Isolate* vm_isolate) {
+void Symbols::InitFromSnapshot(IsolateGroup* vm_isolate_group) {
   // Should only be run by the vm isolate.
-  ASSERT(Isolate::Current() == Dart::vm_isolate());
-  ASSERT(vm_isolate == Dart::vm_isolate());
+  ASSERT(IsolateGroup::Current() == Dart::vm_isolate_group());
+  ASSERT(vm_isolate_group == Dart::vm_isolate_group());
   Zone* zone = Thread::Current()->zone();
 
-  SymbolTable table(zone, vm_isolate->object_store()->symbol_table());
+  CanonicalStringSet table(zone,
+                           vm_isolate_group->object_store()->symbol_table());
 
   // Lookup all the predefined string symbols and language keyword symbols
   // and cache them in the read only handles for fast access.
@@ -283,154 +160,30 @@ void Symbols::InitFromSnapshot(Isolate* vm_isolate) {
     ASSERT(!str->IsNull());
     ASSERT(str->HasHash());
     ASSERT(str->IsCanonical());
-    predefined_[c] = str->raw();
+    predefined_[c] = str->ptr();
     symbol_handles_[idx] = str;
   }
 
-  vm_isolate->object_store()->set_symbol_table(table.Release());
+  vm_isolate_group->object_store()->set_symbol_table(table.Release());
 }
 
-void Symbols::SetupSymbolTable(Isolate* isolate) {
-  ASSERT(isolate != NULL);
+void Symbols::SetupSymbolTable(IsolateGroup* isolate_group) {
+  ASSERT(isolate_group != nullptr);
 
   // Setup the symbol table used within the String class.
-  const intptr_t initial_size = (isolate == Dart::vm_isolate())
+  const intptr_t initial_size = (isolate_group == Dart::vm_isolate_group())
                                     ? kInitialVMIsolateSymtabSize
                                     : kInitialSymtabSize;
-  Array& array =
-      Array::Handle(HashTables::New<SymbolTable>(initial_size, Heap::kOld));
-  isolate->object_store()->set_symbol_table(array);
+  Array& array = Array::Handle(
+      HashTables::New<CanonicalStringSet>(initial_size, Heap::kOld));
+  isolate_group->object_store()->set_symbol_table(array);
 }
 
-void Symbols::Compact() {
-  Thread* thread = Thread::Current();
-  ASSERT(thread->isolate() != Dart::vm_isolate());
-  HANDLESCOPE(thread);
-  Zone* zone = thread->zone();
-  ObjectStore* object_store = thread->isolate()->object_store();
-
-  // 1. Drop the tables and do a full garbage collection.
-  object_store->set_symbol_table(Object::empty_array());
-  object_store->set_canonical_types(Object::empty_array());
-  object_store->set_canonical_type_parameters(Object::empty_array());
-  object_store->set_canonical_type_arguments(Object::empty_array());
-  thread->heap()->CollectAllGarbage();
-
-  // 2. Walk the heap to find surviving canonical objects.
-  GrowableArray<String*> symbols;
-  GrowableArray<class Type*> types;
-  GrowableArray<class TypeParameter*> type_params;
-  GrowableArray<class TypeArguments*> type_args;
-  class SymbolCollector : public ObjectVisitor {
-   public:
-    SymbolCollector(Thread* thread,
-                    GrowableArray<String*>* symbols,
-                    GrowableArray<class Type*>* types,
-                    GrowableArray<class TypeParameter*>* type_params,
-                    GrowableArray<class TypeArguments*>* type_args)
-        : symbols_(symbols),
-          types_(types),
-          type_params_(type_params),
-          type_args_(type_args),
-          zone_(thread->zone()) {}
-
-    void VisitObject(ObjectPtr obj) {
-      if (obj->ptr()->IsCanonical()) {
-        if (obj->IsStringInstance()) {
-          symbols_->Add(&String::Handle(zone_, String::RawCast(obj)));
-        } else if (obj->IsType()) {
-          types_->Add(&Type::Handle(zone_, Type::RawCast(obj)));
-        } else if (obj->IsTypeParameter()) {
-          type_params_->Add(
-              &TypeParameter::Handle(zone_, TypeParameter::RawCast(obj)));
-        } else if (obj->IsTypeArguments()) {
-          type_args_->Add(
-              &TypeArguments::Handle(zone_, TypeArguments::RawCast(obj)));
-        }
-      }
-    }
-
-   private:
-    GrowableArray<String*>* symbols_;
-    GrowableArray<class Type*>* types_;
-    GrowableArray<class TypeParameter*>* type_params_;
-    GrowableArray<class TypeArguments*>* type_args_;
-    Zone* zone_;
-  };
-
-  {
-    HeapIterationScope iteration(thread);
-    SymbolCollector visitor(thread, &symbols, &types, &type_params, &type_args);
-    iteration.IterateObjects(&visitor);
-  }
-
-  // 3. Build new tables from the surviving canonical objects.
-  {
-    Array& array = Array::Handle(
-        zone,
-        HashTables::New<SymbolTable>(symbols.length() * 4 / 3, Heap::kOld));
-    SymbolTable table(zone, array.raw());
-    for (intptr_t i = 0; i < symbols.length(); i++) {
-      String& symbol = *symbols[i];
-      ASSERT(symbol.IsString());
-      ASSERT(symbol.IsCanonical());
-      bool present = table.Insert(symbol);
-      ASSERT(!present);
-    }
-    object_store->set_symbol_table(table.Release());
-  }
-
-  {
-    Array& array = Array::Handle(zone, HashTables::New<CanonicalTypeSet>(
-                                           types.length() * 4 / 3, Heap::kOld));
-    CanonicalTypeSet table(zone, array.raw());
-    for (intptr_t i = 0; i < types.length(); i++) {
-      class Type& type = *types[i];
-      ASSERT(type.IsType());
-      ASSERT(type.IsCanonical());
-      bool present = table.Insert(type);
-      // Two recursive types with different topology (and hashes) may be equal.
-      ASSERT(!present || type.IsRecursive());
-    }
-    object_store->set_canonical_types(table.Release());
-  }
-
-  {
-    Array& array =
-        Array::Handle(zone, HashTables::New<CanonicalTypeParameterSet>(
-                                type_params.length() * 4 / 3, Heap::kOld));
-    CanonicalTypeParameterSet table(zone, array.raw());
-    for (intptr_t i = 0; i < type_params.length(); i++) {
-      class TypeParameter& type_param = *type_params[i];
-      ASSERT(type_param.IsTypeParameter());
-      ASSERT(type_param.IsCanonical());
-      if (type_param.IsDeclaration()) continue;
-      bool present = table.Insert(type_param);
-      ASSERT(!present);
-    }
-    object_store->set_canonical_type_parameters(table.Release());
-  }
-
-  {
-    Array& array =
-        Array::Handle(zone, HashTables::New<CanonicalTypeArgumentsSet>(
-                                type_args.length() * 4 / 3, Heap::kOld));
-    CanonicalTypeArgumentsSet table(zone, array.raw());
-    for (intptr_t i = 0; i < type_args.length(); i++) {
-      class TypeArguments& type_arg = *type_args[i];
-      ASSERT(type_arg.IsTypeArguments());
-      ASSERT(type_arg.IsCanonical());
-      bool present = table.Insert(type_arg);
-      // Two recursive types with different topology (and hashes) may be equal.
-      ASSERT(!present || type_arg.IsRecursive());
-    }
-    object_store->set_canonical_type_arguments(table.Release());
-  }
-}
-
-void Symbols::GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity) {
-  ASSERT(isolate != NULL);
-  SymbolTable table(isolate->object_store()->symbol_table());
+void Symbols::GetStats(IsolateGroup* isolate_group,
+                       intptr_t* size,
+                       intptr_t* capacity) {
+  ASSERT(isolate_group != nullptr);
+  CanonicalStringSet table(isolate_group->object_store()->symbol_table());
   *size = table.NumOccupied();
   *capacity = table.NumEntries();
   table.Release();
@@ -479,12 +232,6 @@ StringPtr Symbols::FromUTF16(Thread* thread,
                              const uint16_t* utf16_array,
                              intptr_t len) {
   return NewSymbol(thread, UTF16Array(utf16_array, len));
-}
-
-StringPtr Symbols::FromUTF32(Thread* thread,
-                             const int32_t* utf32_array,
-                             intptr_t len) {
-  return NewSymbol(thread, UTF32Array(utf32_array, len));
 }
 
 StringPtr Symbols::FromConcat(Thread* thread,
@@ -586,7 +333,7 @@ StringPtr Symbols::FromConcatAll(
   }
 }
 
-// StringType can be StringSlice, ConcatString, or {Latin1,UTF16,UTF32}Array.
+// StringType can be StringSlice, ConcatString, or {Latin1,UTF16}Array.
 template <typename StringType>
 StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
   REUSABLE_OBJECT_HANDLESCOPE(thread);
@@ -597,19 +344,15 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
   Smi& value = thread->SmiHandle();
   Array& data = thread->ArrayHandle();
   {
-    Isolate* vm_isolate = Dart::vm_isolate();
-    data = vm_isolate->object_store()->symbol_table();
-    SymbolTable table(&key, &value, &data);
+    auto vm_isolate_group = Dart::vm_isolate_group();
+    data = vm_isolate_group->object_store()->symbol_table();
+    CanonicalStringSet table(&key, &value, &data);
     symbol ^= table.GetOrNull(str);
     table.Release();
   }
   if (symbol.IsNull()) {
     IsolateGroup* group = thread->isolate_group();
-    Isolate* isolate = thread->isolate();
-    // In JIT object_store lives on isolate, not on isolate group.
-    ObjectStore* object_store = group->object_store() == nullptr
-                                    ? isolate->object_store()
-                                    : group->object_store();
+    ObjectStore* object_store = group->object_store();
     if (thread->IsAtSafepoint()) {
       // There are two cases where we can cause symbol allocation while holding
       // a safepoint:
@@ -628,7 +371,7 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
       // Uncommon case: We are at a safepoint, all mutators are stopped and we
       // have therefore exclusive access to the symbol table.
       data = object_store->symbol_table();
-      SymbolTable table(&key, &value, &data);
+      CanonicalStringSet table(&key, &value, &data);
       symbol ^= table.InsertNewOrGet(str);
       object_store->set_symbol_table(table.Release());
     } else {
@@ -637,7 +380,7 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
       {
         SafepointReadRwLocker sl(thread, group->symbols_lock());
         data = object_store->symbol_table();
-        SymbolTable table(&key, &value, &data);
+        CanonicalStringSet table(&key, &value, &data);
         symbol ^= table.GetOrNull(str);
         table.Release();
       }
@@ -646,7 +389,7 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
       if (symbol.IsNull()) {
         auto insert_or_get = [&]() {
           data = object_store->symbol_table();
-          SymbolTable table(&key, &value, &data);
+          CanonicalStringSet table(&key, &value, &data);
           symbol ^= table.InsertNewOrGet(str);
           object_store->set_symbol_table(table.Release());
         };
@@ -668,7 +411,7 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
   }
   ASSERT(symbol.IsSymbol());
   ASSERT(symbol.HasHash());
-  return symbol.raw();
+  return symbol.ptr();
 }
 
 template <typename StringType>
@@ -681,19 +424,15 @@ StringPtr Symbols::Lookup(Thread* thread, const StringType& str) {
   Smi& value = thread->SmiHandle();
   Array& data = thread->ArrayHandle();
   {
-    Isolate* vm_isolate = Dart::vm_isolate();
-    data = vm_isolate->object_store()->symbol_table();
-    SymbolTable table(&key, &value, &data);
+    auto vm_isolate_group = Dart::vm_isolate_group();
+    data = vm_isolate_group->object_store()->symbol_table();
+    CanonicalStringSet table(&key, &value, &data);
     symbol ^= table.GetOrNull(str);
     table.Release();
   }
   if (symbol.IsNull()) {
     IsolateGroup* group = thread->isolate_group();
-    Isolate* isolate = thread->isolate();
-    // In JIT object_store lives on isolate, not on isolate group.
-    ObjectStore* object_store = group->object_store() == nullptr
-                                    ? isolate->object_store()
-                                    : group->object_store();
+    ObjectStore* object_store = group->object_store();
     // See `Symbols::NewSymbol` for more information why we separate the two
     // cases.
     if (thread->IsAtSafepoint()) {
@@ -704,20 +443,20 @@ StringPtr Symbols::Lookup(Thread* thread, const StringType& str) {
       RELEASE_ASSERT(FLAG_enable_isolate_groups || !USING_PRODUCT);
 #endif
       data = object_store->symbol_table();
-      SymbolTable table(&key, &value, &data);
+      CanonicalStringSet table(&key, &value, &data);
       symbol ^= table.GetOrNull(str);
       table.Release();
     } else {
       SafepointReadRwLocker sl(thread, group->symbols_lock());
       data = object_store->symbol_table();
-      SymbolTable table(&key, &value, &data);
+      CanonicalStringSet table(&key, &value, &data);
       symbol ^= table.GetOrNull(str);
       table.Release();
     }
   }
   ASSERT(symbol.IsNull() || symbol.IsSymbol());
   ASSERT(symbol.IsNull() || symbol.HasHash());
-  return symbol.raw();
+  return symbol.ptr();
 }
 
 StringPtr Symbols::LookupFromConcat(Thread* thread,
@@ -746,7 +485,7 @@ StringPtr Symbols::LookupFromDot(Thread* thread, const String& str) {
 
 StringPtr Symbols::New(Thread* thread, const String& str) {
   if (str.IsSymbol()) {
-    return str.raw();
+    return str.ptr();
   }
   return New(thread, str, 0, str.Length());
 }
@@ -782,38 +521,38 @@ StringPtr Symbols::NewFormattedV(Thread* thread,
   return Symbols::New(thread, buffer);
 }
 
-StringPtr Symbols::FromCharCode(Thread* thread, int32_t char_code) {
+StringPtr Symbols::FromCharCode(Thread* thread, uint16_t char_code) {
   if (char_code > kMaxOneCharCodeSymbol) {
-    return FromUTF32(thread, &char_code, 1);
+    return FromUTF16(thread, &char_code, 1);
   }
   return predefined_[char_code];
 }
 
-void Symbols::DumpStats(Isolate* isolate) {
+void Symbols::DumpStats(IsolateGroup* isolate_group) {
   intptr_t size = -1;
   intptr_t capacity = -1;
   // First dump VM symbol table stats.
-  GetStats(Dart::vm_isolate(), &size, &capacity);
+  GetStats(Dart::vm_isolate_group(), &size, &capacity);
   OS::PrintErr("VM Isolate: Number of symbols : %" Pd "\n", size);
   OS::PrintErr("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
   // Now dump regular isolate symbol table stats.
-  GetStats(isolate, &size, &capacity);
+  GetStats(isolate_group, &size, &capacity);
   OS::PrintErr("Isolate: Number of symbols : %" Pd "\n", size);
   OS::PrintErr("Isolate: Symbol table capacity : %" Pd "\n", capacity);
   // TODO(koda): Consider recording growth and collision stats in HashTable,
   // in DEBUG mode.
 }
 
-void Symbols::DumpTable(Isolate* isolate) {
+void Symbols::DumpTable(IsolateGroup* isolate_group) {
   OS::PrintErr("symbols:\n");
-  SymbolTable table(isolate->object_store()->symbol_table());
+  CanonicalStringSet table(isolate_group->object_store()->symbol_table());
   table.Dump();
   table.Release();
 }
 
 intptr_t Symbols::LookupPredefinedSymbol(ObjectPtr obj) {
   for (intptr_t i = 1; i < Symbols::kMaxPredefinedId; i++) {
-    if (symbol_handles_[i]->raw() == obj) {
+    if (symbol_handles_[i]->ptr() == obj) {
       return (i + kMaxPredefinedObjectIds);
     }
   }
@@ -824,7 +563,7 @@ ObjectPtr Symbols::GetPredefinedSymbol(intptr_t object_id) {
   ASSERT(IsPredefinedSymbolId(object_id));
   intptr_t i = (object_id - kMaxPredefinedObjectIds);
   if ((i > kIllegal) && (i < Symbols::kMaxPredefinedId)) {
-    return symbol_handles_[i]->raw();
+    return symbol_handles_[i]->ptr();
   }
   return Object::null();
 }

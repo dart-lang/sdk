@@ -158,8 +158,6 @@ main() {
 
   Expect.equals(reflectClass(A).typeVariables[0].owner, reflectClass(A));
   Expect.equals(reflectClass(Z).typeVariables[0].owner, reflectClass(Z));
-  Expect.notEquals(
-      reflectClass(A).typeVariables[0], reflectClass(Z).typeVariables[0]);
   Expect.equals(
       reflectClass(A).typeVariables[0], reflectClass(A).typeVariables[0]);
 }

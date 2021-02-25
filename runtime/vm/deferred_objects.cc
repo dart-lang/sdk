@@ -32,7 +32,7 @@ void DeferredMint::Materialize(DeoptContext* deopt_context) {
   ASSERT(!Smi::IsValid(value()));
   Mint& mint = Mint::Handle();
   mint ^= Integer::New(value());
-  *mint_slot = mint.raw();
+  *mint_slot = mint.ptr();
 
   if (FLAG_trace_deoptimization_verbose) {
     OS::PrintErr("materializing mint at %" Px ": %" Pd64 "\n",
@@ -46,10 +46,10 @@ void DeferredFloat32x4::Materialize(DeoptContext* deopt_context) {
   *float32x4_slot = raw_float32x4;
 
   if (FLAG_trace_deoptimization_verbose) {
-    float x = raw_float32x4->ptr()->x();
-    float y = raw_float32x4->ptr()->y();
-    float z = raw_float32x4->ptr()->z();
-    float w = raw_float32x4->ptr()->w();
+    float x = raw_float32x4->untag()->x();
+    float y = raw_float32x4->untag()->y();
+    float z = raw_float32x4->untag()->z();
+    float w = raw_float32x4->untag()->w();
     OS::PrintErr("materializing Float32x4 at %" Px ": %g,%g,%g,%g\n",
                  reinterpret_cast<uword>(slot()), x, y, z, w);
   }
@@ -61,8 +61,8 @@ void DeferredFloat64x2::Materialize(DeoptContext* deopt_context) {
   *float64x2_slot = raw_float64x2;
 
   if (FLAG_trace_deoptimization_verbose) {
-    double x = raw_float64x2->ptr()->x();
-    double y = raw_float64x2->ptr()->y();
+    double x = raw_float64x2->untag()->x();
+    double y = raw_float64x2->untag()->y();
     OS::PrintErr("materializing Float64x2 at %" Px ": %g,%g\n",
                  reinterpret_cast<uword>(slot()), x, y);
   }
@@ -74,10 +74,10 @@ void DeferredInt32x4::Materialize(DeoptContext* deopt_context) {
   *int32x4_slot = raw_int32x4;
 
   if (FLAG_trace_deoptimization_verbose) {
-    uint32_t x = raw_int32x4->ptr()->x();
-    uint32_t y = raw_int32x4->ptr()->y();
-    uint32_t z = raw_int32x4->ptr()->z();
-    uint32_t w = raw_int32x4->ptr()->w();
+    uint32_t x = raw_int32x4->untag()->x();
+    uint32_t y = raw_int32x4->untag()->y();
+    uint32_t z = raw_int32x4->untag()->z();
+    uint32_t w = raw_int32x4->untag()->w();
     OS::PrintErr("materializing Int32x4 at %" Px ": %x,%x,%x,%x\n",
                  reinterpret_cast<uword>(slot()), x, y, z, w);
   }
@@ -87,7 +87,7 @@ void DeferredObjectRef::Materialize(DeoptContext* deopt_context) {
   DeferredObject* obj = deopt_context->GetDeferredObject(index());
   *slot() = obj->object();
   if (FLAG_trace_deoptimization_verbose) {
-    const Class& cls = Class::Handle(Isolate::Current()->class_table()->At(
+    const Class& cls = Class::Handle(IsolateGroup::Current()->class_table()->At(
         Object::Handle(obj->object()).GetClassId()));
     OS::PrintErr("writing instance of class %s ref at %" Px ".\n",
                  cls.ToCString(), reinterpret_cast<uword>(slot()));
@@ -107,7 +107,7 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   const Code& code = Code::Handle(zone, function.unoptimized_code());
 
   uword continue_at_pc =
-      code.GetPcForDeoptId(deopt_id_, PcDescriptorsLayout::kDeopt);
+      code.GetPcForDeoptId(deopt_id_, UntaggedPcDescriptors::kDeopt);
   if (continue_at_pc == 0) {
     FATAL2("Can't locate continuation PC for deoptid %" Pd " within %s\n",
            deopt_id_, function.ToFullyQualifiedCString());
@@ -120,7 +120,7 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
                  reinterpret_cast<uword>(slot()), continue_at_pc);
   }
 
-  uword pc = code.GetPcForDeoptId(deopt_id_, PcDescriptorsLayout::kIcCall);
+  uword pc = code.GetPcForDeoptId(deopt_id_, UntaggedPcDescriptors::kIcCall);
   if (pc != 0) {
     // If the deoptimization happened at an IC call, update the IC data
     // to avoid repeated deoptimization at the same site next time around.
@@ -152,6 +152,7 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   Function& function = Function::Handle(zone);
   function ^= deopt_context->ObjectAt(index_);
   ASSERT(!function.IsNull());
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   const Error& error =
       Error::Handle(zone, Compiler::EnsureUnoptimizedCode(thread, function));
   if (!error.IsNull()) {
@@ -160,7 +161,7 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   const Code& code = Code::Handle(zone, function.unoptimized_code());
   ASSERT(!code.IsNull());
   ASSERT(function.HasCode());
-  *reinterpret_cast<ObjectPtr*>(dest_addr) = code.raw();
+  *reinterpret_cast<ObjectPtr*>(dest_addr) = code.ptr();
 
   if (FLAG_trace_deoptimization_verbose) {
     THR_Print("materializing pc marker at 0x%" Px ": %s, %s\n",
@@ -213,7 +214,7 @@ ObjectPtr DeferredObject::object() {
   if (object_ == NULL) {
     Create();
   }
-  return object_->raw();
+  return object_->ptr();
 }
 
 void DeferredObject::Create() {
@@ -224,23 +225,50 @@ void DeferredObject::Create() {
   Class& cls = Class::Handle();
   cls ^= GetClass();
 
-  if (cls.raw() == Object::context_class()) {
-    intptr_t num_variables = Smi::Cast(Object::Handle(GetLength())).Value();
-    if (FLAG_trace_deoptimization_verbose) {
-      OS::PrintErr("materializing context of length %" Pd " (%" Px ", %" Pd
-                   " vars)\n",
-                   num_variables, reinterpret_cast<uword>(args_), field_count_);
-    }
-    object_ = &Context::ZoneHandle(Context::New(num_variables));
+  switch (cls.id()) {
+    case kContextCid: {
+      const intptr_t num_variables =
+          Smi::Cast(Object::Handle(GetLength())).Value();
+      if (FLAG_trace_deoptimization_verbose) {
+        OS::PrintErr(
+            "materializing context of length %" Pd " (%" Px ", %" Pd " vars)\n",
+            num_variables, reinterpret_cast<uword>(args_), field_count_);
+      }
+      object_ = &Context::ZoneHandle(Context::New(num_variables));
+    } break;
+    case kArrayCid: {
+      const intptr_t num_elements =
+          Smi::Cast(Object::Handle(GetLength())).Value();
+      if (FLAG_trace_deoptimization_verbose) {
+        OS::PrintErr("materializing array of length %" Pd " (%" Px ", %" Pd
+                     " elements)\n",
+                     num_elements, reinterpret_cast<uword>(args_),
+                     field_count_);
+      }
+      object_ = &Array::ZoneHandle(Array::New(num_elements));
+    } break;
+    default:
+      if (IsTypedDataClassId(cls.id())) {
+        const intptr_t num_elements =
+            Smi::Cast(Object::Handle(GetLength())).Value();
+        if (FLAG_trace_deoptimization_verbose) {
+          OS::PrintErr("materializing typed data cid %" Pd " of length %" Pd
+                       " (%" Px ", %" Pd " elements)\n",
+                       cls.id(), num_elements, reinterpret_cast<uword>(args_),
+                       field_count_);
+        }
+        object_ =
+            &TypedData::ZoneHandle(TypedData::New(cls.id(), num_elements));
 
-  } else {
-    if (FLAG_trace_deoptimization_verbose) {
-      OS::PrintErr("materializing instance of %s (%" Px ", %" Pd " fields)\n",
-                   cls.ToCString(), reinterpret_cast<uword>(args_),
-                   field_count_);
-    }
+      } else {
+        if (FLAG_trace_deoptimization_verbose) {
+          OS::PrintErr(
+              "materializing instance of %s (%" Px ", %" Pd " fields)\n",
+              cls.ToCString(), reinterpret_cast<uword>(args_), field_count_);
+        }
 
-    object_ = &Instance::ZoneHandle(Instance::New(cls));
+        object_ = &Instance::ZoneHandle(Instance::New(cls));
+      }
   }
 }
 
@@ -256,65 +284,178 @@ void DeferredObject::Fill() {
   Class& cls = Class::Handle();
   cls ^= GetClass();
 
-  if (cls.raw() == Object::context_class()) {
-    const Context& context = Context::Cast(*object_);
+  switch (cls.id()) {
+    case kContextCid: {
+      const Context& context = Context::Cast(*object_);
 
-    Smi& offset = Smi::Handle();
-    Object& value = Object::Handle();
+      Smi& offset = Smi::Handle();
+      Object& value = Object::Handle();
 
-    for (intptr_t i = 0; i < field_count_; i++) {
-      offset ^= GetFieldOffset(i);
-      if (offset.Value() == Context::parent_offset()) {
-        // Copy parent.
-        Context& parent = Context::Handle();
-        parent ^= GetValue(i);
-        context.set_parent(parent);
-        if (FLAG_trace_deoptimization_verbose) {
-          OS::PrintErr("    ctx@parent (offset %" Pd ") <- %s\n",
-                       offset.Value(), value.ToCString());
-        }
-      } else {
-        intptr_t context_index = ToContextIndex(offset.Value());
-        value = GetValue(i);
-        context.SetAt(context_index, value);
-        if (FLAG_trace_deoptimization_verbose) {
-          OS::PrintErr("    ctx@%" Pd " (offset %" Pd ") <- %s\n",
-                       context_index, offset.Value(), value.ToCString());
-        }
-      }
-    }
-  } else {
-    const Instance& obj = Instance::Cast(*object_);
-
-    Smi& offset = Smi::Handle();
-    Field& field = Field::Handle();
-    Object& value = Object::Handle();
-    const Array& offset_map = Array::Handle(cls.OffsetToFieldMap());
-
-    for (intptr_t i = 0; i < field_count_; i++) {
-      offset ^= GetFieldOffset(i);
-      field ^= offset_map.At(offset.Value() / kWordSize);
-      value = GetValue(i);
-      if (!field.IsNull()) {
-        obj.SetField(field, value);
-        if (FLAG_trace_deoptimization_verbose) {
-          OS::PrintErr("    %s <- %s\n",
-                       String::Handle(field.name()).ToCString(),
-                       value.ToCString());
-        }
-      } else {
-        // In addition to the type arguments vector we can also have lazy
-        // materialization of e.g. _ByteDataView objects which don't have
-        // explicit fields in Dart (all accesses to the fields are done via
-        // recognized native methods).
-        ASSERT(offset.Value() < cls.host_instance_size());
-        obj.SetFieldAtOffset(offset.Value(), value);
-        if (FLAG_trace_deoptimization_verbose) {
-          OS::PrintErr("    null Field @ offset(%" Pd ") <- %s\n",
-                       offset.Value(), value.ToCString());
+      for (intptr_t i = 0; i < field_count_; i++) {
+        offset ^= GetFieldOffset(i);
+        if (offset.Value() == Context::parent_offset()) {
+          // Copy parent.
+          Context& parent = Context::Handle();
+          parent ^= GetValue(i);
+          context.set_parent(parent);
+          if (FLAG_trace_deoptimization_verbose) {
+            OS::PrintErr("    ctx@parent (offset %" Pd ") <- %s\n",
+                         offset.Value(), value.ToCString());
+          }
+        } else {
+          intptr_t context_index = ToContextIndex(offset.Value());
+          value = GetValue(i);
+          context.SetAt(context_index, value);
+          if (FLAG_trace_deoptimization_verbose) {
+            OS::PrintErr("    ctx@%" Pd " (offset %" Pd ") <- %s\n",
+                         context_index, offset.Value(), value.ToCString());
+          }
         }
       }
-    }
+    } break;
+    case kArrayCid: {
+      const Array& array = Array::Cast(*object_);
+
+      Smi& offset = Smi::Handle();
+      Object& value = Object::Handle();
+
+      for (intptr_t i = 0; i < field_count_; i++) {
+        offset ^= GetFieldOffset(i);
+        if (offset.Value() == Array::type_arguments_offset()) {
+          TypeArguments& type_args = TypeArguments::Handle();
+          type_args ^= GetValue(i);
+          array.SetTypeArguments(type_args);
+          if (FLAG_trace_deoptimization_verbose) {
+            OS::PrintErr("    array@type_args (offset %" Pd ") <- %s\n",
+                         offset.Value(), value.ToCString());
+          }
+        } else {
+          const intptr_t index = Array::index_at_offset(offset.Value());
+          value = GetValue(i);
+          array.SetAt(index, value);
+          if (FLAG_trace_deoptimization_verbose) {
+            OS::PrintErr("    array@%" Pd " (offset %" Pd ") <- %s\n", index,
+                         offset.Value(), value.ToCString());
+          }
+        }
+      }
+    } break;
+    default:
+      if (IsTypedDataClassId(cls.id())) {
+        const TypedData& typed_data = TypedData::Cast(*object_);
+
+        Smi& offset = Smi::Handle();
+        Object& value = Object::Handle();
+        const auto cid = cls.id();
+
+        for (intptr_t i = 0; i < field_count_; i++) {
+          offset ^= GetFieldOffset(i);
+          const intptr_t element_offset = offset.Value();
+          value = GetValue(i);
+          switch (cid) {
+            case kTypedDataInt8ArrayCid:
+              typed_data.SetInt8(
+                  element_offset,
+                  static_cast<int8_t>(Integer::Cast(value).AsInt64Value()));
+              break;
+            case kTypedDataUint8ArrayCid:
+            case kTypedDataUint8ClampedArrayCid:
+              typed_data.SetUint8(
+                  element_offset,
+                  static_cast<uint8_t>(Integer::Cast(value).AsInt64Value()));
+              break;
+            case kTypedDataInt16ArrayCid:
+              typed_data.SetInt16(
+                  element_offset,
+                  static_cast<int16_t>(Integer::Cast(value).AsInt64Value()));
+              break;
+            case kTypedDataUint16ArrayCid:
+              typed_data.SetUint16(
+                  element_offset,
+                  static_cast<uint16_t>(Integer::Cast(value).AsInt64Value()));
+              break;
+            case kTypedDataInt32ArrayCid:
+              typed_data.SetInt32(
+                  element_offset,
+                  static_cast<int32_t>(Integer::Cast(value).AsInt64Value()));
+              break;
+            case kTypedDataUint32ArrayCid:
+              typed_data.SetUint32(
+                  element_offset,
+                  static_cast<uint32_t>(Integer::Cast(value).AsInt64Value()));
+              break;
+            case kTypedDataInt64ArrayCid:
+              typed_data.SetInt64(element_offset,
+                                  Integer::Cast(value).AsInt64Value());
+              break;
+            case kTypedDataUint64ArrayCid:
+              typed_data.SetUint64(
+                  element_offset,
+                  static_cast<uint64_t>(Integer::Cast(value).AsInt64Value()));
+              break;
+            case kTypedDataFloat32ArrayCid:
+              typed_data.SetFloat32(
+                  element_offset,
+                  static_cast<float>(Double::Cast(value).value()));
+              break;
+            case kTypedDataFloat64ArrayCid:
+              typed_data.SetFloat64(element_offset,
+                                    Double::Cast(value).value());
+              break;
+            case kTypedDataFloat32x4ArrayCid:
+              typed_data.SetFloat32x4(element_offset,
+                                      Float32x4::Cast(value).value());
+              break;
+            case kTypedDataInt32x4ArrayCid:
+              typed_data.SetInt32x4(element_offset,
+                                    Int32x4::Cast(value).value());
+              break;
+            case kTypedDataFloat64x2ArrayCid:
+              typed_data.SetFloat64x2(element_offset,
+                                      Float64x2::Cast(value).value());
+              break;
+            default:
+              UNREACHABLE();
+          }
+          if (FLAG_trace_deoptimization_verbose) {
+            OS::PrintErr("    typed_data (offset %" Pd ") <- %s\n",
+                         element_offset, value.ToCString());
+          }
+        }
+      } else {
+        const Instance& obj = Instance::Cast(*object_);
+
+        Smi& offset = Smi::Handle();
+        Field& field = Field::Handle();
+        Object& value = Object::Handle();
+        const Array& offset_map = Array::Handle(cls.OffsetToFieldMap());
+
+        for (intptr_t i = 0; i < field_count_; i++) {
+          offset ^= GetFieldOffset(i);
+          field ^= offset_map.At(offset.Value() / kWordSize);
+          value = GetValue(i);
+          if (!field.IsNull()) {
+            obj.SetField(field, value);
+            if (FLAG_trace_deoptimization_verbose) {
+              OS::PrintErr("    %s <- %s\n",
+                           String::Handle(field.name()).ToCString(),
+                           value.ToCString());
+            }
+          } else {
+            // In addition to the type arguments vector we can also have lazy
+            // materialization of e.g. _ByteDataView objects which don't have
+            // explicit fields in Dart (all accesses to the fields are done via
+            // recognized native methods).
+            ASSERT(offset.Value() < cls.host_instance_size());
+            obj.SetFieldAtOffset(offset.Value(), value);
+            if (FLAG_trace_deoptimization_verbose) {
+              OS::PrintErr("    null Field @ offset(%" Pd ") <- %s\n",
+                           offset.Value(), value.ToCString());
+            }
+          }
+        }
+      }
+      break;
   }
 }
 

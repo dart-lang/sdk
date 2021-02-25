@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef FArgument<contravariant X extends core::num = core::num> = (X) → dynamic;
+typedef FReturn<X extends core::num = core::num> = () → X;
+typedef FBoth<invariant X extends core::num = core::num> = (X) → X;
+typedef FNowhere<unrelated X extends core::num = core::num> = () → dynamic;
+class A<T extends core::num = core::num> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T>
+    ;
+}
+static method foo() → dynamic
+  ;
+static method main() → dynamic
+  ;

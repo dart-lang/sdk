@@ -4,10 +4,13 @@
 
 // @dart = 2.7
 
-/*class: A:OutputUnit(1, {lib1}), type=OutputUnit(main, {})*/
+/*class: A:
+ class_unit=1{lib1},
+ type_unit=main{}
+*/
 class A {
   const A();
 
-  /*member: A.method:OutputUnit(1, {lib1})*/
+  /*member: A.method:member_unit=1{lib1}*/
   method() {}
 }

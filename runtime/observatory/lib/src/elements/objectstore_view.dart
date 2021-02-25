@@ -20,17 +20,17 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class ObjectStoreViewElement extends CustomElement implements Renderable {
-  RenderingScheduler<ObjectStoreViewElement> _r;
+  late RenderingScheduler<ObjectStoreViewElement> _r;
 
   Stream<RenderedEvent<ObjectStoreViewElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.ObjectStore _store;
-  M.ObjectStoreRepository _stores;
-  M.ObjectRepository _objects;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  M.ObjectStore? _store;
+  late M.ObjectStoreRepository _stores;
+  late M.ObjectRepository _objects;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -43,7 +43,7 @@ class ObjectStoreViewElement extends CustomElement implements Renderable {
       M.NotificationRepository notifications,
       M.ObjectStoreRepository stores,
       M.ObjectRepository objects,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -78,7 +78,7 @@ class ObjectStoreViewElement extends CustomElement implements Renderable {
   }
 
   void render() {
-    final fields = _store?.fields?.toList(growable: false);
+    final fields = _store?.fields.toList(growable: false);
     children = <Element>[
       navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue).element,

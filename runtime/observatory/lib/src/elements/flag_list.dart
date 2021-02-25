@@ -19,21 +19,21 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class FlagListElement extends CustomElement implements Renderable {
-  RenderingScheduler<FlagListElement> _r;
+  late RenderingScheduler<FlagListElement> _r;
 
   Stream<RenderedEvent<FlagListElement>> get onRendered => _r.onRendered;
 
-  M.VMRef _vm;
-  M.EventRepository _events;
-  M.FlagsRepository _repository;
-  M.NotificationRepository _notifications;
-  Iterable<M.Flag> _flags;
+  late M.VMRef _vm;
+  late M.EventRepository _events;
+  late M.FlagsRepository _repository;
+  late M.NotificationRepository _notifications;
+  Iterable<M.Flag>? _flags;
 
   M.VMRef get vm => _vm;
 
   factory FlagListElement(M.VMRef vm, M.EventRepository events,
       M.FlagsRepository repository, M.NotificationRepository notifications,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(events != null);
     assert(repository != null);
@@ -68,8 +68,8 @@ class FlagListElement extends CustomElement implements Renderable {
     if (_flags == null) {
       content.add(new HeadingElement.h1()..text = 'Loading Flags...');
     } else {
-      final modified = _flags.where(_isModified);
-      final unmodified = _flags.where(_isUnmodified);
+      final modified = _flags!.where(_isModified);
+      final unmodified = _flags!.where(_isUnmodified);
 
       if (modified.isNotEmpty) {
         content.add(new HeadingElement.h1()..text = 'Modified Flags');
@@ -91,7 +91,7 @@ class FlagListElement extends CustomElement implements Renderable {
     children = <Element>[
       navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue).element,
-        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavVMMenuElement(_vm as M.VM, _events, queue: _r.queue).element,
         navMenu('flags', link: Uris.flags()),
         (new NavRefreshElement(queue: _r.queue)
               ..onRefresh.listen((e) async {
@@ -137,7 +137,7 @@ class FlagListElement extends CustomElement implements Renderable {
           new SpanElement()..text = '=',
           new SpanElement()
             ..classes = ['value']
-            ..text = flag.valueAsString ?? 'NULL'
+            ..text = flag.valueAsString
         ],
       new BRElement(),
     ];

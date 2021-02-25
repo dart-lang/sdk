@@ -40,10 +40,6 @@ Thread::~Thread() {
   ASSERT(isolate_ == NULL);
   ASSERT(store_buffer_block_ == NULL);
   ASSERT(marking_stack_block_ == NULL);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  delete interpreter_;
-  interpreter_ = nullptr;
-#endif
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
@@ -65,7 +61,7 @@ Thread::~Thread() {
 Thread::Thread(bool is_vm_isolate)
     : ThreadState(false),
       stack_limit_(0),
-      write_barrier_mask_(ObjectLayout::kGenerationalBarrierMask),
+      write_barrier_mask_(UntaggedObject::kGenerationalBarrierMask),
       isolate_(NULL),
       dispatch_table_array_(NULL),
       saved_stack_limit_(0),
@@ -75,7 +71,6 @@ Thread::Thread(bool is_vm_isolate)
       store_buffer_block_(NULL),
       marking_stack_block_(NULL),
       vm_tag_(0),
-      async_stack_trace_(StackTrace::null()),
       unboxed_int64_runtime_arg_(0),
       active_exception_(Object::null()),
       active_stacktrace_(Object::null()),
@@ -84,6 +79,7 @@ Thread::Thread(bool is_vm_isolate)
       execution_state_(kThreadInNative),
       safepoint_state_(0),
       ffi_callback_code_(GrowableObjectArray::null()),
+      ffi_callback_stack_return_(TypedData::null()),
       api_top_scope_(NULL),
       task_kind_(kUnknownTask),
       dart_stream_(NULL),
@@ -106,9 +102,6 @@ Thread::Thread(bool is_vm_isolate)
           REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
 #if defined(USING_SAFE_STACK)
               saved_safestack_limit_(0),
-#endif
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      interpreter_(nullptr),
 #endif
       next_(NULL) {
 #if defined(SUPPORT_TIMELINE)
@@ -222,19 +215,6 @@ void Thread::InitVMConstants() {
 #undef REUSABLE_HANDLE_ALLOCATION
 }
 
-#ifndef PRODUCT
-// Collect information about each individual zone associated with this thread.
-void Thread::PrintJSON(JSONStream* stream) const {
-  JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "_Thread");
-  jsobj.AddPropertyF("id", "threads/%" Pd "",
-                     OSThread::ThreadIdToIntPtr(os_thread()->trace_id()));
-  jsobj.AddProperty("kind", TaskKindToCString(task_kind()));
-  jsobj.AddPropertyF("_zoneHighWatermark", "%" Pu "", zone_high_watermark());
-  jsobj.AddPropertyF("_zoneCapacity", "%" Pu "", current_zone_capacity());
-}
-#endif
-
 GrowableObjectArrayPtr Thread::pending_functions() {
   if (pending_functions_ == GrowableObjectArray::null()) {
     pending_functions_ = GrowableObjectArray::New(Heap::kOld);
@@ -247,11 +227,11 @@ void Thread::clear_pending_functions() {
 }
 
 void Thread::set_active_exception(const Object& value) {
-  active_exception_ = value.raw();
+  active_exception_ = value.ptr();
 }
 
 void Thread::set_active_stacktrace(const Object& value) {
-  active_stacktrace_ = value.raw();
+  active_stacktrace_ = value.ptr();
 }
 
 ErrorPtr Thread::sticky_error() const {
@@ -260,7 +240,7 @@ ErrorPtr Thread::sticky_error() const {
 
 void Thread::set_sticky_error(const Error& value) {
   ASSERT(!value.IsNull());
-  sticky_error_ = value.raw();
+  sticky_error_ = value.ptr();
 }
 
 void Thread::ClearStickyError() {
@@ -290,23 +270,6 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
       UNREACHABLE();
       return "";
   }
-}
-
-StackTracePtr Thread::async_stack_trace() const {
-  return async_stack_trace_;
-}
-
-void Thread::set_async_stack_trace(const StackTrace& stack_trace) {
-  ASSERT(!stack_trace.IsNull());
-  async_stack_trace_ = stack_trace.raw();
-}
-
-void Thread::set_raw_async_stack_trace(StackTracePtr raw_stack_trace) {
-  async_stack_trace_ = raw_stack_trace;
-}
-
-void Thread::clear_async_stack_trace() {
-  async_stack_trace_ = StackTrace::null();
 }
 
 bool Thread::EnterIsolate(Isolate* isolate) {
@@ -610,14 +573,14 @@ void Thread::DeferredMarkingStackAddObject(ObjectPtr obj) {
 void Thread::MarkingStackRelease() {
   MarkingStackBlock* block = marking_stack_block_;
   marking_stack_block_ = NULL;
-  write_barrier_mask_ = ObjectLayout::kGenerationalBarrierMask;
+  write_barrier_mask_ = UntaggedObject::kGenerationalBarrierMask;
   isolate_group()->marking_stack()->PushBlock(block);
 }
 
 void Thread::MarkingStackAcquire() {
   marking_stack_block_ = isolate_group()->marking_stack()->PopEmptyBlock();
-  write_barrier_mask_ = ObjectLayout::kGenerationalBarrierMask |
-                        ObjectLayout::kIncrementalBarrierMask;
+  write_barrier_mask_ = UntaggedObject::kGenerationalBarrierMask |
+                        UntaggedObject::kIncrementalBarrierMask;
 }
 
 void Thread::DeferredMarkingStackRelease() {
@@ -678,14 +641,9 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_exception_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_stacktrace_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&async_stack_trace_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ffi_callback_code_));
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (interpreter() != NULL) {
-    interpreter()->VisitObjectPointers(visitor);
-  }
-#endif
+  visitor->VisitPointer(
+      reinterpret_cast<ObjectPtr*>(&ffi_callback_stack_return_));
 
   // Visit the api local scope as it has all the api local handles.
   ApiLocalScope* scope = api_top_scope_;
@@ -752,17 +710,17 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
         continue;
 
       // Dart code won't store into canonical instances.
-      if (obj->ptr()->IsCanonical()) continue;
+      if (obj->untag()->IsCanonical()) continue;
 
       // Objects in the VM isolate heap are immutable and won't be
       // stored into. Check this condition last because there's no bit
       // in the header for it.
-      if (obj->ptr()->InVMIsolateHeap()) continue;
+      if (obj->untag()->InVMIsolateHeap()) continue;
 
       switch (op_) {
         case Thread::RestoreWriteBarrierInvariantOp::kAddToRememberedSet:
-          if (!obj->ptr()->IsRemembered()) {
-            obj->ptr()->AddToRememberedSet(current_);
+          if (!obj->untag()->IsRemembered()) {
+            obj->untag()->AddToRememberedSet(current_);
           }
           if (current_->is_marking()) {
             current_->DeferredMarkingStackAddObject(obj);
@@ -833,7 +791,7 @@ bool Thread::CanLoadFromThread(const Object& object) {
   // [object] is in fact a [Code] object.
   if (object.IsCode()) {
 #define CHECK_OBJECT(type_name, member_name, expr, default_init_value)         \
-  if (object.raw() == expr) {                                                  \
+  if (object.ptr() == expr) {                                                  \
     return true;                                                               \
   }
     CACHED_VM_STUBS_LIST(CHECK_OBJECT)
@@ -843,7 +801,7 @@ bool Thread::CanLoadFromThread(const Object& object) {
   // For non [Code] objects we check if the object equals to any of the cached
   // non-stub entries.
 #define CHECK_OBJECT(type_name, member_name, expr, default_init_value)         \
-  if (object.raw() == expr) {                                                  \
+  if (object.ptr() == expr) {                                                  \
     return true;                                                               \
   }
   CACHED_NON_VM_STUB_LIST(CHECK_OBJECT)
@@ -857,8 +815,8 @@ intptr_t Thread::OffsetFromThread(const Object& object) {
   // [object] is in fact a [Code] object.
   if (object.IsCode()) {
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
-  ASSERT((expr)->ptr()->InVMIsolateHeap());                                    \
-  if (object.raw() == expr) {                                                  \
+  ASSERT((expr)->untag()->InVMIsolateHeap());                                  \
+  if (object.ptr() == expr) {                                                  \
     return Thread::member_name##offset();                                      \
   }
     CACHED_VM_STUBS_LIST(COMPUTE_OFFSET)
@@ -868,7 +826,7 @@ intptr_t Thread::OffsetFromThread(const Object& object) {
   // For non [Code] objects we check if the object equals to any of the cached
   // non-stub entries.
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
-  if (object.raw() == expr) {                                                  \
+  if (object.ptr() == expr) {                                                  \
     return Thread::member_name##offset();                                      \
   }
   CACHED_NON_VM_STUB_LIST(COMPUTE_OFFSET)
@@ -922,11 +880,6 @@ bool Thread::TopErrorHandlerIsSetJump() const {
   // False positives: simulator stack and native stack are unordered.
   return true;
 #else
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // False positives: interpreter stack and native stack are unordered.
-  if ((interpreter_ != nullptr) && interpreter_->HasFrame(top_exit_frame_info_))
-    return true;
-#endif
   return reinterpret_cast<uword>(long_jump_base()) < top_exit_frame_info_;
 #endif
 }
@@ -938,11 +891,6 @@ bool Thread::TopErrorHandlerIsExitFrame() const {
   // False positives: simulator stack and native stack are unordered.
   return true;
 #else
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // False positives: interpreter stack and native stack are unordered.
-  if ((interpreter_ != nullptr) && interpreter_->HasFrame(top_exit_frame_info_))
-    return true;
-#endif
   return top_exit_frame_info_ < reinterpret_cast<uword>(long_jump_base());
 #endif
 }
@@ -1083,9 +1031,9 @@ DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
   }
 }
 
-const intptr_t kInitialCallbackIdsReserved = 1024;
+const intptr_t kInitialCallbackIdsReserved = 16;
 int32_t Thread::AllocateFfiCallbackId() {
-  Zone* Z = isolate()->current_zone();
+  Zone* Z = Thread::Current()->zone();
   if (ffi_callback_code_ == GrowableObjectArray::null()) {
     ffi_callback_code_ = GrowableObjectArray::New(kInitialCallbackIdsReserved);
   }
@@ -1106,7 +1054,7 @@ int32_t Thread::AllocateFfiCallbackId() {
 }
 
 void Thread::SetFfiCallbackCode(int32_t callback_id, const Code& code) {
-  Zone* Z = isolate()->current_zone();
+  Zone* Z = Thread::Current()->zone();
 
   /// In AOT the callback ID might have been allocated during compilation but
   /// 'ffi_callback_code_' is initialized to empty again when the program
@@ -1120,13 +1068,58 @@ void Thread::SetFfiCallbackCode(int32_t callback_id, const Code& code) {
   const auto& array = GrowableObjectArray::Handle(Z, ffi_callback_code_);
 
   if (callback_id >= array.Length()) {
-    if (callback_id >= array.Capacity()) {
-      array.Grow(callback_id + 1);
+    const int32_t capacity = array.Capacity();
+    if (callback_id >= capacity) {
+      // Ensure both that we grow enough and an exponential growth strategy.
+      const int32_t new_capacity =
+          Utils::Maximum(callback_id + 1, capacity * 2);
+      array.Grow(new_capacity);
     }
     array.SetLength(callback_id + 1);
   }
 
   array.SetAt(callback_id, code);
+}
+
+void Thread::SetFfiCallbackStackReturn(int32_t callback_id,
+                                       intptr_t stack_return_delta) {
+#if defined(TARGET_ARCH_IA32)
+#else
+  UNREACHABLE();
+#endif
+
+  Zone* Z = Thread::Current()->zone();
+
+  /// In AOT the callback ID might have been allocated during compilation but
+  /// 'ffi_callback_code_' is initialized to empty again when the program
+  /// starts. Therefore we may need to initialize or expand it to accomodate
+  /// the callback ID.
+
+  if (ffi_callback_stack_return_ == TypedData::null()) {
+    ffi_callback_stack_return_ = TypedData::New(
+        kTypedDataInt8ArrayCid, kInitialCallbackIdsReserved, Heap::kOld);
+  }
+
+  auto& array = TypedData::Handle(Z, ffi_callback_stack_return_);
+
+  if (callback_id >= array.Length()) {
+    const int32_t capacity = array.Length();
+    if (callback_id >= capacity) {
+      // Ensure both that we grow enough and an exponential growth strategy.
+      const int32_t new_capacity =
+          Utils::Maximum(callback_id + 1, capacity * 2);
+      const auto& new_array = TypedData::Handle(
+          Z, TypedData::New(kTypedDataUint8ArrayCid, new_capacity, Heap::kOld));
+      for (intptr_t i = 0; i < capacity; i++) {
+        new_array.SetUint8(i, array.GetUint8(i));
+      }
+      array ^= new_array.ptr();
+      ffi_callback_stack_return_ = new_array.ptr();
+    }
+  }
+
+  ASSERT(callback_id < array.Length());
+  array.SetUint8(callback_id, stack_return_delta);
 }
 
 void Thread::VerifyCallbackIsolate(int32_t callback_id, uword entry) {

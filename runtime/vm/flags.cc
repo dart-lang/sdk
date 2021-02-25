@@ -95,11 +95,13 @@ class Flag {
   Flag(const char* name, const char* comment, FlagHandler handler)
       : name_(name),
         comment_(comment),
+        string_value_("false"),
         flag_handler_(handler),
         type_(kFlagHandler) {}
   Flag(const char* name, const char* comment, OptionHandler handler)
       : name_(name),
         comment_(comment),
+        string_value_(nullptr),
         option_handler_(handler),
         type_(kOptionHandler) {}
 
@@ -148,6 +150,7 @@ class Flag {
 
   const char* name_;
   const char* comment_;
+  const char* string_value_;
   union {
     void* addr_;
     bool* bool_ptr_;
@@ -332,9 +335,11 @@ bool Flags::SetFlagFromString(Flag* flag, const char* argument) {
       } else {
         return false;
       }
+      flag->string_value_ = argument;
       break;
     }
     case Flag::kOptionHandler: {
+      flag->string_value_ = argument;
       (flag->option_handler_)(argument);
       break;
     }
@@ -461,6 +466,30 @@ char* Flags::ProcessCommandLineFlags(int number_of_vm_flags,
     PrintFlags();
   }
 
+  // TODO(dartbug.com/36097): Support for isolate groups in JIT mode is
+  // in-development. We will start with very conservative settings. As we make
+  // more of our compiler, runtime as well as generated code re-entrant we'll
+  // graudally remove those restrictions.
+
+#if !defined(DART_PRCOMPILED_RUNTIME)
+  if (!FLAG_precompiled_mode && FLAG_enable_isolate_groups) {
+    // Our compiler should not make rely on a global field being initialized at
+    // compile-time, since that compiled code might be re-used in another
+    // isolate that has not yet initialized the global field.
+    FLAG_fields_may_be_reset = true;
+
+    // We will start by only allowing compilation to unoptimized code.
+    FLAG_optimization_counter_threshold = -1;
+    FLAG_background_compilation = false;
+    FLAG_force_clone_compiler_objects = true;
+
+    // To eliminate potential flakiness, we will start by disabling field guards
+    // and CHA-based compilations.
+    FLAG_use_field_guards = false;
+    FLAG_use_cha_deopt = false;
+  }
+#endif  // !defined(DART_PRCOMPILED_RUNTIME)
+
   initialized_ = true;
   return NULL;
 }
@@ -487,8 +516,7 @@ void Flags::PrintFlags() {
 
 #ifndef PRODUCT
 void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
-  if (flag->IsUnrecognized() || flag->type_ == Flag::kFlagHandler ||
-      flag->type_ == Flag::kOptionHandler) {
+  if (flag->IsUnrecognized()) {
     return;
   }
   JSONObject jsflag(jsarr);
@@ -516,6 +544,20 @@ void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
       jsflag.AddProperty("_flagType", "String");
       if (flag->charp_ptr_ != NULL) {
         jsflag.AddPropertyF("valueAsString", "%s", *flag->charp_ptr_);
+      } else {
+        // valueAsString missing means NULL.
+      }
+      break;
+    }
+    case Flag::kFlagHandler: {
+      jsflag.AddProperty("_flagType", "Bool");
+      jsflag.AddProperty("valueAsString", flag->string_value_);
+      break;
+    }
+    case Flag::kOptionHandler: {
+      jsflag.AddProperty("_flagType", "String");
+      if (flag->string_value_ != nullptr) {
+        jsflag.AddProperty("valueAsString", flag->string_value_);
       } else {
         // valueAsString missing means NULL.
       }

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:meta/meta.dart';
@@ -491,9 +492,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
         elementKind == ElementKind.FUNCTION &&
             element is FunctionElement &&
             element.enclosingElement is ExecutableElement ||
-        elementKind == ElementKind.PARAMETER &&
-            element is ParameterElement &&
-            !element.isOptional ||
         false) {
       return;
     }
@@ -648,7 +646,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    MethodElement element = node.staticElement;
+    MethodElement element = node.writeOrReadElement;
     if (element is MethodElement) {
       Token operator = node.leftBracket;
       recordRelationToken(element, IndexRelationKind.IS_INVOKED_BY, operator);
@@ -737,7 +735,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       return;
     }
 
-    Element element = node.staticElement;
+    Element element = node.writeOrReadElement;
     if (node is SimpleIdentifier && element is ParameterElement) {
       element = declaredParameterElement(node, element);
     }

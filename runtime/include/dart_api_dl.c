@@ -4,9 +4,9 @@
  * BSD-style license that can be found in the LICENSE file.
  */
 
-#include "include/dart_api_dl.h"
-#include "include/dart_version.h"
-#include "include/internal/dart_api_dl_impl.h"
+#include "dart_api_dl.h"               /* NOLINT */
+#include "dart_version.h"              /* NOLINT */
+#include "internal/dart_api_dl_impl.h" /* NOLINT */
 
 #include <string.h>
 
@@ -16,7 +16,7 @@ DART_API_ALL_DL_SYMBOLS(DART_API_DL_DEFINITIONS)
 
 #undef DART_API_DL_DEFINITIONS
 
-typedef void (*DartApiEntry_function)();
+typedef void* DartApiEntry_function;
 
 DartApiEntry_function FindFunctionPointer(const DartApiEntry* entries,
                                           const char* name) {

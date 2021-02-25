@@ -1,6 +1,8 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
 
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
@@ -32,7 +34,6 @@ const Code<
         bool isNonNullableByDefault)> codeAmbiguousExtensionMethod = const Code<
     Message Function(String name, DartType _type, bool isNonNullableByDefault)>(
   "AmbiguousExtensionMethod",
-  templateAmbiguousExtensionMethod,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -72,7 +73,6 @@ const Code<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
   "AmbiguousExtensionOperator",
-  templateAmbiguousExtensionOperator,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -112,7 +112,6 @@ const Code<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
   "AmbiguousExtensionProperty",
-  templateAmbiguousExtensionProperty,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -148,8 +147,7 @@ const Code<
             bool isNonNullableByDefault)> codeAmbiguousSupertypes =
     const Code<
             Message Function(String name, DartType _type, DartType _type2,
-                bool isNonNullableByDefault)>(
-        "AmbiguousSupertypes", templateAmbiguousSupertypes,
+                bool isNonNullableByDefault)>("AmbiguousSupertypes",
         analyzerCodes: <String>["AMBIGUOUS_SUPERTYPES"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -186,7 +184,7 @@ const Code<
     codeArgumentTypeNotAssignable = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "ArgumentTypeNotAssignable", templateArgumentTypeNotAssignable,
+        "ArgumentTypeNotAssignable",
         analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -206,6 +204,156 @@ Message _withArgumentsArgumentTypeNotAssignable(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateArgumentTypeNotAssignableNullability = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The argument type '#type' can't be assigned to the parameter type '#type2' because '#type' is nullable and '#type2' isn't.""",
+        withArguments: _withArgumentsArgumentTypeNotAssignableNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeArgumentTypeNotAssignableNullability = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "ArgumentTypeNotAssignableNullability",
+        analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsArgumentTypeNotAssignableNullability(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeArgumentTypeNotAssignableNullability,
+      message:
+          """The argument type '${type}' can't be assigned to the parameter type '${type2}' because '${type}' is nullable and '${type2}' isn't.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateArgumentTypeNotAssignableNullabilityNull = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The value 'null' can't be assigned to the parameter type '#type' because '#type' is not nullable.""",
+        withArguments: _withArgumentsArgumentTypeNotAssignableNullabilityNull);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeArgumentTypeNotAssignableNullabilityNull =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "ArgumentTypeNotAssignableNullabilityNull",
+        analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsArgumentTypeNotAssignableNullabilityNull(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeArgumentTypeNotAssignableNullabilityNull,
+      message:
+          """The value 'null' can't be assigned to the parameter type '${type}' because '${type}' is not nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateArgumentTypeNotAssignableNullabilityNullType = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The argument type '#type' can't be assigned to the parameter type '#type2' because '#type2' is not nullable.""",
+        withArguments:
+            _withArgumentsArgumentTypeNotAssignableNullabilityNullType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeArgumentTypeNotAssignableNullabilityNullType = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "ArgumentTypeNotAssignableNullabilityNullType",
+        analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsArgumentTypeNotAssignableNullabilityNullType(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeArgumentTypeNotAssignableNullabilityNullType,
+      message:
+          """The argument type '${type}' can't be assigned to the parameter type '${type2}' because '${type2}' is not nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    templateArgumentTypeNotAssignablePartNullability = const Template<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The argument type '#type' can't be assigned to the parameter type '#type2' because '#type3' is nullable and '#type4' isn't.""",
+        withArguments: _withArgumentsArgumentTypeNotAssignablePartNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    codeArgumentTypeNotAssignablePartNullability = const Code<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        "ArgumentTypeNotAssignablePartNullability",
+        analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsArgumentTypeNotAssignablePartNullability(
+    DartType _type,
+    DartType _type2,
+    DartType _type3,
+    DartType _type4,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  List<Object> type4Parts = labeler.labelType(_type4);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  String type4 = type4Parts.join();
+  return new Message(codeArgumentTypeNotAssignablePartNullability,
+      message:
+          """The argument type '${type}' can't be assigned to the parameter type '${type2}' because '${type3}' is nullable and '${type4}' isn't.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'type3': _type3,
+        'type4': _type4
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
         Message Function(Constant _constant, bool isNonNullableByDefault)>
     templateConstEvalCaseImplementsEqual = const Template<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
@@ -218,7 +366,6 @@ const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
     codeConstEvalCaseImplementsEqual = const Code<
         Message Function(Constant _constant, bool isNonNullableByDefault)>(
   "ConstEvalCaseImplementsEqual",
-  templateConstEvalCaseImplementsEqual,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -247,7 +394,7 @@ const Template<
 const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
     codeConstEvalDuplicateElement = const Code<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
-        "ConstEvalDuplicateElement", templateConstEvalDuplicateElement,
+        "ConstEvalDuplicateElement",
         analyzerCodes: <String>["EQUAL_ELEMENTS_IN_CONST_SET"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -276,7 +423,7 @@ const Template<
 const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
     codeConstEvalDuplicateKey = const Code<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
-        "ConstEvalDuplicateKey", templateConstEvalDuplicateKey,
+        "ConstEvalDuplicateKey",
         analyzerCodes: <String>["EQUAL_KEYS_IN_CONST_MAP"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -306,7 +453,6 @@ const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
     codeConstEvalElementImplementsEqual = const Code<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
         "ConstEvalElementImplementsEqual",
-        templateConstEvalElementImplementsEqual,
         analyzerCodes: <String>["CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -335,7 +481,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeConstEvalFreeTypeParameter =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "ConstEvalFreeTypeParameter",
-  templateConstEvalFreeTypeParameter,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -353,34 +498,34 @@ Message _withArgumentsConstEvalFreeTypeParameter(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-        Message Function(String string, Constant _constant, DartType _type,
-            DartType _type2, bool isNonNullableByDefault)>
+        Message Function(String stringOKEmpty, Constant _constant,
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
     templateConstEvalInvalidBinaryOperandType = const Template<
-            Message Function(String string, Constant _constant, DartType _type,
-                DartType _type2, bool isNonNullableByDefault)>(
+            Message Function(String stringOKEmpty, Constant _constant,
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         messageTemplate:
-            r"""Binary operator '#string' on '#constant' requires operand of type '#type', but was of type '#type2'.""",
+            r"""Binary operator '#stringOKEmpty' on '#constant' requires operand of type '#type', but was of type '#type2'.""",
         withArguments: _withArgumentsConstEvalInvalidBinaryOperandType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<
-        Message Function(String string, Constant _constant, DartType _type,
-            DartType _type2, bool isNonNullableByDefault)>
+        Message Function(String stringOKEmpty, Constant _constant,
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
     codeConstEvalInvalidBinaryOperandType = const Code<
-        Message Function(String string, Constant _constant, DartType _type,
-            DartType _type2, bool isNonNullableByDefault)>(
+        Message Function(String stringOKEmpty, Constant _constant,
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "ConstEvalInvalidBinaryOperandType",
-  templateConstEvalInvalidBinaryOperandType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidBinaryOperandType(
-    String string,
+    String stringOKEmpty,
     Constant _constant,
     DartType _type,
     DartType _type2,
     bool isNonNullableByDefault) {
-  if (string.isEmpty) throw 'No string provided';
+  // ignore: unnecessary_null_comparison
+  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> constantParts = labeler.labelConstant(_constant);
   List<Object> typeParts = labeler.labelType(_type);
@@ -390,10 +535,10 @@ Message _withArgumentsConstEvalInvalidBinaryOperandType(
   String type2 = type2Parts.join();
   return new Message(codeConstEvalInvalidBinaryOperandType,
       message:
-          """Binary operator '${string}' on '${constant}' requires operand of type '${type}', but was of type '${type2}'.""" +
+          """Binary operator '${stringOKEmpty}' on '${constant}' requires operand of type '${type}', but was of type '${type2}'.""" +
               labeler.originMessages,
       arguments: {
-        'string': string,
+        'stringOKEmpty': stringOKEmpty,
         'constant': _constant,
         'type': _type,
         'type2': _type2
@@ -419,7 +564,6 @@ const Code<
         Message Function(
             Constant _constant, DartType _type, bool isNonNullableByDefault)>(
   "ConstEvalInvalidEqualsOperandType",
-  templateConstEvalInvalidEqualsOperandType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -439,73 +583,73 @@ Message _withArgumentsConstEvalInvalidEqualsOperandType(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-        Message Function(
-            String string, Constant _constant, bool isNonNullableByDefault)>
+        Message Function(String stringOKEmpty, Constant _constant,
+            bool isNonNullableByDefault)>
     templateConstEvalInvalidMethodInvocation = const Template<
-            Message Function(String string, Constant _constant,
+            Message Function(String stringOKEmpty, Constant _constant,
                 bool isNonNullableByDefault)>(
         messageTemplate:
-            r"""The method '#string' can't be invoked on '#constant' in a constant expression.""",
+            r"""The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression.""",
         withArguments: _withArgumentsConstEvalInvalidMethodInvocation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<
-        Message Function(
-            String string, Constant _constant, bool isNonNullableByDefault)>
-    codeConstEvalInvalidMethodInvocation = const Code<
-            Message Function(String string, Constant _constant,
+        Message Function(String stringOKEmpty, Constant _constant,
+            bool isNonNullableByDefault)> codeConstEvalInvalidMethodInvocation =
+    const Code<
+            Message Function(String stringOKEmpty, Constant _constant,
                 bool isNonNullableByDefault)>(
         "ConstEvalInvalidMethodInvocation",
-        templateConstEvalInvalidMethodInvocation,
         analyzerCodes: <String>["UNDEFINED_OPERATOR"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidMethodInvocation(
-    String string, Constant _constant, bool isNonNullableByDefault) {
-  if (string.isEmpty) throw 'No string provided';
+    String stringOKEmpty, Constant _constant, bool isNonNullableByDefault) {
+  // ignore: unnecessary_null_comparison
+  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
   return new Message(codeConstEvalInvalidMethodInvocation,
       message:
-          """The method '${string}' can't be invoked on '${constant}' in a constant expression.""" +
+          """The method '${stringOKEmpty}' can't be invoked on '${constant}' in a constant expression.""" +
               labeler.originMessages,
-      arguments: {'string': string, 'constant': _constant});
+      arguments: {'stringOKEmpty': stringOKEmpty, 'constant': _constant});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-        Message Function(
-            String string, Constant _constant, bool isNonNullableByDefault)>
-    templateConstEvalInvalidPropertyGet = const Template<
-            Message Function(String string, Constant _constant,
+        Message Function(String stringOKEmpty, Constant _constant,
+            bool isNonNullableByDefault)> templateConstEvalInvalidPropertyGet =
+    const Template<
+            Message Function(String stringOKEmpty, Constant _constant,
                 bool isNonNullableByDefault)>(
         messageTemplate:
-            r"""The property '#string' can't be accessed on '#constant' in a constant expression.""",
+            r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
         withArguments: _withArgumentsConstEvalInvalidPropertyGet);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<
-        Message Function(
-            String string, Constant _constant, bool isNonNullableByDefault)>
-    codeConstEvalInvalidPropertyGet = const Code<
-            Message Function(String string, Constant _constant,
-                bool isNonNullableByDefault)>(
-        "ConstEvalInvalidPropertyGet", templateConstEvalInvalidPropertyGet,
+        Message Function(String stringOKEmpty, Constant _constant,
+            bool isNonNullableByDefault)> codeConstEvalInvalidPropertyGet =
+    const Code<
+            Message Function(String stringOKEmpty, Constant _constant,
+                bool isNonNullableByDefault)>("ConstEvalInvalidPropertyGet",
         analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidPropertyGet(
-    String string, Constant _constant, bool isNonNullableByDefault) {
-  if (string.isEmpty) throw 'No string provided';
+    String stringOKEmpty, Constant _constant, bool isNonNullableByDefault) {
+  // ignore: unnecessary_null_comparison
+  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
   return new Message(codeConstEvalInvalidPropertyGet,
       message:
-          """The property '${string}' can't be accessed on '${constant}' in a constant expression.""" +
+          """The property '${stringOKEmpty}' can't be accessed on '${constant}' in a constant expression.""" +
               labeler.originMessages,
-      arguments: {'string': string, 'constant': _constant});
+      arguments: {'stringOKEmpty': stringOKEmpty, 'constant': _constant});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -524,7 +668,6 @@ const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
     codeConstEvalInvalidStringInterpolationOperand = const Code<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
         "ConstEvalInvalidStringInterpolationOperand",
-        templateConstEvalInvalidStringInterpolationOperand,
         analyzerCodes: <String>["CONST_EVAL_TYPE_BOOL_NUM_STRING"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -554,7 +697,7 @@ const Template<
 const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
     codeConstEvalInvalidSymbolName = const Code<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
-        "ConstEvalInvalidSymbolName", templateConstEvalInvalidSymbolName,
+        "ConstEvalInvalidSymbolName",
         analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -591,7 +734,6 @@ const Code<
     Message Function(Constant _constant, DartType _type, DartType _type2,
         bool isNonNullableByDefault)>(
   "ConstEvalInvalidType",
-  templateConstEvalInvalidType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -624,7 +766,7 @@ const Template<
 const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
     codeConstEvalKeyImplementsEqual = const Code<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
-        "ConstEvalKeyImplementsEqual", templateConstEvalKeyImplementsEqual,
+        "ConstEvalKeyImplementsEqual",
         analyzerCodes: <String>[
       "CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS"
     ]);
@@ -664,7 +806,7 @@ const Code<
     codeDeferredTypeAnnotation = const Code<
             Message Function(
                 DartType _type, String name, bool isNonNullableByDefault)>(
-        "DeferredTypeAnnotation", templateDeferredTypeAnnotation,
+        "DeferredTypeAnnotation",
         analyzerCodes: <String>["TYPE_ANNOTATION_DEFERRED_CLASS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -701,7 +843,6 @@ const Code<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "FfiDartTypeMismatch",
-  templateFfiDartTypeMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -731,7 +872,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeFfiExpectedExceptionalReturn =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "FfiExpectedExceptionalReturn",
-  templateFfiExpectedExceptionalReturn,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -760,7 +900,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeFfiExpectedNoExceptionalReturn =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "FfiExpectedNoExceptionalReturn",
-  templateFfiExpectedNoExceptionalReturn,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -772,6 +911,35 @@ Message _withArgumentsFfiExpectedNoExceptionalReturn(
   return new Message(codeFfiExpectedNoExceptionalReturn,
       message:
           """Exceptional return value cannot be provided for a native callback returning '${type}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateFfiNonConstantTypeArgumentWarning = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Support for using non-constant type arguments '#type' in this FFI API is deprecated and will be removed in the next stable version of Dart. Rewrite the code to ensure that type arguments are compile time constants referring to a valid native type.""",
+        withArguments: _withArgumentsFfiNonConstantTypeArgumentWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeFfiNonConstantTypeArgumentWarning =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "FfiNonConstantTypeArgumentWarning",
+        analyzerCodes: <String>["NON_CONSTANT_TYPE_ARGUMENT_WARNING"],
+        severity: Severity.info);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiNonConstantTypeArgumentWarning(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeFfiNonConstantTypeArgumentWarning,
+      message:
+          """Support for using non-constant type arguments '${type}' in this FFI API is deprecated and will be removed in the next stable version of Dart. Rewrite the code to ensure that type arguments are compile time constants referring to a valid native type.""" +
               labeler.originMessages,
       arguments: {'type': _type});
 }
@@ -792,7 +960,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeFfiTypeInvalid =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "FfiTypeInvalid",
-  templateFfiTypeInvalid,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -829,7 +996,6 @@ const Code<
     Message Function(DartType _type, DartType _type2, DartType _type3,
         bool isNonNullableByDefault)>(
   "FfiTypeMismatch",
-  templateFfiTypeMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -869,7 +1035,6 @@ const Code<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
   "FieldNonNullableNotInitializedByConstructorError",
-  templateFieldNonNullableNotInitializedByConstructorError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -906,7 +1071,6 @@ const Code<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
   "FieldNonNullableWithoutInitializerError",
-  templateFieldNonNullableWithoutInitializerError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -944,7 +1108,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "ForInLoopElementTypeNotAssignable",
-        templateForInLoopElementTypeNotAssignable,
         analyzerCodes: <String>["FOR_IN_OF_INVALID_ELEMENT_TYPE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -967,6 +1130,97 @@ Message _withArgumentsForInLoopElementTypeNotAssignable(
 const Template<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateForInLoopElementTypeNotAssignableNullability = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""A value of type '#type' can't be assigned to a variable of type '#type2' because '#type' is nullable and '#type2' isn't.""",
+        tipTemplate: r"""Try changing the type of the variable.""",
+        withArguments:
+            _withArgumentsForInLoopElementTypeNotAssignableNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeForInLoopElementTypeNotAssignableNullability = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "ForInLoopElementTypeNotAssignableNullability",
+        analyzerCodes: <String>["FOR_IN_OF_INVALID_ELEMENT_TYPE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsForInLoopElementTypeNotAssignableNullability(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeForInLoopElementTypeNotAssignableNullability,
+      message:
+          """A value of type '${type}' can't be assigned to a variable of type '${type2}' because '${type}' is nullable and '${type2}' isn't.""" +
+              labeler.originMessages,
+      tip: """Try changing the type of the variable.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    templateForInLoopElementTypeNotAssignablePartNullability = const Template<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""A value of type '#type' can't be assigned to a variable of type '#type2' because '#type3' is nullable and '#type4' isn't.""",
+        tipTemplate: r"""Try changing the type of the variable.""",
+        withArguments:
+            _withArgumentsForInLoopElementTypeNotAssignablePartNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    codeForInLoopElementTypeNotAssignablePartNullability = const Code<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        "ForInLoopElementTypeNotAssignablePartNullability",
+        analyzerCodes: <String>["FOR_IN_OF_INVALID_ELEMENT_TYPE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsForInLoopElementTypeNotAssignablePartNullability(
+    DartType _type,
+    DartType _type2,
+    DartType _type3,
+    DartType _type4,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  List<Object> type4Parts = labeler.labelType(_type4);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  String type4 = type4Parts.join();
+  return new Message(codeForInLoopElementTypeNotAssignablePartNullability,
+      message:
+          """A value of type '${type}' can't be assigned to a variable of type '${type2}' because '${type3}' is nullable and '${type4}' isn't.""" +
+              labeler.originMessages,
+      tip: """Try changing the type of the variable.""",
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'type3': _type3,
+        'type4': _type4
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
     templateForInLoopTypeNotIterable = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
@@ -981,7 +1235,7 @@ const Code<
     codeForInLoopTypeNotIterable = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "ForInLoopTypeNotIterable", templateForInLoopTypeNotIterable,
+        "ForInLoopTypeNotIterable",
         analyzerCodes: <String>["FOR_IN_OF_INVALID_TYPE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1000,6 +1254,91 @@ Message _withArgumentsForInLoopTypeNotIterable(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateForInLoopTypeNotIterableNullability = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' used in the 'for' loop must implement '#type2' because '#type' is nullable and '#type2' isn't.""",
+        withArguments: _withArgumentsForInLoopTypeNotIterableNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeForInLoopTypeNotIterableNullability = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "ForInLoopTypeNotIterableNullability",
+        analyzerCodes: <String>["FOR_IN_OF_INVALID_TYPE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsForInLoopTypeNotIterableNullability(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeForInLoopTypeNotIterableNullability,
+      message:
+          """The type '${type}' used in the 'for' loop must implement '${type2}' because '${type}' is nullable and '${type2}' isn't.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    templateForInLoopTypeNotIterablePartNullability = const Template<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' used in the 'for' loop must implement '#type2' because '#type3' is nullable and '#type4' isn't.""",
+        withArguments: _withArgumentsForInLoopTypeNotIterablePartNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    codeForInLoopTypeNotIterablePartNullability = const Code<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        "ForInLoopTypeNotIterablePartNullability",
+        analyzerCodes: <String>["FOR_IN_OF_INVALID_TYPE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsForInLoopTypeNotIterablePartNullability(
+    DartType _type,
+    DartType _type2,
+    DartType _type3,
+    DartType _type4,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  List<Object> type4Parts = labeler.labelType(_type4);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  String type4 = type4Parts.join();
+  return new Message(codeForInLoopTypeNotIterablePartNullability,
+      message:
+          """The type '${type}' used in the 'for' loop must implement '${type2}' because '${type3}' is nullable and '${type4}' isn't.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'type3': _type3,
+        'type4': _type4
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateGenericFunctionTypeInferredAsActualTypeArgument = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
@@ -1015,7 +1354,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeGenericFunctionTypeInferredAsActualTypeArgument =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
         "GenericFunctionTypeInferredAsActualTypeArgument",
-        templateGenericFunctionTypeInferredAsActualTypeArgument,
         analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1034,32 +1372,6 @@ Message _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
-    templateIllegalRecursiveType = const Template<
-            Message Function(DartType _type, bool isNonNullableByDefault)>(
-        messageTemplate: r"""Illegal recursive type '#type'.""",
-        withArguments: _withArgumentsIllegalRecursiveType);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
-    codeIllegalRecursiveType =
-    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
-  "IllegalRecursiveType",
-  templateIllegalRecursiveType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIllegalRecursiveType(
-    DartType _type, bool isNonNullableByDefault) {
-  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(codeIllegalRecursiveType,
-      message: """Illegal recursive type '${type}'.""" + labeler.originMessages,
-      arguments: {'type': _type});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateImplicitCallOfNonMethod = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
         messageTemplate:
@@ -1072,7 +1384,7 @@ const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
 const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeImplicitCallOfNonMethod =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
-        "ImplicitCallOfNonMethod", templateImplicitCallOfNonMethod,
+        "ImplicitCallOfNonMethod",
         analyzerCodes: <String>["IMPLICIT_CALL_OF_NON_METHOD"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1105,7 +1417,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeImplicitReturnNull =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "ImplicitReturnNull",
-  templateImplicitReturnNull,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1140,7 +1451,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "IncompatibleRedirecteeFunctionType",
-        templateIncompatibleRedirecteeFunctionType,
         analyzerCodes: <String>["REDIRECT_TO_INVALID_TYPE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1176,9 +1486,12 @@ const Code<
         Message Function(DartType _type, DartType _type2, String name,
             String name2, bool isNonNullableByDefault)>
     codeIncorrectTypeArgument = const Code<
-            Message Function(DartType _type, DartType _type2, String name,
-                String name2, bool isNonNullableByDefault)>(
-        "IncorrectTypeArgument", templateIncorrectTypeArgument,
+            Message Function(
+                DartType _type,
+                DartType _type2,
+                String name,
+                String name2,
+                bool isNonNullableByDefault)>("IncorrectTypeArgument",
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1227,7 +1540,6 @@ const Code<
             Message Function(DartType _type, DartType _type2, String name,
                 String name2, bool isNonNullableByDefault)>(
         "IncorrectTypeArgumentInReturnType",
-        templateIncorrectTypeArgumentInReturnType,
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1299,7 +1611,7 @@ const Code<
                 String name3,
                 String name4,
                 bool isNonNullableByDefault)>(
-        "IncorrectTypeArgumentInSupertype", templateIncorrectTypeArgumentInSupertype,
+        "IncorrectTypeArgumentInSupertype",
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1384,7 +1696,7 @@ const Code<
                 String name3,
                 String name4,
                 bool isNonNullableByDefault)>(
-        "IncorrectTypeArgumentInSupertypeInferred", templateIncorrectTypeArgumentInSupertypeInferred,
+        "IncorrectTypeArgumentInSupertypeInferred",
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1443,9 +1755,12 @@ const Code<
         Message Function(DartType _type, DartType _type2, String name,
             String name2, bool isNonNullableByDefault)>
     codeIncorrectTypeArgumentInferred = const Code<
-            Message Function(DartType _type, DartType _type2, String name,
-                String name2, bool isNonNullableByDefault)>(
-        "IncorrectTypeArgumentInferred", templateIncorrectTypeArgumentInferred,
+            Message Function(
+                DartType _type,
+                DartType _type2,
+                String name,
+                String name2,
+                bool isNonNullableByDefault)>("IncorrectTypeArgumentInferred",
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1491,10 +1806,13 @@ const Code<
         Message Function(DartType _type, DartType _type2, String name,
             DartType _type3, String name2, bool isNonNullableByDefault)>
     codeIncorrectTypeArgumentQualified = const Code<
-            Message Function(DartType _type, DartType _type2, String name,
-                DartType _type3, String name2, bool isNonNullableByDefault)>(
-        "IncorrectTypeArgumentQualified",
-        templateIncorrectTypeArgumentQualified,
+            Message Function(
+                DartType _type,
+                DartType _type2,
+                String name,
+                DartType _type3,
+                String name2,
+                bool isNonNullableByDefault)>("IncorrectTypeArgumentQualified",
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1550,7 +1868,7 @@ const Code<
     codeIncorrectTypeArgumentQualifiedInferred = const Code<
             Message Function(DartType _type, DartType _type2, String name,
                 DartType _type3, String name2, bool isNonNullableByDefault)>(
-        "IncorrectTypeArgumentQualifiedInferred", templateIncorrectTypeArgumentQualifiedInferred,
+        "IncorrectTypeArgumentQualifiedInferred",
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1606,7 +1924,6 @@ const Code<
     const Code<
             Message Function(String name, DartType _type, DartType _type2,
                 bool isNonNullableByDefault)>("InitializingFormalTypeMismatch",
-        templateInitializingFormalTypeMismatch,
         analyzerCodes: <String>["INVALID_PARAMETER_DECLARATION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1646,7 +1963,6 @@ const Code<
             Message Function(
                 String string, DartType _type, bool isNonNullableByDefault)>(
         "InternalProblemUnsupportedNullability",
-        templateInternalProblemUnsupportedNullability,
         severity: Severity.internalProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1681,7 +1997,7 @@ const Code<
     codeInvalidAssignmentError = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidAssignmentError", templateInvalidAssignmentError,
+        "InvalidAssignmentError",
         analyzerCodes: <String>["INVALID_ASSIGNMENT"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1697,6 +2013,155 @@ Message _withArgumentsInvalidAssignmentError(
           """A value of type '${type}' can't be assigned to a variable of type '${type2}'.""" +
               labeler.originMessages,
       arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateInvalidAssignmentErrorNullability = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""A value of type '#type' can't be assigned to a variable of type '#type2' because '#type' is nullable and '#type2' isn't.""",
+        withArguments: _withArgumentsInvalidAssignmentErrorNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeInvalidAssignmentErrorNullability = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "InvalidAssignmentErrorNullability",
+        analyzerCodes: <String>["INVALID_ASSIGNMENT"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidAssignmentErrorNullability(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidAssignmentErrorNullability,
+      message:
+          """A value of type '${type}' can't be assigned to a variable of type '${type2}' because '${type}' is nullable and '${type2}' isn't.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateInvalidAssignmentErrorNullabilityNull = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The value 'null' can't be assigned to a variable of type '#type' because '#type' is not nullable.""",
+        withArguments: _withArgumentsInvalidAssignmentErrorNullabilityNull);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeInvalidAssignmentErrorNullabilityNull =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "InvalidAssignmentErrorNullabilityNull",
+        analyzerCodes: <String>["INVALID_ASSIGNMENT"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidAssignmentErrorNullabilityNull(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeInvalidAssignmentErrorNullabilityNull,
+      message:
+          """The value 'null' can't be assigned to a variable of type '${type}' because '${type}' is not nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateInvalidAssignmentErrorNullabilityNullType = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""A value of type '#type' can't be assigned to a variable of type '#type2' because '#type2' is not nullable.""",
+        withArguments: _withArgumentsInvalidAssignmentErrorNullabilityNullType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeInvalidAssignmentErrorNullabilityNullType = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "InvalidAssignmentErrorNullabilityNullType",
+        analyzerCodes: <String>["INVALID_ASSIGNMENT"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidAssignmentErrorNullabilityNullType(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidAssignmentErrorNullabilityNullType,
+      message:
+          """A value of type '${type}' can't be assigned to a variable of type '${type2}' because '${type2}' is not nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    templateInvalidAssignmentErrorPartNullability = const Template<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""A value of type '#type' can't be assigned to a variable of type '#type2' because '#type3' is nullable and '#type4' isn't.""",
+        withArguments: _withArgumentsInvalidAssignmentErrorPartNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    codeInvalidAssignmentErrorPartNullability = const Code<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        "InvalidAssignmentErrorPartNullability",
+        analyzerCodes: <String>["INVALID_ASSIGNMENT"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidAssignmentErrorPartNullability(
+    DartType _type,
+    DartType _type2,
+    DartType _type3,
+    DartType _type4,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  List<Object> type4Parts = labeler.labelType(_type4);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  String type4 = type4Parts.join();
+  return new Message(codeInvalidAssignmentErrorPartNullability,
+      message:
+          """A value of type '${type}' can't be assigned to a variable of type '${type2}' because '${type3}' is nullable and '${type4}' isn't.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'type3': _type3,
+        'type4': _type4
+      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1721,7 +2186,7 @@ const Code<
     codeInvalidCastFunctionExpr = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastFunctionExpr", templateInvalidCastFunctionExpr,
+        "InvalidCastFunctionExpr",
         analyzerCodes: <String>["INVALID_CAST_FUNCTION_EXPR"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1765,7 +2230,7 @@ const Code<
     codeInvalidCastLiteralList = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastLiteralList", templateInvalidCastLiteralList,
+        "InvalidCastLiteralList",
         analyzerCodes: <String>["INVALID_CAST_LITERAL_LIST"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1809,7 +2274,7 @@ const Code<
     codeInvalidCastLiteralMap = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastLiteralMap", templateInvalidCastLiteralMap,
+        "InvalidCastLiteralMap",
         analyzerCodes: <String>["INVALID_CAST_LITERAL_MAP"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1853,7 +2318,7 @@ const Code<
     codeInvalidCastLiteralSet = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastLiteralSet", templateInvalidCastLiteralSet,
+        "InvalidCastLiteralSet",
         analyzerCodes: <String>["INVALID_CAST_LITERAL_SET"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1897,7 +2362,7 @@ const Code<
     codeInvalidCastLocalFunction = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastLocalFunction", templateInvalidCastLocalFunction,
+        "InvalidCastLocalFunction",
         analyzerCodes: <String>["INVALID_CAST_FUNCTION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1941,7 +2406,7 @@ const Code<
     codeInvalidCastNewExpr = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastNewExpr", templateInvalidCastNewExpr,
+        "InvalidCastNewExpr",
         analyzerCodes: <String>["INVALID_CAST_NEW_EXPR"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1982,7 +2447,7 @@ const Code<
     codeInvalidCastStaticMethod = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastStaticMethod", templateInvalidCastStaticMethod,
+        "InvalidCastStaticMethod",
         analyzerCodes: <String>["INVALID_CAST_METHOD"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2021,7 +2486,7 @@ const Code<
     codeInvalidCastTopLevelFunction = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidCastTopLevelFunction", templateInvalidCastTopLevelFunction,
+        "InvalidCastTopLevelFunction",
         analyzerCodes: <String>["INVALID_CAST_FUNCTION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2038,6 +2503,676 @@ Message _withArgumentsInvalidCastTopLevelFunction(
               labeler.originMessages,
       tip: """Change the type of the function or the context in which it is used.""",
       arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    templateInvalidGetterSetterType = const Template<
+            Message Function(DartType _type, String name, DartType _type2,
+                String name2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
+        withArguments: _withArgumentsInvalidGetterSetterType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+    Message Function(DartType _type, String name, DartType _type2, String name2,
+        bool isNonNullableByDefault)> codeInvalidGetterSetterType = const Code<
+    Message Function(DartType _type, String name, DartType _type2, String name2,
+        bool isNonNullableByDefault)>(
+  "InvalidGetterSetterType",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterType(DartType _type, String name,
+    DartType _type2, String name2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidGetterSetterType,
+      message:
+          """The type '${type}' of the getter '${name}' is not a subtype of the type '${type2}' of the setter '${name2}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'type2': _type2,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    templateInvalidGetterSetterTypeBothInheritedField = const Template<
+            Message Function(DartType _type, String name, DartType _type2,
+                String name2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
+        withArguments: _withArgumentsInvalidGetterSetterTypeBothInheritedField);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    codeInvalidGetterSetterTypeBothInheritedField = const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>(
+  "InvalidGetterSetterTypeBothInheritedField",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeBothInheritedField(DartType _type,
+    String name, DartType _type2, String name2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidGetterSetterTypeBothInheritedField,
+      message:
+          """The type '${type}' of the inherited field '${name}' is not a subtype of the type '${type2}' of the inherited setter '${name2}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'type2': _type2,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    templateInvalidGetterSetterTypeBothInheritedFieldLegacy = const Template<
+            Message Function(DartType _type, String name, DartType _type2,
+                String name2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'.""",
+        withArguments:
+            _withArgumentsInvalidGetterSetterTypeBothInheritedFieldLegacy);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    codeInvalidGetterSetterTypeBothInheritedFieldLegacy = const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>(
+  "InvalidGetterSetterTypeBothInheritedFieldLegacy",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeBothInheritedFieldLegacy(
+    DartType _type,
+    String name,
+    DartType _type2,
+    String name2,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidGetterSetterTypeBothInheritedFieldLegacy,
+      message:
+          """The type '${type}' of the inherited field '${name}' is not assignable to the type '${type2}' of the inherited setter '${name2}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'type2': _type2,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    templateInvalidGetterSetterTypeBothInheritedGetter = const Template<
+            Message Function(DartType _type, String name, DartType _type2,
+                String name2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
+        withArguments:
+            _withArgumentsInvalidGetterSetterTypeBothInheritedGetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    codeInvalidGetterSetterTypeBothInheritedGetter = const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>(
+  "InvalidGetterSetterTypeBothInheritedGetter",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeBothInheritedGetter(DartType _type,
+    String name, DartType _type2, String name2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidGetterSetterTypeBothInheritedGetter,
+      message:
+          """The type '${type}' of the inherited getter '${name}' is not a subtype of the type '${type2}' of the inherited setter '${name2}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'type2': _type2,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    templateInvalidGetterSetterTypeBothInheritedGetterLegacy = const Template<
+            Message Function(DartType _type, String name, DartType _type2,
+                String name2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'.""",
+        withArguments:
+            _withArgumentsInvalidGetterSetterTypeBothInheritedGetterLegacy);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    codeInvalidGetterSetterTypeBothInheritedGetterLegacy = const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>(
+  "InvalidGetterSetterTypeBothInheritedGetterLegacy",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeBothInheritedGetterLegacy(
+    DartType _type,
+    String name,
+    DartType _type2,
+    String name2,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidGetterSetterTypeBothInheritedGetterLegacy,
+      message:
+          """The type '${type}' of the inherited getter '${name}' is not assignable to the type '${type2}' of the inherited setter '${name2}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'type2': _type2,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    templateInvalidGetterSetterTypeFieldInherited = const Template<
+            Message Function(DartType _type, String name, DartType _type2,
+                String name2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
+        withArguments: _withArgumentsInvalidGetterSetterTypeFieldInherited);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    codeInvalidGetterSetterTypeFieldInherited = const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>(
+  "InvalidGetterSetterTypeFieldInherited",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeFieldInherited(DartType _type,
+    String name, DartType _type2, String name2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidGetterSetterTypeFieldInherited,
+      message:
+          """The type '${type}' of the inherited field '${name}' is not a subtype of the type '${type2}' of the setter '${name2}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'type2': _type2,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    templateInvalidGetterSetterTypeFieldInheritedLegacy = const Template<
+            Message Function(DartType _type, String name, DartType _type2,
+                String name2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the setter '#name2'.""",
+        withArguments:
+            _withArgumentsInvalidGetterSetterTypeFieldInheritedLegacy);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    codeInvalidGetterSetterTypeFieldInheritedLegacy = const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>(
+  "InvalidGetterSetterTypeFieldInheritedLegacy",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeFieldInheritedLegacy(
+    DartType _type,
+    String name,
+    DartType _type2,
+    String name2,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidGetterSetterTypeFieldInheritedLegacy,
+      message:
+          """The type '${type}' of the inherited field '${name}' is not assignable to the type '${type2}' of the setter '${name2}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'type2': _type2,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    templateInvalidGetterSetterTypeGetterInherited = const Template<
+            Message Function(DartType _type, String name, DartType _type2,
+                String name2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
+        withArguments: _withArgumentsInvalidGetterSetterTypeGetterInherited);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    codeInvalidGetterSetterTypeGetterInherited = const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>(
+  "InvalidGetterSetterTypeGetterInherited",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeGetterInherited(DartType _type,
+    String name, DartType _type2, String name2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidGetterSetterTypeGetterInherited,
+      message:
+          """The type '${type}' of the inherited getter '${name}' is not a subtype of the type '${type2}' of the setter '${name2}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'type2': _type2,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    templateInvalidGetterSetterTypeGetterInheritedLegacy = const Template<
+            Message Function(DartType _type, String name, DartType _type2,
+                String name2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the setter '#name2'.""",
+        withArguments:
+            _withArgumentsInvalidGetterSetterTypeGetterInheritedLegacy);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    codeInvalidGetterSetterTypeGetterInheritedLegacy = const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>(
+  "InvalidGetterSetterTypeGetterInheritedLegacy",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeGetterInheritedLegacy(
+    DartType _type,
+    String name,
+    DartType _type2,
+    String name2,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidGetterSetterTypeGetterInheritedLegacy,
+      message:
+          """The type '${type}' of the inherited getter '${name}' is not assignable to the type '${type2}' of the setter '${name2}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'type2': _type2,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    templateInvalidGetterSetterTypeLegacy = const Template<
+            Message Function(DartType _type, String name, DartType _type2,
+                String name2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the getter '#name' is not assignable to the type '#type2' of the setter '#name2'.""",
+        withArguments: _withArgumentsInvalidGetterSetterTypeLegacy);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    codeInvalidGetterSetterTypeLegacy = const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>(
+  "InvalidGetterSetterTypeLegacy",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeLegacy(DartType _type, String name,
+    DartType _type2, String name2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidGetterSetterTypeLegacy,
+      message:
+          """The type '${type}' of the getter '${name}' is not assignable to the type '${type2}' of the setter '${name2}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'type2': _type2,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    templateInvalidGetterSetterTypeSetterInheritedField = const Template<
+            Message Function(DartType _type, String name, DartType _type2,
+                String name2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
+        withArguments:
+            _withArgumentsInvalidGetterSetterTypeSetterInheritedField);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    codeInvalidGetterSetterTypeSetterInheritedField = const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>(
+  "InvalidGetterSetterTypeSetterInheritedField",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeSetterInheritedField(
+    DartType _type,
+    String name,
+    DartType _type2,
+    String name2,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidGetterSetterTypeSetterInheritedField,
+      message:
+          """The type '${type}' of the field '${name}' is not a subtype of the type '${type2}' of the inherited setter '${name2}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'type2': _type2,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    templateInvalidGetterSetterTypeSetterInheritedFieldLegacy = const Template<
+            Message Function(DartType _type, String name, DartType _type2,
+                String name2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'.""",
+        withArguments:
+            _withArgumentsInvalidGetterSetterTypeSetterInheritedFieldLegacy);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    codeInvalidGetterSetterTypeSetterInheritedFieldLegacy = const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>(
+  "InvalidGetterSetterTypeSetterInheritedFieldLegacy",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeSetterInheritedFieldLegacy(
+    DartType _type,
+    String name,
+    DartType _type2,
+    String name2,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidGetterSetterTypeSetterInheritedFieldLegacy,
+      message:
+          """The type '${type}' of the field '${name}' is not assignable to the type '${type2}' of the inherited setter '${name2}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'type2': _type2,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    templateInvalidGetterSetterTypeSetterInheritedGetter = const Template<
+            Message Function(DartType _type, String name, DartType _type2,
+                String name2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
+        withArguments:
+            _withArgumentsInvalidGetterSetterTypeSetterInheritedGetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    codeInvalidGetterSetterTypeSetterInheritedGetter = const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>(
+  "InvalidGetterSetterTypeSetterInheritedGetter",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeSetterInheritedGetter(
+    DartType _type,
+    String name,
+    DartType _type2,
+    String name2,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidGetterSetterTypeSetterInheritedGetter,
+      message:
+          """The type '${type}' of the getter '${name}' is not a subtype of the type '${type2}' of the inherited setter '${name2}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'type2': _type2,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    templateInvalidGetterSetterTypeSetterInheritedGetterLegacy = const Template<
+            Message Function(DartType _type, String name, DartType _type2,
+                String name2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'.""",
+        withArguments:
+            _withArgumentsInvalidGetterSetterTypeSetterInheritedGetterLegacy);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>
+    codeInvalidGetterSetterTypeSetterInheritedGetterLegacy = const Code<
+        Message Function(DartType _type, String name, DartType _type2,
+            String name2, bool isNonNullableByDefault)>(
+  "InvalidGetterSetterTypeSetterInheritedGetterLegacy",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeSetterInheritedGetterLegacy(
+    DartType _type,
+    String name,
+    DartType _type2,
+    String name2,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidGetterSetterTypeSetterInheritedGetterLegacy,
+      message:
+          """The type '${type}' of the getter '${name}' is not assignable to the type '${type2}' of the inherited setter '${name2}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'type2': _type2,
+        'name2': name2
+      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2061,7 +3196,6 @@ const Code<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "InvalidReturn",
-  templateInvalidReturn,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2100,7 +3234,6 @@ const Code<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "InvalidReturnAsync",
-  templateInvalidReturnAsync,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2114,6 +3247,376 @@ Message _withArgumentsInvalidReturnAsync(
   return new Message(codeInvalidReturnAsync,
       message:
           """A value of type '${type}' can't be returned from an async function with return type '${type2}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateInvalidReturnAsyncNullability = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""A value of type '#type' can't be returned from an async function with return type '#type2' because '#type' is nullable and '#type2' isn't.""",
+        withArguments: _withArgumentsInvalidReturnAsyncNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeInvalidReturnAsyncNullability = const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+  "InvalidReturnAsyncNullability",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidReturnAsyncNullability(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidReturnAsyncNullability,
+      message:
+          """A value of type '${type}' can't be returned from an async function with return type '${type2}' because '${type}' is nullable and '${type2}' isn't.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateInvalidReturnAsyncNullabilityNull = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The value 'null' can't be returned from an async function with return type '#type' because '#type' is not nullable.""",
+        withArguments: _withArgumentsInvalidReturnAsyncNullabilityNull);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeInvalidReturnAsyncNullabilityNull =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "InvalidReturnAsyncNullabilityNull",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidReturnAsyncNullabilityNull(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeInvalidReturnAsyncNullabilityNull,
+      message:
+          """The value 'null' can't be returned from an async function with return type '${type}' because '${type}' is not nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateInvalidReturnAsyncNullabilityNullType = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""A value of type '#type' can't be returned from an async function with return type '#type2' because '#type2' is not nullable.""",
+        withArguments: _withArgumentsInvalidReturnAsyncNullabilityNullType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeInvalidReturnAsyncNullabilityNullType = const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+  "InvalidReturnAsyncNullabilityNullType",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidReturnAsyncNullabilityNullType(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidReturnAsyncNullabilityNullType,
+      message:
+          """A value of type '${type}' can't be returned from an async function with return type '${type2}' because '${type2}' is not nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    templateInvalidReturnAsyncPartNullability = const Template<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""A value of type '#type' can't be returned from an async function with return type '#type2' because '#type3' is nullable and '#type4' isn't.""",
+        withArguments: _withArgumentsInvalidReturnAsyncPartNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    codeInvalidReturnAsyncPartNullability = const Code<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>(
+  "InvalidReturnAsyncPartNullability",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidReturnAsyncPartNullability(
+    DartType _type,
+    DartType _type2,
+    DartType _type3,
+    DartType _type4,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  List<Object> type4Parts = labeler.labelType(_type4);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  String type4 = type4Parts.join();
+  return new Message(codeInvalidReturnAsyncPartNullability,
+      message:
+          """A value of type '${type}' can't be returned from an async function with return type '${type2}' because '${type3}' is nullable and '${type4}' isn't.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'type3': _type3,
+        'type4': _type4
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateInvalidReturnNullability = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""A value of type '#type' can't be returned from a function with return type '#type2' because '#type' is nullable and '#type2' isn't.""",
+        withArguments: _withArgumentsInvalidReturnNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeInvalidReturnNullability = const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+  "InvalidReturnNullability",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidReturnNullability(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidReturnNullability,
+      message:
+          """A value of type '${type}' can't be returned from a function with return type '${type2}' because '${type}' is nullable and '${type2}' isn't.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateInvalidReturnNullabilityNull = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The value 'null' can't be returned from a function with return type '#type' because '#type' is not nullable.""",
+        withArguments: _withArgumentsInvalidReturnNullabilityNull);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeInvalidReturnNullabilityNull =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "InvalidReturnNullabilityNull",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidReturnNullabilityNull(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeInvalidReturnNullabilityNull,
+      message:
+          """The value 'null' can't be returned from a function with return type '${type}' because '${type}' is not nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateInvalidReturnNullabilityNullType = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""A value of type '#type' can't be returned from a function with return type '#type2' because '#type2' is not nullable.""",
+        withArguments: _withArgumentsInvalidReturnNullabilityNullType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeInvalidReturnNullabilityNullType = const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+  "InvalidReturnNullabilityNullType",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidReturnNullabilityNullType(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidReturnNullabilityNullType,
+      message:
+          """A value of type '${type}' can't be returned from a function with return type '${type2}' because '${type2}' is not nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    templateInvalidReturnPartNullability = const Template<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""A value of type '#type' can't be returned from a function with return type '#type2' because '#type3' is nullable and '#type4' isn't.""",
+        withArguments: _withArgumentsInvalidReturnPartNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    codeInvalidReturnPartNullability = const Code<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>(
+  "InvalidReturnPartNullability",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidReturnPartNullability(
+    DartType _type,
+    DartType _type2,
+    DartType _type3,
+    DartType _type4,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  List<Object> type4Parts = labeler.labelType(_type4);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  String type4 = type4Parts.join();
+  return new Message(codeInvalidReturnPartNullability,
+      message:
+          """A value of type '${type}' can't be returned from a function with return type '${type2}' because '${type3}' is nullable and '${type4}' isn't.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'type3': _type3,
+        'type4': _type4
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateMainWrongParameterType = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the first parameter of the 'main' method is not a supertype of '#type2'.""",
+        withArguments: _withArgumentsMainWrongParameterType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeMainWrongParameterType = const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+  "MainWrongParameterType",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMainWrongParameterType(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeMainWrongParameterType,
+      message:
+          """The type '${type}' of the first parameter of the 'main' method is not a supertype of '${type2}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateMainWrongParameterTypeExported = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the first parameter of the exported 'main' method is not a supertype of '#type2'.""",
+        withArguments: _withArgumentsMainWrongParameterTypeExported);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeMainWrongParameterTypeExported = const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+  "MainWrongParameterTypeExported",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMainWrongParameterTypeExported(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeMainWrongParameterTypeExported,
+      message:
+          """The type '${type}' of the first parameter of the exported 'main' method is not a supertype of '${type2}'.""" +
               labeler.originMessages,
       arguments: {'type': _type, 'type2': _type2});
 }
@@ -2137,7 +3640,6 @@ const Code<
             Message Function(DartType _type, DartType _type2, DartType _type3,
                 bool isNonNullableByDefault)>(
         "MixinApplicationIncompatibleSupertype",
-        templateMixinApplicationIncompatibleSupertype,
         analyzerCodes: <String>["MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2175,8 +3677,7 @@ const Code<
             bool isNonNullableByDefault)> codeMixinInferenceNoMatchingClass =
     const Code<
             Message Function(String name, String name2, DartType _type,
-                bool isNonNullableByDefault)>(
-        "MixinInferenceNoMatchingClass", templateMixinInferenceNoMatchingClass,
+                bool isNonNullableByDefault)>("MixinInferenceNoMatchingClass",
         analyzerCodes: <String>["MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2208,7 +3709,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeNonNullAwareSpreadIsNull =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "NonNullAwareSpreadIsNull",
-  templateNonNullAwareSpreadIsNull,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2241,7 +3741,7 @@ const Code<
     codeNonNullableInNullAware = const Code<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
-        "NonNullableInNullAware", templateNonNullableInNullAware,
+        "NonNullableInNullAware",
         severity: Severity.warning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2273,7 +3773,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeNullableExpressionCallError =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "NullableExpressionCallError",
-  templateNullableExpressionCallError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2308,7 +3807,6 @@ const Code<
         bool isNonNullableByDefault)> codeNullableMethodCallError = const Code<
     Message Function(String name, DartType _type, bool isNonNullableByDefault)>(
   "NullableMethodCallError",
-  templateNullableMethodCallError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2346,7 +3844,6 @@ const Code<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
   "NullableOperatorCallError",
-  templateNullableOperatorCallError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2384,7 +3881,6 @@ const Code<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>(
   "NullablePropertyAccessError",
-  templateNullablePropertyAccessError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2411,7 +3907,9 @@ const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
         messageTemplate:
-            r"""Optional parameter '#name' should have a default value because its type '#type' doesn't allow null.""",
+            r"""The parameter '#name' can't have a value of 'null' because of its type '#type', but the implicit default value is 'null'.""",
+        tipTemplate:
+            r"""Try adding either an explicit non-'null' default value or the 'required' modifier.""",
         withArguments:
             _withArgumentsOptionalNonNullableWithoutInitializerError);
 
@@ -2420,11 +3918,10 @@ const Code<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>
     codeOptionalNonNullableWithoutInitializerError = const Code<
-        Message Function(
-            String name, DartType _type, bool isNonNullableByDefault)>(
-  "OptionalNonNullableWithoutInitializerError",
-  templateOptionalNonNullableWithoutInitializerError,
-);
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "OptionalNonNullableWithoutInitializerError",
+        analyzerCodes: <String>["MISSING_DEFAULT_VALUE_FOR_PARAMETER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOptionalNonNullableWithoutInitializerError(
@@ -2436,8 +3933,9 @@ Message _withArgumentsOptionalNonNullableWithoutInitializerError(
   String type = typeParts.join();
   return new Message(codeOptionalNonNullableWithoutInitializerError,
       message:
-          """Optional parameter '${name}' should have a default value because its type '${type}' doesn't allow null.""" +
+          """The parameter '${name}' can't have a value of 'null' because of its type '${type}', but the implicit default value is 'null'.""" +
               labeler.originMessages,
+      tip: """Try adding either an explicit non-'null' default value or the 'required' modifier.""",
       arguments: {'name': name, 'type': _type});
 }
 
@@ -2459,9 +3957,13 @@ const Code<
         Message Function(String name, String name2, DartType _type,
             DartType _type2, String name3, bool isNonNullableByDefault)>
     codeOverrideTypeMismatchParameter = const Code<
-            Message Function(String name, String name2, DartType _type,
-                DartType _type2, String name3, bool isNonNullableByDefault)>(
-        "OverrideTypeMismatchParameter", templateOverrideTypeMismatchParameter,
+            Message Function(
+                String name,
+                String name2,
+                DartType _type,
+                DartType _type2,
+                String name3,
+                bool isNonNullableByDefault)>("OverrideTypeMismatchParameter",
         analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2514,10 +4016,12 @@ const Code<
         Message Function(String name, DartType _type, DartType _type2,
             String name2, bool isNonNullableByDefault)>
     codeOverrideTypeMismatchReturnType = const Code<
-            Message Function(String name, DartType _type, DartType _type2,
-                String name2, bool isNonNullableByDefault)>(
-        "OverrideTypeMismatchReturnType",
-        templateOverrideTypeMismatchReturnType,
+            Message Function(
+                String name,
+                DartType _type,
+                DartType _type2,
+                String name2,
+                bool isNonNullableByDefault)>("OverrideTypeMismatchReturnType",
         analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2565,9 +4069,12 @@ const Code<
         Message Function(String name, DartType _type, DartType _type2,
             String name2, bool isNonNullableByDefault)>
     codeOverrideTypeMismatchSetter = const Code<
-            Message Function(String name, DartType _type, DartType _type2,
-                String name2, bool isNonNullableByDefault)>(
-        "OverrideTypeMismatchSetter", templateOverrideTypeMismatchSetter,
+            Message Function(
+                String name,
+                DartType _type,
+                DartType _type2,
+                String name2,
+                bool isNonNullableByDefault)>("OverrideTypeMismatchSetter",
         analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2613,7 +4120,6 @@ const Code<
         Message Function(DartType _type, String name, String name2,
             DartType _type2, String name3, bool isNonNullableByDefault)>(
   "OverrideTypeVariablesBoundMismatch",
-  templateOverrideTypeVariablesBoundMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2668,7 +4174,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "RedirectingFactoryIncompatibleTypeArgument",
-        templateRedirectingFactoryIncompatibleTypeArgument,
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2704,7 +4209,7 @@ const Code<
     codeSpreadElementTypeMismatch = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "SpreadElementTypeMismatch", templateSpreadElementTypeMismatch,
+        "SpreadElementTypeMismatch",
         analyzerCodes: <String>["LIST_ELEMENT_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2726,6 +4231,91 @@ Message _withArgumentsSpreadElementTypeMismatch(
 const Template<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateSpreadElementTypeMismatchNullability = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Can't assign spread elements of type '#type' to collection elements of type '#type2' because '#type' is nullable and '#type2' isn't.""",
+        withArguments: _withArgumentsSpreadElementTypeMismatchNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeSpreadElementTypeMismatchNullability = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "SpreadElementTypeMismatchNullability",
+        analyzerCodes: <String>["LIST_ELEMENT_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSpreadElementTypeMismatchNullability(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeSpreadElementTypeMismatchNullability,
+      message:
+          """Can't assign spread elements of type '${type}' to collection elements of type '${type2}' because '${type}' is nullable and '${type2}' isn't.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    templateSpreadElementTypeMismatchPartNullability = const Template<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Can't assign spread elements of type '#type' to collection elements of type '#type2' because '#type3' is nullable and '#type4' isn't.""",
+        withArguments: _withArgumentsSpreadElementTypeMismatchPartNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    codeSpreadElementTypeMismatchPartNullability = const Code<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        "SpreadElementTypeMismatchPartNullability",
+        analyzerCodes: <String>["LIST_ELEMENT_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSpreadElementTypeMismatchPartNullability(
+    DartType _type,
+    DartType _type2,
+    DartType _type3,
+    DartType _type4,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  List<Object> type4Parts = labeler.labelType(_type4);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  String type4 = type4Parts.join();
+  return new Message(codeSpreadElementTypeMismatchPartNullability,
+      message:
+          """Can't assign spread elements of type '${type}' to collection elements of type '${type2}' because '${type3}' is nullable and '${type4}' isn't.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'type3': _type3,
+        'type4': _type4
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
     templateSpreadMapEntryElementKeyTypeMismatch = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
@@ -2741,7 +4331,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "SpreadMapEntryElementKeyTypeMismatch",
-        templateSpreadMapEntryElementKeyTypeMismatch,
         analyzerCodes: <String>["MAP_KEY_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2763,6 +4352,94 @@ Message _withArgumentsSpreadMapEntryElementKeyTypeMismatch(
 const Template<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateSpreadMapEntryElementKeyTypeMismatchNullability = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type' is nullable and '#type2' isn't.""",
+        withArguments:
+            _withArgumentsSpreadMapEntryElementKeyTypeMismatchNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeSpreadMapEntryElementKeyTypeMismatchNullability = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "SpreadMapEntryElementKeyTypeMismatchNullability",
+        analyzerCodes: <String>["MAP_KEY_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSpreadMapEntryElementKeyTypeMismatchNullability(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeSpreadMapEntryElementKeyTypeMismatchNullability,
+      message:
+          """Can't assign spread entry keys of type '${type}' to map entry keys of type '${type2}' because '${type}' is nullable and '${type2}' isn't.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    templateSpreadMapEntryElementKeyTypeMismatchPartNullability =
+    const Template<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type3' is nullable and '#type4' isn't.""",
+        withArguments:
+            _withArgumentsSpreadMapEntryElementKeyTypeMismatchPartNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    codeSpreadMapEntryElementKeyTypeMismatchPartNullability = const Code<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        "SpreadMapEntryElementKeyTypeMismatchPartNullability",
+        analyzerCodes: <String>["MAP_KEY_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSpreadMapEntryElementKeyTypeMismatchPartNullability(
+    DartType _type,
+    DartType _type2,
+    DartType _type3,
+    DartType _type4,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  List<Object> type4Parts = labeler.labelType(_type4);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  String type4 = type4Parts.join();
+  return new Message(codeSpreadMapEntryElementKeyTypeMismatchPartNullability,
+      message:
+          """Can't assign spread entry keys of type '${type}' to map entry keys of type '${type2}' because '${type3}' is nullable and '${type4}' isn't.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'type3': _type3,
+        'type4': _type4
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
     templateSpreadMapEntryElementValueTypeMismatch = const Template<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
@@ -2778,7 +4455,6 @@ const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         "SpreadMapEntryElementValueTypeMismatch",
-        templateSpreadMapEntryElementValueTypeMismatch,
         analyzerCodes: <String>["MAP_VALUE_TYPE_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2797,6 +4473,94 @@ Message _withArgumentsSpreadMapEntryElementValueTypeMismatch(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateSpreadMapEntryElementValueTypeMismatchNullability = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type' is nullable and '#type2' isn't.""",
+        withArguments:
+            _withArgumentsSpreadMapEntryElementValueTypeMismatchNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeSpreadMapEntryElementValueTypeMismatchNullability = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "SpreadMapEntryElementValueTypeMismatchNullability",
+        analyzerCodes: <String>["MAP_VALUE_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSpreadMapEntryElementValueTypeMismatchNullability(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeSpreadMapEntryElementValueTypeMismatchNullability,
+      message:
+          """Can't assign spread entry values of type '${type}' to map entry values of type '${type2}' because '${type}' is nullable and '${type2}' isn't.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    templateSpreadMapEntryElementValueTypeMismatchPartNullability =
+    const Template<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type3' is nullable and '#type4' isn't.""",
+        withArguments:
+            _withArgumentsSpreadMapEntryElementValueTypeMismatchPartNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, DartType _type3,
+            DartType _type4, bool isNonNullableByDefault)>
+    codeSpreadMapEntryElementValueTypeMismatchPartNullability = const Code<
+            Message Function(DartType _type, DartType _type2, DartType _type3,
+                DartType _type4, bool isNonNullableByDefault)>(
+        "SpreadMapEntryElementValueTypeMismatchPartNullability",
+        analyzerCodes: <String>["MAP_VALUE_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSpreadMapEntryElementValueTypeMismatchPartNullability(
+    DartType _type,
+    DartType _type2,
+    DartType _type3,
+    DartType _type4,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  List<Object> type4Parts = labeler.labelType(_type4);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  String type4 = type4Parts.join();
+  return new Message(codeSpreadMapEntryElementValueTypeMismatchPartNullability,
+      message:
+          """Can't assign spread entry values of type '${type}' to map entry values of type '${type2}' because '${type3}' is nullable and '${type4}' isn't.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'type3': _type3,
+        'type4': _type4
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateSpreadMapEntryTypeMismatch = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
@@ -2809,7 +4573,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeSpreadMapEntryTypeMismatch =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "SpreadMapEntryTypeMismatch",
-  templateSpreadMapEntryTypeMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2841,7 +4604,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeSpreadTypeMismatch =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "SpreadTypeMismatch",
-  templateSpreadTypeMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2855,6 +4617,44 @@ Message _withArgumentsSpreadTypeMismatch(
           """Unexpected type '${type}' of a spread.  Expected 'dynamic' or an Iterable.""" +
               labeler.originMessages,
       arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType _type2,
+        bool
+            isNonNullableByDefault)> templateSuperBoundedHint = const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+    messageTemplate:
+        r"""If you want '#type' to be a super-bounded type, note that the inverted type '#type2' must then satisfy its bounds, which it does not.""",
+    withArguments: _withArgumentsSuperBoundedHint);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeSuperBoundedHint = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "SuperBoundedHint",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperBoundedHint(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeSuperBoundedHint,
+      message:
+          """If you want '${type}' to be a super-bounded type, note that the inverted type '${type2}' must then satisfy its bounds, which it does not.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2875,7 +4675,7 @@ const Code<
     codeSwitchExpressionNotAssignable = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "SwitchExpressionNotAssignable", templateSwitchExpressionNotAssignable,
+        "SwitchExpressionNotAssignable",
         analyzerCodes: <String>["SWITCH_EXPRESSION_NOT_ASSIGNABLE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2912,7 +4712,6 @@ const Code<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "SwitchExpressionNotSubtype",
-  templateSwitchExpressionNotSubtype,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2943,7 +4742,6 @@ const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
     codeThrowingNotAssignableToObjectError =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
   "ThrowingNotAssignableToObjectError",
-  templateThrowingNotAssignableToObjectError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2981,7 +4779,7 @@ const Code<
     codeUndefinedGetter = const Code<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
-        "UndefinedGetter", templateUndefinedGetter,
+        "UndefinedGetter",
         analyzerCodes: <String>["UNDEFINED_GETTER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3023,7 +4821,7 @@ const Code<
     codeUndefinedMethod = const Code<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
-        "UndefinedMethod", templateUndefinedMethod,
+        "UndefinedMethod",
         analyzerCodes: <String>["UNDEFINED_METHOD"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3065,7 +4863,7 @@ const Code<
     codeUndefinedOperator = const Code<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
-        "UndefinedOperator", templateUndefinedOperator,
+        "UndefinedOperator",
         analyzerCodes: <String>["UNDEFINED_METHOD"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3107,7 +4905,7 @@ const Code<
     codeUndefinedSetter = const Code<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
-        "UndefinedSetter", templateUndefinedSetter,
+        "UndefinedSetter",
         analyzerCodes: <String>["UNDEFINED_SETTER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

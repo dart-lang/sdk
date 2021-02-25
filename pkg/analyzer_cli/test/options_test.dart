@@ -257,11 +257,6 @@ void main() {
         expect(failureMessage, equals('Invalid Dart SDK path: &&&&&'));
       });
 
-      test('--use-fasta-parser', () {
-        var options = parse(['--use-fasta-parser', 'foo.dart']);
-        expect(options.useFastaParser, isTrue);
-      });
-
       test('--train-snapshot', () {
         var options = parse(['--train-snapshot', 'foo.dart']);
         expect(options.trainSnapshot, isTrue);

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Conventions for paths:
 ///
 /// - Use the [Uri] class for paths that may have the `file`, `dart` or
@@ -16,7 +18,6 @@ library kernel;
 import 'ast.dart';
 import 'binary/ast_to_binary.dart';
 import 'binary/ast_from_binary.dart';
-import 'dart:async';
 import 'dart:io';
 import 'text/ast_to_text.dart';
 
@@ -40,14 +41,14 @@ Component loadComponentSourceFromBytes(List<int> bytes, [Component component]) {
 }
 
 Future writeComponentToBinary(Component component, String path) {
-  var sink;
+  IOSink sink;
   if (path == 'null' || path == 'stdout') {
     sink = stdout.nonBlocking;
   } else {
     sink = new File(path).openWrite();
   }
 
-  var future;
+  Future future;
   try {
     new BinaryPrinter(sink).writeComponentFile(component);
   } finally {
@@ -59,6 +60,12 @@ Future writeComponentToBinary(Component component, String path) {
   }
 
   return future;
+}
+
+List<int> writeComponentToBytes(Component component) {
+  BytesSink sink = new BytesSink();
+  new BinaryPrinter(sink).writeComponentFile(component);
+  return sink.builder.toBytes();
 }
 
 void writeLibraryToText(Library library, {String path}) {

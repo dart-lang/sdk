@@ -27,8 +27,7 @@ main() {
 
     assertSimpleIdentifier(
       findNode.simple('dynamic;'),
-      readElement: dynamicElement,
-      writeElement: null,
+      element: dynamicElement,
       type: 'Type',
     );
   }
@@ -46,8 +45,7 @@ main() {
 
     assertSimpleIdentifier(
       findNode.simple('dynamic;'),
-      readElement: null,
-      writeElement: null,
+      element: null,
       type: 'dynamic',
     );
   }
@@ -61,8 +59,7 @@ main() {
 
     assertSimpleIdentifier(
       findNode.simple('dynamic;'),
-      readElement: dynamicElement,
-      writeElement: null,
+      element: dynamicElement,
       type: 'Type',
     );
   }
@@ -81,6 +78,21 @@ int Function() foo(A a) {
     var identifier = findNode.simple('a;');
     assertElement(identifier, findElement.parameter('a'));
     assertType(identifier, 'A');
+  }
+
+  test_localFunction_generic() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  static void foo<S>(S s) {
+    void f<U>(S s, U u) {}
+    f;
+  }
+}
+''');
+
+    var identifier = findNode.simple('f;');
+    assertElement(identifier, findElement.localFunction('f'));
+    assertType(identifier, 'void Function<U>(S, U)');
   }
 
   test_tearOff_function_topLevel() async {

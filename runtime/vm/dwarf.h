@@ -6,6 +6,7 @@
 #define RUNTIME_VM_DWARF_H_
 
 #include "vm/allocation.h"
+#include "vm/hash.h"
 #include "vm/hash_map.h"
 #include "vm/object.h"
 #include "vm/zone.h"
@@ -15,7 +16,6 @@ namespace dart {
 #ifdef DART_PRECOMPILER
 
 class InliningNode;
-class SnapshotTextObjectNamer;
 
 struct ScriptIndexPair {
   // Typedefs needed for the DirectChainedHashMap template.
@@ -32,7 +32,7 @@ struct ScriptIndexPair {
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair.script_->raw() == key->raw();
+    return pair.script_->ptr() == key->ptr();
   }
 
   ScriptIndexPair(const Script* s, intptr_t index) : script_(s), index_(index) {
@@ -60,10 +60,10 @@ struct FunctionIndexPair {
 
   static Value ValueOf(Pair kv) { return kv.index_; }
 
-  static inline intptr_t Hashcode(Key key) { return key->token_pos().value(); }
+  static inline intptr_t Hashcode(Key key) { return key->token_pos().Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair.function_->raw() == key->raw();
+    return pair.function_->ptr() == key->ptr();
   }
 
   FunctionIndexPair(const Function* f, intptr_t index)
@@ -82,64 +82,46 @@ struct FunctionIndexPair {
 
 typedef DirectChainedHashMap<FunctionIndexPair> FunctionIndexMap;
 
-struct SegmentRelativeOffset {
-  // Used for the empty constructor (for hash map usage).
-  static constexpr intptr_t kInvalidOffset = -2;
-  // Used for cases where we know which segment, but don't know the offset.
-  static constexpr intptr_t kUnknownOffset = -1;
-
-  SegmentRelativeOffset(bool vm, intptr_t offset) : vm(vm), offset(offset) {
-    ASSERT(offset >= 0);
-  }
-  explicit SegmentRelativeOffset(bool vm) : vm(vm), offset(kUnknownOffset) {}
-  SegmentRelativeOffset() : vm(false), offset(kInvalidOffset) {}
-
-  bool operator==(const SegmentRelativeOffset& b) const {
-    return vm == b.vm && offset == b.offset;
-  }
-  bool operator==(const SegmentRelativeOffset& b) {
-    return *const_cast<const SegmentRelativeOffset*>(this) == b;
-  }
-  bool operator!=(const SegmentRelativeOffset& b) { return !(*this == b); }
-
-  // Whether or not this is an offset into the VM text segment.
-  bool vm;
-  // The byte offset into the segment contents.
-  intptr_t offset;
-};
-
-struct CodeAddressPair {
+// Assumes T has a copy constructor and is CopyAssignable.
+template <typename T>
+struct DwarfCodeKeyValueTrait {
   // Typedefs needed for the DirectChainedHashMap template.
   typedef const Code* Key;
-  typedef SegmentRelativeOffset Value;
-  typedef CodeAddressPair Pair;
+  typedef T Value;
+
+  struct Pair {
+    Pair(const Code* c, const T v) : code(c), value(v) {
+      ASSERT(c != nullptr);
+      ASSERT(!c->IsNull());
+      ASSERT(c->IsNotTemporaryScopedHandle());
+    }
+    Pair() : code(nullptr), value{} {}
+
+    // Don't implcitly delete copy and copy assigment constructors.
+    Pair(const Pair& other) = default;
+    Pair& operator=(const Pair& other) = default;
+
+    const Code* code;
+    T value;
+  };
 
   static Key KeyOf(Pair kv) { return kv.code; }
 
-  static Value ValueOf(Pair kv) { return kv.segment_offset; }
+  static Value ValueOf(Pair kv) { return kv.value; }
 
   static inline intptr_t Hashcode(Key key) {
-    // Code objects are always allocated in old space, so they don't move.
-    return key->PayloadStart();
+    // Instructions are always allocated in old space, so they don't move.
+    return FinalizeHash(key->PayloadStart(), 32);
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair.code->raw() == key->raw();
+    // Code objects are always allocated in old space, so they don't move.
+    return pair.code->ptr() == key->ptr();
   }
-
-  CodeAddressPair(const Code* c, const SegmentRelativeOffset& o)
-      : code(c), segment_offset(o) {
-    ASSERT(!c->IsNull());
-    ASSERT(c->IsNotTemporaryScopedHandle());
-    ASSERT(o.offset == SegmentRelativeOffset::kUnknownOffset || o.offset >= 0);
-  }
-  CodeAddressPair() : code(nullptr), segment_offset() {}
-
-  const Code* code;
-  SegmentRelativeOffset segment_offset;
 };
 
-typedef DirectChainedHashMap<CodeAddressPair> CodeAddressMap;
+template <typename T>
+using DwarfCodeMap = DirectChainedHashMap<DwarfCodeKeyValueTrait<T>>;
 
 template <typename T>
 class Trie : public ZoneAllocated {
@@ -256,15 +238,7 @@ class Dwarf : public ZoneAllocated {
   const ZoneGrowableArray<const Code*>& codes() const { return codes_; }
 
   // Stores the code object for later creating the line number program.
-  //
-  // Returns the stored index of the code object when the relocated address
-  // is not known at snapshot generation time (that is, when offset.offset is
-  // SegmentRelativeOffset::kUnknownOffset).
-  intptr_t AddCode(const Code& code, const SegmentRelativeOffset& offset);
-
-  // Returns the stored segment offset for the given Code object. If no
-  // address is stored, the second element will be kNoCodeAddressPairOffset.
-  SegmentRelativeOffset CodeAddress(const Code& code) const;
+  void AddCode(const Code& code, const char* name);
 
   intptr_t AddFunction(const Function& function);
   intptr_t AddScript(const Script& script);
@@ -331,8 +305,7 @@ class Dwarf : public ZoneAllocated {
   void WriteInliningNode(DwarfWriteStream* stream,
                          InliningNode* node,
                          const char* root_code_name,
-                         const Script& parent_script,
-                         SnapshotTextObjectNamer* namer);
+                         const Script& parent_script);
 
   const char* Deobfuscate(const char* cstr);
   static Trie<const char>* CreateReverseObfuscationTrie(Zone* zone);
@@ -340,7 +313,7 @@ class Dwarf : public ZoneAllocated {
   Zone* const zone_;
   Trie<const char>* const reverse_obfuscation_trie_;
   ZoneGrowableArray<const Code*> codes_;
-  CodeAddressMap code_to_address_;
+  DwarfCodeMap<const char*> code_to_name_;
   ZoneGrowableArray<const Function*> functions_;
   FunctionIndexMap function_to_index_;
   ZoneGrowableArray<const Script*> scripts_;

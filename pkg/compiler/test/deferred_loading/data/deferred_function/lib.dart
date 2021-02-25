@@ -8,7 +8,7 @@
 
 library deferred_function_library;
 
-/*member: foo:OutputUnit(1, {lib})*/
+/*member: foo:member_unit=1{lib}*/
 foo(x) {
   print('foo($x)');
   return 42;

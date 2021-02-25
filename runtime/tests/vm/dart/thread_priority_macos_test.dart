@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
 
+import '../../../../tests/ffi/calloc.dart';
+
 // pthread_t pthread_self()
 typedef PthreadSelfFT = int Function();
 typedef PthreadSelfNFT = IntPtr Function();
@@ -29,16 +31,16 @@ final pthreadGetSchedParam = DynamicLibrary.process()
 //  struct sched_param { int sched_priority; }
 class SchedParam extends Struct {
   @Int32()
-  int schedPriority;
+  external int schedPriority;
 }
 
 main(args) {
   if (Platform.isMacOS) {
-    final policy = allocate<Int32>(count: 1);
-    final param = allocate<SchedParam>(count: 1);
+    final policy = calloc<Int32>(1);
+    final param = calloc<SchedParam>(1);
     Expect.equals(0, pthreadGetSchedParam(pthreadSelf(), policy, param));
     Expect.equals(15, param.ref.schedPriority);
-    free(policy);
-    free(param);
+    calloc.free(policy);
+    calloc.free(param);
   }
 }

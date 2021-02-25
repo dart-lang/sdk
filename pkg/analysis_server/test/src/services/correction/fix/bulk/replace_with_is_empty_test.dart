@@ -19,7 +19,7 @@ class ReplaceWithIsEmptyTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_is_empty;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(List c) {
   if (0 == c.length) {}
   if (1 > c.length) {}

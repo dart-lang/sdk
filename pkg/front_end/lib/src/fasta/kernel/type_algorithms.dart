@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart'
     show
         BottomType,
@@ -14,6 +16,7 @@ import 'package:kernel/ast.dart'
         InvalidType,
         NamedType,
         NeverType,
+        NullType,
         TypeParameter,
         TypeParameterType,
         TypedefType,
@@ -292,11 +295,13 @@ TypeBuilder substituteRange(
   } else if (type is FunctionTypeBuilder) {
     List<TypeVariableBuilder> variables;
     if (type.typeVariables != null) {
-      variables = new List<TypeVariableBuilder>(type.typeVariables.length);
+      variables =
+          new List<TypeVariableBuilder>.filled(type.typeVariables.length, null);
     }
     List<FormalParameterBuilder> formals;
     if (type.formals != null) {
-      formals = new List<FormalParameterBuilder>(type.formals.length);
+      formals =
+          new List<FormalParameterBuilder>.filled(type.formals.length, null);
     }
     TypeBuilder returnType;
     bool changed = false;
@@ -348,7 +353,8 @@ TypeBuilder substituteRange(
               formal.name,
               formal.parent,
               formal.charOffset,
-              formal.fileUri);
+              fileUri: formal.fileUri,
+              isExtensionThis: formal.isExtensionThis);
           changed = true;
         } else {
           formals[i] = formal;
@@ -390,7 +396,8 @@ TypeBuilder substitute(
 /// of the algorithm for details.
 List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
     TypeBuilder dynamicType, TypeBuilder bottomType, ClassBuilder objectClass) {
-  List<TypeBuilder> bounds = new List<TypeBuilder>(variables.length);
+  List<TypeBuilder> bounds =
+      new List<TypeBuilder>.filled(variables.length, null);
 
   for (int i = 0; i < variables.length; i++) {
     bounds[i] = variables[i].bound ?? dynamicType;
@@ -448,10 +455,10 @@ class TypeVariablesGraph implements Graph<int> {
   TypeVariablesGraph(this.variables, this.bounds) {
     assert(variables.length == bounds.length);
 
-    vertices = new List<int>(variables.length);
+    vertices = new List<int>.filled(variables.length, null);
     Map<TypeVariableBuilder, int> variableIndices =
         <TypeVariableBuilder, int>{};
-    edges = new List<List<int>>(variables.length);
+    edges = new List<List<int>>.filled(variables.length, null);
     for (int i = 0; i < vertices.length; i++) {
       vertices[i] = i;
       variableIndices[variables[i]] = i;
@@ -1020,6 +1027,8 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
   bool visitBottomType(BottomType node) => false;
 
   bool visitNeverType(NeverType node) => false;
+
+  bool visitNullType(NullType node) => false;
 
   bool visitInterfaceType(InterfaceType node) {
     return anyTypeVariables(node.typeArguments);

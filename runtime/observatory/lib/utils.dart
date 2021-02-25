@@ -29,7 +29,7 @@ class Utils {
   static String zeroPad(int value, int pad) {
     String prefix = "";
     while (pad > 1) {
-      int pow10 = pow(10, pad - 1);
+      int pow10 = pow(10, pad - 1) as int;
       if (value < pow10) {
         prefix = prefix + "0";
       }
@@ -98,24 +98,25 @@ class Utils {
 
   static String formatSize(bytesDynamic) {
     int bytes = bytesDynamic.toInt();
-    int absBytes = bytes >= 0 ? bytes : -bytes;
-    const int digits = 1;
+
+    String finish(int scale, String prefix) {
+      double scaled = bytes / scale;
+      int digits = 1;
+      if (scaled < 10) digits = 2;
+      return "${scaled.toStringAsFixed(digits)}${prefix}B";
+    }
+
     const int bytesPerKB = 1024;
     const int bytesPerMB = 1024 * bytesPerKB;
     const int bytesPerGB = 1024 * bytesPerMB;
     const int bytesPerTB = 1024 * bytesPerGB;
 
-    if (absBytes < bytesPerKB) {
-      return "${bytes}B";
-    } else if (absBytes < bytesPerMB) {
-      return "${(bytes / bytesPerKB).toStringAsFixed(digits)}KB";
-    } else if (absBytes < bytesPerGB) {
-      return "${(bytes / bytesPerMB).toStringAsFixed(digits)}MB";
-    } else if (absBytes < bytesPerTB) {
-      return "${(bytes / bytesPerGB).toStringAsFixed(digits)}GB";
-    } else {
-      return "${(bytes / bytesPerTB).toStringAsFixed(digits)}TB";
-    }
+    int absBytes = bytes >= 0 ? bytes : -bytes;
+    if (absBytes < bytesPerKB) return "${bytes}B";
+    if (absBytes < bytesPerMB) return finish(bytesPerKB, "K");
+    if (absBytes < bytesPerGB) return finish(bytesPerMB, "M");
+    if (absBytes < bytesPerTB) return finish(bytesPerGB, "G");
+    return finish(bytesPerTB, "TB");
   }
 
   static String formatTime(double time) {
@@ -289,7 +290,7 @@ class Utils {
 
 /// A [Task] that can be scheduled on the Dart event queue.
 class Task {
-  Timer _timer;
+  Timer? _timer;
   final Function callback;
 
   Task(this.callback);

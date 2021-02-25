@@ -38,7 +38,7 @@ abstract class C extends core::Object implements self::I1, self::I2 {
   synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
-  abstract forwarding-stub method f(core::Object* o) → void;
+  abstract member-signature method f(core::Object* o) → void; -> self::I2::f
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

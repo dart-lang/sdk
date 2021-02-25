@@ -1,5 +1,6 @@
+library /*isNonNullableByDefault*/;
 //
-// Problems in component:
+// Problems in library:
 //
 // pkg/front_end/testcases/agnostic/as.dart:5:20: Error: Constant evaluation error:
 // const a = <Null>[] as List<int>;
@@ -21,7 +22,6 @@
 // const b = <int?>[] as List<int>;
 //       ^
 //
-library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 

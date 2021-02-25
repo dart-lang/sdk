@@ -17,6 +17,7 @@ import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -322,7 +323,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     var identifier = node as SimpleIdentifier;
     // prepare selected ExecutableElement
-    var element = identifier.staticElement;
+    var element = identifier.writeOrReadElement;
     if (element is! ExecutableElement) {
       return fatalStatus;
     }
@@ -768,7 +769,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
     // should be a method or field reference
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (!(element is MethodElement || element is PropertyAccessorElement)) {
       return;
     }

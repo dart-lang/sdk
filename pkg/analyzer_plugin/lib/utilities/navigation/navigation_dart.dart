@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
@@ -276,7 +277,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var exportElement = node.element as ExportElement;
+    var exportElement = node.element;
     if (exportElement != null) {
       Element libraryElement = exportElement.exportedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
@@ -286,7 +287,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var importElement = node.element as ImportElement;
+    var importElement = node.element;
     if (importElement != null) {
       Element libraryElement = importElement.importedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
@@ -297,7 +298,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     computer._addRegionForToken(node.leftBracket, element);
     computer._addRegionForToken(node.rightBracket, element);
   }
@@ -350,7 +351,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (node.parent is ConstructorDeclaration) {
       return;
     }
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     computer._addRegionForNode(node, element);
   }
 

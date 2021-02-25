@@ -174,8 +174,6 @@ class ArgumentsDescriptor : public ValueObject {
   friend class SnapshotWriter;
   friend class Serializer;
   friend class Deserializer;
-  friend class Interpreter;
-  friend class InterpreterHelpers;
   friend class Simulator;
   friend class SimulatorHelpers;
   DISALLOW_COPY_AND_ASSIGN(ArgumentsDescriptor);
@@ -187,103 +185,121 @@ class DartEntry : public AllStatic {
  public:
   // Invokes the specified instance function or static function.
   // The first argument of an instance function is the receiver.
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr.  On failure, an ErrorPtr.
   // This is used when there is no type argument vector and
   // no named arguments in the call.
   static ObjectPtr InvokeFunction(const Function& function,
                                   const Array& arguments);
 
   // Invokes the specified code as if it was a Dart function.
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr.  On failure, an ErrorPtr.
   static ObjectPtr InvokeCode(const Code& code,
                               const Array& arguments_descriptor,
                               const Array& arguments,
                               Thread* thread);
 
   // Invokes the specified instance, static, or closure function.
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr.  On failure, an ErrorPtr.
   static ObjectPtr InvokeFunction(
       const Function& function,
       const Array& arguments,
       const Array& arguments_descriptor,
       uword current_sp = OSThread::GetCurrentStackPointer());
 
-  // Resolves the first argument to a callable compatible with the arguments.
+  // Invokes the first argument in the provided arguments array as a callable
+  // object, performing any needed dynamic checks if the callable cannot receive
+  // dynamic invocation.
+  //
+  // On success, returns an InstancePtr.  On failure, an ErrorPtr.
+  //
+  // Used when an ArgumentsDescriptor is not required, that is, when there
+  // are no type arguments or named arguments.
+  static ObjectPtr InvokeClosure(Thread* thread, const Array& arguments);
+
+  // Invokes the first argument in the provided arguments array as a callable
+  // object, performing any needed dynamic checks if the callable cannot receive
+  // dynamic invocation.
+  //
+  // On success, returns an InstancePtr.  On failure, an ErrorPtr.
+  static ObjectPtr InvokeClosure(Thread* thread,
+                                 const Array& arguments,
+                                 const Array& arguments_descriptor);
+
+  // Invokes the noSuchMethod instance function on the receiver.
+  // On success, returns an InstancePtr.  On failure, an ErrorPtr.
+  static ObjectPtr InvokeNoSuchMethod(Thread* thread,
+                                      const Instance& receiver,
+                                      const String& target_name,
+                                      const Array& arguments,
+                                      const Array& arguments_descriptor);
+
+ private:
+  // Resolves the first argument in the provided arguments array to a callable
+  // compatible with the arguments. Helper method used within InvokeClosure.
   //
   // If no errors occur, the first argument is changed to be either the resolved
   // callable or, if Function::null() is returned, an appropriate target for
   // invoking noSuchMethod.
   //
-  // On success, returns a RawFunction. On failure, a RawError.
-  static ObjectPtr ResolveCallable(const Array& arguments,
+  // On success, returns a FunctionPtr. On failure, an ErrorPtr.
+  static ObjectPtr ResolveCallable(Thread* thread,
+                                   const Array& arguments,
                                    const Array& arguments_descriptor);
 
-  // Invokes the function returned by ResolveCallable.
+  // Invokes a function returned by ResolveCallable, performing any dynamic
+  // checks needed if the function cannot receive dynamic invocation. Helper
+  // method used within InvokeClosure.
   //
-  // On success, returns a RawInstance. On failure, a RawError.
-  static ObjectPtr InvokeCallable(const Function& callable_function,
+  // On success, returns an InstancePtr. On failure, an ErrorPtr.
+  static ObjectPtr InvokeCallable(Thread* thread,
+                                  const Function& callable_function,
                                   const Array& arguments,
                                   const Array& arguments_descriptor);
-
-  // Invokes the closure object given as the first argument.
-  // On success, returns a RawInstance.  On failure, a RawError.
-  // This is used when there is no type argument vector and
-  // no named arguments in the call.
-  static ObjectPtr InvokeClosure(const Array& arguments);
-
-  // Invokes the closure object given as the first argument.
-  // On success, returns a RawInstance.  On failure, a RawError.
-  static ObjectPtr InvokeClosure(const Array& arguments,
-                                 const Array& arguments_descriptor);
-
-  // Invokes the noSuchMethod instance function on the receiver.
-  // On success, returns a RawInstance.  On failure, a RawError.
-  static ObjectPtr InvokeNoSuchMethod(const Instance& receiver,
-                                      const String& target_name,
-                                      const Array& arguments,
-                                      const Array& arguments_descriptor);
 };
 
 // Utility functions to call from VM into Dart bootstrap libraries.
 // Each may return an exception object.
 class DartLibraryCalls : public AllStatic {
  public:
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr. On failure, an ErrorPtr.
   static ObjectPtr InstanceCreate(const Library& library,
                                   const String& exception_name,
                                   const String& constructor_name,
                                   const Array& arguments);
 
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr. On failure, an ErrorPtr.
   static ObjectPtr ToString(const Instance& receiver);
 
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr. On failure, an ErrorPtr.
   static ObjectPtr HashCode(const Instance& receiver);
 
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr. On failure, an ErrorPtr.
   static ObjectPtr Equals(const Instance& left, const Instance& right);
 
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr. On failure, an ErrorPtr.
   static ObjectPtr IdentityHashCode(const Instance& object);
 
   // Returns the handler if one has been registered for this port id.
   static ObjectPtr LookupHandler(Dart_Port port_id);
 
-  // Returns null on success, a RawError on failure.
+  // Returns a list of open ReceivePorts.
+  static ObjectPtr LookupOpenPorts();
+
+  // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr HandleMessage(const Object& handler,
                                  const Instance& dart_message);
 
-  // Returns null on success, a RawError on failure.
+  // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr DrainMicrotaskQueue();
 
   // Ensures that the isolate's _pendingImmediateCallback is set to
   // _startMicrotaskLoop from dart:async.
-  // Returns null on success, a RawError on failure.
+  // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr EnsureScheduleImmediate();
 
   // map[key] = value;
   //
-  // Returns null on success, a RawError on failure.
+  // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr MapSetAt(const Instance& map,
                             const Instance& key,
                             const Instance& value);

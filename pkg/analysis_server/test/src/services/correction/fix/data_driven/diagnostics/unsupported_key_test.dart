@@ -20,17 +20,17 @@ class UnsupportedKeyTest extends AbstractTransformSetParserTest {
 version: 1
 transforms:
 - title: 'Rename A'
+  date: 2020-08-21
   element:
     uris:
       - 'test.dart'
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - kind: 'rename'
       oldName: 'A'
       newName: 'B'
 ''', [
-      error(TransformSetErrorCode.unsupportedKey, 150, 7),
+      error(TransformSetErrorCode.unsupportedKey, 156, 7),
     ]);
   }
 }

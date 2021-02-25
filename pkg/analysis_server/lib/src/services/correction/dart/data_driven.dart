@@ -4,11 +4,13 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
@@ -20,46 +22,28 @@ class DataDriven extends MultiCorrectionProducer {
 
   @override
   Iterable<CorrectionProducer> get producers sync* {
-    var name = _name;
-    var importedUris = <String>[];
+    var importedUris = <Uri>[];
     var library = resolvedResult.libraryElement;
     for (var importElement in library.imports) {
       // TODO(brianwilkerson) Filter based on combinators to help avoid making
       //  invalid suggestions.
-      importedUris.add(importElement.uri);
+      var uri = importElement.uri;
+      if (uri != null) {
+        // The [uri] is `null` if the literal string is not a valid URI.
+        importedUris.add(Uri.parse(uri));
+      }
+    }
+    var matcher = ElementMatcher.forNode(node);
+    if (matcher == null) {
+      // The node doesn't represent an element that can be transformed.
+      return;
     }
     for (var set in _availableTransformSetsForLibrary(library)) {
-      for (var transform in set.transformsFor(name, importedUris)) {
+      for (var transform
+          in set.transformsFor(matcher, applyingBulkFixes: applyingBulkFixes)) {
         yield DataDrivenFix(transform);
       }
     }
-  }
-
-  /// Return the name of the element that was changed.
-  String get _name {
-    var node = this.node;
-    if (node is SimpleIdentifier) {
-      return node.name;
-    } else if (node is ConstructorName) {
-      return node.name.name;
-    } else if (node is NamedType) {
-      return node.name.name;
-    } else if (node is TypeArgumentList) {
-      var parent = node.parent;
-      if (parent is MethodInvocation) {
-        return parent.methodName.name;
-      } else if (parent is ExtensionOverride) {
-        return parent.extensionName.name;
-      }
-    } else if (node is ArgumentList) {
-      var parent = node.parent;
-      if (parent is MethodInvocation) {
-        return parent.methodName.name;
-      } else if (parent is ExtensionOverride) {
-        return parent.extensionName.name;
-      }
-    }
-    return null;
   }
 
   /// Return the transform sets that are available for fixing issues in the
@@ -68,7 +52,13 @@ class DataDriven extends MultiCorrectionProducer {
     if (transformSetsForTests != null) {
       return transformSetsForTests;
     }
-    return TransformSetManager.instance.forLibrary(library);
+    var transformSets = TransformSetManager.instance.forLibrary(library);
+    var overrideSet = this.overrideSet;
+    if (overrideSet != null) {
+      transformSets =
+          transformSets.map((set) => set.applyOverrides(overrideSet)).toList();
+    }
+    return transformSets;
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
@@ -83,6 +73,9 @@ class DataDrivenFix extends CorrectionProducer {
 
   DataDrivenFix(this._transform);
 
+  /// Return a description of the element that was changed.
+  ElementDescriptor get element => _transform.element;
+
   @override
   List<Object> get fixArguments => [_transform.title];
 
@@ -91,7 +84,11 @@ class DataDrivenFix extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var changes = _transform.changes;
+    var changes = _transform.changesSelector
+        .getChanges(TemplateContext.forInvocation(node, utils));
+    if (changes == null) {
+      return;
+    }
     var data = <Object>[];
     for (var change in changes) {
       var result = change.validate(this);

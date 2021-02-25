@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:kernel/kernel.dart';
 import 'kernel_helpers.dart';
 
@@ -35,7 +37,7 @@ bool isAllowInterop(Expression node) {
   if (node is StaticInvocation) {
     var target = node.target;
     return _isLibrary(target.enclosingLibrary, ['dart:js']) &&
-        target.name.name == 'allowInterop';
+        target.name.text == 'allowInterop';
   }
   return false;
 }
@@ -43,7 +45,9 @@ bool isAllowInterop(Expression node) {
 bool isJsMember(Member member) {
   // TODO(vsm): If we ever use external outside the SDK for non-JS interop,
   // we're need to fix this.
-  return !_isLibrary(member.enclosingLibrary, ['dart:*']) && member.isExternal;
+  return !_isLibrary(member.enclosingLibrary, ['dart:*']) &&
+      member.isExternal &&
+      !isNative(member);
 }
 
 bool _annotationIsFromJSLibrary(String expectedName, Expression value) {
@@ -80,7 +84,7 @@ bool isJSExportNameAnnotation(Expression value) =>
 /// Whether [i] is a `spread` invocation (to be used on function arguments
 /// to have them compiled as `...` spread args in ES6 outputs).
 bool isJSSpreadInvocation(Procedure target) =>
-    target.name.name == 'spread' && _isJSLibrary(target.enclosingLibrary);
+    target.name.text == 'spread' && _isJSLibrary(target.enclosingLibrary);
 
 bool isJSName(Expression value) =>
     isBuiltinAnnotation(value, '_js_helper', 'JSName');
@@ -116,14 +120,18 @@ bool hasJSInteropAnnotation(Class c) => c.annotations.any(isPublicJSAnnotation);
 
 /// Returns true iff this element is a JS interop member.
 ///
-/// The element's library must have `@JS(...)` annotation from `package:js`.
-/// If the element is a class, it must also be marked with `@JS`. Other
-/// elements, such as class members and top-level functions/accessors, should
-/// be marked `external`.
+/// JS annotations are required explicitly on classes. Other elements, such as
+/// class members and top-level functions/accessors, should be marked `external`
+/// and should have directly or indirectly a `JS` annotation. It is sufficient
+/// if the annotation is in the procedure itself or an enclosing element like
+/// the class or library.
 bool usesJSInterop(NamedNode n) {
-  var library = getLibrary(n);
-  return library != null &&
-      library.annotations.any(isPublicJSAnnotation) &&
-      (n is Procedure && n.isExternal ||
-          n is Class && n.annotations.any(isPublicJSAnnotation));
+  if (n is Member && n.isExternal) {
+    return n.enclosingLibrary.annotations.any(isPublicJSAnnotation) ||
+        n.annotations.any(isPublicJSAnnotation) ||
+        (n.enclosingClass?.annotations?.any(isPublicJSAnnotation) ?? false);
+  } else if (n is Class) {
+    return n.annotations.any(isPublicJSAnnotation);
+  }
+  return false;
 }

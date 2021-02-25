@@ -43,7 +43,7 @@ class FlutterOutlineComputerTest extends AbstractOutlineComputerTest {
   @override
   void setUp() {
     super.setUp();
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_columnWithChildren() async {
@@ -671,7 +671,7 @@ main(p()) {
   }
 
   Future<void> test_isTest_isTestGroup() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     var outline = await _computeOutline('''
 import 'package:meta/meta.dart';
 

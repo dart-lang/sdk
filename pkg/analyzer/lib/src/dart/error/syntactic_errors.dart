@@ -72,6 +72,9 @@ class ParserErrorCode extends ErrorCode {
           "The keywords 'await' and 'yield' can't be used as "
               "identifiers in an asynchronous or generator function.");
 
+  static const ParserErrorCode BINARY_OPERATOR_WRITTEN_OUT =
+      _BINARY_OPERATOR_WRITTEN_OUT;
+
   static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = _BREAK_OUTSIDE_OF_LOOP;
 
   static const ParserErrorCode CATCH_SYNTAX = _CATCH_SYNTAX;
@@ -128,10 +131,39 @@ class ParserErrorCode extends ErrorCode {
           "Top-level declarations can't be declared to be covariant.",
           correction: "Try removing the keyword 'covariant'.");
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a function type associated with
+  // a parameter includes optional parameters that have a default value. This
+  // isn't allowed because the default values of parameters aren't part of the
+  // function's type, and therefore including them doesn't provide any value.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the parameter `p` has a
+  // default value even though it's part of the type of the parameter `g`:
+  //
+  // ```dart
+  // void f(void Function([int p [!=!] 0]) g) {
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the default value from the function-type's parameter:
+  //
+  // ```dart
+  // void f(void Function([int p]) g) {
+  // }
+  // ```
   static const ParserErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE = ParserErrorCode(
       'DEFAULT_VALUE_IN_FUNCTION_TYPE',
-      "Parameters in a function type cannot have default values",
-      correction: "Try removing the default value.");
+      "Parameters in a function type can't have default values.",
+      correction: "Try removing the default value.",
+      hasPublishedDocs: true);
 
   static const ParserErrorCode DEFERRED_AFTER_PREFIX = _DEFERRED_AFTER_PREFIX;
 
@@ -181,6 +213,9 @@ class ParserErrorCode extends ErrorCode {
       "Expected a method, getter, setter or operator declaration.",
       correction:
           "This appears to be incomplete code. Try removing it or completing it.");
+
+  static const ParserErrorCode EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD =
+      _EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD;
 
   static const ParserErrorCode EXPECTED_INSTEAD = _EXPECTED_INSTEAD;
 
@@ -274,6 +309,7 @@ class ParserErrorCode extends ErrorCode {
   // field:
   //
   // ```dart
+  // %language=2.9
   // extension E on String {
   //   String [!s!];
   // }
@@ -503,7 +539,7 @@ class ParserErrorCode extends ErrorCode {
   //
   // #### Common fixes
   //
-  // Remove the 'covariant' keyword:
+  // Remove the `covariant` keyword:
   //
   // ```dart
   // extension E on String {
@@ -888,11 +924,19 @@ class ParserErrorCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ParserErrorCode(String name, String message,
-      {String correction, bool hasPublishedDocs})
-      : super.temporary(name, message,
-            correction: correction,
-            hasPublishedDocs: hasPublishedDocs ?? false);
+  const ParserErrorCode(
+    String name,
+    String message, {
+    String correction,
+    bool hasPublishedDocs = false,
+    String uniqueName,
+  }) : super(
+          correction: correction,
+          hasPublishedDocs: hasPublishedDocs,
+          message: message,
+          name: name,
+          uniqueName: uniqueName ?? 'ParserErrorCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;

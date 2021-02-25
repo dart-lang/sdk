@@ -131,9 +131,13 @@ const v = a;
 
     // The element and type arguments are available for the function type.
     var importFind = findElement.importFind('package:test/a.dart');
-    var elementF = importFind.functionTypeAlias('F');
-    expect(typeArgument.element, elementF.function);
-    expect(typeArgument.element.enclosingElement, elementF);
+    var alias = importFind.typeAlias('F');
+    expect(typeArgument.aliasElement, alias);
+    assertElementTypeStrings(typeArgument.aliasArguments, ['double']);
+
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
+    expect(typeArgument.element, alias.aliasedElement);
+    expect(typeArgument.element.enclosingElement, alias);
     assertElementTypeStrings(typeArgument.typeArguments, ['double']);
   }
 
@@ -232,6 +236,25 @@ extension E on int {
     var a = findElement.topVar('a') as ConstVariableElement;
     expect(a.computeConstantValue().toIntValue(), 42);
   }
+
+  /// See https://github.com/dart-lang/sdk/issues/43462
+  test_useLanguageVersionOfEnclosingLibrary() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class Wrapper {
+  final int value;
+  const Wrapper(Object value) : value = value as int;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.4
+import 'a.dart';
+
+void f() {
+  const Wrapper(0);
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -328,13 +351,15 @@ const cInt = const int.fromEnvironment('foo', defaultValue: 1);
 const cString = const String.fromEnvironment('foo', defaultValue: 'bar');
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 const vBool = cBool;
 const vInt = cInt;
 const vString = cString;
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
     DartObjectImpl evaluate(String name) {
       return findElement.topVar(name).computeConstantValue();

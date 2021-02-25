@@ -1,0 +1,59 @@
+library;
+import self as self;
+import "const_lib.dart" as con;
+
+import "org-dartlang-testcase:///const_lib.dart";
+
+static const field con::B* crossModule = const con::B::•();
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+library;
+import self as con;
+import "dart:core" as core;
+
+abstract class A extends core::Object /*hasConstConstructor*/  {
+  final field core::double* d;
+  final field core::String* s;
+  const constructor •({core::double* d = #C1, core::String* s = #C2}) → con::A*
+    : con::A::d = d, con::A::s = s, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class _B&A&M extends con::A implements con::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •({core::double* d = #C1, core::String* s = #C2}) → con::_B&A&M*
+    : super con::A::•(d: d, s: s)
+    ;
+  method m1() → dynamic
+    ;
+}
+class B extends con::_B&A&M /*hasConstConstructor*/  {
+  const constructor •({core::double* d = #C3}) → con::B*
+    : super con::_B&A&M::•(d: d)
+    ;
+}
+abstract class M extends con::A /*isMixinDeclaration*/  {
+  method m1() → dynamic
+    ;
+}
+
+constants  {
+  #C1 = 3.14
+  #C2 = "default"
+  #C3 = 2.71
+}
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:7:21 -> InstanceConstant(const B{A.d: 2.71, A.s: "default"})
+Extra constant evaluation: evaluated: 6, effectively constant: 1

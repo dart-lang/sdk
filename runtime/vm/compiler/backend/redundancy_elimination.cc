@@ -10,6 +10,7 @@
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/loops.h"
 #include "vm/hash_map.h"
+#include "vm/object_store.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
@@ -443,6 +444,7 @@ class Place : public ValueObject {
   static bool IsAllocation(Definition* defn) {
     return (defn != NULL) &&
            (defn->IsAllocateObject() || defn->IsCreateArray() ||
+            defn->IsAllocateTypedData() ||
             defn->IsAllocateUninitializedContext() ||
             (defn->IsStaticCall() &&
              defn->AsStaticCall()->IsRecognizedFactory()));
@@ -1005,8 +1007,9 @@ class AliasedSet : public ZoneAllocated {
       return true;
     }
 
-    return (place->kind() == Place::kInstanceField) &&
-           !CanBeAliased(place->instance());
+    return ((place->kind() == Place::kInstanceField) ||
+            (place->kind() == Place::kConstantIndexed)) &&
+           (place->instance() != nullptr) && !CanBeAliased(place->instance());
   }
 
   // Returns true if there are direct loads from the given place.
@@ -1681,7 +1684,6 @@ class LoadOptimizer : public ValueObject {
 
   ~LoadOptimizer() { aliased_set_->RollbackAliasedIdentites(); }
 
-  Isolate* isolate() const { return graph_->isolate(); }
   Zone* zone() const { return graph_->zone(); }
 
   static bool OptimizeGraph(FlowGraph* graph) {
@@ -1689,9 +1691,7 @@ class LoadOptimizer : public ValueObject {
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
-    intptr_t function_length = graph->function().end_token_pos().Pos() -
-                               graph->function().token_pos().Pos();
-    if (function_length >= FLAG_huge_method_cutoff_in_tokens) {
+    if (graph->function().SourceSize() >= FLAG_huge_method_cutoff_in_tokens) {
       return false;
     }
 
@@ -1756,7 +1756,7 @@ class LoadOptimizer : public ValueObject {
       value = store_static->value();
     }
     return value != nullptr && value->BindsToConstant() &&
-           (value->BoundConstant().raw() == Object::sentinel().raw());
+           (value->BoundConstant().ptr() == Object::sentinel().ptr());
   }
 
   // This optimization pass tries to get rid of lazy initializer calls in
@@ -2054,6 +2054,40 @@ class LoadOptimizer : public ValueObject {
                   forward_def = alloc->type_arguments()->definition();
                 }
               }
+              gen->Add(place_id);
+              if (out_values == nullptr) out_values = CreateBlockOutValues();
+              (*out_values)[place_id] = forward_def;
+            }
+          }
+          continue;
+        } else if (auto alloc = instr->AsCreateArray()) {
+          for (Value* use = alloc->input_use_list(); use != nullptr;
+               use = use->next_use()) {
+            // Look for all immediate loads/stores from this object.
+            if (use->use_index() != 0) {
+              continue;
+            }
+            intptr_t place_id = -1;
+            Definition* forward_def = nullptr;
+            if (auto load = use->instruction()->AsLoadField()) {
+              if (load->slot().IsTypeArguments()) {
+                place_id = GetPlaceId(load);
+                forward_def = alloc->element_type()->definition();
+              }
+            } else if (use->instruction()->IsLoadIndexed() ||
+                       use->instruction()->IsStoreIndexed()) {
+              if (aliased_set_->CanBeAliased(alloc)) {
+                continue;
+              }
+              place_id = GetPlaceId(use->instruction());
+              if (aliased_set_->places()[place_id]->kind() !=
+                  Place::kConstantIndexed) {
+                continue;
+              }
+              // Set initial value of array element to null.
+              forward_def = graph_->constant_null();
+            }
+            if (forward_def != nullptr) {
               gen->Add(place_id);
               if (out_values == nullptr) out_values = CreateBlockOutValues();
               (*out_values)[place_id] = forward_def;
@@ -2813,9 +2847,7 @@ class StoreOptimizer : public LivenessAnalysis {
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
-    intptr_t function_length = graph->function().end_token_pos().Pos() -
-                               graph->function().token_pos().Pos();
-    if (function_length >= FLAG_huge_method_cutoff_in_tokens) {
+    if (graph->function().SourceSize() >= FLAG_huge_method_cutoff_in_tokens) {
       return;
     }
 
@@ -3002,10 +3034,22 @@ void DeadStoreElimination::Optimize(FlowGraph* graph) {
 // Allocation Sinking
 //
 
+static bool IsValidLengthForAllocationSinking(
+    ArrayAllocationInstr* array_alloc) {
+  const intptr_t kMaxAllocationSinkingNumElements = 32;
+  if (!array_alloc->HasConstantNumElements()) {
+    return false;
+  }
+  const intptr_t length = array_alloc->GetConstantNumElements();
+  return (length >= 0) && (length <= kMaxAllocationSinkingNumElements);
+}
+
 // Returns true if the given instruction is an allocation that
 // can be sunk by the Allocation Sinking pass.
 static bool IsSupportedAllocation(Instruction* instr) {
-  return instr->IsAllocateObject() || instr->IsAllocateUninitializedContext();
+  return instr->IsAllocateObject() || instr->IsAllocateUninitializedContext() ||
+         (instr->IsArrayAllocation() &&
+          IsValidLengthForAllocationSinking(instr->AsArrayAllocation()));
 }
 
 enum SafeUseCheck { kOptimisticCheck, kStrictCheck };
@@ -3031,14 +3075,47 @@ enum SafeUseCheck { kOptimisticCheck, kStrictCheck };
 // optimistically and then checks each collected candidate strictly and unmarks
 // invalid candidates transitively until only strictly valid ones remain.
 static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
+  ASSERT(IsSupportedAllocation(use->definition()));
+
   if (use->instruction()->IsMaterializeObject()) {
     return true;
   }
 
-  StoreInstanceFieldInstr* store = use->instruction()->AsStoreInstanceField();
-  if (store != NULL) {
+  if (auto* store = use->instruction()->AsStoreInstanceField()) {
     if (use == store->value()) {
       Definition* instance = store->instance()->definition();
+      return IsSupportedAllocation(instance) &&
+             ((check_type == kOptimisticCheck) ||
+              instance->Identity().IsAllocationSinkingCandidate());
+    }
+    return true;
+  }
+
+  if (auto* store = use->instruction()->AsStoreIndexed()) {
+    if (use == store->index()) {
+      return false;
+    }
+    if (use == store->array()) {
+      if (!store->index()->BindsToSmiConstant()) {
+        return false;
+      }
+      const intptr_t index = store->index()->BoundSmiConstant();
+      if (index < 0 || index >= use->definition()
+                                    ->AsArrayAllocation()
+                                    ->GetConstantNumElements()) {
+        return false;
+      }
+      if (auto* alloc_typed_data = use->definition()->AsAllocateTypedData()) {
+        if (store->class_id() != alloc_typed_data->class_id() ||
+            !store->aligned() ||
+            store->index_scale() != compiler::target::Instance::ElementSizeFor(
+                                        alloc_typed_data->class_id())) {
+          return false;
+        }
+      }
+    }
+    if (use == store->value()) {
+      Definition* instance = store->array()->definition();
       return IsSupportedAllocation(instance) &&
              ((check_type == kOptimisticCheck) ||
               instance->Identity().IsAllocationSinkingCandidate());
@@ -3070,13 +3147,26 @@ static bool IsAllocationSinkingCandidate(Definition* alloc,
 
 // If the given use is a store into an object then return an object we are
 // storing into.
-static Definition* StoreInto(Value* use) {
-  StoreInstanceFieldInstr* store = use->instruction()->AsStoreInstanceField();
-  if (store != NULL) {
+static Definition* StoreDestination(Value* use) {
+  if (auto store = use->instruction()->AsStoreInstanceField()) {
     return store->instance()->definition();
   }
+  if (auto store = use->instruction()->AsStoreIndexed()) {
+    return store->array()->definition();
+  }
+  return nullptr;
+}
 
-  return NULL;
+// If the given instruction is a load from an object, then return an object
+// we are loading from.
+static Definition* LoadSource(Definition* instr) {
+  if (auto load = instr->AsLoadField()) {
+    return load->instance()->definition();
+  }
+  if (auto load = instr->AsLoadIndexed()) {
+    return load->array()->definition();
+  }
+  return nullptr;
 }
 
 // Remove the given allocation from the graph. It is not observable.
@@ -3105,10 +3195,6 @@ void AllocationSinking::EliminateAllocation(Definition* alloc) {
 #endif
   ASSERT(alloc->input_use_list() == NULL);
   alloc->RemoveFromGraph();
-  if (alloc->ArgumentCount() > 0) {
-    ASSERT(alloc->ArgumentCount() == 1);
-    ASSERT(!alloc->HasPushArguments());
-  }
 }
 
 // Find allocation instructions that can be potentially eliminated and
@@ -3185,23 +3271,23 @@ void AllocationSinking::NormalizeMaterializations() {
 }
 
 // We transitively insert materializations at each deoptimization exit that
-// might see the given allocation (see ExitsCollector). Some of this
+// might see the given allocation (see ExitsCollector). Some of these
 // materializations are not actually used and some fail to compute because
 // they are inserted in the block that is not dominated by the allocation.
-// Remove them unused materializations from the graph.
+// Remove unused materializations from the graph.
 void AllocationSinking::RemoveUnusedMaterializations() {
   intptr_t j = 0;
   for (intptr_t i = 0; i < materializations_.length(); i++) {
     MaterializeObjectInstr* mat = materializations_[i];
-    if ((mat->input_use_list() == NULL) && (mat->env_use_list() == NULL)) {
+    if ((mat->input_use_list() == nullptr) &&
+        (mat->env_use_list() == nullptr)) {
       // Check if this materialization failed to compute and remove any
       // unforwarded loads. There were no loads from any allocation sinking
       // candidate in the beginning so it is safe to assume that any encountered
       // load was inserted by CreateMaterializationAt.
       for (intptr_t i = 0; i < mat->InputCount(); i++) {
-        LoadFieldInstr* load = mat->InputAt(i)->definition()->AsLoadField();
-        if ((load != NULL) &&
-            (load->instance()->definition() == mat->allocation())) {
+        Definition* load = mat->InputAt(i)->definition();
+        if (LoadSource(load) == mat->allocation()) {
           load->ReplaceUsesWith(flow_graph_->constant_null());
           load->RemoveFromGraph();
         }
@@ -3262,14 +3348,16 @@ void AllocationSinking::DiscoverFailedCandidates() {
       alloc->set_env_use_list(NULL);
       for (Value* use = alloc->input_use_list(); use != NULL;
            use = use->next_use()) {
-        if (use->instruction()->IsLoadField()) {
-          LoadFieldInstr* load = use->instruction()->AsLoadField();
+        if (use->instruction()->IsLoadField() ||
+            use->instruction()->IsLoadIndexed()) {
+          Definition* load = use->instruction()->AsDefinition();
           load->ReplaceUsesWith(flow_graph_->constant_null());
           load->RemoveFromGraph();
         } else {
           ASSERT(use->instruction()->IsMaterializeObject() ||
                  use->instruction()->IsPhi() ||
-                 use->instruction()->IsStoreInstanceField());
+                 use->instruction()->IsStoreInstanceField() ||
+                 use->instruction()->IsStoreIndexed());
         }
       }
     } else {
@@ -3311,17 +3399,34 @@ void AllocationSinking::Optimize() {
   //   v_1     <- LoadField(v_0, field_1)
   //           ...
   //   v_N     <- LoadField(v_0, field_N)
-  //   v_{N+1} <- MaterializeObject(field_1 = v_1, ..., field_N = v_{N})
+  //   v_{N+1} <- MaterializeObject(field_1 = v_1, ..., field_N = v_N)
+  //
+  // For typed data objects materialization looks like this:
+  //   v_1     <- LoadIndexed(v_0, index_1)
+  //           ...
+  //   v_N     <- LoadIndexed(v_0, index_N)
+  //   v_{N+1} <- MaterializeObject([index_1] = v_1, ..., [index_N] = v_N)
+  //
+  // For arrays materialization looks like this:
+  //   v_1     <- LoadIndexed(v_0, index_1)
+  //           ...
+  //   v_N     <- LoadIndexed(v_0, index_N)
+  //   v_{N+1} <- LoadField(v_0, Array.type_arguments)
+  //   v_{N+2} <- MaterializeObject([index_1] = v_1, ..., [index_N] = v_N,
+  //                                type_arguments = v_{N+1})
+  //
   for (intptr_t i = 0; i < candidates_.length(); i++) {
     InsertMaterializations(candidates_[i]);
   }
 
-  // Run load forwarding to eliminate LoadField instructions inserted above.
+  // Run load forwarding to eliminate LoadField/LoadIndexed instructions
+  // inserted above.
+  //
   // All loads will be successfully eliminated because:
-  //   a) they use fields (not offsets) and thus provide precise aliasing
+  //   a) they use fields/constant indices and thus provide precise aliasing
   //      information
-  //   b) candidate does not escape and thus its fields is not affected by
-  //      external effects from calls.
+  //   b) candidate does not escape and thus its fields/elements are not
+  //      affected by external effects from calls.
   LoadOptimizer::OptimizeGraph(flow_graph_);
 
   NormalizeMaterializations();
@@ -3425,23 +3530,57 @@ void AllocationSinking::CreateMaterializationAt(
   // instruction.
   Instruction* load_point = FirstMaterializationAt(exit);
 
-  // Insert load instruction for every field.
+  // Insert load instruction for every field and element.
   for (auto slot : slots) {
-    LoadFieldInstr* load =
-        new (Z) LoadFieldInstr(new (Z) Value(alloc), *slot, alloc->token_pos());
+    Definition* load = nullptr;
+    if (slot->IsArrayElement()) {
+      intptr_t array_cid, index;
+      if (alloc->IsCreateArray()) {
+        array_cid = kArrayCid;
+        index =
+            compiler::target::Array::index_at_offset(slot->offset_in_bytes());
+      } else if (auto alloc_typed_data = alloc->AsAllocateTypedData()) {
+        array_cid = alloc_typed_data->class_id();
+        index = slot->offset_in_bytes() /
+                compiler::target::Instance::ElementSizeFor(array_cid);
+      } else {
+        UNREACHABLE();
+      }
+      load = new (Z) LoadIndexedInstr(
+          new (Z) Value(alloc),
+          new (Z) Value(
+              flow_graph_->GetConstant(Smi::ZoneHandle(Z, Smi::New(index)))),
+          /*index_unboxed=*/false,
+          /*index_scale=*/compiler::target::Instance::ElementSizeFor(array_cid),
+          array_cid, kAlignedAccess, DeoptId::kNone, alloc->source());
+    } else {
+      load =
+          new (Z) LoadFieldInstr(new (Z) Value(alloc), *slot, alloc->source());
+    }
     flow_graph_->InsertBefore(load_point, load, nullptr, FlowGraph::kValue);
     values->Add(new (Z) Value(load));
   }
 
-  MaterializeObjectInstr* mat = nullptr;
-  if (alloc->IsAllocateObject()) {
-    mat = new (Z)
-        MaterializeObjectInstr(alloc->AsAllocateObject(), slots, values);
+  const Class* cls = nullptr;
+  intptr_t num_elements = -1;
+  if (auto instr = alloc->AsAllocateObject()) {
+    cls = &(instr->cls());
+  } else if (auto instr = alloc->AsAllocateUninitializedContext()) {
+    cls = &Class::ZoneHandle(Object::context_class());
+    num_elements = instr->num_context_variables();
+  } else if (auto instr = alloc->AsCreateArray()) {
+    cls = &Class::ZoneHandle(
+        flow_graph_->isolate_group()->object_store()->array_class());
+    num_elements = instr->GetConstantNumElements();
+  } else if (auto instr = alloc->AsAllocateTypedData()) {
+    cls = &Class::ZoneHandle(
+        flow_graph_->isolate_group()->class_table()->At(instr->class_id()));
+    num_elements = instr->GetConstantNumElements();
   } else {
-    ASSERT(alloc->IsAllocateUninitializedContext());
-    mat = new (Z) MaterializeObjectInstr(
-        alloc->AsAllocateUninitializedContext(), slots, values);
+    UNREACHABLE();
   }
+  MaterializeObjectInstr* mat = new (Z) MaterializeObjectInstr(
+      alloc->AsAllocation(), *cls, num_elements, slots, values);
 
   flow_graph_->InsertBefore(exit, mat, nullptr, FlowGraph::kValue);
 
@@ -3496,7 +3635,7 @@ void AllocationSinking::ExitsCollector::Collect(Definition* alloc) {
   // this object.
   for (Value* use = alloc->input_use_list(); use != NULL;
        use = use->next_use()) {
-    Definition* obj = StoreInto(use);
+    Definition* obj = StoreDestination(use);
     if ((obj != NULL) && (obj != alloc)) {
       AddInstruction(&worklist_, obj);
     }
@@ -3520,14 +3659,27 @@ void AllocationSinking::ExitsCollector::CollectTransitively(Definition* alloc) {
 }
 
 void AllocationSinking::InsertMaterializations(Definition* alloc) {
-  // Collect all fields that are written for this instance.
+  // Collect all fields and array elements that are written for this instance.
   auto slots = new (Z) ZoneGrowableArray<const Slot*>(5);
 
   for (Value* use = alloc->input_use_list(); use != NULL;
        use = use->next_use()) {
-    StoreInstanceFieldInstr* store = use->instruction()->AsStoreInstanceField();
-    if ((store != NULL) && (store->instance()->definition() == alloc)) {
-      AddSlot(slots, store->slot());
+    if (StoreDestination(use) == alloc) {
+      if (auto store = use->instruction()->AsStoreInstanceField()) {
+        AddSlot(slots, store->slot());
+      } else if (auto store = use->instruction()->AsStoreIndexed()) {
+        const intptr_t index = store->index()->BoundSmiConstant();
+        intptr_t offset = -1;
+        if (alloc->IsCreateArray()) {
+          offset = compiler::target::Array::element_offset(index);
+        } else if (alloc->IsAllocateTypedData()) {
+          offset = index * store->index_scale();
+        } else {
+          UNREACHABLE();
+        }
+        AddSlot(slots,
+                Slot::GetArrayElementSlot(flow_graph_->thread(), offset));
+      }
     }
   }
 
@@ -3536,6 +3688,15 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
       AddSlot(slots, Slot::GetTypeArgumentsSlotFor(flow_graph_->thread(),
                                                    alloc_object->cls()));
     }
+  }
+  if (alloc->IsCreateArray()) {
+    AddSlot(
+        slots,
+        Slot::GetTypeArgumentsSlotFor(
+            flow_graph_->thread(),
+            Class::Handle(
+                Z,
+                flow_graph_->isolate_group()->object_store()->array_class())));
   }
 
   // Collect all instructions that mention this object in the environment.

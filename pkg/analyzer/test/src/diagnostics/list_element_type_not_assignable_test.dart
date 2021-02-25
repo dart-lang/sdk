@@ -10,137 +10,67 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListElementTypeNotAssignableTest);
-    defineReflectiveTests(ListElementTypeNotAssignableTest_language24);
   });
 }
 
 @reflectiveTest
 class ListElementTypeNotAssignableTest extends PubPackageResolutionTest
-    with ListElementTypeNotAssignableTestCases {
-  @override
-  bool get _constant_update_2018 => true;
-}
-
-@reflectiveTest
-class ListElementTypeNotAssignableTest_language24
-    extends PubPackageResolutionTest
-    with ListElementTypeNotAssignableTestCases {
-  @override
-  bool get _constant_update_2018 => false;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: '2.4',
-    );
-  }
-}
+    with ListElementTypeNotAssignableTestCases {}
 
 mixin ListElementTypeNotAssignableTestCases on PubPackageResolutionTest {
-  bool get _constant_update_2018;
-
   test_const_ifElement_thenElseFalse_intInt() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 const dynamic a = 0;
 const dynamic b = 0;
 var v = const <int>[if (1 < 0) a else b];
-''',
-        _constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 62, 19),
-              ]);
+''');
   }
 
   test_const_ifElement_thenElseFalse_intString() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 const dynamic a = 0;
 const dynamic b = 'b';
 var v = const <int>[if (1 < 0) a else b];
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 82,
-                    1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 64, 19),
-              ]);
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 82, 1),
+    ]);
   }
 
   test_const_ifElement_thenFalse_intString() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 var v = const <int>[if (1 < 0) 'a'];
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 31,
-                    3),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 20, 14),
-                error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 31,
-                    3),
-              ]);
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 31, 3),
+    ]);
   }
 
   test_const_ifElement_thenFalse_intString_dynamic() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 const dynamic a = 'a';
 var v = const <int>[if (1 < 0) a];
-''',
-        _constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 43, 12),
-              ]);
+''');
   }
 
   test_const_ifElement_thenTrue_intInt() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 const dynamic a = 0;
 var v = const <int>[if (true) a];
-''',
-        _constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 41, 11),
-              ]);
+''');
   }
 
   test_const_ifElement_thenTrue_intString() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 const dynamic a = 'a';
 var v = const <int>[if (true) a];
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 53,
-                    1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 43, 11),
-              ]);
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 53, 1),
+    ]);
   }
 
   test_const_spread_intInt() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 var v = const <int>[...[0, 1]];
-''',
-        _constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 20, 9),
-              ]);
+''');
   }
 
   test_const_stringInt() async {

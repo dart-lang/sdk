@@ -28,7 +28,7 @@ class Utf8BytesScanner extends AbstractScanner {
    *
    * The content is zero-terminated.
    */
-  List<int> bytes;
+  late List<int> bytes;
 
   /**
    * Points to the offset of the last byte returned by [advance].
@@ -84,9 +84,9 @@ class Utf8BytesScanner extends AbstractScanner {
    * is not the case, the entire array is copied before scanning.
    */
   Utf8BytesScanner(this.bytes,
-      {ScannerConfiguration configuration,
+      {ScannerConfiguration? configuration,
       bool includeComments: false,
-      LanguageVersionChanged languageVersionChanged})
+      LanguageVersionChanged? languageVersionChanged})
       : super(configuration, includeComments, languageVersionChanged,
             numberOfBytesHint: bytes.length) {
     assert(bytes.last == 0);

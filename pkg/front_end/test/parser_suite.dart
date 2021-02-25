@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async' show Future;
+// @dart = 2.9
 
 import 'dart:convert' show jsonDecode;
 
@@ -46,11 +46,14 @@ import 'package:testing/testing.dart'
         TestDescription,
         runMe;
 
+import 'fasta/testing/suite.dart' show UPDATE_EXPECTATIONS;
 import 'utils/kernel_chain.dart' show MatchContext;
 
 import 'parser_test_listener.dart' show ParserTestListener;
 
 import 'parser_test_parser.dart' show TestParser;
+
+import 'testing_utils.dart' show checkEnvironment;
 
 const String EXPECTATIONS = '''
 [
@@ -70,8 +73,18 @@ main([List<String> arguments = const []]) =>
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new Context(suite.name, environment["updateExpectations"] == "true",
-      environment["trace"] == "true", environment["annotateLines"] == "true");
+  const Set<String> knownEnvironmentKeys = {
+    "updateExpectations",
+    "trace",
+    "annotateLines"
+  };
+  checkEnvironment(environment, knownEnvironmentKeys);
+
+  bool updateExpectations = environment["updateExpectations"] == "true";
+  bool trace = environment["trace"] == "true";
+  bool annotateLines = environment["annotateLines"] == "true";
+
+  return new Context(suite.name, updateExpectations, trace, annotateLines);
 }
 
 ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
@@ -86,6 +99,13 @@ ScannerConfiguration scannerConfigurationNonNNBD = new ScannerConfiguration(
 
 class Context extends ChainContext with MatchContext {
   final bool updateExpectations;
+
+  @override
+  String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
+
+  @override
+  bool get canBeFixWithUpdateExpectations => true;
+
   final bool addTrace;
   final bool annotateLines;
   final String suiteName;
@@ -156,7 +176,7 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
 
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
-    List<int> lineStarts = new List<int>();
+    List<int> lineStarts = <int>[];
 
     Token firstToken =
         scanUri(description.uri, description.shortName, lineStarts: lineStarts);
@@ -200,7 +220,7 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
 
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
-    List<int> lineStarts = new List<int>();
+    List<int> lineStarts = <int>[];
     Token firstToken =
         scanUri(description.uri, description.shortName, lineStarts: lineStarts);
 
@@ -236,7 +256,7 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
 
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
-    List<int> lineStarts = new List<int>();
+    List<int> lineStarts = <int>[];
     Token firstToken =
         scanUri(description.uri, description.shortName, lineStarts: lineStarts);
 
@@ -397,7 +417,7 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
   final bool annotateLines;
   final Source source;
   final String shortName;
-  final List<String> errors = new List<String>();
+  final List<String> errors = <String>[];
   Location latestSeenLocation;
 
   ParserTestListenerWithMessageFormatting(
@@ -406,14 +426,18 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
 
   void doPrint(String s) {
     super.doPrint(s);
-    if (s.startsWith("beginCompilationUnit(") ||
-        s.startsWith("endCompilationUnit(")) {
-      if (indent != 0) {
-        throw "Incorrect indents: '$s' (indent = $indent).\n\n${sb.toString()}";
-      }
-    } else {
-      if (indent <= 0) {
-        throw "Incorrect indents: '$s' (indent = $indent).\n\n${sb.toString()}";
+    if (!annotateLines) {
+      if (s.startsWith("beginCompilationUnit(") ||
+          s.startsWith("endCompilationUnit(")) {
+        if (indent != 0) {
+          throw "Incorrect indents: '$s' (indent = $indent).\n\n"
+              "${sb.toString()}";
+        }
+      } else {
+        if (indent <= 0) {
+          throw "Incorrect indents: '$s' (indent = $indent).\n\n"
+              "${sb.toString()}";
+        }
       }
     }
   }
@@ -431,6 +455,14 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
       doPrint("");
       doPrint("// Line ${location.line}: $sourceLine");
     }
+  }
+
+  bool checkEof(Token token) {
+    bool result = super.checkEof(token);
+    if (result) {
+      errors.add("WARNING: Reporting at eof --- see below for details.");
+    }
+    return result;
   }
 
   void handleRecoverableError(

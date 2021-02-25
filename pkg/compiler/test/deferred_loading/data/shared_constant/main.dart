@@ -2,6 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/*library: 
+ output_units=[f1: {units: [1{s1, s2}], usedBy: [], needs: []}],
+ steps=[
+  s1=(f1),
+  s2=(f1)]
+*/
+
 // @dart = 2.7
 
 /// Regression test for issue https://github.com/dart-lang/sdk/issues/31306.
@@ -13,7 +20,7 @@
 import 'lib_a.dart';
 import 'lib_b.dart';
 
-/*member: main:OutputUnit(main, {})*/
+/*member: main:member_unit=main{}*/
 main() async {
   (await doA()).method();
   await doB();

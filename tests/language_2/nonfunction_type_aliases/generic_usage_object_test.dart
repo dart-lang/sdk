@@ -30,13 +30,18 @@ abstract class C {
 
   C(): v12 = T();
   C.name1(this.v10, this.v12);
-  factory C.name2(T<C> arg1, T<Null> arg2) = C.name1;
+  factory C.name2(T<C> arg1, T<Null> arg2) = C1.name1;
 
   T<double> operator +(T<double> other);
   T<FutureOr<FutureOr<void>>> get g;
   set g(T<FutureOr<FutureOr<void>>> value);
   Map<T<C>, T<C>> m1(covariant T<C> arg1, [Set<Set<T<C>>> arg2]);
   void m2({T arg1, Map<T, T> arg2(T Function(T) arg21, T arg22)});
+}
+
+class C1 implements C {
+  C1.name1(T<C> arg1, T<Null> arg2);
+  noSuchMethod(Invocation invocation) => throw 0;
 }
 
 class D1<X> extends T<X> {}
@@ -47,9 +52,9 @@ extension E on T<dynamic> {
   T<dynamic> foo(T<dynamic> t) => t;
 }
 
-T<Type> Function(T<Type>) id;
-
 X foo<X>(X x) => x;
+
+T<Object> Function(T<Object>) id = (x) => x;
 
 main() {
   var v8 = <T<C>>[];
@@ -60,4 +65,5 @@ main() {
   v10 = v11;
   T<Null>();
   T<Object> v12 = foo<T<bool>>(T<bool>());
+  id(v12);
 }

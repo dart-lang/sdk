@@ -30,13 +30,14 @@ import 'dart:typed_data';
 import 'package:args/args.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:vm/kernel_front_end.dart'
     show runGlobalTransformations, ErrorDetector;
 import 'package:kernel/target/targets.dart' show TargetFlags, getTarget;
 import 'package:meta/meta.dart';
 import 'package:vm/target/install.dart' show installAdditionalTargets;
-import 'package:vm/transformations/protobuf_aware_treeshaker/transformer.dart'
-    as treeshaker;
+import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
+    show transformComponent;
 
 ArgResults parseArgs(List<String> args) {
   ArgParser argParser = ArgParser()
@@ -52,9 +53,6 @@ ArgResults parseArgs(List<String> args) {
         help: 'If set, produces kernel file for AOT compilation (enables '
             'global transformations). Otherwise, writes regular dill.',
         defaultsTo: false)
-    ..addFlag('gen-bytecode',
-        help:
-            'If true, the kernel file will be output in bytecode format. Defaults to true if --aot, false otherwise')
     ..addFlag('write-txt',
         help: 'Also write the result in kernel-text format as <out.dill>.txt',
         defaultsTo: false)
@@ -102,11 +100,6 @@ Future main(List<String> args) async {
   final input = argResults.rest[0];
   final output = argResults.rest[1];
 
-  final Map<String, String> environment = Map.fromIterable(
-      argResults['define'].map((x) => x.split('=')),
-      key: (x) => x[0],
-      value: (x) => x[1]);
-
   var bytes = File(input).readAsBytesSync();
   final platformFile = argResults['platform'];
   if (platformFile != null) {
@@ -122,31 +115,19 @@ Future main(List<String> args) async {
   if (argResults['aot']) {
     const bool useGlobalTypeFlowAnalysis = true;
     const bool enableAsserts = false;
-    const bool useProtobufAwareTreeShaker = true;
-    const bool useProtobufAwareTreeShakerV2 = false;
+    const bool useProtobufAwareTreeShakerV2 = true;
     final nopErrorDetector = ErrorDetector();
     runGlobalTransformations(
       target,
       component,
       useGlobalTypeFlowAnalysis,
       enableAsserts,
-      useProtobufAwareTreeShaker,
       useProtobufAwareTreeShakerV2,
       nopErrorDetector,
     );
   } else {
-    treeshaker.TransformationInfo info = treeshaker.transformComponent(
-        component, environment, target,
-        collectInfo: argResults['verbose']);
-
-    if (argResults['verbose']) {
-      for (String fieldName in info.removedMessageFields) {
-        print('Removed $fieldName');
-      }
-      for (Class removedClass in info.removedMessageClasses) {
-        print('Removed $removedClass');
-      }
-    }
+    globalTypeFlow.transformComponent(target, CoreTypes(component), component,
+        treeShakeProtobufs: true, treeShakeSignatures: false);
   }
 
   if (argResults['aot']) {

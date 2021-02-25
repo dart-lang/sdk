@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:kernel/kernel.dart' show Version;
 
 part 'experimental_flags_generated.dart';
@@ -42,15 +44,17 @@ class AllowedExperimentalFlags {
   }
 }
 
-/// Returns `true` if [flag] is enabled using global [experimentalFlags].
+/// Returns `true` if [flag] is enabled either by default or through
+/// [explicitExperimentalFlags].
 ///
-/// If [experimentalFlags] is `null` or doesn't contain [flag], the default
-/// value from [defaultExperimentalFlags] is returned.
+/// If [explicitExperimentalFlags] is `null` or doesn't contain [flag], the
+/// default value from [defaultExperimentalFlags] is returned.
 ///
 /// If [flag] is marked as expired in [expiredExperimentalFlags], the value from
 /// [defaultExperimentalFlags] is always returned.
 bool isExperimentEnabled(ExperimentalFlag flag,
-    {Map<ExperimentalFlag, bool> experimentalFlags}) {
+    {Map<ExperimentalFlag, bool> explicitExperimentalFlags,
+    Map<ExperimentalFlag, bool> defaultExperimentFlagsForTesting}) {
   assert(defaultExperimentalFlags.containsKey(flag),
       "No default value for $flag.");
   assert(expiredExperimentalFlags.containsKey(flag),
@@ -59,19 +63,22 @@ bool isExperimentEnabled(ExperimentalFlag flag,
     return defaultExperimentalFlags[flag];
   }
   bool enabled;
-  if (experimentalFlags != null) {
-    enabled = experimentalFlags[flag];
+  if (explicitExperimentalFlags != null) {
+    enabled = explicitExperimentalFlags[flag];
+  }
+  if (defaultExperimentFlagsForTesting != null) {
+    enabled ??= defaultExperimentFlagsForTesting[flag];
   }
   enabled ??= defaultExperimentalFlags[flag];
   return enabled;
 }
 
 /// Returns `true` if [flag] is enabled in the library with the [canonicalUri]
-/// either globally using [experimentalFlags] or per library using
+/// either globally using [explicitExperimentalFlags] or per library using
 /// [allowedExperimentalFlags].
 ///
-/// If [experimentalFlags] is `null` or doesn't contain [flag], the default
-/// value from [defaultExperimentalFlags] used as the global flag state.
+/// If [explicitExperimentalFlags] is `null` or doesn't contain [flag], the
+/// default value from [defaultExperimentalFlags] used as the global flag state.
 ///
 /// If [allowedExperimentalFlags] is `null` [defaultAllowedExperimentalFlags] is
 /// used for the per library flag state.
@@ -83,7 +90,8 @@ bool isExperimentEnabled(ExperimentalFlag flag,
 /// defines the identity of a library, for instance `dart:core`, `package:foo`,
 /// or `file:///path/dir/file.dart`.
 bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
-    {Map<ExperimentalFlag, bool> experimentalFlags,
+    {Map<ExperimentalFlag, bool> defaultExperimentFlagsForTesting,
+    Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     AllowedExperimentalFlags allowedExperimentalFlags}) {
   assert(defaultExperimentalFlags.containsKey(flag),
       "No default value for $flag.");
@@ -93,8 +101,11 @@ bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
     return defaultExperimentalFlags[flag];
   }
   bool enabled;
-  if (experimentalFlags != null) {
-    enabled = experimentalFlags[flag];
+  if (explicitExperimentalFlags != null) {
+    enabled = explicitExperimentalFlags[flag];
+  }
+  if (defaultExperimentFlagsForTesting != null) {
+    enabled ??= defaultExperimentFlagsForTesting[flag];
   }
   enabled ??= defaultExperimentalFlags[flag];
   if (!enabled) {
@@ -119,13 +130,55 @@ bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
   return enabled;
 }
 
-Version getExperimentEnabledVersion(ExperimentalFlag flag,
-    {Map<ExperimentalFlag, Version> experimentReleasedVersionForTesting}) {
-  Version version;
-  if (experimentReleasedVersionForTesting != null) {
-    version = experimentReleasedVersionForTesting[flag];
+/// Returns the version in which [flag] is enabled for the library with the
+/// [canonicalUri].
+Version getExperimentEnabledVersionInLibrary(ExperimentalFlag flag,
+    Uri canonicalUri, Map<ExperimentalFlag, bool> explicitExperimentalFlags,
+    {AllowedExperimentalFlags allowedExperimentalFlags,
+    Map<ExperimentalFlag, bool> defaultExperimentFlagsForTesting,
+    Map<ExperimentalFlag, Version> experimentEnabledVersionForTesting,
+    Map<ExperimentalFlag, Version> experimentReleasedVersionForTesting}) {
+  allowedExperimentalFlags ??= defaultAllowedExperimentalFlags;
+
+  Set<ExperimentalFlag> allowedFlags;
+  if (canonicalUri.scheme == 'dart') {
+    allowedFlags = allowedExperimentalFlags.forSdkLibrary(canonicalUri.path);
+  } else if (canonicalUri.scheme == 'package') {
+    int index = canonicalUri.path.indexOf('/');
+    String packageName;
+    if (index >= 0) {
+      packageName = canonicalUri.path.substring(0, index);
+    } else {
+      packageName = canonicalUri.path;
+    }
+    allowedFlags = allowedExperimentalFlags.forPackage(packageName);
   }
-  version ??= experimentReleasedVersion[flag];
-  assert(version != null, "No version for enabling $flag.");
+  Version version;
+  bool enabledByDefault;
+  if (defaultExperimentFlagsForTesting != null) {
+    enabledByDefault = defaultExperimentFlagsForTesting[flag];
+  }
+  enabledByDefault ??= defaultExperimentalFlags[flag];
+
+  bool enabledExplicitly = explicitExperimentalFlags[flag] ?? false;
+
+  if (!enabledByDefault ||
+      enabledExplicitly ||
+      (allowedFlags != null && allowedFlags.contains(flag))) {
+    // If the feature is not enabled by default or is enabled by the allowed
+    // list use the experiment release version.
+    if (experimentReleasedVersionForTesting != null) {
+      version = experimentReleasedVersionForTesting[flag];
+    }
+    version ??= experimentReleasedVersion[flag];
+  } else {
+    // If the feature is enabled by default and is not enabled by the allowed
+    // list use the enabled version.
+    if (experimentEnabledVersionForTesting != null) {
+      version = experimentEnabledVersionForTesting[flag];
+    }
+    version ??= experimentEnabledVersion[flag];
+  }
+  assert(version != null, "No version for enabling $flag in $canonicalUri.");
   return version;
 }

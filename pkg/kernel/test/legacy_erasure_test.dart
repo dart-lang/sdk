@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart" show Expect;
 
 import 'package:kernel/ast.dart' hide MapEntry;
@@ -54,11 +56,11 @@ const Map<String, String> data = {
 };
 
 main() {
-  Env env = new Env('');
+  Env env = new Env('', isNonNullableByDefault: true);
   data.forEach((String input, String output) {
     DartType inputType = env.parseType(input);
     DartType expectedOutputType = env.parseType(output);
-    DartType actualOutputType = legacyErasure(env.coreTypes, inputType);
+    DartType actualOutputType = legacyErasure(inputType);
     print('legacyErasure($inputType) = $actualOutputType: $expectedOutputType');
     Expect.equals(
         expectedOutputType,

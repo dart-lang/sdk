@@ -148,10 +148,9 @@ class _ClassMemberValidator {
         elementKind = ElementKind.METHOD;
 
   _ClassMemberValidator.forRename(
-      this.searchEngine, this.sessionHelper, Element element, this.name)
+      this.searchEngine, this.sessionHelper, this.element, this.name)
       : isRename = true,
         library = element.library,
-        element = element,
         elementClass = element.enclosingElement,
         elementKind = element.kind;
 

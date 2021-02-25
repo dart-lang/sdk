@@ -11,7 +11,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/task/inference_error.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'resolved_ast_printer.dart';
@@ -55,7 +56,7 @@ void checkElementText(
   bool withSyntheticAccessors = false,
   bool withSyntheticFields = false,
   bool withTypes = false,
-  bool annotateNullability = false,
+  bool withTypeParameterVariance = false,
 }) {
   var writer = _ElementWriter(
     selfUriStr: '${library.source.uri}',
@@ -67,7 +68,7 @@ void checkElementText(
     withSyntheticAccessors: withSyntheticAccessors,
     withSyntheticFields: withSyntheticFields,
     withTypes: withTypes,
-    annotateNullability: annotateNullability,
+    withTypeParameterVariance: withTypeParameterVariance,
   );
   writer.writeLibraryElement(library);
 
@@ -136,7 +137,7 @@ class _ElementWriter {
   final bool withSyntheticAccessors;
   final bool withSyntheticFields;
   final bool withTypes;
-  final bool annotateNullability;
+  final bool withTypeParameterVariance;
   final StringBuffer buffer = StringBuffer();
 
   String indent = '';
@@ -151,7 +152,7 @@ class _ElementWriter {
     this.withSyntheticAccessors = false,
     this.withSyntheticFields = false,
     this.withTypes = false,
-    this.annotateNullability = false,
+    this.withTypeParameterVariance,
   });
 
   bool isDynamicType(DartType type) => type is DynamicTypeImpl;
@@ -200,7 +201,7 @@ class _ElementWriter {
 
     writeName(e);
     writeCodeRange(e);
-    writeTypeParameterElements(e.typeParameters);
+    writeTypeParameterElements(e.typeParameters, withDefault: true);
 
     if (e.supertype != null && e.supertype.element.name != 'Object' ||
         e.mixins.isNotEmpty) {
@@ -300,16 +301,17 @@ class _ElementWriter {
     var initializers = (e as ConstructorElementImpl).constantInitializers;
     if (withFullyResolvedAst) {
       buffer.writeln(';');
-      if (initializers != null && initializers.isNotEmpty) {
-        _withIndent(() {
+      _withIndent(() {
+        if (initializers != null && initializers.isNotEmpty) {
           _writelnWithIndent('constantInitializers');
           _withIndent(() {
             for (var initializer in initializers) {
               _writeResolvedNode(initializer);
             }
           });
-        });
-      }
+        }
+        _writeParameterElementDefaultValues(e.parameters);
+      });
     } else {
       if (initializers != null) {
         writeList(' : ', '', initializers, ', ', writeNode);
@@ -365,7 +367,7 @@ class _ElementWriter {
     buffer.write('extension ');
     writeName(e);
     writeCodeRange(e);
-    writeTypeParameterElements(e.typeParameters);
+    writeTypeParameterElements(e.typeParameters, withDefault: false);
     if (e.extendedType != null) {
       buffer.write(' on ');
       writeType(e.extendedType);
@@ -400,39 +402,18 @@ class _ElementWriter {
     writeName(e);
     writeCodeRange(e);
 
-    writeTypeParameterElements(e.typeParameters);
+    writeTypeParameterElements(e.typeParameters, withDefault: false);
     writeParameterElements(e.parameters);
 
     writeBodyModifiers(e);
 
     buffer.writeln(' {}');
-  }
 
-  void writeFunctionTypeAliasElement(FunctionTypeAliasElement e) {
-    writeDocumentation(e);
-    writeMetadata(e, '', '\n');
-    writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
-
-    if (e is GenericTypeAliasElement) {
-      buffer.write('typedef ');
-      writeName(e);
-      writeCodeRange(e);
-      writeTypeParameterElements(e.typeParameters);
-
-      buffer.write(' = ');
-
-      var function = e.function;
-      if (function != null) {
-        writeType(function.returnType);
-        buffer.write(' Function');
-        writeTypeParameterElements(function.typeParameters);
-        writeParameterElements(function.parameters);
-      } else {
-        buffer.write('<null>');
-      }
+    if (withFullyResolvedAst) {
+      _withIndent(() {
+        _writeParameterElementDefaultValues(e.parameters);
+      });
     }
-
-    buffer.writeln(';');
   }
 
   void writeIf(bool flag, String str) {
@@ -460,6 +441,12 @@ class _ElementWriter {
       e.combinators.forEach(writeNamespaceCombinator);
 
       buffer.writeln(';');
+
+      if (withFullyResolvedAst) {
+        _withIndent(() {
+          _writeResolvedMetadata(e.metadata);
+        });
+      }
     }
   }
 
@@ -535,7 +522,7 @@ class _ElementWriter {
     writeCodeRange(e);
     writeTypeInferenceError(e);
 
-    writeTypeParameterElements(e.typeParameters);
+    writeTypeParameterElements(e.typeParameters, withDefault: false);
     writeParameterElements(e.parameters);
 
     writeBodyModifiers(e);
@@ -550,6 +537,7 @@ class _ElementWriter {
       _withIndent(() {
         _writeResolvedTypeParameters(e.typeParameters);
         _writeResolvedMetadata(e.metadata);
+        _writeParameterElementDefaultValues(e.parameters);
       });
     }
   }
@@ -600,6 +588,10 @@ class _ElementWriter {
         writeList('(', ')', e.arguments.arguments, ', ', writeNode,
             includeEmpty: true);
       }
+    } else if (e is AsExpression) {
+      writeNode(e.expression);
+      buffer.write(' as ');
+      writeNode(e.type);
     } else if (e is AssertInitializer) {
       buffer.write('assert(');
       writeNode(e.condition);
@@ -664,6 +656,10 @@ class _ElementWriter {
       buffer.write(r'}');
     } else if (e is InterpolationString) {
       buffer.write(e.value.replaceAll("'", r"\'"));
+    } else if (e is IsExpression) {
+      writeNode(e.expression);
+      buffer.write(e.notOperator == null ? ' is ' : ' is! ');
+      writeNode(e.type);
     } else if (e is ListLiteral) {
       if (e.constKeyword != null) {
         buffer.write('const ');
@@ -840,15 +836,17 @@ class _ElementWriter {
     writeName(e);
     writeCodeRange(e);
 
-    if (e.parameters.isNotEmpty) {
-      buffer.write('/*');
-      writeList('(', ')', e.parameters, ', ', writeParameterElement);
-      buffer.write('*/');
-    }
+    if (!withFullyResolvedAst) {
+      if (e.parameters.isNotEmpty) {
+        buffer.write('/*');
+        writeList('(', ')', e.parameters, ', ', writeParameterElement);
+        buffer.write('*/');
+      }
 
-    if (defaultValue != null) {
-      buffer.write(defaultValueSeparator);
-      writeNode(defaultValue);
+      if (defaultValue != null) {
+        buffer.write(defaultValueSeparator);
+        writeNode(defaultValue);
+      }
     }
 
     buffer.write(closeString);
@@ -1025,6 +1023,32 @@ class _ElementWriter {
     buffer.write(' ');
   }
 
+  void writeTypeAliasElement(TypeAliasElement e) {
+    writeDocumentation(e);
+    writeMetadata(e, '', '\n');
+    writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
+
+    buffer.write('typedef ');
+    writeName(e);
+    writeCodeRange(e);
+    writeTypeParameterElements(e.typeParameters, withDefault: true);
+
+    buffer.write(' = ');
+
+    var aliasedElement = e.aliasedElement;
+    if (aliasedElement is GenericFunctionTypeElement) {
+      writeType(aliasedElement.returnType);
+      buffer.write(' Function');
+      writeTypeParameterElements(aliasedElement.typeParameters,
+          withDefault: false);
+      writeParameterElements(aliasedElement.parameters);
+    } else {
+      writeType(e.aliasedType);
+    }
+
+    buffer.writeln(';');
+  }
+
   void writeTypeInferenceError(Element e) {
     TopLevelInferenceError inferenceError;
     if (e is MethodElementImpl) {
@@ -1042,30 +1066,45 @@ class _ElementWriter {
     }
   }
 
-  void writeTypeParameterElement(TypeParameterElement e) {
+  void writeTypeParameterElement(
+    TypeParameterElement e, {
+    @required bool withDefault,
+  }) {
+    var impl = e as TypeParameterElementImpl;
+
     writeMetadata(e, '', '\n');
+
     // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
     // variance is added to the interface.
-    if (!(e as TypeParameterElementImpl).isLegacyCovariant) {
-      buffer.write(
-          (e as TypeParameterElementImpl).variance.toKeywordString() + ' ');
+    if (withTypeParameterVariance) {
+      var variance = impl.variance;
+      buffer.write(variance.toString() + ' ');
     }
+
     writeName(e);
     writeCodeRange(e);
     if (e.bound != null && !e.bound.isDartCoreObject) {
       buffer.write(' extends ');
       writeType(e.bound);
     }
-    // TODO(scheglov) print the default type
-//    if (e is TypeParameterElementImpl && e.defaultType != null) {
-//      buffer.write(' = ');
-//      writeType(e.defaultType);
-//    }
+
+    if (withDefault) {
+      var defaultType = impl.defaultType;
+      if (defaultType is! DynamicTypeImpl) {
+        buffer.write(' = ');
+        writeType(defaultType);
+      }
+    }
   }
 
-  void writeTypeParameterElements(List<TypeParameterElement> elements) {
+  void writeTypeParameterElements(
+    List<TypeParameterElement> elements, {
+    @required bool withDefault,
+  }) {
     if (!withFullyResolvedAst) {
-      writeList('<', '>', elements, ', ', writeTypeParameterElement);
+      writeList('<', '>', elements, ', ', (e) {
+        writeTypeParameterElement(e, withDefault: withDefault);
+      });
     }
   }
 
@@ -1075,7 +1114,7 @@ class _ElementWriter {
       buffer.writeln('unit: ${e.source?.shortName}');
       buffer.writeln();
     }
-    e.functionTypeAliases.forEach(writeFunctionTypeAliasElement);
+    e.typeAliases.forEach(writeTypeAliasElement);
     e.enums.forEach(writeClassElement);
     e.types.forEach(writeClassElement);
     e.mixins.forEach(writeClassElement);
@@ -1143,7 +1182,7 @@ class _ElementWriter {
 
   String _typeStr(DartType type) {
     return type?.getDisplayString(
-      withNullability: annotateNullability,
+      withNullability: true,
     );
   }
 
@@ -1165,6 +1204,30 @@ class _ElementWriter {
     buffer.writeln(line);
   }
 
+  void _writeParameterElementDefaultValues(
+    List<ParameterElement> parameters, {
+    String enclosingNames = '',
+  }) {
+    for (var parameter in parameters) {
+      if (parameter is DefaultParameterElementImpl) {
+        var defaultValue = parameter.constantInitializer;
+        if (defaultValue != null) {
+          _writelnWithIndent(enclosingNames + parameter.name);
+          _withIndent(() {
+            _writeResolvedNode(defaultValue);
+          });
+        }
+      }
+      var subParameters = parameter.parameters;
+      _withIndent(() {
+        _writeParameterElementDefaultValues(
+          subParameters,
+          enclosingNames: enclosingNames + parameter.name + '::',
+        );
+      });
+    }
+  }
+
   void _writeResolvedMetadata(List<ElementAnnotation> metadata) {
     if (metadata.isNotEmpty) {
       _writelnWithIndent('metadata');
@@ -1183,6 +1246,7 @@ class _ElementWriter {
         selfUriStr: selfUriStr,
         sink: buffer,
         indent: indent,
+        withNullability: true,
       ),
     );
   }

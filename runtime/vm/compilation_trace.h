@@ -67,7 +67,7 @@ class CompilationTraceLoader : public ValueObject {
 
 class TypeFeedbackSaver : public FunctionVisitor {
  public:
-  explicit TypeFeedbackSaver(WriteStream* stream);
+  explicit TypeFeedbackSaver(BaseWriteStream* stream);
 
   void WriteHeader();
   void SaveClasses();
@@ -79,7 +79,7 @@ class TypeFeedbackSaver : public FunctionVisitor {
   void WriteString(const String& value);
   void WriteInt(intptr_t value) { stream_->Write(static_cast<int32_t>(value)); }
 
-  WriteStream* const stream_;
+  BaseWriteStream* const stream_;
   Class& cls_;
   Library& lib_;
   String& str_;
@@ -102,7 +102,8 @@ class TypeFeedbackLoader : public ValueObject {
   ObjectPtr LoadClasses();
   ObjectPtr LoadFields();
   ObjectPtr LoadFunction();
-  FunctionPtr FindFunction(FunctionLayout::Kind kind, intptr_t token_pos);
+  FunctionPtr FindFunction(UntaggedFunction::Kind kind,
+                           const TokenPosition& token_pos);
 
   ClassPtr ReadClassByName();
   StringPtr ReadString();

@@ -125,7 +125,6 @@ static const char* kSnapshotKindNames[] = {
   V(compile_all, compile_all)                                                  \
   V(help, help)                                                                \
   V(obfuscate, obfuscate)                                                      \
-  V(read_all_bytecode, read_all_bytecode)                                      \
   V(strip, strip)                                                              \
   V(verbose, verbose)                                                          \
   V(version, version)
@@ -210,15 +209,11 @@ static int ParseArguments(int argc,
                           char** argv,
                           CommandLineOptions* vm_options,
                           CommandLineOptions* inputs) {
-  const char* kPrefix = "-";
-  const intptr_t kPrefixLen = strlen(kPrefix);
-
   // Skip the binary name.
   int i = 1;
 
   // Parse out the vm options.
-  while ((i < argc) &&
-         OptionProcessor::IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
+  while ((i < argc) && OptionProcessor::IsValidShortFlag(argv[i])) {
     if (OptionProcessor::TryProcess(argv[i], vm_options)) {
       i += 1;
       continue;
@@ -390,13 +385,6 @@ static void MaybeLoadExtraInputs(const CommandLineOptions& inputs) {
 }
 
 static void MaybeLoadCode() {
-  if (read_all_bytecode &&
-      ((snapshot_kind == kCore) || (snapshot_kind == kCoreJIT) ||
-       (snapshot_kind == kApp) || (snapshot_kind == kAppJIT))) {
-    Dart_Handle result = Dart_ReadAllBytecode();
-    CHECK_RESULT(result);
-  }
-
   if (compile_all &&
       ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
     Dart_Handle result = Dart_CompileAll();
@@ -446,7 +434,8 @@ static void CreateAndWriteCoreSnapshot() {
   // First create a snapshot.
   result = Dart_CreateSnapshot(&vm_snapshot_data_buffer, &vm_snapshot_data_size,
                                &isolate_snapshot_data_buffer,
-                               &isolate_snapshot_data_size);
+                               &isolate_snapshot_data_size,
+                               /*is_core=*/true);
   CHECK_RESULT(result);
 
   // Now write the vm isolate and isolate snapshots out to the
@@ -539,7 +528,7 @@ static void CreateAndWriteAppSnapshot() {
   intptr_t isolate_snapshot_data_size = 0;
 
   result = Dart_CreateSnapshot(NULL, NULL, &isolate_snapshot_data_buffer,
-                               &isolate_snapshot_data_size);
+                               &isolate_snapshot_data_size, /*is_core=*/false);
   CHECK_RESULT(result);
 
   WriteFile(isolate_snapshot_data_filename, isolate_snapshot_data_buffer,
@@ -644,7 +633,7 @@ static void NextLoadingUnit(void* callback_data,
                             const char* main_filename,
                             const char* suffix) {
   char* filename = loading_unit_id == 1
-                       ? strdup(main_filename)
+                       ? Utils::StrDup(main_filename)
                        : Utils::SCreate("%s-%" Pd ".part.%s", main_filename,
                                         loading_unit_id, suffix);
   File* file = OpenFile(filename);
@@ -653,7 +642,7 @@ static void NextLoadingUnit(void* callback_data,
   if (debugging_info_filename != nullptr) {
     char* debug_filename =
         loading_unit_id == 1
-            ? strdup(debugging_info_filename)
+            ? Utils::StrDup(debugging_info_filename)
             : Utils::SCreate("%s-%" Pd ".part.so", debugging_info_filename,
                              loading_unit_id);
     File* debug_file = OpenFile(debug_filename);
@@ -770,10 +759,6 @@ static void CreateAndWritePrecompiledSnapshot() {
   }
 }
 
-static Dart_QualifiedFunctionName no_entry_points[] = {
-    {NULL, NULL, NULL}  // Must be terminated with NULL entries.
-};
-
 static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
   uint8_t* kernel_buffer = NULL;
   intptr_t kernel_buffer_size = 0;
@@ -786,7 +771,6 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
                             kernel_buffer, kernel_buffer_size);
   if (IsSnapshottingForPrecompilation()) {
     isolate_flags.obfuscate = obfuscate;
-    isolate_flags.entry_points = no_entry_points;
   }
 
   auto isolate_group_data = std::unique_ptr<IsolateGroupData>(

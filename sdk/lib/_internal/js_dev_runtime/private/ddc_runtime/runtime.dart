@@ -11,13 +11,14 @@ import 'dart:collection';
 import 'dart:_debugger' show stackTraceMapper, trackCall;
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
 import 'dart:_interceptors' show JSArray, jsNull, JSFunction, NativeError;
-import 'dart:_internal' as internal show Symbol;
+import 'dart:_internal' as internal show LateError, Symbol;
 import 'dart:_js_helper'
     show
         AssertionErrorImpl,
         BooleanConversionAssertionError,
         CastErrorImpl,
         DartIterator,
+        DeferredNotLoadedError,
         TypeErrorImpl,
         JsLinkedHashMap,
         ImmutableMap,
@@ -179,8 +180,8 @@ final List<Object> _cacheMaps = JS('!', '[]');
 /// A list of functions to reset static fields back to their uninitialized
 /// state.
 ///
-/// This is populated by [defineLazyField], and only contains the list of fields
-/// that have actually been initialized.
+/// This is populated by [defineLazyField] and [LazyJSType] and only contains
+/// fields that have been initialized.
 @notNull
 final List<void Function()> _resetFields = JS('', '[]');
 
@@ -204,6 +205,7 @@ void hotRestart() {
   _cacheMaps.clear();
   JS('', '#.clear()', _nullComparisonSet);
   JS('', '#.clear()', constantMaps);
+  JS('', '#.clear()', deferredImports);
 }
 
 /// Marks enqueuing an async operation.

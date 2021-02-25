@@ -2,19 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.incremental_compiler;
 
-import 'dart:async' show Future;
-
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/base/nnbd_mode.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart';
+import 'package:front_end/src/fasta/source/source_loader.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
         CanonicalNameError,
         CanonicalNameSdkError,
         CompilationModeError,
+        InvalidKernelSdkVersionError,
         InvalidKernelVersionError,
-        SubComponentView;
+        SubComponentView,
+        mergeCompilationModeOrThrow;
 
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy;
@@ -58,6 +64,8 @@ import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 import 'builder/builder.dart' show Builder;
 
 import 'builder/class_builder.dart' show ClassBuilder;
+
+import 'builder/field_builder.dart' show FieldBuilder;
 
 import 'builder/library_builder.dart' show LibraryBuilder;
 
@@ -125,7 +133,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   final CompilerContext context;
 
   final Ticker ticker;
-
+  final bool resetTicker;
   final bool outlineOnly;
   bool trackNeededDillLibraries = false;
   Set<Library> neededDillLibraries;
@@ -160,6 +168,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       this.context, this.componentToInitializeFrom,
       [bool outlineOnly, this.incrementalSerializer])
       : ticker = context.options.ticker,
+        resetTicker = true,
         initializeFromDillUri = null,
         this.outlineOnly = outlineOnly ?? false,
         this.initializedForExpressionCompilationOnly = false {
@@ -171,6 +180,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       bool outlineOnly,
       this.incrementalSerializer])
       : ticker = context.options.ticker,
+        resetTicker = true,
         componentToInitializeFrom = null,
         this.outlineOnly = outlineOnly ?? false,
         this.initializedForExpressionCompilationOnly = false {
@@ -178,8 +188,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   IncrementalCompiler.forExpressionCompilationOnly(
-      this.context, this.componentToInitializeFrom)
+      this.context, this.componentToInitializeFrom,
+      [bool resetTicker])
       : ticker = context.options.ticker,
+        this.resetTicker = resetTicker ?? true,
         initializeFromDillUri = null,
         this.outlineOnly = false,
         this.incrementalSerializer = null,
@@ -201,7 +213,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   @override
   Future<Component> computeDelta(
       {List<Uri> entryPoints, bool fullComponent: false}) async {
-    ticker.reset();
+    if (resetTicker) {
+      ticker.reset();
+    }
     entryPoints ??= context.options.inputs;
     return context.runInContext<Component>((CompilerContext c) async {
       if (computeDeltaRunOnce && initializedForExpressionCompilationOnly) {
@@ -218,7 +232,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Set<Uri> invalidatedUris = this.invalidatedUris.toSet();
       invalidateNotKeptUserBuilders(invalidatedUris);
       ReusageResult reusedResult =
-          computeReusedLibraries(invalidatedUris, uriTranslator);
+          computeReusedLibraries(invalidatedUris, uriTranslator, entryPoints);
+
+      // Use the reused libraries to re-write entry-points.
+      if (reusedResult.arePartsUsedAsEntryPoints()) {
+        for (int i = 0; i < entryPoints.length; i++) {
+          Uri entryPoint = entryPoints[i];
+          Uri redirect =
+              reusedResult.getLibraryUriForPartUsedAsEntryPoint(entryPoint);
+          if (redirect != null) {
+            entryPoints[i] = redirect;
+          }
+        }
+      }
 
       // Experimental invalidation initialization (e.g. figure out if we can).
       ExperimentalInvalidation experimentalInvalidation =
@@ -381,6 +407,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // We suppress finalization errors because they have already been
       // reported.
       await dillLoadedData.buildOutlines(suppressFinalizationErrors: true);
+      assert(_checkEquivalentScopes(
+          userCode.loader.builders, dillLoadedData.loader.builders));
 
       if (experimentalInvalidation != null) {
         /// If doing experimental invalidation that means that some of the old
@@ -425,6 +453,80 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return newDillLibraryBuilders;
   }
 
+  bool _checkEquivalentScopes(Map<Uri, LibraryBuilder> sourceLibraries,
+      Map<Uri, LibraryBuilder> dillLibraries) {
+    sourceLibraries.forEach((Uri uri, LibraryBuilder sourceLibraryBuilder) {
+      if (sourceLibraryBuilder is SourceLibraryBuilder) {
+        DillLibraryBuilder dillLibraryBuilder = dillLibraries[uri];
+        assert(
+            _hasEquivalentScopes(sourceLibraryBuilder, dillLibraryBuilder) ==
+                null,
+            _hasEquivalentScopes(sourceLibraryBuilder, dillLibraryBuilder));
+      }
+    });
+    return true;
+  }
+
+  String _hasEquivalentScopes(SourceLibraryBuilder sourceLibraryBuilder,
+      DillLibraryBuilder dillLibraryBuilder) {
+    bool isEquivalent = true;
+    StringBuffer sb = new StringBuffer();
+    sb.writeln('Mismatch on ${sourceLibraryBuilder.importUri}:');
+    sourceLibraryBuilder.exportScope
+        .forEachLocalMember((String name, Builder sourceBuilder) {
+      Builder dillBuilder =
+          dillLibraryBuilder.exportScope.lookupLocalMember(name, setter: false);
+      if (dillBuilder == null) {
+        if ((name == 'dynamic' || name == 'Never') &&
+            sourceLibraryBuilder.importUri == Uri.parse('dart:core')) {
+          // The source library builder for dart:core has synthetically
+          // injected builders for `dynamic` and `Never` which do not have
+          // corresponding classes in the AST.
+          return;
+        }
+        sb.writeln('No dill builder for ${name}: $sourceBuilder');
+        isEquivalent = false;
+      }
+    });
+    dillLibraryBuilder.exportScope
+        .forEachLocalMember((String name, Builder dillBuilder) {
+      Builder sourceBuilder = sourceLibraryBuilder.exportScope
+          .lookupLocalMember(name, setter: false);
+      if (sourceBuilder == null) {
+        sb.writeln('No source builder for ${name}: $dillBuilder');
+        isEquivalent = false;
+      }
+    });
+    sourceLibraryBuilder.exportScope
+        .forEachLocalSetter((String name, Builder sourceBuilder) {
+      Builder dillBuilder =
+          dillLibraryBuilder.exportScope.lookupLocalMember(name, setter: true);
+      if (dillBuilder == null) {
+        sb.writeln('No dill builder for ${name}=: $sourceBuilder');
+        isEquivalent = false;
+      }
+    });
+    dillLibraryBuilder.exportScope
+        .forEachLocalSetter((String name, Builder dillBuilder) {
+      Builder sourceBuilder = sourceLibraryBuilder.exportScope
+          .lookupLocalMember(name, setter: true);
+      if (sourceBuilder == null) {
+        sourceBuilder = sourceLibraryBuilder.exportScope
+            .lookupLocalMember(name, setter: false);
+        if (sourceBuilder is FieldBuilder && sourceBuilder.isAssignable) {
+          // Assignable fields can be lowered into a getter and setter.
+          return;
+        }
+        sb.writeln('No source builder for ${name}=: $dillBuilder');
+        isEquivalent = false;
+      }
+    });
+    if (isEquivalent) {
+      return null;
+    }
+    return sb.toString();
+  }
+
   /// Compute which libraries to output and which (previous) errors/warnings we
   /// have to reissue. In the process do some cleanup too.
   List<Library> calculateOutputLibrariesAndIssueLibraryProblems(
@@ -449,7 +551,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
     } else {
-      outputLibraries = new List<Library>();
+      outputLibraries = <Library>[];
       allLibraries = computeTransitiveClosure(
               compiledLibraries,
               entryPoints,
@@ -696,11 +798,47 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     dillLoadedData.loader.currentSourceLoader = userCode.loader;
 
     // Re-use the libraries we've deemed re-usable.
+    List<bool> seenModes = [false, false, false, false];
     for (LibraryBuilder library in reusedLibraries) {
+      seenModes[library.library.nonNullableByDefaultCompiledMode.index] = true;
       userCode.loader.builders[library.importUri] = library;
       if (library.importUri.scheme == "dart" &&
           library.importUri.path == "core") {
         userCode.loader.coreLibrary = library;
+      }
+    }
+    // Check compilation mode up against what we've seen here and set
+    // `hasInvalidNnbdModeLibrary` accordingly.
+    if (c.options.isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+      switch (c.options.nnbdMode) {
+        case NnbdMode.Weak:
+          // Don't expect strong or invalid.
+          if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
+              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
+            userCode.loader.hasInvalidNnbdModeLibrary = true;
+          }
+          break;
+        case NnbdMode.Strong:
+          // Don't expect weak or invalid.
+          if (seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
+              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
+            userCode.loader.hasInvalidNnbdModeLibrary = true;
+          }
+          break;
+        case NnbdMode.Agnostic:
+          // Don't expect strong, weak or invalid.
+          if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
+              seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
+              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
+            userCode.loader.hasInvalidNnbdModeLibrary = true;
+          }
+          break;
+      }
+    } else {
+      // Don't expect strong or invalid.
+      if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
+          seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
+        userCode.loader.hasInvalidNnbdModeLibrary = true;
       }
     }
 
@@ -771,7 +909,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       ExperimentalInvalidation experimentalInvalidation,
       ReusageResult reusedResult) {
     if (hierarchy != null) {
-      List<Library> removedLibraries = new List<Library>();
+      List<Library> removedLibraries = <Library>[];
       // TODO(jensj): For now remove all the original from the class hierarchy
       // to avoid the class hierarchy getting confused.
       if (experimentalInvalidation != null) {
@@ -825,8 +963,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       ReusageResult reusedResult, UriTranslator uriTranslator) {
     bool removedDillBuilders = false;
     for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
-      cleanupSourcesForBuilder(
-          builder, uriTranslator, CompilerContext.current.uriToSource);
+      cleanupSourcesForBuilder(reusedResult, builder, uriTranslator,
+          CompilerContext.current.uriToSource);
       incrementalSerializer?.invalidate(builder.fileUri);
 
       LibraryBuilder dillBuilder =
@@ -865,8 +1003,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     // Figure out if the file(s) have changed outline, or we can just
     // rebuild the bodies.
-    for (int i = 0; i < reusedResult.directlyInvalidated.length; i++) {
-      LibraryBuilder builder = reusedResult.directlyInvalidated[i];
+    for (LibraryBuilder builder in reusedResult.directlyInvalidated) {
       if (builder.library.problemsAsJson != null) {
         assert(builder.library.problemsAsJson.isNotEmpty);
         return null;
@@ -1008,6 +1145,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
 
             if (e is InvalidKernelVersionError ||
+                e is InvalidKernelSdkVersionError ||
                 e is PackageChangedError ||
                 e is CanonicalNameSdkError ||
                 e is CompilationModeError) {
@@ -1107,7 +1245,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (hierarchy is ClosedWorldClassHierarchy && !hierarchy.allBetsOff) {
       neededDillLibraries ??= new Set<Library>();
       Set<Class> classes = new Set<Class>();
-      List<Class> worklist = new List<Class>();
+      List<Class> worklist = <Class>[];
       // Get all classes touched by kernel class hierarchy.
       List<Class> usedClasses = hierarchy.getUsedClasses();
       worklist.addAll(usedClasses);
@@ -1255,27 +1393,44 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     // Report old problems that wasn't reported again.
-    for (List<DiagnosticMessageFromJson> messages
-        in remainingComponentProblems.values) {
+    Set<Uri> strongModeNNBDPackageOptOutUris;
+    for (MapEntry<Uri, List<DiagnosticMessageFromJson>> entry
+        in remainingComponentProblems.entries) {
+      List<DiagnosticMessageFromJson> messages = entry.value;
       for (int i = 0; i < messages.length; i++) {
         DiagnosticMessageFromJson message = messages[i];
+        if (message.codeName == "StrongModeNNBDPackageOptOut") {
+          // Special case this: Don't issue them here; instead collect them
+          // to get their uris and re-issue a new error.
+          strongModeNNBDPackageOptOutUris ??= {};
+          strongModeNNBDPackageOptOutUris.add(entry.key);
+          continue;
+        }
         if (issuedProblems.add(message.toJsonString())) {
           context.options.reportDiagnosticMessage(message);
         }
       }
     }
+    if (strongModeNNBDPackageOptOutUris != null) {
+      // Get the builders for these uris; then call
+      // `SourceLoader.giveCombinedErrorForNonStrongLibraries` on them to issue
+      // a new error.
+      Set<LibraryBuilder> builders = {};
+      SourceLoader loader = userCode.loader;
+      for (LibraryBuilder builder in loader.builders.values) {
+        if (strongModeNNBDPackageOptOutUris.contains(builder.fileUri)) {
+          builders.add(builder);
+        }
+      }
+      FormattedMessage message = loader.giveCombinedErrorForNonStrongLibraries(
+          builders,
+          emitNonPackageErrors: false);
+      issuedProblems.add(message.toJsonString());
+      // The problem was issued by the call so don't re-issue it here.
+    }
 
     // Save any new component-problems.
-    if (componentWithDill?.problemsAsJson != null) {
-      for (String jsonString in componentWithDill.problemsAsJson) {
-        DiagnosticMessageFromJson message =
-            new DiagnosticMessageFromJson.fromJson(jsonString);
-        List<DiagnosticMessageFromJson> messages =
-            remainingComponentProblems[message.uri] ??=
-                new List<DiagnosticMessageFromJson>();
-        messages.add(message);
-      }
-    }
+    _addProblemsAsJsonToRemainingProblems(componentWithDill?.problemsAsJson);
     return new List<String>.from(issuedProblems);
   }
 
@@ -1299,18 +1454,26 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// any saved component problems for such builders.
   List<Library> computeTransitiveClosure(
       List<Library> inputLibraries,
-      List<Uri> entries,
+      List<Uri> entryPoints,
       List<LibraryBuilder> reusedLibraries,
       ClassHierarchy hierarchy,
       UriTranslator uriTranslator,
       Map<Uri, Source> uriToSource,
       [List<Library> inputLibrariesFiltered]) {
-    List<Library> result = new List<Library>();
+    List<Library> result = <Library>[];
+    Map<Uri, Uri> partUriToLibraryImportUri = <Uri, Uri>{};
     Map<Uri, Library> libraryMap = <Uri, Library>{};
     Map<Uri, Library> potentiallyReferencedLibraries = <Uri, Library>{};
     Map<Uri, Library> potentiallyReferencedInputLibraries = <Uri, Library>{};
     for (Library library in inputLibraries) {
       libraryMap[library.importUri] = library;
+      if (library.parts.isNotEmpty) {
+        for (int partIndex = 0; partIndex < library.parts.length; partIndex++) {
+          LibraryPart part = library.parts[partIndex];
+          Uri partUri = getPartUri(library.importUri, part);
+          partUriToLibraryImportUri[partUri] = library.importUri;
+        }
+      }
       if (library.importUri.scheme == "dart") {
         result.add(library);
         inputLibrariesFiltered?.add(library);
@@ -1319,9 +1482,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         potentiallyReferencedInputLibraries[library.importUri] = library;
       }
     }
-
-    List<Uri> worklist = new List<Uri>();
-    worklist.addAll(entries);
     for (LibraryBuilder libraryBuilder in reusedLibraries) {
       if (libraryBuilder.importUri.scheme == "dart" &&
           !libraryBuilder.isSynthetic) {
@@ -1330,6 +1490,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Library lib = libraryBuilder.library;
       potentiallyReferencedLibraries[libraryBuilder.importUri] = lib;
       libraryMap[libraryBuilder.importUri] = lib;
+    }
+
+    List<Uri> worklist = <Uri>[];
+    for (Uri entry in entryPoints) {
+      if (libraryMap.containsKey(entry)) {
+        worklist.add(entry);
+      } else {
+        // If the entry is a part redirect to the "main" entry.
+        Uri partTranslation = partUriToLibraryImportUri[entry];
+        if (partTranslation != null) {
+          worklist.add(partTranslation);
+        }
+      }
     }
 
     LibraryGraph graph = new LibraryGraph(libraryMap);
@@ -1352,12 +1525,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 getPartFileUri(library.fileUri, part, uriTranslator);
             partsUsed.add(partFileUri);
           }
-          partsUsed;
         }
       }
     }
 
-    List<Library> removedLibraries = new List<Library>();
+    List<Library> removedLibraries = <Library>[];
     bool removedDillBuilders = false;
     for (Uri uri in potentiallyReferencedLibraries.keys) {
       if (uri.scheme == "package") continue;
@@ -1368,7 +1540,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (dillLoadedData.loader.builders.remove(uri) != null) {
           removedDillBuilders = true;
         }
-        cleanupSourcesForBuilder(builder, uriTranslator,
+        cleanupSourcesForBuilder(null, builder, uriTranslator,
             CompilerContext.current.uriToSource, uriToSource, partsUsed);
         userBuilders?.remove(uri);
         removeLibraryFromRemainingComponentProblems(
@@ -1403,15 +1575,43 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// [partsUsed] indicates part uris that are used by (other/alive) libraries.
   /// Those parts will not be cleaned up. This is useful when a part has been
   /// "moved" to be part of another library.
-  void cleanupSourcesForBuilder(LibraryBuilder builder,
-      UriTranslator uriTranslator, Map<Uri, Source> uriToSource,
-      [Map<Uri, Source> uriToSourceExtra, Set<Uri> partsUsed]) {
+  void cleanupSourcesForBuilder(
+      ReusageResult reusedResult,
+      LibraryBuilder builder,
+      UriTranslator uriTranslator,
+      Map<Uri, Source> uriToSource,
+      [Map<Uri, Source> uriToSourceExtra,
+      Set<Uri> partsUsed]) {
     uriToSource.remove(builder.fileUri);
     uriToSourceExtra?.remove(builder.fileUri);
     Library lib = builder.library;
     for (LibraryPart part in lib.parts) {
       Uri partFileUri = getPartFileUri(lib.fileUri, part, uriTranslator);
       if (partsUsed != null && partsUsed.contains(partFileUri)) continue;
+
+      // If the builders map contain the "parts" import uri, it's a real library
+      // (erroneously) used as a part so we don't want to remove that.
+      if (userCode?.loader != null) {
+        Uri partImportUri = uriToSource[partFileUri]?.importUri;
+        if (partImportUri != null &&
+            userCode.loader.builders.containsKey(partImportUri)) {
+          continue;
+        }
+      } else if (reusedResult != null) {
+        // We've just launched and don't have userCode yet. Search reusedResult
+        // for a kept library with this uri.
+        bool found = false;
+        for (int i = 0; i < reusedResult.reusedLibraries.length; i++) {
+          LibraryBuilder reusedLibrary = reusedResult.reusedLibraries[i];
+          if (reusedLibrary.fileUri == partFileUri) {
+            found = true;
+            break;
+          }
+        }
+        if (found) {
+          continue;
+        }
+      }
       uriToSource.remove(partFileUri);
       uriToSourceExtra?.remove(partFileUri);
     }
@@ -1473,8 +1673,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             .readComponent(data.component,
                 checkCanonicalNames: true, createView: true);
 
+        // Compute "output nnbd mode".
+        NonNullableByDefaultCompiledMode compiledMode;
+        if (c.options
+            .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+          switch (c.options.nnbdMode) {
+            case NnbdMode.Weak:
+              compiledMode = NonNullableByDefaultCompiledMode.Weak;
+              break;
+            case NnbdMode.Strong:
+              compiledMode = NonNullableByDefaultCompiledMode.Strong;
+              break;
+            case NnbdMode.Agnostic:
+              compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
+              break;
+          }
+        } else {
+          compiledMode = NonNullableByDefaultCompiledMode.Weak;
+        }
+
         // Check the any package-urls still point to the same file
         // (e.g. the package still exists and hasn't been updated).
+        // Also verify NNBD settings.
         for (Library lib in data.component.libraries) {
           if (lib.importUri.scheme == "package" &&
               uriTranslator.translate(lib.importUri, false) != lib.fileUri) {
@@ -1484,6 +1704,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             // TODO(jensj): Anything that doesn't depend on it can be kept.
             // For now just don't initialize from this dill.
             throw const PackageChangedError();
+          }
+          // Note: If a library has a NonNullableByDefaultCompiledMode.invalid
+          // we will throw and we won't initialize from it.
+          // That's wanted behavior.
+          if (compiledMode !=
+              mergeCompilationModeOrThrow(
+                  compiledMode, lib.nonNullableByDefaultCompiledMode)) {
+            throw new CompilationModeError(
+                "Can't compile to $compiledMode with library with mode "
+                "${lib.nonNullableByDefaultCompiledMode}.");
           }
         }
 
@@ -1503,14 +1733,36 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Internal method.
   void saveComponentProblems(IncrementalCompilerData data) {
-    if (data.component.problemsAsJson != null) {
-      for (String jsonString in data.component.problemsAsJson) {
+    List<String> problemsAsJson = data.component.problemsAsJson;
+    _addProblemsAsJsonToRemainingProblems(problemsAsJson);
+  }
+
+  void _addProblemsAsJsonToRemainingProblems(List<String> problemsAsJson) {
+    if (problemsAsJson != null) {
+      for (String jsonString in problemsAsJson) {
         DiagnosticMessageFromJson message =
             new DiagnosticMessageFromJson.fromJson(jsonString);
-        List<DiagnosticMessageFromJson> messages =
-            remainingComponentProblems[message.uri] ??=
-                new List<DiagnosticMessageFromJson>();
-        messages.add(message);
+        assert(message.uri != null ||
+            (message.involvedFiles != null &&
+                message.involvedFiles.isNotEmpty));
+        if (message.uri != null) {
+          List<DiagnosticMessageFromJson> messages =
+              remainingComponentProblems[message.uri] ??=
+                  <DiagnosticMessageFromJson>[];
+          messages.add(message);
+        }
+        if (message.involvedFiles != null) {
+          // This indexes the same message under several uris - this way it will
+          // be issued as long as it's a problem. It will because of
+          // deduplication when we re-issue these (in reissueComponentProblems)
+          // only be reported once.
+          for (Uri uri in message.involvedFiles) {
+            List<DiagnosticMessageFromJson> messages =
+                remainingComponentProblems[uri] ??=
+                    <DiagnosticMessageFromJson>[];
+            messages.add(message);
+          }
+        }
       }
     }
   }
@@ -1570,6 +1822,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return await context.runInContext((_) async {
       LibraryBuilder libraryBuilder =
           userCode.loader.read(libraryUri, -1, accessor: userCode.loader.first);
+      ticker.logMs("Loaded library $libraryUri");
 
       Class cls;
       if (className != null) {
@@ -1581,10 +1834,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       userCode.loader.seenMessages.clear();
 
       for (TypeParameter typeParam in typeDefinitions) {
-        if (!isLegalIdentifier(typeParam.name)) return null;
+        if (!isLegalIdentifier(typeParam.name)) {
+          userCode.loader.addProblem(
+              templateIncrementalCompilerIllegalTypeParameter
+                  .withArguments('$typeParam'),
+              typeParam.fileOffset,
+              0,
+              libraryUri);
+          return null;
+        }
       }
       for (String name in definitions.keys) {
-        if (!isLegalIdentifier(name)) return null;
+        if (!isLegalIdentifier(name)) {
+          userCode.loader.addProblem(
+              templateIncrementalCompilerIllegalParameter.withArguments(name),
+              // TODO: pass variable declarations instead of
+              // parameter names for proper location detection.
+              // https://github.com/dart-lang/sdk/issues/44158
+              -1,
+              -1,
+              libraryUri);
+          return null;
+        }
       }
 
       SourceLibraryBuilder debugLibrary = new SourceLibraryBuilder(
@@ -1597,6 +1868,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         nameOrigin: libraryBuilder.library,
       );
       debugLibrary.setLanguageVersion(libraryBuilder.library.languageVersion);
+      ticker.logMs("Created debug library");
 
       if (libraryBuilder is DillLibraryBuilder) {
         for (LibraryDependency dependency
@@ -1629,16 +1901,23 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
 
         debugLibrary.addImportsToScope();
+        ticker.logMs("Added imports");
       }
 
       HybridFileSystem hfs = userCode.fileSystem;
       MemoryFileSystem fs = hfs.memory;
       fs.entityForUri(debugExprUri).writeAsStringSync(expression);
 
+      // TODO: pass variable declarations instead of
+      // parameter names for proper location detection.
+      // https://github.com/dart-lang/sdk/issues/44158
       FunctionNode parameters = new FunctionNode(null,
           typeParameters: typeDefinitions,
           positionalParameters: definitions.keys
-              .map((name) => new VariableDeclarationImpl(name, 0))
+              .map((name) =>
+                  new VariableDeclarationImpl(name, 0, type: definitions[name])
+                    ..fileOffset =
+                        cls?.fileOffset ?? libraryBuilder.library.fileOffset)
               .toList());
 
       debugLibrary.build(userCode.loader.coreLibrary, modifyTarget: false);
@@ -1662,6 +1941,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Make sure the library has a canonical name.
       Component c = new Component(libraries: [debugLibrary.library]);
       c.computeCanonicalNames();
+      ticker.logMs("Built debug library");
 
       userCode.runProcedureTransformations(procedure);
 
@@ -1680,8 +1960,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   /// Internal method.
-  ReusageResult computeReusedLibraries(
-      Set<Uri> invalidatedUris, UriTranslator uriTranslator) {
+  ReusageResult computeReusedLibraries(Set<Uri> invalidatedUris,
+      UriTranslator uriTranslator, List<Uri> entryPoints) {
     Set<Uri> seenUris = new Set<Uri>();
     List<LibraryBuilder> reusedLibraries = <LibraryBuilder>[];
     for (int i = 0; i < platformBuilders.length; i++) {
@@ -1690,14 +1970,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       reusedLibraries.add(builder);
     }
     if (userCode == null && userBuilders == null) {
-      return new ReusageResult({}, [], false, reusedLibraries);
+      return new ReusageResult.reusedLibrariesOnly(reusedLibraries);
     }
     bool invalidatedBecauseOfPackageUpdate = false;
-    List<LibraryBuilder> directlyInvalidated = new List<LibraryBuilder>();
+    Set<LibraryBuilder> directlyInvalidated = new Set<LibraryBuilder>();
     Set<LibraryBuilder> notReusedLibraries = new Set<LibraryBuilder>();
 
     // Maps all non-platform LibraryBuilders from their import URI.
     Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
+    Map<Uri, LibraryBuilder> partUriToParent = <Uri, LibraryBuilder>{};
 
     // Invalidated URIs translated back to their import URI (package:, dart:,
     // etc.).
@@ -1741,7 +2022,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         invalidatedImportUris.add(uri);
       }
       if (libraryBuilder is SourceLibraryBuilder) {
+        // TODO(jensj): This shouldn't be possible anymore.
         for (LibraryBuilder part in libraryBuilder.parts) {
+          partUriToParent[part.importUri] = libraryBuilder;
+          partUriToParent[part.fileUri] = libraryBuilder;
           if (isInvalidated(part.importUri, part.fileUri)) {
             invalidatedImportUris.add(part.importUri);
             builders[part.importUri] = part;
@@ -1752,10 +2036,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           Uri partUri = getPartUri(libraryBuilder.importUri, part);
           Uri fileUri = getPartFileUri(
               libraryBuilder.library.fileUri, part, uriTranslator);
+          partUriToParent[partUri] = libraryBuilder;
+          partUriToParent[fileUri] = libraryBuilder;
 
           if (isInvalidated(partUri, fileUri)) {
             invalidatedImportUris.add(partUri);
-            builders[partUri] = libraryBuilder;
+            if (builders[partUri] == null) {
+              // Only add if entry doesn't already exist.
+              // For good cases it shouldn't exist, but if one library claims
+              // another library is a part (when it's not) we don't want to
+              // overwrite the real library builder.
+              builders[partUri] = libraryBuilder;
+            }
           }
         }
       }
@@ -1824,8 +2116,21 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       reusedLibraries.add(builder);
     }
 
-    return new ReusageResult(notReusedLibraries, directlyInvalidated,
-        invalidatedBecauseOfPackageUpdate, reusedLibraries);
+    ReusageResult result = new ReusageResult(
+        notReusedLibraries,
+        directlyInvalidated,
+        invalidatedBecauseOfPackageUpdate,
+        reusedLibraries);
+
+    for (Uri entryPoint in entryPoints) {
+      LibraryBuilder parent = partUriToParent[entryPoint];
+      if (reusedLibraries.contains(parent)) {
+        result.registerLibraryUriForPartUsedAsEntryPoint(
+            entryPoint, parent.importUri);
+      }
+    }
+
+    return result;
   }
 
   @override
@@ -1896,16 +2201,35 @@ class IncrementalCompilerData {
 
 class ReusageResult {
   final Set<LibraryBuilder> notReusedLibraries;
-  final List<LibraryBuilder> directlyInvalidated;
+  final Set<LibraryBuilder> directlyInvalidated;
   final bool invalidatedBecauseOfPackageUpdate;
   final List<LibraryBuilder> reusedLibraries;
+  final Map<Uri, Uri> _reusedLibrariesPartsToParentForEntryPoints;
+
+  ReusageResult.reusedLibrariesOnly(this.reusedLibraries)
+      : notReusedLibraries = const {},
+        directlyInvalidated = const {},
+        invalidatedBecauseOfPackageUpdate = false,
+        _reusedLibrariesPartsToParentForEntryPoints = const {};
 
   ReusageResult(this.notReusedLibraries, this.directlyInvalidated,
       this.invalidatedBecauseOfPackageUpdate, this.reusedLibraries)
-      : assert(notReusedLibraries != null),
+      : _reusedLibrariesPartsToParentForEntryPoints = {},
+        assert(notReusedLibraries != null),
         assert(directlyInvalidated != null),
         assert(invalidatedBecauseOfPackageUpdate != null),
         assert(reusedLibraries != null);
+
+  void registerLibraryUriForPartUsedAsEntryPoint(
+      Uri entryPoint, Uri importUri) {
+    _reusedLibrariesPartsToParentForEntryPoints[entryPoint] = importUri;
+  }
+
+  bool arePartsUsedAsEntryPoints() =>
+      _reusedLibrariesPartsToParentForEntryPoints.isNotEmpty;
+
+  Uri getLibraryUriForPartUsedAsEntryPoint(Uri entryPoint) =>
+      _reusedLibrariesPartsToParentForEntryPoints[entryPoint];
 }
 
 class ExperimentalInvalidation {

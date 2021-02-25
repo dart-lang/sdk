@@ -3,8 +3,11 @@ class C {
   void set setter(String v) {}
   void operator []=(int index, String value) {}
 }
-extension on ;
-C;
-? { void set setter(String v) { this?.m = v; } void operator []=(int index, String value) { this?.m = '$index$value'; } }
+
+extension on C? {
+  void set setter(String v) {}
+  void operator []=(int index, String value) {}
+}
+
 main() {}
 expect(expected, actual) {}

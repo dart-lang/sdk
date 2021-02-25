@@ -13,7 +13,8 @@ import 'code_actions_assists_test.dart' as code_actions_assists;
 import 'code_actions_fixes_test.dart' as code_actions_fixes;
 import 'code_actions_refactor_test.dart' as code_actions_refactor;
 import 'code_actions_source_test.dart' as code_actions_source;
-import 'completion_test.dart' as completion;
+import 'completion_dart_test.dart' as completion_dart;
+import 'completion_yaml_test.dart' as completion_yaml;
 import 'configuration_test.dart' as configuration;
 import 'definition_test.dart' as definition;
 import 'diagnostic_test.dart' as diagnostic;
@@ -33,9 +34,11 @@ import 'priority_files_test.dart' as priority_files;
 import 'reanalyze_test.dart' as reanalyze;
 import 'references_test.dart' as references;
 import 'rename_test.dart' as rename;
+import 'semantic_tokens_test.dart' as semantic_tokens;
 import 'server_test.dart' as server;
 import 'signature_help_test.dart' as signature_help;
 import 'super_test.dart' as get_super;
+import 'will_rename_files_test.dart' as will_rename_files;
 import 'workspace_symbols_test.dart' as workspace_symbols;
 
 void main() {
@@ -48,7 +51,8 @@ void main() {
     code_actions_fixes.main();
     code_actions_source.main();
     code_actions_refactor.main();
-    completion.main();
+    completion_dart.main();
+    completion_yaml.main();
     configuration.main();
     definition.main();
     diagnostic.main();
@@ -70,8 +74,10 @@ void main() {
     reanalyze.main();
     references.main();
     rename.main();
+    semantic_tokens.main();
     server.main();
     signature_help.main();
+    will_rename_files.main();
     workspace_symbols.main();
   }, name: 'lsp');
 }

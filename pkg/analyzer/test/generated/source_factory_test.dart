@@ -21,12 +21,6 @@ main() {
   });
 }
 
-Source createSource({String path, String uri}) =>
-    //TODO(pquitslund): find some way to pass an actual URI into source creation
-    MemoryResourceProvider()
-        .getFile(path)
-        .createSource(uri != null ? Uri.parse(uri) : null);
-
 class AbsoluteUriResolver extends UriResolver {
   final MemoryResourceProvider resourceProvider;
 
@@ -38,15 +32,6 @@ class AbsoluteUriResolver extends UriResolver {
         resourceProvider.getFile(resourceProvider.pathContext.fromUri(uri)),
         actualUri);
   }
-}
-
-class CustomUriResolver extends UriResolver {
-  String uriPath;
-  CustomUriResolver({this.uriPath});
-
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) =>
-      createSource(path: uriPath);
 }
 
 @reflectiveTest

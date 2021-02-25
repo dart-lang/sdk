@@ -91,17 +91,17 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get nullNone {
     var element = typeProvider.nullType.element;
-    return interfaceTypeNone(element);
+    return interfaceTypeNone(element) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl get nullQuestion {
     var element = typeProvider.nullType.element;
-    return interfaceTypeQuestion(element);
+    return interfaceTypeQuestion(element) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl get nullStar {
     var element = typeProvider.nullType.element;
-    return interfaceTypeStar(element);
+    return interfaceTypeStar(element) as InterfaceTypeImpl;
   }
 
   InterfaceType get numNone {
@@ -151,7 +151,7 @@ mixin ElementsTypesMixin {
 
   LibraryElementImpl get testLibrary => null;
 
-  TypeProvider get typeProvider;
+  TypeProvider /*!*/ get typeProvider;
 
   VoidTypeImpl get voidNone => VoidTypeImpl.instance;
 
@@ -215,17 +215,6 @@ mixin ElementsTypesMixin {
     );
   }
 
-  FunctionType functionTypeAliasType(
-    FunctionTypeAliasElement element, {
-    List<DartType> typeArguments = const [],
-    NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
-  }) {
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
   FunctionTypeImpl functionTypeNone({
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
@@ -269,45 +258,45 @@ mixin ElementsTypesMixin {
     return typeProvider.futureElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.none,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl futureOrNone(DartType type) {
     return typeProvider.futureOrElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.none,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl futureOrQuestion(DartType type) {
     return typeProvider.futureOrElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl futureOrStar(DartType type) {
     return typeProvider.futureOrElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.star,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl futureQuestion(DartType type) {
     return typeProvider.futureElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl futureStar(DartType type) {
     return typeProvider.futureElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.star,
-    );
+    ) as InterfaceTypeImpl;
   }
 
-  DartType futureType(DartType T) {
+  InterfaceType futureType(DartType T) {
     var futureElement = typeProvider.futureElement;
     return interfaceTypeStar(futureElement, typeArguments: [T]);
   }
@@ -322,16 +311,6 @@ mixin ElementsTypesMixin {
     result.parameters = parameters;
     result.returnType = returnType ?? typeProvider.voidType;
     return result;
-  }
-
-  GenericTypeAliasElementImpl genericTypeAlias({
-    @required String name,
-    List<TypeParameterElement> typeParameters = const [],
-    @required GenericFunctionTypeElement function,
-  }) {
-    return GenericTypeAliasElementImpl(name, 0)
-      ..typeParameters = typeParameters
-      ..function = function;
   }
 
   InterfaceType interfaceType(
@@ -399,8 +378,8 @@ mixin ElementsTypesMixin {
   LibraryElementImpl library_({
     @required String uriStr,
     @required TypeSystemImpl typeSystem,
-    AnalysisContext analysisContext,
-    AnalysisSessionImpl analysisSession,
+    @required AnalysisContext analysisContext,
+    @required AnalysisSessionImpl analysisSession,
   }) {
     var library = LibraryElementImpl(
       analysisContext,
@@ -593,6 +572,17 @@ mixin ElementsTypesMixin {
     parameter.type = type;
     parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
+  }
+
+  TypeAliasElementImpl typeAlias({
+    @required String name,
+    @required List<TypeParameterElement> typeParameters,
+    @required DartType aliasedType,
+  }) {
+    var element = TypeAliasElementImpl(name, 0);
+    element.typeParameters = typeParameters;
+    element.aliasedType = aliasedType;
+    return element;
   }
 
   TypeParameterElementImpl typeParameter(String name,

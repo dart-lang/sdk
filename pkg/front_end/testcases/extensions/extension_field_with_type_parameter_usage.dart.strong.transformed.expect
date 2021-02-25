@@ -82,18 +82,18 @@ extension E<U extends core::Object* = dynamic> on core::String* {
   field field7 = self::E|field7;
 }
 static field invalid-type E|field1 = null;
-static field core::int* E|field2 = (() → core::Null? {
+static field core::int* E|field2 = (() → Null {
   invalid-type x = null;
   return null;
 }).call();
 static field core::List<invalid-type>* E|field3 = null;
 static field (invalid-type) →* invalid-type E|field4 = null;
 static field (core::List<invalid-type>*) →* core::List<invalid-type>* E|field5 = null;
-static field core::int* E|field6 = (<E extends core::Object* = dynamic>() → core::Null? {
+static field core::int* E|field6 = (<E extends core::Object* = dynamic>() → Null {
   E* x = null;
   return null;
 }).call<core::String*>();
-static field core::int* E|field7 = (<E extends core::Object* = dynamic>() → core::Null? {
+static field core::int* E|field7 = (<E extends core::Object* = dynamic>() → Null {
   E* x = null;
   return null;
 }).call<invalid-type>();

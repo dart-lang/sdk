@@ -1,0 +1,230 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:27:3: Error: Only static fields can be declared as const.
+// Try using 'final' instead of 'const', or adding the keyword 'static'.
+//   const bool initialized =
+//   ^^^^^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:22:25: Error: 'lib' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.
+// Try moving the constant from the deferred library, or removing 'deferred' from the import.
+//
+// const fromDeferredLib = lib.x;
+//                         ^^^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:14:30: Warning: Operand of null-aware operation '??' has type 'bool' which excludes null.
+// const bool nullAwareOnNull = barFromEnvOrNull ?? true;
+//                              ^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
+//  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
+//   const Class.method(T t) : this(-t);
+//                                  ^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:123:27: Error: The parameter 'named' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// int procedure(int i, {int named}) => i;
+//                           ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "various_lib.dart" as var;
+import "dart:_internal" as _in;
+
+import "org-dartlang-testcase:///various_lib.dart" deferred as lib;
+
+typedef F = (core::int, {named: core::int}) → core::int;
+class Foo<E extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::bool saved;
+  final field core::bool saved2;
+  field core::bool initialized;
+  final field self::Foo::E% value;
+  const constructor •(self::Foo::E% value, {core::bool saved2 = const core::bool::fromEnvironment("foo", defaultValue: self::barFromEnv), core::bool x = const core::bool::fromEnvironment("foo", defaultValue: self::barFromEnv)}) → self::Foo<self::Foo::E%>
+    : self::Foo::value = value, self::Foo::saved2 = saved2, self::Foo::saved = x, super core::Object::•()
+    ;
+}
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+  operator unary-() → self::A
+    ;
+}
+class B extends core::Object implements self::A /*hasConstConstructor*/  {
+  const constructor •() → self::B
+    : super core::Object::•()
+    ;
+  operator unary-() → self::B
+    ;
+}
+class C extends core::Object implements self::A /*hasConstConstructor*/  {
+  const constructor •() → self::C
+    : super core::Object::•()
+    ;
+  operator unary-() → self::C
+    ;
+}
+class Class<T extends self::A = self::A> extends core::Object /*hasConstConstructor*/  {
+  const constructor •(self::Class::T t) → self::Class<self::Class::T>
+    : super core::Object::•()
+    ;
+  const constructor redirect(dynamic t) → self::Class<self::Class::T>
+    : this self::Class::•(t as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class::T)
+    ;
+  const constructor method(self::Class::T t) → self::Class<self::Class::T>
+    : this self::Class::•(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
+ - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
+  const Class.method(T t) : this(-t);
+                                 ^" in t.{self::A::unary-}(){() → self::A} as{TypeError,ForNonNullableByDefault} <BottomType>)
+    ;
+}
+class Subclass<T extends self::A = self::A> extends self::Class<self::Subclass::T> /*hasConstConstructor*/  {
+  const constructor •(dynamic t) → self::Subclass<self::Subclass::T>
+    : super self::Class::•(t as{TypeError,ForDynamic,ForNonNullableByDefault} self::Subclass::T)
+    ;
+}
+class ConstClassWithF extends core::Object /*hasConstConstructor*/  {
+  final field (core::int, {named: core::int}) → core::int foo;
+  const constructor •((core::int, {named: core::int}) → core::int foo) → self::ConstClassWithF
+    : self::ConstClassWithF::foo = foo, super core::Object::•()
+    ;
+}
+static const field core::bool barFromEnv = const core::bool::fromEnvironment("bar");
+static const field core::bool hasBarEnv = const core::bool::hasEnvironment("bar");
+static const field core::bool? barFromEnvOrNull0 = const core::bool::fromEnvironment("bar") ?{core::bool?} true : null;
+static const field core::bool barFromEnvOrNull = const core::bool::fromEnvironment("bar", defaultValue: self::barFromEnvOrNull0!);
+static const field core::bool notBarFromEnvOrNull = !self::barFromEnvOrNull;
+static const field core::bool conditionalOnNull = self::barFromEnvOrNull ?{core::bool} true : false;
+static const field core::bool nullAwareOnNull = let final core::bool #t2 = self::barFromEnvOrNull in #t2 == null ?{core::bool} true : #t2;
+static const field core::bool andOnNull = self::barFromEnvOrNull && true;
+static const field core::bool andOnNull2 = true && self::barFromEnvOrNull;
+static const field core::bool orOnNull = self::barFromEnvOrNull || true;
+static const field core::bool orOnNull2 = self::barFromEnvOrNull || false;
+static const field core::bool orOnNull3 = true || self::barFromEnvOrNull;
+static const field core::bool orOnNull4 = false || self::barFromEnvOrNull;
+static const field core::int fromDeferredLib = let final dynamic #t3 = CheckLibraryIsLoaded(lib) in var::x;
+static const field self::Foo<core::int> x = const self::Foo::•<core::int>(42);
+static const field core::bool? y = true;
+static const field core::bool z = !self::y!;
+static const field core::Object maybeInt = const core::bool::fromEnvironment("foo") ?{core::Object} 42 : true;
+static const field core::bool isItInt = self::maybeInt is{ForNonNullableByDefault} core::int ?{core::bool} true : false;
+static const field core::Object maybeInt2 = self::z ?{core::Object} 42 : true;
+static const field core::bool isItInt2 = self::maybeInt2 is{ForNonNullableByDefault} core::int ?{core::bool} true : false;
+static const field core::int? maybeInt3 = self::z ?{core::int?} 42 : null;
+static const field core::bool isItInt3 = self::maybeInt3 is{ForNonNullableByDefault} core::int ?{core::bool} true : false;
+static const field dynamic listOfNull = const <Null>[null];
+static const field core::bool isListOfNull = self::listOfNull is{ForNonNullableByDefault} core::List<Null>;
+static const field dynamic listOfInt = const <core::int>[42];
+static const field core::bool isListOfInt = self::listOfInt is{ForNonNullableByDefault} core::List<core::int>;
+static const field core::bool isList = self::listOfInt is{ForNonNullableByDefault} core::List<dynamic>;
+static const field dynamic setOfInt = const <core::int>{42};
+static const field core::bool isSetOfInt = self::setOfInt is{ForNonNullableByDefault} core::Set<core::int>;
+static const field dynamic mapOfInt = const <core::int, core::int>{42: 42};
+static const field core::bool isMapOfInt = self::mapOfInt is{ForNonNullableByDefault} core::Map<core::int, core::int>;
+static const field dynamic listOfListOfInt = const <core::List<core::int>>[const <core::int>[42]];
+static const field core::bool isListOfListOfInt = self::listOfListOfInt is{ForNonNullableByDefault} core::List<core::List<core::int>>;
+static const field dynamic setOfSetOfInt = const <core::Set<core::int>>{const <core::int>{42}};
+static const field core::bool isSetOfSetOfInt = self::setOfSetOfInt is{ForNonNullableByDefault} core::Set<core::Set<core::int>>;
+static const field dynamic mapOfMapOfInt1 = const <core::Map<core::int, core::int>, core::int>{const <core::int, core::int>{42: 42}: 42};
+static const field dynamic mapOfMapOfInt2 = const <core::int, core::Map<core::int, core::int>>{42: const <core::int, core::int>{42: 42}};
+static const field core::bool isMapOfMapOfInt1 = self::mapOfMapOfInt1 is{ForNonNullableByDefault} core::Map<core::Map<core::int, core::int>, core::int>;
+static const field core::bool isMapOfMapOfInt2 = self::mapOfMapOfInt2 is{ForNonNullableByDefault} core::Map<core::int, core::Map<core::int, core::int>>;
+static const field core::Symbol symbolWithUnevaluatedParameter = const _in::Symbol::•(const core::String::fromEnvironment("foo"));
+static const field core::Symbol symbolWithInvalidName = const _in::Symbol::•("42");
+static const field self::Class<self::B>? c0 = const core::bool::fromEnvironment("x") ?{self::Class<self::B>?} null : const self::Class::redirect<self::B>(const self::C::•());
+static const field self::Class<self::A>? c1 = const core::bool::fromEnvironment("x") ?{self::Class<self::A>?} null : const self::Class::method<self::A>(const self::A::•());
+static const field self::Subclass<self::B>? c2 = const core::bool::fromEnvironment("x") ?{self::Subclass<self::B>?} null : const self::Subclass::•<self::B>(const self::C::•());
+static const field self::Class<self::A>? c3 = const core::bool::fromEnvironment("x") ?{self::Class<self::A>?} null : const self::Class::•<self::A>(const self::A::•());
+static const field self::Class<self::B>? c4 = const core::bool::fromEnvironment("x") ?{self::Class<self::B>?} null : const self::Class::redirect<self::B>(const self::B::•());
+static const field self::Subclass<self::A>? c5 = const core::bool::fromEnvironment("x") ?{self::Subclass<self::A>?} null : const self::Subclass::•<self::A>(const self::A::•());
+static const field self::Subclass<self::B>? c6 = const core::bool::fromEnvironment("x") ?{self::Subclass<self::B>?} null : const self::Subclass::•<self::B>(const self::B::•());
+static const field core::Type f = (core::int, {named: core::int}) → core::int;
+static field self::ConstClassWithF constClassWithF1;
+static const field self::ConstClassWithF constClassWithF2 = const self::ConstClassWithF::•(self::procedure);
+static const field core::bool unevaluatedBool = const core::bool::fromEnvironment("foo");
+static const field core::bool notUnevaluatedBool = !self::unevaluatedBool;
+static const field core::bool? unevaluatedBoolOrNull = const core::bool::fromEnvironment("bar") ?{core::bool?} self::unevaluatedBool : null;
+static const field core::bool unevaluatedBoolNotNull = self::unevaluatedBoolOrNull!;
+static method procedure(core::int i, {core::int named}) → core::int
+  ;
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as var;
+import "dart:core" as core;
+
+static const field core::int x = 42;
+
+
+Extra constant evaluation status:
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:32:27 -> BoolConstant(false)
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:32:69 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:33:21 -> BoolConstant(false)
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:33:63 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:7:31 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:8:30 -> BoolConstant(false)
+Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:9:67 -> NullConstant(null)
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:9:39 -> BoolConstant(false)
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:11:53 -> NullConstant(null)
+Evaluated: LogicalExpression @ org-dartlang-testcase:///various.dart:19:29 -> BoolConstant(true)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:22:29 -> IntConstant(42)
+Evaluated with empty environment: ConstructorInvocation @ org-dartlang-testcase:///various.dart:37:17 -> InstanceConstant(const Foo<int>{Foo.saved: false, Foo.saved2: false, Foo.initialized: null, Foo.value: 42})
+Evaluated: Not @ org-dartlang-testcase:///various.dart:40:16 -> BoolConstant(false)
+Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:42:46 -> BoolConstant(true)
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:42:23 -> BoolConstant(false)
+Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:43:38 -> BoolConstant(false)
+Evaluated with empty environment: IsExpression @ org-dartlang-testcase:///various.dart:43:31 -> BoolConstant(false)
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:43:22 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:44:21 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:45:40 -> BoolConstant(false)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:46:21 -> NullConstant(null)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:47:40 -> BoolConstant(false)
+Evaluated: ListLiteral @ org-dartlang-testcase:///various.dart:49:28 -> ListConstant(const <Null>[null])
+Evaluated: IsExpression @ org-dartlang-testcase:///various.dart:50:38 -> BoolConstant(true)
+Evaluated: ListLiteral @ org-dartlang-testcase:///various.dart:51:27 -> ListConstant(const <int>[42])
+Evaluated: IsExpression @ org-dartlang-testcase:///various.dart:52:36 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///various.dart:53:31 -> BoolConstant(true)
+Evaluated: SetLiteral @ org-dartlang-testcase:///various.dart:54:26 -> SetConstant(const <int>{42})
+Evaluated: IsExpression @ org-dartlang-testcase:///various.dart:55:34 -> BoolConstant(true)
+Evaluated: MapLiteral @ org-dartlang-testcase:///various.dart:56:26 -> MapConstant(const <int, int>{42: 42})
+Evaluated: IsExpression @ org-dartlang-testcase:///various.dart:57:34 -> BoolConstant(true)
+Evaluated: ListLiteral @ org-dartlang-testcase:///various.dart:58:33 -> ListConstant(const <List<int>>[const <int>[42]])
+Evaluated: IsExpression @ org-dartlang-testcase:///various.dart:61:48 -> BoolConstant(true)
+Evaluated: SetLiteral @ org-dartlang-testcase:///various.dart:62:31 -> SetConstant(const <Set<int>>{const <int>{42}})
+Evaluated: IsExpression @ org-dartlang-testcase:///various.dart:65:44 -> BoolConstant(true)
+Evaluated: MapLiteral @ org-dartlang-testcase:///various.dart:66:32 -> MapConstant(const <Map<int, int>, int>{const <int, int>{42: 42}: 42})
+Evaluated: MapLiteral @ org-dartlang-testcase:///various.dart:69:32 -> MapConstant(const <int, Map<int, int>>{42: const <int, int>{42: 42}})
+Evaluated: IsExpression @ org-dartlang-testcase:///various.dart:72:46 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///various.dart:73:46 -> BoolConstant(true)
+Evaluated with empty environment: ConstructorInvocation @ org-dartlang-testcase:///various.dart:76:11 -> SymbolConstant(#)
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:76:25 -> StringConstant("")
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:107:17 -> BoolConstant(false)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:107:71 -> InstanceConstant(const C{})
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:108:17 -> BoolConstant(false)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:108:69 -> InstanceConstant(const A{})
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:109:17 -> BoolConstant(false)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:109:65 -> InstanceConstant(const C{})
+Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:110:38 -> InstanceConstant(const Class<A>{})
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:110:17 -> BoolConstant(false)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:110:53 -> InstanceConstant(const Class<A>{})
+Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:111:38 -> InstanceConstant(const Class<B>{})
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:111:17 -> BoolConstant(false)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:111:53 -> InstanceConstant(const Class<B>{})
+Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:112:38 -> InstanceConstant(const Subclass<A>{})
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:112:17 -> BoolConstant(false)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:112:53 -> InstanceConstant(const Subclass<A>{})
+Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:113:38 -> InstanceConstant(const Subclass<B>{})
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:113:17 -> BoolConstant(false)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:113:53 -> InstanceConstant(const Subclass<B>{})
+Evaluated: TypeLiteral @ org-dartlang-testcase:///various.dart:116:11 -> TypeLiteralConstant(int Function(int, {named: int}))
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:125:48 -> InstanceConstant(const ConstClassWithF{ConstClassWithF.foo: procedure})
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:127:35 -> BoolConstant(false)
+Evaluated with empty environment: Not @ org-dartlang-testcase:///various.dart:128:33 -> BoolConstant(true)
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:128:34 -> BoolConstant(false)
+Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various.dart:130:33 -> NullConstant(null)
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:130:10 -> BoolConstant(false)
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:130:35 -> BoolConstant(false)
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:131:37 -> NullConstant(null)
+Extra constant evaluation: evaluated: 112, effectively constant: 68

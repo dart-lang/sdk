@@ -1,9 +1,8 @@
 library;
 import self as self;
-import "dart:core" as core;
 
 import "dart:async";
 
-static get foo() → FutureOr<core::Null?>*
+static get foo() → FutureOr<Null>*
   return null;
 static method main() → dynamic {}

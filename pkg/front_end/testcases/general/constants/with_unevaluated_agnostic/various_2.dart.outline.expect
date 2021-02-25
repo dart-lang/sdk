@@ -1,0 +1,133 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "various_2_lib.dart" as var;
+
+import "org-dartlang-testcase:///various_2_lib.dart" as lib;
+
+typedef F1<invariant T extends core::Object? = dynamic> = (T%) → T%;
+typedef F2 = <T extends core::Object? = dynamic>(T%) → T%;
+static const field core::Type objectTypeLiteral = core::Object;
+static const field (core::int) → core::int partialInstantiation = var::id1<core::int>;
+static const field var::Class<core::int> instance = const var::Class::•<core::int>(0);
+static const field var::Class<dynamic> instance2 = const var::Class::•<dynamic>(const <core::int>[42]);
+static const field core::Type functionTypeLiteral = (dynamic) → dynamic;
+static const field core::Type genericFunctionTypeLiteral = <T extends core::Object? = dynamic>(T%) → T%;
+static const field core::List<core::int> listLiteral = const <core::int>[0];
+static const field core::List<dynamic> listLiteral2 = const <dynamic>[const <core::int>[42]];
+static const field core::Set<core::int> setLiteral = const <core::int>{0};
+static const field core::Set<dynamic> setLiteral2 = const <dynamic>{const <core::int>[42]};
+static const field core::Map<core::int, core::String> mapLiteral = const <core::int, core::String>{0: "foo"};
+static const field core::Map<dynamic, dynamic> mapLiteral2 = const <dynamic, dynamic>{const <core::int>[42]: "foo", null: const <core::int>[42]};
+static const field core::List<core::int> listConcatenation = self::listLiteral;
+static const field core::Set<core::int> setConcatenation = self::setLiteral;
+static const field core::Map<core::int, core::String> mapConcatenation = self::mapLiteral;
+static const field core::bool objectTypeLiteralIdentical = core::identical(self::objectTypeLiteral, var::objectTypeLiteral);
+static const field core::bool partialInstantiationIdentical = core::identical(self::partialInstantiation, var::partialInstantiation);
+static const field core::bool instanceIdentical = core::identical(self::instance, var::instance);
+static const field core::bool instance2Identical = core::identical(self::instance2, var::instance2);
+static const field core::bool functionTypeLiteralIdentical = core::identical(self::functionTypeLiteral, var::functionTypeLiteral);
+static const field core::bool genericFunctionTypeLiteralIdentical = core::identical(self::genericFunctionTypeLiteral, var::genericFunctionTypeLiteral);
+static const field core::bool listLiteralIdentical = core::identical(self::listLiteral, var::listLiteral);
+static const field core::bool listLiteral2Identical = core::identical(self::listLiteral2, var::listLiteral2);
+static const field core::bool setLiteralIdentical = core::identical(self::setLiteral, var::setLiteral);
+static const field core::bool setLiteral2Identical = core::identical(self::setLiteral2, var::setLiteral2);
+static const field core::bool mapLiteralIdentical = core::identical(self::mapLiteral, var::mapLiteral);
+static const field core::bool mapLiteral2Identical = core::identical(self::mapLiteral2, var::mapLiteral2);
+static const field core::bool listConcatenationIdentical = core::identical(self::listConcatenation, var::listConcatenation);
+static const field core::bool setConcatenationIdentical = core::identical(self::setConcatenation, var::setConcatenation);
+static const field core::bool mapConcatenationIdentical = core::identical(self::mapConcatenation, var::mapConcatenation);
+static method main() → dynamic
+  ;
+static method test(dynamic expected, dynamic actual) → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as var;
+import "dart:core" as core;
+
+typedef F1<invariant T extends core::Object? = dynamic> = (T%) → T%;
+typedef F2 = <T extends core::Object? = dynamic>(T%) → T%;
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field var::Class::T% field;
+  const constructor •(var::Class::T% field) → var::Class<var::Class::T%>
+    : var::Class::field = field, super core::Object::•()
+    ;
+}
+static const field core::Type objectTypeLiteral = core::Object;
+static const field (core::Object?, core::Object?) → core::bool c2 = core::identical;
+static const field (core::int) → core::int partialInstantiation = const core::bool::fromEnvironment("foo") ?{(core::int) → core::int} var::id1<core::int> : var::id2<core::int>;
+static const field var::Class<core::int> instance = const var::Class::•<core::int>(0);
+static const field var::Class<dynamic> instance2 = const var::Class::•<dynamic>(const <core::int>[42]);
+static const field core::Type functionTypeLiteral = (dynamic) → dynamic;
+static const field core::Type genericFunctionTypeLiteral = <T extends core::Object? = dynamic>(T%) → T%;
+static const field core::List<core::int> listLiteral = const <core::int>[0];
+static const field core::List<dynamic> listLiteral2 = const <dynamic>[const <core::int>[42]];
+static const field core::Set<core::int> setLiteral = const <core::int>{0};
+static const field core::Set<dynamic> setLiteral2 = const <dynamic>{const <core::int>[42]};
+static const field core::Map<core::int, core::String> mapLiteral = const <core::int, core::String>{0: "foo"};
+static const field core::Map<dynamic, dynamic> mapLiteral2 = const <dynamic, dynamic>{const <core::int>[42]: "foo", null: const <core::int>[42]};
+static const field core::List<core::int> listConcatenation = var::listLiteral;
+static const field core::Set<core::int> setConcatenation = var::setLiteral;
+static const field core::Map<core::int, core::String> mapConcatenation = var::mapLiteral;
+static method id1<T extends core::Object? = dynamic>(var::id1::T% t) → var::id1::T%
+  ;
+static method id2<T extends core::Object? = dynamic>(var::id2::T% t) → var::id2::T%
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///various_2.dart:10:27 -> TypeLiteralConstant(Object)
+Evaluated: Instantiation @ org-dartlang-testcase:///various_2.dart:11:52 -> PartialInstantiationConstant(id1<int>)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various_2.dart:12:24 -> InstanceConstant(const Class<int>{Class.field: 0})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various_2.dart:13:25 -> InstanceConstant(const Class<dynamic>{Class.field: const <int>[42]})
+Evaluated: TypeLiteral @ org-dartlang-testcase:///various_2.dart:15:29 -> TypeLiteralConstant(dynamic Function(dynamic))
+Evaluated: TypeLiteral @ org-dartlang-testcase:///various_2.dart:16:36 -> TypeLiteralConstant(T% Function<T>(T%))
+Evaluated: ListLiteral @ org-dartlang-testcase:///various_2.dart:17:26 -> ListConstant(const <int>[0])
+Evaluated: ListLiteral @ org-dartlang-testcase:///various_2.dart:18:31 -> ListConstant(const <dynamic>[const <int>[42]])
+Evaluated: SetLiteral @ org-dartlang-testcase:///various_2.dart:21:25 -> SetConstant(const <int>{0})
+Evaluated: SetLiteral @ org-dartlang-testcase:///various_2.dart:22:30 -> SetConstant(const <dynamic>{const <int>[42]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///various_2.dart:25:33 -> MapConstant(const <int, String>{0: "foo"})
+Evaluated: MapLiteral @ org-dartlang-testcase:///various_2.dart:26:39 -> MapConstant(const <dynamic, dynamic>{const <int>[42]: "foo", null: const <int>[42]})
+Evaluated: ListConcatenation @ org-dartlang-testcase:///various_2.dart:30:32 -> ListConstant(const <int>[0])
+Evaluated: SetConcatenation @ org-dartlang-testcase:///various_2.dart:31:31 -> SetConstant(const <int>{0})
+Evaluated: MapConcatenation @ org-dartlang-testcase:///various_2.dart:32:7 -> MapConstant(const <int, String>{0: "foo"})
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various_2.dart:35:5 -> BoolConstant(true)
+Evaluated with empty environment: StaticInvocation @ org-dartlang-testcase:///various_2.dart:37:5 -> BoolConstant(false)
+Evaluated: StaticGet @ org-dartlang-testcase:///various_2.dart:37:15 -> PartialInstantiationConstant(id1<int>)
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various_2.dart:37:41 -> PartialInstantiationConstant(id2<int>)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various_2.dart:38:27 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various_2.dart:39:28 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various_2.dart:41:5 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various_2.dart:43:5 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various_2.dart:44:30 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various_2.dart:45:31 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various_2.dart:46:29 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various_2.dart:47:30 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various_2.dart:48:29 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various_2.dart:49:30 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various_2.dart:51:5 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various_2.dart:53:5 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various_2.dart:55:5 -> BoolConstant(true)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///various_2_lib.dart:17:27 -> TypeLiteralConstant(Object)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///various_2_lib.dart:18:12 -> TearOffConstant(identical)
+Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///various_2_lib.dart:20:39 -> PartialInstantiationConstant(id2<int>)
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various_2_lib.dart:20:11 -> BoolConstant(false)
+Evaluated with empty environment: Instantiation @ org-dartlang-testcase:///various_2_lib.dart:20:41 -> PartialInstantiationConstant(id1<int>)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///various_2_lib.dart:20:41 -> TearOffConstant(id1)
+Evaluated with empty environment: Instantiation @ org-dartlang-testcase:///various_2_lib.dart:20:47 -> PartialInstantiationConstant(id2<int>)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///various_2_lib.dart:20:47 -> TearOffConstant(id2)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various_2_lib.dart:21:24 -> InstanceConstant(const Class<int>{Class.field: 0})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various_2_lib.dart:22:25 -> InstanceConstant(const Class<dynamic>{Class.field: const <int>[42]})
+Evaluated: TypeLiteral @ org-dartlang-testcase:///various_2_lib.dart:23:29 -> TypeLiteralConstant(dynamic Function(dynamic))
+Evaluated: TypeLiteral @ org-dartlang-testcase:///various_2_lib.dart:24:36 -> TypeLiteralConstant(T% Function<T>(T%))
+Evaluated: ListLiteral @ org-dartlang-testcase:///various_2_lib.dart:25:26 -> ListConstant(const <int>[0])
+Evaluated: ListLiteral @ org-dartlang-testcase:///various_2_lib.dart:26:31 -> ListConstant(const <dynamic>[const <int>[42]])
+Evaluated: SetLiteral @ org-dartlang-testcase:///various_2_lib.dart:29:25 -> SetConstant(const <int>{0})
+Evaluated: SetLiteral @ org-dartlang-testcase:///various_2_lib.dart:30:30 -> SetConstant(const <dynamic>{const <int>[42]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///various_2_lib.dart:33:33 -> MapConstant(const <int, String>{0: "foo"})
+Evaluated: MapLiteral @ org-dartlang-testcase:///various_2_lib.dart:34:39 -> MapConstant(const <dynamic, dynamic>{const <int>[42]: "foo", null: const <int>[42]})
+Evaluated: ListConcatenation @ org-dartlang-testcase:///various_2_lib.dart:38:32 -> ListConstant(const <int>[0])
+Evaluated: SetConcatenation @ org-dartlang-testcase:///various_2_lib.dart:39:31 -> SetConstant(const <int>{0})
+Evaluated: MapConcatenation @ org-dartlang-testcase:///various_2_lib.dart:40:7 -> MapConstant(const <int, String>{0: "foo"})
+Extra constant evaluation: evaluated: 54, effectively constant: 53

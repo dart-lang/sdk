@@ -101,6 +101,10 @@ class AnalysisEngine {
   /// The file name used for analysis options files.
   static const String ANALYSIS_OPTIONS_YAML_FILE = 'analysis_options.yaml';
 
+  /// The file name used for the files containing the data for the data-driven
+  /// fixes.
+  static const String FIX_DATA_FILE = 'fix_data.yaml';
+
   /// The file name used for pubspec files.
   static const String PUBSPEC_YAML_FILE = 'pubspec.yaml';
 
@@ -287,6 +291,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   ExperimentStatus _contextFeatures = ExperimentStatus();
 
+  /// The language version to use for libraries that are not in a package.
+  ///
+  /// If a library is in a package, this language version is *not* used,
+  /// even if the package does not specify the language version.
+  Version nonPackageLanguageVersion = ExperimentStatus.currentVersion;
+
   /// The set of features to use for libraries that are not in a package.
   ///
   /// If a library is in a package, this feature set is *not* used, even if the
@@ -380,7 +390,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   FeatureSet get contextFeatures => _contextFeatures;
 
   set contextFeatures(FeatureSet featureSet) {
-    _contextFeatures = featureSet;
+    _contextFeatures = featureSet as ExperimentStatus;
     nonPackageFeatureSet = featureSet;
   }
 

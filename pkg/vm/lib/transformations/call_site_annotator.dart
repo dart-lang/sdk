@@ -67,7 +67,7 @@ class AnnotateWithStaticTypes extends RecursiveVisitor<Null> {
 
     // TODO(34162): We don't need to save the type here for calls, just whether
     // or not it's a statically-checked call.
-    if (node.name.name == 'call' ||
+    if (node.name.text == 'call' ||
         hasGenericCovariantParameters(node.interfaceTarget)) {
       annotateWithType(node, node.receiver);
     }

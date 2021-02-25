@@ -83,6 +83,8 @@ abstract class _G&Object&B extends core::Object implements self::B /*isAnonymous
   const synthetic constructor •() → self::_G&Object&B*
     : super core::Object::•()
     ;
+  get x() → core::int*
+    return 0;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -93,8 +95,6 @@ abstract class _G&Object&B extends core::Object implements self::B /*isAnonymous
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  get x() → core::int*
-    return 0;
 }
 class G extends self::_G&Object&B {
   field core::int* x = null;

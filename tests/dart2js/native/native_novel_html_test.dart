@@ -23,17 +23,18 @@ void setup() {
   HTMLGoofyElement.prototype.nativeMethod = function(a) {
     return 'Goofy.nativeMethod(' + a  + ')';
   };
-  makeE = function(){return new HTMLGoofyElement()};
+  self.makeE = function(){return new HTMLGoofyElement()};
 
   // A non-HTML element with a misleading name.
   function HTMLFakeyElement(){}
   HTMLFakeyElement.prototype.nativeMethod = function(a) {
     return 'Fakey.nativeMethod(' + a  + ')';
   };
-  makeF = function(){return new HTMLFakeyElement()};
+  self.makeF = function(){return new HTMLFakeyElement()};
 
   self.nativeConstructor(HTMLGoofyElement);
 })()""");
+  applyTestExtensions(['HTMLElement']);
 }
 
 main() {

@@ -21,7 +21,7 @@ class ConvertIntoGetterTest extends AssistProcessorTest {
 
   Future<void> test_noInitializer() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   final int foo;
 }
@@ -30,7 +30,7 @@ class A {
   }
 
   Future<void> test_notFinal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int foo = 1;
 }
@@ -39,7 +39,7 @@ class A {
   }
 
   Future<void> test_notSingleField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   final int foo = 1, bar = 2;
 }
@@ -48,7 +48,7 @@ class A {
   }
 
   Future<void> test_noType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   final foo = 42;
 }
@@ -61,7 +61,7 @@ class A {
   }
 
   Future<void> test_type() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 const myAnnotation = const Object();
 class A {
   @myAnnotation

@@ -35,7 +35,7 @@ void WeakTable::SetValueExclusive(ObjectPtr key, intptr_t val) {
   intptr_t empty_idx = -1;
   ObjectPtr obj = ObjectAtExclusive(idx);
 
-  while (obj != nullptr) {
+  while (obj != static_cast<ObjectPtr>(kNoEntry)) {
     if (obj == key) {
       SetValueAt(idx, val);
       return;
@@ -80,7 +80,11 @@ void WeakTable::Reset() {
   count_ = 0;
   size_ = kMinSize;
   free(old_data);
-  data_ = reinterpret_cast<intptr_t*>(calloc(size_, kEntrySize * kWordSize));
+  data_ = reinterpret_cast<intptr_t*>(malloc(size_ * kEntrySize * kWordSize));
+  for (intptr_t i = 0; i < size_; i++) {
+    data_[ObjectIndex(i)] = kNoEntry;
+    data_[ValueIndex(i)] = kNoValue;
+  }
 }
 
 void WeakTable::Forward(ObjectPointerVisitor* visitor) {
@@ -102,7 +106,11 @@ void WeakTable::Rehash() {
   intptr_t new_size = SizeFor(count(), size());
   ASSERT(Utils::IsPowerOfTwo(new_size));
   intptr_t* new_data =
-      reinterpret_cast<intptr_t*>(calloc(new_size, kEntrySize * kWordSize));
+      reinterpret_cast<intptr_t*>(malloc(new_size * kEntrySize * kWordSize));
+  for (intptr_t i = 0; i < new_size; i++) {
+    new_data[ObjectIndex(i)] = kNoEntry;
+    new_data[ValueIndex(i)] = kNoValue;
+  }
 
   intptr_t mask = new_size - 1;
   set_used(0);
@@ -112,7 +120,7 @@ void WeakTable::Rehash() {
       ObjectPtr key = ObjectAtExclusive(i);
       intptr_t idx = Hash(key) & mask;
       ObjectPtr obj = static_cast<ObjectPtr>(new_data[ObjectIndex(idx)]);
-      while (obj != nullptr) {
+      while (obj != static_cast<ObjectPtr>(kNoEntry)) {
         ASSERT(obj != key);  // Duplicate entry is not expected.
         idx = (idx + 1) & mask;
         obj = static_cast<ObjectPtr>(new_data[ObjectIndex(idx)]);
@@ -130,14 +138,6 @@ void WeakTable::Rehash() {
   size_ = new_size;
   data_ = new_data;
   free(old_data);
-}
-
-void WeakTable::MergeFrom(WeakTable* donor) {
-  for (intptr_t i = 0; i < donor->size(); i++) {
-    if (donor->IsValidEntryAtExclusive(i)) {
-      SetValueExclusive(donor->ObjectAtExclusive(i), ValueIndex(i));
-    }
-  }
 }
 
 }  // namespace dart

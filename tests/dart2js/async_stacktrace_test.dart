@@ -26,10 +26,8 @@ class Tracer {
   }
 }
 
-Future test1(Tracer tracer) {
-  foo() async
-      * //# asyncStar: ok
-  {
+Future<void> test1(Tracer tracer) {
+  Future<void> foo() async {
     var savedStackTrace;
     try {
       try {
@@ -49,16 +47,36 @@ Future test1(Tracer tracer) {
     tracer.trace("f");
   }
 
-  return foo()
-      .toList() //# asyncStar: continued
-      ;
+  return foo();
 }
 
-Future test2(Tracer tracer) {
+Future<List<void>> test1star(Tracer tracer) {
+  Stream<void> foo() async* {
+    var savedStackTrace;
+    try {
+      try {
+        tracer.trace("a");
+        throw "Error";
+      } catch (e, st) {
+        tracer.trace("b");
+        savedStackTrace = st;
+      }
+      tracer.trace("c");
+      await new Future.error("Error 2", savedStackTrace);
+      tracer.trace("d");
+    } catch (e, st) {
+      tracer.trace("e");
+      Expect.equals(savedStackTrace.toString(), st.toString());
+    }
+    tracer.trace("f");
+  }
+
+  return foo().toList();
+}
+
+Future<void> test2(Tracer tracer) {
   var savedStackTrace;
-  foo() async
-      * //# asyncStar: continued
-  {
+  Future<void> foo() async {
     try {
       tracer.trace("a");
       throw "Error";
@@ -71,19 +89,37 @@ Future test2(Tracer tracer) {
     tracer.trace("d");
   }
 
-  return foo()
-      .toList() //# asyncStar: continued
-      .catchError((e, st) {
+  return foo().catchError((e, st) {
     tracer.trace("e");
     Expect.equals(savedStackTrace.toString(), st.toString());
   });
 }
 
-Future test3(Tracer tracer) {
+Future<List<void>> test2star(Tracer tracer) {
   var savedStackTrace;
-  foo() async
-      * //# asyncStar: continued
-  {
+  Stream<void> foo() async* {
+    try {
+      tracer.trace("a");
+      throw "Error";
+    } catch (e, st) {
+      tracer.trace("b");
+      savedStackTrace = st;
+    }
+    tracer.trace("c");
+    await new Future.error("Error 2", savedStackTrace);
+    tracer.trace("d");
+  }
+
+  return foo().toList().catchError((e, st) {
+    tracer.trace("e");
+    Expect.equals(savedStackTrace.toString(), st.toString());
+    return [];
+  });
+}
+
+Future<void> test3(Tracer tracer) {
+  var savedStackTrace;
+  Future<void> foo() async {
     try {
       tracer.trace("a");
       throw "Error";
@@ -94,11 +130,29 @@ Future test3(Tracer tracer) {
     }
   }
 
-  return foo()
-      .toList() //# asyncStar: continued
-      .catchError((e, st) {
+  return foo().catchError((e, st) {
     tracer.trace("c");
     Expect.equals(savedStackTrace.toString(), st.toString());
+  });
+}
+
+Future<List<void>> test3star(Tracer tracer) {
+  var savedStackTrace;
+  Stream<void> foo() async* {
+    try {
+      tracer.trace("a");
+      throw "Error";
+    } catch (e, st) {
+      tracer.trace("b");
+      savedStackTrace = st;
+      rethrow;
+    }
+  }
+
+  return foo().toList().catchError((e, st) {
+    tracer.trace("c");
+    Expect.equals(savedStackTrace.toString(), st.toString());
+    return [];
   });
 }
 
@@ -110,8 +164,11 @@ runTest(String expectedTrace, Future test(Tracer tracer)) async {
 
 runTests() async {
   await runTest("abcef", test1);
+  await runTest("abcef", test1star);
   await runTest("abce", test2);
+  await runTest("abce", test2star);
   await runTest("abc", test3);
+  await runTest("abc", test3star);
 }
 
 main() {

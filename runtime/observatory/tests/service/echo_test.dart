@@ -24,10 +24,10 @@ var tests = <IsolateTest>[
     var subscription;
     subscription = stream.listen((ServiceEvent event) {
       assert(event.kind == '_Echo');
-      expect(event.data.lengthInBytes, equals(3));
-      expect(event.data[0], equals(0));
-      expect(event.data[1], equals(128));
-      expect(event.data[2], equals(255));
+      expect(event.data!.lengthInBytes, equals(3));
+      expect(event.data![0], equals(0));
+      expect(event.data![1], equals(128));
+      expect(event.data![2], equals(255));
       subscription.cancel();
       completer.complete();
     });

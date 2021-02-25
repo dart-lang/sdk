@@ -20,7 +20,7 @@ class EncapsulateFieldTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.ENCAPSULATE_FIELD;
 
   Future<void> test_alreadyPrivate() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int _test = 42;
 }
@@ -32,7 +32,7 @@ main(A a) {
   }
 
   Future<void> test_documentation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   /// AAA
   /// BBB
@@ -58,8 +58,18 @@ class A {
 ''');
   }
 
+  Future<void> test_extension_hasType() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+extension E on int {
+  int test = 42;
+}
+''');
+    await assertNoAssistAt('test = 42');
+  }
+
   Future<void> test_final() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   final int test = 42;
 }
@@ -68,7 +78,7 @@ class A {
   }
 
   Future<void> test_hasType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int test = 42;
   A(this.test);
@@ -94,8 +104,27 @@ main(A a) {
 ''');
   }
 
+  Future<void> test_mixin_hasType() async {
+    await resolveTestCode('''
+mixin M {
+  int test = 42;
+}
+''');
+    await assertHasAssistAt('test = 42', '''
+mixin M {
+  int _test = 42;
+
+  int get test => _test;
+
+  set test(int test) {
+    _test = test;
+  }
+}
+''');
+  }
+
   Future<void> test_multipleFields() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int aaa, bbb, ccc;
 }
@@ -107,7 +136,7 @@ main(A a) {
   }
 
   Future<void> test_notOnName() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int test = 1 + 2 + 3;
 }
@@ -116,7 +145,7 @@ class A {
   }
 
   Future<void> test_noType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   var test = 42;
 }
@@ -142,7 +171,7 @@ main(A a) {
 
   Future<void> test_parseError() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int; // marker
 }
@@ -154,7 +183,7 @@ main(A a) {
   }
 
   Future<void> test_static() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   static int test = 42;
 }

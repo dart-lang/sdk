@@ -54,7 +54,7 @@ import "dart:core" as core;
 typedef Function2<contravariant S extends core::Object* = dynamic, T extends core::Object* = dynamic> = (S*) →* T*;
 static method test() → void {
   {
-    (core::int*) →* core::String* l0 = (core::int* x) → core::Null? => null;
+    (core::int*) →* core::String* l0 = (core::int* x) → Null => null;
     (core::int*) →* core::String* l1 = (core::int* x) → core::String* => "hello";
     (core::int*) →* core::String* l2 = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:15:69: Error: A value of type 'String Function(String)' can't be assigned to a variable of type 'String Function(int)'.
         l2 = /*error:INVALID_ASSIGNMENT*/ /*@ returnType=String* */ (String x) =>
@@ -69,7 +69,7 @@ static method test() → void {
     };
   }
   {
-    (core::int*) →* core::String* l0 = (core::int* x) → core::Null? => null;
+    (core::int*) →* core::String* l0 = (core::int* x) → Null => null;
     (core::int*) →* core::String* l1 = (core::int* x) → core::String* => "hello";
     (core::int*) →* core::String* l2 = (core::int* x) → core::String* => let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:29:13: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
             3;
@@ -86,19 +86,19 @@ static method test() → void {
     };
   }
   {
-    (core::int*) →* core::List<core::String*>* l0 = (core::int* x) → core::Null? => null;
-    (core::int*) →* core::List<core::String*>* l1 = (core::int* x) → core::List<core::String*>* => <core::String*>["hello"];
+    (core::int*) →* core::List<core::String*>* l0 = (core::int* x) → Null => null;
+    (core::int*) →* core::List<core::String*>* l1 = (core::int* x) → core::List<core::String*>* => core::_GrowableList::_literal1<core::String*>("hello");
     (core::int*) →* core::List<core::String*>* l2 = let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:42:76: Error: A value of type 'List<String> Function(String)' can't be assigned to a variable of type 'List<String> Function(int)'.
  - 'List' is from 'dart:core'.
         l2 = /*error:INVALID_ASSIGNMENT*/ /*@ returnType=List<String*>* */ (String
-                                                                           ^" in ((core::String* x) → core::List<core::String*>* => <core::String*>["hello"]) as{TypeError} (core::int*) →* core::List<core::String*>*;
-    (core::int*) →* core::List<core::String*>* l3 = (core::int* x) → core::List<core::String*>* => <core::String*>[let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:46:58: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+                                                                           ^" in ((core::String* x) → core::List<core::String*>* => core::_GrowableList::_literal1<core::String*>("hello")) as{TypeError} (core::int*) →* core::List<core::String*>*;
+    (core::int*) →* core::List<core::String*>* l3 = (core::int* x) → core::List<core::String*>* => core::_GrowableList::_literal1<core::String*>(let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:46:58: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
               /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 3
-                                                         ^" in 3 as{TypeError} core::String*];
+                                                         ^" in 3 as{TypeError} core::String*);
     (core::int*) →* core::List<core::String*>* l4 = (core::int* x) → core::List<core::String*>* {
-      return <core::String*>[let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:50:52: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      return core::_GrowableList::_literal1<core::String*>(let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:50:52: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
         /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 3
-                                                   ^" in 3 as{TypeError} core::String*];
+                                                   ^" in 3 as{TypeError} core::String*);
     };
   }
   {

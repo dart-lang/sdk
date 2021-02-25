@@ -34,6 +34,7 @@ namespace bin {
 
 const char* SSLCertContext::root_certs_file_ = NULL;
 const char* SSLCertContext::root_certs_cache_ = NULL;
+bool SSLCertContext::long_ssl_cert_evaluation_ = false;
 
 int SSLCertContext::CertificateCallback(int preverify_ok,
                                         X509_STORE_CTX* store_ctx) {

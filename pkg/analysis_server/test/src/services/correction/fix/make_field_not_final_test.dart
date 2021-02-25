@@ -20,7 +20,7 @@ class MakeFieldNotFinalTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.MAKE_FIELD_NOT_FINAL;
 
   Future<void> test_hasType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   final int fff = 1;
   main() {
@@ -39,7 +39,7 @@ class A {
   }
 
   Future<void> test_noType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   final fff = 1;
   main() {

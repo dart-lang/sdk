@@ -193,10 +193,14 @@ class FlowAnalysisHelper {
   }
 
   void labeledStatement_enter(LabeledStatement node) {
+    if (flow == null) return;
+
     flow.labeledStatement_begin(node);
   }
 
   void labeledStatement_exit(LabeledStatement node) {
+    if (flow == null) return;
+
     flow.labeledStatement_end();
   }
 
@@ -341,13 +345,6 @@ class TypeSystemTypeOperations
   }
 
   @override
-  bool isLocalVariableWithoutDeclaredType(PromotableElement variable) {
-    return variable is LocalVariableElement &&
-        variable.hasImplicitType &&
-        !variable.hasInitializer;
-  }
-
-  @override
   bool isNever(DartType type) {
     return typeSystem.isBottom(type);
   }
@@ -400,6 +397,18 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitBinaryExpression(BinaryExpression node) {
+    if (node.operator.type == TokenType.AMPERSAND_AMPERSAND) {
+      node.leftOperand.accept(this);
+      assignedVariables.beginNode();
+      node.rightOperand.accept(this);
+      assignedVariables.endNode(node);
+    } else {
+      super.visitBinaryExpression(node);
+    }
+  }
+
+  @override
   void visitCatchClause(CatchClause node) {
     for (var identifier in [
       node.exceptionParameter,
@@ -411,6 +420,15 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       }
     }
     super.visitCatchClause(node);
+  }
+
+  @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    node.condition.accept(this);
+    assignedVariables.beginNode();
+    node.thenExpression.accept(this);
+    assignedVariables.endNode(node);
+    node.elseExpression.accept(this);
   }
 
   @override
@@ -443,7 +461,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     assignedVariables.beginNode();
     _declareParameters(node.functionExpression.parameters);
     super.visitFunctionDeclaration(node);
-    assignedVariables.endNode(node, isClosure: true);
+    assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
   }
 
   @override
@@ -457,7 +475,25 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     assignedVariables.beginNode();
     _declareParameters(node.parameters);
     super.visitFunctionExpression(node);
-    assignedVariables.endNode(node, isClosure: true);
+    assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
+  }
+
+  @override
+  void visitIfElement(IfElement node) {
+    node.condition.accept(this);
+    assignedVariables.beginNode();
+    node.thenElement.accept(this);
+    assignedVariables.endNode(node);
+    node.elseElement?.accept(this);
+  }
+
+  @override
+  void visitIfStatement(IfStatement node) {
+    node.condition.accept(this);
+    assignedVariables.beginNode();
+    node.thenStatement.accept(this);
+    assignedVariables.endNode(node);
+    node.elseStatement?.accept(this);
   }
 
   @override
@@ -490,6 +526,17 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
           assignedVariables.write(element);
         }
       }
+    }
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var element = node.staticElement;
+    if (element is VariableElement &&
+        node.inGetterContext() &&
+        node.parent is! FormalParameter &&
+        node.parent is! CatchClause) {
+      assignedVariables.read(element);
     }
   }
 
@@ -530,8 +577,15 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         grandParent is FieldDeclaration) {
       throw StateError('Should not visit top level declarations');
     }
-    assignedVariables.declare(node.declaredElement);
-    super.visitVariableDeclaration(node);
+    var declaredElement = node.declaredElement;
+    assignedVariables.declare(declaredElement);
+    if (declaredElement.isLate && node.initializer != null) {
+      assignedVariables.beginNode();
+      super.visitVariableDeclaration(node);
+      assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
+    } else {
+      super.visitVariableDeclaration(node);
+    }
   }
 
   @override
@@ -576,7 +630,6 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       } else if (forLoopParts is ForEachPartsWithDeclaration) {
         var variable = forLoopParts.loopVariable.declaredElement;
         assignedVariables.declare(variable);
-        assignedVariables.write(variable);
       } else {
         throw StateError('Unrecognized for loop parts');
       }

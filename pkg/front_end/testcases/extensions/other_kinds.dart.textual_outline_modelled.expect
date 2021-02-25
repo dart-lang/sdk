@@ -1,0 +1,21 @@
+class A1 {
+  int _instanceField;
+  int getInstanceField() => _instanceField;
+  static int _staticField = 0;
+  static int getStaticField() => _staticField;
+  static void setStaticField(int value) {}
+  void setInstanceField(int value) {}
+}
+
+extension A2 on A1 {
+  int get instanceProperty => getInstanceField();
+  int operator +(int value) {}
+  int operator -() {}
+  int operator -(int value) {}
+  static int get staticProperty => A1.getStaticField();
+  static int staticField = A1.getStaticField();
+  static void set staticProperty(int value) {}
+  void set instanceProperty(int value) {}
+}
+
+main() {}

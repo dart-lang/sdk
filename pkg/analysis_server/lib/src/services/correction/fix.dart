@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/fix/dart/top_level_decla
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
@@ -108,12 +109,17 @@ bool hasFix(ErrorCode errorCode) =>
 /// An enumeration of quick fix kinds for the errors found in an analysis
 /// options file.
 class AnalysisOptionsFixKind {
+  static const REMOVE_LINT =
+      FixKind('analysisOptions.fix.removeLint', 50, "Remove '{0}'");
   static const REMOVE_SETTING =
       FixKind('analysisOptions.fix.removeSetting', 50, "Remove '{0}'");
 }
 
 /// The implementation of [DartFixContext].
 class DartFixContextImpl implements DartFixContext {
+  @override
+  final InstrumentationService instrumentationService;
+
   @override
   final ChangeWorkspace workspace;
 
@@ -126,8 +132,8 @@ class DartFixContextImpl implements DartFixContext {
   final List<TopLevelDeclaration> Function(String name)
       getTopLevelDeclarationsFunction;
 
-  DartFixContextImpl(this.workspace, this.resolveResult, this.error,
-      this.getTopLevelDeclarationsFunction);
+  DartFixContextImpl(this.instrumentationService, this.workspace,
+      this.resolveResult, this.error, this.getTopLevelDeclarationsFunction);
 
   @override
   List<TopLevelDeclaration> getTopLevelDeclarations(String name) {
@@ -241,6 +247,8 @@ class DartFixKind {
       'dart.fix.convert.toNamedArguments', 50, 'Convert to named arguments');
   static const CONVERT_TO_NULL_AWARE =
       FixKind('dart.fix.convert.toNullAware', 50, "Convert to use '?.'");
+  static const CONVERT_TO_NULL_AWARE_SPREAD = FixKind(
+      'dart.fix.convert.toNullAwareSpread', 50, "Convert to use '...?'");
   static const CONVERT_TO_ON_TYPE =
       FixKind('dart.fix.convert.toOnType', 50, "Convert to 'on {0}'");
   static const CONVERT_TO_PACKAGE_IMPORT = FixKind(
@@ -255,8 +263,8 @@ class DartFixKind {
       'Convert to single quoted string');
   static const CONVERT_TO_SPREAD =
       FixKind('dart.fix.convert.toSpread', 50, 'Convert to a spread');
-  static const CONVERT_TO_WHERE_TYPE = FixKind(
-      'dart.fix.convert.toWhereType', 50, "Convert to a use 'whereType'");
+  static const CONVERT_TO_WHERE_TYPE =
+      FixKind('dart.fix.convert.toWhereType', 50, "Convert to use 'whereType'");
   static const CREATE_CLASS =
       FixKind('dart.fix.create.class', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =
@@ -323,6 +331,8 @@ class DartFixKind {
       'Move type arguments to after class name');
   static const MAKE_VARIABLE_NOT_FINAL = FixKind(
       'dart.fix.makeVariableNotFinal', 50, "Make variable '{0}' not final");
+  static const MAKE_VARIABLE_NULLABLE =
+      FixKind('dart.fix.makeVariableNullable', 50, "Make '{0}' nullable");
   static const ORGANIZE_IMPORTS =
       FixKind('dart.fix.organize.imports', 50, 'Organize Imports');
   static const QUALIFY_REFERENCE =
@@ -333,6 +343,8 @@ class DartFixKind {
       FixKind('dart.fix.remove.argument', 50, 'Remove argument');
   static const REMOVE_AWAIT =
       FixKind('dart.fix.remove.await', 50, 'Remove await');
+  static const REMOVE_COMPARISON =
+      FixKind('dart.fix.remove.comparison', 50, 'Remove comparison');
   static const REMOVE_CONST =
       FixKind('dart.fix.remove.const', 50, 'Remove const');
   static const REMOVE_DEAD_CODE =
@@ -361,6 +373,8 @@ class DartFixKind {
       'dart.fix.remove.methodDeclaration', 50, 'Remove method declaration');
   static const REMOVE_NAME_FROM_COMBINATOR = FixKind(
       'dart.fix.remove.nameFromCombinator', 50, "Remove name from '{0}'");
+  static const REMOVE_NON_NULL_ASSERTION =
+      FixKind('dart.fix.remove.nonNullAssertion', 50, "Remove the '!'");
   static const REMOVE_OPERATOR =
       FixKind('dart.fix.remove.operator', 50, 'Remove the operator');
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION = FixKind(
@@ -388,6 +402,17 @@ class DartFixKind {
       'Remove unnecessary const keyword');
   static const REMOVE_UNNECESSARY_NEW = FixKind(
       'dart.fix.remove.unnecessaryNew', 50, 'Remove unnecessary new keyword');
+  static const REMOVE_UNNECESSARY_PARENTHESES = FixKind(
+      'dart.fix.remove.unnecessaryParentheses',
+      50,
+      'Remove unnecessary parentheses',
+      appliedTogetherMessage: 'Remove all unnecessary parentheses in file');
+  static const REMOVE_UNNECESSARY_STRING_INTERPOLATION = FixKind(
+      'dart.fix.remove.unnecessaryStringInterpolation',
+      50,
+      'Remove unnecessary string interpolation',
+      appliedTogetherMessage:
+          'Remove all unnecessary string interpolations in file');
   static const REMOVE_UNUSED_CATCH_CLAUSE = FixKind(
       'dart.fix.remove.unusedCatchClause', 50, "Remove unused 'catch' clause");
   static const REMOVE_UNUSED_CATCH_STACK = FixKind(

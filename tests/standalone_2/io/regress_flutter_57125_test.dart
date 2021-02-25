@@ -6,7 +6,7 @@
 /// another process, is properly thrown as a SocketException. This test confirms
 /// the absence of a regression during the dart:io null safety migration where
 /// the late localAddress field wasn't initialized in an error path, raising a
-/// LateInitializationError instead.
+/// late initialization error instead.
 ///
 /// https://github.com/flutter/flutter/issues/57125
 

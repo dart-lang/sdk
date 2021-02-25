@@ -16,7 +16,7 @@ void main() {
 }
 
 void expectError(Function() callback) {
-  if (isWeakMode) {
+  if (hasUnsoundNullSafety) {
     Expect.throwsAssertionError(callback);
   } else {
     Expect.throwsTypeError(callback);

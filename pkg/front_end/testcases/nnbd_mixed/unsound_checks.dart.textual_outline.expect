@@ -1,0 +1,64 @@
+// @dart = 2.8
+import 'unsound_checks_lib.dart';
+
+isNullOptOut1(int i) => i == null;
+isNotNullOptOut1(int i) => i != null;
+isNullOptOut2(int i) => null == i;
+isNotNullOptOut2(int i) => null != i;
+ifNullOptOut(int i) => i ?? 42;
+
+class OptOutClass1 {}
+
+extension OptOutExtension on OptOutClass1 {
+  int operator [](int index) => index;
+  void operator []=(int index, int value) {}
+}
+
+extensionIfNullOptOut1(int i) => OptOutExtension(new OptOutClass1())[i] ??= 42;
+extensionIfNullOptOut1ForEffect(int i) {}
+extensionIfNullOptOut2(int i) => new OptOutClass1()[i] ??= 42;
+extensionIfNullOptOut2ForEffect(int i) {}
+
+class OptOutClass2 {
+  int operator [](int index) => index;
+  void operator []=(int index, int value) {}
+}
+
+ifNullIndexSetOptOut(int i) => new OptOutClass2()[i] ??= 42;
+ifNullIndexSetOptOutForEffect(int i) {}
+
+class OptOutClass3 {
+  int field;
+  OptOutClass3(this.field);
+}
+
+ifNullPropertySetOptOut(int i) => new OptOutClass3(i).field ??= 42;
+ifNullPropertySetOptOutForEffect(int i) {}
+ifNullSetOptOut(int i) => i ??= 42;
+ifNullSetOptOutForEffect(int i) {}
+
+class OptOutSuperClass4 {
+  int operator [](int index) => index;
+  void operator []=(int index, int value) {}
+}
+
+class OptOutClass4 extends OptOutSuperClass4 {
+  method(int i) => super[i] ??= 42;
+  methodForEffect(int i) {}
+}
+
+ifNullSuperIndexSetOptOut(int i) => new OptOutClass4().method(i);
+ifNullSuperIndexSetOptOutForEffect(int i) {}
+
+class OptOutClass5 {
+  int field;
+  OptOutClass5(this.field);
+}
+
+nullAwareIfNullSetOptOut(int i) {}
+nullAwareIfNullSetOptOutForEffect(int i) {}
+isTestOptOut(int i) => i is int;
+isNotTestOptOut(int i) => i is! int;
+main() {}
+expect(expected, actual) {}
+throws(void f(), [bool Function(Object) testException]) {}

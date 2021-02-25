@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() async {
-  List<String>? a = <String>[];
+  List<String>? a = <String>[] as List<String>?;
   Iterable<String>? b = a?.map((e) => e);
   Iterable<String>? i = b ?? a;
   print(i);

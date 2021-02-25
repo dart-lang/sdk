@@ -24,7 +24,7 @@ class ReplaceFinalWithConstTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_const_declarations;
 
   Future<void> test_method() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 final int a = 1;
 ''');
     await assertHasFix('''

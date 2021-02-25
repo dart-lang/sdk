@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart" show Expect;
 
 import "package:kernel/type_environment.dart";
@@ -696,7 +698,7 @@ abstract class SubtypeTest<T, E> {
     // Tests for bottom and top types.
     isSubtype('Null', 'Null');
     isNotSubtype('Null', 'bottom');
-    isNotSubtype('Null', 'Never');
+    isObliviousSubtype('Null', 'Never');
     isSubtype('bottom', 'Null');
     isSubtype('bottom', 'bottom');
     isSubtype('bottom', 'Never');
@@ -889,7 +891,7 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Never', 'Id<Object>');
     isSubtype('Never', 'Id<Never>');
     isSubtype('Id<Never>', 'Never');
-    isNotSubtype('Null', 'Id<Never>');
+    isObliviousSubtype('Null', 'Id<Never>');
     isSubtype('Id<Never>', 'Null');
     isNotSubtype('Id<Object>', 'Never');
     isSubtype('Id<int>', 'num');

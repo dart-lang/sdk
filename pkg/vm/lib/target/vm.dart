@@ -20,10 +20,9 @@ import 'package:kernel/type_environment.dart';
 import 'package:kernel/vm/constants_native_effects.dart'
     show VmConstantsBackend;
 
-import '../metadata/binary_cache.dart' show BinaryCacheMetadataRepository;
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
-import '../transformations/lowering.dart' as lowering show transformLibraries;
-import '../transformations/ffi.dart' as transformFfi show ReplacedMembers;
+import '../transformations/lowering.dart' as lowering
+    show transformLibraries, transformProcedure;
 import '../transformations/ffi_definitions.dart' as transformFfiDefinitions
     show transformLibraries;
 import '../transformations/ffi_use_sites.dart' as transformFfiUseSites
@@ -51,7 +50,11 @@ class VmTarget extends Target {
   bool get supportsSetLiterals => false;
 
   @override
-  bool get supportsLateFields => !flags.forceLateLoweringForTesting;
+  int get enabledLateLowerings => flags.forceLateLoweringsForTesting;
+
+  @override
+  bool get supportsLateLoweringSentinel =>
+      flags.forceLateLoweringSentinelForTesting;
 
   @override
   bool get useStaticFieldLowering => flags.forceStaticFieldLoweringForTesting;
@@ -59,6 +62,9 @@ class VmTarget extends Target {
   @override
   bool get supportsExplicitGetterCalls =>
       !flags.forceNoExplicitGetterCallsForTesting;
+
+  @override
+  bool get supportsNewMethodInvocationEncoding => false;
 
   @override
   String get name => 'vm';
@@ -87,7 +93,6 @@ class VmTarget extends Target {
         'dart:nativewrappers',
         'dart:io',
         'dart:cli',
-        'dart:wasm',
       ];
 
   @override
@@ -129,8 +134,6 @@ class VmTarget extends Target {
         // need to index dart:collection, as it is only needed for desugaring of
         // const sets. We can remove it from this list at that time.
         "dart:collection",
-        // The bytecode pipeline uses the index to check if dart:ffi is used.
-        "dart:ffi",
         // TODO(askesc): This is for the VM host endian optimization, which
         // could possibly be done more cleanly after the VM no longer supports
         // doing constant evaluation on its own. See http://dartbug.com/32836
@@ -149,21 +152,19 @@ class VmTarget extends Target {
       {void logger(String msg),
       ChangedStructureNotifier changedStructureNotifier}) {
     transformMixins.transformLibraries(
-        this, coreTypes, hierarchy, libraries, referenceFromIndex,
-        doSuperResolution: false /* resolution is done in Dart VM */);
+        this, coreTypes, hierarchy, libraries, referenceFromIndex);
     logger?.call("Transformed mixin applications");
 
-    transformFfi.ReplacedMembers replacedFields =
-        transformFfiDefinitions.transformLibraries(
-            component,
-            coreTypes,
-            hierarchy,
-            libraries,
-            diagnosticReporter,
-            referenceFromIndex,
-            changedStructureNotifier);
+    final ffiTransformerData = transformFfiDefinitions.transformLibraries(
+        component,
+        coreTypes,
+        hierarchy,
+        libraries,
+        diagnosticReporter,
+        referenceFromIndex,
+        changedStructureNotifier);
     transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
-        libraries, diagnosticReporter, replacedFields, referenceFromIndex);
+        libraries, diagnosticReporter, ffiTransformerData, referenceFromIndex);
     logger?.call("Transformed ffi annotations");
 
     // TODO(kmillikin): Make this run on a per-method basis.
@@ -189,6 +190,10 @@ class VmTarget extends Target {
     transformAsync.transformProcedure(
         new TypeEnvironment(coreTypes, hierarchy), procedure);
     logger?.call("Transformed async functions");
+
+    lowering.transformProcedure(
+        procedure, coreTypes, hierarchy, flags.enableNullSafety);
+    logger?.call("Lowering transformations performed");
   }
 
   Expression _instantiateInvocationMirrorWithType(
@@ -397,7 +402,6 @@ class VmTarget extends Target {
   @override
   Component configureComponent(Component component) {
     callSiteAnnotator.addRepositoryTo(component);
-    component.addMetadataRepository(new BinaryCacheMetadataRepository());
     return super.configureComponent(component);
   }
 
@@ -466,9 +470,6 @@ class VmTarget extends Target {
     // TODO(alexmarkov): Call this from the front-end in order to have
     //  the same defines when compiling platform.
     assert(map != null);
-    if (map['dart.vm.product'] == 'true') {
-      map['dart.developer.causal_async_stacks'] = 'false';
-    }
     map['dart.isVM'] = 'true';
     // TODO(dartbug.com/36460): Derive dart.library.* definitions from platform.
     for (String library in extraRequiredLibraries) {

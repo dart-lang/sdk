@@ -31,23 +31,23 @@ import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/utils.dart';
 
 class IsolateViewElement extends CustomElement implements Renderable {
-  RenderingScheduler<IsolateViewElement> _r;
+  late RenderingScheduler<IsolateViewElement> _r;
 
   Stream<RenderedEvent<IsolateViewElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.Isolate _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.IsolateRepository _isolates;
-  M.ScriptRepository _scripts;
-  M.FunctionRepository _functions;
-  M.LibraryRepository _libraries;
-  M.ObjectRepository _objects;
-  M.EvalRepository _eval;
-  M.ServiceFunction _function;
-  M.ScriptRef _rootScript;
-  StreamSubscription _subscription;
+  late M.VM _vm;
+  late M.Isolate _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.IsolateRepository _isolates;
+  late M.ScriptRepository _scripts;
+  late M.FunctionRepository _functions;
+  late M.LibraryRepository _libraries;
+  late M.ObjectRepository _objects;
+  late M.EvalRepository _eval;
+  M.ServiceFunction? _function;
+  M.ScriptRef? _rootScript;
+  late StreamSubscription _subscription;
 
   M.VMRef get vm => _vm;
   M.Isolate get isolate => _isolate;
@@ -64,7 +64,7 @@ class IsolateViewElement extends CustomElement implements Renderable {
       M.LibraryRepository libraries,
       M.ObjectRepository objects,
       M.EvalRepository eval,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -114,9 +114,8 @@ class IsolateViewElement extends CustomElement implements Renderable {
   }
 
   void render() {
-    final uptime = new DateTime.now().difference(_isolate.startTime);
-    final libraries = _isolate.libraries.toList();
-    final List<M.Thread> threads = _isolate.threads;
+    final uptime = new DateTime.now().difference(_isolate.startTime!);
+    final libraries = _isolate.libraries!.toList();
     children = <Element>[
       navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue).element,
@@ -165,11 +164,11 @@ class IsolateViewElement extends CustomElement implements Renderable {
             ..children = _function != null
                 ? [
                     new BRElement(),
-                    (new SourceInsetElement(_isolate, _function.location,
+                    (new SourceInsetElement(_isolate, _function!.location!,
                             _scripts, _objects, _events,
                             currentPos: M
-                                .topFrame(isolate.pauseEvent)
-                                .location
+                                .topFrame(isolate.pauseEvent)!
+                                .location!
                                 .tokenPos,
                             queue: _r.queue)
                           ..classes = ['header_inset'])
@@ -215,7 +214,7 @@ class IsolateViewElement extends CustomElement implements Renderable {
                       _isolate.rootLibrary == null
                           ? (new SpanElement()..text = 'loading...')
                           : new LibraryRefElement(
-                                  _isolate, _isolate.rootLibrary,
+                                  _isolate, _isolate.rootLibrary!,
                                   queue: _r.queue)
                               .element
                     ]
@@ -230,7 +229,7 @@ class IsolateViewElement extends CustomElement implements Renderable {
                         new DivElement()
                           ..classes = ['memberValue']
                           ..children = <Element>[
-                            new FunctionRefElement(_isolate, _isolate.entry,
+                            new FunctionRefElement(_isolate, _isolate.entry!,
                                     queue: _r.queue)
                                 .element
                           ]
@@ -261,26 +260,6 @@ class IsolateViewElement extends CustomElement implements Renderable {
                 ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
-                    ..text = 'allocated zone handle count',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = '${_isolate.numZoneHandles}'
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'allocated scoped handle count',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = '${_isolate.numScopedHandles}'
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
                     ..text = 'object store',
                   new DivElement()
                     ..classes = ['memberValue']
@@ -288,19 +267,6 @@ class IsolateViewElement extends CustomElement implements Renderable {
                       new AnchorElement(href: Uris.objectStore(_isolate))
                         ..text = 'object store'
                     ]
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'zone capacity high watermark'
-                    ..title = '''The maximum amount of native zone memory
-                    allocated by the isolate over it\'s life.''',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = Utils.formatSize(_isolate.zoneHighWatermark)
-                    ..title = '${_isolate.zoneHighWatermark}B'
                 ],
               new BRElement(),
               new DivElement()
@@ -324,24 +290,9 @@ class IsolateViewElement extends CustomElement implements Renderable {
                           .element
                     ]
                 ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'threads (${threads.length})',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..children = <Element>[
-                      (new CurlyBlockElement(queue: _r.queue)
-                            ..content =
-                                threads.map<Element>(_populateThreadInfo))
-                          .element
-                    ]
-                ]
             ],
           new HRElement(),
-          new EvalBoxElement(_isolate, _isolate.rootLibrary, _objects, _eval,
+          new EvalBoxElement(_isolate, _isolate.rootLibrary!, _objects, _eval,
                   queue: _r.queue)
               .element,
           new DivElement()
@@ -349,7 +300,7 @@ class IsolateViewElement extends CustomElement implements Renderable {
                 ? [
                     new HRElement(),
                     new ScriptInsetElement(
-                            _isolate, _rootScript, _scripts, _objects, _events,
+                            _isolate, _rootScript!, _scripts, _objects, _events,
                             queue: _r.queue)
                         .element
                   ]
@@ -360,41 +311,16 @@ class IsolateViewElement extends CustomElement implements Renderable {
     ];
   }
 
-  DivElement _populateThreadInfo(M.Thread t) {
-    return new DivElement()
-      ..classes = ['indent']
-      ..children = <Element>[
-        new SpanElement()..text = '${t.id} ',
-        (new CurlyBlockElement(queue: _r.queue)
-              ..content = <Element>[
-                new DivElement()
-                  ..classes = ['indent']
-                  ..text = 'kind ${t.kindString}',
-                new DivElement()
-                  ..classes = ['indent']
-                  ..title = '${t.zoneHighWatermark}B'
-                  ..text = 'zone capacity high watermark '
-                      '${Utils.formatSize(t.zoneHighWatermark)}',
-                new DivElement()
-                  ..classes = ['indent']
-                  ..title = '${t.zoneCapacity}B'
-                  ..text = 'current zone capacity ' +
-                      '${Utils.formatSize(t.zoneCapacity)}',
-              ])
-            .element
-      ];
-  }
-
   Future _loadExtraData() async {
     _function = null;
     _rootScript = null;
     final frame = M.topFrame(_isolate.pauseEvent);
     if (frame != null) {
-      _function = await _functions.get(_isolate, frame.function.id);
+      _function = await _functions.get(_isolate, frame.function!.id!);
     }
     if (_isolate.rootLibrary != null) {
       final rootLibrary =
-          await _libraries.get(_isolate, _isolate.rootLibrary.id);
+          await _libraries.get(_isolate, _isolate.rootLibrary!.id!);
       _rootScript = rootLibrary.rootScript;
     }
     _r.dirty();

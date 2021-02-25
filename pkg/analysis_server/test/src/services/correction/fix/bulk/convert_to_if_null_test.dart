@@ -19,7 +19,7 @@ class ConvertToIfNullTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_if_null_operators;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   print(s == null ? 'default' : s);
   print(s != null ? s : 'default');

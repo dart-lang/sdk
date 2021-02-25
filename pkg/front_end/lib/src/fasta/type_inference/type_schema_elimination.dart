@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/src/replacement_visitor.dart';
 
@@ -80,10 +82,7 @@ class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
             topType.classNode.enclosingLibrary.importUri.path == "core" &&
             topType.classNode.name == "Object");
     assert(bottomType == const NeverType(Nullability.nonNullable) ||
-        bottomType is InterfaceType &&
-            bottomType.classNode.enclosingLibrary.importUri.scheme == "dart" &&
-            bottomType.classNode.enclosingLibrary.importUri.path == "core" &&
-            bottomType.classNode.name == "Null");
+        bottomType is NullType);
     _TypeSchemaEliminationVisitor visitor =
         new _TypeSchemaEliminationVisitor(isLeastClosure, topType, bottomType);
     DartType result = schema.accept(visitor);

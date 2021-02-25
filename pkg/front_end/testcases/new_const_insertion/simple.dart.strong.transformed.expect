@@ -25,3 +25,8 @@ static method main() → dynamic {
   new self::A::•(foo);
   new self::A::•(5.{core::num::+}(foo));
 }
+
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///simple.dart:15:7 -> IntConstant(10)
+Extra constant evaluation: evaluated: 9, effectively constant: 1

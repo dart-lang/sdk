@@ -40,12 +40,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
-import 'package:analyzer/src/error/codes.dart' as engine;
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart';
@@ -56,7 +56,6 @@ import 'package:analyzer/src/manifest/manifest_values.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:dart_style/dart_style.dart';
 import 'package:html/parser.dart';
@@ -105,16 +104,24 @@ class EditDomainHandler extends AbstractRequestHandler {
         }
       }
 
-      var paths = <String>[];
-      for (var include in params.included) {
-        var resource = server.resourceProvider.getResource(include);
-        resource.collectDartFilePaths(paths);
-      }
-
       var workspace = DartChangeWorkspace(server.currentSessions);
-      var processor = BulkFixProcessor(workspace);
-      var changeBuilder = await processor.fixErrorsInLibraries(paths);
-      var response = EditBulkFixesResult(changeBuilder.sourceChange.edits)
+      var processor = BulkFixProcessor(server.instrumentationService, workspace,
+          useConfigFiles: params.inTestMode);
+
+      String sdkPath;
+      var sdk = server.findSdk();
+      if (sdk is FolderBasedDartSdk) {
+        sdkPath = sdk.directory.path;
+      }
+      var collection = AnalysisContextCollectionImpl(
+        includedPaths: params.included,
+        resourceProvider: server.resourceProvider,
+        sdkPath: sdkPath,
+      );
+      var changeBuilder = await processor.fixErrors(collection.contexts);
+
+      var response = EditBulkFixesResult(
+              changeBuilder.sourceChange.edits, processor.fixDetails)
           .toResponse(request.id);
       server.sendResponse(response);
     } catch (exception, stackTrace) {
@@ -206,7 +213,6 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
 
-    var changes = <SourceChange>[];
     //
     // Allow plugins to start computing assists.
     //
@@ -219,34 +225,12 @@ class EditDomainHandler extends AbstractRequestHandler {
       pluginFutures = server.pluginManager
           .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
     }
+
     //
     // Compute fixes associated with server-generated errors.
     //
-    var result = await server.getResolvedUnit(file);
-    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
-    if (result != null) {
-      var context = DartAssistContextImpl(
-        DartChangeWorkspace(server.currentSessions),
-        result,
-        offset,
-        length,
-      );
-      try {
-        List<Assist> assists;
-        try {
-          var processor = AssistProcessor(context);
-          assists = await processor.compute();
-        } on InconsistentAnalysisException {
-          assists = [];
-        }
+    var changes = await _computeServerAssists(request, file, offset, length);
 
-        assists.sort(Assist.SORT_BY_RELEVANCE);
-        for (var assist in assists) {
-          changes.add(assist.change);
-        }
-        server.requestStatistics?.addItemTimeNow(request, 'computedAssists');
-      } catch (_) {}
-    }
     //
     // Add the fixes produced by plugins to the server-generated fixes.
     //
@@ -262,6 +246,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     pluginChanges
         .sort((first, second) => first.priority.compareTo(second.priority));
     changes.addAll(pluginChanges.map(converter.convertPrioritizedSourceChange));
+
     //
     // Send the response.
     //
@@ -280,6 +265,12 @@ class EditDomainHandler extends AbstractRequestHandler {
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }
+
+    if (!server.contextManager.isInAnalysisRoot(file)) {
+      server.sendResponse(Response.getFixesInvalidFile(request));
+      return;
+    }
+
     //
     // Allow plugins to start computing fixes.
     //
@@ -555,7 +546,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     }
 
     // Prepare the file information.
-    var result = await server.getParsedUnit(file);
+    var result = server.getParsedUnit(file);
     if (result == null) {
       server.sendResponse(Response.fileNotAnalyzed(request, file));
       return;
@@ -631,7 +622,8 @@ class EditDomainHandler extends AbstractRequestHandler {
         var errorLine = lineInfo.getLocation(error.offset).lineNumber;
         if (errorLine == requestLine) {
           var workspace = DartChangeWorkspace(server.currentSessions);
-          var context = DartFixContextImpl(workspace, result, error, (name) {
+          var context = DartFixContextImpl(
+              server.instrumentationService, workspace, result, error, (name) {
             var tracker = server.declarationsTracker;
             var provider = TopLevelDeclarationsProvider(tracker);
             return provider.get(
@@ -747,6 +739,48 @@ error.errorCode: ${error.errorCode}
       }
     }
     return errorFixesList;
+  }
+
+  Future<List<SourceChange>> _computeServerAssists(
+      Request request, String file, int offset, int length) async {
+    var changes = <SourceChange>[];
+
+    var result = await server.getResolvedUnit(file);
+    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
+
+    if (result != null) {
+      var context = DartAssistContextImpl(
+        server.instrumentationService,
+        DartChangeWorkspace(server.currentSessions),
+        result,
+        offset,
+        length,
+      );
+
+      try {
+        var processor = AssistProcessor(context);
+        var assists = await processor.compute();
+        assists.sort(Assist.SORT_BY_RELEVANCE);
+        for (var assist in assists) {
+          changes.add(assist.change);
+        }
+      } on InconsistentAnalysisException {
+        // ignore
+      } catch (exception, stackTrace) {
+        var parametersFile = '''
+offset: $offset
+length: $length
+      ''';
+        throw CaughtExceptionWithFiles(exception, stackTrace, {
+          file: result.content,
+          'parameters': parametersFile,
+        });
+      }
+
+      server.requestStatistics?.addItemTimeNow(request, 'computedAssists');
+    }
+
+    return changes;
   }
 
   /// Compute and return the fixes associated with server-generated errors.
@@ -1309,15 +1343,3 @@ class _RefactoringManager {
 /// [_RefactoringManager] throws instances of this class internally to stop
 /// processing in a manager that was reset.
 class _ResetError {}
-
-extension ResourceExtension on Resource {
-  void collectDartFilePaths(List<String> paths) {
-    if (this is File && AnalysisEngine.isDartFileName(path)) {
-      paths.add(path);
-    } else if (this is Folder) {
-      for (var child in (this as Folder).getChildren()) {
-        child.collectDartFilePaths(paths);
-      }
-    }
-  }
-}

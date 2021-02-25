@@ -14,6 +14,10 @@ library /*isNonNullableByDefault*/;
 //   static int staticFieldOfM; // Error.
 //              ^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:34:14: Error: Field 'staticFieldOfE' should be initialized because its type 'int' doesn't allow null.
+//   static int staticFieldOfE; // Error.
+//              ^^^^^^^^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -51,7 +55,7 @@ class C<X extends core::Object? = core::Object?, Y extends core::Object = core::
   generic-covariant-impl field self::C::X? fieldOfX;
   field core::int? fieldOfX2;
   field dynamic fieldOfX3;
-  field core::Null? fieldOfX4;
+  field Null fieldOfX4;
   field () →? core::int fieldOfX5;
   generic-covariant-impl field self::C::Y? fieldOfX6;
   late static field core::int lateStaticFieldOfC;
@@ -70,7 +74,7 @@ abstract class L<X extends core::Object? = core::Object?, Y extends core::Object
   generic-covariant-impl field self::L::X? fieldOfL;
   field core::int? fieldOfL2;
   field dynamic fieldOfL3;
-  field core::Null? fieldOfL4;
+  field Null fieldOfL4;
   field () →? core::int fieldOfL5;
   generic-covariant-impl field self::L::Y? fieldOfL6;
   late static field core::int lateStaticFieldOfM;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
@@ -20,7 +22,7 @@ main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const StaticTypeDataComputer(),
-          [defaultCfeConfig, cfeNonNullableConfig]),
+          [cfeNoNonNullableConfig, cfeNonNullableConfig]),
       skipMap: {
         defaultCfeConfig.marker: [
           // NNBD-only tests.
@@ -103,6 +105,9 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
 
   @override
   String computeNodeValue(Id id, TreeNode node) {
+    if (isSkippedExpression(node)) {
+      return null;
+    }
     if (node is Expression) {
       DartType type = node.getStaticType(_staticTypeContext);
       return typeToText(type);
@@ -120,6 +125,37 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
     return null;
   }
 
+  bool isNewReachabilityError(object) {
+    if (object is ConstructorInvocation) {
+      Class cls = object.target.enclosingClass;
+      return cls.name == 'ReachabilityError' &&
+          cls.enclosingLibrary.importUri.scheme == 'dart' &&
+          cls.enclosingLibrary.importUri.path == '_internal';
+    }
+    return false;
+  }
+
+  bool isNewReachabilityErrorArgument(object) {
+    return object is StringLiteral &&
+        isNewReachabilityError(object.parent.parent);
+  }
+
+  bool isThrowReachabilityError(object) {
+    return object is Throw && isNewReachabilityError(object.expression);
+  }
+
+  bool isReachabilityErrorLet(object) {
+    return object is Let &&
+        (isThrowReachabilityError(object.variable.initializer) ||
+            isThrowReachabilityError(object.body));
+  }
+
+  bool isSkippedExpression(object) =>
+      isReachabilityErrorLet(object) ||
+      isThrowReachabilityError(object) ||
+      isNewReachabilityErrorArgument(object) ||
+      isNewReachabilityError(object);
+
   ActualData<String> mergeData(
       ActualData<String> value1, ActualData<String> value2) {
     if (value1.object is NullLiteral && value2.object is! NullLiteral) {
@@ -129,6 +165,7 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
       // Skip `null` literals from null-aware operations.
       return value1;
     }
+
     return new ActualData<String>(value1.id, '${value1.value}|${value2.value}',
         value1.uri, value1.offset, value1.object);
   }

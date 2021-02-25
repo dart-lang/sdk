@@ -16,7 +16,8 @@ main() {
   // [cfe] Too few positional arguments: 1 required, 0 given.
   new Klass(1);
   new Klass(1, 2);
-  //       ^^^^^^
+  //           ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  //       ^^^^^^
   // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 }

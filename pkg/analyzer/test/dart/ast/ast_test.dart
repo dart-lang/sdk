@@ -15,7 +15,7 @@ import 'package:analyzer/src/string_source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/parser_test.dart' show ParserTestCase;
+import '../../generated/parser_test_base.dart' show ParserTestCase;
 import '../../generated/test_support.dart';
 
 main() {
@@ -943,7 +943,6 @@ E f() => g;
         source,
         listener,
         featureSet: featureSet,
-        useFasta: true,
       ).parseCompilationUnit(tokens);
     }
     return _unit;
@@ -961,29 +960,29 @@ E f() => g;
   }
 
   void test_findPrevious_basic_class() {
-    ClassDeclaration clazz = unit.declarations[0];
+    var clazz = unit.declarations[0] as ClassDeclaration;
     expect(clazz.findPrevious(findToken('A')).lexeme, 'class');
   }
 
   void test_findPrevious_basic_method() {
-    ClassDeclaration clazz = unit.declarations[0];
-    MethodDeclaration method = clazz.members[0];
+    var clazz = unit.declarations[0] as ClassDeclaration;
+    var method = clazz.members[0] as MethodDeclaration;
     expect(method.findPrevious(findToken('foo')).lexeme, 'B');
   }
 
   void test_findPrevious_basic_statement() {
-    ClassDeclaration clazz = unit.declarations[0];
-    MethodDeclaration method = clazz.members[0];
-    BlockFunctionBody body = method.body;
+    var clazz = unit.declarations[0] as ClassDeclaration;
+    var method = clazz.members[0] as MethodDeclaration;
+    var body = method.body as BlockFunctionBody;
     Statement statement = body.block.statements[0];
     expect(statement.findPrevious(findToken('bar')).lexeme, 'return');
     expect(statement.findPrevious(findToken(';')).lexeme, 'bar');
   }
 
   void test_findPrevious_missing() {
-    ClassDeclaration clazz = unit.declarations[0];
-    MethodDeclaration method = clazz.members[0];
-    BlockFunctionBody body = method.body;
+    var clazz = unit.declarations[0] as ClassDeclaration;
+    var method = clazz.members[0] as MethodDeclaration;
+    var body = method.body as BlockFunctionBody;
     Statement statement = body.block.statements[0];
 
     GatheringErrorListener listener = GatheringErrorListener(checkRanges: true);
@@ -1000,15 +999,15 @@ E f() => g;
   }
 
   void test_findPrevious_parent_method() {
-    ClassDeclaration clazz = unit.declarations[0];
-    MethodDeclaration method = clazz.members[0];
+    var clazz = unit.declarations[0] as ClassDeclaration;
+    var method = clazz.members[0] as MethodDeclaration;
     expect(method.findPrevious(findToken('B')).lexeme, '{');
   }
 
   void test_findPrevious_parent_statement() {
-    ClassDeclaration clazz = unit.declarations[0];
-    MethodDeclaration method = clazz.members[0];
-    BlockFunctionBody body = method.body;
+    var clazz = unit.declarations[0] as ClassDeclaration;
+    var method = clazz.members[0] as MethodDeclaration;
+    var body = method.body as BlockFunctionBody;
     Statement statement = body.block.statements[0];
     expect(statement.findPrevious(findToken('return')).lexeme, '{');
   }
@@ -1019,8 +1018,8 @@ E f() => g;
   }
 
   void test_findPrevious_sibling_method() {
-    ClassDeclaration clazz = unit.declarations[0];
-    MethodDeclaration method = clazz.members[1];
+    var clazz = unit.declarations[0] as ClassDeclaration;
+    var method = clazz.members[1] as MethodDeclaration;
     expect(method.findPrevious(findToken('D')).lexeme, '}');
   }
 }
@@ -1693,7 +1692,8 @@ class VariableDeclarationTest extends ParserTestCase {
     VariableDeclaration varDecl = AstTestFactory.variableDeclaration("a");
     TopLevelVariableDeclaration decl =
         AstTestFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
-    Comment comment = astFactory.documentationComment(List<Token>(0));
+    Comment comment =
+        astFactory.documentationComment(List<Token>.filled(0, null));
     expect(varDecl.documentationComment, isNull);
     decl.documentationComment = comment;
     expect(varDecl.documentationComment, isNotNull);
@@ -1702,7 +1702,8 @@ class VariableDeclarationTest extends ParserTestCase {
 
   void test_getDocumentationComment_onNode() {
     VariableDeclaration decl = AstTestFactory.variableDeclaration("a");
-    Comment comment = astFactory.documentationComment(List<Token>(0));
+    Comment comment =
+        astFactory.documentationComment(List<Token>.filled(0, null));
     decl.documentationComment = comment;
     expect(decl.documentationComment, isNotNull);
   }

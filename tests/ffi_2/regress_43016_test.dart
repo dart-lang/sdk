@@ -10,7 +10,10 @@ import 'dart:ffi';
 
 import 'dylib_utils.dart';
 
-class MyStruct extends Struct {}
+class MyStruct extends Struct {
+  @Int8()
+  int a;
+}
 
 typedef _c_pass_struct = Int32 Function(Pointer<MyStruct> arg0);
 
@@ -27,7 +30,6 @@ _dart_pass_struct _pass_struct;
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 void main() {
-  // Trigger both the runtime entry and the IL in bytecode.
   for (int i = 0; i < 10000; i++) {
     pass_struct(nullptr);
   }

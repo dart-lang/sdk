@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart' as impl;
 import 'package:meta/meta.dart';
@@ -34,22 +35,21 @@ class EnclosedScope implements Scope {
 
   Scope get parent => _parent;
 
-  @Deprecated('Use lookup2() that is closer to the language specification')
   @override
-  Element lookup({@required String id, @required bool setter}) {
-    var result = lookup2(id);
-    return setter ? result.setter : result.getter;
-  }
-
-  @override
-  ScopeLookupResult lookup2(String id) {
+  ScopeLookupResult lookup(String id) {
     var getter = _getters[id];
     var setter = _setters[id];
     if (getter != null || setter != null) {
       return ScopeLookupResult(getter, setter);
     }
 
-    return _parent.lookup2(id);
+    return _parent.lookup(id);
+  }
+
+  @Deprecated('Use lookup() instead')
+  @override
+  ScopeLookupResult lookup2(String id) {
+    return lookup(id);
   }
 
   void _addGetter(Element element) {
@@ -115,37 +115,27 @@ class LibraryScope extends EnclosedScope {
     @required String prefix,
     @required String name,
   }) {
-    Iterable<NamespaceCombinator> getShowCombinators(
-        ImportElement importElement) {
-      return importElement.combinators.whereType<ShowElementCombinator>();
-    }
-
-    if (prefix != null) {
-      for (var importElement in _element.imports) {
-        if (importElement.prefix?.name == prefix &&
-            importElement.importedLibrary?.isSynthetic != false) {
-          var showCombinators = getShowCombinators(importElement);
-          if (showCombinators.isEmpty) {
+    for (var importElement in _element.imports) {
+      if (importElement.prefix?.name == prefix &&
+          importElement.importedLibrary?.isSynthetic != false) {
+        var showCombinators = importElement.combinators
+            .whereType<ShowElementCombinator>()
+            .toList();
+        if (prefix != null && showCombinators.isEmpty) {
+          return true;
+        }
+        for (var combinator in showCombinators) {
+          if (combinator.shownNames.contains(name)) {
             return true;
-          }
-          for (ShowElementCombinator combinator in showCombinators) {
-            if (combinator.shownNames.contains(name)) {
-              return true;
-            }
           }
         }
       }
-    } else {
-      // TODO(scheglov) merge for(s).
-      for (var importElement in _element.imports) {
-        if (importElement.prefix == null &&
-            importElement.importedLibrary?.isSynthetic != false) {
-          for (ShowElementCombinator combinator
-              in getShowCombinators(importElement)) {
-            if (combinator.shownNames.contains(name)) {
-              return true;
-            }
-          }
+    }
+
+    if (prefix == null && name.startsWith(r'_$')) {
+      for (var partElement in _element.parts) {
+        if (partElement.isSynthetic && isGeneratedSource(partElement.source)) {
+          return true;
         }
       }
     }
@@ -165,7 +155,7 @@ class LibraryScope extends EnclosedScope {
     compilationUnit.enums.forEach(_addGetter);
     compilationUnit.extensions.forEach(_addExtension);
     compilationUnit.functions.forEach(_addGetter);
-    compilationUnit.functionTypeAliases.forEach(_addGetter);
+    compilationUnit.typeAliases.forEach(_addGetter);
     compilationUnit.mixins.forEach(_addGetter);
     compilationUnit.types.forEach(_addGetter);
   }
@@ -184,28 +174,35 @@ class PrefixScope implements Scope {
   final Map<String, Element> _getters = {};
   final Map<String, Element> _setters = {};
   final Set<ExtensionElement> _extensions = {};
+  LibraryElement _deferredLibrary;
 
   PrefixScope(this._library, PrefixElement prefix) {
     for (var import in _library.imports) {
       if (import.prefix == prefix) {
         var elements = impl.NamespaceBuilder().getImportedElements(import);
         elements.forEach(_add);
+        if (import.isDeferred) {
+          _deferredLibrary ??= import.importedLibrary;
+        }
       }
     }
   }
 
-  @Deprecated('Use lookup2() that is closer to the language specification')
   @override
-  Element lookup({@required String id, @required bool setter}) {
-    var result = lookup2(id);
-    return setter ? result.setter : result.getter;
-  }
+  ScopeLookupResult lookup(String id) {
+    if (_deferredLibrary != null && id == FunctionElement.LOAD_LIBRARY_NAME) {
+      return ScopeLookupResult(_deferredLibrary.loadLibraryFunction, null);
+    }
 
-  @override
-  ScopeLookupResult lookup2(String id) {
     var getter = _getters[id];
     var setter = _setters[id];
     return ScopeLookupResult(getter, setter);
+  }
+
+  @Deprecated('Use lookup() instead')
+  @override
+  ScopeLookupResult lookup2(String id) {
+    return lookup(id);
   }
 
   void _add(Element element) {
@@ -305,14 +302,14 @@ class _LibraryImportScope implements Scope {
     }.toList();
   }
 
-  @Deprecated('Use lookup2() that is closer to the language specification')
   @override
-  Element lookup({@required String id, @required bool setter}) {
-    throw UnimplementedError();
+  ScopeLookupResult lookup(String id) {
+    return _nullPrefixScope.lookup(id);
   }
 
+  @Deprecated('Use lookup() instead')
   @override
   ScopeLookupResult lookup2(String id) {
-    return _nullPrefixScope.lookup2(id);
+    return lookup(id);
   }
 }

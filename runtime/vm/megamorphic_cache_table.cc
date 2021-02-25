@@ -16,41 +16,45 @@ namespace dart {
 MegamorphicCachePtr MegamorphicCacheTable::Lookup(Thread* thread,
                                                   const String& name,
                                                   const Array& descriptor) {
-  Isolate* isolate = thread->isolate();
-  // Multiple compilation threads could access this lookup.
-  SafepointMutexLocker ml(isolate->megamorphic_mutex());
+  auto object_store = thread->isolate_group()->object_store();
+  SafepointMutexLocker ml(thread->isolate_group()->megamorphic_table_mutex());
+
   ASSERT(name.IsSymbol());
   // TODO(rmacnak): ASSERT(descriptor.IsCanonical());
 
   // TODO(rmacnak): Make a proper hashtable a la symbol table.
-  GrowableObjectArray& table = GrowableObjectArray::Handle(
-      isolate->object_store()->megamorphic_cache_table());
+  auto& table =
+      GrowableObjectArray::Handle(object_store->megamorphic_cache_table());
   MegamorphicCache& cache = MegamorphicCache::Handle();
   if (table.IsNull()) {
     table = GrowableObjectArray::New(Heap::kOld);
-    isolate->object_store()->set_megamorphic_cache_table(table);
+    object_store->set_megamorphic_cache_table(table);
   } else {
     for (intptr_t i = 0; i < table.Length(); i++) {
       cache ^= table.At(i);
-      if ((cache.target_name() == name.raw()) &&
-          (cache.arguments_descriptor() == descriptor.raw())) {
-        return cache.raw();
+      if ((cache.target_name() == name.ptr()) &&
+          (cache.arguments_descriptor() == descriptor.ptr())) {
+        return cache.ptr();
       }
     }
   }
 
   cache = MegamorphicCache::New(name, descriptor);
   table.Add(cache, Heap::kOld);
-  return cache.raw();
+  return cache.ptr();
 }
 
 void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
-  StackZone zone(Thread::Current());
+  auto thread = Thread::Current();
+  auto isolate_group = thread->isolate_group();
+  SafepointMutexLocker ml(isolate_group->megamorphic_table_mutex());
+
+  StackZone zone(thread);
   intptr_t size = 0;
   MegamorphicCache& cache = MegamorphicCache::Handle();
   Array& buckets = Array::Handle();
   const GrowableObjectArray& table = GrowableObjectArray::Handle(
-      isolate->object_store()->megamorphic_cache_table());
+      isolate_group->object_store()->megamorphic_cache_table());
   if (table.IsNull()) return;
   intptr_t max_size = 0;
   for (intptr_t i = 0; i < table.Length(); i++) {

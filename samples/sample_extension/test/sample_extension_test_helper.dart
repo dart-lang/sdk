@@ -24,7 +24,7 @@ Future copyFileToDirectory(String file, String directory) async {
       result = await Process.run('cmd.exe', ['/C', 'copy $src $dst']);
       break;
     default:
-      Expect.fail('Unknown operating system ${Platform.operatingSystem}');
+      throw 'Unknown operating system ${Platform.operatingSystem}';
   }
   if (result.exitCode != 0) {
     print(result.stdout);
@@ -44,7 +44,7 @@ Future run(String program, List<String> arguments) async {
   }
 }
 
-Future testNativeExtensions(String snapshotKind) async {
+Future testNativeExtensions(String? snapshotKind) async {
   String buildDirectory = dirname(Platform.executable);
   Directory tempDirectory =
       Directory.systemTemp.createTempSync('sample_extension_');

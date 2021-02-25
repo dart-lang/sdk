@@ -14,10 +14,18 @@ namespace dart {
 intptr_t BaseTextBuffer::Printf(const char* format, ...) {
   va_list args;
   va_start(args, format);
+  intptr_t len = VPrintf(format, args);
+  va_end(args);
+  return len;
+}
+
+intptr_t BaseTextBuffer::VPrintf(const char* format, va_list args) {
+  va_list args1;
+  va_copy(args1, args);
   intptr_t remaining = capacity_ - length_;
   ASSERT(remaining >= 0);
-  intptr_t len = Utils::VSNPrint(buffer_ + length_, remaining, format, args);
-  va_end(args);
+  intptr_t len = Utils::VSNPrint(buffer_ + length_, remaining, format, args1);
+  va_end(args1);
   if (len >= remaining) {
     if (!EnsureCapacity(len)) {
       length_ = capacity_ - 1;
@@ -27,7 +35,7 @@ intptr_t BaseTextBuffer::Printf(const char* format, ...) {
     remaining = capacity_ - length_;
     ASSERT(remaining > len);
     va_list args2;
-    va_start(args2, format);
+    va_copy(args2, args);
     intptr_t len2 =
         Utils::VSNPrint(buffer_ + length_, remaining, format, args2);
     va_end(args2);
@@ -114,9 +122,6 @@ void BaseTextBuffer::AddEscapedString(const char* s) {
 TextBuffer::TextBuffer(intptr_t buf_size) {
   ASSERT(buf_size > 0);
   buffer_ = reinterpret_cast<char*>(malloc(buf_size));
-  if (buffer_ == nullptr) {
-    OUT_OF_MEMORY();
-  }
   capacity_ = buf_size;
   Clear();
 }
@@ -139,9 +144,6 @@ bool TextBuffer::EnsureCapacity(intptr_t len) {
   if (remaining <= len) {
     intptr_t new_size = capacity_ + Utils::Maximum(capacity_, len + 1);
     char* new_buf = reinterpret_cast<char*>(realloc(buffer_, new_size));
-    if (new_buf == nullptr) {
-      OUT_OF_MEMORY();
-    }
     buffer_ = new_buf;
     capacity_ = new_size;
   }

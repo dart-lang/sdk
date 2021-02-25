@@ -467,7 +467,7 @@ some more code
 void testString(
   String text, {
   Map<String, Map<Id, String>> actualData: const {},
-  String expectedResult,
+  String? expectedResult,
   int classOffset: 0,
   int memberOffset: 0,
 }) {
@@ -487,7 +487,7 @@ void testString(
 void testFeatures(
   String text, {
   Map<String, Map<Id, String>> actualData: const {},
-  String expectedResult,
+  String? expectedResult,
   int classOffset: 0,
   int memberOffset: 0,
 }) {
@@ -507,7 +507,7 @@ void testFeatures(
 
 void testGeneral<T>(DataInterpreter<T> dataInterpreter, String text,
     {Map<String, Map<Id, T>> actualData: const {},
-    String expectedResult,
+    String? expectedResult,
     int classOffset: 0,
     int memberOffset: 0}) {
   expectedResult ??= text;
@@ -517,7 +517,10 @@ void testGeneral<T>(DataInterpreter<T> dataInterpreter, String text,
   for (String marker in markers) {
     expectedMaps[marker] = new MemberAnnotations<IdValue>();
   }
-  computeExpectedMap(mainUri, mainUri.path, code, expectedMaps);
+  computeExpectedMap(mainUri, mainUri.path, code, expectedMaps,
+      onFailure: (String message) {
+    throw message;
+  });
 
   Map<String, Map<Uri, Map<Id, ActualData<T>>>> actualAnnotations = {};
   actualData.forEach((String marker, Map<Id, T> data) {
@@ -531,6 +534,8 @@ void testGeneral<T>(DataInterpreter<T> dataInterpreter, String text,
         offset = memberOffset;
       } else if (id is ClassId) {
         offset = classOffset;
+      } else {
+        offset = 0;
       }
       actualData[id] = new ActualData<T>(id, value, mainUri, offset, text);
     });
@@ -543,10 +548,11 @@ void testGeneral<T>(DataInterpreter<T> dataInterpreter, String text,
       actualAnnotations,
       dataInterpreter);
   AnnotatedCode generated = new AnnotatedCode(
-      code.annotatedCode, code.sourceCode, annotations[mainUri]);
+      code.annotatedCode, code.sourceCode, annotations[mainUri]!);
   String actualResult = generated.toText();
   if (expectedResult != actualResult) {
     print("Unexpected result for '$text'"
+        // ignore: unnecessary_null_comparison
         "${actualData != null ? ' with actualData=$actualData' : ''}");
     print('---expected-------------------------------------------------------');
     print(expectedResult);

@@ -9,6 +9,25 @@ class Features {
   Map<String, Object> _features = {};
   Set<String> _unsorted = new Set<String>();
 
+  Features();
+
+  /// Creates a [Features] registering each key in [featuresMap] as a features
+  /// with the corresponding value(s) in the map. Note: values are expected to
+  /// be either a single `String` value or a `List<String>`.
+  factory Features.fromMap(Map<String, dynamic> featuresMap) {
+    Features features = new Features();
+    featuresMap.forEach((key, value) {
+      if (value is List) {
+        for (dynamic v in value) {
+          features.addElement(key, v);
+        }
+      } else {
+        features.add(key, value: value);
+      }
+    });
+    return features;
+  }
+
   /// Mark the feature [key] as existing. If [value] is provided, the feature
   /// [key] is set to have this value.
   void add(String key, {var value: ''}) {
@@ -17,7 +36,8 @@ class Features {
 
   /// Add [value] as an element of the list values of feature [key].
   void addElement(String key, [var value]) {
-    List<String> list = _features.putIfAbsent(key, () => <String>[]);
+    List<String> list =
+        _features.putIfAbsent(key, () => <String>[]) as List<String>;
     if (value != null) {
       list.add(value.toString());
     }
@@ -40,10 +60,10 @@ class Features {
   }
 
   /// Returns the value set for feature [key].
-  Object operator [](String key) => _features[key];
+  Object? operator [](String key) => _features[key];
 
   /// Removes the value set for feature [key]. Returns the existing value.
-  Object remove(String key) => _features.remove(key);
+  Object? remove(String key) => _features.remove(key);
 
   /// Returns `true` if this feature set is empty.
   bool get isEmpty => _features.isEmpty;
@@ -59,7 +79,7 @@ class Features {
 
   /// Returns a string containing all features in a comma-separated list sorted
   /// by feature names.
-  String getText([String indent]) {
+  String getText([String? indent]) {
     if (indent == null) {
       StringBuffer sb = new StringBuffer();
       bool needsComma = false;
@@ -136,7 +156,7 @@ class Features {
   ///
   /// Single features will be parsed as strings and list features (features
   /// encoded in `[...]` will be parsed as lists of strings.
-  static Features fromText(String text) {
+  static Features fromText(String? text) {
     Features features = new Features();
     if (text == null) return features;
     int index = 0;
@@ -186,7 +206,7 @@ class Features {
             endDelimiters.removeLast();
             index++;
           } else {
-            String endDelimiter = delimiters[char];
+            String? endDelimiter = delimiters[char];
             if (endDelimiter != null) {
               endDelimiters.add(endDelimiter);
               index++;
@@ -225,12 +245,12 @@ class Features {
 }
 
 class FeaturesDataInterpreter implements DataInterpreter<Features> {
-  final String wildcard;
+  final String? wildcard;
 
-  const FeaturesDataInterpreter({this.wildcard: null});
+  const FeaturesDataInterpreter({this.wildcard});
 
   @override
-  String isAsExpected(Features actualFeatures, String expectedData) {
+  String? isAsExpected(Features actualFeatures, String? expectedData) {
     if (wildcard != null && expectedData == wildcard) {
       return null;
     } else if (expectedData == '') {
@@ -246,7 +266,7 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
           expectMatch = false;
         }
         validatedFeatures.add(key);
-        Object actualValue = actualFeatures[key];
+        Object? actualValue = actualFeatures[key];
         if (!expectMatch) {
           if (actualFeatures.containsKey(key)) {
             errorsFound.add('Unexpected data found for $key=$actualValue');
@@ -265,10 +285,10 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
             for (Object expectedObject in expectedValue) {
               String expectedText = '$expectedObject';
               bool matchFound = false;
-              if (wildcard != null && expectedText.endsWith(wildcard)) {
+              if (wildcard != null && expectedText.endsWith(wildcard!)) {
                 // Wildcard matcher.
                 String prefix =
-                    expectedText.substring(0, expectedText.indexOf(wildcard));
+                    expectedText.substring(0, expectedText.indexOf(wildcard!));
                 List matches = [];
                 for (Object actualObject in actualList) {
                   if ('$actualObject'.startsWith(prefix)) {
@@ -319,12 +339,12 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
   }
 
   @override
-  String getText(Features actualData, [String indentation]) {
+  String getText(Features actualData, [String? indentation]) {
     return actualData.getText(indentation);
   }
 
   @override
-  bool isEmpty(Features actualData) {
+  bool isEmpty(Features? actualData) {
     return actualData == null || actualData.isEmpty;
   }
 }

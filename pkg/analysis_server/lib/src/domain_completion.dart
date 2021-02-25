@@ -16,7 +16,10 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/token_details/token_detail_builder.dart';
+import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
+import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
+import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
+import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -24,7 +27,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
@@ -146,6 +148,25 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         request.replacementOffset, request.replacementLength, suggestions);
   }
 
+  /// Return the suggestions that should be presented in the YAML [file] at the
+  /// given [offset].
+  YamlCompletionResults computeYamlSuggestions(String file, int offset) {
+    var provider = server.resourceProvider;
+    if (AnalysisEngine.isAnalysisOptionsFileName(file)) {
+      var generator = AnalysisOptionsGenerator(provider);
+      return generator.getSuggestions(file, offset);
+    }
+    var fileName = provider.pathContext.basename(file);
+    if (fileName == AnalysisEngine.PUBSPEC_YAML_FILE) {
+      var generator = PubspecGenerator(provider);
+      return generator.getSuggestions(file, offset);
+    } else if (fileName == AnalysisEngine.FIX_DATA_FILE) {
+      var generator = FixDataGenerator(provider);
+      return generator.getSuggestions(file, offset);
+    }
+    return const YamlCompletionResults.empty();
+  }
+
   /// Process a `completion.getSuggestionDetails` request.
   void getSuggestionDetails(Request request) async {
     var params = CompletionGetSuggestionDetailsParams.fromRequest(request);
@@ -229,9 +250,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       } else if (requestName == COMPLETION_REQUEST_GET_SUGGESTIONS) {
         processRequest(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == COMPLETION_REQUEST_LIST_TOKEN_DETAILS) {
-        listTokenDetails(request);
-        return Response.DELAYED_RESPONSE;
       } else if (requestName == COMPLETION_REQUEST_SET_SUBSCRIPTIONS) {
         return setSubscriptions(request);
       }
@@ -251,40 +269,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     }
   }
 
-  /// Process a `completion.listTokenDetails` request.
-  Future<void> listTokenDetails(Request request) async {
-    var params = CompletionListTokenDetailsParams.fromRequest(request);
-
-    var file = params.file;
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
-    var analysisDriver = server.getAnalysisDriver(file);
-    if (analysisDriver == null) {
-      server.sendResponse(Response.invalidParameter(
-        request,
-        'file',
-        'File is not being analyzed: $file',
-      ));
-    }
-    var session = analysisDriver.currentSession;
-    var result = await session.getResolvedUnit(file);
-    if (result.state != ResultState.VALID) {
-      server.sendResponse(Response.invalidParameter(
-        request,
-        'file',
-        'File does not exist or cannot be read: $file',
-      ));
-    }
-
-    var builder = TokenDetailBuilder();
-    builder.visitNode(result.unit);
-    server.sendResponse(
-      CompletionListTokenDetailsResult(builder.details).toResponse(request.id),
-    );
-  }
-
   /// Process a `completion.getSuggestions` request.
   Future<void> processRequest(Request request) async {
     performance = CompletionPerformance();
@@ -296,6 +280,25 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       var offset = params.offset;
 
       if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+        return;
+      }
+      if (file.endsWith('.yaml')) {
+        // Return the response without results.
+        var completionId = (_nextCompletionId++).toString();
+        server.sendResponse(CompletionGetSuggestionsResult(completionId)
+            .toResponse(request.id));
+        // Send a notification with results.
+        final suggestions = computeYamlSuggestions(file, offset);
+        sendCompletionNotification(
+          completionId,
+          suggestions.replacementOffset,
+          suggestions.replacementLength,
+          suggestions.suggestions,
+          null,
+          null,
+          null,
+          null,
+        );
         return;
       }
 
@@ -313,8 +316,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
         recordRequest(performance, file, resolvedUnit.content, offset);
       }
-      var completionRequest = CompletionRequestImpl(
-          resolvedUnit, offset, server.options.useNewRelevance, performance);
+      var completionRequest =
+          CompletionRequestImpl(resolvedUnit, offset, performance);
 
       var completionId = (_nextCompletionId++).toString();
 

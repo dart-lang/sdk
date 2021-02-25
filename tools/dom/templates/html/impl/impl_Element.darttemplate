@@ -1390,7 +1390,7 @@ $endif
       contextElement = _parseDocument$NULLASSERT.createElement(tagName);
       _parseDocument$NULLASSERT.body$NULLASSERT.append(contextElement);
     }
-    var fragment;
+    DocumentFragment fragment;
     if (Range.supportsCreateContextualFragment &&
         _canBeUsedToCreateContextualFragment) {
       _parseRange$NULLASSERT.selectNodeContents(contextElement);

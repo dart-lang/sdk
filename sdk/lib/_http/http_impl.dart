@@ -252,7 +252,9 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
     var proto = headers['x-forwarded-proto'];
     var scheme = proto != null
         ? proto.first
-        : _httpConnection._socket is SecureSocket ? "https" : "http";
+        : _httpConnection._socket is SecureSocket
+            ? "https"
+            : "http";
     var hostList = headers['x-forwarded-host'];
     String host;
     if (hostList != null) {
@@ -348,6 +350,7 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
   bool get isRedirect {
     if (_httpRequest.method == "GET" || _httpRequest.method == "HEAD") {
       return statusCode == HttpStatus.movedPermanently ||
+          statusCode == HttpStatus.permanentRedirect ||
           statusCode == HttpStatus.found ||
           statusCode == HttpStatus.seeOther ||
           statusCode == HttpStatus.temporaryRedirect;
@@ -1120,6 +1123,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   final _HttpClient _httpClient;
   final _HttpClientConnection _httpClientConnection;
   final TimelineTask? _timeline;
+  final TimelineTask? _responseTimeline;
 
   final Completer<HttpClientResponse> _responseCompleter =
       new Completer<HttpClientResponse>();
@@ -1137,10 +1141,17 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
 
   bool _aborted = false;
 
-  _HttpClientRequest(_HttpOutgoing outgoing, Uri uri, this.method, this._proxy,
-      this._httpClient, this._httpClientConnection, this._timeline)
+  _HttpClientRequest(
+      _HttpOutgoing outgoing,
+      Uri uri,
+      this.method,
+      this._proxy,
+      this._httpClient,
+      this._httpClientConnection,
+      this._timeline,
+      this._responseTimeline)
       : uri = uri,
-        super(uri, "1.1", outgoing, _timeline) {
+        super(uri, "1.1", outgoing, _responseTimeline) {
     _timeline?.instant('Request initiated');
     // GET and HEAD have 'content-length: 0' by default.
     if (method == "GET" || method == "HEAD") {
@@ -1194,7 +1205,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
       });
 
       // Start the timeline for response.
-      _timeline?.start('HTTP CLIENT response of ${method.toUpperCase()}',
+      _responseTimeline?.start(
+          'HTTP CLIENT response of ${method.toUpperCase()}',
           arguments: {
             'requestUri': uri.toString(),
             'statusCode': response.statusCode,
@@ -1235,7 +1247,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
       return;
     }
     final response =
-        _HttpClientResponse(incoming, this, _httpClient, _timeline);
+        _HttpClientResponse(incoming, this, _httpClient, _responseTimeline);
     Future<HttpClientResponse> future;
     if (followRedirects && response.isRedirect) {
       if (response.redirects.length < maxRedirects) {
@@ -1859,9 +1871,16 @@ class _HttpClientConnection {
     _ProxyCredentials? proxyCreds; // Credentials used to authorize proxy.
     _SiteCredentials? creds; // Credentials used to authorize this request.
     var outgoing = new _HttpOutgoing(_socket);
+
+    final responseTimeline = timeline == null
+        ? null
+        : TimelineTask(
+            parent: timeline,
+            filterKey: 'HTTP/client',
+          );
     // Create new request object, wrapping the outgoing connection.
-    var request = new _HttpClientRequest(
-        outgoing, uri, method, proxy, _httpClient, this, timeline);
+    var request = new _HttpClientRequest(outgoing, uri, method, proxy,
+        _httpClient, this, timeline, responseTimeline);
     // For the Host header an IPv6 address must be enclosed in []'s.
     var host = uri.host;
     if (host.contains(':')) host = "[$host]";
@@ -2200,25 +2219,10 @@ class _ConnectionTarget {
       Future socketFuture = task.socket;
       final Duration? connectionTimeout = client.connectionTimeout;
       if (connectionTimeout != null) {
-        socketFuture = socketFuture.timeout(connectionTimeout, onTimeout: () {
-          _socketTasks.remove(task);
-          task.cancel();
-          return null;
-        });
+        socketFuture = socketFuture.timeout(connectionTimeout);
       }
       return socketFuture.then((socket) {
-        // When there is a timeout, there is a race in which the connectionTask
-        // Future won't be completed with an error before the socketFuture here
-        // is completed with 'null' by the onTimeout callback above. In this
-        // case, propagate a SocketException as specified by the
-        // HttpClient.connectionTimeout docs.
         _connecting--;
-        if (socket == null) {
-          assert(connectionTimeout != null);
-          throw new SocketException(
-              "HTTP connection timed out after ${connectionTimeout}, "
-              "host: ${host}, port: ${port}");
-        }
         socket.setOption(SocketOption.tcpNoDelay, true);
         var connection =
             new _HttpClientConnection(key, socket, client, false, context);
@@ -2239,6 +2243,20 @@ class _ConnectionTarget {
           return new _ConnectionInfo(connection, proxy);
         }
       }, onError: (error) {
+        // When there is a timeout, there is a race in which the connectionTask
+        // Future won't be completed with an error before the socketFuture here
+        // is completed with a TimeoutException by the onTimeout callback above.
+        // In this case, propagate a SocketException as specified by the
+        // HttpClient.connectionTimeout docs.
+        if (error is TimeoutException) {
+          assert(connectionTimeout != null);
+          _connecting--;
+          _socketTasks.remove(task);
+          task.cancel();
+          throw SocketException(
+              "HTTP connection timed out after ${connectionTimeout}, "
+              "host: ${host}, port: ${port}");
+        }
         _socketTasks.remove(task);
         _checkPending();
         throw error;
@@ -2412,6 +2430,9 @@ class _HttpClient implements HttpClient {
     }
 
     bool isSecure = uri.isScheme("https");
+    if (!isSecure && !isInsecureConnectionAllowed(uri.host)) {
+      throw new StateError("Insecure HTTP is not allowed by platform: $uri");
+    }
     int port = uri.port;
     if (port == 0) {
       port =

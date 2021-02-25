@@ -34,12 +34,13 @@ void setup() {
   B.prototype.foo = function (x) { return x + 'ha!'; };
   B.prototype.cmp = function (x) { return 1; };
 
-  makeA = function(){return new A()};
-  makeB = function(){return new B()};
+  self.makeA = function(){return new A()};
+  self.makeB = function(){return new B()};
 
   self.nativeConstructor(A);
   self.nativeConstructor(B);
 })()""");
+  applyTestExtensions(['A', 'B']);
 }
 
 expectThrows(action()) {

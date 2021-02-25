@@ -1,0 +1,17 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue44347.dart:6:12: Error: Expected an identifier, but got '('.
+// Try inserting an identifier before '('.
+//   Set<int>.();
+//            ^
+//
+import self as self;
+import "dart:collection" as col;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  col::LinkedHashSet::•<core::int*>();
+}
+static method main() → dynamic {}

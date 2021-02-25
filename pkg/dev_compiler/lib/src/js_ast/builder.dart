@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // ignore_for_file: slash_for_doc_comments, unnecessary_new
 // ignore_for_file: always_declare_return_types, prefer_single_quotes
 // ignore_for_file: prefer_collection_literals, omit_local_variable_types
@@ -1674,7 +1676,7 @@ class MiniJsParser {
     Expression key = parseExpression();
     expectCategory(RPAREN);
     expectCategory(LBRACE);
-    var clauses = List<SwitchCase>();
+    var clauses = <SwitchCase>[];
     while (lastCategory != RBRACE) {
       clauses.add(parseSwitchClause());
     }
@@ -1699,7 +1701,7 @@ class MiniJsParser {
       heritage = parseConditional();
     }
     expectCategory(LBRACE);
-    var methods = List<Method>();
+    var methods = <Method>[];
     while (lastCategory != RBRACE) {
       methods.add(parseMethodOrProperty(onlyMethods: true) as Method);
     }

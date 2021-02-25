@@ -31,8 +31,8 @@ class F4<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → void {
-  new self::F3::•<dynamic>(<core::Iterable<dynamic>*>[]);
-  new self::F4::•<dynamic>(a: <core::Iterable<dynamic>*>[]);
+  new self::F3::•<dynamic>(core::_GrowableList::•<core::Iterable<dynamic>*>(0));
+  new self::F4::•<dynamic>(a: core::_GrowableList::•<core::Iterable<dynamic>*>(0));
 }
 
 constants  {

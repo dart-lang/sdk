@@ -6,6 +6,7 @@
 #define RUNTIME_VM_DART_H_
 
 #include "include/dart_api.h"
+#include "include/dart_tools_api.h"
 #include "vm/allocation.h"
 #include "vm/snapshot.h"
 
@@ -80,6 +81,7 @@ class Dart : public AllStatic {
   static void ShutdownIsolate();
 
   static Isolate* vm_isolate() { return vm_isolate_; }
+  static IsolateGroup* vm_isolate_group() { return vm_isolate_->group(); }
   static ThreadPool* thread_pool() { return thread_pool_; }
   static bool VmIsolateNameEquals(const char* name);
 
@@ -140,6 +142,11 @@ class Dart : public AllStatic {
     return entropy_source_callback_;
   }
 
+  static void set_gc_event_callback(Dart_GCEventCallback gc_event) {
+    gc_event_callback_ = gc_event;
+  }
+  static Dart_GCEventCallback gc_event_callback() { return gc_event_callback_; }
+
  private:
   static constexpr const char* kVmIsolateName = "vm-isolate";
 
@@ -158,6 +165,7 @@ class Dart : public AllStatic {
   static Dart_FileWriteCallback file_write_callback_;
   static Dart_FileCloseCallback file_close_callback_;
   static Dart_EntropySource entropy_source_callback_;
+  static Dart_GCEventCallback gc_event_callback_;
 };
 
 }  // namespace dart

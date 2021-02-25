@@ -5,7 +5,7 @@ import "dart:core" as core;
 import "package:expect/expect.dart";
 
 class A extends core::Object {
-  static field dynamic _redirecting# = <dynamic>[self::A::foo];
+  static final field dynamic _redirecting# = <dynamic>[self::A::foo];
   constructor •() → self::A*
     ;
   static factory foo() → self::A*
@@ -24,7 +24,7 @@ class A extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C extends self::A {
-  static field dynamic _redirecting# = <dynamic>[self::C::bar];
+  static final field dynamic _redirecting# = <dynamic>[self::C::bar];
   constructor •() → self::C*
     ;
   static factory bar() → self::C*

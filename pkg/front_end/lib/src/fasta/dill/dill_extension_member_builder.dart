@@ -2,23 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
 
-import '../problems.dart';
-
 import 'dill_member_builder.dart';
 
-class DillExtensionMemberBuilder extends DillMemberBuilder {
+abstract class DillExtensionMemberBuilder extends DillMemberBuilder {
   final ExtensionMemberDescriptor _descriptor;
 
-  final Member _extensionTearOff;
-
-  DillExtensionMemberBuilder(Member member, this._descriptor, Builder parent,
-      [this._extensionTearOff])
+  DillExtensionMemberBuilder(Member member, this._descriptor, Builder parent)
       : super(member, parent);
 
   @override
@@ -42,59 +39,141 @@ class DillExtensionMemberBuilder extends DillMemberBuilder {
     }
     return null;
   }
+}
+
+class DillExtensionFieldBuilder extends DillExtensionMemberBuilder {
+  final Field field;
+
+  DillExtensionFieldBuilder(
+      this.field, ExtensionMemberDescriptor descriptor, Builder parent)
+      : super(field, descriptor, parent);
+
+  Member get member => field;
 
   @override
-  Member get readTarget {
-    if (isField) {
-      return member;
-    }
-    switch (kind) {
-      case ProcedureKind.Method:
-        return _extensionTearOff ?? member;
-      case ProcedureKind.Getter:
-        return member;
-      case ProcedureKind.Operator:
-      case ProcedureKind.Setter:
-      case ProcedureKind.Factory:
-        return null;
-    }
-    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
-  }
+  Member get readTarget => field;
 
   @override
-  Member get writeTarget {
-    if (isField) {
-      return isAssignable ? member : null;
-    }
-    switch (kind) {
-      case ProcedureKind.Setter:
-        return member;
-      case ProcedureKind.Method:
-      case ProcedureKind.Getter:
-      case ProcedureKind.Operator:
-      case ProcedureKind.Factory:
-        return null;
-    }
-    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
-  }
+  Member get writeTarget => isAssignable ? field : null;
 
   @override
-  Member get invokeTarget {
-    if (isField) {
-      return member;
-    }
-    switch (kind) {
-      case ProcedureKind.Method:
-      case ProcedureKind.Getter:
-      case ProcedureKind.Operator:
-      case ProcedureKind.Factory:
-        return member;
-      case ProcedureKind.Setter:
-        return null;
-    }
-    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
-  }
+  Member get invokeTarget => field;
 
   @override
-  bool get isAssignable => member is Field && member.hasSetter;
+  bool get isField => true;
+
+  @override
+  bool get isAssignable => field.hasSetter;
+}
+
+class DillExtensionSetterBuilder extends DillExtensionMemberBuilder {
+  final Procedure procedure;
+
+  DillExtensionSetterBuilder(
+      this.procedure, ExtensionMemberDescriptor descriptor, Builder parent)
+      : assert(descriptor.kind == ExtensionMemberKind.Setter),
+        super(procedure, descriptor, parent);
+
+  Member get member => procedure;
+
+  @override
+  Member get readTarget => null;
+
+  @override
+  Member get writeTarget => procedure;
+
+  @override
+  Member get invokeTarget => null;
+}
+
+class DillExtensionGetterBuilder extends DillExtensionMemberBuilder {
+  final Procedure procedure;
+
+  DillExtensionGetterBuilder(
+      this.procedure, ExtensionMemberDescriptor descriptor, Builder parent)
+      : assert(descriptor.kind == ExtensionMemberKind.Getter),
+        super(procedure, descriptor, parent);
+
+  Member get member => procedure;
+
+  @override
+  Member get readTarget => procedure;
+
+  @override
+  Member get writeTarget => null;
+
+  @override
+  Member get invokeTarget => procedure;
+}
+
+class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder {
+  final Procedure procedure;
+
+  DillExtensionOperatorBuilder(
+      this.procedure, ExtensionMemberDescriptor descriptor, Builder parent)
+      : assert(descriptor.kind == ExtensionMemberKind.Operator),
+        super(procedure, descriptor, parent);
+
+  Member get member => procedure;
+
+  @override
+  Member get readTarget => null;
+
+  @override
+  Member get writeTarget => null;
+
+  @override
+  Member get invokeTarget => procedure;
+}
+
+class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder {
+  final Procedure procedure;
+
+  DillExtensionStaticMethodBuilder(
+      this.procedure, ExtensionMemberDescriptor descriptor, Builder parent)
+      : assert(descriptor.kind == ExtensionMemberKind.Method),
+        assert(descriptor.isStatic),
+        super(procedure, descriptor, parent);
+
+  @override
+  Member get member => procedure;
+
+  @override
+  Member get readTarget => procedure;
+
+  @override
+  Member get writeTarget => null;
+
+  @override
+  Member get invokeTarget => procedure;
+}
+
+class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder {
+  final Procedure procedure;
+
+  final Procedure _extensionTearOff;
+
+  DillExtensionInstanceMethodBuilder(
+      this.procedure,
+      ExtensionMemberDescriptor descriptor,
+      Builder parent,
+      this._extensionTearOff)
+      : assert(descriptor.kind == ExtensionMemberKind.Method),
+        assert(!descriptor.isStatic),
+        super(procedure, descriptor, parent);
+
+  @override
+  Member get member => procedure;
+
+  @override
+  Iterable<Member> get exportedMembers => [procedure, _extensionTearOff];
+
+  @override
+  Member get readTarget => _extensionTearOff;
+
+  @override
+  Member get writeTarget => null;
+
+  @override
+  Member get invokeTarget => procedure;
 }

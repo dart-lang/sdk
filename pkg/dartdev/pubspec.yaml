@@ -6,6 +6,8 @@ publish_to: none
 environment:
   sdk: '>=2.6.0 <3.0.0'
 dependencies:
+  analysis_server:
+    path: ../analysis_server
   analysis_server_client:
     path: ../analysis_server_client
   analyzer:
@@ -15,16 +17,20 @@ dependencies:
   dart2native:
     path: ../dart2native
   dart_style: any
+  front_end:
+    path: ../front_end
+  intl: any
   meta:
     path: ../meta
   nnbd_migration:
     path: ../nnbd_migration
   path: ^1.0.0
-  stagehand: 3.3.7
+  pedantic: ^1.9.0
+  pub: any
+  stagehand: any
   telemetry:
     path: ../telemetry
   usage: ^3.4.0
 
 dev_dependencies:
   test: ^1.0.0
-  pedantic: ^1.9.0

@@ -50,7 +50,7 @@ bool WeakCodeReferences::IsOptimizedCode(const Array& dependent_code,
   WeakProperty& weak_property = WeakProperty::Handle();
   for (intptr_t i = 0; i < dependent_code.Length(); i++) {
     weak_property ^= dependent_code.At(i);
-    if (code.raw() == weak_property.key()) {
+    if (code.ptr() == weak_property.key()) {
       return true;
     }
   }
@@ -59,7 +59,7 @@ bool WeakCodeReferences::IsOptimizedCode(const Array& dependent_code,
 
 void WeakCodeReferences::DisableCode() {
   Thread* thread = Thread::Current();
-  const Array& code_objects = Array::Handle(thread->zone(), array_.raw());
+  const Array& code_objects = Array::Handle(thread->zone(), array_.ptr());
 #if defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(code_objects.IsNull());
   return;
@@ -69,6 +69,9 @@ void WeakCodeReferences::DisableCode() {
   }
 
   UpdateArrayTo(Object::null_array());
+
+  // TODO(dartbug.com/36097): This has to walk all mutator threads when
+  // disabling code.
   // Disable all code on stack.
   Code& code = Code::Handle();
   {
@@ -76,12 +79,10 @@ void WeakCodeReferences::DisableCode() {
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
     while (frame != NULL) {
-      if (!frame->is_interpreted()) {
-        code = frame->LookupDartCode();
-        if (IsOptimizedCode(code_objects, code)) {
-          ReportDeoptimization(code);
-          DeoptimizeAt(code, frame);
-        }
+      code = frame->LookupDartCode();
+      if (IsOptimizedCode(code_objects, code)) {
+        ReportDeoptimization(code);
+        DeoptimizeAt(code, frame);
       }
       frame = iterator.NextFrame();
     }
@@ -100,10 +101,10 @@ void WeakCodeReferences::DisableCode() {
     }
     owner = code.owner();
     if (owner.IsFunction()) {
-      function ^= owner.raw();
+      function ^= owner.ptr();
     } else if (owner.IsClass()) {
       Class& cls = Class::Handle();
-      cls ^= owner.raw();
+      cls ^= owner.ptr();
       cls.DisableAllocationStub();
       continue;
     } else if (owner.IsNull()) {
@@ -112,10 +113,10 @@ void WeakCodeReferences::DisableCode() {
     }
 
     // If function uses dependent code switch it to unoptimized.
-    if (code.is_optimized() && (function.CurrentCode() == code.raw())) {
+    if (code.is_optimized() && (function.CurrentCode() == code.ptr())) {
       ReportSwitchingCode(code);
       function.SwitchToUnoptimizedCode();
-    } else if (function.unoptimized_code() == code.raw()) {
+    } else if (function.unoptimized_code() == code.ptr()) {
       ReportSwitchingCode(code);
       function.SetWasCompiled(false);
       function.ClearICDataArray();

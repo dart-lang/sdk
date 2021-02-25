@@ -174,7 +174,7 @@ class TruthTableEnvironment extends Environment {
 /// finished the function returns all combined min sets.
 List<List<Expression>> _combineMinSets(
     List<List<Expression>> minSets, List<List<Expression>> primeImplicants) {
-  List<List<LogicExpression>> combined = new List<List<LogicExpression>>();
+  List<List<LogicExpression>> combined = <List<LogicExpression>>[];
   var addedInThisIteration = new Set<List<Expression>>();
   for (var i = 0; i < minSets.length; i++) {
     var minSet = minSets[i];
@@ -317,7 +317,7 @@ bool _isCover(List<List<Expression>> cover, List<List<Expression>> implicants) {
 // Computes the difference between two sets of expressions in disjunctive normal
 // form. if the difference is a negation, the difference is only counted once.
 List<Expression> _difference(List<Expression> As, List<Expression> Bs) {
-  var difference = new List<Expression>()
+  var difference = <Expression>[]
     ..addAll(As.where((a) => _findFirst(a, Bs) == null))
     ..addAll(Bs.where((b) => _findFirst(b, As) == null));
   for (var expression in difference.toList()) {
@@ -351,7 +351,7 @@ void _addIfNotPresent(
 /// were combined.
 List<List<LogicExpression>> _uniqueMinSets(
     List<List<LogicExpression>> minSets) {
-  var uniqueMinSets = new List<List<LogicExpression>>();
+  var uniqueMinSets = <List<LogicExpression>>[];
   for (int i = 0; i < minSets.length; i++) {
     bool foundEqual = false;
     for (var j = i - 1; j >= 0; j--) {

@@ -19,7 +19,7 @@ class UseRethrowTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.use_rethrow_when_possible;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   try {} catch (e) {
     throw e;

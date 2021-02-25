@@ -8,6 +8,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
+import 'package:collection/collection.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
@@ -117,14 +118,17 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     // Append direct referenced cycles.
     for (var node in scc) {
       var file = node.file;
-      _appendDirectlyReferenced(cycle, signature, file.importedFiles);
-      _appendDirectlyReferenced(cycle, signature, file.exportedFiles);
+      _appendDirectlyReferenced(
+          cycle, signature, file.importedFiles.whereNotNull().toList());
+      _appendDirectlyReferenced(
+          cycle, signature, file.exportedFiles.whereNotNull().toList());
     }
 
     // Fill the cycle with libraries.
     for (var node in scc) {
       cycle.libraries.add(node.file);
 
+      signature.addLanguageVersion(node.file.packageLanguageVersion);
       signature.addString(node.file.uriStr);
 
       signature.addInt(node.file.libraryFiles.length);

@@ -2,10 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dds;
+import 'dart:typed_data';
 
-class _StreamManager {
-  _StreamManager(this.dds);
+import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+
+import 'client.dart';
+import 'dds_impl.dart';
+import 'logging_repository.dart';
+import 'rpc_error_codes.dart';
+
+class StreamManager {
+  StreamManager(this.dds);
 
   /// Send `streamNotify` notifications to clients subscribed to `streamId`.
   ///
@@ -18,7 +25,7 @@ class _StreamManager {
   void streamNotify(
     String streamId,
     data, {
-    _DartDevelopmentServiceClient excludedClient,
+    DartDevelopmentServiceClient excludedClient,
   }) {
     if (streamListeners.containsKey(streamId)) {
       final listeners = streamListeners[streamId];
@@ -36,14 +43,8 @@ class _StreamManager {
     }
   }
 
-  void sendServiceRegisteredEvent(
-    _DartDevelopmentServiceClient client,
-    String service,
-    String alias,
-  ) {
-    final namespace = dds._getNamespace(client);
-    streamNotify(
-      kServiceStream,
+  static Map<String, dynamic> _buildStreamRegisteredEvent(
+          String namespace, String service, String alias) =>
       {
         'streamId': kServiceStream,
         'event': {
@@ -53,16 +54,26 @@ class _StreamManager {
           'service': service,
           'method': namespace + '.' + service,
           'alias': alias,
-        },
-      },
+        }
+      };
+
+  void sendServiceRegisteredEvent(
+    DartDevelopmentServiceClient client,
+    String service,
+    String alias,
+  ) {
+    final namespace = dds.getNamespace(client);
+    streamNotify(
+      kServiceStream,
+      _buildStreamRegisteredEvent(namespace, service, alias),
       excludedClient: client,
     );
   }
 
   void _sendServiceUnregisteredEvents(
-    _DartDevelopmentServiceClient client,
+    DartDevelopmentServiceClient client,
   ) {
-    final namespace = dds._getNamespace(client);
+    final namespace = dds.getNamespace(client);
     for (final service in client.services.keys) {
       streamNotify(
         kServiceStream,
@@ -84,23 +95,30 @@ class _StreamManager {
   /// Start listening for `streamNotify` events from the VM service and forward
   /// them to the clients which have subscribed to the stream.
   Future<void> listen() async {
-    // The _IsolateManager requires information from both the Debug and
+    // The IsolateManager requires information from both the Debug and
     // Isolate streams, so they must always be subscribed to by DDS.
     for (final stream in ddsCoreStreams) {
-      await streamListen(null, stream);
+      try {
+        await streamListen(null, stream);
+        if (loggingRepositoryStreams.contains(stream)) {
+          loggingRepositories[stream] = LoggingRepository();
+        }
+      } on json_rpc.RpcException {
+        // Stdout and Stderr streams may not exist.
+      }
     }
-    dds._vmServiceClient.registerMethod(
+    dds.vmServiceClient.registerMethod(
       'streamNotify',
       (parameters) {
         final streamId = parameters['streamId'].asString;
-        // Forward events from the streams _IsolateManager subscribes to.
+        // Forward events from the streams IsolateManager subscribes to.
         if (isolateManagerStreams.contains(streamId)) {
           dds.isolateManager.handleIsolateEvent(parameters);
         }
-        // Keep a history of log messages to send to clients when they first
-        // subscribe to the Logging stream.
-        if (streamId == kLoggingStream) {
-          dds.loggingRepository.add(parameters.asMap);
+        // Keep a history of messages to send to clients when they first
+        // subscribe to a stream with an event history.
+        if (loggingRepositories.containsKey(streamId)) {
+          loggingRepositories[streamId].add(parameters.asMap);
         }
         streamNotify(streamId, parameters.value);
       },
@@ -112,7 +130,7 @@ class _StreamManager {
   /// If `client` is the first client to listen to `stream`, DDS will send a
   /// `streamListen` request for `stream` to the VM service.
   Future<void> streamListen(
-    _DartDevelopmentServiceClient client,
+    DartDevelopmentServiceClient client,
     String stream,
   ) async {
     assert(stream != null && stream.isNotEmpty);
@@ -121,22 +139,50 @@ class _StreamManager {
           stream != kDebugStream) {
         // This will return an RPC exception if the stream doesn't exist. This
         // will throw and the exception will be forwarded to the client.
-        final result = await dds._vmServiceClient.sendRequest('streamListen', {
+        final result = await dds.vmServiceClient.sendRequest('streamListen', {
           'streamId': stream,
         });
         assert(result['type'] == 'Success');
       }
-      streamListeners[stream] = <_DartDevelopmentServiceClient>[];
+      streamListeners[stream] = <DartDevelopmentServiceClient>[];
     }
     if (streamListeners[stream].contains(client)) {
       throw kStreamAlreadySubscribedException;
     }
     if (client != null) {
       streamListeners[stream].add(client);
-      if (stream == kLoggingStream) {
-        dds.loggingRepository.sendHistoricalLogs(client);
+      if (loggingRepositories.containsKey(stream)) {
+        loggingRepositories[stream].sendHistoricalLogs(client);
+      } else if (stream == kServiceStream) {
+        // Send all previously registered service extensions when a client
+        // subscribes to the Service stream.
+        for (final c in dds.clientManager.clients) {
+          if (c == client) {
+            continue;
+          }
+          final namespace = dds.getNamespace(c);
+          for (final service in c.services.keys) {
+            client.sendNotification(
+              'streamNotify',
+              _buildStreamRegisteredEvent(
+                namespace,
+                service,
+                c.services[service],
+              ),
+            );
+          }
+        }
       }
     }
+  }
+
+  List<Map<String, dynamic>> getStreamHistory(String stream) {
+    if (!loggingRepositories.containsKey(stream)) {
+      return null;
+    }
+    return [
+      for (final event in loggingRepositories[stream]()) event['event'],
+    ];
   }
 
   /// Unsubscribes `client` from a stream.
@@ -144,7 +190,7 @@ class _StreamManager {
   /// If `client` is the last client to unsubscribe from `stream`, DDS will
   /// send a `streamCancel` request for `stream` to the VM service.
   Future<void> streamCancel(
-    _DartDevelopmentServiceClient client,
+    DartDevelopmentServiceClient client,
     String stream, {
     bool cancelCoreStream = false,
   }) async {
@@ -159,10 +205,10 @@ class _StreamManager {
         (!ddsCoreStreams.contains(stream) || cancelCoreStream)) {
       streamListeners.remove(stream);
       // Ensure the VM service hasn't shutdown.
-      if (dds._vmServiceClient.isClosed) {
+      if (dds.vmServiceClient.isClosed) {
         return;
       }
-      final result = await dds._vmServiceClient.sendRequest('streamCancel', {
+      final result = await dds.vmServiceClient.sendRequest('streamCancel', {
         'streamId': stream,
       });
       assert(result['type'] == 'Success');
@@ -172,15 +218,13 @@ class _StreamManager {
   }
 
   /// Cleanup stream subscriptions for `client` when it has disconnected.
-  void clientDisconnect(_DartDevelopmentServiceClient client) {
+  void clientDisconnect(DartDevelopmentServiceClient client) {
     for (final streamId in streamListeners.keys.toList()) {
       streamCancel(client, streamId).catchError(
         (_) => null,
         // Ignore 'stream not subscribed' errors and StateErrors which arise
         // when DDS is shutting down.
-        test: (e) =>
-            (e is json_rpc.RpcException) ||
-            (dds._shuttingDown && e is StateError),
+        test: (e) => (e is json_rpc.RpcException) || (e is StateError),
       );
     }
     // Notify other service clients of service extensions that are being
@@ -191,29 +235,37 @@ class _StreamManager {
   static const kServiceStream = 'Service';
 
   static final kStreamAlreadySubscribedException =
-      _RpcErrorCodes.buildRpcException(
-    _RpcErrorCodes.kStreamAlreadySubscribed,
+      RpcErrorCodes.buildRpcException(
+    RpcErrorCodes.kStreamAlreadySubscribed,
   );
 
-  static final kStreamNotSubscribedException = _RpcErrorCodes.buildRpcException(
-    _RpcErrorCodes.kStreamNotSubscribed,
+  static final kStreamNotSubscribedException = RpcErrorCodes.buildRpcException(
+    RpcErrorCodes.kStreamNotSubscribed,
   );
 
   static const kDebugStream = 'Debug';
+  static const kExtensionStream = 'Extension';
   static const kIsolateStream = 'Isolate';
   static const kLoggingStream = 'Logging';
+  static const kStderrStream = 'Stderr';
+  static const kStdoutStream = 'Stdout';
 
-  // Never cancel the Debug or Isolate stream as `_IsolateManager` requires
+  static Map<String, LoggingRepository> loggingRepositories = {};
+
+  // Never cancel the Debug or Isolate stream as `IsolateManager` requires
   // them for isolate state notifications.
   static const isolateManagerStreams = <String>{
     kDebugStream,
     kIsolateStream,
   };
 
-  // Never cancel the Logging stream as `_LoggingRepository` requires it to
-  // keep a log history.
+  // Never cancel the logging and extension event streams as `LoggingRepository`
+  // requires them keep history.
   static const loggingRepositoryStreams = <String>{
+    kExtensionStream,
     kLoggingStream,
+    kStderrStream,
+    kStdoutStream,
   };
 
   // The set of streams that DDS requires to function.
@@ -222,6 +274,6 @@ class _StreamManager {
     ...loggingRepositoryStreams,
   };
 
-  final _DartDevelopmentService dds;
-  final streamListeners = <String, List<_DartDevelopmentServiceClient>>{};
+  final DartDevelopmentServiceImpl dds;
+  final streamListeners = <String, List<DartDevelopmentServiceClient>>{};
 }

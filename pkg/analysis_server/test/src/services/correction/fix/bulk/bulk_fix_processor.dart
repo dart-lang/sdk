@@ -11,6 +11,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:test/test.dart';
 
 import '../../../../../abstract_single_unit.dart';
+import '../../../../../utils/test_instrumentation_service.dart';
 
 /// A base class defining support for writing bulk fix processor tests.
 abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
@@ -29,13 +30,16 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// Return the lint code being tested.
   String get lintCode => null;
 
+  /// Return `true` if this test uses config files.
+  bool get useConfigFiles => false;
+
   /// The workspace in which fixes contributor operates.
   ChangeWorkspace get workspace {
     return DartChangeWorkspace([session]);
   }
 
   Future<void> assertHasFix(String expected) async {
-    change = await _computeFixes();
+    change = await _computeSourceChange();
 
     // apply to "file"
     var fileEdits = change.edits;
@@ -46,6 +50,23 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     expect(resultCode, expected);
   }
 
+  Future<void> assertNoFix() async {
+    change = await _computeSourceChange();
+    var fileEdits = change.edits;
+    expect(fileEdits, isEmpty);
+  }
+
+  /// Computes fixes for the specified [testUnit].
+  Future<BulkFixProcessor> computeFixes() async {
+    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
+    var analysisContext = contextFor(testFile);
+    tracker.addContext(analysisContext);
+    var processor = BulkFixProcessor(TestInstrumentationService(), workspace,
+        useConfigFiles: useConfigFiles);
+    await processor.fixErrors([analysisContext]);
+    return processor;
+  }
+
   @override
   void setUp() {
     super.setUp();
@@ -53,13 +74,10 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     _createAnalysisOptionsFile();
   }
 
-  /// Computes fixes for the given [error] in [testUnit].
-  Future<SourceChange> _computeFixes() async {
-    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
-    tracker.addContext(driver.analysisContext);
-    var changeBuilder =
-        await BulkFixProcessor(workspace).fixErrorsInLibraries([testFile]);
-    return changeBuilder.sourceChange;
+  /// Returns the source change for computed fixes in the specified [testUnit].
+  Future<SourceChange> _computeSourceChange() async {
+    var processor = await computeFixes();
+    return processor.builder.sourceChange;
   }
 
   /// Create the analysis options file needed in order to correctly analyze the

@@ -6,6 +6,7 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -14,6 +15,9 @@ import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:test/test.dart';
 
 import '../../../../abstract_single_unit.dart';
+import '../../../../utils/test_instrumentation_service.dart';
+
+export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
 /// A base class defining support for writing assist processor tests.
 abstract class AssistProcessorTest extends AbstractSingleUnitTest {
@@ -29,6 +33,36 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   /// The workspace in which fixes contributor operates.
   ChangeWorkspace get workspace {
     return DartChangeWorkspace([session]);
+  }
+
+  @override
+  void addTestSource(String code) {
+    if (useLineEndingsForPlatform) {
+      code = normalizeNewlinesForPlatform(code);
+    }
+    final eol = code.contains('\r\n') ? '\r\n' : '\n';
+    var offset = code.indexOf('/*caret*/');
+    if (offset >= 0) {
+      var endOffset = offset + '/*caret*/'.length;
+      code = code.substring(0, offset) + code.substring(endOffset);
+      _offset = offset;
+      _length = 0;
+    } else {
+      var startOffset = code.indexOf('// start$eol');
+      var endOffset = code.indexOf('// end$eol');
+      if (startOffset >= 0 && endOffset >= 0) {
+        var startLength = '// start$eol'.length;
+        code = code.substring(0, startOffset) +
+            code.substring(startOffset + startLength, endOffset) +
+            code.substring(endOffset + '// end$eol'.length);
+        _offset = startOffset;
+        _length = endOffset - startLength - _offset;
+      } else {
+        _offset = 0;
+        _length = 0;
+      }
+    }
+    super.addTestSource(code);
   }
 
   void assertExitPosition({String before, String after}) {
@@ -53,6 +87,11 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   /// have been applied.
   Future<void> assertHasAssist(String expected,
       {Map<String, List<String>> additionallyChangedFiles}) async {
+    if (useLineEndingsForPlatform) {
+      expected = normalizeNewlinesForPlatform(expected);
+      additionallyChangedFiles = additionallyChangedFiles?.map((key, value) =>
+          MapEntry(key, value.map(normalizeNewlinesForPlatform).toList()));
+    }
     var assist = await _assertHasAssist();
     _change = assist.change;
     expect(_change.id, kind.id);
@@ -80,6 +119,9 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   /// given [snippet] which produces the [expected] code when applied to [testCode].
   Future<void> assertHasAssistAt(String snippet, String expected,
       {int length = 0}) async {
+    if (useLineEndingsForPlatform) {
+      expected = normalizeNewlinesForPlatform(expected);
+    }
     _offset = findOffset(snippet);
     _length = length;
     var assist = await _assertHasAssist();
@@ -133,29 +175,9 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   }
 
   @override
-  Future<void> resolveTestUnit(String code) async {
-    var offset = code.indexOf('/*caret*/');
-    if (offset >= 0) {
-      var endOffset = offset + '/*caret*/'.length;
-      code = code.substring(0, offset) + code.substring(endOffset);
-      _offset = offset;
-      _length = 0;
-    } else {
-      var startOffset = code.indexOf('// start\n');
-      var endOffset = code.indexOf('// end\n');
-      if (startOffset >= 0 && endOffset >= 0) {
-        var startLength = '// start\n'.length;
-        code = code.substring(0, startOffset) +
-            code.substring(startOffset + startLength, endOffset) +
-            code.substring(endOffset + '// end\n'.length);
-        _offset = startOffset;
-        _length = endOffset - startLength - _offset;
-      } else {
-        _offset = 0;
-        _length = 0;
-      }
-    }
-    return super.resolveTestUnit(code);
+  void setUp() {
+    super.setUp();
+    useLineEndingsForPlatform = true;
   }
 
   /// Computes assists and verifies that there is an assist of the given kind.
@@ -171,6 +193,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
 
   Future<List<Assist>> _computeAssists() async {
     var context = DartAssistContextImpl(
+      TestInstrumentationService(),
       workspace,
       testAnalysisResult,
       _offset,

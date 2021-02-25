@@ -20,6 +20,8 @@ class MissingFieldTypeInStructTest extends PubPackageResolutionTest {
 import 'dart:ffi';
 class C extends Struct {
   var str;
+
+  Pointer notEmpty;
 }
 ''', [
       error(FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, 50, 3),

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Test of toString on generators.
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
@@ -18,7 +20,6 @@ import 'package:kernel/ast.dart'
         Expression,
         FunctionNode,
         Library,
-        Member,
         Name,
         Procedure,
         ProcedureKind,
@@ -83,11 +84,11 @@ main() async {
         null);
     LoadLibraryBuilder loadLibraryBuilder =
         new LoadLibraryBuilder(libraryBuilder, null, -1);
-    Member getter = new Procedure(
+    Procedure getter = new Procedure(
         new Name("myGetter"), ProcedureKind.Getter, new FunctionNode(null));
-    Member interfaceTarget = new Procedure(new Name("myInterfaceTarget"),
+    Procedure interfaceTarget = new Procedure(new Name("myInterfaceTarget"),
         ProcedureKind.Method, new FunctionNode(null));
-    Member setter = new Procedure(
+    Procedure setter = new Procedure(
         new Name("mySetter"), ProcedureKind.Setter, new FunctionNode(null));
     Message message = templateUnspecified.withArguments("My Message.");
     Name binaryOperator = new Name("+");
@@ -112,7 +113,7 @@ main() async {
     library.addClass(cls);
     library.addProcedure(getter);
     library.addProcedure(setter);
-    cls.addMember(interfaceTarget);
+    cls.addProcedure(interfaceTarget);
 
     PrefixUseGenerator prefixUseGenerator =
         new PrefixUseGenerator(helper, token, prefixBuilder);

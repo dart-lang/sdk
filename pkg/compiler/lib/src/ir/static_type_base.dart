@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/class_hierarchy.dart' as ir;
-import 'package:kernel/core_types.dart' as ir;
-import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 /// Special bottom type used to signal that an expression or statement does
@@ -121,7 +118,7 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
   }
 
   @override
-  ir.DartType visitNullLiteral(ir.NullLiteral node) => typeEnvironment.nullType;
+  ir.DartType visitNullLiteral(ir.NullLiteral node) => const ir.NullType();
 
   @override
   ir.DartType visitIntLiteral(ir.IntLiteral node) =>
@@ -160,11 +157,6 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
 
   @override
   ir.DartType visitPropertySet(ir.PropertySet node) {
-    return visitNode(node.value);
-  }
-
-  @override
-  ir.DartType visitDirectPropertySet(ir.DirectPropertySet node) {
     return visitNode(node.value);
   }
 

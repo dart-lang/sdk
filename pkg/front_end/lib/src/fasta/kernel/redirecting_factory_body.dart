@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.redirecting_factory_body;
 
 import 'package:kernel/ast.dart'
@@ -35,7 +37,7 @@ const String redirectingName = "_redirecting#";
 bool isRedirectingFactoryField(Member member) {
   return member is Field &&
       member.isStatic &&
-      member.name.name == redirectingName;
+      member.name.text == redirectingName;
 }
 
 /// Name used for a synthesized let variable used to encode redirecting factory

@@ -1,0 +1,10 @@
+// @dart = 2.8
+import 'covariant_from_opt_in_lib.dart';
+
+class SubClass extends Class with Mixin {
+  void contravariant(Object cls) {}
+  void covariant(SubClass cls) {}
+  void invariant(SubClass cls) {}
+}
+
+main() {}

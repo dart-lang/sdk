@@ -1,0 +1,100 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue43278.dart:13:5: Error: Property 'foo' cannot be accessed on 'A?' because it is potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
+// Try accessing using ?. instead.
+//   a.foo ??= x; // Error.
+//     ^^^
+//
+// pkg/front_end/testcases/nnbd/issue43278.dart:14:5: Error: Property 'foo' cannot be accessed on 'T' because it is potentially null.
+// Try accessing using ?. instead.
+//   t.foo ??= x; // Error.
+//     ^^^
+//
+// pkg/front_end/testcases/nnbd/issue43278.dart:28:5: Error: Property 'fooExtension' cannot be accessed on 'B?' because it is potentially null.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
+// Try accessing using ?. instead.
+//   b.fooExtension ??= x; // Error.
+//     ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue43278.dart:29:5: Error: The getter 'fooExtension' isn't defined for the class 'B?'.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'fooExtension'.
+//   t.fooExtension ??= x; // Error.
+//     ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue43278.dart:29:5: Error: The setter 'fooExtension' isn't defined for the class 'B?'.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'fooExtension'.
+//   t.fooExtension ??= x; // Error.
+//     ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int? foo = null;
+  field self::A bar;
+  constructor •(self::A bar) → self::A
+    : self::A::bar = bar, super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+extension Extension on self::B {
+  get fooExtension = self::Extension|get#fooExtension;
+  get barExtension = self::Extension|get#barExtension;
+  set fooExtension = self::Extension|set#fooExtension;
+}
+static method test<T extends self::A? = self::A?>(self::A? a, self::test::T% t, dynamic d, core::int x) → dynamic {
+  let final self::A? #t1 = a in (let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:13:5: Error: Property 'foo' cannot be accessed on 'A?' because it is potentially null.
+ - 'A' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
+Try accessing using ?. instead.
+  a.foo ??= x; // Error.
+    ^^^" in #t1.{self::A::foo}).{core::num::==}(null) ?{core::int} let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:13:5: Error: Property 'foo' cannot be accessed on 'A?' because it is potentially null.
+ - 'A' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
+Try accessing using ?. instead.
+  a.foo ??= x; // Error.
+    ^^^" in #t1.{self::A::foo} = x : null;
+  let final self::test::T% #t4 = t in (let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:14:5: Error: Property 'foo' cannot be accessed on 'T' because it is potentially null.
+Try accessing using ?. instead.
+  t.foo ??= x; // Error.
+    ^^^" in #t4.{self::A::foo}).{core::num::==}(null) ?{core::int} let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:14:5: Error: Property 'foo' cannot be accessed on 'T' because it is potentially null.
+Try accessing using ?. instead.
+  t.foo ??= x; // Error.
+    ^^^" in #t4.{self::A::foo} = x : null;
+  let final dynamic #t7 = d in #t7.foo.{core::Object::==}(null) ?{dynamic} #t7.foo = x : null;
+  let final self::A? #t8 = a in #t8.{core::Object::==}(null) ?{core::int?} null : let final self::A #t9 = #t8{self::A}.{self::A::bar} in #t9.{self::A::foo}.{core::num::==}(null) ?{core::int} #t9.{self::A::foo} = x : null;
+}
+static method Extension|get#fooExtension(lowered final self::B #this) → core::int?
+  return null;
+static method Extension|set#fooExtension(lowered final self::B #this, core::int? value) → void {}
+static method Extension|get#barExtension(lowered final self::B #this) → self::B
+  return new self::B::•();
+static method testExtension<T extends self::B? = self::B?>(self::B? b, self::testExtension::T% t, core::int x) → dynamic {
+  let final self::B? #t10 = b in (let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:28:5: Error: Property 'fooExtension' cannot be accessed on 'B?' because it is potentially null.
+ - 'B' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
+Try accessing using ?. instead.
+  b.fooExtension ??= x; // Error.
+    ^^^^^^^^^^^^" in self::Extension|get#fooExtension(#t10)).{core::num::==}(null) ?{core::int} let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:28:5: Error: Property 'fooExtension' cannot be accessed on 'B?' because it is potentially null.
+ - 'B' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
+Try accessing using ?. instead.
+  b.fooExtension ??= x; // Error.
+    ^^^^^^^^^^^^" in self::Extension|set#fooExtension(#t10, x) : null;
+  let final self::testExtension::T% #t13 = t in invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:29:5: Error: The getter 'fooExtension' isn't defined for the class 'B?'.
+ - 'B' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'fooExtension'.
+  t.fooExtension ??= x; // Error.
+    ^^^^^^^^^^^^".{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:29:5: Error: The setter 'fooExtension' isn't defined for the class 'B?'.
+ - 'B' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'fooExtension'.
+  t.fooExtension ??= x; // Error.
+    ^^^^^^^^^^^^" : null;
+  let final self::B? #t14 = b in #t14.{core::Object::==}(null) ?{core::int?} null : let final self::B #t15 = self::Extension|get#barExtension(#t14{self::B}) in self::Extension|get#fooExtension(#t15).{core::num::==}(null) ?{core::int} self::Extension|set#fooExtension(#t15, x) : null;
+}
+static method main() → dynamic {}

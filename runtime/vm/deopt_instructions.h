@@ -27,7 +27,7 @@ class TimelineEvent;
 
 // Holds all data relevant for execution of deoptimization instructions.
 // Structure is allocated in C-heap.
-class DeoptContext {
+class DeoptContext : public MallocAllocated {
  public:
   enum DestFrameOptions {
     kDestIsOriginalFrame,  // Replace the original frame with deopt frame.
@@ -389,7 +389,7 @@ class RegisterSource {
 
   RegisterSource(Kind kind, intptr_t index)
       : source_index_(KindField::encode(kind) |
-                      IndexFieldLayout::encode(index)) {}
+                      UntaggedIndexField::encode(index)) {}
 
   template <typename T>
   T Value(DeoptContext* context) const {
@@ -419,13 +419,15 @@ class RegisterSource {
 
  private:
   class KindField : public BitField<intptr_t, intptr_t, 0, 1> {};
-  class IndexFieldLayout
+  class UntaggedIndexField
       : public BitField<intptr_t, intptr_t, 1, kBitsPerWord - 1> {};
 
   bool is_register() const {
     return KindField::decode(source_index_) == kRegister;
   }
-  intptr_t raw_index() const { return IndexFieldLayout::decode(source_index_); }
+  intptr_t raw_index() const {
+    return UntaggedIndexField::decode(source_index_);
+  }
 
   RegisterType reg() const { return static_cast<RegisterType>(raw_index()); }
 

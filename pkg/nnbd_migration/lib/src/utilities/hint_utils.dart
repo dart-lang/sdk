@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 
 /// Determines if the given [token] is followed by a nullability hint, and if
@@ -43,11 +44,11 @@ HintComment getPrefixHint(Token token) {
     var lexeme = commentToken.lexeme;
     if (lexeme.startsWith('/*') &&
         lexeme.endsWith('*/') &&
-        lexeme.length > 'late'.length) {
+        lexeme.length >= '/*late*/'.length) {
       var commentText =
           lexeme.substring('/*'.length, lexeme.length - '*/'.length).trim();
+      var commentOffset = commentToken.offset;
       if (commentText == 'late') {
-        var commentOffset = commentToken.offset;
         var lateOffset = commentOffset + commentToken.lexeme.indexOf('late');
         return HintComment(
             HintCommentKind.late_,
@@ -55,6 +56,27 @@ HintComment getPrefixHint(Token token) {
             commentOffset,
             lateOffset,
             lateOffset + 'late'.length,
+            commentToken.end,
+            token.offset);
+      } else if (commentText == 'late final') {
+        var lateOffset = commentOffset + commentToken.lexeme.indexOf('late');
+        return HintComment(
+            HintCommentKind.lateFinal,
+            commentOffset,
+            commentOffset,
+            lateOffset,
+            lateOffset + 'late final'.length,
+            commentToken.end,
+            token.offset);
+      } else if (commentText == 'required') {
+        var requiredOffset =
+            commentOffset + commentToken.lexeme.indexOf('required');
+        return HintComment(
+            HintCommentKind.required,
+            commentOffset,
+            commentOffset,
+            requiredOffset,
+            requiredOffset + 'required'.length,
             commentToken.end,
             token.offset);
       }
@@ -142,7 +164,7 @@ class HintComment {
   Map<int, List<AtomicEdit>> changesToRemove(String sourceText,
       {AtomicEditInfo info}) {
     bool appendSpace = false;
-    var removeOffset = this._removeOffset;
+    var removeOffset = _removeOffset;
     if (_isIdentifierCharBeforeOffset(sourceText, removeOffset) &&
         _isIdentifierCharAtOffset(sourceText, _removeEnd)) {
       if (sourceText[removeOffset] == ' ') {
@@ -196,4 +218,49 @@ enum HintCommentKind {
   /// The comment `/*late*/`, which indicates that the variable declaration
   /// should be late.
   late_,
+
+  /// The comment `/*late final*/`, which indicates that the variable
+  /// declaration should be late and final.
+  lateFinal,
+
+  /// The comment `/*required*/`, which indicates that the parameter should be
+  /// required.
+  required,
+}
+
+extension FormalParameterExtensions on FormalParameter {
+  // TODO(srawlins): Add this to FormalParameter interface.
+  Token get firstTokenAfterCommentAndMetadata {
+    var parameter = this is DefaultFormalParameter
+        ? (this as DefaultFormalParameter).parameter
+        : this as NormalFormalParameter;
+    if (parameter is FieldFormalParameter) {
+      if (parameter.keyword != null) {
+        return parameter.keyword;
+      } else if (parameter.type != null) {
+        return parameter.type.beginToken;
+      } else {
+        return parameter.thisKeyword;
+      }
+    } else if (parameter is FunctionTypedFormalParameter) {
+      if (parameter.covariantKeyword != null) {
+        return parameter.covariantKeyword;
+      } else if (parameter.returnType != null) {
+        return parameter.returnType.beginToken;
+      } else {
+        return parameter.identifier.token;
+      }
+    } else if (parameter is SimpleFormalParameter) {
+      if (parameter.covariantKeyword != null) {
+        return parameter.covariantKeyword;
+      } else if (parameter.keyword != null) {
+        return parameter.keyword;
+      } else if (parameter.type != null) {
+        return parameter.type.beginToken;
+      } else {
+        return parameter.identifier.token;
+      }
+    }
+    return null;
+  }
 }

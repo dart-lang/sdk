@@ -13,7 +13,7 @@ import 'package:expect/expect.dart';
 import 'boolean_conversion_lib1.dart';
 
 void main() {
-  check(neverAsBoolean, null, Expect.throwsAssertionError);
+  check(neverAsBoolean, null, Expect.throwsReachabilityError);
 
   check(booleanAsBoolean, null, Expect.throwsAssertionError);
   check(booleanAsBoolean, true, expectOk);

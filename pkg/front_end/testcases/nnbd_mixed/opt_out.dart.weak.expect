@@ -116,10 +116,12 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:36:6: Error: Expected an identifier, but got '.'.
+// Try inserting an identifier before '.'.
 //   c?..f;
 //      ^
 //
 // pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:36:6: Error: Expected an identifier, but got ''.
+// Try inserting an identifier before ''.
 //   c?..f;
 //      ^
 //
@@ -151,7 +153,7 @@ class A<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class B extends self2::A<core::String?> {
+class B extends self2::A<core::String*> {
   synthetic constructor •() → self2::B*
     : super self2::A::•()
     ;
@@ -160,7 +162,7 @@ static field core::List<core::String?>* l = <core::String*>[];
 static field core::String? s = null;
 static field core::String* t = self2::s!;
 static field core::int* field = 42;
-static method method(() →? void f, {core::int* a = #C1}) → void {}
+static method method(() →* void f, {core::int* a = #C1}) → void {}
 static method errors() → dynamic {
   core::int* local = 42;
   core::List<core::String?>* l = null;
@@ -168,6 +170,7 @@ static method errors() → dynamic {
   core::String* t = s!;
   dynamic c;
   invalid-expression "pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:36:6: Error: Expected an identifier, but got ''.
+Try inserting an identifier before ''.
   c?..f;
      ^".f;
   let final dynamic #t3 = c in #t3.{core::Object::==}(null) ?{dynamic} null : #t3.[](0);

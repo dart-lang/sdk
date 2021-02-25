@@ -85,6 +85,18 @@ class ArgumentErrorCheckNotNullOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.argumentErrorCheckNotNull;
 }
 
+/// An edge origin used for edges that originated because of a tear-off of
+/// `call` on a function type.
+class CallTearOffOrigin extends EdgeOrigin {
+  CallTearOffOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'tear-off of .call';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.callTearOff;
+}
+
 /// Edge origin resulting from the use of a value on the LHS of a compound
 /// assignment.
 class CompoundAssignmentOrigin extends EdgeOrigin {
@@ -312,6 +324,18 @@ class ImplicitNullReturnOrigin extends EdgeOrigin {
   ReturnStatement get node => super.node as ReturnStatement;
 }
 
+/// Edge origin used for edges that arise from an implicit use of `this`, e.g.
+/// during a method call from an extension.
+class ImplicitThisOrigin extends EdgeOrigin {
+  ImplicitThisOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'implicit use of `this`';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.implicitThis;
+}
+
 /// Edge origin resulting from the inference of a type parameter, which
 /// can affects the nullability of that type parameter's bound.
 class InferredTypeParameterInstantiationOrigin extends EdgeOrigin {
@@ -369,6 +393,19 @@ class IsCheckMainTypeOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.isCheckMainType;
+}
+
+/// An edge origin used for the return type of an iterator method that might be
+/// changed into an extension method from package:collection.
+class IteratorMethodReturnOrigin extends EdgeOrigin {
+  IteratorMethodReturnOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description =>
+      'Call to iterator method with orElse that returns null';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.iteratorMethodReturn;
 }
 
 /// An edge origin used for the type argument of a list constructor that

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/flutter/class_description.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
@@ -24,7 +23,7 @@ String getFieldDocumentation(FieldElement field) {
 
 String getParameterDocumentation(ParameterElement parameter) {
   if (parameter is FieldFormalParameterElement) {
-    var rawComment = parameter.field.documentationComment;
+    var rawComment = parameter.field?.documentationComment;
     return getDartDocPlainText(rawComment);
   }
   return null;

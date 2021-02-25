@@ -73,14 +73,14 @@ testDatagramSocketReuseAddress() {
     RawDatagramSocket.bind(address, 0,
             reuseAddress: reuseAddress,
             reusePort: Platform.isMacOS && reuseAddress)
-        .then((socket) {
+        .then((socket) async {
       if (reuseAddress) {
         RawDatagramSocket.bind(address, socket.port,
                 reusePort: Platform.isMacOS)
             .then((s) => Expect.isTrue(s is RawDatagramSocket))
             .then(asyncSuccess);
       } else {
-        FutureExpect.throws(RawDatagramSocket.bind(address, socket.port))
+        await FutureExpect.throws(RawDatagramSocket.bind(address, socket.port))
             .then(asyncSuccess);
       }
     });

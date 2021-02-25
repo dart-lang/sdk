@@ -1,4 +1,4 @@
-main = <No Member>;
+main = main::main;
 library from "org-dartlang-test:///lib.dart" as lib {
 
   class FooEntry extends dart.core::Object {
@@ -65,7 +65,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
     synthetic constructor •() → lib::_Quux&Qux&MyMixin*
       : super lib::Qux::•()
       ;
-    abstract forwarding-stub method hello(covariant lib::FooEntry* entry) → void;
+    abstract member-signature method hello(covariant lib::FooEntry* entry) → void; -> lib::Baz::hello
   }
   class Quux extends lib::_Quux&Qux&MyMixin {
     synthetic constructor •() → lib::Quux*

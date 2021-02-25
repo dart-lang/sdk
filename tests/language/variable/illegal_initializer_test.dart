@@ -45,7 +45,6 @@ class B extends A {
       //   ^^^^
       // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNMENT_IN_INITIALIZER
       // [error line 39, column 16, length 0]
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
       // [cfe] Expected '.' before this.
       //       ^
       // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN

@@ -1,0 +1,85 @@
+abstract class Key {
+int get a => runtimeType.hashCode or null.hashCode;
+int get b => runtimeType.hashCode | null.hashCode;
+int get c { return runtimeType.hashCode or null.hashCode; }
+int get d { return runtimeType.hashCode | null.hashCode; }
+
+int get e => 1 + runtimeType.hashCode or null.hashCode + 3;
+int get f => 1 + runtimeType.hashCode | null.hashCode + 3;
+int get g { return 1 + runtimeType.hashCode or null.hashCode + 3; }
+int get h { return 1 + runtimeType.hashCode | null.hashCode + 3; }
+
+int i(int x, int y) => x or y;
+int j(int x, int y) => x | y;
+int k(int x, int y) { return x or y; }
+int l(int x, int y) { return x | y; }
+int m(int x, int y) { int z = x or y; return z; }
+int n(int x, int y) { int z = x | y; return z; }
+
+int o(int x, int y) => 1 + x or y + 3;
+int p(int x, int y) => 1 + x | y + 3;
+int q(int x, int y) { return 1 + x or y + 3; }
+int r(int x, int y) { return 1 + x | y + 3; }
+
+s(int x, int y) {
+s(x or y, x or y);
+s(x | y, x | y);
+}
+
+Key(int x, int y) : foo = x or y, bar = x or y {
+print("hello ${x or y}");
+}
+
+Key(int x, int y) : foo = x | y, bar = x | y {
+print("hello ${x | y}");
+}
+
+not_currently_working(int x, int y) {
+x or y;
+x | y;
+}
+}
+
+
+abstract[KeywordToken] class[KeywordToken] Key[StringToken] {[BeginToken]
+int[StringToken] get[KeywordToken] a[StringToken] =>[SimpleToken] runtimeType[StringToken].[SimpleToken]hashCode[StringToken] or[StringToken] null[KeywordToken].[SimpleToken]hashCode[StringToken];[SimpleToken]
+int[StringToken] get[KeywordToken] b[StringToken] =>[SimpleToken] runtimeType[StringToken].[SimpleToken]hashCode[StringToken] |[SimpleToken] null[KeywordToken].[SimpleToken]hashCode[StringToken];[SimpleToken]
+int[StringToken] get[KeywordToken] c[StringToken] {[BeginToken] return[KeywordToken] runtimeType[StringToken].[SimpleToken]hashCode[StringToken] or[StringToken] null[KeywordToken].[SimpleToken]hashCode[StringToken];[SimpleToken] }[SimpleToken]
+int[StringToken] get[KeywordToken] d[StringToken] {[BeginToken] return[KeywordToken] runtimeType[StringToken].[SimpleToken]hashCode[StringToken] |[SimpleToken] null[KeywordToken].[SimpleToken]hashCode[StringToken];[SimpleToken] }[SimpleToken]
+
+int[StringToken] get[KeywordToken] e[StringToken] =>[SimpleToken] 1[StringToken] +[SimpleToken] runtimeType[StringToken].[SimpleToken]hashCode[StringToken] or[StringToken] null[KeywordToken].[SimpleToken]hashCode[StringToken] +[SimpleToken] 3[StringToken];[SimpleToken]
+int[StringToken] get[KeywordToken] f[StringToken] =>[SimpleToken] 1[StringToken] +[SimpleToken] runtimeType[StringToken].[SimpleToken]hashCode[StringToken] |[SimpleToken] null[KeywordToken].[SimpleToken]hashCode[StringToken] +[SimpleToken] 3[StringToken];[SimpleToken]
+int[StringToken] get[KeywordToken] g[StringToken] {[BeginToken] return[KeywordToken] 1[StringToken] +[SimpleToken] runtimeType[StringToken].[SimpleToken]hashCode[StringToken] or[StringToken] null[KeywordToken].[SimpleToken]hashCode[StringToken] +[SimpleToken] 3[StringToken];[SimpleToken] }[SimpleToken]
+int[StringToken] get[KeywordToken] h[StringToken] {[BeginToken] return[KeywordToken] 1[StringToken] +[SimpleToken] runtimeType[StringToken].[SimpleToken]hashCode[StringToken] |[SimpleToken] null[KeywordToken].[SimpleToken]hashCode[StringToken] +[SimpleToken] 3[StringToken];[SimpleToken] }[SimpleToken]
+
+int[StringToken] i[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] =>[SimpleToken] x[StringToken] or[StringToken] y[StringToken];[SimpleToken]
+int[StringToken] j[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] =>[SimpleToken] x[StringToken] |[SimpleToken] y[StringToken];[SimpleToken]
+int[StringToken] k[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] {[BeginToken] return[KeywordToken] x[StringToken] or[StringToken] y[StringToken];[SimpleToken] }[SimpleToken]
+int[StringToken] l[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] {[BeginToken] return[KeywordToken] x[StringToken] |[SimpleToken] y[StringToken];[SimpleToken] }[SimpleToken]
+int[StringToken] m[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] {[BeginToken] int[StringToken] z[StringToken] =[SimpleToken] x[StringToken] or[StringToken] y[StringToken];[SimpleToken] return[KeywordToken] z[StringToken];[SimpleToken] }[SimpleToken]
+int[StringToken] n[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] {[BeginToken] int[StringToken] z[StringToken] =[SimpleToken] x[StringToken] |[SimpleToken] y[StringToken];[SimpleToken] return[KeywordToken] z[StringToken];[SimpleToken] }[SimpleToken]
+
+int[StringToken] o[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] =>[SimpleToken] 1[StringToken] +[SimpleToken] x[StringToken] or[StringToken] y[StringToken] +[SimpleToken] 3[StringToken];[SimpleToken]
+int[StringToken] p[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] =>[SimpleToken] 1[StringToken] +[SimpleToken] x[StringToken] |[SimpleToken] y[StringToken] +[SimpleToken] 3[StringToken];[SimpleToken]
+int[StringToken] q[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] {[BeginToken] return[KeywordToken] 1[StringToken] +[SimpleToken] x[StringToken] or[StringToken] y[StringToken] +[SimpleToken] 3[StringToken];[SimpleToken] }[SimpleToken]
+int[StringToken] r[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] {[BeginToken] return[KeywordToken] 1[StringToken] +[SimpleToken] x[StringToken] |[SimpleToken] y[StringToken] +[SimpleToken] 3[StringToken];[SimpleToken] }[SimpleToken]
+
+s[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] {[BeginToken]
+s[StringToken]([BeginToken]x[StringToken] or[StringToken] y[StringToken],[SimpleToken] x[StringToken] or[StringToken] y[StringToken])[SimpleToken];[SimpleToken]
+s[StringToken]([BeginToken]x[StringToken] |[SimpleToken] y[StringToken],[SimpleToken] x[StringToken] |[SimpleToken] y[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+Key[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] :[SimpleToken] foo[StringToken] =[SimpleToken] x[StringToken] or[StringToken] y[StringToken],[SimpleToken] bar[StringToken] =[SimpleToken] x[StringToken] or[StringToken] y[StringToken] {[BeginToken]
+print[StringToken]([BeginToken]"hello [StringToken]${[BeginToken]x[StringToken] or[StringToken] y[StringToken]}[SimpleToken]"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+Key[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] :[SimpleToken] foo[StringToken] =[SimpleToken] x[StringToken] |[SimpleToken] y[StringToken],[SimpleToken] bar[StringToken] =[SimpleToken] x[StringToken] |[SimpleToken] y[StringToken] {[BeginToken]
+print[StringToken]([BeginToken]"hello [StringToken]${[BeginToken]x[StringToken] |[SimpleToken] y[StringToken]}[SimpleToken]"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+not_currently_working[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] {[BeginToken]
+x[StringToken] or[StringToken] y[StringToken];[SimpleToken]
+x[StringToken] |[SimpleToken] y[StringToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -1,0 +1,3 @@
+foo<X>(X? x) {}
+bar<Y>(dynamic y) {}
+main() {}

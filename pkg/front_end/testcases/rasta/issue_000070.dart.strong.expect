@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 class A<N extends core::Object* = dynamic, S extends core::Object* = dynamic, U extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field core::List<self::A::U*>* field;
   constructor •(self::A::N* n, self::A::S* s) → self::A<self::A::N*, self::A::S*, self::A::U*>*
-    : self::A::field = core::List::•<self::A::U*>(), super core::Object::•() {
+    : self::A::field = <self::A::U*>[], super core::Object::•() {
     exp::Expect::isTrue(n is self::A::N*);
     exp::Expect::isTrue(s is self::A::S*);
   }
@@ -66,6 +66,12 @@ static method main() → dynamic {
 
 constants  {
   #C1 = null
-  #C2 = <core::Null?>[#C1]
+  #C2 = <Null>[#C1]
   #C3 = self::A<core::int*, core::int*, core::List<dynamic>*> {field:#C2}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue_000070.dart:
+- A.c (from org-dartlang-testcase:///issue_000070.dart:22:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

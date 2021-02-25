@@ -114,20 +114,20 @@ main(List<String> args) async {
     print("Original stack trace:");
     strippedTrace.forEach(print);
 
-    final debugDwarf = Dwarf.fromFile(scriptDebuggingInfo);
-    final wholeDwarf = Dwarf.fromFile(scriptWholeSnapshot);
+    final debugDwarf = Dwarf.fromFile(scriptDebuggingInfo)!;
+    final wholeDwarf = Dwarf.fromFile(scriptWholeSnapshot)!;
 
     final fromDebug = await Stream.fromIterable(strippedTrace)
         .transform(DwarfStackTraceDecoder(debugDwarf))
         .toList();
     print("\nStack trace converted using separate debugging info:");
-    print(fromDebug.join());
+    print(fromDebug.join('\n'));
 
     final fromWhole = await Stream.fromIterable(strippedTrace)
         .transform(DwarfStackTraceDecoder(wholeDwarf))
         .toList();
     print("\nStack trace converted using unstripped ELF file:");
-    print(fromWhole.join());
+    print(fromWhole.join('\n'));
 
     Expect.deepEquals(fromDebug, fromWhole);
   });

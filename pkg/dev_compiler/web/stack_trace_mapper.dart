@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Standalone utility that manages loading source maps for all Dart scripts
 /// on the page compiled with DDC.
 ///

@@ -54,6 +54,8 @@ abstract class _C&A&B = self::A with self::B /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_C&A&B*
     : super self::A::•()
     ;
+  mixin-super-stub method noSuchMethod(core::Invocation* _) → dynamic
+    return super.{self::B::noSuchMethod}(_);
 }
 class C extends self::_C&A&B {
   synthetic constructor •() → self::C*
@@ -61,3 +63,11 @@ class C extends self::_C&A&B {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///concrete_method_over_forwarder_in_mixin_application.dart:10:3 -> SymbolConstant(#foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///concrete_method_over_forwarder_in_mixin_application.dart:10:3 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///concrete_method_over_forwarder_in_mixin_application.dart:10:3 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///concrete_method_over_forwarder_in_mixin_application.dart:10:3 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Extra constant evaluation: evaluated: 11, effectively constant: 4

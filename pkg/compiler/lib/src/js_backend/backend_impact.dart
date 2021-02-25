@@ -117,10 +117,13 @@ class BackendImpacts {
   BackendImpact _mainWithArguments;
 
   BackendImpact get mainWithArguments {
-    return _mainWithArguments ??= new BackendImpact(instantiatedClasses: [
-      _commonElements.jsArrayClass,
-      _commonElements.jsStringClass
-    ]);
+    return _mainWithArguments ??= new BackendImpact(
+      globalUses: [_commonElements.convertMainArgumentList],
+      instantiatedClasses: [
+        _commonElements.jsArrayClass,
+        _commonElements.jsStringClass
+      ],
+    );
   }
 
   BackendImpact _asyncBody;
@@ -402,8 +405,10 @@ class BackendImpacts {
   BackendImpact _lazyField;
 
   BackendImpact get lazyField {
-    return _lazyField ??=
-        new BackendImpact(staticUses: [_commonElements.cyclicThrowHelper]);
+    return _lazyField ??= new BackendImpact(staticUses: [
+      _commonElements.cyclicThrowHelper,
+      _commonElements.throwLateInitializationError
+    ]);
   }
 
   BackendImpact _typeLiteral;
@@ -766,11 +771,9 @@ class BackendImpacts {
         _commonElements.installSpecializedIsTest,
         _commonElements.generalIsTestImplementation,
         _commonElements.generalAsCheckImplementation,
-        if (_options.useNullSafety) ...[
-          _commonElements.installSpecializedAsCheck,
-          _commonElements.generalNullableIsTestImplementation,
-          _commonElements.generalNullableAsCheckImplementation,
-        ],
+        _commonElements.installSpecializedAsCheck,
+        _commonElements.generalNullableIsTestImplementation,
+        _commonElements.generalNullableAsCheckImplementation,
         // Specialized checks.
         _commonElements.specializedIsBool,
         _commonElements.specializedAsBool,

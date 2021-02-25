@@ -268,7 +268,7 @@ abstract class SetMixin<E> implements Set<E> {
   }
 
   E elementAt(int index) {
-    ArgumentError.checkNotNull(index, "index");
+    checkNotNullable(index, "index");
     RangeError.checkNotNegative(index, "index");
     int elementIndex = 0;
     for (E element in this) {
@@ -294,7 +294,7 @@ abstract class SetMixin<E> implements Set<E> {
 /// Implementations of `Set` using this base should consider also implementing
 /// `clear` in constant time. The default implementation works by removing every
 /// element.
-abstract class SetBase<E> extends Object with SetMixin<E> {
+abstract class SetBase<E> with SetMixin<E> {
   /// Converts a [Set] to a [String].
   ///
   /// Converts [set] to a string by converting each element to a string (by
@@ -308,10 +308,7 @@ abstract class SetBase<E> extends Object with SetMixin<E> {
 }
 
 /// Common internal implementation of some [Set] methods.
-// TODO(35548): Make this mix-in SetMixin, by adding `with SetMixin<E>`
-// and removing the copied members below,
-// when analyzer supports const constructors for mixin applications.
-abstract class _SetBase<E> implements Set<E> {
+abstract class _SetBase<E> with SetMixin<E> {
   // The following two methods override the ones in SetBase.
   // It's possible to be more efficient if we have a way to create an empty
   // set of the correct type.
@@ -341,232 +338,40 @@ abstract class _SetBase<E> implements Set<E> {
 
   // Subclasses can optimize this further.
   Set<E> toSet() => _newSet()..addAll(this);
+}
 
-  /// TODO(35548): Remove the following declarations again when the analyzer
-  /// supports mixins with const constructors, and mix in `SetMixin` instead.
-
-  bool get isEmpty => length == 0;
-
-  bool get isNotEmpty => length != 0;
-
-  Iterable<E> followedBy(Iterable<E> other) =>
-      FollowedByIterable<E>.firstEfficient(this, other);
-
-  Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
-
-  void clear() {
-    removeAll(toList());
+abstract class _UnmodifiableSetMixin<E> implements Set<E> {
+  static Never _throwUnmodifiable() {
+    throw UnsupportedError("Cannot change an unmodifiable set");
   }
 
-  void addAll(Iterable<E> elements) {
-    for (E element in elements) add(element);
-  }
+  /// This operation is not supported by an unmodifiable set.
+  bool add(E value) => _throwUnmodifiable();
 
-  void removeAll(Iterable<Object?> elements) {
-    for (Object? element in elements) remove(element);
-  }
+  /// This operation is not supported by an unmodifiable set.
+  void clear() => _throwUnmodifiable();
 
-  void retainAll(Iterable<Object?> elements) {
-    // Create a copy of the set, remove all of elements from the copy,
-    // then remove all remaining elements in copy from this.
-    Set<E> toRemove = toSet();
-    for (Object? o in elements) {
-      toRemove.remove(o);
-    }
-    removeAll(toRemove);
-  }
+  /// This operation is not supported by an unmodifiable set.
+  void addAll(Iterable<E> elements) => _throwUnmodifiable();
 
-  void removeWhere(bool test(E element)) {
-    List<Object?> toRemove = [];
-    for (E element in this) {
-      if (test(element)) toRemove.add(element);
-    }
-    removeAll(toRemove);
-  }
+  /// This operation is not supported by an unmodifiable set.
+  void removeAll(Iterable<Object?> elements) => _throwUnmodifiable();
 
-  void retainWhere(bool test(E element)) {
-    List<Object?> toRemove = [];
-    for (E element in this) {
-      if (!test(element)) toRemove.add(element);
-    }
-    removeAll(toRemove);
-  }
+  /// This operation is not supported by an unmodifiable set.
+  void retainAll(Iterable<Object?> elements) => _throwUnmodifiable();
 
-  bool containsAll(Iterable<Object?> other) {
-    for (Object? o in other) {
-      if (!contains(o)) return false;
-    }
-    return true;
-  }
+  /// This operation is not supported by an unmodifiable set.
+  void removeWhere(bool test(E element)) => _throwUnmodifiable();
 
-  Set<E> union(Set<E> other) {
-    return toSet()..addAll(other);
-  }
+  /// This operation is not supported by an unmodifiable set.
+  void retainWhere(bool test(E element)) => _throwUnmodifiable();
 
-  List<E> toList({bool growable = true}) =>
-      List<E>.of(this, growable: growable);
-
-  Iterable<T> map<T>(T f(E element)) =>
-      EfficientLengthMappedIterable<E, T>(this, f);
-
-  E get single {
-    if (length > 1) throw IterableElementError.tooMany();
-    Iterator<E> it = iterator;
-    if (!it.moveNext()) throw IterableElementError.noElement();
-    E result = it.current;
-    return result;
-  }
-
-  String toString() => IterableBase.iterableToFullString(this, '{', '}');
-
-  Iterable<E> where(bool f(E element)) => WhereIterable<E>(this, f);
-
-  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
-      ExpandIterable<E, T>(this, f);
-
-  void forEach(void f(E element)) {
-    for (E element in this) f(element);
-  }
-
-  E reduce(E combine(E value, E element)) {
-    Iterator<E> iterator = this.iterator;
-    if (!iterator.moveNext()) {
-      throw IterableElementError.noElement();
-    }
-    E value = iterator.current;
-    while (iterator.moveNext()) {
-      value = combine(value, iterator.current);
-    }
-    return value;
-  }
-
-  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
-    var value = initialValue;
-    for (E element in this) value = combine(value, element);
-    return value;
-  }
-
-  bool every(bool f(E element)) {
-    for (E element in this) {
-      if (!f(element)) return false;
-    }
-    return true;
-  }
-
-  String join([String separator = ""]) {
-    Iterator<E> iterator = this.iterator;
-    if (!iterator.moveNext()) return "";
-    StringBuffer buffer = StringBuffer();
-    if (separator == null || separator == "") {
-      do {
-        buffer.write(iterator.current);
-      } while (iterator.moveNext());
-    } else {
-      buffer.write(iterator.current);
-      while (iterator.moveNext()) {
-        buffer.write(separator);
-        buffer.write(iterator.current);
-      }
-    }
-    return buffer.toString();
-  }
-
-  bool any(bool test(E element)) {
-    for (E element in this) {
-      if (test(element)) return true;
-    }
-    return false;
-  }
-
-  Iterable<E> take(int n) {
-    return TakeIterable<E>(this, n);
-  }
-
-  Iterable<E> takeWhile(bool test(E value)) {
-    return TakeWhileIterable<E>(this, test);
-  }
-
-  Iterable<E> skip(int n) {
-    return SkipIterable<E>(this, n);
-  }
-
-  Iterable<E> skipWhile(bool test(E value)) {
-    return SkipWhileIterable<E>(this, test);
-  }
-
-  E get first {
-    Iterator<E> it = iterator;
-    if (!it.moveNext()) {
-      throw IterableElementError.noElement();
-    }
-    return it.current;
-  }
-
-  E get last {
-    Iterator<E> it = iterator;
-    if (!it.moveNext()) {
-      throw IterableElementError.noElement();
-    }
-    E result;
-    do {
-      result = it.current;
-    } while (it.moveNext());
-    return result;
-  }
-
-  E firstWhere(bool test(E value), {E Function()? orElse}) {
-    for (E element in this) {
-      if (test(element)) return element;
-    }
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
-  }
-
-  E lastWhere(bool test(E value), {E Function()? orElse}) {
-    late E result;
-    bool foundMatching = false;
-    for (E element in this) {
-      if (test(element)) {
-        result = element;
-        foundMatching = true;
-      }
-    }
-    if (foundMatching) return result;
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
-  }
-
-  E singleWhere(bool test(E value), {E Function()? orElse}) {
-    late E result;
-    bool foundMatching = false;
-    for (E element in this) {
-      if (test(element)) {
-        if (foundMatching) {
-          throw IterableElementError.tooMany();
-        }
-        result = element;
-        foundMatching = true;
-      }
-    }
-    if (foundMatching) return result;
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
-  }
-
-  E elementAt(int index) {
-    ArgumentError.checkNotNull(index, "index");
-    RangeError.checkNotNegative(index, "index");
-    int elementIndex = 0;
-    for (E element in this) {
-      if (index == elementIndex) return element;
-      elementIndex++;
-    }
-    throw RangeError.index(index, this, "index", null, elementIndex);
-  }
+  /// This operation is not supported by an unmodifiable set.
+  bool remove(Object? value) => _throwUnmodifiable();
 }
 
 /// Class used to implement const sets.
-class _UnmodifiableSet<E> extends _SetBase<E> {
+class _UnmodifiableSet<E> extends _SetBase<E> with _UnmodifiableSetMixin<E> {
   final Map<E, Null> _map;
 
   const _UnmodifiableSet(this._map);
@@ -589,38 +394,26 @@ class _UnmodifiableSet<E> extends _SetBase<E> {
     }
     return null;
   }
+}
 
-  // Mutating methods throw.
+/// An unmodifiable [Set] view of another [Set].
+///
+/// Methods that could change the set, such as [add] and [remove],
+/// must not be called.
+@Since("2.12")
+class UnmodifiableSetView<E> extends SetBase<E> with _UnmodifiableSetMixin<E> {
+  final Set<E> _source;
 
-  bool add(E value) {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
+  /// Creates an [UnmodifiableSetView] of [source].
+  UnmodifiableSetView(Set<E> source) : _source = source;
 
-  void clear() {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
+  bool contains(Object? element) => _source.contains(element);
 
-  void addAll(Iterable<E> elements) {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
+  E? lookup(Object? element) => _source.lookup(element);
 
-  void removeAll(Iterable<Object?> elements) {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
+  int get length => _source.length;
 
-  void retainAll(Iterable<Object?> elements) {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
+  Iterator<E> get iterator => _source.iterator;
 
-  void removeWhere(bool test(E element)) {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
-
-  void retainWhere(bool test(E element)) {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
-
-  bool remove(Object? value) {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
+  Set<E> toSet() => _source.toSet();
 }

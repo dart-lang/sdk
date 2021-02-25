@@ -1,6 +1,9 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 library kernel.text_serializer_test;
 
 import 'package:kernel/ast.dart';
@@ -83,8 +86,8 @@ class TestRunner {
     test('(const-list (dynamic) ((int 0) (int 1) (int 2)))');
     test('(set (dynamic) ((bool true) (bool false) (int 0)))');
     test('(const-set (dynamic) ((int 0) (int 1) (int 2)))');
-    test(
-        '(map (dynamic) (void) ((int 0) (null) (int 1) (null) (int 2) (null)))');
+    test('(map (dynamic) (void)'
+        ' ((int 0) (null) (int 1) (null) (int 2) (null)))');
     test('(const-map (dynamic) (void) ((int 0) (null) (int 1) (null) '
         '(int 2) (null)))');
     test('(type (-> () () () ((dynamic)) () () (dynamic)))');

@@ -21,7 +21,7 @@ extension Extension on core::String* {
   method method = imp::Extension|method;
   tearoff method = imp::Extension|get#method;
 }
-static method Extension|method(final core::String* #this) → core::int*
+static method Extension|method(lowered final core::String* #this) → core::int*
   return #this.{core::String::length};
-static method Extension|get#method(final core::String* #this) → () →* core::int*
+static method Extension|get#method(lowered final core::String* #this) → () →* core::int*
   return () → core::int* => imp::Extension|method(#this);

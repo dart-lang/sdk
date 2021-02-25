@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -151,7 +153,7 @@ main(List<String> args) async {
     throw "Didn't find $galleryDotPackages";
   }
 
-  List<helper.Interest> interests = new List<helper.Interest>();
+  List<helper.Interest> interests = <helper.Interest>[];
   interests.add(new helper.Interest(
       Uri.parse("package:kernel/ast.dart"), "Library", ["fileUri"]));
   helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper =
@@ -179,16 +181,12 @@ main(List<String> args) async {
     "--incremental",
     "--target=flutter",
     "--debugger-module-names",
-    "-Ddart.developer.causal_async_stacks=true",
     "--output-dill",
     "$rootPath/flutter_server_tmp.dill",
     "--packages",
     "$rootPath/gallery/.packages",
     "-Ddart.vm.profile=false",
     "-Ddart.vm.product=false",
-    "--bytecode-options=source-positions,local-var-info,debugger-stops,"
-        "instance-field-initializers,keep-unreachable-code,"
-        "avoid-closure-call-instructions",
     "--enable-asserts",
     "--track-widget-creation",
     "--initialize-from-dill",

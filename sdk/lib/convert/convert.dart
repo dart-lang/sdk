@@ -11,9 +11,9 @@
 /// chain and to use with streams.
 ///
 /// To use this library in your code:
-///
-///     import 'dart:convert';
-///
+/// ```dart
+/// import 'dart:convert';
+/// ```
 /// Two commonly used converters are the top-level instances of
 /// [JsonCodec] and [Utf8Codec], named [json] and [utf8], respectively.
 ///
@@ -34,19 +34,19 @@
 /// as it's read from a file,
 /// The second is an instance of [LineSplitter],
 /// which splits the data on newline boundaries.
+/// ```dart
+/// var lineNumber = 1;
+/// var stream = File('quotes.txt').openRead();
 ///
-///     var lineNumber = 1;
-///     var stream = File('quotes.txt').openRead();
-///
-///     stream.transform(utf8.decoder)
-///           .transform(const LineSplitter())
-///           .listen((line) {
-///             if (showLineNumbers) {
-///               stdout.write('${lineNumber++} ');
-///             }
-///             stdout.writeln(line);
-///           });
-///
+/// stream.transform(utf8.decoder)
+///       .transform(const LineSplitter())
+///       .listen((line) {
+///         if (showLineNumbers) {
+///           stdout.write('${lineNumber++} ');
+///         }
+///         stdout.writeln(line);
+///       });
+/// ```
 /// See the documentation for the [Codec] and [Converter] classes
 /// for information about creating your own converters.
 ///
@@ -55,7 +55,7 @@ library dart.convert;
 
 import 'dart:async';
 import 'dart:typed_data';
-import 'dart:_internal' show CastConverter, parseHexByte;
+import 'dart:_internal' show CastConverter, checkNotNullable, parseHexByte;
 
 part 'ascii.dart';
 part 'base64.dart';

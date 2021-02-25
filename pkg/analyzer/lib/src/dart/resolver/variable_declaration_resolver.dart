@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -52,6 +51,8 @@ class VariableDeclarationResolver {
     InferenceContext.setTypeFromNode(initializer, node);
     if (isTopLevel) {
       _flowAnalysis?.topLevelDeclaration_enter(node, null, null);
+    } else if (element.isLate) {
+      _flowAnalysis?.flow?.lateInitializer_begin(node);
     }
 
     initializer.accept(_resolver);
@@ -63,6 +64,8 @@ class VariableDeclarationResolver {
 
     if (isTopLevel) {
       _flowAnalysis?.topLevelDeclaration_exit();
+    } else if (element.isLate) {
+      _flowAnalysis?.flow?.lateInitializer_end();
     }
 
     // Note: in addition to cloning the initializers for const variables, we
@@ -81,10 +84,7 @@ class VariableDeclarationResolver {
         initializerType = DynamicTypeImpl.instance;
       }
 
-      var inferredType = demoteType(
-        _resolver.definingLibrary,
-        initializerType,
-      );
+      var inferredType = _resolver.typeSystem.demoteType(initializerType);
       element.type = inferredType;
     }
   }

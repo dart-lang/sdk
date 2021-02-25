@@ -5,7 +5,7 @@
 /// Code for reading an HTML API description.
 import 'dart:io';
 
-import 'package:analysis_tool/html.dart';
+import 'package:analyzer_utilities/html.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart' as parser;
 import 'package:path/path.dart';

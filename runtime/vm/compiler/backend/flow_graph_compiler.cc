@@ -67,6 +67,34 @@ DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(int, gc_every);
 DECLARE_FLAG(bool, trace_compiler);
 
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+compiler::LRState ComputeInnerLRState(const FlowGraph& flow_graph) {
+  auto entry = flow_graph.graph_entry();
+  const bool frameless = !entry->NeedsFrame();
+
+  bool has_native_entries = false;
+  for (intptr_t i = 0; i < entry->SuccessorCount(); i++) {
+    if (entry->SuccessorAt(i)->IsNativeEntry()) {
+      has_native_entries = true;
+      break;
+    }
+  }
+
+  auto state = compiler::LRState::OnEntry();
+  if (has_native_entries) {
+    // We will setup three (3) frames on the stack when entering through
+    // native entry. Keep in sync with NativeEntry/NativeReturn.
+    state = state.EnterFrame().EnterFrame();
+  }
+
+  if (!frameless) {
+    state = state.EnterFrame();
+  }
+
+  return state;
+}
+#endif
+
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
 // environment.
@@ -132,22 +160,23 @@ FlowGraphCompiler::FlowGraphCompiler(
       intrinsic_mode_(false),
       stats_(stats),
       double_class_(
-          Class::ZoneHandle(isolate()->object_store()->double_class())),
-      mint_class_(Class::ZoneHandle(isolate()->object_store()->mint_class())),
-      float32x4_class_(
-          Class::ZoneHandle(isolate()->object_store()->float32x4_class())),
-      float64x2_class_(
-          Class::ZoneHandle(isolate()->object_store()->float64x2_class())),
+          Class::ZoneHandle(isolate_group()->object_store()->double_class())),
+      mint_class_(
+          Class::ZoneHandle(isolate_group()->object_store()->mint_class())),
+      float32x4_class_(Class::ZoneHandle(
+          isolate_group()->object_store()->float32x4_class())),
+      float64x2_class_(Class::ZoneHandle(
+          isolate_group()->object_store()->float64x2_class())),
       int32x4_class_(
-          Class::ZoneHandle(isolate()->object_store()->int32x4_class())),
+          Class::ZoneHandle(isolate_group()->object_store()->int32x4_class())),
       list_class_(Class::ZoneHandle(Library::Handle(Library::CoreLibrary())
                                         .LookupClass(Symbols::List()))),
       parallel_move_resolver_(this),
       pending_deoptimization_env_(NULL),
       deopt_id_to_ic_data_(deopt_id_to_ic_data),
       edge_counters_array_(Array::ZoneHandle()) {
-  ASSERT(flow_graph->parsed_function().function().raw() ==
-         parsed_function.function().raw());
+  ASSERT(flow_graph->parsed_function().function().ptr() ==
+         parsed_function.function().ptr());
   if (is_optimizing) {
     // No need to collect extra ICData objects created during compilation.
     deopt_id_to_ic_data_ = nullptr;
@@ -163,8 +192,12 @@ FlowGraphCompiler::FlowGraphCompiler(
 #else
   const bool stack_traces_only = false;
 #endif
+  // Make sure that the function is at the position for inline_id 0.
+  ASSERT(inline_id_to_function.length() >= 1);
+  ASSERT(inline_id_to_function[0]->ptr() ==
+         flow_graph->parsed_function().function().ptr());
   code_source_map_builder_ = new (zone_)
-      CodeSourceMapBuilder(stack_traces_only, caller_inline_id,
+      CodeSourceMapBuilder(zone_, stack_traces_only, caller_inline_id,
                            inline_id_to_token_pos, inline_id_to_function);
 
   ArchSpecificInitialization();
@@ -174,11 +207,13 @@ bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
   // The `field.is_non_nullable_integer()` is set in the kernel loader and can
   // only be set if we consume a AOT kernel (annotated with inferred types).
   ASSERT(!field.is_non_nullable_integer() || FLAG_precompiled_mode);
+  // Unboxed fields in JIT lightweight isolates mode are not supported yet.
   const bool valid_class =
-      (SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
-      (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
-      (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid)) ||
-      field.is_non_nullable_integer();
+      (FLAG_precompiled_mode || !FLAG_enable_isolate_groups) &&
+      ((SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
+       (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
+       (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid)) ||
+       field.is_non_nullable_integer());
   return field.is_unboxing_candidate() && !field.is_nullable() && valid_class;
 }
 
@@ -189,13 +224,17 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
     // proven to be correct.
     return IsUnboxedField(field);
   }
-  return field.is_unboxing_candidate() &&
+  // Unboxed fields in JIT lightweight isolates mode are not supported yet.
+  return !FLAG_enable_isolate_groups && field.is_unboxing_candidate() &&
          (FlowGraphCompiler::IsUnboxedField(field) ||
           (field.guarded_cid() == kIllegalCid));
 }
 
 void FlowGraphCompiler::InitCompiler() {
-  pc_descriptors_list_ = new (zone()) DescriptorList(64);
+  compressed_stackmaps_builder_ =
+      new (zone()) CompressedStackMapsBuilder(zone());
+  pc_descriptors_list_ = new (zone()) DescriptorList(
+      zone(), &code_source_map_builder_->inline_id_to_function());
   exception_handlers_list_ = new (zone()) ExceptionHandlerList();
 #if defined(DART_PRECOMPILER)
   catch_entry_moves_maps_builder_ = new (zone()) CatchEntryMovesMapBuilder();
@@ -234,7 +273,7 @@ void FlowGraphCompiler::InitCompiler() {
     for (intptr_t i = 0; i < num_counters; ++i) {
       edge_counters.SetAt(i, Object::smi_zero());
     }
-    edge_counters_array_ = edge_counters.raw();
+    edge_counters_array_ = edge_counters.ptr();
   }
 }
 
@@ -247,13 +286,14 @@ bool FlowGraphCompiler::CanOptimizeFunction() const {
 }
 
 bool FlowGraphCompiler::CanOSRFunction() const {
-  return isolate()->use_osr() && CanOptimizeFunction() && !is_optimizing();
+  return isolate_group()->use_osr() && CanOptimizeFunction() &&
+         !is_optimizing();
 }
 
 void FlowGraphCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
   const intptr_t offset = assembler()->InsertAlignedRelocation(reloc);
-  AddDescriptor(PcDescriptorsLayout::kBSSRelocation, /*pc_offset=*/offset,
-                /*deopt_id=*/DeoptId::kNone, TokenPosition::kNoSource,
+  AddDescriptor(UntaggedPcDescriptors::kBSSRelocation, /*pc_offset=*/offset,
+                /*deopt_id=*/DeoptId::kNone, InstructionSource(),
                 /*try_index=*/-1);
 }
 
@@ -262,7 +302,7 @@ bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
   if ((FLAG_stacktrace_every > 0) || (FLAG_deoptimize_every > 0) ||
       (FLAG_gc_every > 0) ||
       (isolate()->reload_every_n_stack_overflow_checks() > 0)) {
-    if (!Isolate::IsSystemIsolate(isolate())) {
+    if (!IsolateGroup::IsSystemIsolateGroup(isolate_group())) {
       return true;
     }
   }
@@ -349,7 +389,7 @@ static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
                                         intptr_t dst_index) {
   if (src.IsConstant()) {
     // Skip dead locations.
-    if (src.constant().raw() == Symbols::OptimizedOut().raw()) {
+    if (src.constant().ptr() == Symbols::OptimizedOut().ptr()) {
       return CatchEntryMove();
     }
     const intptr_t pool_index =
@@ -454,12 +494,12 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env,
 #endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 }
 
-void FlowGraphCompiler::EmitCallsiteMetadata(TokenPosition token_pos,
+void FlowGraphCompiler::EmitCallsiteMetadata(const InstructionSource& source,
                                              intptr_t deopt_id,
-                                             PcDescriptorsLayout::Kind kind,
+                                             UntaggedPcDescriptors::Kind kind,
                                              LocationSummary* locs,
                                              Environment* env) {
-  AddCurrentDescriptor(kind, deopt_id, token_pos);
+  AddCurrentDescriptor(kind, deopt_id, source);
   RecordSafepoint(locs);
   RecordCatchEntryMoves(env);
   if ((deopt_id != DeoptId::kNone) && !FLAG_precompiled_mode) {
@@ -471,16 +511,17 @@ void FlowGraphCompiler::EmitCallsiteMetadata(TokenPosition token_pos,
     } else {
       // Add deoptimization continuation point after the call and before the
       // arguments are removed.
-      AddCurrentDescriptor(PcDescriptorsLayout::kDeopt, deopt_id_after,
-                           token_pos);
+      AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after,
+                           source);
     }
   }
 }
 
-void FlowGraphCompiler::EmitYieldPositionMetadata(TokenPosition token_pos,
-                                                  intptr_t yield_index) {
-  AddDescriptor(PcDescriptorsLayout::kOther, assembler()->CodeSize(),
-                DeoptId::kNone, token_pos, CurrentTryIndex(), yield_index);
+void FlowGraphCompiler::EmitYieldPositionMetadata(
+    const InstructionSource& source,
+    intptr_t yield_index) {
+  AddDescriptor(UntaggedPcDescriptors::kOther, assembler()->CodeSize(),
+                DeoptId::kNone, source, CurrentTryIndex(), yield_index);
 }
 
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
@@ -489,26 +530,30 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
       // Instructions that can be deoptimization targets need to record kDeopt
       // PcDescriptor corresponding to their deopt id. GotoInstr records its
       // own so that it can control the placement.
-      AddCurrentDescriptor(PcDescriptorsLayout::kDeopt, instr->deopt_id(),
-                           instr->token_pos());
+      AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, instr->deopt_id(),
+                           instr->source());
     }
     AllocateRegistersLocally(instr);
   }
 }
 
 void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
-  if (!instr->token_pos().IsReal() || (instr->env() == NULL)) {
+  if (!instr->token_pos().IsReal()) {
     return;
   }
-  const Script& script =
-      Script::Handle(zone(), instr->env()->function().script());
+  const InstructionSource& source = instr->source();
+  const intptr_t inlining_id = source.inlining_id < 0 ? 0 : source.inlining_id;
+  const Function& function =
+      *code_source_map_builder_->inline_id_to_function()[inlining_id];
+  ASSERT(instr->env() == nullptr ||
+         instr->env()->function().ptr() == function.ptr());
+  const auto& script = Script::Handle(zone(), function.script());
   intptr_t line_nr;
-  intptr_t column_nr;
-  script.GetTokenLocation(instr->token_pos(), &line_nr, &column_nr);
-  const String& line = String::Handle(zone(), script.GetLine(line_nr));
-  assembler()->Comment("Line %" Pd " in '%s':\n           %s", line_nr,
-                       instr->env()->function().ToFullyQualifiedCString(),
-                       line.ToCString());
+  if (script.GetTokenLocation(source.token_pos, &line_nr)) {
+    const String& line = String::Handle(zone(), script.GetLine(line_nr));
+    assembler()->Comment("Line %" Pd " in '%s':\n           %s", line_nr,
+                         function.ToFullyQualifiedCString(), line.ToCString());
+  }
 }
 
 static bool IsPusher(Instruction* instr) {
@@ -548,6 +593,10 @@ void FlowGraphCompiler::VisitBlocks() {
     ASSERT(block_order()[1] == flow_graph().graph_entry()->normal_entry());
   }
 
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  const auto inner_lr_state = ComputeInnerLRState(flow_graph());
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
     BlockEntryInstr* entry = block_order()[i];
@@ -557,6 +606,16 @@ void FlowGraphCompiler::VisitBlocks() {
     if (WasCompacted(entry)) {
       continue;
     }
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    // At the start of every non-entry block we expect return address either
+    // to be  spilled into the frame or to be in the LR register.
+    if (entry->IsFunctionEntry() || entry->IsNativeEntry()) {
+      assembler()->set_lr_state(compiler::LRState::OnEntry());
+    } else {
+      assembler()->set_lr_state(inner_lr_state);
+    }
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
 
 #if defined(DEBUG)
     if (!is_optimizing()) {
@@ -570,7 +629,7 @@ void FlowGraphCompiler::VisitBlocks() {
       }
     }
 
-    BeginCodeSourceRange();
+    BeginCodeSourceRange(entry->source());
     ASSERT(pending_deoptimization_env_ == NULL);
     pending_deoptimization_env_ = entry->env();
     set_current_instruction(entry);
@@ -579,7 +638,7 @@ void FlowGraphCompiler::VisitBlocks() {
     StatsEnd(entry);
     set_current_instruction(nullptr);
     pending_deoptimization_env_ = NULL;
-    EndCodeSourceRange(entry->token_pos());
+    EndCodeSourceRange(entry->source());
 
     if (skip_body_compilation()) {
       ASSERT(entry == flow_graph().graph_entry()->normal_entry());
@@ -592,9 +651,6 @@ void FlowGraphCompiler::VisitBlocks() {
       set_current_instruction(instr);
       StatsBegin(instr);
 
-      // Compose intervals.
-      code_source_map_builder_->StartInliningInterval(assembler()->CodeSize(),
-                                                      instr->inlining_id());
       if (FLAG_code_comments || FLAG_disassemble ||
           FLAG_disassemble_optimized) {
         if (FLAG_source_lines) {
@@ -605,7 +661,7 @@ void FlowGraphCompiler::VisitBlocks() {
       if (instr->IsParallelMove()) {
         parallel_move_resolver_.EmitNativeCode(instr->AsParallelMove());
       } else {
-        BeginCodeSourceRange();
+        BeginCodeSourceRange(instr->source());
         EmitInstructionPrologue(instr);
         ASSERT(pending_deoptimization_env_ == NULL);
         pending_deoptimization_env_ = instr->env();
@@ -619,7 +675,7 @@ void FlowGraphCompiler::VisitBlocks() {
         } else {
           EmitInstructionEpilogue(instr);
         }
-        EndCodeSourceRange(instr->token_pos());
+        EndCodeSourceRange(instr->source());
       }
 
 #if defined(DEBUG)
@@ -696,25 +752,39 @@ void FlowGraphCompiler::AddSlowPathCode(SlowPathCode* code) {
 }
 
 void FlowGraphCompiler::GenerateDeferredCode() {
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  const auto lr_state = ComputeInnerLRState(flow_graph());
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+
   for (intptr_t i = 0; i < slow_path_code_.length(); i++) {
     SlowPathCode* const slow_path = slow_path_code_[i];
     const CombinedCodeStatistics::EntryCounter stats_tag =
         CombinedCodeStatistics::SlowPathCounterFor(
             slow_path->instruction()->tag());
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    assembler()->set_lr_state(lr_state);
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
     set_current_instruction(slow_path->instruction());
     SpecialStatsBegin(stats_tag);
-    BeginCodeSourceRange();
+    BeginCodeSourceRange(slow_path->instruction()->source());
     DEBUG_ONLY(current_instruction_ = slow_path->instruction());
     slow_path->GenerateCode(this);
     DEBUG_ONLY(current_instruction_ = nullptr);
-    EndCodeSourceRange(slow_path->instruction()->token_pos());
+    EndCodeSourceRange(slow_path->instruction()->source());
     SpecialStatsEnd(stats_tag);
     set_current_instruction(nullptr);
   }
+  // All code generated by deferred deopt info is treated as in the root
+  // function.
+  const InstructionSource deopt_source(TokenPosition::kDeferredDeoptInfo,
+                                       /*inlining_id=*/0);
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
-    BeginCodeSourceRange();
+    BeginCodeSourceRange(deopt_source);
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    assembler()->set_lr_state(lr_state);
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
     deopt_infos_[i]->GenerateCode(this, i);
-    EndCodeSourceRange(TokenPosition::kDeferredDeoptInfo);
+    EndCodeSourceRange(deopt_source);
   }
 }
 
@@ -733,28 +803,31 @@ void FlowGraphCompiler::SetNeedsStackTrace(intptr_t try_index) {
   exception_handlers_list_->SetNeedsStackTrace(try_index);
 }
 
-void FlowGraphCompiler::AddDescriptor(PcDescriptorsLayout::Kind kind,
+void FlowGraphCompiler::AddDescriptor(UntaggedPcDescriptors::Kind kind,
                                       intptr_t pc_offset,
                                       intptr_t deopt_id,
-                                      TokenPosition token_pos,
+                                      const InstructionSource& source,
                                       intptr_t try_index,
                                       intptr_t yield_index) {
-  code_source_map_builder_->NoteDescriptor(kind, pc_offset, token_pos);
+  code_source_map_builder_->NoteDescriptor(kind, pc_offset, source);
   // Don't emit deopt-descriptors in AOT mode.
-  if (FLAG_precompiled_mode && (kind == PcDescriptorsLayout::kDeopt)) return;
-  pc_descriptors_list_->AddDescriptor(kind, pc_offset, deopt_id, token_pos,
+  if (FLAG_precompiled_mode && (kind == UntaggedPcDescriptors::kDeopt)) return;
+  // Use the token position of the original call in the root function if source
+  // has an inlining id.
+  const auto& root_pos = code_source_map_builder_->RootPosition(source);
+  pc_descriptors_list_->AddDescriptor(kind, pc_offset, deopt_id, root_pos,
                                       try_index, yield_index);
 }
 
 // Uses current pc position and try-index.
-void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptorsLayout::Kind kind,
+void FlowGraphCompiler::AddCurrentDescriptor(UntaggedPcDescriptors::Kind kind,
                                              intptr_t deopt_id,
-                                             TokenPosition token_pos) {
-  AddDescriptor(kind, assembler()->CodeSize(), deopt_id, token_pos,
+                                             const InstructionSource& source) {
+  AddDescriptor(kind, assembler()->CodeSize(), deopt_id, source,
                 CurrentTryIndex());
 }
 
-void FlowGraphCompiler::AddNullCheck(TokenPosition token_pos,
+void FlowGraphCompiler::AddNullCheck(const InstructionSource& source,
                                      const String& name) {
 #if defined(DART_PRECOMPILER)
   // If we are generating an AOT snapshot and have DWARF stack traces enabled,
@@ -765,7 +838,7 @@ void FlowGraphCompiler::AddNullCheck(TokenPosition token_pos,
 #endif
   const intptr_t name_index =
       assembler()->object_pool_builder().FindObject(name);
-  code_source_map_builder_->NoteNullCheck(assembler()->CodeSize(), token_pos,
+  code_source_map_builder_->NoteNullCheck(assembler()->CodeSize(), source,
                                           name_index);
 }
 
@@ -844,6 +917,7 @@ CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
 CompilerDeoptInfo* FlowGraphCompiler::AddSlowPathDeoptInfo(intptr_t deopt_id,
                                                            Environment* env) {
   ASSERT(deopt_id != DeoptId::kNone);
+  deopt_id = DeoptId::ToDeoptAfter(deopt_id);
   CompilerDeoptInfo* info =
       new (zone()) CompilerDeoptInfo(deopt_id, ICData::kDeoptUnknown, 0, env);
   info->set_pc_offset(assembler()->CodeSize());
@@ -1001,8 +1075,8 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
       bitmap->Set(bitmap->Length(), true);
     }
 
-    compressed_stackmaps_builder()->AddEntry(assembler()->CodeSize(), bitmap,
-                                             spill_area_size);
+    compressed_stackmaps_builder_->AddEntry(assembler()->CodeSize(), bitmap,
+                                            spill_area_size);
   }
 }
 
@@ -1127,7 +1201,7 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 ArrayPtr FlowGraphCompiler::CreateDeoptInfo(compiler::Assembler* assembler) {
   // No deopt information if we precompile (no deoptimization allowed).
   if (FLAG_precompiled_mode) {
-    return Array::empty_array().raw();
+    return Array::empty_array().ptr();
   }
   // For functions with optional arguments, all incoming arguments are copied
   // to spill slots. The deoptimization environment does not track them.
@@ -1138,7 +1212,7 @@ ArrayPtr FlowGraphCompiler::CreateDeoptInfo(compiler::Assembler* assembler) {
 
   intptr_t deopt_info_table_size = DeoptTable::SizeFor(deopt_infos_.length());
   if (deopt_info_table_size == 0) {
-    return Object::empty_array().raw();
+    return Object::empty_array().ptr();
   } else {
     const Array& array =
         Array::Handle(Array::New(deopt_info_table_size, Heap::kOld));
@@ -1152,20 +1226,16 @@ ArrayPtr FlowGraphCompiler::CreateDeoptInfo(compiler::Assembler* assembler) {
           deopt_infos_[i]->reason(), deopt_infos_[i]->flags());
       DeoptTable::SetEntry(array, i, offset, info, reason_and_flags);
     }
-    return array.raw();
+    return array.ptr();
   }
 }
 
 void FlowGraphCompiler::FinalizeStackMaps(const Code& code) {
-  if (compressed_stackmaps_builder_ == NULL) {
-    code.set_compressed_stackmaps(
-        CompressedStackMaps::Handle(CompressedStackMaps::null()));
-  } else {
-    // Finalize the compressed stack maps and add it to the code object.
-    const auto& maps =
-        CompressedStackMaps::Handle(compressed_stackmaps_builder_->Finalize());
-    code.set_compressed_stackmaps(maps);
-  }
+  ASSERT(compressed_stackmaps_builder_ != NULL);
+  // Finalize the compressed stack maps and add it to the code object.
+  const auto& maps =
+      CompressedStackMaps::Handle(compressed_stackmaps_builder_->Finalize());
+  code.set_compressed_stackmaps(maps);
 }
 
 void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
@@ -1186,8 +1256,8 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     // descriptor for IrregexpFunction.
     ASSERT(parsed_function().scope() == nullptr);
     var_descs = LocalVarDescriptors::New(1);
-    LocalVarDescriptorsLayout::VarInfo info;
-    info.set_kind(LocalVarDescriptorsLayout::kSavedCurrentContext);
+    UntaggedLocalVarDescriptors::VarInfo info;
+    info.set_kind(UntaggedLocalVarDescriptors::kSavedCurrentContext);
     info.scope_id = 0;
     info.begin_pos = TokenPosition::kMinSource;
     info.end_pos = TokenPosition::kMinSource;
@@ -1275,6 +1345,8 @@ bool FlowGraphCompiler::TryIntrinsify() {
 }
 
 bool FlowGraphCompiler::TryIntrinsifyHelper() {
+  ASSERT(!flow_graph().IsCompiledForOsr());
+
   compiler::Label exit;
   set_intrinsic_slow_path_label(&exit);
 
@@ -1318,14 +1390,14 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
   return complete;
 }
 
-void FlowGraphCompiler::GenerateStubCall(TokenPosition token_pos,
+void FlowGraphCompiler::GenerateStubCall(const InstructionSource& source,
                                          const Code& stub,
-                                         PcDescriptorsLayout::Kind kind,
+                                         UntaggedPcDescriptors::Kind kind,
                                          LocationSummary* locs,
                                          intptr_t deopt_id,
                                          Environment* env) {
   EmitCallToStub(stub);
-  EmitCallsiteMetadata(token_pos, deopt_id, kind, locs, env);
+  EmitCallsiteMetadata(source, deopt_id, kind, locs, env);
 }
 
 static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
@@ -1357,7 +1429,7 @@ static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
 }
 
 void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
-                                             TokenPosition token_pos,
+                                             const InstructionSource& source,
                                              LocationSummary* locs,
                                              const ICData& ic_data_in,
                                              Code::EntryKind entry_kind,
@@ -1365,7 +1437,7 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
   ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
   if (FLAG_precompiled_mode) {
     ic_data = ic_data.AsUnaryClassChecks();
-    EmitInstanceCallAOT(ic_data, deopt_id, token_pos, locs, entry_kind,
+    EmitInstanceCallAOT(ic_data, deopt_id, source, locs, entry_kind,
                         receiver_can_be_smi);
     return;
   }
@@ -1375,22 +1447,22 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
     // function entry.
     ASSERT(may_reoptimize() || flow_graph().IsCompiledForOsr());
     EmitOptimizedInstanceCall(StubEntryFor(ic_data, /*optimized=*/true),
-                              ic_data, deopt_id, token_pos, locs, entry_kind);
+                              ic_data, deopt_id, source, locs, entry_kind);
     return;
   }
 
   if (is_optimizing()) {
-    EmitMegamorphicInstanceCall(ic_data_in, deopt_id, token_pos, locs,
+    EmitMegamorphicInstanceCall(ic_data_in, deopt_id, source, locs,
                                 kInvalidTryIndex);
     return;
   }
 
   EmitInstanceCallJIT(StubEntryFor(ic_data, /*optimized=*/false), ic_data,
-                      deopt_id, token_pos, locs, entry_kind);
+                      deopt_id, source, locs, entry_kind);
 }
 
 void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
-                                           TokenPosition token_pos,
+                                           const InstructionSource& source,
                                            const Function& function,
                                            ArgumentsInfo args_info,
                                            LocationSummary* locs,
@@ -1411,21 +1483,21 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
   // optimized static calls.
   if (is_optimizing() && (!ForcedOptimization() || FLAG_precompiled_mode)) {
     EmitOptimizedStaticCall(function, arguments_descriptor,
-                            args_info.size_with_type_args, deopt_id, token_pos,
+                            args_info.size_with_type_args, deopt_id, source,
                             locs, entry_kind);
   } else {
-    ICData& call_ic_data = ICData::ZoneHandle(zone(), ic_data.raw());
+    ICData& call_ic_data = ICData::ZoneHandle(zone(), ic_data.ptr());
     if (call_ic_data.IsNull()) {
       const intptr_t kNumArgsChecked = 0;
       call_ic_data =
           GetOrAddStaticCallICData(deopt_id, function, arguments_descriptor,
                                    kNumArgsChecked, rebind_rule)
-              ->raw();
+              ->ptr();
       call_ic_data = call_ic_data.Original();
     }
-    AddCurrentDescriptor(PcDescriptorsLayout::kRewind, deopt_id, token_pos);
-    EmitUnoptimizedStaticCall(args_info.size_with_type_args, deopt_id,
-                              token_pos, locs, call_ic_data, entry_kind);
+    AddCurrentDescriptor(UntaggedPcDescriptors::kRewind, deopt_id, source);
+    EmitUnoptimizedStaticCall(args_info.size_with_type_args, deopt_id, source,
+                              locs, call_ic_data, entry_kind);
   }
 }
 
@@ -1617,6 +1689,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
         result_location = locs->in(0);
         break;
       case Location::kRequiresFpuRegister:
+      case Location::kRequiresStackSlot:
         UNREACHABLE();
         break;
     }
@@ -1633,15 +1706,20 @@ ParallelMoveResolver::ParallelMoveResolver(FlowGraphCompiler* compiler)
 
 void ParallelMoveResolver::EmitNativeCode(ParallelMoveInstr* parallel_move) {
   ASSERT(moves_.is_empty());
+
   // Build up a worklist of moves.
   BuildInitialMoveList(parallel_move);
 
+  const InstructionSource& move_source = InstructionSource(
+      TokenPosition::kParallelMove, parallel_move->inlining_id());
   for (int i = 0; i < moves_.length(); ++i) {
     const MoveOperands& move = *moves_[i];
     // Skip constants to perform them last.  They don't block other moves
     // and skipping such moves with register destinations keeps those
     // registers free for the whole algorithm.
-    if (!move.IsEliminated() && !move.src().IsConstant()) PerformMove(i);
+    if (!move.IsEliminated() && !move.src().IsConstant()) {
+      PerformMove(move_source, i);
+    }
   }
 
   // Perform the moves with constant sources.
@@ -1649,9 +1727,9 @@ void ParallelMoveResolver::EmitNativeCode(ParallelMoveInstr* parallel_move) {
     const MoveOperands& move = *moves_[i];
     if (!move.IsEliminated()) {
       ASSERT(move.src().IsConstant());
-      compiler_->BeginCodeSourceRange();
+      compiler_->BeginCodeSourceRange(move_source);
       EmitMove(i);
-      compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
+      compiler_->EndCodeSourceRange(move_source);
     }
   }
 
@@ -1670,7 +1748,8 @@ void ParallelMoveResolver::BuildInitialMoveList(
   }
 }
 
-void ParallelMoveResolver::PerformMove(int index) {
+void ParallelMoveResolver::PerformMove(const InstructionSource& source,
+                                       int index) {
   // Each call to this function performs a move and deletes it from the move
   // graph.  We first recursively perform any move blocking this one.  We
   // mark a move as "pending" on entry to PerformMove in order to detect
@@ -1703,7 +1782,7 @@ void ParallelMoveResolver::PerformMove(int index) {
       // only a single incoming edge to an operand, this move must also be
       // involved in the same cycle.  In that case, the blocking move will
       // be created but will be "pending" when we return from PerformMove.
-      PerformMove(i);
+      PerformMove(source, i);
     }
   }
 
@@ -1725,17 +1804,17 @@ void ParallelMoveResolver::PerformMove(int index) {
     const MoveOperands& other_move = *moves_[i];
     if (other_move.Blocks(destination)) {
       ASSERT(other_move.IsPending());
-      compiler_->BeginCodeSourceRange();
+      compiler_->BeginCodeSourceRange(source);
       EmitSwap(index);
-      compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
+      compiler_->EndCodeSourceRange(source);
       return;
     }
   }
 
   // This move is not blocked.
-  compiler_->BeginCodeSourceRange();
+  compiler_->BeginCodeSourceRange(source);
   EmitMove(index);
-  compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
+  compiler_->EndCodeSourceRange(source);
 }
 
 void ParallelMoveResolver::EmitMove(int index) {
@@ -1888,23 +1967,38 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     const String& target_name,
     const Array& arguments_descriptor,
     intptr_t num_args_tested,
-    const AbstractType& receiver_type) {
+    const AbstractType& receiver_type,
+    const Function& binary_smi_target) {
   if ((deopt_id_to_ic_data_ != NULL) &&
       ((*deopt_id_to_ic_data_)[deopt_id] != NULL)) {
     const ICData* res = (*deopt_id_to_ic_data_)[deopt_id];
     ASSERT(res->deopt_id() == deopt_id);
-    ASSERT(res->target_name() == target_name.raw());
+    ASSERT(res->target_name() == target_name.ptr());
     ASSERT(res->NumArgsTested() == num_args_tested);
     ASSERT(res->TypeArgsLen() ==
            ArgumentsDescriptor(arguments_descriptor).TypeArgsLen());
     ASSERT(!res->is_static_call());
-    ASSERT(res->receivers_static_type() == receiver_type.raw());
+    ASSERT(res->receivers_static_type() == receiver_type.ptr());
     return res;
   }
-  const ICData& ic_data = ICData::ZoneHandle(
-      zone(), ICData::New(parsed_function().function(), target_name,
+
+  auto& ic_data = ICData::ZoneHandle(zone());
+  if (!binary_smi_target.IsNull()) {
+    ASSERT(num_args_tested == 2);
+    ASSERT(!binary_smi_target.IsNull());
+    GrowableArray<intptr_t> cids(num_args_tested);
+    cids.Add(kSmiCid);
+    cids.Add(kSmiCid);
+    ic_data = ICData::NewWithCheck(parsed_function().function(), target_name,
+                                   arguments_descriptor, deopt_id,
+                                   num_args_tested, ICData::kInstance, &cids,
+                                   binary_smi_target, receiver_type);
+  } else {
+    ic_data = ICData::New(parsed_function().function(), target_name,
                           arguments_descriptor, deopt_id, num_args_tested,
-                          ICData::kInstance, receiver_type));
+                          ICData::kInstance, receiver_type);
+  }
+
   if (deopt_id_to_ic_data_ != NULL) {
     (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
   }
@@ -1930,12 +2024,10 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
     return res;
   }
 
-  const ICData& ic_data = ICData::ZoneHandle(
-      zone(),
-      ICData::New(parsed_function().function(),
-                  String::Handle(zone(), target.name()), arguments_descriptor,
-                  deopt_id, num_args_tested, rebind_rule));
-  ic_data.AddTarget(target);
+  const auto& ic_data = ICData::ZoneHandle(
+      zone(), ICData::NewForStaticCall(parsed_function().function(), target,
+                                       arguments_descriptor, deopt_id,
+                                       num_args_tested, rebind_rule));
   if (deopt_id_to_ic_data_ != NULL) {
     (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
   }
@@ -1997,13 +2089,13 @@ const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
   }
 }
 
-void FlowGraphCompiler::BeginCodeSourceRange() {
-  code_source_map_builder_->BeginCodeSourceRange(assembler()->CodeSize());
+void FlowGraphCompiler::BeginCodeSourceRange(const InstructionSource& source) {
+  code_source_map_builder_->BeginCodeSourceRange(assembler()->CodeSize(),
+                                                 source);
 }
 
-void FlowGraphCompiler::EndCodeSourceRange(TokenPosition token_pos) {
-  code_source_map_builder_->EndCodeSourceRange(assembler()->CodeSize(),
-                                               token_pos);
+void FlowGraphCompiler::EndCodeSourceRange(const InstructionSource& source) {
+  code_source_map_builder_->EndCodeSourceRange(assembler()->CodeSize(), source);
 }
 
 const CallTargets* FlowGraphCompiler::ResolveCallTargetsForReceiverCid(
@@ -2029,18 +2121,18 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
                                         const ArgumentsDescriptor& args_desc,
                                         Function* fn_return,
                                         bool* class_is_abstract_return) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  auto class_table = thread->isolate_group()->class_table();
   if (class_id < 0) return false;
-  if (class_id >= isolate->class_table()->NumCids()) return false;
+  if (class_id >= class_table->NumCids()) return false;
 
-  ClassPtr raw_class = isolate->class_table()->At(class_id);
+  ClassPtr raw_class = class_table->At(class_id);
   if (raw_class == nullptr) return false;
   Class& cls = Class::Handle(zone, raw_class);
   if (cls.IsNull()) return false;
   if (!cls.is_finalized()) return false;
-  if (Array::Handle(cls.functions()).IsNull()) return false;
+  if (Array::Handle(cls.current_functions()).IsNull()) return false;
 
   if (class_is_abstract_return != NULL) {
     *class_is_abstract_return = cls.is_abstract();
@@ -2050,7 +2142,7 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
       Function::Handle(zone, Resolver::ResolveDynamicForReceiverClass(
                                  cls, name, args_desc, allow_add));
   if (target_function.IsNull()) return false;
-  *fn_return = target_function.raw();
+  *fn_return = target_function.ptr();
   return true;
 }
 
@@ -2059,7 +2151,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     const CallTargets& targets,
     ArgumentsInfo args_info,
     intptr_t deopt_id,
-    TokenPosition token_pos,
+    const InstructionSource& source,
     LocationSummary* locs,
     bool complete,
     intptr_t total_ic_calls,
@@ -2072,7 +2164,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     EmitTestAndCall(targets, call->function_name(), args_info,
                     deopt,  // No cid match.
                     &ok,    // Found cid.
-                    deopt_id, token_pos, locs, complete, total_ic_calls,
+                    deopt_id, source, locs, complete, total_ic_calls,
                     call->entry_kind());
     assembler()->Bind(&ok);
   } else {
@@ -2081,26 +2173,38 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
       EmitTestAndCall(targets, call->function_name(), args_info,
                       NULL,  // No cid match.
                       &ok,   // Found cid.
-                      deopt_id, token_pos, locs, true, total_ic_calls,
+                      deopt_id, source, locs, true, total_ic_calls,
                       call->entry_kind());
       assembler()->Bind(&ok);
     } else {
       const ICData& unary_checks =
           ICData::ZoneHandle(zone(), call->ic_data()->AsUnaryClassChecks());
-      EmitInstanceCallAOT(unary_checks, deopt_id, token_pos, locs,
+      EmitInstanceCallAOT(unary_checks, deopt_id, source, locs,
                           call->entry_kind(), receiver_can_be_smi);
     }
   }
 }
 
 #define __ assembler()->
+
+void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
+                                      const GrowableArray<intptr_t>& class_ids,
+                                      compiler::Label* is_equal_lbl,
+                                      compiler::Label* is_not_equal_lbl) {
+  for (const auto& id : class_ids) {
+    __ CompareImmediate(class_id_reg, id);
+    __ BranchIf(EQUAL, is_equal_lbl);
+  }
+  __ Jump(is_not_equal_lbl);
+}
+
 void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
                                         const String& function_name,
                                         ArgumentsInfo args_info,
                                         compiler::Label* failed,
                                         compiler::Label* match_found,
                                         intptr_t deopt_id,
-                                        TokenPosition token_index,
+                                        const InstructionSource& source_index,
                                         LocationSummary* locs,
                                         bool complete,
                                         intptr_t total_ic_calls,
@@ -2152,8 +2256,9 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
     const Function& function = *targets.TargetAt(smi_case)->target;
-    GenerateStaticDartCall(deopt_id, token_index, PcDescriptorsLayout::kOther,
-                           locs, function, entry_kind);
+    GenerateStaticDartCall(deopt_id, source_index,
+                           UntaggedPcDescriptors::kOther, locs, function,
+                           entry_kind);
     __ Drop(args_info.size_with_type_args);
     if (match_found != NULL) {
       __ Jump(match_found);
@@ -2202,8 +2307,9 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
     const Function& function = *targets.TargetAt(i)->target;
-    GenerateStaticDartCall(deopt_id, token_index, PcDescriptorsLayout::kOther,
-                           locs, function, entry_kind);
+    GenerateStaticDartCall(deopt_id, source_index,
+                           UntaggedPcDescriptors::kOther, locs, function,
+                           entry_kind);
     __ Drop(args_info.size_with_type_args);
     if (!is_last_check || add_megamorphic_call) {
       __ Jump(match_found);
@@ -2213,7 +2319,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
   if (add_megamorphic_call) {
     int try_index = kInvalidTryIndex;
     EmitMegamorphicInstanceCall(function_name, arguments_descriptor, deopt_id,
-                                token_index, locs, try_index);
+                                source_index, locs, try_index);
   }
 }
 
@@ -2276,58 +2382,619 @@ void FlowGraphCompiler::GenerateCidRangesCheck(
 
 bool FlowGraphCompiler::CheckAssertAssignableTypeTestingABILocations(
     const LocationSummary& locs) {
-  ASSERT(locs.in(0).IsRegister() &&
-         locs.in(0).reg() == TypeTestABI::kInstanceReg);
-  ASSERT((locs.in(1).IsConstant() && locs.in(1).constant().IsAbstractType()) ||
-         (locs.in(1).IsRegister() &&
-          locs.in(1).reg() == TypeTestABI::kDstTypeReg));
-  ASSERT(locs.in(2).IsRegister() &&
-         locs.in(2).reg() == TypeTestABI::kInstantiatorTypeArgumentsReg);
-  ASSERT(locs.in(3).IsRegister() &&
-         locs.in(3).reg() == TypeTestABI::kFunctionTypeArgumentsReg);
+  ASSERT(locs.in(AssertAssignableInstr::kInstancePos).IsRegister() &&
+         locs.in(AssertAssignableInstr::kInstancePos).reg() ==
+             TypeTestABI::kInstanceReg);
+  ASSERT((locs.in(AssertAssignableInstr::kDstTypePos).IsConstant() &&
+          locs.in(AssertAssignableInstr::kDstTypePos)
+              .constant()
+              .IsAbstractType()) ||
+         (locs.in(AssertAssignableInstr::kDstTypePos).IsRegister() &&
+          locs.in(AssertAssignableInstr::kDstTypePos).reg() ==
+              TypeTestABI::kDstTypeReg));
+  ASSERT(locs.in(AssertAssignableInstr::kInstantiatorTAVPos).IsRegister() &&
+         locs.in(AssertAssignableInstr::kInstantiatorTAVPos).reg() ==
+             TypeTestABI::kInstantiatorTypeArgumentsReg);
+  ASSERT(locs.in(AssertAssignableInstr::kFunctionTAVPos).IsRegister() &&
+         locs.in(AssertAssignableInstr::kFunctionTAVPos).reg() ==
+             TypeTestABI::kFunctionTypeArgumentsReg);
   ASSERT(locs.out(0).IsRegister() &&
          locs.out(0).reg() == TypeTestABI::kInstanceReg);
   return true;
+}
+
+// Generates function type check.
+//
+// See [GenerateInlineInstanceof] for calling convention.
+SubtypeTestCachePtr FlowGraphCompiler::GenerateFunctionTypeTest(
+    const InstructionSource& source,
+    const AbstractType& type,
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
+  __ Comment("FunctionTypeTest");
+
+  __ BranchIfSmi(TypeTestABI::kInstanceReg, is_not_instance_lbl);
+  // Load the type into the right register for the subtype test cache check.
+  __ LoadUniqueObject(TypeTestABI::kDstTypeReg, type);
+  // Uninstantiated type class is known at compile time, but the type
+  // arguments are determined at runtime by the instantiator(s).
+  return GenerateCallSubtypeTestStub(kTestTypeSevenArgs, is_instance_lbl,
+                                     is_not_instance_lbl);
+}
+
+// Inputs (from TypeTestABI):
+//   - kInstanceReg : instance to test against.
+//   - kInstantiatorTypeArgumentsReg : instantiator type arguments (if needed).
+//   - kFunctionTypeArgumentsReg : function type arguments (if needed).
+//
+// Preserves all input registers.
+//
+// Clobbers kDstTypeReg, kSubtypeTestCacheReg and kSubtypeTestCacheResultReg at
+// a minimum, may clobber additional registers depending on architecture. See
+// GenerateSubtypeNTestCacheStub for architecture-specific registers that should
+// be saved across a subtype test cache stub call.
+//
+// Note that this inlined code must be followed by the runtime_call code, as it
+// may fall through to it. Otherwise, this inline code will jump to the label
+// is_instance or to the label is_not_instance.
+SubtypeTestCachePtr FlowGraphCompiler::GenerateInlineInstanceof(
+    const InstructionSource& source,
+    const AbstractType& type,
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
+  __ Comment("InlineInstanceof");
+
+  if (type.IsFunctionType()) {
+    return GenerateFunctionTypeTest(source, type, is_instance_lbl,
+                                    is_not_instance_lbl);
+  }
+
+  if (type.IsInstantiated()) {
+    const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
+    // A class equality check is only applicable with a dst type (not a
+    // function type) of a non-parameterized class or with a raw dst type of
+    // a parameterized class.
+    if (type_class.NumTypeArguments() > 0) {
+      return GenerateInstantiatedTypeWithArgumentsTest(
+          source, type, is_instance_lbl, is_not_instance_lbl);
+      // Fall through to runtime call.
+    }
+    const bool has_fall_through = GenerateInstantiatedTypeNoArgumentsTest(
+        source, type, is_instance_lbl, is_not_instance_lbl);
+    if (has_fall_through) {
+      // If test non-conclusive so far, try the inlined type-test cache.
+      // 'type' is known at compile time.
+      return GenerateSubtype1TestCacheLookup(
+          source, type_class, is_instance_lbl, is_not_instance_lbl);
+    } else {
+      return SubtypeTestCache::null();
+    }
+  }
+  return GenerateUninstantiatedTypeTest(source, type, is_instance_lbl,
+                                        is_not_instance_lbl);
 }
 
 FlowGraphCompiler::TypeTestStubKind
 FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
     const TypeParameter& type_param) {
   // If it's guaranteed, by type-parameter bound, that the type parameter will
-  // never have a value of a function type, then we can safely do a 4-type
-  // test instead of a 6-type test.
+  // never have a value of a function type, then we can safely do a 5-type
+  // test instead of a 7-type test.
   AbstractType& bound = AbstractType::Handle(zone(), type_param.bound());
   bound = bound.UnwrapFutureOr();
   return !bound.IsTopTypeForSubtyping() && !bound.IsObjectType() &&
-                 !bound.IsFunctionType() && !bound.IsDartFunctionType() &&
-                 bound.IsType()
-             ? kTestTypeFourArgs
-             : kTestTypeSixArgs;
+                 !bound.IsDartFunctionType() && bound.IsType()
+             ? kTestTypeFiveArgs
+             : kTestTypeSevenArgs;
 }
 
-void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
+// Generates quick and subtype cache tests when only the instance need be
+// checked. Jumps to 'is_instance' or 'is_not_instance' respectively, if any
+// generated check is conclusive, otherwise falls through if further checking is
+// required.
+//
+// See [GenerateInlineInstanceof] for calling convention.
+SubtypeTestCachePtr FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
+    const InstructionSource& source,
+    const Class& type_class,
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
+  __ Comment("Subtype1TestCacheLookup");
+#if defined(DEBUG)
+  compiler::Label ok;
+  __ BranchIfNotSmi(TypeTestABI::kInstanceReg, &ok);
+  __ Breakpoint();
+  __ Bind(&ok);
+#endif
+  // Check immediate superclass equality. If type_class is Object, then testing
+  // supertype may yield a wrong result for Null in NNBD strong mode (because
+  // Null also extends Object).
+  if (!type_class.IsObjectClass() ||
+      !IsolateGroup::Current()->use_strict_null_safety_checks()) {
+    // We don't use TypeTestABI::kScratchReg for the first scratch register as
+    // it is not defined on IA32. Instead, we use the subtype test cache
+    // register, as it is clobbered by the subtype test cache stub call anyway.
+    const Register kScratch1Reg = TypeTestABI::kSubtypeTestCacheReg;
+#if defined(TARGET_ARCH_IA32)
+    // We don't use TypeTestABI::kScratchReg as it is not defined on IA32.
+    // Instead, we pick another TypeTestABI register and push/pop it around
+    // the uses of the second scratch register.
+    const Register kScratch2Reg = TypeTestABI::kDstTypeReg;
+    __ PushRegister(kScratch2Reg);
+#else
+    // We can use TypeTestABI::kScratchReg for the second scratch register, as
+    // IA32 is handled separately.
+    const Register kScratch2Reg = TypeTestABI::kScratchReg;
+#endif
+    static_assert(kScratch1Reg != kScratch2Reg,
+                  "Scratch registers must be distinct");
+    __ LoadClassId(kScratch2Reg, TypeTestABI::kInstanceReg);
+    __ LoadClassById(kScratch1Reg, kScratch2Reg);
+#if defined(TARGET_ARCH_IA32)
+    // kScratch2 is no longer used, so restore it.
+    __ PopRegister(kScratch2Reg);
+#endif
+    __ LoadFieldFromOffset(kScratch1Reg, kScratch1Reg,
+                           compiler::target::Class::super_type_offset());
+    __ LoadFieldFromOffset(kScratch1Reg, kScratch1Reg,
+                           compiler::target::Type::type_class_id_offset());
+    __ CompareImmediate(kScratch1Reg, Smi::RawValue(type_class.id()));
+    __ BranchIf(EQUAL, is_instance_lbl);
+  }
+
+  return GenerateCallSubtypeTestStub(kTestTypeOneArg, is_instance_lbl,
+                                     is_not_instance_lbl);
+}
+
+// Generates quick and subtype cache tests for an instantiated generic type.
+// Jumps to 'is_instance' or 'is_not_instance' respectively, if any generated
+// check is conclusive, otherwise falls through if further checking is required.
+//
+// See [GenerateInlineInstanceof] for calling convention.
+SubtypeTestCachePtr
+FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
+    const InstructionSource& source,
+    const AbstractType& type,
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
+  __ Comment("InstantiatedTypeWithArgumentsTest");
+  ASSERT(type.IsInstantiated());
+  ASSERT(!type.IsFunctionType());
+  const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
+  ASSERT(type_class.NumTypeArguments() > 0);
+  const Type& smi_type = Type::Handle(zone(), Type::SmiType());
+  const bool smi_is_ok = smi_type.IsSubtypeOf(type, Heap::kOld);
+  __ BranchIfSmi(TypeTestABI::kInstanceReg,
+                 smi_is_ok ? is_instance_lbl : is_not_instance_lbl);
+
+  const intptr_t num_type_args = type_class.NumTypeArguments();
+  const intptr_t num_type_params = type_class.NumTypeParameters();
+  const intptr_t from_index = num_type_args - num_type_params;
+  const TypeArguments& type_arguments =
+      TypeArguments::ZoneHandle(zone(), type.arguments());
+  const bool is_raw_type = type_arguments.IsNull() ||
+                           type_arguments.IsRaw(from_index, num_type_params);
+  // We don't use TypeTestABI::kScratchReg as it is not defined on IA32.
+  // Instead, we use the subtype test cache register, as it is clobbered by the
+  // subtype test cache stub call anyway.
+  const Register kScratchReg = TypeTestABI::kSubtypeTestCacheReg;
+  if (is_raw_type) {
+    // dynamic type argument, check only classes.
+    __ LoadClassId(kScratchReg, TypeTestABI::kInstanceReg);
+    __ CompareImmediate(kScratchReg, type_class.id());
+    __ BranchIf(EQUAL, is_instance_lbl);
+    // List is a very common case.
+    if (IsListClass(type_class)) {
+      GenerateListTypeCheck(kScratchReg, is_instance_lbl);
+    }
+    return GenerateSubtype1TestCacheLookup(source, type_class, is_instance_lbl,
+                                           is_not_instance_lbl);
+  }
+  // If one type argument only, check if type argument is a top type.
+  if (type_arguments.Length() == 1) {
+    const AbstractType& tp_argument =
+        AbstractType::ZoneHandle(zone(), type_arguments.TypeAt(0));
+    if (tp_argument.IsTopTypeForSubtyping()) {
+      // Instance class test only necessary.
+      return GenerateSubtype1TestCacheLookup(
+          source, type_class, is_instance_lbl, is_not_instance_lbl);
+    }
+  }
+
+  // Load the type into the right register for the subtype test cache check.
+  __ LoadUniqueObject(TypeTestABI::kDstTypeReg, type);
+  // Regular subtype test cache involving instance's type arguments.
+  return GenerateCallSubtypeTestStub(kTestTypeThreeArgs, is_instance_lbl,
+                                     is_not_instance_lbl);
+}
+
+// Generates quick and subtype cache tests for an instantiated non-generic type.
+// Jumps to 'is_instance' or 'is_not_instance' respectively, if any generated
+// check is conclusive. Returns whether the code will fall through for further
+// type checking because the checks are not exhaustive.
+//
+// See [GenerateInlineInstanceof] for calling convention.
+//
+// Uses kScratchReg, so this implementation cannot be shared with IA32.
+bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
+    const InstructionSource& source,
+    const AbstractType& type,
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
+  __ Comment("InstantiatedTypeNoArgumentsTest");
+  ASSERT(type.IsInstantiated());
+  ASSERT(!type.IsFunctionType());
+  const Class& type_class = Class::Handle(zone(), type.type_class());
+  ASSERT(type_class.NumTypeArguments() == 0);
+
+  // We don't use TypeTestABI::kScratchReg as it is not defined on IA32.
+  // Instead, we use the subtype test cache register, as it is clobbered by the
+  // subtype test cache stub call anyway.
+  const Register kScratchReg = TypeTestABI::kSubtypeTestCacheReg;
+
+  const Class& smi_class = Class::Handle(zone(), Smi::Class());
+  const bool smi_is_ok =
+      Class::IsSubtypeOf(smi_class, Object::null_type_arguments(),
+                         Nullability::kNonNullable, type, Heap::kOld);
+  __ BranchIfSmi(TypeTestABI::kInstanceReg,
+                 smi_is_ok ? is_instance_lbl : is_not_instance_lbl);
+  __ LoadClassId(kScratchReg, TypeTestABI::kInstanceReg);
+  // Bool interface can be implemented only by core class Bool.
+  if (type.IsBoolType()) {
+    __ CompareImmediate(kScratchReg, kBoolCid);
+    __ BranchIf(EQUAL, is_instance_lbl);
+    __ Jump(is_not_instance_lbl);
+    return false;
+  }
+  // Custom checking for numbers (Smi, Mint and Double).
+  // Note that instance is not Smi (checked above).
+  if (type.IsNumberType() || type.IsIntType() || type.IsDoubleType()) {
+    GenerateNumberTypeCheck(kScratchReg, type, is_instance_lbl,
+                            is_not_instance_lbl);
+    return false;
+  }
+  if (type.IsStringType()) {
+    GenerateStringTypeCheck(kScratchReg, is_instance_lbl, is_not_instance_lbl);
+    return false;
+  }
+  if (type.IsDartFunctionType()) {
+    // Check if instance is a closure.
+    __ CompareImmediate(kScratchReg, kClosureCid);
+    __ BranchIf(EQUAL, is_instance_lbl);
+    return true;
+  }
+
+  // Fast case for cid-range based checks.
+  // Warning: This code destroys the contents of [kScratchReg], so this should
+  // be the last check in this method. It returns whether the checks were
+  // exhaustive, so we negate it to indicate whether we'll fall through.
+  return !GenerateSubtypeRangeCheck(kScratchReg, type_class, is_instance_lbl);
+}
+
+// Generates inlined check if 'type' is a type parameter or type itself.
+//
+// See [GenerateInlineInstanceof] for calling convention.
+SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
+    const InstructionSource& source,
+    const AbstractType& type,
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
+  __ Comment("UninstantiatedTypeTest");
+  ASSERT(!type.IsInstantiated());
+  ASSERT(!type.IsFunctionType());
+  // Skip check if destination is a dynamic type.
+  if (type.IsTypeParameter()) {
+    // We don't use TypeTestABI::kScratchReg as it is not defined on IA32.
+    // Instead, we use the subtype test cache register, as it is clobbered by
+    // the subtype test cache stub call anyway.
+    const Register kScratchReg = TypeTestABI::kSubtypeTestCacheReg;
+
+    const TypeParameter& type_param = TypeParameter::Cast(type);
+
+    const Register kTypeArgumentsReg =
+        type_param.IsClassTypeParameter()
+            ? TypeTestABI::kInstantiatorTypeArgumentsReg
+            : TypeTestABI::kFunctionTypeArgumentsReg;
+    // Check if type arguments are null, i.e. equivalent to vector of dynamic.
+    __ CompareObject(kTypeArgumentsReg, Object::null_object());
+    __ BranchIf(EQUAL, is_instance_lbl);
+    __ LoadFieldFromOffset(
+        kScratchReg, kTypeArgumentsReg,
+        compiler::target::TypeArguments::type_at_offset(type_param.index()));
+    // kScratchReg: Concrete type of type.
+    // Check if type argument is dynamic, Object?, or void.
+    __ CompareObject(kScratchReg, Object::dynamic_type());
+    __ BranchIf(EQUAL, is_instance_lbl);
+    __ CompareObject(
+        kScratchReg,
+        Type::ZoneHandle(
+            zone(), isolate_group()->object_store()->nullable_object_type()));
+    __ BranchIf(EQUAL, is_instance_lbl);
+    __ CompareObject(kScratchReg, Object::void_type());
+    __ BranchIf(EQUAL, is_instance_lbl);
+
+    // For Smi check quickly against int and num interfaces.
+    compiler::Label not_smi;
+    __ BranchIfNotSmi(TypeTestABI::kInstanceReg, &not_smi,
+                      compiler::Assembler::kNearJump);
+    __ CompareObject(kScratchReg, Type::ZoneHandle(zone(), Type::IntType()));
+    __ BranchIf(EQUAL, is_instance_lbl);
+    __ CompareObject(kScratchReg, Type::ZoneHandle(zone(), Type::Number()));
+    __ BranchIf(EQUAL, is_instance_lbl);
+    // Smi can be handled by type test cache.
+    __ Bind(&not_smi);
+
+    // Load the type into the right register for the subtype test cache check.
+    __ LoadUniqueObject(TypeTestABI::kDstTypeReg, type);
+    const auto test_kind = GetTypeTestStubKindForTypeParameter(type_param);
+    return GenerateCallSubtypeTestStub(test_kind, is_instance_lbl,
+                                       is_not_instance_lbl);
+  }
+  if (type.IsType()) {
+    // The only uninstantiated type to which a Smi is assignable is FutureOr<T>,
+    // as T might be a top type or int or num when instantiated
+    if (!type.IsFutureOrType()) {
+      __ BranchIfSmi(TypeTestABI::kInstanceReg, is_not_instance_lbl);
+    }
+    // Load the type into the right register for the subtype test cache check.
+    __ LoadUniqueObject(TypeTestABI::kDstTypeReg, type);
+    // Uninstantiated type class is known at compile time, but the type
+    // arguments are determined at runtime by the instantiator(s).
+    return GenerateCallSubtypeTestStub(kTestTypeFiveArgs, is_instance_lbl,
+                                       is_not_instance_lbl);
+  }
+  return SubtypeTestCache::null();
+}
+
+#if !defined(TARGET_ARCH_IA32)
+// If instanceof type test cannot be performed successfully at compile time and
+// therefore eliminated, optimize it by adding inlined tests for:
+// - Null -> see comment below.
+// - Smi -> compile time subtype check (only if dst class is not parameterized).
+// - Class equality (only if class is not parameterized).
+// Inputs (from TypeTestABI):
+// - kInstanceReg: object.
+// - kInstantiatorTypeArgumentsReg: instantiator type arguments or raw_null.
+// - kFunctionTypeArgumentsReg: function type arguments or raw_null.
+// Returns:
+// - true or false in kInstanceOfResultReg.
+void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
+                                           intptr_t deopt_id,
+                                           const AbstractType& type,
+                                           LocationSummary* locs) {
+  ASSERT(type.IsFinalized());
+  ASSERT(!type.IsTopTypeForInstanceOf());  // Already checked.
+
+  compiler::Label is_instance, is_not_instance;
+  // 'null' is an instance of Null, Object*, Never*, void, and dynamic.
+  // In addition, 'null' is an instance of any nullable type.
+  // It is also an instance of FutureOr<T> if it is an instance of T.
+  const AbstractType& unwrapped_type =
+      AbstractType::Handle(type.UnwrapFutureOr());
+  if (!unwrapped_type.IsTypeParameter() || unwrapped_type.IsNullable()) {
+    // Only nullable type parameter remains nullable after instantiation.
+    // See NullIsInstanceOf().
+    __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
+    __ BranchIf(EQUAL,
+                (unwrapped_type.IsNullable() ||
+                 (unwrapped_type.IsLegacy() && unwrapped_type.IsNeverType()))
+                    ? &is_instance
+                    : &is_not_instance);
+  }
+
+  // Generate inline instanceof test.
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
+  // kInstanceReg, kInstantiatorTypeArgumentsReg, and kFunctionTypeArgumentsReg
+  // are preserved across the call.
+  test_cache =
+      GenerateInlineInstanceof(source, type, &is_instance, &is_not_instance);
+
+  // test_cache is null if there is no fall-through.
+  compiler::Label done;
+  if (!test_cache.IsNull()) {
+    // Generate Runtime call.
+    __ LoadUniqueObject(TypeTestABI::kDstTypeReg, type);
+    __ LoadUniqueObject(TypeTestABI::kSubtypeTestCacheReg, test_cache);
+    GenerateStubCall(source, StubCode::InstanceOf(),
+                     /*kind=*/UntaggedPcDescriptors::kOther, locs, deopt_id);
+    __ Jump(&done, compiler::Assembler::kNearJump);
+  }
+  __ Bind(&is_not_instance);
+  __ LoadObject(TypeTestABI::kInstanceOfResultReg, Bool::Get(false));
+  __ Jump(&done, compiler::Assembler::kNearJump);
+
+  __ Bind(&is_instance);
+  __ LoadObject(TypeTestABI::kInstanceOfResultReg, Bool::Get(true));
+  __ Bind(&done);
+}
+
+// Expected inputs (from TypeTestABI):
+// - kInstanceReg: instance (preserved).
+// - kDstTypeReg: destination type (for test_kind != kTestTypeOneArg).
+// - kInstantiatorTypeArgumentsReg: instantiator type arguments
+//   (for test_kind == kTestTypeFiveArg or test_kind == kTestTypeSevenArg).
+// - kFunctionTypeArgumentsReg: function type arguments
+//   (for test_kind == kTestTypeFiveArg or test_kind == kTestTypeSevenArg).
+//
+// See the arch-specific GenerateSubtypeNTestCacheStub method to see which
+// registers may need saving across this call.
+SubtypeTestCachePtr FlowGraphCompiler::GenerateCallSubtypeTestStub(
+    TypeTestStubKind test_kind,
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
+  const SubtypeTestCache& type_test_cache =
+      SubtypeTestCache::ZoneHandle(zone(), SubtypeTestCache::New());
+  __ LoadUniqueObject(TypeTestABI::kSubtypeTestCacheReg, type_test_cache);
+  if (test_kind == kTestTypeOneArg) {
+    __ Call(StubCode::Subtype1TestCache());
+  } else if (test_kind == kTestTypeThreeArgs) {
+    __ Call(StubCode::Subtype3TestCache());
+  } else if (test_kind == kTestTypeFiveArgs) {
+    __ Call(StubCode::Subtype5TestCache());
+  } else if (test_kind == kTestTypeSevenArgs) {
+    __ Call(StubCode::Subtype7TestCache());
+  } else {
+    UNREACHABLE();
+  }
+  GenerateBoolToJump(TypeTestABI::kSubtypeTestCacheResultReg, is_instance_lbl,
+                     is_not_instance_lbl);
+  return type_test_cache.ptr();
+}
+
+// Generates an assignable check for a given object. Emits no code if the
+// destination type is known at compile time and is a top type. See
+// GenerateCallerChecksForAssertAssignable for other optimized cases.
+//
+// Inputs (preserved for successful checks):
+// - TypeTestABI::kInstanceReg: object.
+// - TypeTestABI::kDstTypeReg: destination type (if non-constant).
+// - TypeTestABI::kInstantiatorTypeArgumentsReg: instantiator type arguments.
+// - TypeTestABI::kFunctionTypeArgumentsReg: function type arguments.
+//
+// Throws:
+// - TypeError (on unsuccessful assignable checks)
+//
+// Performance notes: positive checks must be quick, negative checks can be slow
+// as they throw an exception.
+void FlowGraphCompiler::GenerateAssertAssignable(
+    CompileType* receiver_type,
+    const InstructionSource& source,
+    intptr_t deopt_id,
+    const String& dst_name,
+    LocationSummary* locs) {
+  ASSERT(!source.token_pos.IsClassifying());
+  ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
+
+  // Non-null if we have a constant destination type.
+  const auto& dst_type =
+      locs->in(AssertAssignableInstr::kDstTypePos).IsConstant()
+          ? AbstractType::Cast(
+                locs->in(AssertAssignableInstr::kDstTypePos).constant())
+          : Object::null_abstract_type();
+
+  if (!dst_type.IsNull()) {
+    ASSERT(dst_type.IsFinalized());
+    if (dst_type.IsTopTypeForSubtyping()) return;  // No code needed.
+  }
+
+  compiler::Label done;
+  Register type_reg = TypeTestABI::kDstTypeReg;
+  // Generate caller-side checks to perform prior to calling the TTS.
+  if (dst_type.IsNull()) {
+    __ Comment("AssertAssignable for runtime type");
+    // kDstTypeReg should already contain the destination type.
+  } else {
+    __ Comment("AssertAssignable for compile-time type");
+    GenerateCallerChecksForAssertAssignable(receiver_type, dst_type, &done);
+    if (dst_type.IsTypeParameter()) {
+      // The resolved type parameter is in the scratch register.
+      type_reg = TypeTestABI::kScratchReg;
+    }
+  }
+
+  GenerateTTSCall(source, deopt_id, type_reg, dst_type, dst_name, locs);
+  __ Bind(&done);
+}
+
+// Generates a call to the type testing stub for the type in [reg_with_type].
+// Provide a non-null [dst_type] and [dst_name] if they are known at compile
+// time.
+void FlowGraphCompiler::GenerateTTSCall(const InstructionSource& source,
+                                        intptr_t deopt_id,
+                                        Register reg_with_type,
+                                        const AbstractType& dst_type,
+                                        const String& dst_name,
+                                        LocationSummary* locs) {
+  ASSERT(!dst_name.IsNull());
+  // We use 2 consecutive entries in the pool for the subtype cache and the
+  // destination name.  The second entry, namely [dst_name] seems to be unused,
+  // but it will be used by the code throwing a TypeError if the type test fails
+  // (see runtime/vm/runtime_entry.cc:TypeCheck).  It will use pattern matching
+  // on the call site to find out at which pool index the destination name is
+  // located.
+  const intptr_t sub_type_cache_index = __ object_pool_builder().AddObject(
+      Object::null_object(), compiler::ObjectPoolBuilderEntry::kPatchable);
+  const intptr_t dst_name_index = __ object_pool_builder().AddObject(
+      dst_name, compiler::ObjectPoolBuilderEntry::kPatchable);
+  ASSERT((sub_type_cache_index + 1) == dst_name_index);
+  ASSERT(__ constant_pool_allowed());
+
+  __ Comment("TTSCall");
+  // If the dst_type is known at compile time and instantiated, we know the
+  // target TTS stub and so can use a PC-relative call when available.
+  if (!dst_type.IsNull() && dst_type.IsInstantiated() &&
+      CanPcRelativeCall(dst_type)) {
+    __ LoadWordFromPoolIndex(TypeTestABI::kSubtypeTestCacheReg,
+                             sub_type_cache_index);
+    __ GenerateUnRelocatedPcRelativeCall();
+    AddPcRelativeTTSCallTypeTarget(dst_type);
+  } else {
+    GenerateIndirectTTSCall(assembler(), reg_with_type, sub_type_cache_index);
+  }
+  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kOther, locs);
+}
+
+// Optimize assignable type check by adding inlined tests for:
+// - non-null object -> return object (only if in null safe mode and type is
+//   non-nullable Object).
+// - Smi -> compile time subtype check (only if dst class is not parameterized).
+// - Class equality (only if class is not parameterized).
+//
+// Inputs (preserved):
+// - TypeTestABI::kInstanceReg: object.
+// - TypeTestABI::kInstantiatorTypeArgumentsReg: instantiator type arguments.
+// - TypeTestABI::kFunctionTypeArgumentsReg: function type arguments.
+//
+// Assumes:
+// - Destination type is not a top type.
+// - Object to check is not null, unless in null safe mode and destination type
+//   is not a nullable type.
+//
+// Outputs:
+// - TypeTestABI::kDstTypeReg: destination type
+// Additional output if dst_type is a TypeParameter:
+// - TypeTestABI::kScratchReg: type on which to call TTS stub.
+//
+// Performance notes: positive checks must be quick, negative checks can be slow
+// as they throw an exception.
+void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
     CompileType* receiver_type,
     const AbstractType& dst_type,
-    const String& dst_name,
-    const Register dst_type_reg_to_call,
-    const Register scratch_reg,
     compiler::Label* done) {
-#if defined(TARGET_ARCH_IA32)
-  // ia32 does not have support for TypeTestingStubs.
-  UNREACHABLE();
-#else
-  TypeUsageInfo* type_usage_info = thread()->type_usage_info();
-
-  // Special case: non-nullable Object.
   // Top types should be handled by the caller and cannot reach here.
   ASSERT(!dst_type.IsTopTypeForSubtyping());
+
+  // Set this to avoid marking the type testing stub for optimization.
+  bool elide_info = false;
+  // Call before any return points to set the destination type register and
+  // mark the destination type TTS as needing optimization, unless it is
+  // unlikely to be called.
+  auto output_dst_type = [&]() -> void {
+    // If we haven't handled the positive case of the type check on the call
+    // site and we'll be using the TTS of the destination type, we want an
+    // optimized type testing stub and thus record it in the [TypeUsageInfo].
+    if (!elide_info) {
+      if (auto const type_usage_info = thread()->type_usage_info()) {
+        type_usage_info->UseTypeInAssertAssignable(dst_type);
+      } else {
+        ASSERT(!FLAG_precompiled_mode);
+      }
+    }
+    __ LoadObject(TypeTestABI::kDstTypeReg, dst_type);
+  };
+
+  // We can handle certain types and checks very efficiently on the call site,
+  // meaning those need not be checked within the stubs (which may involve
+  // a runtime call).
+
   if (dst_type.IsObjectType()) {
-    ASSERT(dst_type.IsNonNullable() && isolate()->null_safety());
+    // Special case: non-nullable Object.
+    ASSERT(dst_type.IsNonNullable() &&
+           isolate_group()->use_strict_null_safety_checks());
     __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
     __ BranchIf(NOT_EQUAL, done);
-    // Fall back to type testing stub.
-    __ LoadObject(TypeTestABI::kDstTypeReg, dst_type);
-    return;
+    // Fall back to type testing stub in caller to throw the exception.
+    return output_dst_type();
   }
 
   // If the int type is assignable to [dst_type] we special case it on the
@@ -2341,93 +3008,69 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     is_non_smi = true;
   }
 
-  // We use two type registers iff the dst type is a type parameter.
-  // We "dereference" the type parameter for the TTS call but leave the type
-  // parameter in the TypeTestABI::kDstTypeReg for fallback into
-  // SubtypeTestCache.
-  ASSERT(dst_type_reg_to_call == kNoRegister ||
-         (dst_type.IsTypeParameter() ==
-          (TypeTestABI::kDstTypeReg != dst_type_reg_to_call)));
-
-  // We can handle certain types very efficiently on the call site (with a
-  // bailout to the normal stub, which will do a runtime call).
   if (dst_type.IsTypeParameter()) {
-    // In NNBD strong mode we need to handle null instance before calling TTS
-    // if type parameter is nullable or legacy because type parameter can be
-    // instantiated with a non-nullable type which rejects null.
-    // In NNBD weak mode or if type parameter is non-nullable or has
-    // undetermined nullability null instance is correctly handled by TTS.
-    if (isolate()->null_safety() &&
-        (dst_type.IsNullable() || dst_type.IsLegacy())) {
+    // Special case: Instantiate the type parameter on the caller side, invoking
+    // the TTS of the corresponding type parameter in the caller.
+    const TypeParameter& type_param = TypeParameter::Cast(dst_type);
+    if (isolate_group()->use_strict_null_safety_checks() &&
+        !type_param.IsNonNullable()) {
+      // If the type parameter is nullable when running in strong mode, we need
+      // to handle null before calling the TTS because the type parameter may be
+      // instantiated with a non-nullable type, where the TTS rejects null.
       __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
       __ BranchIf(EQUAL, done);
     }
-    const TypeParameter& type_param = TypeParameter::Cast(dst_type);
     const Register kTypeArgumentsReg =
         type_param.IsClassTypeParameter()
             ? TypeTestABI::kInstantiatorTypeArgumentsReg
             : TypeTestABI::kFunctionTypeArgumentsReg;
 
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
+    // If so, then the value is guaranteed assignable as dynamic is a top type.
     __ CompareObject(kTypeArgumentsReg, Object::null_object());
     __ BranchIf(EQUAL, done);
+    // Put the instantiated type parameter into the scratch register, so its
+    // TTS can be called by the caller.
     __ LoadField(
-        dst_type_reg_to_call,
+        TypeTestABI::kScratchReg,
         compiler::FieldAddress(kTypeArgumentsReg,
                                compiler::target::TypeArguments::type_at_offset(
                                    type_param.index())));
-    __ LoadObject(TypeTestABI::kDstTypeReg, type_param);
-    if (type_usage_info != NULL) {
-      type_usage_info->UseTypeInAssertAssignable(dst_type);
-    }
-  } else {
-    HierarchyInfo* hi = Thread::Current()->hierarchy_info();
-    if (hi != NULL) {
-      const Class& type_class = Class::Handle(zone(), dst_type.type_class());
-
-      bool check_handled_at_callsite = false;
-      bool used_cid_range_check = false;
-      const bool can_use_simple_cid_range_test =
-          hi->CanUseSubtypeRangeCheckFor(dst_type);
-      if (can_use_simple_cid_range_test) {
-        const CidRangeVector& ranges = hi->SubtypeRangesForClass(
-            type_class,
-            /*include_abstract=*/false,
-            /*exclude_null=*/!Instance::NullIsAssignableTo(dst_type));
-        if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
-          if (is_non_smi) {
-            __ LoadClassId(scratch_reg, TypeTestABI::kInstanceReg);
-          } else {
-            __ LoadClassIdMayBeSmi(scratch_reg, TypeTestABI::kInstanceReg);
-          }
-          GenerateCidRangesCheck(assembler(), scratch_reg, ranges, done);
-          used_cid_range_check = true;
-          check_handled_at_callsite = true;
-        }
-      }
-
-      if (!used_cid_range_check && can_use_simple_cid_range_test &&
-          IsListClass(type_class)) {
-        __ LoadClassIdMayBeSmi(scratch_reg, TypeTestABI::kInstanceReg);
-        GenerateListTypeCheck(scratch_reg, done);
-        used_cid_range_check = true;
-      }
-
-      // If we haven't handled the positive case of the type check on the
-      // call-site, we want an optimized type testing stub and therefore record
-      // it in the [TypeUsageInfo].
-      if (!check_handled_at_callsite) {
-        if (type_usage_info != NULL) {
-          type_usage_info->UseTypeInAssertAssignable(dst_type);
-        } else {
-          ASSERT(!FLAG_precompiled_mode);
-        }
-      }
-    }
-    __ LoadObject(TypeTestABI::kDstTypeReg, dst_type);
+    return output_dst_type();
   }
-#endif  // defined(TARGET_ARCH_IA32)
+
+  if (dst_type.IsFunctionType()) {
+    return output_dst_type();
+  }
+
+  if (auto const hi = thread()->hierarchy_info()) {
+    const Class& type_class = Class::Handle(zone(), dst_type.type_class());
+
+    if (hi->CanUseSubtypeRangeCheckFor(dst_type)) {
+      const CidRangeVector& ranges = hi->SubtypeRangesForClass(
+          type_class,
+          /*include_abstract=*/false,
+          /*exclude_null=*/!Instance::NullIsAssignableTo(dst_type));
+      if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
+        if (is_non_smi) {
+          __ LoadClassId(TypeTestABI::kScratchReg, TypeTestABI::kInstanceReg);
+        } else {
+          __ LoadClassIdMayBeSmi(TypeTestABI::kScratchReg,
+                                 TypeTestABI::kInstanceReg);
+        }
+        GenerateCidRangesCheck(assembler(), TypeTestABI::kScratchReg, ranges,
+                               done);
+        elide_info = true;
+      } else if (IsListClass(type_class)) {
+        __ LoadClassIdMayBeSmi(TypeTestABI::kScratchReg,
+                               TypeTestABI::kInstanceReg);
+        GenerateListTypeCheck(TypeTestABI::kScratchReg, done);
+      }
+    }
+  }
+  output_dst_type();
 }
+#endif  // !defined(TARGET_ARCH_IA32)
 
 #undef __
 
@@ -2472,14 +3115,16 @@ void FlowGraphCompiler::FrameStatePush(Definition* defn) {
     rep = kTagged;
   }
   ASSERT(!is_optimizing());
-  ASSERT((rep == kTagged) || (rep == kUntagged) || (rep == kUnboxedUint32));
+  ASSERT((rep == kTagged) || (rep == kUntagged) || (rep == kUnboxedUint32) ||
+         (rep == kUnboxedUint8));
   ASSERT(rep != kUntagged || flow_graph_.IsIrregexpFunction());
   const auto& function = flow_graph_.parsed_function().function();
-  // Currently, we only allow unboxed uint32 on the stack in unoptimized code
-  // when building a dynamic closure call dispatcher, where any unboxed values
-  // on the stack are consumed before possible FrameStateIsSafeToCall() checks.
+  // Currently, we only allow unboxed uint8 and uint32 on the stack in
+  // unoptimized code  when building a dynamic closure call dispatcher, where
+  // any unboxed values on the stack are consumed before possible
+  // FrameStateIsSafeToCall() checks.
   // See FlowGraphBuilder::BuildDynamicCallVarsInit().
-  ASSERT(rep != kUnboxedUint32 ||
+  ASSERT((rep != kUnboxedUint32 && rep != kUnboxedUint8) ||
          function.IsDynamicClosureCallDispatcher(thread()));
   frame_state_.Add(rep);
 }
@@ -2514,8 +3159,11 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   const bool use_shared_stub =
       instruction()->UseSharedSlowPathStub(compiler->is_optimizing());
+  ASSERT(use_shared_stub == instruction()->locs()->call_on_shared_slow_path());
   const bool live_fpu_registers =
       instruction()->locs()->live_registers()->FpuRegisterCount() > 0;
+  const intptr_t num_args =
+      use_shared_stub ? 0 : GetNumberOfArgumentsForRuntimeCall();
   __ Bind(entry_label());
   EmitCodeAtSlowPathEntry(compiler);
   LocationSummary* locs = instruction()->locs();
@@ -2524,26 +3172,19 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitSharedStubCall(compiler, live_fpu_registers);
   } else {
     compiler->SaveLiveRegisters(locs);
-    intptr_t i = 0;
-    if (num_args_ % 2 != 0) {
-      __ PushRegister(locs->in(i).reg());
-      ++i;
-    }
-    for (; i < num_args_; i += 2) {
-      __ PushRegisterPair(locs->in(i + 1).reg(), locs->in(i).reg());
-    }
-    __ CallRuntime(runtime_entry_, num_args_);
+    PushArgumentsForRuntimeCall(compiler);
+    __ CallRuntime(runtime_entry_, num_args);
   }
   const intptr_t deopt_id = instruction()->deopt_id();
-  compiler->AddDescriptor(PcDescriptorsLayout::kOther,
+  compiler->AddDescriptor(UntaggedPcDescriptors::kOther,
                           compiler->assembler()->CodeSize(), deopt_id,
-                          instruction()->token_pos(), try_index_);
+                          instruction()->source(), try_index_);
   AddMetadataForRuntimeCall(compiler);
-  compiler->RecordSafepoint(locs, num_args_);
-  if ((try_index_ != kInvalidTryIndex) ||
+  compiler->RecordSafepoint(locs, num_args);
+  if (!FLAG_precompiled_mode || (try_index_ != kInvalidTryIndex) ||
       (compiler->CurrentTryIndex() != kInvalidTryIndex)) {
     Environment* env =
-        compiler->SlowPathEnvironmentFor(instruction(), num_args_);
+        compiler->SlowPathEnvironmentFor(instruction(), num_args);
     if (FLAG_precompiled_mode) {
       compiler->RecordCatchEntryMoves(env, try_index_);
     } else if (env != nullptr) {
@@ -2583,7 +3224,7 @@ const RuntimeEntry& NullErrorSlowPath::GetRuntimeEntry(
 CodePtr NullErrorSlowPath::GetStub(FlowGraphCompiler* compiler,
                                    CheckNullInstr::ExceptionType exception_type,
                                    bool save_fpu_registers) {
-  auto object_store = compiler->isolate()->object_store();
+  auto object_store = compiler->isolate_group()->object_store();
   switch (exception_type) {
     case CheckNullInstr::kNoSuchMethod:
       return save_fpu_registers
@@ -2613,6 +3254,42 @@ void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
 #endif
 }
 
+void RangeErrorSlowPath::PushArgumentsForRuntimeCall(
+    FlowGraphCompiler* compiler) {
+  LocationSummary* locs = instruction()->locs();
+  __ PushRegisterPair(locs->in(CheckBoundBase::kIndexPos).reg(),
+                      locs->in(CheckBoundBase::kLengthPos).reg());
+}
+
+void LateInitializationErrorSlowPath::PushArgumentsForRuntimeCall(
+    FlowGraphCompiler* compiler) {
+  const Field& original_field = Field::ZoneHandle(
+      instruction()->AsLoadField()->slot().field().Original());
+  __ PushObject(original_field);
+}
+
+void LateInitializationErrorSlowPath::EmitSharedStubCall(
+    FlowGraphCompiler* compiler,
+    bool save_fpu_registers) {
+#if defined(TARGET_ARCH_IA32)
+  UNREACHABLE();
+#else
+  ASSERT(instruction()->locs()->temp(0).reg() ==
+         LateInitializationErrorABI::kFieldReg);
+  const Field& original_field = Field::ZoneHandle(
+      instruction()->AsLoadField()->slot().field().Original());
+  __ LoadObject(LateInitializationErrorABI::kFieldReg, original_field);
+  auto object_store = compiler->isolate_group()->object_store();
+  const auto& stub = Code::ZoneHandle(
+      compiler->zone(),
+      save_fpu_registers
+          ? object_store->late_initialization_error_stub_with_fpu_regs_stub()
+          : object_store
+                ->late_initialization_error_stub_without_fpu_regs_stub());
+  compiler->EmitCallToStub(stub);
+#endif
+}
+
 void FlowGraphCompiler::EmitNativeMove(
     const compiler::ffi::NativeLocation& destination,
     const compiler::ffi::NativeLocation& source,
@@ -2627,8 +3304,8 @@ void FlowGraphCompiler::EmitNativeMove(
   const intptr_t dst_container_size = dst_container_type.SizeInBytes();
 
   // This function does not know how to do larger mem copy moves yet.
-  ASSERT(src_payload_type.IsFundamental());
-  ASSERT(dst_payload_type.IsFundamental());
+  ASSERT(src_payload_type.IsPrimitive());
+  ASSERT(dst_payload_type.IsPrimitive());
 
   // This function does not deal with sign conversions yet.
   ASSERT(src_payload_type.IsSigned() == dst_payload_type.IsSigned());
@@ -2652,9 +3329,9 @@ void FlowGraphCompiler::EmitNativeMove(
       // The upper bits of the source are already properly sign or zero
       // extended, so just copy the required amount of bits.
       return EmitNativeMove(destination.WithOtherNativeType(
-                                dst_container_type, dst_container_type, zone_),
+                                zone_, dst_container_type, dst_container_type),
                             source.WithOtherNativeType(
-                                dst_container_type, dst_container_type, zone_),
+                                zone_, dst_container_type, dst_container_type),
                             temp);
     }
     if (src_payload_size >= dst_payload_size &&
@@ -2662,9 +3339,9 @@ void FlowGraphCompiler::EmitNativeMove(
       // The upper bits of the source are not properly sign or zero extended
       // to be copied to the target, so regard the source as smaller.
       return EmitNativeMove(
-          destination.WithOtherNativeType(dst_container_type,
-                                          dst_container_type, zone_),
-          source.WithOtherNativeType(dst_payload_type, dst_payload_type, zone_),
+          destination.WithOtherNativeType(zone_, dst_container_type,
+                                          dst_container_type),
+          source.WithOtherNativeType(zone_, dst_payload_type, dst_payload_type),
           temp);
     }
     UNREACHABLE();
@@ -2679,8 +3356,10 @@ void FlowGraphCompiler::EmitNativeMove(
       !destination.IsFpuRegisters()) {
     // TODO(40209): If this is stack to stack, we could use FpuTMP.
     // Test the impact on code size and speed.
-    EmitNativeMove(destination.Split(0, zone_), source.Split(0, zone_), temp);
-    EmitNativeMove(destination.Split(1, zone_), source.Split(1, zone_), temp);
+    EmitNativeMove(destination.Split(zone_, 2, 0), source.Split(zone_, 2, 0),
+                   temp);
+    EmitNativeMove(destination.Split(zone_, 2, 1), source.Split(zone_, 2, 1),
+                   temp);
     return;
   }
 
@@ -2693,7 +3372,7 @@ void FlowGraphCompiler::EmitNativeMove(
     }
     const auto& intermediate =
         *new (zone_) compiler::ffi::NativeRegistersLocation(
-            dst_payload_type, dst_container_type, scratch);
+            zone_, dst_payload_type, dst_container_type, scratch);
     EmitNativeMove(intermediate, source, temp);
     EmitNativeMove(destination, intermediate, temp);
     if (TMP == kNoRegister) {
@@ -2708,7 +3387,7 @@ void FlowGraphCompiler::EmitNativeMove(
   if (sign_or_zero_extend && destination.IsStack()) {
     ASSERT(source.IsRegisters());
     const auto& intermediate =
-        source.WithOtherNativeType(dst_payload_type, dst_container_type, zone_);
+        source.WithOtherNativeType(zone_, dst_payload_type, dst_container_type);
     EmitNativeMove(intermediate, source, temp);
     EmitNativeMove(destination, intermediate, temp);
     return;
@@ -2719,7 +3398,7 @@ void FlowGraphCompiler::EmitNativeMove(
   if (sign_or_zero_extend && source.IsStack()) {
     ASSERT(destination.IsRegisters());
     const auto& intermediate = destination.WithOtherNativeType(
-        src_payload_type, src_container_type, zone_);
+        zone_, src_payload_type, src_container_type);
     EmitNativeMove(intermediate, source, temp);
     EmitNativeMove(destination, intermediate, temp);
     return;
@@ -2744,8 +3423,6 @@ void FlowGraphCompiler::EmitNativeMove(
   EmitNativeMoveArchitecture(destination, source);
 }
 
-// TODO(dartbug.com/36730): Remove this if PairLocations can be converted
-// into NativeLocations.
 void FlowGraphCompiler::EmitMoveToNative(
     const compiler::ffi::NativeLocation& dst,
     Location src_loc,
@@ -2754,18 +3431,16 @@ void FlowGraphCompiler::EmitMoveToNative(
   if (src_loc.IsPairLocation()) {
     for (intptr_t i : {0, 1}) {
       const auto& src_split = compiler::ffi::NativeLocation::FromPairLocation(
-          src_loc, src_type, i, zone_);
-      EmitNativeMove(dst.Split(i, zone_), src_split, temp);
+          zone_, src_loc, src_type, i);
+      EmitNativeMove(dst.Split(zone_, 2, i), src_split, temp);
     }
   } else {
     const auto& src =
-        compiler::ffi::NativeLocation::FromLocation(src_loc, src_type, zone_);
+        compiler::ffi::NativeLocation::FromLocation(zone_, src_loc, src_type);
     EmitNativeMove(dst, src, temp);
   }
 }
 
-// TODO(dartbug.com/36730): Remove this if PairLocations can be converted
-// into NativeLocations.
 void FlowGraphCompiler::EmitMoveFromNative(
     Location dst_loc,
     Representation dst_type,
@@ -2774,12 +3449,12 @@ void FlowGraphCompiler::EmitMoveFromNative(
   if (dst_loc.IsPairLocation()) {
     for (intptr_t i : {0, 1}) {
       const auto& dest_split = compiler::ffi::NativeLocation::FromPairLocation(
-          dst_loc, dst_type, i, zone_);
-      EmitNativeMove(dest_split, src.Split(i, zone_), temp);
+          zone_, dst_loc, dst_type, i);
+      EmitNativeMove(dest_split, src.Split(zone_, 2, i), temp);
     }
   } else {
     const auto& dest =
-        compiler::ffi::NativeLocation::FromLocation(dst_loc, dst_type, zone_);
+        compiler::ffi::NativeLocation::FromLocation(zone_, dst_loc, dst_type);
     EmitNativeMove(dest, src, temp);
   }
 }
@@ -2814,20 +3489,20 @@ void FlowGraphCompiler::EmitMoveConst(const compiler::ffi::NativeLocation& dst,
     if (src.IsPairLocation()) {
       for (intptr_t i : {0, 1}) {
         const Representation src_type_split =
-            compiler::ffi::NativeType::FromUnboxedRepresentation(src_type,
-                                                                 zone_)
-                .Split(i, zone_)
+            compiler::ffi::NativeType::FromUnboxedRepresentation(zone_,
+                                                                 src_type)
+                .Split(zone_, i)
                 .AsRepresentation();
         const auto& intermediate_native =
-            compiler::ffi::NativeLocation::FromLocation(intermediate,
-                                                        src_type_split, zone_);
+            compiler::ffi::NativeLocation::FromLocation(zone_, intermediate,
+                                                        src_type_split);
         EmitMove(intermediate, src.AsPairLocation()->At(i), temp);
-        EmitNativeMove(dst.Split(i, zone_), intermediate_native, temp);
+        EmitNativeMove(dst.Split(zone_, 2, i), intermediate_native, temp);
       }
     } else {
       const auto& intermediate_native =
-          compiler::ffi::NativeLocation::FromLocation(intermediate, src_type,
-                                                      zone_);
+          compiler::ffi::NativeLocation::FromLocation(zone_, intermediate,
+                                                      src_type);
       EmitMove(intermediate, src, temp);
       EmitNativeMove(dst, intermediate_native, temp);
     }

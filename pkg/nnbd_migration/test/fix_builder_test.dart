@@ -3,13 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
@@ -70,6 +68,9 @@ class FixBuilderTest extends EdgeBuilderTestBase {
   static final isNodeChangeForExpression =
       TypeMatcher<NodeChangeForExpression>();
 
+  static final isNoValidMigration =
+      isNodeChangeForExpression.havingNoValidMigrationWithInfo(anything);
+
   static final isNullCheck =
       isNodeChangeForExpression.havingNullCheckWithInfo(anything);
 
@@ -78,6 +79,16 @@ class FixBuilderTest extends EdgeBuilderTestBase {
           (c) => c.removeLanguageVersionComment,
           'removeLanguageVersionComment',
           true);
+
+  static final isAddImportOfIterableExtension =
+      TypeMatcher<NodeChangeForCompilationUnit>()
+          .having((c) => c.addImports, 'addImports', {
+    'package:collection/collection.dart': {'IterableExtension'}
+  });
+
+  static final isAddShowOfIterableExtension =
+      TypeMatcher<NodeChangeForShowCombinator>().having((c) => c.addNames,
+          'addNames', unorderedEquals(['IterableExtension']));
 
   static final isRemoveNullAwareness =
       TypeMatcher<NodeChangeForPropertyAccess>()
@@ -108,10 +119,20 @@ class FixBuilderTest extends EdgeBuilderTestBase {
     return unit;
   }
 
+  TypeMatcher<NodeChangeForArgumentList> isDropArgument(
+          dynamic argumentsToDrop) =>
+      TypeMatcher<NodeChangeForArgumentList>()
+          .having((c) => c.argumentsToDrop, 'argumentsToDrop', argumentsToDrop);
+
   TypeMatcher<AtomicEditInfo> isInfo(description, fixReasons) =>
       TypeMatcher<AtomicEditInfo>()
           .having((i) => i.description, 'description', description)
           .having((i) => i.fixReasons, 'fixReasons', fixReasons);
+
+  TypeMatcher<NodeChangeForMethodName> isMethodNameChange(
+          dynamic replacement) =>
+      TypeMatcher<NodeChangeForMethodName>()
+          .having((c) => c.replacement, 'replacement', replacement);
 
   Map<AstNode, NodeChange> scopedChanges(
           FixBuilder fixBuilder, AstNode scope) =>
@@ -925,6 +946,60 @@ _f(Object/*?*/ x, Object/*?*/ y) {
     visitSubexpression(findNode.binary('=='), 'bool');
   }
 
+  Future<void> test_binaryExpression_extensionMember_allowsNull() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  void operator+(C/*!*/ other) {}
+}
+f(C/*?*/ c) => c + c;
+''');
+    var binaryExpression = findNode.binary('c + c');
+    visitSubexpression(binaryExpression, 'void',
+        changes: {binaryExpression.rightOperand: isNullCheck});
+  }
+
+  Future<void>
+      test_binaryExpression_extensionMember_allowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  void operator+(C/*!*/ other) {}
+}
+f(C/*?*/ c) => E(c) + c;
+''');
+    var binaryExpression = findNode.binary('E(c) + c');
+    visitSubexpression(binaryExpression, 'void',
+        changes: {binaryExpression.rightOperand: isNullCheck});
+  }
+
+  Future<void> test_binaryExpression_extensionMember_disallowsNull() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  void operator+(C/*!*/ other) {}
+}
+f(C/*?*/ c) => c + c;
+''');
+    var binaryExpression = findNode.binary('c + c');
+    visitSubexpression(binaryExpression, 'void',
+        changes: {binaryExpression.leftOperand: isNullCheck});
+  }
+
+  Future<void>
+      test_binaryExpression_extensionMember_disallowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  void operator+(C/*!*/ other) {}
+}
+f(C/*?*/ c) => E(c) + c;
+''');
+    var binaryExpression = findNode.binary('E(c) + c');
+    visitSubexpression(binaryExpression, 'void',
+        changes: {findNode.simple('c) +'): isNullCheck});
+  }
+
   Future<void> test_binaryExpression_question_question() async {
     await analyze('''
 _f(int/*?*/ x, double/*?*/ y) {
@@ -1344,11 +1419,87 @@ _f(int/*!*/ x, int/*?*/ y) {
         changes: {findNode.simple('y;'): isNullCheck});
   }
 
+  Future<void> test_firstWhere_transform() async {
+    await analyze('''
+_f(Iterable<int> x) => x.firstWhere((n) => n.isEven, orElse: () => null);
+''');
+    var methodInvocation = findNode.methodInvocation('firstWhere');
+    var functionExpression = findNode.functionExpression('() => null');
+    var fixBuilder = visitSubexpression(methodInvocation, 'int?', changes: {
+      methodInvocation.methodName: isMethodNameChange('firstWhereOrNull'),
+      methodInvocation.argumentList:
+          isDropArgument({functionExpression.parent: anything}),
+      // Behavior of the function expression and its subexpression don't matter
+      // because they're being dropped.
+      functionExpression.parent: anything,
+      findNode.nullLiteral('null'): anything
+    });
+    expect(fixBuilder.needsIterableExtension, true);
+  }
+
   Future<void> test_functionExpressionInvocation_dynamic() async {
     await analyze('''
 _f(dynamic d) => d();
 ''');
     visitSubexpression(findNode.functionExpressionInvocation('d('), 'dynamic');
+  }
+
+  Future<void>
+      test_functionExpressionInvocation_extensionMember_allowsNull() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  void call() {}
+}
+f(C/*?*/ c) => c();
+''');
+    var functoinExpressionInvocation =
+        findNode.functionExpressionInvocation('c()');
+    visitSubexpression(functoinExpressionInvocation, 'void');
+  }
+
+  Future<void>
+      test_functionExpressionInvocation_extensionMember_allowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  void call() {}
+}
+f(C/*?*/ c) => E(c)();
+''');
+    var functoinExpressionInvocation =
+        findNode.functionExpressionInvocation('E(c)()');
+    visitSubexpression(functoinExpressionInvocation, 'void');
+  }
+
+  Future<void>
+      test_functionExpressionInvocation_extensionMember_disallowsNull() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  void call() {}
+}
+f(C/*?*/ c) => c();
+''');
+    var functionExpressionInvocation =
+        findNode.functionExpressionInvocation('c()');
+    visitSubexpression(functionExpressionInvocation, 'void',
+        changes: {functionExpressionInvocation.function: isNullCheck});
+  }
+
+  Future<void>
+      test_functionExpressionInvocation_extensionMember_disallowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  void call() {}
+}
+f(C/*?*/ c) => E(c)();
+''');
+    var functionExpressionInvocation =
+        findNode.functionExpressionInvocation('E(c)()');
+    visitSubexpression(functionExpressionInvocation, 'void',
+        changes: {findNode.simple('c)()'): isNullCheck});
   }
 
   Future<void> test_functionExpressionInvocation_function_checked() async {
@@ -1545,11 +1696,132 @@ _f(int/*?*/ x) {
     });
   }
 
+  Future<void> test_import_IterableExtension_already_imported_add_show() async {
+    addPackageFile('collection', 'collection.dart', 'class PriorityQueue {}');
+    await analyze('''
+import 'package:collection/collection.dart' show PriorityQueue;
+
+main() {}
+''');
+    visitAll(injectNeedsIterableExtension: true, changes: {
+      findNode.import('package:collection').combinators[0]:
+          isAddShowOfIterableExtension
+    });
+  }
+
+  Future<void> test_import_IterableExtension_already_imported_all() async {
+    addPackageFile('collection', 'collection.dart', '');
+    await analyze('''
+import 'package:collection/collection.dart';
+
+main() {}
+''');
+    visitAll(injectNeedsIterableExtension: true, changes: {});
+  }
+
+  Future<void>
+      test_import_IterableExtension_already_imported_and_shown() async {
+    addPackageFile('collection', 'collection.dart',
+        'extension IterableExtension<T> on Iterable<T> {}');
+    await analyze('''
+import 'package:collection/collection.dart' show IterableExtension;
+
+main() {}
+''');
+    visitAll(injectNeedsIterableExtension: true, changes: {});
+  }
+
+  Future<void> test_import_IterableExtension_already_imported_prefixed() async {
+    addPackageFile('collection', 'collection.dart', '');
+    await analyze('''
+import 'package:collection/collection.dart' as c;
+
+main() {}
+''');
+    visitAll(
+        injectNeedsIterableExtension: true,
+        changes: {findNode.unit: isAddImportOfIterableExtension});
+  }
+
+  Future<void> test_import_IterableExtension_other_import() async {
+    addPackageFile(
+        'foo', 'foo.dart', 'extension IterableExtension<T> on Iterable<T> {}');
+    await analyze('''
+import 'package:foo/foo.dart' show IterableExtension;
+
+main() {}
+''');
+    visitAll(
+        injectNeedsIterableExtension: true,
+        changes: {findNode.unit: isAddImportOfIterableExtension});
+  }
+
+  Future<void> test_import_IterableExtension_simple() async {
+    await analyze('''
+main() {}
+''');
+    visitAll(
+        injectNeedsIterableExtension: true,
+        changes: {findNode.unit: isAddImportOfIterableExtension});
+  }
+
   Future<void> test_indexExpression_dynamic() async {
     await analyze('''
 Object/*!*/ _f(dynamic d, int/*?*/ i) => d[i];
 ''');
     visitSubexpression(findNode.index('d[i]'), 'dynamic');
+  }
+
+  Future<void> test_indexExpression_extensionMember_allowsNull() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  int operator[](int index) => 0;
+}
+f(C/*?*/ c) => c[0];
+''');
+    var indexExpression = findNode.index('c[0]');
+    visitSubexpression(indexExpression, 'int');
+  }
+
+  Future<void>
+      test_indexExpression_extensionMember_allowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  int operator[](int index) => 0;
+}
+f(C/*?*/ c) => E(c)[0];
+''');
+    var indexExpression = findNode.index('E(c)[0]');
+    visitSubexpression(indexExpression, 'int');
+  }
+
+  Future<void> test_indexExpression_extensionMember_disallowsNull() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  int operator[](int index) => 0;
+}
+f(C/*?*/ c) => c[0];
+''');
+    var indexExpression = findNode.index('c[0]');
+    visitSubexpression(indexExpression, 'int',
+        changes: {indexExpression.target: isNullCheck});
+  }
+
+  Future<void>
+      test_indexExpression_extensionMember_disallowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  int operator[](int index) => 0;
+}
+f(C/*?*/ c) => E(c)[0];
+''');
+    var indexExpression = findNode.index('E(c)[0]');
+    visitSubexpression(indexExpression, 'int',
+        changes: {findNode.simple('c)[0]'): isNullCheck});
   }
 
   Future<void> test_indexExpression_simple() async {
@@ -1823,6 +2095,67 @@ Object/*!*/ _f(dynamic d) => d.f();
     visitSubexpression(findNode.methodInvocation('d.f'), 'dynamic');
   }
 
+  Future<void> test_methodInvocation_extensionMember_allowsNull() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  void foo() {}
+}
+f(C/*?*/ c) => c.foo();
+''');
+    var methodInvocation = findNode.methodInvocation('c.foo');
+    visitSubexpression(methodInvocation, 'void');
+  }
+
+  Future<void>
+      test_methodInvocation_extensionMember_allowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  void foo() {}
+}
+f(C/*?*/ c) => E(c).foo();
+''');
+    var methodInvocation = findNode.methodInvocation('E(c).foo');
+    visitSubexpression(methodInvocation, 'void');
+  }
+
+  Future<void> test_methodInvocation_extensionMember_disallowsNull() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  void foo() {}
+}
+f(C/*?*/ c) => c.foo();
+''');
+    var methodInvocation = findNode.methodInvocation('c.foo');
+    visitSubexpression(methodInvocation, 'void',
+        changes: {methodInvocation.target: isNullCheck});
+  }
+
+  Future<void>
+      test_methodInvocation_extensionMember_disallowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  void foo() {}
+}
+f(C/*?*/ c) => E(c).foo();
+''');
+    var methodInvocation = findNode.methodInvocation('E(c).foo');
+    visitSubexpression(methodInvocation, 'void',
+        changes: {findNode.simple('c).foo'): isNullCheck});
+  }
+
+  Future<void> test_methodInvocation_function_call_nullCheck() async {
+    await analyze('''
+f(void Function()/*?*/ x) => x.call();
+''');
+    var methodInvocation = findNode.methodInvocation('x.call');
+    visitSubexpression(methodInvocation, 'void',
+        changes: {methodInvocation.target: isNullCheck});
+  }
+
   Future<void> test_methodInvocation_namedParameter() async {
     await analyze('''
 abstract class _C {
@@ -1955,6 +2288,16 @@ abstract class C {
     visitSubexpression(assignment, 'int?');
   }
 
+  Future<void> test_nullable_value_in_null_context() async {
+    await analyze('int/*!*/ f(int/*?*/ i) => i;');
+    var iRef = findNode.simple('i;');
+    visitSubexpression(iRef, 'int', changes: {
+      iRef: isNodeChangeForExpression.havingNullCheckWithInfo(isInfo(
+          NullabilityFixDescription.checkExpression,
+          {FixReasonTarget.root: TypeMatcher<NullabilityEdge>()}))
+    });
+  }
+
   Future<void> test_nullAssertion_promotes() async {
     await analyze('''
 _f(bool/*?*/ x) => x && x;
@@ -1970,6 +2313,36 @@ _f(bool/*?*/ x) => x && x;
 f() => null;
 ''');
     visitSubexpression(findNode.nullLiteral('null'), 'Null');
+  }
+
+  Future<void> test_nullLiteral_hinted() async {
+    await analyze('''
+int/*!*/ f() => null/*!*/;
+''');
+    var literal = findNode.nullLiteral('null');
+    // Normally we would leave the null literal alone and add an informative
+    // comment saying there's no valid migration for it.  But since the user
+    // specifically hinted that `!` should be added, we respect that.
+    visitSubexpression(literal, 'Never', changes: {
+      literal: isNodeChangeForExpression.havingNullCheckWithInfo(isInfo(
+          NullabilityFixDescription.checkExpressionDueToHint,
+          {FixReasonTarget.root: TypeMatcher<FixReason_NullCheckHint>()}))
+    });
+  }
+
+  Future<void> test_nullLiteral_noValidMigration() async {
+    await analyze('''
+int/*!*/ f() => null;
+''');
+    var literal = findNode.nullLiteral('null');
+    // Note: in spite of the fact that we leave the literal as `null`, we
+    // analyze it as though it has type `Never`, because it's in a context where
+    // `null` doesn't work.
+    visitSubexpression(literal, 'Never', changes: {
+      literal: isNodeChangeForExpression.havingNoValidMigrationWithInfo(isInfo(
+          NullabilityFixDescription.noValidMigrationForNull,
+          {FixReasonTarget.root: TypeMatcher<NullabilityEdge>()}))
+    });
   }
 
   Future<void> test_parenthesizedExpression() async {
@@ -2326,6 +2699,31 @@ Object/*!*/ _f(dynamic d) => d.x;
     visitSubexpression(findNode.prefixed('d.x'), 'dynamic');
   }
 
+  Future<void> test_prefixedIdentifier_extensionMember_allowsNull() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  int get foo => 0;
+}
+f(C/*?*/ c) => c.foo;
+''');
+    var prefixedIdentifier = findNode.prefixed('c.foo');
+    visitSubexpression(prefixedIdentifier, 'int');
+  }
+
+  Future<void> test_prefixedIdentifier_extensionMember_disallowsNull() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  int get foo => 0;
+}
+f(C/*?*/ c) => c.foo;
+''');
+    var prefixedIdentifier = findNode.prefixed('c.foo');
+    visitSubexpression(prefixedIdentifier, 'int',
+        changes: {prefixedIdentifier.prefix: isNullCheck});
+  }
+
   Future<void> test_prefixedIdentifier_field_nonNullable() async {
     await analyze('''
 class _C {
@@ -2495,6 +2893,58 @@ _g(_C/*!*/ c) {}
         changes: {findNode.simple('c);'): isNullCheck});
   }
 
+  Future<void> test_prefixExpression_extensionMember_allowsNull() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  C operator-() => C();
+}
+f(C/*?*/ c) => -c;
+''');
+    var prefixExpression = findNode.prefix('-c');
+    visitSubexpression(prefixExpression, 'C');
+  }
+
+  Future<void>
+      test_prefixExpression_extensionMember_allowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  C operator-() => C();
+}
+f(C/*?*/ c) => -E(c);
+''');
+    var prefixExpression = findNode.prefix('-E(c)');
+    visitSubexpression(prefixExpression, 'C');
+  }
+
+  Future<void> test_prefixExpression_extensionMember_disallowsNull() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  C operator-() => C();
+}
+f(C/*?*/ c) => -c;
+''');
+    var prefixExpression = findNode.prefix('-c');
+    visitSubexpression(prefixExpression, 'C',
+        changes: {prefixExpression.operand: isNullCheck});
+  }
+
+  Future<void>
+      test_prefixExpression_extensionMember_disallowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  C operator-() => C();
+}
+f(C/*?*/ c) => -E(c);
+''');
+    var prefixExpression = findNode.prefix('-E(c)');
+    visitSubexpression(prefixExpression, 'C',
+        changes: {findNode.simple('c);'): isNullCheck});
+  }
+
   Future<void> test_prefixExpression_increment_undoes_promotion() async {
     await analyze('''
 abstract class _C {
@@ -2618,6 +3068,58 @@ _f(_C<int> x) => ~x;
 Object/*!*/ _f(dynamic d) => (d).x;
 ''');
     visitSubexpression(findNode.propertyAccess('(d).x'), 'dynamic');
+  }
+
+  Future<void> test_propertyAccess_extensionMember_allowsNull() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  int get foo => 0;
+}
+f(C/*?*/ Function() g) => g().foo;
+''');
+    var propertyAccess = findNode.propertyAccess('g().foo');
+    visitSubexpression(propertyAccess, 'int');
+  }
+
+  Future<void> test_propertyAccess_extensionMember_allowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  int get foo => 0;
+}
+f(C/*?*/ Function() g) => E(g()).foo;
+''');
+    var propertyAccess = findNode.propertyAccess('E(g()).foo');
+    visitSubexpression(propertyAccess, 'int');
+  }
+
+  Future<void> test_propertyAccess_extensionMember_disallowsNull() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  int get foo => 0;
+}
+f(C/*?*/ Function() g) => g().foo;
+''');
+    var propertyAccess = findNode.propertyAccess('g().foo');
+    visitSubexpression(propertyAccess, 'int',
+        changes: {propertyAccess.target: isNullCheck});
+  }
+
+  Future<void>
+      test_propertyAccess_extensionMember_disallowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  int get foo => 0;
+}
+f(C/*?*/ Function() g) => E(g()).foo;
+''');
+    var propertyAccess = findNode.propertyAccess('E(g()).foo');
+    visitSubexpression(propertyAccess, 'int', changes: {
+      findNode.functionExpressionInvocation('g()).foo'): isNullCheck
+    });
   }
 
   Future<void> test_propertyAccess_field_nonNullable() async {
@@ -3297,8 +3799,12 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
 
   void visitAll(
       {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
-      Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
+      Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{},
+      bool injectNeedsIterableExtension = false}) {
     var fixBuilder = _createFixBuilder(testUnit);
+    if (injectNeedsIterableExtension) {
+      fixBuilder.needsIterableExtension = true;
+    }
     fixBuilder.visitAll();
     expect(scopedChanges(fixBuilder, testUnit), changes);
     expect(scopedProblems(fixBuilder, testUnit), problems);
@@ -3332,7 +3838,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
     expect(scopedProblems(fixBuilder, node), problems);
   }
 
-  void visitSubexpression(Expression node, String expectedType,
+  FixBuilder visitSubexpression(Expression node, String expectedType,
       {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{},
       bool warnOnWeakCode = false}) {
@@ -3342,6 +3848,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
     expect(type.getDisplayString(withNullability: true), expectedType);
     expect(scopedChanges(fixBuilder, node), changes);
     expect(scopedProblems(fixBuilder, node), problems);
+    return fixBuilder;
   }
 
   void visitTypeAnnotation(TypeAnnotation node, String expectedType,
@@ -3364,10 +3871,8 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
           identical(ElementTypeProvider.current, const ElementTypeProvider()));
       ElementTypeProvider.current = fixBuilder.migrationResolutionHooks;
       var assignment = node.thisOrAncestorOfType<AssignmentExpression>();
-      var isReadWrite = assignment.operator.type != TokenType.EQ;
-      var readType =
-          isReadWrite ? getReadType(node) ?? typeProvider.dynamicType : null;
-      var writeType = node.staticType;
+      var readType = assignment.readType;
+      var writeType = assignment.writeType;
       return AssignmentTargetInfo(readType, writeType);
     } finally {
       ElementTypeProvider.current = const ElementTypeProvider();
@@ -3387,7 +3892,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
         null,
         scope.thisOrAncestorOfType<CompilationUnit>(),
         warnOnWeakCode,
-        graph);
+        graph, {});
   }
 
   bool _isInScope(AstNode node, AstNode scope) {
@@ -3406,6 +3911,12 @@ extension on TypeMatcher<NodeChangeForExpression> {
           dynamic matcher) =>
       having((c) => c.addsNullCheck, 'addsNullCheck', true)
           .having((c) => c.addNullCheckInfo, 'addNullCheckInfo', matcher);
+
+  TypeMatcher<NodeChangeForExpression> havingNoValidMigrationWithInfo(
+          dynamic matcher) =>
+      having((c) => c.addsNoValidMigration, 'addsNoValidMigration', true)
+          .having((c) => c.addNoValidMigrationInfo, 'addNoValidMigrationInfo',
+              matcher);
 
   TypeMatcher<NodeChangeForExpression> havingIndroduceAsWithInfo(
           dynamic typeStringMatcher, dynamic infoMatcher) =>

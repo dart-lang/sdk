@@ -56,6 +56,11 @@ class ConstantValueTypeMasks
   }
 
   @override
+  TypeMask visitLateSentinel(
+          LateSentinelConstantValue constant, JClosedWorld closedWorld) =>
+      _abstractValueDomain.dynamicType;
+
+  @override
   TypeMask visitUnreachable(
       UnreachableConstantValue constant, JClosedWorld closedWorld) {
     return _abstractValueDomain.emptyType;

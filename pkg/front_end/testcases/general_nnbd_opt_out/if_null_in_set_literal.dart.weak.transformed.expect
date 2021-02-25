@@ -6,5 +6,8 @@ import "dart:collection" as col;
 static method main() → dynamic {
   core::Object* a;
   core::Object* b;
-  return let final core::Set<core::Object*>* #t1 = new col::_CompactLinkedHashSet::•<core::Object*>() in let final core::bool #t2 = #t1.{core::Set::add}(let final core::Object* #t3 = a in #t3.{core::Object::==}(null) ?{core::Object*} b : #t3) in #t1;
+  return block {
+    final core::Set<core::Object*>* #t1 = new col::_CompactLinkedHashSet::•<core::Object*>();
+    #t1.{core::Set::add}{Invariant}(let final core::Object* #t2 = a in #t2.{core::Object::==}(null) ?{core::Object*} b : #t2);
+  } =>#t1;
 }

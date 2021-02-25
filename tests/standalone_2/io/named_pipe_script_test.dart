@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing file input stream, VM-only, standalone test.
 
+// VMOptions=--enable-experiment=no-non-nullable
+
 import "dart:convert";
 import "dart:io";
 

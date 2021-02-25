@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.stack_listener_impl;
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Message;
@@ -14,7 +16,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
 import 'package:kernel/ast.dart'
-    show AsyncMarker, Expression, FunctionNode, TreeNode, Version;
+    show AsyncMarker, Expression, FunctionNode, TreeNode;
 
 import '../fasta_codes.dart';
 
@@ -77,7 +79,7 @@ abstract class StackListenerImpl extends StackListener {
   }
 
   /// Used to report an internal error encountered in the stack listener.
-  dynamic internalProblem(Message message, int charOffset, Uri uri) {
+  internalProblem(Message message, int charOffset, Uri uri) {
     return problems.internalProblem(message, charOffset, uri);
   }
 
@@ -90,13 +92,11 @@ abstract class StackListenerImpl extends StackListener {
   void reportMissingNonNullableSupport(Token token) {
     assert(!libraryBuilder.isNonNullableByDefault);
     assert(token != null);
-    Version enableNonNullableVersion = libraryBuilder.loader.target
-        .getExperimentEnabledVersion(ExperimentalFlag.nonNullable);
     if (libraryBuilder.enableNonNullableInLibrary) {
       if (libraryBuilder.languageVersion.isExplicit) {
         addProblem(
-            templateNonNullableOptOutExplicit
-                .withArguments(enableNonNullableVersion.toText()),
+            templateNonNullableOptOutExplicit.withArguments(
+                libraryBuilder.enableNonNullableVersionInLibrary.toText()),
             token.charOffset,
             token.charCount,
             context: <LocatedMessage>[
@@ -107,17 +107,32 @@ abstract class StackListenerImpl extends StackListener {
             ]);
       } else {
         addProblem(
-            templateNonNullableOptOutImplicit
-                .withArguments(enableNonNullableVersion.toText()),
+            templateNonNullableOptOutImplicit.withArguments(
+                libraryBuilder.enableNonNullableVersionInLibrary.toText()),
             token.charOffset,
             token.charCount);
       }
+    } else if (libraryBuilder.loader.target
+        .isExperimentEnabledByDefault(ExperimentalFlag.nonNullable)) {
+      if (libraryBuilder.languageVersion.version <
+          libraryBuilder.enableNonNullableVersionInLibrary) {
+        addProblem(
+            templateExperimentDisabledInvalidLanguageVersion.withArguments(
+                libraryBuilder.enableNonNullableVersionInLibrary.toText()),
+            token.offset,
+            noLength);
+      } else {
+        addProblem(templateExperimentDisabled.withArguments('non-nullable'),
+            token.offset, noLength);
+      }
     } else if (!libraryBuilder.loader.target
         .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
-      if (libraryBuilder.languageVersion.version < enableNonNullableVersion) {
+      if (libraryBuilder.languageVersion.version <
+          libraryBuilder.enableNonNullableVersionInLibrary) {
         addProblem(
             templateExperimentNotEnabledNoFlagInvalidLanguageVersion
-                .withArguments(enableNonNullableVersion.toText()),
+                .withArguments(
+                    libraryBuilder.enableNonNullableVersionInLibrary.toText()),
             token.offset,
             noLength);
       } else {
@@ -125,8 +140,8 @@ abstract class StackListenerImpl extends StackListener {
       }
     } else {
       addProblem(
-          templateExperimentNotEnabled.withArguments(
-              'non-nullable', enableNonNullableVersion.toText()),
+          templateExperimentNotEnabled.withArguments('non-nullable',
+              libraryBuilder.enableNonNullableVersionInLibrary.toText()),
           token.offset,
           noLength);
     }

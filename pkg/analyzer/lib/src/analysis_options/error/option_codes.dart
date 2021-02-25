@@ -31,7 +31,12 @@ class AnalysisOptionsErrorCode extends ErrorCode {
   /// Initialize a newly created error code to have the given [name].
   const AnalysisOptionsErrorCode(String name, String message,
       {String correction})
-      : super.temporary(name, message, correction: correction);
+      : super(
+          correction: correction,
+          message: message,
+          name: name,
+          uniqueName: 'AnalysisOptionsErrorCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
@@ -78,7 +83,12 @@ class AnalysisOptionsHintCode extends ErrorCode {
   /// Initialize a newly created hint code to have the given [name].
   const AnalysisOptionsHintCode(String name, String message,
       {String correction})
-      : super.temporary(name, message, correction: correction);
+      : super(
+          correction: correction,
+          message: message,
+          name: name,
+          uniqueName: 'AnalysisOptionsHintCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
@@ -200,7 +210,12 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   /// Initialize a newly created warning code to have the given [name].
   const AnalysisOptionsWarningCode(String name, String message,
       {String correction})
-      : super.temporary(name, message, correction: correction);
+      : super(
+          correction: correction,
+          message: message,
+          name: name,
+          uniqueName: 'AnalysisOptionsWarningCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;

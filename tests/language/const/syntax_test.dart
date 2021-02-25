@@ -59,7 +59,11 @@ const int F2 = 87;
 const int F3;
 //        ^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_NOT_INITIALIZED
+// [cfe] Field 'F3' should be initialized because its type 'int' doesn't allow null.
+//        ^
 // [cfe] The const variable 'F3' must be initialized.
+//          ^
+// [cfe] The value 'null' can't be assigned to a variable of type 'int' because 'int' is not nullable.
 
 class Point {
   final x, y;

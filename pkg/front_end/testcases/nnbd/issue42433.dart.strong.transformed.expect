@@ -16,3 +16,7 @@ static method main() → dynamic {
 constants  {
   #C1 = tearoff self::checkme
 }
+
+Extra constant evaluation status:
+Evaluated: Instantiation @ org-dartlang-testcase:///issue42433.dart:11:16 -> PartialInstantiationConstant(checkme<X>)
+Extra constant evaluation: evaluated: 1, effectively constant: 1

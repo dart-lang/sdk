@@ -103,7 +103,8 @@ class num {
 // implement sync* generator functions. A sync* generator allocates
 // and returns a new _SyncIterable object.
 
-typedef _SyncGeneratorCallback<T> = bool Function(_SyncIterator<T>);
+typedef _SyncGeneratorCallback<T> = bool Function(
+    _SyncIterator<T>, Object?, StackTrace?);
 typedef _SyncGeneratorCallbackCallback<T> = _SyncGeneratorCallback<T>
     Function();
 
@@ -123,7 +124,7 @@ class _SyncIterator<T> implements Iterator<T> {
   _SyncGeneratorCallback<T>? _moveNextFn;
   Iterator<T>? _yieldEachIterator;
 
-  // Stack of suspended _moveNextFn.
+  // Stack of suspended _moveNextFn (sync_op).
   List<_SyncGeneratorCallback<T>>? _stack;
 
   // These two fields are set by generated code for the yield and yield*
@@ -132,17 +133,21 @@ class _SyncIterator<T> implements Iterator<T> {
   Iterable<T>? _yieldEachIterable;
 
   @override
-  T get current {
-    final iterator = _yieldEachIterator;
-    if (iterator != null) {
-      return iterator.current;
-    } else {
-      final cur = _current;
-      return (cur != null) ? cur : cur as T;
-    }
-  }
+  T get current => _current as T;
 
   _SyncIterator(this._moveNextFn);
+
+  @pragma('vm:prefer-inline')
+  bool _handleMoveNextFnCompletion() {
+    _moveNextFn = null;
+    _current = null;
+    final stack = _stack;
+    if (stack != null && stack.isNotEmpty) {
+      _moveNextFn = stack.removeLast();
+      return true;
+    }
+    return false;
+  }
 
   @override
   bool moveNext() {
@@ -150,40 +155,61 @@ class _SyncIterator<T> implements Iterator<T> {
       return false;
     }
 
+    Object? pendingException;
+    StackTrace? pendingStackTrace;
     while (true) {
       // If the active iterator isn't a nested _SyncIterator, we have to
       // delegate downwards from the immediate iterator.
       final iterator = _yieldEachIterator;
       if (iterator != null) {
-        if (iterator.moveNext()) {
-          return true;
+        try {
+          if (iterator.moveNext()) {
+            _current = iterator.current;
+            return true;
+          }
+        } catch (e, st) {
+          pendingException = e;
+          pendingStackTrace = st;
         }
         _yieldEachIterator = null;
       }
 
-      final stack = _stack;
-      if (!_moveNextFn!.call(this)) {
-        _moveNextFn = null;
-        _current = null;
-        // If we have any suspended parent generators, continue next one up:
-        if (stack != null && stack.isNotEmpty) {
-          _moveNextFn = stack.removeLast();
+      // Start by calling _moveNextFn (sync_op) to move to the next value (or
+      // nested iterator).
+      try {
+        final haveMore =
+            _moveNextFn!.call(this, pendingException, pendingStackTrace);
+        // Exception was handled.
+        pendingException = null;
+        pendingStackTrace = null;
+        if (!haveMore) {
+          if (_handleMoveNextFnCompletion()) {
+            continue;
+          }
+          return false;
+        }
+      } catch (e, st) {
+        pendingException = e;
+        pendingStackTrace = st;
+        if (_handleMoveNextFnCompletion()) {
           continue;
         }
-        return false;
+        rethrow;
       }
 
+      // Case: yield* some_iterator.
       final iterable = _yieldEachIterable;
       if (iterable != null) {
         if (iterable is _SyncIterable) {
           // We got a recursive yield* of sync* function. Instead of creating
           // a new iterator we replace our _moveNextFn (remembering the
           // current _moveNextFn for later resumption).
-          if (stack == null) {
+          if (_stack == null) {
             _stack = [];
           }
           _stack!.add(_moveNextFn!);
           final typedIterable = unsafeCast<_SyncIterable<T>>(iterable);
+
           _moveNextFn = typedIterable._moveNextFnMaker();
         } else {
           _yieldEachIterator = iterable.iterator;
@@ -195,6 +221,7 @@ class _SyncIterator<T> implements Iterator<T> {
         continue;
       }
 
+      // We've successfully found the next `current` value.
       return true;
     }
   }

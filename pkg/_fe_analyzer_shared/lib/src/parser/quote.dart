@@ -102,7 +102,6 @@ int firstQuoteLength(String first, Quote quote) {
     case Quote.RawMultiLineDouble:
       return lengthOfOptionalWhitespacePrefix(first, /* start = */ 4);
   }
-  return throw new UnsupportedError("'$quote' in  firstQuoteLength");
 }
 
 int lastQuoteLength(Quote quote) {
@@ -119,7 +118,6 @@ int lastQuoteLength(Quote quote) {
     case Quote.RawMultiLineDouble:
       return 3;
   }
-  return throw new UnsupportedError("'$quote' in lastQuoteLength");
 }
 
 String unescapeFirstStringPart(String first, Quote quote, Object location,
@@ -176,7 +174,6 @@ String unescape(String string, Quote quote, Object location,
           : unescapeCodeUnits(
               string.codeUnits, /* isRaw = */ true, location, listener);
   }
-  return throw new UnsupportedError("'$quote' in unescape");
 }
 
 // Note: based on
@@ -184,7 +181,7 @@ String unescape(String string, Quote quote, Object location,
 String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
     UnescapeErrorListener listener) {
   // Can't use Uint8List or Uint16List here, the code units may be larger.
-  List<int> result = new List<int>(codeUnits.length);
+  List<int> result = new List<int>.filled(codeUnits.length, 0);
   int resultOffset = 0;
 
   for (int i = 0; i < codeUnits.length; i++) {

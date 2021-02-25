@@ -66,6 +66,7 @@ abstract class HVisitor<R> {
   R visitInvokeSuper(HInvokeSuper node);
   R visitInvokeConstructorBody(HInvokeConstructorBody node);
   R visitInvokeGeneratorBody(HInvokeGeneratorBody node);
+  R visitIsLateSentinel(HIsLateSentinel node);
   R visitLateValue(HLateValue node);
   R visitLazyStatic(HLazyStatic node);
   R visitLess(HLess node);
@@ -339,6 +340,11 @@ class HGraph {
     return addConstant(UnreachableConstantValue(), closedWorld);
   }
 
+  HConstant addConstantLateSentinel(JClosedWorld closedWorld,
+          {SourceInformation sourceInformation}) =>
+      addConstant(LateSentinelConstantValue(), closedWorld,
+          sourceInformation: sourceInformation);
+
   void finalize(AbstractValueDomain domain) {
     addBlock(exit);
     exit.open();
@@ -576,6 +582,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
   @override
   visitTry(HTry node) => visitControlFlow(node);
+  @override
+  visitIsLateSentinel(HIsLateSentinel node) => visitInstruction(node);
   @override
   visitLateValue(HLateValue node) => visitInstruction(node);
   @override
@@ -1093,6 +1101,8 @@ abstract class HInstruction implements Spannable {
   static const int TYPE_EVAL_TYPECODE = 56;
   static const int TYPE_BIND_TYPECODE = 57;
 
+  static const int IS_LATE_SENTINEL_TYPECODE = 58;
+
   HInstruction(this.inputs, this.instructionType) {
     assert(inputs.every((e) => e != null), "inputs: $inputs");
   }
@@ -1387,6 +1397,15 @@ abstract class HInstruction implements Spannable {
 
   @override
   String toString() => '${this.runtimeType}()';
+}
+
+/// An interface implemented by certain kinds of [HInstruction]. This makes it
+/// possible to discover which annotations were in force in the code from which
+/// the instruction originated.
+// TODO(sra): It would be easier to use a mostly-shared Map-like structure that
+// surfaces the ambient annotations at any point in the code.
+abstract class InstructionContext {
+  MemberEntity instructionContext;
 }
 
 /// The set of uses of [source] that are dominated by [dominator].
@@ -1702,12 +1721,23 @@ abstract class HInvoke extends HInstruction {
   }
 }
 
-abstract class HInvokeDynamic extends HInvoke {
+abstract class HInvokeDynamic extends HInvoke implements InstructionContext {
   final InvokeDynamicSpecializer specializer;
 
   Selector _selector;
   AbstractValue _receiverType;
   final AbstractValue _originalReceiverType;
+
+  /// `true` if the type parameters at the call known to be invariant with
+  /// respect to the type parameters of the receiver instance. This corresponds
+  /// to the [ir.MethodInvocation.isInvariant] property and may be updated with
+  /// additional analysis.
+  bool isInvariant = false;
+
+  /// `true` for an indexed getter or setter if the index is known to be in
+  /// range. This corresponds to the [ir.MethodInvocation.isBoundsSafe] property
+  /// but and may updated with additional analysis.
+  bool isBoundsSafe = false;
 
   // Cached target when non-nullable receiver type and selector determine a
   // single target. This is in effect a direct call (except for a possible
@@ -1716,6 +1746,9 @@ abstract class HInvokeDynamic extends HInvoke {
   // needs defaulted arguments, is `noSuchMethod` (legacy), or is a call-through
   // stub.
   MemberEntity element;
+
+  @override
+  MemberEntity instructionContext;
 
   HInvokeDynamic(Selector selector, this._receiverType, this.element,
       List<HInstruction> inputs, bool isIntercepted, AbstractValue resultType)
@@ -3766,8 +3799,8 @@ class HLoopInformation {
   HLoopBlockInformation loopBlockInformation;
 
   HLoopInformation(this.header, this.target, this.labels)
-      : blocks = new List<HBasicBlock>(),
-        backEdges = new List<HBasicBlock>();
+      : blocks = <HBasicBlock>[],
+        backEdges = <HBasicBlock>[];
 
   void addBackEdge(HBasicBlock predecessor) {
     backEdges.add(predecessor);
@@ -4143,26 +4176,20 @@ AbstractBool _typeTest(
   AbstractValue supersetType = checkedAbstractValue.abstractValue;
   AbstractBool expressionIsNull = expression.isNull(abstractValueDomain);
 
-  if (!isCast && options.useNullSafety) {
+  bool _nullIs(DartType type) =>
+      dartTypes.isStrongTopType(type) ||
+      type is LegacyType &&
+          (type.baseType.isObject || type.baseType is NeverType) ||
+      type is NullableType ||
+      type is FutureOrType && _nullIs(type.typeArgument) ||
+      type.isNull;
+
+  if (!isCast) {
     if (expressionIsNull.isDefinitelyTrue) {
-      if (dartType.isObject) return AbstractBool.False;
-      if (dartTypes.isTopType(dartType) ||
-          dartType is NullableType ||
-          dartType.isNull) {
-        return AbstractBool.True;
-      }
-      if (dartType is TypeVariableType || dartType is FunctionTypeVariable) {
-        return AbstractBool.Maybe;
-      }
-      if (dartType is LegacyType) {
-        DartType baseType = dartType.baseType;
-        if (baseType is NeverType) return AbstractBool.True;
-        if (baseType is TypeVariableType || baseType is FunctionTypeVariable) {
-          return AbstractBool.Maybe;
-        }
-      }
-      return AbstractBool.False;
-    } else if (expressionIsNull.isPotentiallyTrue) {
+      if (dartType.containsFreeTypeVariables) return AbstractBool.Maybe;
+      return AbstractBool.trueOrFalse(_nullIs(dartType));
+    }
+    if (expressionIsNull.isPotentiallyTrue) {
       if (dartType.isObject) return AbstractBool.Maybe;
     }
   }
@@ -4231,8 +4258,7 @@ AbstractBool _typeTest(
   AbstractBool isNullAsCheck = !options.useLegacySubtyping && isCast
       ? expressionIsNull
       : AbstractBool.False;
-  AbstractBool isNullIsTest =
-      options.useNullSafety && !isCast ? expressionIsNull : AbstractBool.False;
+  AbstractBool isNullIsTest = !isCast ? expressionIsNull : AbstractBool.False;
 
   AbstractBool unwrapAndCheck(DartType type) {
     if (dartTypes.isTopType(dartType)) return AbstractBool.True;
@@ -4496,4 +4522,26 @@ class HTypeBind extends HRtiInstruction {
 
   @override
   String toString() => 'HTypeBind()';
+}
+
+class HIsLateSentinel extends HInstruction {
+  HIsLateSentinel(HInstruction value, AbstractValue type)
+      : super([value], type) {
+    setUseGvn();
+  }
+
+  @override
+  accept(HVisitor visitor) => visitor.visitIsLateSentinel(this);
+
+  @override
+  int typeCode() => HInstruction.IS_LATE_SENTINEL_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HIsLateSentinel;
+
+  @override
+  bool dataEquals(HIsLateSentinel other) => true;
+
+  @override
+  String toString() => 'HIsLateSentinel()';
 }

@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
@@ -21,6 +22,8 @@ void main() {
 
 @reflectiveTest
 class UriContributorTest extends DartCompletionContributorTest {
+  String get testPackageTestPath => '$testPackageRootPath/test';
+
   @override
   DartCompletionContributor createContributor() {
     return UriContributor();
@@ -67,27 +70,22 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_export_package2() async {
-    addPackageFile('foo', 'foo.dart', 'library foo;');
-    addPackageFile('foo', 'baz/too.dart', 'library too;');
-    addPackageFile('bar', 'bar.dart', 'library bar;');
+    var fooRootPath = '$workspaceRootPath/foo';
+    var barRootPath = '$workspaceRootPath/bar';
+    newFile('$fooRootPath/lib/foo.dart', content: 'library foo;');
+    newFile('$fooRootPath/lib/baz/too.dart', content: 'library too;');
+    newFile('$barRootPath/lib/bar.dart', content: 'library bar;');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: fooRootPath)
+        ..add(name: 'bar', rootPath: barRootPath),
+    );
+
     addTestSource('export "package:foo/baz/^" import');
     await computeSuggestions();
     assertSuggest('package:foo/baz/too.dart',
         csKind: CompletionSuggestionKind.IMPORT);
-  }
-
-  Future<void> test_export_package2_off() async {
-    try {
-      UriContributor.suggestFilePaths = false;
-      addPackageFile('foo', 'foo.dart', 'library foo;');
-      addPackageFile('foo', 'baz/too.dart', 'library too;');
-      addPackageFile('bar', 'bar.dart', 'library bar;');
-      addTestSource('export "package:foo/baz/^" import');
-      await computeSuggestions();
-      assertNotSuggested('package:foo/baz/too.dart');
-    } finally {
-      UriContributor.suggestFilePaths = true;
-    }
   }
 
   Future<void> test_import() async {
@@ -142,10 +140,11 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_import_file() async {
-    testFile = convertPath('/proj/completion.dart');
-    addSource('/proj/other.dart', 'library other;');
-    addSource('/proj/foo/bar.dart', 'library bar;');
-    addSource('/blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('import "^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -159,10 +158,11 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_import_file2() async {
-    testFile = convertPath('/proj/completion.dart');
-    addSource('/proj/other.dart', 'library other;');
-    addSource('/proj/foo/bar.dart', 'library bar;');
-    addSource('/blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('import "..^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 2);
@@ -175,33 +175,12 @@ class UriContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('../blat.dart');
   }
 
-  Future<void> test_import_file2_off() async {
-    try {
-      UriContributor.suggestFilePaths = false;
-      testFile = convertPath('/proj/completion.dart');
-      addSource('/proj/other.dart', 'library other;');
-      addSource('/proj/foo/bar.dart', 'library bar;');
-      addSource('/blat.dart', 'library blat;');
-      addTestSource('import "..^" import');
-      await computeSuggestions();
-      expect(replacementOffset, completionOffset - 2);
-      expect(replacementLength, 2);
-      assertNotSuggested('completion.dart');
-      assertNotSuggested('other.dart');
-      assertNotSuggested('foo');
-      assertNotSuggested('foo/');
-      assertNotSuggested('foo/bar.dart');
-      assertNotSuggested('../blat.dart');
-    } finally {
-      UriContributor.suggestFilePaths = true;
-    }
-  }
-
   Future<void> test_import_file_child() async {
-    testFile = convertPath('/proj/completion.dart');
-    addSource('/proj/other.dart', 'library other;');
-    addSource('/proj/foo/bar.dart', 'library bar;');
-    addSource('/blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('import "foo/^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 4);
@@ -215,11 +194,11 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_import_file_outside_lib() async {
-    testFile = convertPath('/proj/lib/completion.dart');
-    addSource('/proj/lib/other.dart', 'library other;');
-    addSource('/proj/lib/foo/bar.dart', 'library bar;');
-    addSource('/proj/blat.dart', 'library blat;');
-    addSource('/proj/bin/boo.dart', 'library boo;');
+    newFile('$testPackageLibPath/other.dart');
+    newFile('$testPackageLibPath/foo/bar.dart');
+    newFile('$testPackageRootPath/blat.dart');
+    newFile('$testPackageRootPath/bin/boo.dart');
+
     addTestSource('import "../^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 3);
@@ -235,11 +214,12 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_import_file_parent() async {
-    testFile = convertPath('/proj/completion.dart');
-    addSource('/proj/other.dart', 'library other;');
-    addSource('/proj/foo/bar.dart', 'library bar;');
-    addSource('/blat.dart', 'library blat;');
-    addSource('/proj2/boo.dart', 'library boo;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+    newFile('$workspaceRootPath/aaa/boo.dart');
+
     addTestSource('import "../^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 3);
@@ -250,14 +230,15 @@ class UriContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('foo/');
     assertNotSuggested('foo/bar.dart');
     assertSuggest('../blat.dart', csKind: CompletionSuggestionKind.IMPORT);
-    assertSuggest('../proj2/', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('../aaa/', csKind: CompletionSuggestionKind.IMPORT);
   }
 
   Future<void> test_import_file_parent2() async {
-    testFile = convertPath('/proj/completion.dart');
-    addSource('/proj/other.dart', 'library other;');
-    addSource('/proj/foo/bar.dart', 'library bar;');
-    addSource('/blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('import "../b^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 4);
@@ -271,27 +252,37 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_import_no_dot_folders() async {
-    testFile = convertPath('/proj/completion.dart');
-    addSource('/proj/other.dart', 'library other;');
-    newFolder('/proj/.fooFolder');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFolder('$testPackageRootPath/.foo');
+
     addTestSource('import "package:^";');
     await computeSuggestions();
-    assertNotSuggested('.fooFolder/');
+    assertNotSuggested('.foo/');
   }
 
   Future<void> test_import_only_dart_files() async {
-    testFile = convertPath('/proj/completion.dart');
-    addSource('/proj/other.dart', 'library other;');
-    newFile('/proj/analysis_options.yaml', content: '# analysis options');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/analysis_options.yaml');
+
     addTestSource('import "package:^";');
     await computeSuggestions();
     assertNotSuggested('analysis_options.yaml');
   }
 
   Future<void> test_import_package() async {
-    addPackageFile('foo', 'foo.dart', 'library foo;');
-    addPackageFile('foo', 'baz/too.dart', 'library too;');
-    addPackageFile('bar', 'bar.dart', 'library bar;');
+    var fooRootPath = '$workspaceRootPath/foo';
+    var barRootPath = '$workspaceRootPath/bar';
+    newFile('$fooRootPath/lib/foo.dart');
+    newFile('$fooRootPath/lib/baz/too.dart');
+    newFile('$barRootPath/lib/bar.dart');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: fooRootPath)
+        ..add(name: 'bar', rootPath: barRootPath),
+    );
+
     addTestSource('import "p^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
@@ -308,33 +299,37 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_import_package2() async {
-    addPackageFile('foo', 'foo.dart', 'library foo;');
-    addPackageFile('foo', 'baz/too.dart', 'library too;');
-    addPackageFile('bar', 'bar.dart', 'library bar;');
+    var fooRootPath = '$workspaceRootPath/foo';
+    var barRootPath = '$workspaceRootPath/bar';
+    newFile('$fooRootPath/lib/foo.dart');
+    newFile('$fooRootPath/lib/baz/too.dart');
+    newFile('$barRootPath/lib/bar.dart');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: fooRootPath)
+        ..add(name: 'bar', rootPath: barRootPath),
+    );
+
     addTestSource('import "package:foo/baz/^" import');
     await computeSuggestions();
     assertSuggest('package:foo/baz/too.dart',
         csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  Future<void> test_import_package2_off() async {
-    try {
-      UriContributor.suggestFilePaths = false;
-      addPackageFile('foo', 'foo.dart', 'library foo;');
-      addPackageFile('foo', 'baz/too.dart', 'library too;');
-      addPackageFile('bar', 'bar.dart', 'library bar;');
-      addTestSource('import "package:foo/baz/^" import');
-      await computeSuggestions();
-      assertNotSuggested('package:foo/baz/too.dart');
-    } finally {
-      UriContributor.suggestFilePaths = true;
-    }
-  }
-
   Future<void> test_import_package2_raw() async {
-    addPackageFile('foo', 'foo.dart', 'library foo;');
-    addPackageFile('foo', 'baz/too.dart', 'library too;');
-    addPackageFile('bar', 'bar.dart', 'library bar;');
+    var fooRootPath = '$workspaceRootPath/foo';
+    var barRootPath = '$workspaceRootPath/bar';
+    newFile('$fooRootPath/lib/foo.dart');
+    newFile('$fooRootPath/lib/baz/too.dart');
+    newFile('$barRootPath/lib/bar.dart');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: fooRootPath)
+        ..add(name: 'bar', rootPath: barRootPath),
+    );
+
     addTestSource('import r"package:foo/baz/^" import');
     await computeSuggestions();
     assertSuggest('package:foo/baz/too.dart',
@@ -342,9 +337,18 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_import_package2_with_trailing() async {
-    addPackageFile('foo', 'foo.dart', 'library foo;');
-    addPackageFile('foo', 'baz/too.dart', 'library too;');
-    addPackageFile('bar', 'bar.dart', 'library bar;');
+    var fooRootPath = '$workspaceRootPath/foo';
+    var barRootPath = '$workspaceRootPath/bar';
+    newFile('$fooRootPath/lib/foo.dart');
+    newFile('$fooRootPath/lib/baz/too.dart');
+    newFile('$barRootPath/lib/bar.dart');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: fooRootPath)
+        ..add(name: 'bar', rootPath: barRootPath),
+    );
+
     addTestSource('import "package:foo/baz/^.dart" import');
     await computeSuggestions();
     assertSuggest('package:foo/baz/too.dart',
@@ -354,8 +358,12 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_import_package_missing_lib() async {
-    var pkgFile = addPackageFile('bar', 'bar.dart', 'library bar;');
-    deleteFolder(pkgFile.parent.path);
+    var barRootPath = '$workspaceRootPath/bar';
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'bar', rootPath: barRootPath),
+    );
+
     addTestSource('import "p^" class');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
@@ -366,9 +374,18 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_import_package_raw() async {
-    addPackageFile('foo', 'foo.dart', 'library foo;');
-    addPackageFile('foo', 'baz/too.dart', 'library too;');
-    addPackageFile('bar', 'bar.dart', 'library bar;');
+    var fooRootPath = '$workspaceRootPath/foo';
+    var barRootPath = '$workspaceRootPath/bar';
+    newFile('$fooRootPath/lib/foo.dart');
+    newFile('$fooRootPath/lib/baz/too.dart');
+    newFile('$barRootPath/lib/bar.dart');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: fooRootPath)
+        ..add(name: 'bar', rootPath: barRootPath),
+    );
+
     addTestSource('import r"p^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
@@ -458,10 +475,11 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_part_file() async {
-    testFile = convertPath('/proj/completion.dart');
-    addSource('/proj/other.dart', 'library other;');
-    addSource('/proj/foo/bar.dart', 'library bar;');
-    addSource('/blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('library x; part "^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -475,10 +493,11 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_part_file2() async {
-    testFile = convertPath('/proj/completion.dart');
-    addSource('/proj/other.dart', 'library other;');
-    addSource('/proj/foo/bar.dart', 'library bar;');
-    addSource('/blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('library x; part "..^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 2);
@@ -492,10 +511,11 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_part_file_child() async {
-    testFile = convertPath('/proj/completion.dart');
-    addSource('/proj/other.dart', 'library other;');
-    addSource('/proj/foo/bar.dart', 'library bar;');
-    addSource('/blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('library x; part "foo/^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 4);
@@ -509,10 +529,11 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_part_file_parent() async {
-    testFile = convertPath('/proj/completion.dart');
-    addSource('/proj/other.dart', 'library other;');
-    addSource('/proj/foo/bar.dart', 'library bar;');
-    addSource('/blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('library x; part "../^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 3);
@@ -539,10 +560,11 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_import_file() async {
-    testFile = convertPath('\\proj\\completion.dart');
-    addSource('\\proj\\other.dart', 'library other;');
-    addSource('\\proj\\foo\\bar.dart', 'library bar;');
-    addSource('\\blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('import "^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -556,10 +578,11 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_import_file2() async {
-    testFile = convertPath('\\proj\\completion.dart');
-    addSource('\\proj\\other.dart', 'library other;');
-    addSource('\\proj\\foo\\bar.dart', 'library bar;');
-    addSource('\\blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('import "..^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 2);
@@ -573,10 +596,11 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_import_file_child() async {
-    testFile = convertPath('\\proj\\completion.dart');
-    addSource('\\proj\\other.dart', 'library other;');
-    addSource('\\proj\\foo\\bar.dart', 'library bar;');
-    addSource('\\blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('import "foo/^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 4);
@@ -590,10 +614,11 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_import_file_parent() async {
-    testFile = convertPath('\\proj\\completion.dart');
-    addSource('\\proj\\other.dart', 'library other;');
-    addSource('\\proj\\foo\\bar.dart', 'library bar;');
-    addSource('\\blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('import "../^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 3);
@@ -607,10 +632,11 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_import_file_parent2() async {
-    testFile = convertPath('\\proj\\completion.dart');
-    addSource('\\proj\\other.dart', 'library other;');
-    addSource('\\proj\\foo\\bar.dart', 'library bar;');
-    addSource('\\blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('import "../b^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 4);
@@ -624,10 +650,11 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_part_file() async {
-    testFile = convertPath('\\proj\\completion.dart');
-    addSource('\\proj\\other.dart', 'library other;');
-    addSource('\\proj\\foo\\bar.dart', 'library bar;');
-    addSource('\\blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('library x; part "^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -641,10 +668,11 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_part_file2() async {
-    testFile = convertPath('\\proj\\completion.dart');
-    addSource('\\proj\\other.dart', 'library other;');
-    addSource('\\proj\\foo\\bar.dart', 'library bar;');
-    addSource('\\blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('library x; part "..^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 2);
@@ -658,10 +686,11 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_part_file_child() async {
-    testFile = convertPath('\\proj\\completion.dart');
-    addSource('\\proj\\other.dart', 'library other;');
-    addSource('\\proj\\foo\\bar.dart', 'library bar;');
-    addSource('\\blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('library x; part "foo/^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 4);
@@ -675,10 +704,11 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_part_file_parent() async {
-    testFile = convertPath('\\proj\\completion.dart');
-    addSource('\\proj\\other.dart', 'library other;');
-    addSource('\\proj\\foo\\bar.dart', 'library bar;');
-    addSource('\\blat.dart', 'library blat;');
+    testFile = convertPath('$testPackageRootPath/test.dart');
+    newFile('$testPackageRootPath/other.dart');
+    newFile('$testPackageRootPath/foo/bar.dart');
+    newFile('$workspaceRootPath/blat.dart');
+
     addTestSource('library x; part "../^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 3);

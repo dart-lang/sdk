@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart" show Expect;
 
 import 'package:kernel/ast.dart' hide MapEntry;
@@ -66,13 +68,14 @@ class Test {
 }
 
 main() {
-  Env env = new Env('');
+  Env env = new Env('', isNonNullableByDefault: true);
   ClassHierarchy classHierarchy =
       new ClassHierarchy(env.component, env.coreTypes);
   TypeEnvironment typeEnvironment =
       new TypeEnvironment(env.coreTypes, classHierarchy);
   data.forEach((Test test) {
-    env.withTypeParameters(test.typeParameters, () {
+    env.withTypeParameters(test.typeParameters,
+        (List<TypeParameter> typeParameterNodes) {
       String input = test.input;
       String output = test.output;
       DartType inputType = env.parseType(input);

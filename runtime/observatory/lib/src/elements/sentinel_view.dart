@@ -16,15 +16,15 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class SentinelViewElement extends CustomElement implements Renderable {
-  RenderingScheduler<SentinelViewElement> _r;
+  late RenderingScheduler<SentinelViewElement> _r;
 
   Stream<RenderedEvent<SentinelViewElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.Sentinel _sentinel;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.Sentinel _sentinel;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
 
   M.Sentinel get sentinel => _sentinel;
 
@@ -34,7 +34,7 @@ class SentinelViewElement extends CustomElement implements Renderable {
       M.Sentinel sentinel,
       M.EventRepository events,
       M.NotificationRepository notifications,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(sentinel != null);

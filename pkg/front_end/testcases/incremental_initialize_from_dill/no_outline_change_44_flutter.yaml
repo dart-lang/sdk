@@ -1,0 +1,45 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Reproduce a crash.
+
+type: newworld
+trackWidgetCreation: true
+target: DDC # basically needed for widget creation to be run
+worlds:
+  - entry: flutter_gallery/lib/main.dart
+    experiments: alternative-invalidation-strategy
+    sources:
+      flutter_gallery/.dart_tool/package_config.json: |
+        {
+          "packages": [
+            {
+              "name": "flutter",
+              "rootUri": "../../flutter",
+              "packageUri": "lib/",
+              "languageVersion": "2.12"
+            }
+          ],
+          "configVersion": 2,
+          "generatorVersion": "2.12.0-50.0.dev"
+        }
+      flutter_gallery/lib/main.dart: |
+        import 'package:flutter/src/widgets/framework.dart';
+      flutter/lib/src/widgets/framework.dart: |
+        import 'widget_inspector.dart';
+        abstract class Widget {}
+      flutter/lib/src/widgets/widget_inspector.dart: |
+        abstract class _HasCreationLocation {}
+        class _Location {}
+    expectedLibraryCount: 3
+
+  - entry: flutter_gallery/lib/main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - package:flutter/src/widgets/framework.dart
+    expectedLibraryCount: 3
+    expectsRebuildBodiesOnly: true
+

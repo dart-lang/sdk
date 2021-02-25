@@ -58,9 +58,16 @@ class KFieldAnalysis {
 
       FieldEntity fieldElement = _elementMap.getField(field);
       ir.Expression expression = field.initializer;
-      ConstantValue value = _elementMap.getConstantValue(
-          _elementMap.getStaticTypeContext(fieldElement), expression,
-          requireConstant: false, implicitNull: true);
+      ConstantValue value;
+      if (expression is ir.StaticInvocation &&
+          identical(
+              expression.target, _elementMap.coreTypes.createSentinelMethod)) {
+        value = LateSentinelConstantValue();
+      } else {
+        value = _elementMap.getConstantValue(
+            _elementMap.getStaticTypeContext(fieldElement), expression,
+            requireConstant: false, implicitNull: true);
+      }
       if (value != null && value.isConstant) {
         fieldData[fieldElement] = new AllocatorData(value);
       }
@@ -124,12 +131,19 @@ class KFieldAnalysis {
     _classData[class_] = new ClassData(constructors, fieldData);
   }
 
-  void registerStaticField(KField field, InitializerComplexity complexity) {
+  void registerStaticField(KField field, EvaluationComplexity complexity) {
     ir.Field node = _elementMap.getMemberNode(field);
     ir.Expression expression = node.initializer;
-    ConstantValue value = _elementMap.getConstantValue(
-        _elementMap.getStaticTypeContext(field), expression,
-        requireConstant: node.isConst, implicitNull: true);
+    ConstantValue value;
+    if (expression is ir.StaticInvocation &&
+        identical(
+            expression.target, _elementMap.coreTypes.createSentinelMethod)) {
+      value = LateSentinelConstantValue();
+    } else {
+      value = _elementMap.getConstantValue(
+          _elementMap.getStaticTypeContext(field), expression,
+          requireConstant: node.isConst, implicitNull: true);
+    }
     if (value != null && !value.isConstant) {
       value = null;
     }
@@ -156,7 +170,7 @@ class ClassData {
 
 class StaticFieldData {
   final ConstantValue initialValue;
-  final InitializerComplexity complexity;
+  final EvaluationComplexity complexity;
 
   StaticFieldData(this.initialValue, this.complexity);
 
@@ -358,7 +372,8 @@ class JFieldAnalysis {
               } else if (value.isNull ||
                   value.isInt ||
                   value.isBool ||
-                  value.isString) {
+                  value.isString ||
+                  value is LateSentinelConstantValue) {
                 // TODO(johnniwinther,sra): Support non-primitive constants in
                 // allocators when it does cause allocators to deoptimized
                 // because of deferred loading.
@@ -468,7 +483,7 @@ class JFieldAnalysis {
           if (!isEager) {
             // The field might be eager depending on the initializer complexity
             // and its dependencies.
-            InitializerComplexity complexity = staticFieldData.complexity;
+            EvaluationComplexity complexity = staticFieldData.complexity;
             isEager = complexity?.isEager ?? false;
             if (isEager && complexity.fields != null) {
               for (ir.Field node in complexity.fields) {

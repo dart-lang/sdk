@@ -1,0 +1,60 @@
+library;
+import self as self;
+import "main_lib2.dart" as mai;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+
+static method main() → dynamic {
+  mai::Extension|set#instanceProperty(0, mai::Extension|get#instanceProperty(1));
+  mai::Extension|instanceMethod(2);
+  mai::Extension|get#instanceMethod(3);
+  mai::Extension|staticField = #C1;
+  mai::Extension|set#instanceProperty(3, mai::Extension|staticFinalField);
+  mai::Extension|staticProperty = mai::Extension|staticProperty;
+  mai::Extension|staticMethod();
+  #C2;
+}
+
+library;
+import self as self2;
+import "main_lib2.dart" as mai;
+additionalExports = (mai::Extension)
+
+export "org-dartlang-testcase:///main_lib2.dart";
+
+
+library;
+import self as mai;
+import "dart:core" as core;
+
+extension Extension on core::int* {
+  get instanceProperty = mai::Extension|get#instanceProperty;
+  method instanceMethod = mai::Extension|instanceMethod;
+  tearoff instanceMethod = mai::Extension|get#instanceMethod;
+  static field staticField = mai::Extension|staticField;
+  static field staticFinalField = mai::Extension|staticFinalField;
+  static field staticConstField = mai::Extension|staticConstField;
+  static get staticProperty = get mai::Extension|staticProperty;
+  static method staticMethod = mai::Extension|staticMethod;
+  set instanceProperty = mai::Extension|set#instanceProperty;
+  static set staticProperty = set mai::Extension|staticProperty;
+}
+static field core::int* Extension|staticField = 42;
+static final field core::int* Extension|staticFinalField = 42;
+static const field core::int* Extension|staticConstField = #C1;
+static method Extension|get#instanceProperty(lowered final core::int* #this) → core::int*
+  return 42;
+static method Extension|set#instanceProperty(lowered final core::int* #this, core::int* value) → void {}
+static method Extension|instanceMethod(lowered final core::int* #this) → void {}
+static method Extension|get#instanceMethod(lowered final core::int* #this) → () →* void
+  return () → void => mai::Extension|instanceMethod(#this);
+static get Extension|staticProperty() → core::int*
+  return 42;
+static set Extension|staticProperty(core::int* value) → void {}
+static method Extension|staticMethod() → void {}
+
+constants  {
+  #C1 = 42
+  #C2 = tearoff mai::Extension|staticMethod
+}

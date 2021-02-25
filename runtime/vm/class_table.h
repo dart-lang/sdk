@@ -7,6 +7,7 @@
 
 #include <memory>
 
+#include "platform/allocation.h"
 #include "platform/assert.h"
 #include "platform/atomic.h"
 #include "platform/utils.h"
@@ -24,7 +25,7 @@ class ClassTable;
 class Isolate;
 class IsolateGroup;
 class IsolateGroupReloadContext;
-class IsolateReloadContext;
+class ProgramReloadContext;
 class JSONArray;
 class JSONObject;
 class JSONStream;
@@ -143,7 +144,7 @@ class SharedClassTable {
   }
 
   void ResetBeforeHotReload() {
-    // The [IsolateReloadContext] is now source-of-truth for GC.
+    // The [ProgramReloadContext] is now source-of-truth for GC.
     auto table = table_.load();
     for (intptr_t i = 0; i < top_; i++) {
       // Don't use memset, which changes this from a relaxed atomic operation
@@ -155,7 +156,7 @@ class SharedClassTable {
   void ResetAfterHotReload(intptr_t* old_table,
                            intptr_t num_old_cids,
                            bool is_rollback) {
-    // The [IsolateReloadContext] is no longer source-of-truth for GC after we
+    // The [ProgramReloadContext] is no longer source-of-truth for GC after we
     // return, so we restore size information for all classes.
     if (is_rollback) {
       SetNumCids(num_old_cids);
@@ -258,7 +259,7 @@ class ClassTable {
                            ClassPtr** tlc_copy,
                            intptr_t* copy_num_cids,
                            intptr_t* copy_num_tlc_cids) {
-    // The [IsolateReloadContext] will need to maintain a copy of the old class
+    // The [ProgramReloadContext] will need to maintain a copy of the old class
     // table until instances have been morphed.
     const intptr_t num_cids = NumCids();
     const intptr_t num_tlc_cids = NumTopLevelCids();
@@ -297,7 +298,7 @@ class ClassTable {
                            intptr_t num_old_cids,
                            intptr_t num_old_tlc_cids,
                            bool is_rollback) {
-    // The [IsolateReloadContext] is no longer source-of-truth for GC after we
+    // The [ProgramReloadContext] is no longer source-of-truth for GC after we
     // return, so we restore size information for all classes.
     if (is_rollback) {
       SetNumCids(num_old_cids, num_old_tlc_cids);

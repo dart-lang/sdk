@@ -10,7 +10,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstEvalThrowsExceptionTest_language24);
     defineReflectiveTests(ConstEvalThrowsExceptionTest);
     defineReflectiveTests(ConstEvalThrowsExceptionWithNullSafetyTest);
   });
@@ -19,9 +18,6 @@ main() {
 @reflectiveTest
 class ConstEvalThrowsExceptionTest extends PubPackageResolutionTest
     with ConstEvalThrowsExceptionTestCases {
-  @override
-  bool get _constant_update_2018 => true;
-
   test_binaryMinus_null() async {
     await assertErrorsInCode('''
 const dynamic D = null;
@@ -78,26 +74,7 @@ main() {
 }
 
 @reflectiveTest
-class ConstEvalThrowsExceptionTest_language24 extends PubPackageResolutionTest
-    with ConstEvalThrowsExceptionTestCases {
-  @override
-  bool get _constant_update_2018 => false;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: '2.4',
-    );
-  }
-}
-
-@reflectiveTest
 mixin ConstEvalThrowsExceptionTestCases on PubPackageResolutionTest {
-  /// The expected state of this feature in the test.
-  bool get _constant_update_2018;
-
   test_assertInitializerThrows() async {
     await assertErrorsInCode(r'''
 class A {
@@ -278,77 +255,44 @@ var b = const bool.fromEnvironment('x', defaultValue: 1);
   }
 
   test_ifElement_false_thenNotEvaluated() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 const dynamic nil = null;
 const c = [if (1 < 0) nil + 1];
-''',
-        _constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 37, 18),
-              ]);
+''');
   }
 
   test_ifElement_nonBoolCondition_list() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 const dynamic nonBool = 3;
 const c = const [if (nonBool) 'a'];
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 48, 7),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 44, 16),
-                error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 48, 7),
-              ]);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 48, 7),
+    ]);
   }
 
   test_ifElement_nonBoolCondition_map() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 const dynamic nonBool = null;
 const c = const {if (nonBool) 'a' : 1};
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 51, 7),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 47, 20),
-                error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 51, 7),
-              ]);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 51, 7),
+    ]);
   }
 
   test_ifElement_nonBoolCondition_set() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 const dynamic nonBool = 'a';
 const c = const {if (nonBool) 3};
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 50, 7),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 46, 14),
-                error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 50, 7),
-              ]);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 50, 7),
+    ]);
   }
 
   test_ifElement_true_elseNotEvaluated() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 const dynamic nil = null;
 const c = [if (0 < 1) 3 else nil + 1];
-''',
-        _constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 37, 25),
-              ]);
+''');
   }
 
   test_invalid_constructorFieldInitializer_fromSeparateLibrary() async {

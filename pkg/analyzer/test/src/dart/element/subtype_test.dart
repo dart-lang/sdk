@@ -2482,7 +2482,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeNone(T, intStar),
       futureOrStar(numStar),
-      strT0: 'T, T & int*',
+      strT0: 'T & int*',
       strT1: 'FutureOr<num*>*',
     );
   }
@@ -2493,7 +2493,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeNone(T, futureStar(numStar)),
       futureOrStar(numStar),
-      strT0: 'T, T & Future<num*>*',
+      strT0: 'T & Future<num*>*',
       strT1: 'FutureOr<num*>*',
     );
   }
@@ -2504,7 +2504,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeNone(T, futureStar(intStar)),
       futureOrStar(numStar),
-      strT0: 'T, T & Future<int*>*',
+      strT0: 'T & Future<int*>*',
       strT1: 'FutureOr<num*>*',
     );
   }
@@ -2515,7 +2515,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isNotSubtype(
       promotedTypeParameterTypeNone(T, numStar),
       futureOrStar(intStar),
-      strT0: 'T, T & num*',
+      strT0: 'T & num*',
       strT1: 'FutureOr<int*>*',
     );
   }
@@ -2526,7 +2526,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isNotSubtype(
       promotedTypeParameterTypeNone(T, futureStar(numStar)),
       futureOrStar(intStar),
-      strT0: 'T, T & Future<num*>*',
+      strT0: 'T & Future<num*>*',
       strT1: 'FutureOr<int*>*',
     );
   }
@@ -2537,7 +2537,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isNotSubtype(
       promotedTypeParameterTypeNone(T, futureOrStar(numStar)),
       futureOrStar(intStar),
-      strT0: 'T, T & FutureOr<num*>*',
+      strT0: 'T & FutureOr<num*>*',
       strT1: 'FutureOr<int*>*',
     );
   }
@@ -2824,7 +2824,7 @@ class SubtypeTest extends _SubtypingTestBase {
       listNone(
         typeParameterTypeNone(T),
       ),
-      strT0: 'List<T>, T extends Object?, T & int',
+      strT0: 'List<T & int>, T extends Object?',
       strT1: 'List<T>, T extends Object?',
     );
   }
@@ -2839,7 +2839,7 @@ class SubtypeTest extends _SubtypingTestBase {
       listNone(
         typeParameterTypeNone(T),
       ),
-      strT0: 'List<T>, T extends Object?, T & int?',
+      strT0: 'List<T & int?>, T extends Object?',
       strT1: 'List<T>, T extends Object?',
     );
   }
@@ -3288,7 +3288,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeStar(T, intStar),
       futureOrStar(numStar),
-      strT0: 'T*, T extends Object*, T & int*',
+      strT0: 'T* & int*, T extends Object*',
       strT1: 'FutureOr<num*>*',
     );
 
@@ -3296,19 +3296,19 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeNone(T, intNone),
       futureOrNone(numNone),
-      strT0: 'T, T extends Object, T & int',
+      strT0: 'T & int, T extends Object',
       strT1: 'FutureOr<num>',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, intNone),
       futureOrNone(numQuestion),
-      strT0: 'T, T extends Object, T & int',
+      strT0: 'T & int, T extends Object',
       strT1: 'FutureOr<num?>',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, intNone),
       futureOrQuestion(numNone),
-      strT0: 'T, T extends Object, T & int',
+      strT0: 'T & int, T extends Object',
       strT1: 'FutureOr<num>?',
     );
 
@@ -3316,19 +3316,19 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeNone(T, intNone),
       futureOrNone(numNone),
-      strT0: 'T, T extends Object?, T & int',
+      strT0: 'T & int, T extends Object?',
       strT1: 'FutureOr<num>',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, intNone),
       futureOrNone(numQuestion),
-      strT0: 'T, T extends Object?, T & int',
+      strT0: 'T & int, T extends Object?',
       strT1: 'FutureOr<num?>',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, intNone),
       futureOrQuestion(numNone),
-      strT0: 'T, T extends Object?, T & int',
+      strT0: 'T & int, T extends Object?',
       strT1: 'FutureOr<num>?',
     );
 
@@ -3336,19 +3336,19 @@ class SubtypeTest extends _SubtypingTestBase {
     isNotSubtype(
       promotedTypeParameterTypeNone(T, intQuestion),
       futureOrNone(numNone),
-      strT0: 'T, T extends Object?, T & int?',
+      strT0: 'T & int?, T extends Object?',
       strT1: 'FutureOr<num>',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, intQuestion),
       futureOrNone(numQuestion),
-      strT0: 'T, T extends Object?, T & int?',
+      strT0: 'T & int?, T extends Object?',
       strT1: 'FutureOr<num?>',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, intQuestion),
       futureOrQuestion(numNone),
-      strT0: 'T, T extends Object?, T & int?',
+      strT0: 'T & int?, T extends Object?',
       strT1: 'FutureOr<num>?',
     );
 
@@ -3357,19 +3357,19 @@ class SubtypeTest extends _SubtypingTestBase {
     isNotSubtype(
       promotedTypeParameterTypeNone(T, typeParameterTypeNone(S)),
       futureOrNone(objectNone),
-      strT0: 'T, T extends Object?, T & S',
+      strT0: 'T & S, T extends Object?',
       strT1: 'FutureOr<Object>',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, typeParameterTypeNone(S)),
       futureOrNone(objectQuestion),
-      strT0: 'T, T extends Object?, T & S',
+      strT0: 'T & S, T extends Object?',
       strT1: 'FutureOr<Object?>',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, typeParameterTypeNone(S)),
       futureOrQuestion(objectNone),
-      strT0: 'T, T extends Object?, T & S',
+      strT0: 'T & S, T extends Object?',
       strT1: 'FutureOr<Object>?',
     );
 
@@ -3377,13 +3377,13 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeNone(T, futureStar(numStar)),
       futureOrStar(numStar),
-      strT0: 'T, T extends Object*, T & Future<num*>*',
+      strT0: 'T & Future<num*>*, T extends Object*',
       strT1: 'FutureOr<num*>*',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, futureStar(intStar)),
       futureOrStar(numStar),
-      strT0: 'T, T extends Object*, T & Future<int*>*',
+      strT0: 'T & Future<int*>*, T extends Object*',
       strT1: 'FutureOr<num*>*',
     );
 
@@ -3391,19 +3391,19 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeNone(T, futureNone(intNone)),
       futureOrNone(numNone),
-      strT0: 'T, T extends Object, T & Future<int>',
+      strT0: 'T & Future<int>, T extends Object',
       strT1: 'FutureOr<num>',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, futureNone(intNone)),
       futureOrNone(numQuestion),
-      strT0: 'T, T extends Object, T & Future<int>',
+      strT0: 'T & Future<int>, T extends Object',
       strT1: 'FutureOr<num?>',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, futureNone(intNone)),
       futureOrQuestion(numNone),
-      strT0: 'T, T extends Object, T & Future<int>',
+      strT0: 'T & Future<int>, T extends Object',
       strT1: 'FutureOr<num>?',
     );
 
@@ -3411,38 +3411,38 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeNone(T, futureNone(intNone)),
       futureOrNone(numNone),
-      strT0: 'T, T extends Object?, T & Future<int>',
+      strT0: 'T & Future<int>, T extends Object?',
       strT1: 'FutureOr<num>',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, futureNone(intNone)),
       futureOrNone(numQuestion),
-      strT0: 'T, T extends Object?, T & Future<int>',
+      strT0: 'T & Future<int>, T extends Object?',
       strT1: 'FutureOr<num?>',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, futureNone(intNone)),
       futureOrQuestion(numNone),
-      strT0: 'T, T extends Object?, T & Future<int>',
+      strT0: 'T & Future<int>, T extends Object?',
       strT1: 'FutureOr<num>?',
     );
 
     isNotSubtype(
       promotedTypeParameterTypeNone(T, futureQuestion(intNone)),
       futureOrNone(numNone),
-      strT0: 'T, T extends Object?, T & Future<int>?',
+      strT0: 'T & Future<int>?, T extends Object?',
       strT1: 'FutureOr<num>',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, futureQuestion(intNone)),
       futureOrNone(numQuestion),
-      strT0: 'T, T extends Object?, T & Future<int>?',
+      strT0: 'T & Future<int>?, T extends Object?',
       strT1: 'FutureOr<num?>',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, futureQuestion(intNone)),
       futureOrQuestion(numNone),
-      strT0: 'T, T extends Object?, T & Future<int>?',
+      strT0: 'T & Future<int>?, T extends Object?',
       strT1: 'FutureOr<num>?',
     );
 
@@ -3450,19 +3450,19 @@ class SubtypeTest extends _SubtypingTestBase {
     isNotSubtype(
       promotedTypeParameterTypeNone(T, futureNone(intQuestion)),
       futureOrNone(numNone),
-      strT0: 'T, T extends Object, T & Future<int?>',
+      strT0: 'T & Future<int?>, T extends Object',
       strT1: 'FutureOr<num>',
     );
     isSubtype(
       promotedTypeParameterTypeNone(T, futureNone(intQuestion)),
       futureOrNone(numQuestion),
-      strT0: 'T, T extends Object, T & Future<int?>',
+      strT0: 'T & Future<int?>, T extends Object',
       strT1: 'FutureOr<num?>',
     );
     isNotSubtype(
       promotedTypeParameterTypeNone(T, futureNone(intQuestion)),
       futureOrQuestion(numNone),
-      strT0: 'T, T extends Object, T & Future<int?>',
+      strT0: 'T & Future<int?>, T extends Object',
       strT1: 'FutureOr<num>?',
     );
   }
@@ -3632,7 +3632,7 @@ class SubtypeTest extends _SubtypingTestBase {
       typeParameterTypeStar(T),
       promotedTypeParameterTypeStar(T, intStar),
       strT0: 'T*, T extends int*',
-      strT1: 'T*, T extends int*, T & int*',
+      strT1: 'T* & int*, T extends int*',
     );
 
     T = typeParameter('T', bound: intNone);
@@ -3640,13 +3640,13 @@ class SubtypeTest extends _SubtypingTestBase {
       typeParameterTypeNone(T),
       promotedTypeParameterTypeNone(T, intNone),
       strT0: 'T, T extends int',
-      strT1: 'T, T extends int, T & int',
+      strT1: 'T & int, T extends int',
     );
     isNotSubtype(
       typeParameterTypeQuestion(T),
       promotedTypeParameterTypeNone(T, intNone),
       strT0: 'T?, T extends int',
-      strT1: 'T, T extends int, T & int',
+      strT1: 'T & int, T extends int',
     );
 
     T = typeParameter('T', bound: intQuestion);
@@ -3654,19 +3654,19 @@ class SubtypeTest extends _SubtypingTestBase {
       typeParameterTypeNone(T),
       promotedTypeParameterTypeNone(T, intNone),
       strT0: 'T, T extends int?',
-      strT1: 'T, T extends int?, T & int',
+      strT1: 'T & int, T extends int?',
     );
     isSubtype(
       typeParameterTypeNone(T),
       promotedTypeParameterTypeNone(T, intQuestion),
       strT0: 'T, T extends int?',
-      strT1: 'T, T extends int?, T & int?',
+      strT1: 'T & int?, T extends int?',
     );
     isNotSubtype(
       typeParameterTypeQuestion(T),
       promotedTypeParameterTypeNone(T, intQuestion),
       strT0: 'T?, T extends int?',
-      strT1: 'T, T extends int?, T & int?',
+      strT1: 'T & int?, T extends int?',
     );
 
     T = typeParameter('T', bound: numStar);
@@ -3756,7 +3756,7 @@ class SubtypeTest extends _SubtypingTestBase {
       neverNone,
       promotedTypeParameterTypeStar(T, numStar),
       strT0: 'Never',
-      strT1: 'T*, T extends Object*, T & num*',
+      strT1: 'T* & num*, T extends Object*',
     );
   }
 
@@ -3766,7 +3766,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isNotSubtype(
       promotedTypeParameterTypeStar(T, numStar),
       neverNone,
-      strT0: 'T*, T extends Object*, T & num*',
+      strT0: 'T* & num*, T extends Object*',
       strT1: 'Never',
     );
   }
@@ -3788,7 +3788,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeNone(T, neverNone),
       neverNone,
-      strT0: 'T, T extends Object, T & Never',
+      strT0: 'T & Never, T extends Object',
       strT1: 'Never',
     );
   }
@@ -4048,7 +4048,7 @@ class SubtypeTest extends _SubtypingTestBase {
       nullQuestion,
       promotedTypeParameterTypeStar(T, numStar),
       strT0: 'Null?',
-      strT1: 'T*, T extends Object*, T & num*',
+      strT1: 'T* & num*, T extends Object*',
     );
   }
 
@@ -4059,7 +4059,7 @@ class SubtypeTest extends _SubtypingTestBase {
       nullQuestion,
       promotedTypeParameterTypeNone(T, numNone),
       strT0: 'Null?',
-      strT1: 'T, T extends Object?, T & num',
+      strT1: 'T & num, T extends Object?',
     );
   }
 
@@ -4070,7 +4070,7 @@ class SubtypeTest extends _SubtypingTestBase {
       nullQuestion,
       promotedTypeParameterTypeNone(T, numQuestion),
       strT0: 'Null?',
-      strT1: 'T, T extends Object?, T & num?',
+      strT1: 'T & num?, T extends Object?',
     );
   }
 
@@ -4081,7 +4081,7 @@ class SubtypeTest extends _SubtypingTestBase {
       nullQuestion,
       promotedTypeParameterTypeNone(T, numNone),
       strT0: 'Null?',
-      strT1: 'T, T extends Object, T & num',
+      strT1: 'T & num, T extends Object',
     );
   }
 
@@ -4093,7 +4093,7 @@ class SubtypeTest extends _SubtypingTestBase {
       nullQuestion,
       promotedTypeParameterTypeNone(T, typeParameterTypeNone(S)),
       strT0: 'Null?',
-      strT1: 'T, T extends Object?, T & S',
+      strT1: 'T & S, T extends Object?',
     );
   }
 
@@ -4317,8 +4317,8 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       type,
       type,
-      strT0: 'T, T extends Object*, T & int?',
-      strT1: 'T, T extends Object*, T & int?',
+      strT0: 'T & int?, T extends Object*',
+      strT1: 'T & int?, T extends Object*',
     );
   }
 
@@ -4328,8 +4328,8 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       type,
       type,
-      strT0: 'T?, T extends Object, T & int?',
-      strT1: 'T?, T extends Object, T & int?',
+      strT0: 'T? & int?, T extends Object',
+      strT1: 'T? & int?, T extends Object',
     );
   }
 
@@ -4589,7 +4589,7 @@ class SubtypeTest extends _SubtypingTestBase {
       functionTypeStar(
         returnType: voidNone,
       ),
-      strT0: 'T, T & void Function()*',
+      strT0: 'T & void Function()*',
       strT1: 'void Function()*',
     );
   }
@@ -4607,7 +4607,7 @@ class SubtypeTest extends _SubtypingTestBase {
       functionTypeStar(
         returnType: dynamicNone,
       ),
-      strT0: 'T, T & void Function()*',
+      strT0: 'T & void Function()*',
       strT1: 'dynamic Function()*',
     );
   }
@@ -4625,7 +4625,7 @@ class SubtypeTest extends _SubtypingTestBase {
       functionTypeStar(
         returnType: objectStar,
       ),
-      strT0: 'T, T & void Function()*',
+      strT0: 'T & void Function()*',
       strT1: 'Object* Function()*',
     );
   }
@@ -4649,7 +4649,7 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'T, T & void Function(void)*',
+      strT0: 'T & void Function(void)*',
       strT1: 'void Function(void)*',
     );
   }
@@ -4673,7 +4673,7 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: dynamicNone,
       ),
-      strT0: 'T, T & void Function(void)*',
+      strT0: 'T & void Function(void)*',
       strT1: 'dynamic Function(dynamic)*',
     );
   }
@@ -4697,7 +4697,7 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: objectStar,
       ),
-      strT0: 'T, T & void Function(void)*',
+      strT0: 'T & void Function(void)*',
       strT1: 'Object* Function(Object*)*',
     );
   }
@@ -4721,7 +4721,7 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: dynamicNone,
       ),
-      strT0: 'T, T & void Function(void)*',
+      strT0: 'T & void Function(void)*',
       strT1: 'dynamic Function(Iterable<int*>*)*',
     );
   }
@@ -4745,7 +4745,7 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: objectStar,
       ),
-      strT0: 'T, T & void Function(void)*',
+      strT0: 'T & void Function(void)*',
       strT1: 'Object* Function(int*)*',
     );
   }
@@ -4769,7 +4769,7 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: intStar,
       ),
-      strT0: 'T, T & void Function(void)*',
+      strT0: 'T & void Function(void)*',
       strT1: 'int* Function(int*)*',
     );
   }
@@ -4884,7 +4884,7 @@ class SubtypeTest extends _SubtypingTestBase {
       voidNone,
       promotedTypeParameterTypeNone(T, voidNone),
       strT0: 'void',
-      strT1: 'T, T & void',
+      strT1: 'T & void',
     );
   }
 
@@ -4895,7 +4895,7 @@ class SubtypeTest extends _SubtypingTestBase {
       voidNone,
       promotedTypeParameterTypeNone(T, voidNone),
       strT0: 'void',
-      strT1: 'T, T extends void, T & void',
+      strT1: 'T & void, T extends void',
     );
   }
 
@@ -4905,8 +4905,8 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeNone(T, intStar),
       promotedTypeParameterTypeNone(T, intStar),
-      strT0: 'T, T & int*',
-      strT1: 'T, T & int*',
+      strT0: 'T & int*',
+      strT1: 'T & int*',
     );
   }
 
@@ -4916,8 +4916,8 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeNone(T, intStar),
       promotedTypeParameterTypeNone(T, numStar),
-      strT0: 'T, T & int*',
-      strT1: 'T, T & num*',
+      strT0: 'T & int*',
+      strT1: 'T & num*',
     );
   }
 
@@ -4927,8 +4927,8 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeNone(T, numStar),
       promotedTypeParameterTypeNone(T, numStar),
-      strT0: 'T, T & num*',
-      strT1: 'T, T & num*',
+      strT0: 'T & num*',
+      strT1: 'T & num*',
     );
   }
 
@@ -4938,8 +4938,8 @@ class SubtypeTest extends _SubtypingTestBase {
     isNotSubtype(
       promotedTypeParameterTypeNone(T, numStar),
       promotedTypeParameterTypeNone(T, intStar),
-      strT0: 'T, T & num*',
-      strT1: 'T, T & int*',
+      strT0: 'T & num*',
+      strT1: 'T & int*',
     );
   }
 
@@ -4950,7 +4950,7 @@ class SubtypeTest extends _SubtypingTestBase {
       nullQuestion,
       promotedTypeParameterTypeNone(T, numStar),
       strT0: 'Null?',
-      strT1: 'T, T & num*',
+      strT1: 'T & num*',
     );
   }
 
@@ -4960,7 +4960,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeStar(T, intStar),
       typeParameterTypeStar(T),
-      strT0: 'T*, T extends int*, T & int*',
+      strT0: 'T* & int*, T extends int*',
       strT1: 'T*, T extends int*',
     );
   }
@@ -4971,7 +4971,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeStar(T, intStar),
       typeParameterTypeStar(T),
-      strT0: 'T*, T extends num*, T & int*',
+      strT0: 'T* & int*, T extends num*',
       strT1: 'T*, T extends num*',
     );
   }
@@ -4982,7 +4982,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeStar(T, numStar),
       typeParameterTypeStar(T),
-      strT0: 'T*, T extends num*, T & num*',
+      strT0: 'T* & num*, T extends num*',
       strT1: 'T*, T extends num*',
     );
   }
@@ -4994,7 +4994,7 @@ class SubtypeTest extends _SubtypingTestBase {
       typeParameterTypeStar(T),
       promotedTypeParameterTypeStar(T, intStar),
       strT0: 'T*, T extends int*',
-      strT1: 'T*, T extends int*, T & int*',
+      strT1: 'T* & int*, T extends int*',
     );
   }
 
@@ -5005,7 +5005,7 @@ class SubtypeTest extends _SubtypingTestBase {
       typeParameterTypeStar(T),
       promotedTypeParameterTypeStar(T, numStar),
       strT0: 'T*, T extends int*',
-      strT1: 'T*, T extends int*, T & num*',
+      strT1: 'T* & num*, T extends int*',
     );
   }
 
@@ -5016,7 +5016,7 @@ class SubtypeTest extends _SubtypingTestBase {
       typeParameterTypeStar(T),
       promotedTypeParameterTypeStar(T, intStar),
       strT0: 'T*, T extends num*',
-      strT1: 'T*, T extends num*, T & int*',
+      strT1: 'T* & int*, T extends num*',
     );
   }
 
@@ -5125,7 +5125,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeNone(T, intStar),
       intStar,
-      strT0: 'T, T & int*',
+      strT0: 'T & int*',
       strT1: 'int*',
     );
   }
@@ -5136,7 +5136,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeNone(T, intStar),
       numStar,
-      strT0: 'T, T & int*',
+      strT0: 'T & int*',
       strT1: 'num*',
     );
   }
@@ -5147,7 +5147,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       promotedTypeParameterTypeNone(T, numStar),
       numStar,
-      strT0: 'T, T & num*',
+      strT0: 'T & num*',
       strT1: 'num*',
     );
   }
@@ -5158,7 +5158,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isNotSubtype(
       promotedTypeParameterTypeNone(T, numStar),
       intStar,
-      strT0: 'T, T & num*',
+      strT0: 'T & num*',
       strT1: 'int*',
     );
   }
@@ -5170,7 +5170,7 @@ class SubtypeTest extends _SubtypingTestBase {
     isNotSubtype(
       promotedTypeParameterTypeNone(S, numStar),
       typeParameterTypeNone(T),
-      strT0: 'S, S & num*',
+      strT0: 'S & num*',
       strT1: 'T',
     );
   }
@@ -5182,8 +5182,8 @@ class SubtypeTest extends _SubtypingTestBase {
     isNotSubtype(
       promotedTypeParameterTypeNone(S, numStar),
       promotedTypeParameterTypeNone(T, numStar),
-      strT0: 'S, S & num*',
-      strT1: 'T, T & num*',
+      strT0: 'S & num*',
+      strT1: 'T & num*',
     );
   }
 
@@ -5251,7 +5251,7 @@ class SubtypeTest extends _SubtypingTestBase {
       typeParameterTypeStar(S),
       promotedTypeParameterTypeNone(T, numStar),
       strT0: 'S*, S extends num*',
-      strT1: 'T, T & num*',
+      strT1: 'T & num*',
     );
   }
 
@@ -5262,7 +5262,7 @@ class SubtypeTest extends _SubtypingTestBase {
       dynamicNone,
       promotedTypeParameterTypeNone(T, dynamicNone),
       strT0: 'dynamic',
-      strT1: 'T, T extends dynamic, T & dynamic',
+      strT1: 'T & dynamic, T extends dynamic',
     );
   }
 
@@ -5280,7 +5280,7 @@ class SubtypeTest extends _SubtypingTestBase {
         ),
       ),
       strT0: 'T Function()*',
-      strT1: 'T, T & T Function()*',
+      strT1: 'T & T Function()*',
     );
   }
 
@@ -5292,8 +5292,8 @@ class SubtypeTest extends _SubtypingTestBase {
         promotedTypeParameterTypeNone(T, stringStar),
       ),
       promotedTypeParameterTypeNone(T, stringStar),
-      strT0: 'FutureOr<T>*, T & String*',
-      strT1: 'T, T & String*',
+      strT0: 'FutureOr<T & String*>*',
+      strT1: 'T & String*',
     );
   }
 
@@ -5327,19 +5327,19 @@ class SubtypeTest extends _SubtypingTestBase {
     isNotSubtype(
       type,
       numNone,
-      strT0: 'T, T extends Object?, T & num?',
+      strT0: 'T & num?, T extends Object?',
       strT1: 'num',
     );
     isSubtype(
       type,
       numQuestion,
-      strT0: 'T, T extends Object?, T & num?',
+      strT0: 'T & num?, T extends Object?',
       strT1: 'num?',
     );
     isSubtype(
       type,
       numStar,
-      strT0: 'T, T extends Object?, T & num?',
+      strT0: 'T & num?, T extends Object?',
       strT1: 'num*',
     );
   }
@@ -5407,6 +5407,21 @@ class SubtypeTest extends _SubtypingTestBase {
       objectNone,
       strT0: 'T',
       strT1: 'Object',
+    );
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/language/issues/433')
+  test_typeParameter_44() {
+    var T = typeParameter('T');
+    var T_none = typeParameterTypeNone(T);
+    var FutureOr_T_none = futureOrNone(T_none);
+    T.bound = FutureOr_T_none;
+
+    isSubtype(
+      T_none,
+      FutureOr_T_none,
+      strT0: 'T, T extends FutureOr<T>',
+      strT1: 'FutureOr<T>, T extends FutureOr<T>',
     );
   }
 
@@ -6015,9 +6030,8 @@ class _TypeParameterCollector extends TypeVisitor<void> {
   void visitTypeParameterType(TypeParameterType type) {
     if (!functionTypeParameters.contains(type.element)) {
       var bound = type.element.bound;
-      var promotedBound = (type as TypeParameterTypeImpl).promotedBound;
 
-      if (bound == null && promotedBound == null) {
+      if (bound == null) {
         return;
       }
 
@@ -6026,16 +6040,6 @@ class _TypeParameterCollector extends TypeVisitor<void> {
       if (bound != null) {
         var boundStr = bound.getDisplayString(withNullability: true);
         str += '${type.element.name} extends ' + boundStr;
-      }
-
-      if (promotedBound != null) {
-        var promotedBoundStr = promotedBound.getDisplayString(
-          withNullability: true,
-        );
-        if (str.isNotEmpty) {
-          str += ', ';
-        }
-        str += '${type.element.name} & ' + promotedBoundStr;
       }
 
       typeParameters.add(str);

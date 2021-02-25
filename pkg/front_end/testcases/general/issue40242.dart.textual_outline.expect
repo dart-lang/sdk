@@ -1,5 +1,8 @@
 class C {}
-extension E ;
-on C (){}
+
+extension E on C {
+  errors() {}
+}
+
 errors() {}
 main() {}

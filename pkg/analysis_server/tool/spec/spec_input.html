@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.29.0</version>
+  <version>1.32.4</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -133,6 +133,27 @@
   the server so clients should ensure unknown values are handled gracefully, either
   ignoring the item or treating it with some default/fallback handling.
 </p>
+<h3>Changelog</h3>
+<h4>1.32.4</h4>
+<ul>
+  <li>Added <tt>ElementKind.TYPE_ALIAS</tt> and <tt>HighlightRegionType.TYPE_ALIAS</tt>
+    for non-function type aliases.</li>
+</ul>
+<h4>1.32.3</h4>
+<ul>
+  <li>Removed the experimental <tt>completion.listTokenDetails</tt> request and
+    the associated data types.</li>
+</ul>
+<h4>1.32.2</h4>
+<ul>
+  <li>Added <tt>FoldingKind.COMMENT</tt> for folding regions for blocks of
+    comments.</li>
+</ul>
+<h4>1.32.1</h4>
+<ul>
+  <li>Added <tt>CompletionSuggestionKind.PACKAGE_NAME</tt> for Pub package name
+    completions in <tt>pubspec.yaml</tt>.</li>
+</ul>
 <h3>Domains</h3>
 <p>
   For convenience, the API is divided into domains. Each domain is specified
@@ -1511,32 +1532,6 @@
       </field>
     </result>
   </request>
-  <request method="listTokenDetails" experimental="true">
-    <p>
-      Inspect analysis server's knowledge about all of a file's tokens including
-      their lexeme, type, and what element kinds would have been appropriate for
-      the token's program location.
-    </p>
-    <params>
-      <field name="file">
-        <ref>FilePath</ref>
-        <p>
-          The path to the file from which tokens should be returned.
-        </p>
-      </field>
-    </params>
-    <result>
-      <field name="tokens">
-        <list>
-          <ref>TokenDetails</ref>
-        </list>
-        <p>
-          A list of the file's scanned tokens including analysis information
-          about them.
-        </p>
-      </field>
-    </result>
-  </request>
   <notification event="results">
     <p>
       Reports the completion suggestions that should be presented
@@ -2186,6 +2181,18 @@
           <tt>FILE_NOT_ANALYZED</tt> will be generated.
         </p>
       </field>
+      <field name="inTestMode" optional="true">
+        <ref>bool</ref>
+        <p>
+          A flag indicating whether the bulk fixes are being run in test mode.
+          The only difference is that in test mode the fix processor will look
+          for a configuration file that can modify the content of the data file
+          used to compute the fixes when data-driven fixes are being considered.
+        </p>
+        <p>
+          If this field is omitted the flag defaults to <tt>false</tt>.
+        </p>
+      </field>
     </params>
     <result>
       <field name="edits">
@@ -2194,6 +2201,15 @@
         </list>
         <p>
           A list of source edits to apply the recommended changes.
+        </p>
+      </field>
+      <field name="details">
+        <list>
+          <ref>BulkFix</ref>
+        </list>
+        <p>
+          Details that summarize the fixes associated with the recommended
+          changes.
         </p>
       </field>
     </result>
@@ -2344,6 +2360,13 @@
     <p>
       Return the set of fixes that are available for the errors at
       a given offset in a given file.
+    </p>
+    <p>
+      If a request is made for a file which does not exist, or
+      which is not currently subject to analysis (e.g. because it
+      is not associated with any analysis root specified to
+      analysis.setAnalysisRoots), an error of type
+      <tt>GET_FIXES_INVALID_FILE</tt> will be generated.
     </p>
     <params>
       <field name="file">
@@ -3530,6 +3553,47 @@
       </field>
     </object>
   </type>
+  <type name="BulkFix">
+    <p>
+      A description of bulk fixes to a library.
+    </p>
+    <object>
+      <field name="path">
+        <ref>FilePath</ref>
+        <p>
+          The path of the library.
+        </p>
+      </field>
+      <field name="fixes">
+        <list>
+          <ref>BulkFixDetail</ref>
+        </list>
+        <p>
+          A list of bulk fix details.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="BulkFixDetail">
+    <p>
+      A description of a fix applied to a library.
+    </p>
+    <object>
+      <field name="code">
+        <ref>String</ref>
+        <p>
+          The code of the diagnostic associated with the fix.
+        </p>
+      </field>
+      <field name="occurrences">
+        <ref>int</ref>
+        <p>
+          The number times the associated diagnostic was fixed in the associated
+          source edit.
+        </p>
+      </field>
+    </object>
+  </type>
   <type name="ClosingLabel">
     <p>
       A label that is associated with a range of code that may be useful to
@@ -4143,44 +4207,6 @@
       <value><code>FUNCTION</code></value>
       <value><code>INTERFACE</code></value>
     </enum>
-  </type>
-  <type name="TokenDetails" experimental="true">
-    <p>
-      A scanned token along with its inferred type information.
-    </p>
-    <object>
-      <field name="lexeme">
-        <ref>String</ref>
-        <p>
-          The token's lexeme.
-        </p>
-      </field>
-      <field name="type" optional="true">
-        <ref>String</ref>
-        <p>
-          A unique id for the type of the identifier.
-          Omitted if the token is not an identifier in a reference position.
-        </p>
-      </field>
-      <field name="validElementKinds" optional="true">
-        <list>
-          <ref>String</ref>
-        </list>
-        <p>
-          An indication of whether this token is in a declaration or reference
-          position. (If no other purpose is found for this field then it should
-          be renamed and converted to a boolean value.)
-          Omitted if the token is not an identifier.
-        </p>
-      </field>
-      <field name="offset">
-        <ref>int</ref>
-        <p>
-          The offset of the first character of the token in the file which it
-          originated from.
-        </p>
-      </field>
-    </object>
   </type>
   <type name="ExecutionService">
     <p>
@@ -4999,6 +5025,14 @@
         <code>GET_ERRORS_INVALID_FILE</code>
         <p>
           An "analysis.getErrors" request specified a FilePath
+          which does not match a file currently subject to
+          analysis.
+        </p>
+      </value>
+      <value>
+        <code>GET_FIXES_INVALID_FILE</code>
+        <p>
+          An "edit.getFixes" request specified a FilePath
           which does not match a file currently subject to
           analysis.
         </p>

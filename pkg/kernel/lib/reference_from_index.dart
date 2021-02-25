@@ -2,8 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "ast.dart"
-    show Class, Constructor, Extension, Field, Library, Procedure, Typedef;
+    show
+        Class,
+        Constructor,
+        Extension,
+        Field,
+        Library,
+        Member,
+        Name,
+        Procedure,
+        ProcedureKind,
+        Reference,
+        Typedef;
 
 class ReferenceFromIndex {
   Map<Library, IndexedLibrary> _indexedLibraries =
@@ -19,86 +32,104 @@ class ReferenceFromIndex {
   IndexedLibrary lookupLibrary(Library library) => _indexedLibraries[library];
 }
 
-class IndexedLibrary {
+abstract class IndexedContainer {
+  final Map<Name, Reference> _getterReferences = new Map<Name, Reference>();
+  final Map<Name, Reference> _setterReferences = new Map<Name, Reference>();
+
+  Reference lookupGetterReference(Name name) => _getterReferences[name];
+  Reference lookupSetterReference(Name name) => _setterReferences[name];
+
+  Library get library;
+
+  void _addProcedures(List<Procedure> procedures) {
+    for (int i = 0; i < procedures.length; i++) {
+      _addProcedure(procedures[i]);
+    }
+  }
+
+  void _addProcedure(Procedure procedure) {
+    Name name = procedure.name;
+    if (procedure.isSetter) {
+      assert(_setterReferences[name] == null);
+      _setterReferences[name] = procedure.reference;
+    } else {
+      assert(_getterReferences[name] == null);
+      assert(procedure.kind == ProcedureKind.Method ||
+          procedure.kind == ProcedureKind.Getter ||
+          procedure.kind == ProcedureKind.Operator);
+      _getterReferences[name] = procedure.reference;
+    }
+  }
+
+  void _addFields(List<Field> fields) {
+    for (int i = 0; i < fields.length; i++) {
+      Field field = fields[i];
+      Name name = field.name;
+      assert(_getterReferences[name] == null);
+      _getterReferences[name] = field.getterReference;
+      if (field.hasSetter) {
+        assert(_setterReferences[name] == null);
+        _setterReferences[name] = field.setterReference;
+      }
+    }
+  }
+}
+
+class IndexedLibrary extends IndexedContainer {
   final Map<String, Typedef> _typedefs = new Map<String, Typedef>();
   final Map<String, Class> _classes = new Map<String, Class>();
   final Map<String, IndexedClass> _indexedClasses =
       new Map<String, IndexedClass>();
   final Map<String, Extension> _extensions = new Map<String, Extension>();
-  final Map<String, Procedure> _proceduresNotSetters =
-      new Map<String, Procedure>();
-  final Map<String, Procedure> _proceduresSetters =
-      new Map<String, Procedure>();
-  final Map<String, Field> _fields = new Map<String, Field>();
+  final Library library;
 
-  IndexedLibrary(Library library) {
+  IndexedLibrary(this.library) {
     for (int i = 0; i < library.typedefs.length; i++) {
       Typedef typedef = library.typedefs[i];
+      assert(_typedefs[typedef.name] == null);
       _typedefs[typedef.name] = typedef;
     }
     for (int i = 0; i < library.classes.length; i++) {
       Class c = library.classes[i];
+      assert(_classes[c.name] == null);
       _classes[c.name] = c;
-      _indexedClasses[c.name] = new IndexedClass._(c);
+      assert(_indexedClasses[c.name] == null);
+      _indexedClasses[c.name] = new IndexedClass._(c, library);
     }
     for (int i = 0; i < library.extensions.length; i++) {
       Extension extension = library.extensions[i];
+      assert(_extensions[extension.name] == null);
       _extensions[extension.name] = extension;
     }
-    for (int i = 0; i < library.procedures.length; i++) {
-      Procedure procedure = library.procedures[i];
-      if (procedure.isSetter) {
-        _proceduresSetters[procedure.name.name] = procedure;
-      } else {
-        _proceduresNotSetters[procedure.name.name] = procedure;
-      }
-    }
-    for (int i = 0; i < library.fields.length; i++) {
-      Field field = library.fields[i];
-      _fields[field.name.name] = field;
-    }
+    _addProcedures(library.procedures);
+    _addFields(library.fields);
   }
 
   Typedef lookupTypedef(String name) => _typedefs[name];
   Class lookupClass(String name) => _classes[name];
   IndexedClass lookupIndexedClass(String name) => _indexedClasses[name];
   Extension lookupExtension(String name) => _extensions[name];
-  Procedure lookupProcedureNotSetter(String name) =>
-      _proceduresNotSetters[name];
-  Procedure lookupProcedureSetter(String name) => _proceduresSetters[name];
-  Field lookupField(String name) => _fields[name];
 }
 
-class IndexedClass {
-  final Map<String, Constructor> _constructors = new Map<String, Constructor>();
-  final Map<String, Procedure> _proceduresNotSetters =
-      new Map<String, Procedure>();
-  final Map<String, Procedure> _proceduresSetters =
-      new Map<String, Procedure>();
-  final Map<String, Field> _fields = new Map<String, Field>();
+class IndexedClass extends IndexedContainer {
+  final Map<Name, Member> _constructors = new Map<Name, Member>();
+  final Library library;
 
-  IndexedClass._(Class c) {
+  IndexedClass._(Class c, this.library) {
     for (int i = 0; i < c.constructors.length; i++) {
       Constructor constructor = c.constructors[i];
-      _constructors[constructor.name.name] = constructor;
+      _constructors[constructor.name] = constructor;
     }
     for (int i = 0; i < c.procedures.length; i++) {
       Procedure procedure = c.procedures[i];
-      if (procedure.isSetter) {
-        _proceduresSetters[procedure.name.name] = procedure;
+      if (procedure.isFactory) {
+        _constructors[procedure.name] = procedure;
       } else {
-        _proceduresNotSetters[procedure.name.name] = procedure;
+        _addProcedure(procedure);
       }
     }
-    for (int i = 0; i < c.fields.length; i++) {
-      Field field = c.fields[i];
-      _fields[field.name.name] = field;
-    }
+    _addFields(c.fields);
   }
 
-  Constructor lookupConstructor(String name) => _constructors[name];
-  Procedure lookupProcedureNotSetter(String name) =>
-      _proceduresNotSetters[name];
-  Procedure lookupProcedureSetter(String name) => _proceduresSetters[name];
-  Field lookupField(String name) => _fields[name];
+  Member lookupConstructor(Name name) => _constructors[name];
 }

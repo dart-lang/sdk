@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// A memory + physical file system used to mock input for tests but provide
 /// sdk sources from disk.
 library front_end.src.hybrid_file_system;
-
-import 'dart:async';
 
 import '../api_prototype/file_system.dart';
 import '../api_prototype/memory_file_system.dart';

@@ -26,3 +26,8 @@ static method g(self::C<core::num*>* c) → void {
   let final self::C<core::num*>* #t2 = c in let final core::double* #t3 = 1.5 in (#t2.{self::C::y} as{TypeError,CovarianceCheck} (core::num*) →* void).call(#t3);
 }
 static method main() → void {}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_getter.dart:18:49 -> DoubleConstant(1.5)
+Extra constant evaluation: evaluated: 14, effectively constant: 1

@@ -325,7 +325,7 @@ class ImportElementsComputer {
     var scope = libraryResult.libraryElement.scope;
 
     if (prefix.isNotEmpty) {
-      var prefixElement = scope.lookup2(prefix).getter;
+      var prefixElement = scope.lookup(prefix).getter;
       if (prefixElement is PrefixElement) {
         scope = prefixElement.scope;
       } else {
@@ -333,7 +333,7 @@ class ImportElementsComputer {
       }
     }
 
-    var lookupResult = scope.lookup2(name);
+    var lookupResult = scope.lookup(name);
     return lookupResult.getter != null || lookupResult.setter != null;
   }
 
@@ -341,7 +341,7 @@ class ImportElementsComputer {
   /// [importedElements]. They will match if they import the same library using
   /// the same prefix.
   bool _matches(ImportDirective import, ImportedElements importedElements) {
-    var library = (import.element as ImportElement).importedLibrary;
+    var library = import.element.importedLibrary;
     return library != null &&
         library.source.fullName == importedElements.path &&
         (import.prefix?.name ?? '') == importedElements.prefix;

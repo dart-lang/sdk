@@ -40,6 +40,6 @@ main() {
   new C<int>().test('int', false);
   new C<Object>().test('Object', false);
   new C<dynamic>().test('dynamic', false);
-  new C<Null>().test('Null', isWeakMode);
+  new C<Null>().test('Null', hasUnsoundNullSafety);
   new C<Never>().test('Never', true);
 }

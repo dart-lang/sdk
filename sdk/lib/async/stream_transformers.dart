@@ -4,9 +4,7 @@
 
 part of dart.async;
 
-/**
- * Wraps an [_EventSink] so it exposes only the [EventSink] interface.
- */
+/// Wraps an [_EventSink] so it exposes only the [EventSink] interface.
 class _EventSinkWrapper<T> implements EventSink<T> {
   _EventSink<T> _sink;
   _EventSinkWrapper(this._sink);
@@ -24,13 +22,11 @@ class _EventSinkWrapper<T> implements EventSink<T> {
   }
 }
 
-/**
- * A StreamSubscription that pipes data through a sink.
- *
- * The constructor of this class takes a [_SinkMapper] which maps from
- * [EventSink] to [EventSink]. The input to the mapper is the output of
- * the transformation. The returned sink is the transformation's input.
- */
+/// A StreamSubscription that pipes data through a sink.
+///
+/// The constructor of this class takes a [_SinkMapper] which maps from
+/// [EventSink] to [EventSink]. The input to the mapper is the output of
+/// the transformation. The returned sink is the transformation's input.
 class _SinkTransformerStreamSubscription<S, T>
     extends _BufferingStreamSubscription<T> {
   /// The transformer's input sink.
@@ -55,13 +51,11 @@ class _SinkTransformerStreamSubscription<S, T>
 
   // _EventSink interface.
 
-  /**
-   * Adds an event to this subscriptions.
-   *
-   * Contrary to normal [_BufferingStreamSubscription]s we may receive
-   * events when the stream is already closed. Report them as state
-   * error.
-   */
+  /// Adds an event to this subscriptions.
+  ///
+  /// Contrary to normal [_BufferingStreamSubscription]s we may receive
+  /// events when the stream is already closed. Report them as state
+  /// error.
   void _add(T data) {
     if (_isClosed) {
       throw StateError("Stream is already closed");
@@ -69,13 +63,11 @@ class _SinkTransformerStreamSubscription<S, T>
     super._add(data);
   }
 
-  /**
-   * Adds an error event to this subscriptions.
-   *
-   * Contrary to normal [_BufferingStreamSubscription]s we may receive
-   * events when the stream is already closed. Report them as state
-   * error.
-   */
+  /// Adds an error event to this subscriptions.
+  ///
+  /// Contrary to normal [_BufferingStreamSubscription]s we may receive
+  /// events when the stream is already closed. Report them as state
+  /// error.
   void _addError(Object error, StackTrace stackTrace) {
     if (_isClosed) {
       throw new StateError("Stream is already closed");
@@ -83,13 +75,11 @@ class _SinkTransformerStreamSubscription<S, T>
     super._addError(error, stackTrace);
   }
 
-  /**
-   * Adds a close event to this subscriptions.
-   *
-   * Contrary to normal [_BufferingStreamSubscription]s we may receive
-   * events when the stream is already closed. Report them as state
-   * error.
-   */
+  /// Adds a close event to this subscriptions.
+  ///
+  /// Contrary to normal [_BufferingStreamSubscription]s we may receive
+  /// events when the stream is already closed. Report them as state
+  /// error.
   void _close() {
     if (_isClosed) {
       throw new StateError("Stream is already closed");
@@ -148,14 +138,12 @@ class _SinkTransformerStreamSubscription<S, T>
 
 typedef EventSink<S> _SinkMapper<S, T>(EventSink<T> output);
 
-/**
- * A StreamTransformer for Sink-mappers.
- *
- * A Sink-mapper takes an [EventSink] (its output) and returns another
- * EventSink (its input).
- *
- * Note that this class can be `const`.
- */
+/// A [StreamTransformer] for [Sink]-mappers.
+///
+/// A Sink-mapper takes an [EventSink] (its output) and returns another
+/// [EventSink] (its input).
+///
+/// Note that this class can be `const`.
 class _StreamSinkTransformer<S, T> extends StreamTransformerBase<S, T> {
   final _SinkMapper<S, T> _sinkMapper;
   const _StreamSinkTransformer(this._sinkMapper);
@@ -164,13 +152,11 @@ class _StreamSinkTransformer<S, T> extends StreamTransformerBase<S, T> {
       new _BoundSinkStream<S, T>(stream, _sinkMapper);
 }
 
-/**
- * The result of binding a StreamTransformer for Sink-mappers.
- *
- * It contains the bound Stream and the sink-mapper. Only when the user starts
- * listening to this stream is the sink-mapper invoked. The result is used
- * to create a StreamSubscription that transforms events.
- */
+/// The result of binding a [StreamTransformer] for [Sink]-mappers.
+///
+/// It contains the bound Stream and the sink-mapper. Only when the user starts
+/// listening to this stream is the sink-mapper invoked. The result is used
+/// to create a StreamSubscription that transforms events.
 class _BoundSinkStream<S, T> extends Stream<T> {
   final _SinkMapper<S, T> _sinkMapper;
   final Stream<S> _stream;
@@ -198,11 +184,9 @@ typedef void _TransformErrorHandler<T>(
 /// Done-handler coming from [StreamTransformer.fromHandlers].
 typedef void _TransformDoneHandler<T>(EventSink<T> sink);
 
-/**
- * Wraps handlers (from [StreamTransformer.fromHandlers]) into an `EventSink`.
- *
- * This way we can reuse the code from [_StreamSinkTransformer].
- */
+/// Wraps handlers (from [StreamTransformer.fromHandlers]) into an `EventSink`.
+///
+/// This way we can reuse the code from [_StreamSinkTransformer].
 class _HandlerEventSink<S, T> implements EventSink<S> {
   final _TransformDataHandler<S, T>? _handleData;
   final _TransformErrorHandler<T>? _handleError;
@@ -229,8 +213,7 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
   }
 
   void addError(Object error, [StackTrace? stackTrace]) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
+    checkNotNullable(error, "error");
     var sink = _sink;
     if (sink == null) {
       throw StateError("Sink is closed");
@@ -257,11 +240,9 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
   }
 }
 
-/**
- * A StreamTransformer that transformers events with the given handlers.
- *
- * Note that this transformer can only be used once.
- */
+/// A StreamTransformer that transformers events with the given handlers.
+///
+/// Note that this transformer can only be used once.
 class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {
   _StreamHandlerTransformer(
       {void handleData(S data, EventSink<T> sink)?,
@@ -277,9 +258,7 @@ class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {
   }
 }
 
-/**
- * A StreamTransformer that overrides [StreamTransformer.bind] with a callback.
- */
+/// A StreamTransformer that overrides [StreamTransformer.bind] with a callback.
 class _StreamBindTransformer<S, T> extends StreamTransformerBase<S, T> {
   final Stream<T> Function(Stream<S>) _bind;
   _StreamBindTransformer(this._bind);
@@ -291,18 +270,16 @@ class _StreamBindTransformer<S, T> extends StreamTransformerBase<S, T> {
 typedef StreamSubscription<T> _SubscriptionTransformer<S, T>(
     Stream<S> stream, bool cancelOnError);
 
-/**
- * A [StreamTransformer] that minimizes the number of additional classes.
- *
- * Instead of implementing three classes: a [StreamTransformer], a [Stream]
- * (as the result of a `bind` call) and a [StreamSubscription] (which does the
- * actual work), this class only requires a function that is invoked when the
- * last bit (the subscription) of the transformer-workflow is needed.
- *
- * The given transformer function maps from Stream and cancelOnError to a
- * `StreamSubscription`. As such it can also act on `cancel` events, making it
- * fully general.
- */
+/// A [StreamTransformer] that minimizes the number of additional classes.
+///
+/// Instead of implementing three classes: a [StreamTransformer], a [Stream]
+/// (as the result of a `bind` call) and a [StreamSubscription] (which does the
+/// actual work), this class only requires a function that is invoked when the
+/// last bit (the subscription) of the transformer-workflow is needed.
+///
+/// The given transformer function maps from Stream and cancelOnError to a
+/// `StreamSubscription`. As such it can also act on `cancel` events, making it
+/// fully general.
 class _StreamSubscriptionTransformer<S, T> extends StreamTransformerBase<S, T> {
   final _SubscriptionTransformer<S, T> _onListen;
 
@@ -312,13 +289,11 @@ class _StreamSubscriptionTransformer<S, T> extends StreamTransformerBase<S, T> {
       new _BoundSubscriptionStream<S, T>(stream, _onListen);
 }
 
-/**
- * A stream transformed by a [_StreamSubscriptionTransformer].
- *
- * When this stream is listened to it invokes the [_onListen] function with
- * the stored [_stream]. Usually the transformer starts listening at this
- * moment.
- */
+/// A stream transformed by a [_StreamSubscriptionTransformer].
+///
+/// When this stream is listened to it invokes the [_onListen] function with
+/// the stored [_stream]. Usually the transformer starts listening at this
+/// moment.
 class _BoundSubscriptionStream<S, T> extends Stream<T> {
   final _SubscriptionTransformer<S, T> _onListen;
   final Stream<S> _stream;

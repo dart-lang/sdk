@@ -14,10 +14,29 @@ import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utilities/test_logger.dart';
 import 'analysis_abstract.dart';
+
+class ListenerClient implements DartFixListenerClient {
+  @override
+  void onException(String detail) {
+    fail('Unexpected call to onException($detail)');
+  }
+
+  @override
+  void onFatalError(String detail) {
+    fail('Unexpected call to onFatalError($detail)');
+  }
+
+  @override
+  void onMessage(String detail) {
+    fail('Unexpected call to onMessage($detail)');
+  }
+}
 
 @reflectiveTest
 class NnbdMigrationTestBase extends AbstractAnalysisTest {
@@ -140,6 +159,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     var includedRoot = resourceProvider.pathContext.dirname(testFile);
     await _buildMigrationInfo([testFile],
         includedRoot: includedRoot,
+        shouldBeMigratedFunction: (String path) => true,
+        pathsToProcess: [testFile],
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);
   }
@@ -167,18 +188,24 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     return unit;
   }
 
-  /// Uses the InfoBuilder to build information for test files.
+  /// Uses the [InfoBuilder] to build information for test files.
   ///
-  /// Returns
-  /// the singular UnitInfo which was built.
+  /// Returns the singular [UnitInfo] which was built.
   Future<List<UnitInfo>> buildInfoForTestFiles(Map<String, String> files,
-      {String includedRoot}) async {
+      {@required String includedRoot,
+      bool Function(String) shouldBeMigratedFunction,
+      Iterable<String> pathsToProcess}) async {
+    shouldBeMigratedFunction ??= (String path) => true;
     var testPaths = <String>[];
     files.forEach((String path, String content) {
       newFile(path, content: content);
       testPaths.add(path);
     });
-    await _buildMigrationInfo(testPaths, includedRoot: includedRoot);
+    pathsToProcess ??= testPaths;
+    await _buildMigrationInfo(testPaths,
+        includedRoot: includedRoot,
+        shouldBeMigratedFunction: shouldBeMigratedFunction,
+        pathsToProcess: pathsToProcess);
     // Ignore info for dart:core.
     var filteredInfos = [
       for (var info in infos)
@@ -194,14 +221,16 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
 
   /// Uses the InfoBuilder to build information for files at [testPaths], which
   /// should all share a common parent directory, [includedRoot].
-  Future<void> _buildMigrationInfo(List<String> testPaths,
-      {String includedRoot,
+  Future<void> _buildMigrationInfo(Iterable<String> testPaths,
+      {@required String includedRoot,
+      @required bool Function(String) shouldBeMigratedFunction,
+      @required Iterable<String> pathsToProcess,
       bool removeViaComments = true,
       bool warnOnWeakCode = false}) async {
     // Compute the analysis results.
     var server = DriverProviderImpl(resourceProvider, driver.analysisContext);
     // Run the migration engine.
-    var listener = DartFixListener(server, _exceptionReported);
+    var listener = DartFixListener(server, ListenerClient());
     var instrumentationListener = InstrumentationListener();
     var adapter = NullabilityMigrationAdapter(listener);
     var migration = NullabilityMigration(adapter, getLineInfo,
@@ -218,17 +247,23 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     }
 
     await _forEachPath(migration.prepareInput);
+    expect(migration.unmigratedDependencies, isEmpty);
     await _forEachPath(migration.processInput);
     await _forEachPath(migration.finalizeInput);
     migration.finish();
     // Build the migration info.
     var info = instrumentationListener.data;
+    var logger = TestLogger(false);
     var builder = InfoBuilder(
-        resourceProvider, includedRoot, info, listener, migration, nodeMapper);
+        resourceProvider,
+        includedRoot,
+        info,
+        listener,
+        migration,
+        nodeMapper,
+        logger,
+        shouldBeMigratedFunction,
+        pathsToProcess);
     infos = await builder.explainMigration();
-  }
-
-  void _exceptionReported(String detail) {
-    fail('Unexpected error during migration: $detail');
   }
 }

@@ -18,8 +18,8 @@ class A<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class B<S extends core::Object* = dynamic> extends core::Object {
-  final field core::List<self::A<self::B::S*>*>* foo = <self::A<self::B::S*>*>[];
-  final field core::List<self::A<core::num*>*>* bar = <self::A<core::num*>*>[];
+  final field core::List<self::A<self::B::S*>*>* foo = core::_GrowableList::•<self::A<self::B::S*>*>(0);
+  final field core::List<self::A<core::num*>*>* bar = core::_GrowableList::•<self::A<core::num*>*>(0);
   synthetic constructor •() → self::B<self::B::S*>*
     : super core::Object::•()
     ;

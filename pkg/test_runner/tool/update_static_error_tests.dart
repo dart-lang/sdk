@@ -7,7 +7,9 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:file/file.dart' as pkg_file;
 import 'package:glob/glob.dart';
+import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:test_runner/src/command_output.dart';
@@ -19,9 +21,9 @@ import 'package:test_runner/src/update_errors.dart';
 const _usage =
     "Usage: dart update_static_error_tests.dart [flags...] <path glob>";
 
-final _dartPath = _findBinary("dart");
-final _analyzerPath = _findBinary("dartanalyzer");
-final _dart2jsPath = _findBinary("dart2js");
+final _dartPath = _findBinary("dart", "exe");
+final _analyzerPath = _findBinary("dartanalyzer", "bat");
+final _dart2jsPath = _findBinary("dart2js", "bat");
 
 Future<void> main(List<String> args) async {
   var sources = ErrorSource.all.map((e) => e.marker).toList();
@@ -130,7 +132,7 @@ Future<void> main(List<String> args) async {
   for (var entry in glob.listSync(root: root)) {
     if (!entry.path.endsWith(".dart")) continue;
 
-    if (entry is File) {
+    if (entry is pkg_file.File) {
       await _processFile(entry,
           dryRun: dryRun,
           remove: removeSources,
@@ -268,8 +270,9 @@ Future<List<StaticError>> runCfe(String path, List<String> options) async {
     return null;
   }
   var errors = <StaticError>[];
-  FastaCommandOutput.parseErrors(result.stdout as String, errors);
-  return errors;
+  var warnings = <StaticError>[];
+  FastaCommandOutput.parseErrors(result.stdout as String, errors, warnings);
+  return [...errors, ...warnings];
 }
 
 /// Invoke dart2js on [path] and gather all static errors it reports.
@@ -300,9 +303,9 @@ Future<List<StaticError>> runDart2js(
   return errors;
 }
 
-/// Find the most recently-built [binary] in any of the build directories.
-String _findBinary(String binary) {
-  if (Platform.isWindows) binary += ".bat";
+/// Find the most recently-built binary [name] in any of the build directories.
+String _findBinary(String name, String windowsExtension) {
+  var binary = Platform.isWindows ? "$name.$windowsExtension" : name;
 
   String newestPath;
   DateTime newestTime;
@@ -310,13 +313,13 @@ String _findBinary(String binary) {
   var buildDirectory = Directory(Platform.isMacOS ? "xcodebuild" : "out");
   if (buildDirectory.existsSync()) {
     for (var config in buildDirectory.listSync()) {
-      var analyzerPath = p.join(config.path, "dart-sdk", "bin", binary);
-      var analyzerFile = File(analyzerPath);
-      if (!analyzerFile.existsSync()) continue;
-      var modified = analyzerFile.lastModifiedSync();
+      var path = p.join(config.path, "dart-sdk", "bin", binary);
+      var file = File(path);
+      if (!file.existsSync()) continue;
+      var modified = file.lastModifiedSync();
 
       if (newestTime == null || modified.isAfter(newestTime)) {
-        newestPath = analyzerPath;
+        newestPath = path;
         newestTime = modified;
       }
     }

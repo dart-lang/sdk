@@ -24,7 +24,7 @@ class AddOverrideTest extends FixProcessorLintTest {
   String get lintCode => LintNames.annotate_overrides;
 
   Future<void> test_field() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class Test {
   int get t;
 }
@@ -44,7 +44,7 @@ class Sub extends Test {
   }
 
   Future<void> test_getter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Test {
   int get t => null;
 }
@@ -64,7 +64,7 @@ class Sub extends Test {
   }
 
   Future<void> test_method() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Test {
   void t() { }
 }
@@ -84,7 +84,7 @@ class Sub extends Test {
   }
 
   Future<void> test_method_with_doc_comment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Test {
   void t() { }
 }
@@ -106,7 +106,7 @@ class Sub extends Test {
   }
 
   Future<void> test_method_with_doc_comment_2() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Test {
   void t() { }
 }
@@ -132,7 +132,7 @@ class Sub extends Test {
   }
 
   Future<void> test_method_with_doc_comment_and_metadata() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Test {
   void t() { }
 }
@@ -158,7 +158,7 @@ const foo = '';
   }
 
   Future<void> test_method_with_non_doc_comment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Test {
   void t() { }
 }

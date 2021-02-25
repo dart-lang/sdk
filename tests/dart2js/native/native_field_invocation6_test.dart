@@ -10,12 +10,13 @@ nativeFirst(x, y) native;
 void setup() {
   JS('', r"""
 (function(){
-  nativeFirst = function(x, y) { return x; };
+  self.nativeFirst = function(x, y) { return x; };
 
   function A() {}
-  makeA = function() { return new A() };
+  self.makeA = function() { return new A() };
   self.nativeConstructor(A);
 })()""");
+  applyTestExtensions(['A']);
 }
 
 @Native("A")

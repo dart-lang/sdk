@@ -4955,6 +4955,188 @@ class AvailableSuggestionSet implements HasToJson {
   }
 }
 
+/// BulkFix
+///
+/// {
+///   "path": FilePath
+///   "fixes": List<BulkFixDetail>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class BulkFix implements HasToJson {
+  String _path;
+
+  List<BulkFixDetail> _fixes;
+
+  /// The path of the library.
+  String get path => _path;
+
+  /// The path of the library.
+  set path(String value) {
+    assert(value != null);
+    _path = value;
+  }
+
+  /// A list of bulk fix details.
+  List<BulkFixDetail> get fixes => _fixes;
+
+  /// A list of bulk fix details.
+  set fixes(List<BulkFixDetail> value) {
+    assert(value != null);
+    _fixes = value;
+  }
+
+  BulkFix(String path, List<BulkFixDetail> fixes) {
+    this.path = path;
+    this.fixes = fixes;
+  }
+
+  factory BulkFix.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    json ??= {};
+    if (json is Map) {
+      String path;
+      if (json.containsKey('path')) {
+        path = jsonDecoder.decodeString(jsonPath + '.path', json['path']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'path');
+      }
+      List<BulkFixDetail> fixes;
+      if (json.containsKey('fixes')) {
+        fixes = jsonDecoder.decodeList(
+            jsonPath + '.fixes',
+            json['fixes'],
+            (String jsonPath, Object json) =>
+                BulkFixDetail.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'fixes');
+      }
+      return BulkFix(path, fixes);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'BulkFix', json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = <String, dynamic>{};
+    result['path'] = path;
+    result['fixes'] =
+        fixes.map((BulkFixDetail value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is BulkFix) {
+      return path == other.path &&
+          listEqual(
+              fixes, other.fixes, (BulkFixDetail a, BulkFixDetail b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    var hash = 0;
+    hash = JenkinsSmiHash.combine(hash, path.hashCode);
+    hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/// BulkFixDetail
+///
+/// {
+///   "code": String
+///   "occurrences": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class BulkFixDetail implements HasToJson {
+  String _code;
+
+  int _occurrences;
+
+  /// The code of the diagnostic associated with the fix.
+  String get code => _code;
+
+  /// The code of the diagnostic associated with the fix.
+  set code(String value) {
+    assert(value != null);
+    _code = value;
+  }
+
+  /// The number times the associated diagnostic was fixed in the associated
+  /// source edit.
+  int get occurrences => _occurrences;
+
+  /// The number times the associated diagnostic was fixed in the associated
+  /// source edit.
+  set occurrences(int value) {
+    assert(value != null);
+    _occurrences = value;
+  }
+
+  BulkFixDetail(String code, int occurrences) {
+    this.code = code;
+    this.occurrences = occurrences;
+  }
+
+  factory BulkFixDetail.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    json ??= {};
+    if (json is Map) {
+      String code;
+      if (json.containsKey('code')) {
+        code = jsonDecoder.decodeString(jsonPath + '.code', json['code']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'code');
+      }
+      int occurrences;
+      if (json.containsKey('occurrences')) {
+        occurrences = jsonDecoder.decodeInt(
+            jsonPath + '.occurrences', json['occurrences']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'occurrences');
+      }
+      return BulkFixDetail(code, occurrences);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'BulkFixDetail', json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = <String, dynamic>{};
+    result['code'] = code;
+    result['occurrences'] = occurrences;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is BulkFixDetail) {
+      return code == other.code && occurrences == other.occurrences;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    var hash = 0;
+    hash = JenkinsSmiHash.combine(hash, code.hashCode);
+    hash = JenkinsSmiHash.combine(hash, occurrences.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
 /// ClosingLabel
 ///
 /// {
@@ -5700,168 +5882,6 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
-}
-
-/// completion.listTokenDetails params
-///
-/// {
-///   "file": FilePath
-/// }
-///
-/// Clients may not extend, implement or mix-in this class.
-class CompletionListTokenDetailsParams implements RequestParams {
-  String _file;
-
-  /// The path to the file from which tokens should be returned.
-  String get file => _file;
-
-  /// The path to the file from which tokens should be returned.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
-
-  CompletionListTokenDetailsParams(String file) {
-    this.file = file;
-  }
-
-  factory CompletionListTokenDetailsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    json ??= {};
-    if (json is Map) {
-      String file;
-      if (json.containsKey('file')) {
-        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
-      }
-      return CompletionListTokenDetailsParams(file);
-    } else {
-      throw jsonDecoder.mismatch(
-          jsonPath, 'completion.listTokenDetails params', json);
-    }
-  }
-
-  factory CompletionListTokenDetailsParams.fromRequest(Request request) {
-    return CompletionListTokenDetailsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
-    result['file'] = file;
-    return result;
-  }
-
-  @override
-  Request toRequest(String id) {
-    return Request(id, 'completion.listTokenDetails', toJson());
-  }
-
-  @override
-  String toString() => json.encode(toJson());
-
-  @override
-  bool operator ==(other) {
-    if (other is CompletionListTokenDetailsParams) {
-      return file == other.file;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
-}
-
-/// completion.listTokenDetails result
-///
-/// {
-///   "tokens": List<TokenDetails>
-/// }
-///
-/// Clients may not extend, implement or mix-in this class.
-class CompletionListTokenDetailsResult implements ResponseResult {
-  List<TokenDetails> _tokens;
-
-  /// A list of the file's scanned tokens including analysis information about
-  /// them.
-  List<TokenDetails> get tokens => _tokens;
-
-  /// A list of the file's scanned tokens including analysis information about
-  /// them.
-  set tokens(List<TokenDetails> value) {
-    assert(value != null);
-    _tokens = value;
-  }
-
-  CompletionListTokenDetailsResult(List<TokenDetails> tokens) {
-    this.tokens = tokens;
-  }
-
-  factory CompletionListTokenDetailsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    json ??= {};
-    if (json is Map) {
-      List<TokenDetails> tokens;
-      if (json.containsKey('tokens')) {
-        tokens = jsonDecoder.decodeList(
-            jsonPath + '.tokens',
-            json['tokens'],
-            (String jsonPath, Object json) =>
-                TokenDetails.fromJson(jsonDecoder, jsonPath, json));
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, 'tokens');
-      }
-      return CompletionListTokenDetailsResult(tokens);
-    } else {
-      throw jsonDecoder.mismatch(
-          jsonPath, 'completion.listTokenDetails result', json);
-    }
-  }
-
-  factory CompletionListTokenDetailsResult.fromResponse(Response response) {
-    return CompletionListTokenDetailsResult.fromJson(
-        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
-        'result',
-        response.result);
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
-    result['tokens'] =
-        tokens.map((TokenDetails value) => value.toJson()).toList();
-    return result;
-  }
-
-  @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
-  }
-
-  @override
-  String toString() => json.encode(toJson());
-
-  @override
-  bool operator ==(other) {
-    if (other is CompletionListTokenDetailsResult) {
-      return listEqual(
-          tokens, other.tokens, (TokenDetails a, TokenDetails b) => a == b);
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, tokens.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -7119,11 +7139,14 @@ class DiagnosticGetServerPortResult implements ResponseResult {
 ///
 /// {
 ///   "included": List<FilePath>
+///   "inTestMode": optional bool
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditBulkFixesParams implements RequestParams {
   List<String> _included;
+
+  bool _inTestMode;
 
   /// A list of the files and directories for which edits should be suggested.
   ///
@@ -7148,8 +7171,27 @@ class EditBulkFixesParams implements RequestParams {
     _included = value;
   }
 
-  EditBulkFixesParams(List<String> included) {
+  /// A flag indicating whether the bulk fixes are being run in test mode. The
+  /// only difference is that in test mode the fix processor will look for a
+  /// configuration file that can modify the content of the data file used to
+  /// compute the fixes when data-driven fixes are being considered.
+  ///
+  /// If this field is omitted the flag defaults to false.
+  bool get inTestMode => _inTestMode;
+
+  /// A flag indicating whether the bulk fixes are being run in test mode. The
+  /// only difference is that in test mode the fix processor will look for a
+  /// configuration file that can modify the content of the data file used to
+  /// compute the fixes when data-driven fixes are being considered.
+  ///
+  /// If this field is omitted the flag defaults to false.
+  set inTestMode(bool value) {
+    _inTestMode = value;
+  }
+
+  EditBulkFixesParams(List<String> included, {bool inTestMode}) {
     this.included = included;
+    this.inTestMode = inTestMode;
   }
 
   factory EditBulkFixesParams.fromJson(
@@ -7163,7 +7205,12 @@ class EditBulkFixesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'included');
       }
-      return EditBulkFixesParams(included);
+      bool inTestMode;
+      if (json.containsKey('inTestMode')) {
+        inTestMode = jsonDecoder.decodeBool(
+            jsonPath + '.inTestMode', json['inTestMode']);
+      }
+      return EditBulkFixesParams(included, inTestMode: inTestMode);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'edit.bulkFixes params', json);
     }
@@ -7178,6 +7225,9 @@ class EditBulkFixesParams implements RequestParams {
   Map<String, dynamic> toJson() {
     var result = <String, dynamic>{};
     result['included'] = included;
+    if (inTestMode != null) {
+      result['inTestMode'] = inTestMode;
+    }
     return result;
   }
 
@@ -7193,7 +7243,8 @@ class EditBulkFixesParams implements RequestParams {
   bool operator ==(other) {
     if (other is EditBulkFixesParams) {
       return listEqual(
-          included, other.included, (String a, String b) => a == b);
+              included, other.included, (String a, String b) => a == b) &&
+          inTestMode == other.inTestMode;
     }
     return false;
   }
@@ -7202,6 +7253,7 @@ class EditBulkFixesParams implements RequestParams {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, included.hashCode);
+    hash = JenkinsSmiHash.combine(hash, inTestMode.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -7210,11 +7262,14 @@ class EditBulkFixesParams implements RequestParams {
 ///
 /// {
 ///   "edits": List<SourceFileEdit>
+///   "details": List<BulkFix>
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditBulkFixesResult implements ResponseResult {
   List<SourceFileEdit> _edits;
+
+  List<BulkFix> _details;
 
   /// A list of source edits to apply the recommended changes.
   List<SourceFileEdit> get edits => _edits;
@@ -7225,8 +7280,18 @@ class EditBulkFixesResult implements ResponseResult {
     _edits = value;
   }
 
-  EditBulkFixesResult(List<SourceFileEdit> edits) {
+  /// Details that summarize the fixes associated with the recommended changes.
+  List<BulkFix> get details => _details;
+
+  /// Details that summarize the fixes associated with the recommended changes.
+  set details(List<BulkFix> value) {
+    assert(value != null);
+    _details = value;
+  }
+
+  EditBulkFixesResult(List<SourceFileEdit> edits, List<BulkFix> details) {
     this.edits = edits;
+    this.details = details;
   }
 
   factory EditBulkFixesResult.fromJson(
@@ -7243,7 +7308,17 @@ class EditBulkFixesResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edits');
       }
-      return EditBulkFixesResult(edits);
+      List<BulkFix> details;
+      if (json.containsKey('details')) {
+        details = jsonDecoder.decodeList(
+            jsonPath + '.details',
+            json['details'],
+            (String jsonPath, Object json) =>
+                BulkFix.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'details');
+      }
+      return EditBulkFixesResult(edits, details);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'edit.bulkFixes result', json);
     }
@@ -7261,6 +7336,7 @@ class EditBulkFixesResult implements ResponseResult {
     var result = <String, dynamic>{};
     result['edits'] =
         edits.map((SourceFileEdit value) => value.toJson()).toList();
+    result['details'] = details.map((BulkFix value) => value.toJson()).toList();
     return result;
   }
 
@@ -7275,8 +7351,9 @@ class EditBulkFixesResult implements ResponseResult {
   @override
   bool operator ==(other) {
     if (other is EditBulkFixesResult) {
-      return listEqual(
-          edits, other.edits, (SourceFileEdit a, SourceFileEdit b) => a == b);
+      return listEqual(edits, other.edits,
+              (SourceFileEdit a, SourceFileEdit b) => a == b) &&
+          listEqual(details, other.details, (BulkFix a, BulkFix b) => a == b);
     }
     return false;
   }
@@ -7285,6 +7362,7 @@ class EditBulkFixesResult implements ResponseResult {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    hash = JenkinsSmiHash.combine(hash, details.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -17810,6 +17888,7 @@ class RequestError implements HasToJson {
 ///   FORMAT_INVALID_FILE
 ///   FORMAT_WITH_ERRORS
 ///   GET_ERRORS_INVALID_FILE
+///   GET_FIXES_INVALID_FILE
 ///   GET_IMPORTED_ELEMENTS_INVALID_FILE
 ///   GET_KYTHE_ENTRIES_INVALID_FILE
 ///   GET_NAVIGATION_INVALID_FILE
@@ -17890,6 +17969,11 @@ class RequestErrorCode implements Enum {
   /// a file currently subject to analysis.
   static const RequestErrorCode GET_ERRORS_INVALID_FILE =
       RequestErrorCode._('GET_ERRORS_INVALID_FILE');
+
+  /// An "edit.getFixes" request specified a FilePath which does not match a
+  /// file currently subject to analysis.
+  static const RequestErrorCode GET_FIXES_INVALID_FILE =
+      RequestErrorCode._('GET_FIXES_INVALID_FILE');
 
   /// An "analysis.getImportedElements" request specified a FilePath that does
   /// not match a file currently subject to analysis.
@@ -18022,6 +18106,7 @@ class RequestErrorCode implements Enum {
     FORMAT_INVALID_FILE,
     FORMAT_WITH_ERRORS,
     GET_ERRORS_INVALID_FILE,
+    GET_FIXES_INVALID_FILE,
     GET_IMPORTED_ELEMENTS_INVALID_FILE,
     GET_KYTHE_ENTRIES_INVALID_FILE,
     GET_NAVIGATION_INVALID_FILE,
@@ -18076,6 +18161,8 @@ class RequestErrorCode implements Enum {
         return FORMAT_WITH_ERRORS;
       case 'GET_ERRORS_INVALID_FILE':
         return GET_ERRORS_INVALID_FILE;
+      case 'GET_FIXES_INVALID_FILE':
+        return GET_FIXES_INVALID_FILE;
       case 'GET_IMPORTED_ELEMENTS_INVALID_FILE':
         return GET_IMPORTED_ELEMENTS_INVALID_FILE;
       case 'GET_KYTHE_ENTRIES_INVALID_FILE':
@@ -21092,151 +21179,6 @@ class ServerStatusParams implements HasToJson {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, analysis.hashCode);
     hash = JenkinsSmiHash.combine(hash, pub.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
-}
-
-/// TokenDetails
-///
-/// {
-///   "lexeme": String
-///   "type": optional String
-///   "validElementKinds": optional List<String>
-///   "offset": int
-/// }
-///
-/// Clients may not extend, implement or mix-in this class.
-class TokenDetails implements HasToJson {
-  String _lexeme;
-
-  String _type;
-
-  List<String> _validElementKinds;
-
-  int _offset;
-
-  /// The token's lexeme.
-  String get lexeme => _lexeme;
-
-  /// The token's lexeme.
-  set lexeme(String value) {
-    assert(value != null);
-    _lexeme = value;
-  }
-
-  /// A unique id for the type of the identifier. Omitted if the token is not
-  /// an identifier in a reference position.
-  String get type => _type;
-
-  /// A unique id for the type of the identifier. Omitted if the token is not
-  /// an identifier in a reference position.
-  set type(String value) {
-    _type = value;
-  }
-
-  /// An indication of whether this token is in a declaration or reference
-  /// position. (If no other purpose is found for this field then it should be
-  /// renamed and converted to a boolean value.) Omitted if the token is not an
-  /// identifier.
-  List<String> get validElementKinds => _validElementKinds;
-
-  /// An indication of whether this token is in a declaration or reference
-  /// position. (If no other purpose is found for this field then it should be
-  /// renamed and converted to a boolean value.) Omitted if the token is not an
-  /// identifier.
-  set validElementKinds(List<String> value) {
-    _validElementKinds = value;
-  }
-
-  /// The offset of the first character of the token in the file which it
-  /// originated from.
-  int get offset => _offset;
-
-  /// The offset of the first character of the token in the file which it
-  /// originated from.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
-
-  TokenDetails(String lexeme, int offset,
-      {String type, List<String> validElementKinds}) {
-    this.lexeme = lexeme;
-    this.type = type;
-    this.validElementKinds = validElementKinds;
-    this.offset = offset;
-  }
-
-  factory TokenDetails.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    json ??= {};
-    if (json is Map) {
-      String lexeme;
-      if (json.containsKey('lexeme')) {
-        lexeme = jsonDecoder.decodeString(jsonPath + '.lexeme', json['lexeme']);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, 'lexeme');
-      }
-      String type;
-      if (json.containsKey('type')) {
-        type = jsonDecoder.decodeString(jsonPath + '.type', json['type']);
-      }
-      List<String> validElementKinds;
-      if (json.containsKey('validElementKinds')) {
-        validElementKinds = jsonDecoder.decodeList(
-            jsonPath + '.validElementKinds',
-            json['validElementKinds'],
-            jsonDecoder.decodeString);
-      }
-      int offset;
-      if (json.containsKey('offset')) {
-        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
-      }
-      return TokenDetails(lexeme, offset,
-          type: type, validElementKinds: validElementKinds);
-    } else {
-      throw jsonDecoder.mismatch(jsonPath, 'TokenDetails', json);
-    }
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
-    result['lexeme'] = lexeme;
-    if (type != null) {
-      result['type'] = type;
-    }
-    if (validElementKinds != null) {
-      result['validElementKinds'] = validElementKinds;
-    }
-    result['offset'] = offset;
-    return result;
-  }
-
-  @override
-  String toString() => json.encode(toJson());
-
-  @override
-  bool operator ==(other) {
-    if (other is TokenDetails) {
-      return lexeme == other.lexeme &&
-          type == other.type &&
-          listEqual(validElementKinds, other.validElementKinds,
-              (String a, String b) => a == b) &&
-          offset == other.offset;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, lexeme.hashCode);
-    hash = JenkinsSmiHash.combine(hash, type.hashCode);
-    hash = JenkinsSmiHash.combine(hash, validElementKinds.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

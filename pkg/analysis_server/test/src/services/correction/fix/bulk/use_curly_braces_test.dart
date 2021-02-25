@@ -19,7 +19,7 @@ class UseCurlyBracesTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.curly_braces_in_flow_control_structures;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   while (true) if (false) print('');
 }

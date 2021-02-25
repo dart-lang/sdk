@@ -120,7 +120,7 @@ class _ApiModel {
     return false;
   }
 
-  void _calculate() async {
+  Future<void> _calculate() async {
     if (sources == null || sources.isEmpty) {
       return;
     }

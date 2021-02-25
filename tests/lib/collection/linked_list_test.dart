@@ -11,16 +11,19 @@ class MyEntry extends LinkedListEntry<MyEntry> {
   MyEntry(int this.value);
 
   String toString() => value.toString();
+
+  int get hashCode => value.hashCode;
+  bool operator ==(Object o) => o is MyEntry && value == o.value;
 }
 
-testPreviousNext() {
-  var list = new LinkedList<MyEntry>();
+void testPreviousNext() {
+  var list = LinkedList<MyEntry>();
   Expect.throws(() => list.first);
   Expect.throws(() => list.last);
   Expect.equals(0, list.length);
 
   for (int i = 0; i < 3; i++) {
-    list.add(new MyEntry(i));
+    list.add(MyEntry(i));
   }
   Expect.equals(3, list.length);
 
@@ -39,11 +42,11 @@ testPreviousNext() {
   Expect.isNull(entry.previous);
 }
 
-testUnlinked() {
-  var unlinked = new MyEntry(0);
+void testUnlinked() {
+  var unlinked = MyEntry(0);
   Expect.isNull(unlinked.previous);
   Expect.isNull(unlinked.next);
-  var list = new LinkedList<MyEntry>();
+  var list = LinkedList<MyEntry>();
   list.add(unlinked);
   Expect.isNull(unlinked.previous);
   Expect.isNull(unlinked.next);
@@ -51,7 +54,7 @@ testUnlinked() {
   Expect.isNull(unlinked.previous);
   Expect.isNull(unlinked.next);
   list.add(unlinked);
-  list.add(new MyEntry(1));
+  list.add(MyEntry(1));
   Expect.isNull(unlinked.previous);
   Expect.equals(1, unlinked.next!.value);
   list.remove(unlinked);
@@ -62,11 +65,11 @@ testUnlinked() {
   Expect.equals(1, unlinked.previous!.value);
 }
 
-testInsert() {
+void testInsert() {
   // Insert last.
-  var list = new LinkedList<MyEntry>();
+  var list = LinkedList<MyEntry>();
   for (int i = 0; i < 10; i++) {
-    list.add(new MyEntry(i));
+    list.add(MyEntry(i));
   }
 
   Expect.equals(10, list.length);
@@ -83,7 +86,7 @@ testInsert() {
 
   // Insert first.
   for (int i = 0; i < 10; i++) {
-    list.addFirst(new MyEntry(i));
+    list.addFirst(MyEntry(i));
   }
 
   Expect.equals(10, list.length);
@@ -97,9 +100,9 @@ testInsert() {
   list.clear();
 
   // Insert after.
-  list.addFirst(new MyEntry(0));
+  list.addFirst(MyEntry(0));
   for (int i = 1; i < 10; i++) {
-    list.last.insertAfter(new MyEntry(i));
+    list.last.insertAfter(MyEntry(i));
   }
 
   Expect.equals(10, list.length);
@@ -115,9 +118,9 @@ testInsert() {
   list.clear();
 
   // Insert before.
-  list.addFirst(new MyEntry(0));
+  list.addFirst(MyEntry(0));
   for (int i = 1; i < 10; i++) {
-    list.first.insertBefore(new MyEntry(i));
+    list.first.insertBefore(MyEntry(i));
   }
 
   Expect.equals(10, list.length);
@@ -131,10 +134,10 @@ testInsert() {
   list.clear();
 }
 
-testRemove() {
-  var list = new LinkedList<MyEntry>();
+void testRemove() {
+  var list = LinkedList<MyEntry>();
   for (int i = 0; i < 10; i++) {
-    list.add(new MyEntry(i));
+    list.add(MyEntry(i));
   }
 
   Expect.equals(10, list.length);
@@ -162,21 +165,51 @@ testRemove() {
   Expect.equals(0, list.length);
 }
 
-testBadAdd() {
-  var list1 = new LinkedList<MyEntry>();
-  list1.addFirst(new MyEntry(0));
+void testContains() {
+  var list = LinkedList<MyEntry>();
+  var entry5 = MyEntry(5);
 
-  var list2 = new LinkedList<MyEntry>();
-  Expect.throws(() => list2.addFirst(list1.first));
+  // Empty lists contains nothing.
+  Expect.isFalse(list.contains(null));
+  Expect.isFalse(list.contains(Object()));
+  Expect.isFalse(list.contains(entry5));
 
-  Expect.throws(() => new MyEntry(0).unlink());
+  // Works for singleton lists.
+  list.add(MyEntry(0));
+  Expect.isTrue(list.contains(list.first));
+  Expect.isFalse(list.contains(null));
+  Expect.isFalse(list.contains(Object()));
+  Expect.isFalse(list.contains(entry5));
+
+  // Works for larger lists.
+  for (int i = 1; i < 10; i++) {
+    list.add(MyEntry(i));
+  }
+  for (var entry in list) {
+    Expect.isTrue(list.contains(entry));
+  }
+  Expect.isFalse(list.contains(Object()));
+  Expect.isFalse(list.contains(null));
+  Expect.isFalse(list.contains(entry5));
+  // Based on identity, not equality.
+  Expect.equals(entry5, list.elementAt(5));
 }
 
-testConcurrentModificationError() {
+void testBadAdd() {
+  var list1 = LinkedList<MyEntry>();
+  list1.addFirst(MyEntry(0));
+
+  var list2 = LinkedList<MyEntry>();
+  Expect.throws(() => list2.addFirst(list1.first));
+
+  Expect.throws(() => MyEntry(0).unlink());
+}
+
+void testConcurrentModificationError() {
   test(function(LinkedList<MyEntry> ll)) {
-    var ll = new LinkedList<MyEntry>();
+    var ll = LinkedList<MyEntry>();
     for (int i = 0; i < 10; i++) {
-      ll.add(new MyEntry(i));
+      ll.add(MyEntry(i));
     }
     Expect.throws(() => function(ll), (e) => e is ConcurrentModificationError);
   }
@@ -269,11 +302,12 @@ testConcurrentModificationError() {
   });
 }
 
-main() {
+void main() {
   testPreviousNext();
   testUnlinked();
   testInsert();
   testRemove();
+  testContains();
   testBadAdd();
   testConcurrentModificationError();
 }

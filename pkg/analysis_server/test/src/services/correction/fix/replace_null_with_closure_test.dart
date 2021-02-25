@@ -24,7 +24,7 @@ class ReplaceNullWithClosureTest extends FixProcessorLintTest {
   String get lintCode => LintNames.null_closures;
 
   Future<void> test_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(List<int> l) {
   l.firstWhere((e) => e.isEven, orElse: null);
 }
@@ -37,7 +37,7 @@ void f(List<int> l) {
   }
 
   Future<void> test_named_withArgs() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   s.splitMapJoin('', onNonMatch: null);
 }
@@ -50,7 +50,7 @@ void f(String s) {
   }
 
   Future<void> test_required() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(List<int> l) {
   l.firstWhere(null);
 }

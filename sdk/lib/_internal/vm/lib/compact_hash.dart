@@ -24,13 +24,13 @@ abstract class _HashFieldBase {
   // least one unoccupied entry.
   // NOTE: When maps are deserialized, their _index and _hashMask is regenerated
   // eagerly by _regenerateIndex.
-  Uint32List _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
+  Uint32List _index = _initialIndex;
 
   // Cached in-place mask for the hash pattern component.
-  int _hashMask = _HashBase._indexSizeToHashMask(_HashBase._INITIAL_INDEX_SIZE);
+  int _hashMask = 0;
 
   // Fixed-length list of keys (set) or key/value at even/odd indices (map).
-  List _data;
+  List _data = _initialData;
 
   // Length of _data that is used (i.e., keys + values for a map).
   int _usedData = 0;
@@ -41,38 +41,48 @@ abstract class _HashFieldBase {
   // Note: All fields are initialized in a single constructor so that the VM
   // recognizes they cannot hold null values. This makes a big (20%) performance
   // difference on some operations.
-  _HashFieldBase(int dataSize) : this._data = new List.filled(dataSize, null);
+  _HashFieldBase(int dataSize);
 }
 
 // Base class for VM-internal classes; keep in sync with _HashFieldBase.
 abstract class _HashVMBase {
+  @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:typed_data#_Uint32List")
   @pragma("vm:prefer-inline")
   Uint32List get _index native "LinkedHashMap_getIndex";
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   void set _index(Uint32List value) native "LinkedHashMap_setIndex";
 
+  @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
   int get _hashMask native "LinkedHashMap_getHashMask";
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   void set _hashMask(int value) native "LinkedHashMap_setHashMask";
 
+  @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_List")
   @pragma("vm:prefer-inline")
   List get _data native "LinkedHashMap_getData";
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   void set _data(List value) native "LinkedHashMap_setData";
 
+  @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
   int get _usedData native "LinkedHashMap_getUsedData";
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   void set _usedData(int value) native "LinkedHashMap_setUsedData";
 
+  @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
   int get _deletedKeys native "LinkedHashMap_getDeletedKeys";
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   void set _deletedKeys(int value) native "LinkedHashMap_setDeletedKeys";
 }
@@ -87,7 +97,7 @@ abstract class _HashBase implements _HashVMBase {
   // are doubled when _data is full. Thus, _index will have a max load factor
   // of 1/2, which enables one more bit to be used for the hash.
   // TODO(koda): Consider growing _data by factor sqrt(2), twice as often.
-  static const int _INITIAL_INDEX_BITS = 3;
+  static const int _INITIAL_INDEX_BITS = 2;
   static const int _INITIAL_INDEX_SIZE = 1 << (_INITIAL_INDEX_BITS + 1);
 
   // Unused and deleted entries are marked by 0 and 1, respectively.
@@ -145,6 +155,12 @@ class _IdenticalAndIdentityHashCode {
   bool _equals(e1, e2) => identical(e1, e2);
 }
 
+final _initialIndex = new Uint32List(1);
+// Note: not const. Const arrays are made immutable by having a different class
+// than regular arrays that throws on element assignment. We want the data field
+// in maps and sets to be monomorphic.
+final _initialData = new List.filled(0, null);
+
 // VM-internalized implementation of a default-constructed LinkedHashMap.
 @pragma("vm:entry-point")
 class _InternalLinkedHashMap<K, V> extends _HashVMBase
@@ -155,9 +171,9 @@ class _InternalLinkedHashMap<K, V> extends _HashVMBase
         _OperatorEqualsAndHashCode
     implements LinkedHashMap<K, V> {
   _InternalLinkedHashMap() {
-    _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
-    _hashMask = _HashBase._indexSizeToHashMask(_HashBase._INITIAL_INDEX_SIZE);
-    _data = new List.filled(_HashBase._INITIAL_INDEX_SIZE, null);
+    _index = _initialIndex;
+    _hashMask = 0;
+    _data = _initialData;
     _usedData = 0;
     _deletedKeys = 0;
   }
@@ -192,6 +208,10 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
 
   // Allocate new _index and _data, and optionally copy existing contents.
   void _init(int size, int hashMask, List? oldData, int oldUsed) {
+    if (size < _HashBase._INITIAL_INDEX_SIZE) {
+      size = _HashBase._INITIAL_INDEX_SIZE;
+      hashMask = _HashBase._indexSizeToHashMask(size);
+    }
     assert(size & (size - 1) == 0);
     assert(_HashBase._UNUSED_PAIR == 0);
     _index = new Uint32List(size);
@@ -212,7 +232,7 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
 
   // This method is called by [_rehashObjects] (see above).
   void _regenerateIndex() {
-    _index = new Uint32List(_data.length);
+    _index = _data.length == 0 ? _initialIndex : new Uint32List(_data.length);
     assert(_hashMask == 0);
     _hashMask = _HashBase._indexSizeToHashMask(_index.length);
     final int tmpUsed = _usedData;
@@ -464,10 +484,7 @@ class _CompactIterator<E> implements Iterator<E> {
     }
   }
 
-  E get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as E;
-  }
+  E get current => _current as E;
 }
 
 // Set implementation, analogous to _CompactLinkedHashMap.
@@ -519,6 +536,10 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
   }
 
   void _init(int size, int hashMask, List? oldData, int oldUsed) {
+    if (size < _HashBase._INITIAL_INDEX_SIZE) {
+      size = _HashBase._INITIAL_INDEX_SIZE;
+      hashMask = _HashBase._indexSizeToHashMask(size);
+    }
     _index = new Uint32List(size);
     _hashMask = hashMask;
     _data = new List.filled(size >> 1, null);

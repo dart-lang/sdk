@@ -42,6 +42,11 @@ class Flags {
   // Experimentally rely on JavaScript ToBoolean conversions.
   static const String experimentToBoolean = '--experiment-code-3';
 
+  // Experiment to make methods that are inferred as unreachable throw an
+  // exception rather than generate suspect code.
+  static const String experimentUnreachableMethodsThrow =
+      '--experiment-unreachable-throw';
+
   // Add instrumentation to log every method call.
   static const String experimentCallInstrumentation =
       '--experiment-call-instrumentation';
@@ -70,6 +75,10 @@ class Flags {
       '--no-frequency-based-minification';
   // Disables minification even if enabled by other options, e.g. '-O2'.
   static const String noMinify = '--no-minify';
+
+  static const String nativeNullAssertions = '--native-null-assertions';
+  static const String noNativeNullAssertions = '--no-native-null-assertions';
+
   static const String noSourceMaps = '--no-source-maps';
   static const String preserveUris = '--preserve-uris';
   static const String printLegacyStars = '--debug-print-legacy-stars';
@@ -87,6 +96,7 @@ class Flags {
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String useOldRti = '--use-old-rti';
   static const String verbose = '--verbose';
+  static const String verbosity = '--verbosity';
   static const String progress = '--show-internal-progress';
   static const String version = '--version';
   static const String reportMetrics = '--report-metrics';
@@ -95,6 +105,8 @@ class Flags {
   static const String dillDependencies = '--dill-dependencies';
   static const String readData = '--read-data';
   static const String writeData = '--write-data';
+  static const String writeClosedWorld = '--write-closed-world';
+  static const String readClosedWorld = '--read-closed-world';
   static const String readCodegen = '--read-codegen';
   static const String writeCodegen = '--write-codegen';
   static const String codegenShard = '--codegen-shard';
@@ -106,13 +118,7 @@ class Flags {
 
   static const String soundNullSafety = '--sound-null-safety';
   static const String noSoundNullSafety = '--no-sound-null-safety';
-
-  static const String newDeferredSplit = '--new-deferred-split';
-  static const String noNewDeferredSplit = '--no-new-deferred-split';
-  static const String reportInvalidInferredDeferredTypes =
-      '--report-invalid-deferred-types';
-  static const String deferClassTypes = '--defer-class-types';
-  static const String noDeferClassTypes = '--no-defer-class-types';
+  static const String mergeFragmentsThreshold = '--merge-fragments-threshold';
 
   /// Flag for a combination of flags for 'production' mode.
   static const String benchmarkingProduction = '--benchmarking-production';
@@ -121,6 +127,8 @@ class Flags {
   static const String benchmarkingExperiment = '--benchmarking-x';
 
   static const String conditionalDirectives = '--conditional-directives';
+
+  static const String cfeInvocationModes = '--cfe-invocation-modes';
 
   // The syntax-only level of support for generic methods is included in the
   // 1.50 milestone for Dart. It is not experimental, but also not permanent:

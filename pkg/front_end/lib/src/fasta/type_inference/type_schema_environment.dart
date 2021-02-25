@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -147,8 +149,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     if (isNonNullableByDefault) {
       if (contextType is! NeverType &&
           type1 is! NeverType &&
-          isSubtypeOf(contextType, coreTypes.numNonNullableRawType,
-              SubtypeCheckMode.withNullabilities) &&
           isSubtypeOf(type1, coreTypes.numNonNullableRawType,
               SubtypeCheckMode.withNullabilities)) {
         // If e is an expression of the form e1 + e2, e1 - e2, e1 * e2, e1 % e2
@@ -267,7 +267,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
         returnContextType = new TypeVariableEliminator(
                 clientLibrary.isNonNullableByDefault
                     ? const NeverType(Nullability.nonNullable)
-                    : nullType,
+                    : const NullType(),
                 clientLibrary.isNonNullableByDefault
                     ? objectNullableRawType
                     : objectLegacyRawType)
@@ -399,7 +399,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       // TODO(paulberry): this matches what is defined in the spec.  It would be
       // nice if we could change kernel to match the spec and not have to
       // override.
-      if (member.name.name == 'remainder') return false;
+      if (member.name.text == 'remainder') return false;
       if (!(receiverType is InterfaceType &&
           identical(receiverType.classNode, coreTypes.intClass))) {
         return false;
@@ -431,7 +431,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       TypeConstraint constraint, DartType topType, DartType bottomType,
       {bool grounded: false, bool isContravariant: false}) {
     assert(bottomType == const NeverType(Nullability.nonNullable) ||
-        bottomType == coreTypes.nullType);
+        bottomType == const NullType());
     if (!isContravariant) {
       // Prefer the known bound, if any.
       if (isKnown(constraint.lower)) return constraint.lower;
@@ -504,7 +504,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             : const DynamicType(),
         clientLibrary.isNonNullableByDefault
             ? const NeverType(Nullability.nonNullable)
-            : nullType,
+            : const NullType(),
         grounded: true,
         isContravariant: isContravariant);
   }
@@ -518,7 +518,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             : const DynamicType(),
         clientLibrary.isNonNullableByDefault
             ? const NeverType(Nullability.nonNullable)
-            : nullType);
+            : const NullType());
     if (!isKnown(t)) {
       return t;
     }
@@ -540,7 +540,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
               : const DynamicType(),
           clientLibrary.isNonNullableByDefault
               ? const NeverType(Nullability.nonNullable)
-              : nullType);
+              : const NullType());
     }
     return t;
   }

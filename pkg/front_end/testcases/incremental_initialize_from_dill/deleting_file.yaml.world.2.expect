@@ -1,4 +1,4 @@
-main = <No Member>;
+main = main::main;
 library from "org-dartlang-test:///b.dart" as b {
 //
 // Problems in library:

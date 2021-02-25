@@ -305,7 +305,7 @@ class Response {
   /// with the given [id].  If [_result] is provided, it will be used as the
   /// result; otherwise an empty result will be used.  If an [error] is provided
   /// then the response will represent an error condition.
-  Response(this.id, {Map<String, Object> result, this.error}) : result = result;
+  Response(this.id, {this.result, this.error});
 
   /// Create and return the `DEBUG_PORT_COULD_NOT_BE_OPENED` error response.
   Response.debugPortCouldNotBeOpened(Request request, dynamic error)
@@ -364,6 +364,13 @@ class Response {
       : this(request.id,
             error: RequestError(RequestErrorCode.GET_ERRORS_INVALID_FILE,
                 'Error during `analysis.getErrors`: invalid file.'));
+
+  /// Initialize a newly created instance to represent the
+  /// GET_FIXES_INVALID_FILE error condition.
+  Response.getFixesInvalidFile(Request request)
+      : this(request.id,
+            error: RequestError(RequestErrorCode.GET_FIXES_INVALID_FILE,
+                'Error during `edit.getFixes`: invalid file.'));
 
   /// Initialize a newly created instance to represent the
   /// GET_IMPORTED_ELEMENTS_INVALID_FILE error condition.

@@ -21,7 +21,7 @@ class ReplaceBooleanWithBoolTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL;
 
   Future<void> test_all() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   boolean v;
   boolean w;
@@ -36,7 +36,7 @@ main() {
   }
 
   Future<void> test_single() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   boolean v;
   print(v);

@@ -1,0 +1,37 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/language_issue1182.dart:11:25: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'S Function(S)'.
+//     S Function(S) f = x.test;
+//                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo<S extends core::num* = core::num*> extends core::Object {
+  synthetic constructor •() → self::Foo<self::Foo::S*>*
+    : super core::Object::•()
+    ;
+  method test1(generic-covariant-impl self::Foo::S* x) → void {
+    (self::Foo::S*) →* self::Foo::S* f = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/extensions/language_issue1182.dart:11:25: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'S Function(S)'.
+    S Function(S) f = x.test;
+                        ^" in self::Test|get#test<core::num*>(x) as{TypeError} <BottomType>;
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Test<T extends core::Object* = dynamic> on T* {
+  get test = self::Test|get#test;
+}
+static method Test|get#test<T extends core::Object* = dynamic>(lowered final self::Test|get#test::T* #this) → (self::Test|get#test::T*) →* self::Test|get#test::T*
+  return (self::Test|get#test::T* a) → self::Test|get#test::T* => #this;
+static method main() → void {}

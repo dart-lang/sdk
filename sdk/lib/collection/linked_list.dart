@@ -6,7 +6,7 @@ part of dart.collection;
 
 /// A specialized double-linked list of elements that extends [LinkedListEntry].
 ///
-/// This is not a generic data structure. It only accepts elements that extend
+/// This is not a generic data structure. It only accepts elements that *extend*
 /// the [LinkedListEntry] class. See the [Queue] implementations for generic
 /// collections that allow constant time adding and removing at the ends.
 ///
@@ -17,6 +17,9 @@ part of dart.collection;
 /// Because the elements themselves contain the links of this linked list,
 /// each element can be in only one list at a time. To add an element to another
 /// list, it must first be removed from its current list (if any).
+/// For the same reason, the [remove] and [contains] methods
+/// are based on *identity*, even if the [LinkedListEntry] chooses
+/// to override [Object.==].
 ///
 /// In return, each element knows its own place in the linked list, as well as
 /// which list it is in. This allows constant time
@@ -30,16 +33,16 @@ class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
   int _length = 0;
   E? _first;
 
-  /// Construct a new empty linked list.
+  /// Constructs a new empty linked list.
   LinkedList();
 
-  /// Add [entry] to the beginning of the linked list.
+  /// Adds [entry] to the beginning of the linked list.
   void addFirst(E entry) {
     _insertBefore(_first, entry, updateFirst: true);
     _first = entry;
   }
 
-  /// Add [entry] to the end of the linked list.
+  /// Adds [entry] to the end of the linked list.
   void add(E entry) {
     _insertBefore(_first, entry, updateFirst: false);
   }
@@ -49,7 +52,7 @@ class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
     entries.forEach(add);
   }
 
-  /// Remove [entry] from the linked list.
+  /// Removes [entry] from the linked list.
   ///
   /// Returns false and does nothing if [entry] is not in this linked list.
   ///
@@ -60,6 +63,13 @@ class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
     _unlink(entry); // Unlink will decrement length.
     return true;
   }
+
+  /// Whether [entry] is a [LinkedListEntry] belonging to this list.
+  ///
+  /// The [entry] is considered as belonging to this list if
+  /// its [LinkedListEntry.list] is this list.
+  bool contains(Object? entry) =>
+      entry is LinkedListEntry && identical(this, entry.list);
 
   Iterator<E> get iterator => _LinkedListIterator<E>(this);
 
@@ -181,10 +191,7 @@ class _LinkedListIterator<E extends LinkedListEntry<E>> implements Iterator<E> {
         _next = list._first,
         _visitedFirst = false;
 
-  E get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as E;
-  }
+  E get current => _current as E;
 
   bool moveNext() {
     if (_modificationCount != _list._modificationCount) {
@@ -218,9 +225,9 @@ abstract class LinkedListEntry<E extends LinkedListEntry<E>> {
   E? _next;
   E? _previous;
 
-  /// Get the linked list containing this element.
+  /// The linked list containing this element.
   ///
-  /// Returns `null` if this entry is not currently in any list.
+  /// The value is `null` if this entry is not currently in any list.
   LinkedList<E>? get list => _list;
 
   /// Unlink the element from its linked list.
@@ -230,19 +237,19 @@ abstract class LinkedListEntry<E extends LinkedListEntry<E>> {
     _list!._unlink(this as E);
   }
 
-  /// Return the successor of this element in its linked list.
+  /// The successor of this element in its linked list.
   ///
-  /// Returns `null` if there is no successor in the linked list, or if this
-  /// entry is not currently in any list.
+  /// The value is  `null` if there is no successor in the linked list,
+  /// or if this entry is not currently in any list.
   E? get next {
     if (_list == null || identical(_list!.first, _next)) return null;
     return _next;
   }
 
-  /// Return the predecessor of this element in its linked list.
+  /// The predecessor of this element in its linked list.
   ///
-  /// Returns `null` if there is no predecessor in the linked list, or if this
-  /// entry is not currently in any list.
+  /// The value is `null` if there is no predecessor in the linked list,
+  /// or if this entry is not currently in any list.
   E? get previous {
     if (_list == null || identical(this, _list!.first)) return null;
     return _previous;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.never_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
@@ -12,9 +14,12 @@ import 'nullability_builder.dart';
 import 'type_builder.dart';
 
 class NeverTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
-  NeverTypeDeclarationBuilder(
-      DartType type, LibraryBuilder compilationUnit, int charOffset)
-      : super("Never", type, compilationUnit, charOffset);
+  final LibraryBuilder coreLibrary;
+
+  NeverTypeDeclarationBuilder(DartType type, this.coreLibrary, int charOffset)
+      : super("Never", type, coreLibrary, charOffset) {
+    assert(coreLibrary.importUri == Uri.parse('dart:core'));
+  }
 
   String get debugName => "NeverTypeDeclarationBuilder";
 

@@ -50,6 +50,17 @@ class Resolver : public AllStatic {
       const String& function_name,
       bool allow_add);
 
+  // Resolve instance function [function_name] with any args, it doesn't
+  // allow adding methods during resolution: [allow_add] is [false].
+  static FunctionPtr ResolveDynamicFunction(Zone* zone,
+                                            const Class& receiver_class,
+                                            const String& function_name);
+  // Resolve static or instance function [function_name] with any args, it
+  // doesn't allow adding methods during resolution: [allow_add] is [false].
+  static FunctionPtr ResolveFunction(Zone* zone,
+                                     const Class& receiver_class,
+                                     const String& function_name);
+
   // Resolve specified dart static function. If library.IsNull, use
   // either application library or core library if no application library
   // exists. Passing negative num_arguments means that the function

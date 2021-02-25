@@ -87,6 +87,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
     }
 
     final pos = params.position;
+    final textDocument = params.textDocument;
     final path = pathOfDoc(params.textDocument);
     // If the client provided us a version doc identifier, we'll use it to ensure
     // we're not computing a rename for an old document. If not, we'll just assume
@@ -94,9 +95,13 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
     // and then use it to verify the document hadn't changed again before we
     // send the edits.
     final docIdentifier = await path.mapResult((path) => success(
-        params.textDocument is VersionedTextDocumentIdentifier
-            ? params.textDocument
-            : server.getVersionedDocumentIdentifier(path)));
+        textDocument is OptionalVersionedTextDocumentIdentifier
+            ? textDocument
+            : textDocument is VersionedTextDocumentIdentifier
+                ? OptionalVersionedTextDocumentIdentifier(
+                    uri: textDocument.uri, version: textDocument.version)
+                : server.getVersionedDocumentIdentifier(path)));
+
     final unit = await path.mapResult(requireResolvedUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
@@ -126,7 +131,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
       if (token.isCancellationRequested) {
         return cancelled();
       }
-      if (initStatus.hasError) {
+      if (initStatus.hasFatalError) {
         return error(
             ServerErrorCodes.RenameNotValid, initStatus.problem.message, null);
       }
@@ -144,9 +149,30 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
       if (token.isCancellationRequested) {
         return cancelled();
       }
-      if (finalStatus.hasError) {
+      if (finalStatus.hasFatalError) {
         return error(
             ServerErrorCodes.RenameNotValid, finalStatus.problem.message, null);
+      } else if (finalStatus.hasError || finalStatus.hasWarning) {
+        // Ask the user whether to proceed with the rename.
+        final userChoice = await server.showUserPrompt(
+          MessageType.Warning,
+          finalStatus.message,
+          [
+            MessageActionItem(title: UserPromptActions.renameAnyway),
+            MessageActionItem(title: UserPromptActions.cancel),
+          ],
+        );
+
+        if (token.isCancellationRequested) {
+          return cancelled();
+        }
+
+        if (userChoice.title != UserPromptActions.renameAnyway) {
+          // Return an empty workspace edit response so we do not perform any
+          // rename, but also so we do not cause the client to show the user an
+          // error after they clicked cancel.
+          return success(emptyWorkspaceEdit);
+        }
       }
 
       // Compute the actual change.
@@ -157,10 +183,8 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
 
       // Before we send anything back, ensure the original file didn't change
       // while we were computing changes.
-      if (server.getVersionedDocumentIdentifier(path.result) !=
-          docIdentifier.result) {
-        return error(ErrorCodes.ContentModified,
-            'Document was modified while rename was being computed', null);
+      if (fileHasBeenModified(path.result, docIdentifier.result.version)) {
+        return fileModifiedError;
       }
 
       final workspaceEdit = createWorkspaceEdit(server, change.edits);

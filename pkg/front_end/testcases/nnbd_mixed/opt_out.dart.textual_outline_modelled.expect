@@ -1,0 +1,19 @@
+import 'opt_out_lib.dart';
+List<String?> l = [];
+String? s = null;
+class A<T> {
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  int field = 42;
+}
+class B extends A<String?> {}
+typedef F = void Function()?;
+var t = s!;
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+int field = 42;
+main() {}
+noErrors() {}
+void method(void f()?, {required int a}) {}

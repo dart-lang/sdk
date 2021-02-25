@@ -202,7 +202,7 @@ class KGetter extends KFunction {
   KGetter(KLibrary library, KClass enclosingClass, Name name,
       AsyncMarker asyncMarker,
       {bool isStatic, bool isExternal, this.isAbstract})
-      : super(library, enclosingClass, name, const ParameterStructure.getter(),
+      : super(library, enclosingClass, name, ParameterStructure.getter,
             asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
 
@@ -219,7 +219,7 @@ class KSetter extends KFunction {
 
   KSetter(KLibrary library, KClass enclosingClass, Name name,
       {bool isStatic, bool isExternal, this.isAbstract})
-      : super(library, enclosingClass, name, const ParameterStructure.setter(),
+      : super(library, enclosingClass, name, ParameterStructure.setter,
             AsyncMarker.SYNC,
             isStatic: isStatic, isExternal: isExternal);
 

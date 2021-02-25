@@ -1,4 +1,4 @@
-main = <No Member>;
+main = main::main;
 library from "org-dartlang-test:///lib.dart" as lib {
 //
 // Problems in library:
@@ -9,7 +9,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
 //
 
   class C extends dart.core::Object {
-    static field dynamic _redirecting# = <dynamic>[lib::C::e4];
+    static final field dynamic _redirecting# = <dynamic>[lib::C::e4];
     constructor •() → lib::C*
       : super dart.core::Object::•()
       ;

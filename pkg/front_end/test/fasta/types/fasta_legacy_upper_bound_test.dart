@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:kernel/ast.dart" show DartType, Library;
 
 import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
@@ -36,6 +38,9 @@ class FastaLegacyUpperBoundTest extends LegacyUpperBoundTest {
   FastaLegacyUpperBoundTest(this.ticker, this.context);
 
   @override
+  bool get isNonNullableByDefault => false;
+
+  @override
   Future<void> parseComponent(String source) async {
     await super.parseComponent(source);
 
@@ -44,11 +49,11 @@ class FastaLegacyUpperBoundTest extends LegacyUpperBoundTest {
         await context.options.getUriTranslator(),
         new NoneTarget(new TargetFlags()));
     final DillLoader loader = target.loader;
-    loader.appendLibraries(component);
+    loader.appendLibraries(env.component);
     await target.buildOutlines();
     ClassBuilder objectClass =
         loader.coreLibrary.lookupLocalMember("Object", required: true);
-    hierarchy = new ClassHierarchyBuilder(objectClass, loader, coreTypes);
+    hierarchy = new ClassHierarchyBuilder(objectClass, loader, env.coreTypes);
   }
 
   @override

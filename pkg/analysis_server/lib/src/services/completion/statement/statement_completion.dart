@@ -14,7 +14,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -203,7 +202,24 @@ class StatementCompletionProcessor {
 
   void _addReplaceEdit(SourceRange range, String text) {
     var edit = SourceEdit(range.offset, range.length, text);
-    doSourceChange_addElementEdit(change, unitElement, edit);
+    // TODO(brianwilkerson) The commented out function call has been inlined in
+    //  order to work around a situation in which _complete_doStatement creates
+    //  a conflicting edit that happens to work because of the order in which
+    //  the edits are applied. The implementation needs to be cleaned up in
+    //  order to prevent the conflicting edit from being generated.
+    // doSourceChange_addElementEdit(change, unitElement, edit);
+    var fileEdit = change.getFileEdit(unitElement.source.fullName);
+    if (fileEdit == null) {
+      fileEdit = SourceFileEdit(file, 0);
+      change.addFileEdit(fileEdit);
+    }
+    var edits = fileEdit.edits;
+    var length = edits.length;
+    var index = 0;
+    while (index < length && edits[index].offset > edit.offset) {
+      index++;
+    }
+    edits.insert(index, edit);
   }
 
   void _appendEmptyBraces(SourceBuilder sb, [bool needsExitMark = false]) {

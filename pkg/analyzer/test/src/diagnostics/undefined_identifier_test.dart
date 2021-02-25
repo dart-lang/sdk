@@ -28,6 +28,28 @@ class A {
     ]);
   }
 
+  test_compoundAssignment_noGetter_hasSetter() async {
+    await assertErrorsInCode('''
+set foo(int _) {}
+
+void f() {
+  foo += 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 32, 3),
+    ]);
+  }
+
+  test_compoundAssignment_noGetter_noSetter() async {
+    await assertErrorsInCode('''
+void f() {
+  foo += 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 3),
+    ]);
+  }
+
   test_for() async {
     await assertErrorsInCode('''
 f(var l) {
@@ -126,6 +148,30 @@ f() { C.m(); }
     ]);
   }
 
+  test_postfixExpression_increment_noGetter_hasSetter() async {
+    await assertErrorsInCode('''
+set foo(int _) {}
+
+void f() {
+  foo++;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 32, 3),
+    ]);
+  }
+
+  test_prefixExpression_increment_noGetter_hasSetter() async {
+    await assertErrorsInCode('''
+set foo(int _) {}
+
+void f() {
+  ++foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 34, 3),
+    ]);
+  }
+
   test_private_getter() async {
     newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
@@ -175,13 +221,13 @@ main() {
   test_synthetic_whenMethodName_defined() async {
     await assertErrorsInCode(r'''
 print(x) {}
-main(int p) {
+void f(int p) {
   p.();
 }
 ''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 30, 1),
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 31, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 32, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 32, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 33, 1),
     ]);
   }
 }

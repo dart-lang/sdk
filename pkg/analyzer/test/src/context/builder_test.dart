@@ -309,9 +309,7 @@ bar:${toUriStr('/pkg/bar')}
     newFolder('/workspace/bazel-genfiles');
     newFolder(projectPath);
 
-    AnalysisOptionsImpl options = AnalysisOptionsImpl();
-    SourceFactoryImpl factory =
-        builder.createSourceFactory(projectPath, options);
+    SourceFactoryImpl factory = builder.createSourceFactory(projectPath);
     expect(factory.resolvers,
         contains(predicate((r) => r is BazelFileUriResolver)));
     expect(factory.resolvers,
@@ -326,9 +324,7 @@ bar:${toUriStr('/pkg/bar')}
     newFolder(projectPath);
     newFile(join(projectPath, '.packages'));
 
-    AnalysisOptionsImpl options = AnalysisOptionsImpl();
-    SourceFactoryImpl factory =
-        builder.createSourceFactory(projectPath, options);
+    SourceFactoryImpl factory = builder.createSourceFactory(projectPath);
     expect(factory.resolvers,
         contains(predicate((r) => r is ResourceUriResolver)));
     expect(factory.resolvers,
@@ -356,9 +352,8 @@ embedded_libs:
 sky_engine:${resourceProvider.pathContext.toUri(skyEnginePath)}
 b:${resourceProvider.pathContext.toUri(packageB)}
 ''');
-    AnalysisOptionsImpl options = AnalysisOptionsImpl();
 
-    SourceFactory factory = builder.createSourceFactory(projectPath, options);
+    SourceFactory factory = builder.createSourceFactory(projectPath);
 
     Source dartSource = factory.forUri('dart:async');
     expect(dartSource, isNotNull);
@@ -385,9 +380,8 @@ b:${resourceProvider.pathContext.toUri(packageB)}
 a:${resourceProvider.pathContext.toUri(packageA)}
 b:${resourceProvider.pathContext.toUri(packageB)}
 ''');
-    AnalysisOptionsImpl options = AnalysisOptionsImpl();
 
-    SourceFactory factory = builder.createSourceFactory(projectPath, options);
+    SourceFactory factory = builder.createSourceFactory(projectPath);
 
     Source dartSource = factory.forUri('dart:core');
     expect(dartSource, isNotNull);
@@ -442,7 +436,11 @@ b:${resourceProvider.pathContext.toUri(packageB)}
   void test_createWorkspace_noPackagesFile_hasGnMarkerFiles() {
     newFolder('/workspace/.jiri_root');
     newFile(
-        '/workspace/out/debug-x87_128/dartlang/gen/project/lib/lib.packages');
+        '/workspace/out/debug-x87_128/dartlang/gen/project/lib/lib_package_config.json',
+        content: '''{
+  "configVersion": 2,
+  "packages": []
+}''');
     Workspace workspace = ContextBuilder.createWorkspace(resourceProvider,
         convertPath('/workspace/project/lib/lib.dart'), builder);
     expect(workspace, TypeMatcher<GnWorkspace>());
@@ -486,12 +484,12 @@ b:${resourceProvider.pathContext.toUri(packageB)}
   }
 
   void test_findSdk_noPackageMap() {
-    DartSdk sdk = builder.findSdk(null, AnalysisOptionsImpl());
+    DartSdk sdk = builder.findSdk(null);
     expect(sdk, isNotNull);
   }
 
   void test_findSdk_noPackageMap_html_strong() {
-    DartSdk sdk = builder.findSdk(null, AnalysisOptionsImpl());
+    DartSdk sdk = builder.findSdk(null);
     expect(sdk, isNotNull);
     Source htmlSource = sdk.mapDartUri('dart:html');
     expect(htmlSource.fullName,

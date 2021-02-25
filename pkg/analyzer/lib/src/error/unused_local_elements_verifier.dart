@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
 import 'package:analyzer/src/error/codes.dart';
@@ -90,9 +91,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     usedElements.members.add(element);
     super.visitIndexExpression(node);
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    for (var argument in node.argumentList.arguments) {
+      var parameter = argument.staticParameterElement;
+      usedElements.elements.add(parameter);
+    }
+    super.visitInstanceCreationExpression(node);
   }
 
   @override
@@ -140,7 +150,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (_inCommentReference(node)) {
       return;
     }
-    Element element = node.staticElement;
+    Element element = node.writeOrReadElement;
     // Store un-parameterized members.
     if (element is ExecutableMember) {
       element = element.declaration;
@@ -160,7 +170,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
         usedElements.addElement(element);
       }
     } else {
-      _useIdentifierElement(node);
+      _useIdentifierElement(node, node.readElement);
+      _useIdentifierElement(node, node.writeElement);
+      _useIdentifierElement(node, node.staticElement);
       var parent = node.parent;
       // If [node] is a method tear-off, assume all parameters are used.
       var functionReferenceIsCall =
@@ -215,9 +227,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Marks an [Element] of [node] as used in the library.
-  void _useIdentifierElement(Identifier node) {
-    Element element = node.staticElement;
+  /// Marks the [element] of [node] as used in the library.
+  void _useIdentifierElement(Identifier node, Element element) {
     if (element == null) {
       return;
     }
@@ -332,8 +343,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         _visitFieldElement(element);
       } else if (element is FunctionElement) {
         _visitFunctionElement(element);
-      } else if (element is FunctionTypeAliasElement) {
-        _visitFunctionTypeAliasElement(element);
       } else if (element is LocalVariableElement) {
         _visitLocalVariableElement(element);
       } else if (element is MethodElement) {
@@ -342,6 +351,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         _visitPropertyAccessorElement(element);
       } else if (element is TopLevelVariableElement) {
         _visitTopLevelVariableElement(element);
+      } else if (element is TypeAliasElement) {
+        _visitTypeAliasElement(element);
       }
     }
   }
@@ -569,13 +580,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    if (!_isUsedElement(element)) {
-      _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
-    }
-  }
-
   void _visitLocalVariableElement(LocalVariableElement element) {
     if (!_isUsedElement(element) && !_isNamedUnderscore(element)) {
       HintCode errorCode;
@@ -605,6 +609,13 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _visitTopLevelVariableElement(TopLevelVariableElement element) {
+    if (!_isUsedElement(element)) {
+      _reportErrorForElement(
+          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+    }
+  }
+
+  void _visitTypeAliasElement(TypeAliasElement element) {
     if (!_isUsedElement(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_ELEMENT, element, [element.displayName]);

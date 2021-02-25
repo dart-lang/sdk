@@ -1,0 +1,12 @@
+errors() {}
+expect(expected, actual) {}
+
+extension Extension on String {
+  int get noSuchMethod => 42;
+  int runtimeType() {}
+  operator ==(other) => false;
+  static String toString() => 'Foo';
+  void set hashCode(int value) {}
+}
+
+main() {}

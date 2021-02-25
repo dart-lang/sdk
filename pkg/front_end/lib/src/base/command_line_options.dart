@@ -9,6 +9,8 @@ class Flags {
   static const String nnbdWeakMode = "--nnbd-weak";
 
   static const String forceLateLowering = "--force-late-lowering";
+  static const String forceLateLoweringSentinel =
+      "--force-late-lowering-sentinel";
   static const String forceStaticFieldLowering =
       "--force-static-field-lowering";
   static const String forceNoExplicitGetterCalls =
@@ -18,7 +20,6 @@ class Flags {
 
   static const String linkDependencies = "--link-dependencies";
 
-  static const String bytecode = "--bytecode";
   static const String compileSdk = "--compile-sdk";
   static const String dumpIr = "--dump-ir";
   static const String enableExperiment = "--enable-experiment";
@@ -37,5 +38,10 @@ class Flags {
   static const String singleRootBase = "--single-root-base";
   static const String singleRootScheme = "--single-root-scheme";
   static const String verbose = "--verbose";
+  static const String verbosity = "--verbosity";
   static const String verify = "--verify";
+  static const String skipPlatformVerification = "--skip-platform-verification";
+  static const String warnOnReachabilityCheck = "--warn-on-reachability-check";
+
+  static const String invocationModes = "--invocation-modes";
 }

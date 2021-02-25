@@ -10,6 +10,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/heap/pages.h"
 #include "vm/heap/safepoint.h"
@@ -57,9 +58,11 @@ class NoActiveIsolateScope {
 };
 
 Heap::Heap(IsolateGroup* isolate_group,
+           bool is_vm_isolate,
            intptr_t max_new_gen_semi_words,
            intptr_t max_old_gen_words)
     : isolate_group_(isolate_group),
+      is_vm_isolate_(is_vm_isolate),
       new_space_(this, max_new_gen_semi_words),
       old_space_(this, max_old_gen_words),
       barrier_(),
@@ -67,8 +70,7 @@ Heap::Heap(IsolateGroup* isolate_group,
       read_only_(false),
       last_gc_was_old_space_(false),
       assume_scavenge_will_fail_(false),
-      gc_on_nth_allocation_(kNoForcedGarbageCollection),
-      gc_event_callback_(nullptr) {
+      gc_on_nth_allocation_(kNoForcedGarbageCollection) {
   UpdateGlobalMaxUsed();
   for (int sel = 0; sel < kNumWeakSelectors; sel++) {
     new_weak_tables_[sel] = new WeakTable();
@@ -111,15 +113,13 @@ uword Heap::AllocateNew(intptr_t size) {
 
 uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
-  CollectForDebugging();
-  uword addr = old_space_.TryAllocate(size, type);
-  if (addr != 0) {
-    return addr;
-  }
-  // If we are in the process of running a sweep, wait for the sweeper to free
-  // memory.
-  Thread* thread = Thread::Current();
   if (old_space_.GrowthControlState()) {
+    CollectForDebugging();
+    uword addr = old_space_.TryAllocate(size, type);
+    if (addr != 0) {
+      return addr;
+    }
+    Thread* thread = Thread::Current();
     // Wait for any GC tasks that are in progress.
     WaitForSweeperTasks(thread);
     addr = old_space_.TryAllocate(size, type);
@@ -148,10 +148,13 @@ uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
     CollectAllGarbage(kLowMemory);
     WaitForSweeperTasks(thread);
   }
-  addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
+  uword addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
   if (addr != 0) {
     return addr;
   }
+
+  old_space_.TryReleaseReservation();
+
   // Give up allocating this object.
   OS::PrintErr("Exhausted heap space, trying to allocate %" Pd " bytes.\n",
                size);
@@ -233,7 +236,7 @@ void Heap::VisitObjectsImagePages(ObjectVisitor* visitor) const {
 
 HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
     : ThreadStackResource(thread),
-      heap_(isolate()->heap()),
+      heap_(isolate_group()->heap()),
       old_space_(heap_->old_space()),
       writable_(writable) {
   isolate()->safepoint_handler()->SafepointThreads(thread);
@@ -310,7 +313,7 @@ void HeapIterationScope::IterateOldObjectsNoImagePages(
 }
 
 void HeapIterationScope::IterateVMIsolateObjects(ObjectVisitor* visitor) const {
-  Dart::vm_isolate()->heap()->VisitObjects(visitor);
+  Dart::vm_isolate_group()->heap()->VisitObjects(visitor);
 }
 
 void HeapIterationScope::IterateObjectPointers(
@@ -426,7 +429,7 @@ void Heap::NotifyLowMemory() {
 
 void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
   ASSERT((reason != kOldSpace) && (reason != kPromotion));
-  if (thread->isolate_group() == Dart::vm_isolate()->group()) {
+  if (thread->isolate_group() == Dart::vm_isolate_group()) {
     // The vm isolate cannot safely collect garbage due to unvisited read-only
     // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
     // trigger a nice out-of-memory message instead of a crash in the middle of
@@ -450,7 +453,7 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
 void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
   NoActiveIsolateScope no_active_isolate_scope;
   ASSERT((reason != kOldSpace) && (reason != kPromotion));
-  if (thread->isolate_group() == Dart::vm_isolate()->group()) {
+  if (thread->isolate_group() == Dart::vm_isolate_group()) {
     // The vm isolate cannot safely collect garbage due to unvisited read-only
     // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
     // trigger a nice out-of-memory message instead of a crash in the middle of
@@ -490,7 +493,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
   if (FLAG_use_compactor) {
     type = kMarkCompact;
   }
-  if (thread->isolate_group() == Dart::vm_isolate()->group()) {
+  if (thread->isolate_group() == Dart::vm_isolate_group()) {
     // The vm isolate cannot safely collect garbage due to unvisited read-only
     // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
     // trigger a nice out-of-memory message instead of a crash in the middle of
@@ -680,11 +683,12 @@ void Heap::WriteProtect(bool read_only) {
 }
 
 void Heap::Init(IsolateGroup* isolate_group,
+                bool is_vm_isolate,
                 intptr_t max_new_gen_words,
                 intptr_t max_old_gen_words) {
   ASSERT(isolate_group->heap() == nullptr);
-  std::unique_ptr<Heap> heap(
-      new Heap(isolate_group, max_new_gen_words, max_old_gen_words));
+  std::unique_ptr<Heap> heap(new Heap(isolate_group, is_vm_isolate,
+                                      max_new_gen_words, max_old_gen_words));
   isolate_group->set_heap(std::move(heap));
 }
 
@@ -713,20 +717,6 @@ void Heap::CollectOnNthAllocation(intptr_t num_allocations) {
   gc_on_nth_allocation_ = num_allocations;
 }
 
-void Heap::MergeFrom(Heap* donor) {
-  ASSERT(!donor->read_only_);
-  ASSERT(donor->old_space()->tasks() == 0);
-
-  new_space_.MergeFrom(donor->new_space());
-  old_space_.MergeFrom(donor->old_space());
-
-  for (intptr_t i = 0; i < kNumWeakSelectors; ++i) {
-    // The new space rehashing should not be necessary.
-    new_weak_tables_[i]->MergeFrom(donor->new_weak_tables_[i]);
-    old_weak_tables_[i]->MergeFrom(donor->old_weak_tables_[i]);
-  }
-}
-
 void Heap::CollectForDebugging() {
   if (gc_on_nth_allocation_ == kNoForcedGarbageCollection) return;
   if (Thread::Current()->IsAtSafepoint()) {
@@ -750,7 +740,7 @@ ObjectSet* Heap::CreateAllocatedObjectSet(Zone* zone,
 
   this->AddRegionsToObjectSet(allocated_set);
   Isolate* vm_isolate = Dart::vm_isolate();
-  vm_isolate->heap()->AddRegionsToObjectSet(allocated_set);
+  vm_isolate->group()->heap()->AddRegionsToObjectSet(allocated_set);
 
   {
     VerifyObjectVisitor object_visitor(isolate_group(), allocated_set,
@@ -766,7 +756,7 @@ ObjectSet* Heap::CreateAllocatedObjectSet(Zone* zone,
     // VM isolate heap is premarked.
     VerifyObjectVisitor vm_object_visitor(isolate_group(), allocated_set,
                                           kRequireMarked);
-    vm_isolate->heap()->VisitObjects(&vm_object_visitor);
+    vm_isolate->group()->heap()->VisitObjects(&vm_object_visitor);
   }
 
   return allocated_set;
@@ -899,27 +889,27 @@ void Heap::ResetObjectIdTable() {
 }
 
 intptr_t Heap::GetWeakEntry(ObjectPtr raw_obj, WeakSelector sel) const {
-  if (raw_obj->IsNewObject()) {
+  if (!raw_obj->IsSmiOrOldObject()) {
     return new_weak_tables_[sel]->GetValue(raw_obj);
   }
-  ASSERT(raw_obj->IsOldObject());
+  ASSERT(raw_obj->IsSmiOrOldObject());
   return old_weak_tables_[sel]->GetValue(raw_obj);
 }
 
 void Heap::SetWeakEntry(ObjectPtr raw_obj, WeakSelector sel, intptr_t val) {
-  if (raw_obj->IsNewObject()) {
+  if (!raw_obj->IsSmiOrOldObject()) {
     new_weak_tables_[sel]->SetValue(raw_obj, val);
   } else {
-    ASSERT(raw_obj->IsOldObject());
+    ASSERT(raw_obj->IsSmiOrOldObject());
     old_weak_tables_[sel]->SetValue(raw_obj, val);
   }
 }
 
 void Heap::ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object) {
   const auto before_space =
-      before_object->IsNewObject() ? Heap::kNew : Heap::kOld;
+      !before_object->IsSmiOrOldObject() ? Heap::kNew : Heap::kOld;
   const auto after_space =
-      after_object->IsNewObject() ? Heap::kNew : Heap::kOld;
+      !after_object->IsSmiOrOldObject() ? Heap::kNew : Heap::kOld;
 
   for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
     const auto selector = static_cast<Heap::WeakSelector>(sel);
@@ -1026,7 +1016,7 @@ void Heap::RecordAfterGC(GCType type) {
     });
   }
 #endif  // !PRODUCT
-  if (gc_event_callback_ != nullptr) {
+  if (Dart::gc_event_callback() != nullptr) {
     isolate_group_->ForEachIsolate([&](Isolate* isolate) {
       if (!Isolate::IsSystemIsolate(isolate)) {
         Dart_GCEvent event;
@@ -1072,7 +1062,7 @@ void Heap::RecordAfterGC(GCType type) {
               AvgCollectionPeriod(isolate_uptime_micros, old_space_collections);
         }
 
-        (*gc_event_callback_)(&event);
+        (*Dart::gc_event_callback())(&event);
       }
     });
   }
@@ -1196,37 +1186,37 @@ Heap::Space Heap::SpaceForExternal(intptr_t size) const {
 
 NoHeapGrowthControlScope::NoHeapGrowthControlScope()
     : ThreadStackResource(Thread::Current()) {
-  Heap* heap = isolate()->heap();
+  Heap* heap = isolate_group()->heap();
   current_growth_controller_state_ = heap->GrowthControlState();
   heap->DisableGrowthControl();
 }
 
 NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
-  Heap* heap = isolate()->heap();
+  Heap* heap = isolate_group()->heap();
   heap->SetGrowthControlState(current_growth_controller_state_);
 }
 
 WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)
     : ThreadStackResource(thread) {
   if (FLAG_write_protect_code && FLAG_write_protect_vm_isolate) {
-    Dart::vm_isolate()->heap()->WriteProtect(false);
+    Dart::vm_isolate_group()->heap()->WriteProtect(false);
   }
 }
 
 WritableVMIsolateScope::~WritableVMIsolateScope() {
-  ASSERT(Dart::vm_isolate()->heap()->UsedInWords(Heap::kNew) == 0);
+  ASSERT(Dart::vm_isolate_group()->heap()->UsedInWords(Heap::kNew) == 0);
   if (FLAG_write_protect_code && FLAG_write_protect_vm_isolate) {
-    Dart::vm_isolate()->heap()->WriteProtect(true);
+    Dart::vm_isolate_group()->heap()->WriteProtect(true);
   }
 }
 
 WritableCodePages::WritableCodePages(Thread* thread, Isolate* isolate)
     : StackResource(thread), isolate_(isolate) {
-  isolate_->heap()->WriteProtectCode(false);
+  isolate_->group()->heap()->WriteProtectCode(false);
 }
 
 WritableCodePages::~WritableCodePages() {
-  isolate_->heap()->WriteProtectCode(true);
+  isolate_->group()->heap()->WriteProtectCode(true);
 }
 
 }  // namespace dart

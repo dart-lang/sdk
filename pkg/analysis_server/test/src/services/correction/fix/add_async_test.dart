@@ -4,16 +4,17 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddAsyncTest);
+    defineReflectiveTests(AddAsyncWithNullSafetyTest);
     defineReflectiveTests(AvoidReturningNullForFutureTest);
   });
 }
@@ -24,7 +25,7 @@ class AddAsyncTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_ASYNC;
 
   Future<void> test_asyncFor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void main(Stream<String> names) {
   await for (String name in names) {
     print(name);
@@ -41,7 +42,7 @@ Future<void> main(Stream<String> names) async {
   }
 
   Future<void> test_blockFunctionBody_function() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo() {}
 main() {
   await foo();
@@ -56,7 +57,7 @@ main() async {
   }
 
   Future<void> test_blockFunctionBody_getter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 int get foo => null;
 int f() {
   await foo;
@@ -69,13 +70,13 @@ Future<int> f() async {
   await foo;
   return 1;
 }
-''', errorFilter: (AnalysisError error) {
+''', errorFilter: (error) {
       return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
     });
   }
 
   Future<void> test_closure() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void takeFutureCallback(Future callback()) {}
 
 void doStuff() => takeFutureCallback(() => await 1);
@@ -84,13 +85,13 @@ void doStuff() => takeFutureCallback(() => await 1);
 void takeFutureCallback(Future callback()) {}
 
 void doStuff() => takeFutureCallback(() async => await 1);
-''', errorFilter: (AnalysisError error) {
+''', errorFilter: (error) {
       return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
     });
   }
 
   Future<void> test_expressionFunctionBody() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo() {}
 main() => await foo();
 ''');
@@ -100,15 +101,51 @@ main() async => await foo();
 ''');
   }
 
+  Future<void> test_missingReturn_hasReturn() async {
+    await resolveTestCode('''
+Future<int> f(bool b) {
+  if (b) {
+    return 0;
+  }
+}
+''');
+    await assertNoFix(errorFilter: (error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
+    });
+  }
+
+  Future<void> test_missingReturn_notVoid() async {
+    await resolveTestCode('''
+Future<int> f() {
+  print('');
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_missingReturn_void() async {
+    await resolveTestCode('''
+Future<void> f() {
+  print('');
+}
+''');
+    await assertHasFix('''
+Future<void> f() async {
+  print('');
+}
+''');
+  }
+
   Future<void> test_nullFunctionBody() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var F = await;
 ''');
     await assertNoFix();
   }
 
   Future<void> test_returnFuture_alreadyFuture() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo() {}
 Future<int> main() {
   await foo();
@@ -121,13 +158,13 @@ Future<int> main() async {
   await foo();
   return 42;
 }
-''', errorFilter: (AnalysisError error) {
+''', errorFilter: (error) {
       return error.errorCode == CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT;
     });
   }
 
   Future<void> test_returnFuture_dynamic() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo() {}
 dynamic main() {
   await foo();
@@ -144,7 +181,7 @@ dynamic main() async {
   }
 
   Future<void> test_returnFuture_nonFuture() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo() {}
 int main() {
   await foo();
@@ -161,7 +198,7 @@ Future<int> main() async {
   }
 
   Future<void> test_returnFuture_noType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo() {}
 main() {
   await foo();
@@ -179,6 +216,133 @@ main() async {
 }
 
 @reflectiveTest
+class AddAsyncWithNullSafetyTest extends FixProcessorTest
+    with WithNullSafetyMixin {
+  @override
+  FixKind get kind => DartFixKind.ADD_ASYNC;
+
+  Future<void> test_missingReturn_method_hasReturn() async {
+    await resolveTestCode('''
+class C {
+  Future<int> m(bool b) {
+    if (b) {
+      return 0;
+    }
+  }
+}
+''');
+    await assertNoFix(errorFilter: (error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
+    });
+  }
+
+  Future<void> test_missingReturn_method_notVoid() async {
+    await resolveTestCode('''
+class C {
+  Future<int> m() {
+    print('');
+  }
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_missingReturn_method_notVoid_inherited() async {
+    await resolveTestCode('''
+abstract class A {
+  Future<int> foo();
+}
+
+class B implements A {
+  foo() {
+  print('');
+  }
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_missingReturn_method_void() async {
+    await resolveTestCode('''
+class C {
+  Future<void> m() {
+    print('');
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Future<void> m() async {
+    print('');
+  }
+}
+''');
+  }
+
+  Future<void> test_missingReturn_method_void_inherited() async {
+    await resolveTestCode('''
+abstract class A {
+  Future<void> foo();
+}
+
+class B implements A {
+  foo() {
+  print('');
+  }
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  Future<void> foo();
+}
+
+class B implements A {
+  foo() async {
+  print('');
+  }
+}
+''');
+  }
+
+  Future<void> test_missingReturn_topLevel_hasReturn() async {
+    await resolveTestCode('''
+Future<int> f(bool b) {
+  if (b) {
+    return 0;
+  }
+}
+''');
+    await assertNoFix(errorFilter: (error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
+    });
+  }
+
+  Future<void> test_missingReturn_topLevel_notVoid() async {
+    await resolveTestCode('''
+Future<int> f() {
+  print('');
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_missingReturn_topLevel_void() async {
+    await resolveTestCode('''
+Future<void> f() {
+  print('');
+}
+''');
+    await assertHasFix('''
+Future<void> f() async {
+  print('');
+}
+''');
+  }
+}
+
+@reflectiveTest
 class AvoidReturningNullForFutureTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.ADD_ASYNC;
@@ -187,7 +351,7 @@ class AvoidReturningNullForFutureTest extends FixProcessorLintTest {
   String get lintCode => LintNames.avoid_returning_null_for_future;
 
   Future<void> test_asyncFor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Future<String> f() {
   return null;
 }

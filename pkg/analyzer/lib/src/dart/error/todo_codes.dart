@@ -30,14 +30,26 @@ class TodoCode extends ErrorCode {
    * But not
    * * todo
    * * TODOS
+   * 
+   * It also supports wrapped TODOs where the next line is indented by a space:
+   * 
+   *   /**
+   *    * TODO(username): This line is
+   *    *  wrapped onto the next line
+   *    */
    */
-  static RegExp TODO_REGEX =
-      RegExp("([\\s/\\*])((TODO[^\\w\\d][^\\r\\n]*)|(TODO:?\$))");
+  static RegExp TODO_REGEX = RegExp(
+      "([\\s/\\*])((TODO[^\\w\\d][^\\r\\n]*(?:\\n\\s*\\*  [^\\r\\n]*)*)|(TODO:?\$))");
 
   /**
    * Initialize a newly created error code to have the given [name].
    */
-  const TodoCode(String name) : super.temporary(name, "{0}");
+  const TodoCode(String name)
+      : super(
+          message: "{0}",
+          name: name,
+          uniqueName: 'TodoCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.INFO;

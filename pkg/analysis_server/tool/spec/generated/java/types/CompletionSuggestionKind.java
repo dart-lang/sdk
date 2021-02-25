@@ -58,4 +58,9 @@ public class CompletionSuggestionKind {
 
   public static final String PARAMETER = "PARAMETER";
 
+  /**
+   * The name of a pub package is being suggested.
+   */
+  public static final String PACKAGE_NAME = "PACKAGE_NAME";
+
 }

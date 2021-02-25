@@ -4,7 +4,6 @@
 
 library front_end.memory_file_system;
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -88,7 +87,7 @@ class MemoryFileSystemEntity implements FileSystemEntity {
 
   @override
   Future<List<int>> readAsBytes() async {
-    Uint8List contents = _fileSystem._files[uri];
+    Uint8List? contents = _fileSystem._files[uri];
     if (contents == null) {
       throw new FileSystemException(uri, 'File $uri does not exist.');
     }

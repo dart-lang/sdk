@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-library fasta.test.expression_test;
+// @dart = 2.9
 
-import "dart:async" show Future;
+library fasta.test.expression_test;
 
 import "dart:convert" show JsonEncoder;
 
@@ -413,6 +413,7 @@ Future<Context> createContext(
       errors.add(message);
     }
     ..environmentDefines = const {}
+    ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: false}
     ..allowedExperimentalFlagsForTesting = const AllowedExperimentalFlags();
 
   final ProcessedOptions options =

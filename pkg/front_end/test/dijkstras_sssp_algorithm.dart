@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:collection';
 
 /// Dijkstra's algorithm for single source shortest path.
@@ -79,7 +81,7 @@ class DijkstrasAlgorithm<E> {
   }
 
   List<E> getPathFromTarget(GraphNode<E> source, GraphNode<E> target) {
-    List<E> path = new List<E>();
+    List<E> path = <E>[];
     GraphNode<E> u = target;
     while (u == source || prev[u] != null) {
       path.add(u.node);

@@ -9,12 +9,36 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InstanceCreationDriverResolutionTest);
+    defineReflectiveTests(InstanceCreationTest);
+    defineReflectiveTests(InstanceCreationWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class InstanceCreationDriverResolutionTest extends PubPackageResolutionTest {
+class InstanceCreationTest extends PubPackageResolutionTest
+    with InstanceCreationTestCases {}
+
+mixin InstanceCreationTestCases on PubPackageResolutionTest {
+  test_demoteType() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  A(T t);
+}
+
+void f<S>(S s) {
+  if (s is int) {
+    A(s);
+  }
+}
+
+''');
+
+    assertType(
+      findNode.instanceCreation('A(s)'),
+      'A<S>',
+    );
+  }
+
   test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
     await assertErrorsInCode(r'''
 final foo = Map<int>();
@@ -147,3 +171,7 @@ main() {
     );
   }
 }
+
+@reflectiveTest
+class InstanceCreationWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin, InstanceCreationTestCases {}

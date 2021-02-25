@@ -37,7 +37,7 @@ class ScopedSet<T> {
   /// before popping it.
   void doScoped(
       {List<T> elements = const [],
-      bool copyCurrent: false,
+      bool copyCurrent = false,
       void Function() action}) {
     pushScope(elements: elements, copyCurrent: copyCurrent);
     try {
@@ -59,7 +59,7 @@ class ScopedSet<T> {
 
   /// Begin a new scope, optionally with some known starting [elements], or
   /// copying the current scope, as a starting state.
-  void pushScope({List<T> elements = const [], bool copyCurrent: false}) =>
+  void pushScope({List<T> elements = const [], bool copyCurrent = false}) =>
       _scopeStack.add({
         ...elements,
         if (copyCurrent) ..._currentScope,

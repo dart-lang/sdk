@@ -19,7 +19,7 @@ class RemoveUnnecessaryNewTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.unnecessary_new;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 C f() => new C();
 
 class C {

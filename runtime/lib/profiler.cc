@@ -34,7 +34,7 @@ DEFINE_NATIVE_ENTRY(UserTag_makeCurrent, 0, 1) {
   }
   const UserTag& old = UserTag::Handle(zone, isolate->current_tag());
   self.MakeActive();
-  return old.raw();
+  return old.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(UserTag_defaultTag, 0, 0) {

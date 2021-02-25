@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/summary2/ast_text_printer.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -11,6 +13,7 @@ import '../dart/ast/parse_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AstTextPrinterTest);
+    defineReflectiveTests(AstTextPrinterWithNullSafetyTest);
   });
 }
 
@@ -61,7 +64,7 @@ class AstTextPrinterTest extends ParseBase {
   }
 
   test_extensionOverride() async {
-    await assertParseCodeAndPrintAst(this, '''
+    assertParseCodeAndPrintAst(this, '''
 extension E on Object {
   int f() => 0;
 }
@@ -116,6 +119,26 @@ var _ = [1, ...[2, 3], 4];
   test_spreadElement_nullable() async {
     assertParseCodeAndPrintAst(this, r'''
 var _ = [1, ...?[2, 3], 4];
+''');
+  }
+}
+
+@reflectiveTest
+class AstTextPrinterWithNullSafetyTest extends ParseBase {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.10.0', additionalFeatures: [Feature.non_nullable]);
+
+  test_genericFunctionType_question() async {
+    assertParseCodeAndPrintAst(this, '''
+void Function()? a;
+''');
+  }
+
+  test_typeName_question() async {
+    assertParseCodeAndPrintAst(this, '''
+int? a;
 ''');
   }
 }

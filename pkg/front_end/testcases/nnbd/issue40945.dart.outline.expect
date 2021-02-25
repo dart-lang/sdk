@@ -1,0 +1,26 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue40945.dart:7:15: Error: The type 'dynamic' of the getter 'C.test' is not a subtype of the type 'int' of the setter 'C.test'.
+//   dynamic get test => 3.14;
+//               ^^^^
+// pkg/front_end/testcases/nnbd/issue40945.dart:6:12: Context: This is the declaration of the setter 'C.test'.
+//   void set test(int v) {}
+//            ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  set test(core::int v) → void
+    ;
+  get test() → dynamic
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

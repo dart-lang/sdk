@@ -58,6 +58,8 @@ const char* Slot::KindToCString(Kind k) {
 #undef NATIVE_CASE
     case Kind::kTypeArguments:
       return "TypeArguments";
+    case Kind::kArrayElement:
+      return "ArrayElement";
     case Kind::kCapturedVariable:
       return "CapturedVariable";
     case Kind::kDartField:
@@ -79,6 +81,10 @@ bool Slot::ParseKind(const char* str, Kind* out) {
 #undef NATIVE_CASE
   if (strcmp(str, "TypeArguments") == 0) {
     *out = Kind::kTypeArguments;
+    return true;
+  }
+  if (strcmp(str, "ArrayElement") == 0) {
+    *out = Kind::kArrayElement;
     return true;
   }
   if (strcmp(str, "CapturedVariable") == 0) {
@@ -104,10 +110,18 @@ static classid_t GetUnboxedNativeSlotCid(Representation rep) {
   return kIllegalCid;
 }
 
+AcqRelAtomic<Slot*> Slot::native_fields_(nullptr);
+
+enum NativeSlotsEnumeration {
+#define DECLARE_KIND(CN, __, FN, ___, ____) k##CN##_##FN,
+  NATIVE_SLOTS_LIST(DECLARE_KIND)
+#undef DECLARE_KIND
+      kNativeSlotsCount
+};
+
 const Slot& Slot::GetNativeSlot(Kind kind) {
-  // There is a fixed statically known number of native slots so we cache
-  // them statically.
-  static const Slot fields[] = {
+  if (native_fields_.load() == nullptr) {
+    Slot* new_value = new Slot[kNativeSlotsCount]{
 #define NULLABLE_FIELD_FINAL                                                   \
   (IsNullableBit::encode(true) | IsImmutableBit::encode(true))
 #define NULLABLE_FIELD_VAR (IsNullableBit::encode(true))
@@ -117,7 +131,7 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
        k##cid##Cid, compiler::target::ClassName::FieldName##_offset(),         \
        #ClassName "." #FieldName, nullptr, kTagged),
 
-      NULLABLE_BOXED_NATIVE_SLOTS_LIST(DEFINE_NULLABLE_BOXED_NATIVE_FIELD)
+        NULLABLE_BOXED_NATIVE_SLOTS_LIST(DEFINE_NULLABLE_BOXED_NATIVE_FIELD)
 
 #undef DEFINE_NULLABLE_BOXED_NATIVE_FIELD
 #undef NULLABLE_FIELD_FINAL
@@ -131,8 +145,8 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
        k##cid##Cid, compiler::target::ClassName::FieldName##_offset(),         \
        #ClassName "." #FieldName, nullptr, kTagged),
 
-          NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(
-              DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD)
+            NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(
+                DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD)
 
 #undef DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD
 #define DEFINE_UNBOXED_NATIVE_FIELD(ClassName, UnderlyingType, FieldName,      \
@@ -142,15 +156,20 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
        compiler::target::ClassName::FieldName##_offset(),                      \
        #ClassName "." #FieldName, nullptr, kUnboxed##representation),
 
-              UNBOXED_NATIVE_SLOTS_LIST(DEFINE_UNBOXED_NATIVE_FIELD)
+                UNBOXED_NATIVE_SLOTS_LIST(DEFINE_UNBOXED_NATIVE_FIELD)
 
 #undef DEFINE_UNBOXED_NATIVE_FIELD
 #undef NONNULLABLE_FIELD_VAR
 #undef NONNULLABLE_FIELD_FINAL
-  };
+    };
+    Slot* old_value = nullptr;
+    if (!native_fields_.compare_exchange_strong(old_value, new_value)) {
+      delete[] new_value;
+    }
+  }
 
-  ASSERT(static_cast<uint8_t>(kind) < ARRAY_SIZE(fields));
-  return fields[static_cast<uint8_t>(kind)];
+  ASSERT(static_cast<uint8_t>(kind) < kNativeSlotsCount);
+  return native_fields_.load()[static_cast<uint8_t>(kind)];
 }
 
 // Note: should only be called with cids of array-like classes.
@@ -172,6 +191,9 @@ const Slot& Slot::GetLengthFieldForArrayCid(intptr_t array_cid) {
     case kArrayCid:
     case kImmutableArrayCid:
       return GetNativeSlot(Kind::kArray_length);
+
+    case kTypeArgumentsCid:
+      return GetNativeSlot(Kind::kTypeArguments_length);
 
     default:
       UNREACHABLE();
@@ -209,6 +231,14 @@ const Slot& Slot::GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index) {
   const Slot& slot =
       Slot(Kind::kTypeArgumentsIndex, IsImmutableBit::encode(true), kDynamicCid,
            offset, ":argument", /*static_type=*/nullptr, kTagged);
+  return SlotCache::Instance(thread).Canonicalize(slot);
+}
+
+const Slot& Slot::GetArrayElementSlot(Thread* thread,
+                                      intptr_t offset_in_bytes) {
+  const Slot& slot =
+      Slot(Kind::kArrayElement, IsNullableBit::encode(true), kDynamicCid,
+           offset_in_bytes, ":array_element", /*static_type=*/nullptr, kTagged);
   return SlotCache::Instance(thread).Canonicalize(slot);
 }
 
@@ -289,7 +319,7 @@ const Slot& Slot::Get(const Field& field,
   // itself stays behind in the compilation global cache. Thus we must always
   // try to add it to the list of guarded fields of the current function.
   if (slot.is_guarded_field()) {
-    if (thread->isolate()->use_field_guards()) {
+    if (thread->isolate_group()->use_field_guards()) {
       ASSERT(parsed_function != nullptr);
       parsed_function->AddToGuardedFields(&slot.field());
     } else {
@@ -328,13 +358,14 @@ bool Slot::Equals(const Slot* other) const {
   switch (kind_) {
     case Kind::kTypeArguments:
     case Kind::kTypeArgumentsIndex:
+    case Kind::kArrayElement:
       return (offset_in_bytes_ == other->offset_in_bytes_);
 
     case Kind::kCapturedVariable:
       return (offset_in_bytes_ == other->offset_in_bytes_) &&
              (flags_ == other->flags_) &&
-             (DataAs<const String>()->raw() ==
-              other->DataAs<const String>()->raw());
+             (DataAs<const String>()->ptr() ==
+              other->DataAs<const String>()->ptr());
 
     case Kind::kDartField:
       return (offset_in_bytes_ == other->offset_in_bytes_) &&

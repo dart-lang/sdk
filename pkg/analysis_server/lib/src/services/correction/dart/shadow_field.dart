@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
@@ -20,7 +21,7 @@ class ShadowField extends CorrectionProducer {
     if (node is! SimpleIdentifier) {
       return;
     }
-    var element = (node as SimpleIdentifier).staticElement;
+    var element = (node as SimpleIdentifier).writeOrReadElement;
     if (element is! PropertyAccessorElement) {
       return;
     }
@@ -119,7 +120,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.staticElement == setter) {
+    if (node.writeOrReadElement == setter) {
       hasSetterReference = true;
     }
   }

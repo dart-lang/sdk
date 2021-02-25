@@ -451,7 +451,7 @@ class AstTestFactory {
       String name, List<String> constantNames) {
     int count = constantNames.length;
     List<EnumConstantDeclaration> constants =
-        List<EnumConstantDeclaration>(count);
+        List<EnumConstantDeclaration>.filled(count, null);
     for (int i = 0; i < count; i++) {
       constants[i] = astFactory.enumConstantDeclaration(
           null, null, identifier3(constantNames[i]));

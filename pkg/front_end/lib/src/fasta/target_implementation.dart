@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.target_implementation;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -21,8 +23,6 @@ import 'compiler_context.dart' show CompilerContext;
 import 'loader.dart' show Loader;
 
 import 'messages.dart' show FormattedMessage, LocatedMessage, Message;
-
-import 'rewrite_severity.dart' show rewriteSeverity;
 
 import 'target.dart' show Target;
 
@@ -61,10 +61,21 @@ abstract class TargetImplementation extends Target {
     return _options.isExperimentEnabledInLibrary(flag, importUri);
   }
 
-  Version getExperimentEnabledVersion(ExperimentalFlag flag) {
-    return _options.getExperimentEnabledVersion(flag);
+  Version getExperimentEnabledVersionInLibrary(
+      ExperimentalFlag flag, Uri importUri) {
+    return _options.getExperimentEnabledVersionInLibrary(flag, importUri);
   }
 
+  /// Returns `true` if the [flag] is enabled by default.
+  bool isExperimentEnabledByDefault(ExperimentalFlag flag) {
+    return _options.isExperimentEnabledByDefault(flag);
+  }
+
+  /// Returns `true` if the [flag] is enabled globally.
+  ///
+  /// This is `true` either if the [flag] is passed through an explicit
+  /// `--enable-experiment` option or if the [flag] is expired and on by
+  /// default.
   bool isExperimentEnabledGlobally(ExperimentalFlag flag) {
     return _options.isExperimentEnabledGlobally(flag);
   }
@@ -169,17 +180,14 @@ abstract class TargetImplementation extends Target {
       int length,
       Uri fileUri,
       List<LocatedMessage> messageContext,
-      Severity severity) {
+      Severity severity,
+      {List<Uri> involvedFiles}) {
     ProcessedOptions processedOptions = context.options;
     return processedOptions.format(
         message.withLocation(fileUri, charOffset, length),
         severity,
-        messageContext);
-  }
-
-  Severity fixSeverity(Severity severity, Message message, Uri fileUri) {
-    severity ??= message.code.severity;
-    return rewriteSeverity(severity, message.code, fileUri);
+        messageContext,
+        involvedFiles: involvedFiles);
   }
 
   String get currentSdkVersionString {

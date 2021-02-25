@@ -8,9 +8,9 @@ import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart' as S;
 import 'test_helper.dart';
 
-int majorVersion;
-int minorVersion;
-Uri serverUri;
+int? majorVersion;
+int? minorVersion;
+Uri? serverUri;
 
 Future<Null> testeeBefore() async {
   print('testee before');

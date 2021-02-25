@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
@@ -29,6 +31,7 @@ main(List<String> args) async {
         new TestConfigWithLanguageVersion(
             cfeMarker, 'cfe with libraries specification',
             librariesSpecificationUri: createUriForFileName('libraries.json'),
+            experimentalFlags: {ExperimentalFlag.nonNullable: false},
             allowedExperimentalFlags: const AllowedExperimentalFlags()),
         new TestConfigWithLanguageVersion(cfeWithNnbdMarker,
             'cfe with libraries specification and non-nullable',
@@ -53,7 +56,7 @@ class TestConfigWithLanguageVersion extends TestConfig {
       AllowedExperimentalFlags allowedExperimentalFlags})
       : super(marker, name,
             librariesSpecificationUri: librariesSpecificationUri,
-            experimentalFlags: experimentalFlags,
+            explicitExperimentalFlags: experimentalFlags,
             allowedExperimentalFlags: allowedExperimentalFlags);
 
   @override
@@ -149,7 +152,7 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
         // Don't include member signatures.
         continue;
       }
-      String name = m.name.name;
+      String name = m.name.text;
       if (m is Constructor) {
         name = '${m.enclosingClass.name}.${name}';
       }

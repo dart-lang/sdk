@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Provides a default implementation of the report and format methods of
 /// [CompilerContext] that are suitable for command-line tools. The methods in
 /// this library aren't intended to be called directly, instead, one should use
@@ -19,12 +21,12 @@ import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
     show $CARET, $SPACE, $TAB;
 
 import 'package:_fe_analyzer_shared/src/util/colors.dart'
-    show enableColors, green, magenta, red;
+    show enableColors, green, magenta, red, yellow;
 
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
 
-import 'package:kernel/ast.dart' show Location, TreeNode;
+import 'package:kernel/ast.dart' show Location, Source, TreeNode;
 
 import '../compute_platform_binaries_location.dart' show translateSdk;
 
@@ -43,7 +45,8 @@ const bool hideWarnings = false;
 /// Formats [message] as a string that is suitable for output from a
 /// command-line tool. This includes source snippets and different colors based
 /// on [severity].
-String format(LocatedMessage message, Severity severity, {Location location}) {
+String format(LocatedMessage message, Severity severity,
+    {Location location, Map<Uri, Source> uriToSource}) {
   try {
     int length = message.length;
     if (length < 1) {
@@ -72,6 +75,11 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
           messageText = green(messageText);
           break;
 
+        case Severity.info:
+          messageText = yellow(messageText);
+          break;
+
+        case Severity.ignored:
         default:
           return unhandled("$severity", "format", -1, null);
       }
@@ -85,7 +93,7 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
       if (location?.line == TreeNode.noOffset) {
         location = null;
       }
-      String sourceLine = getSourceLine(location);
+      String sourceLine = getSourceLine(location, uriToSource);
       return formatErrorMessage(
           sourceLine, location, length, path, messageText);
     } else {
@@ -144,14 +152,15 @@ bool isHidden(Severity severity) {
     case Severity.error:
     case Severity.internalProblem:
     case Severity.context:
+    case Severity.info:
       return false;
 
     case Severity.warning:
       return hideWarnings;
-
-    default:
-      return unhandled("$severity", "isHidden", -1, null);
+    case Severity.ignored:
+      return true;
   }
+  return unhandled("$severity", "isHidden", -1, null);
 }
 
 /// Are problems of [severity] fatal? That is, should the compiler terminate
@@ -167,12 +176,12 @@ bool shouldThrowOn(Severity severity) {
     case Severity.warning:
       return CompilerContext.current.options.throwOnWarningsForDebugging;
 
+    case Severity.info:
+    case Severity.ignored:
     case Severity.context:
       return false;
-
-    default:
-      return unhandled("$severity", "shouldThrowOn", -1, null);
   }
+  return unhandled("$severity", "shouldThrowOn", -1, null);
 }
 
 bool isCompileTimeError(Severity severity) {
@@ -183,6 +192,7 @@ bool isCompileTimeError(Severity severity) {
 
     case Severity.warning:
     case Severity.context:
+    case Severity.info:
       return false;
 
     case Severity.ignored:

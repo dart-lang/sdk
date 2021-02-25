@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.compiler_context;
 
-import 'dart:async' show Future, Zone, runZoned;
+import 'dart:async' show Zone, runZoned;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
@@ -65,8 +67,9 @@ class CompilerContext {
 
   /// Report [message], for example, by printing it.
   void report(LocatedMessage message, Severity severity,
-      {List<LocatedMessage> context}) {
-    options.report(message, severity, context: context);
+      {List<LocatedMessage> context, List<Uri> involvedFiles}) {
+    options.report(message, severity,
+        context: context, involvedFiles: involvedFiles);
   }
 
   /// Report [message], for example, by printing it.

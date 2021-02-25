@@ -19,7 +19,7 @@ Future<void> main() async {
 
   // /usr/local/Cellar/dart/2.8.0-dev.20.0/bin/dart -> $DART_SDK/bin/dart
   Directory.current = a;
-  final linkLocation = '../Cellar/dart/2.8.0-dev.20.0/bin/dart';
+  final linkLocation = '${d.path}/usr/local/bin/Cellar/dart/2.8.0-dev.20.0/bin/dart';
   final link = Link(linkLocation);
   link.createSync(exePath, recursive: true);
 
@@ -27,6 +27,6 @@ Future<void> main() async {
   final link2 = Link('dart')..createSync(linkLocation, recursive: true);
   final path = Uri.parse(link2.absolute.path).path;
   Directory.current = origDir;
-  final result = await Process.run('${path}', ['help']);
+  final result = await Process.run('$path', ['help']);
   Expect.equals(result.exitCode, 0);
 }

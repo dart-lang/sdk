@@ -34,6 +34,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// The optional provider for code lines, might be `null`.
   final CodeLinesProvider _codeLinesProvider;
 
+  /// If `true`, types should be printed with nullability suffixes.
+  final bool _withNullability;
+
   String _indent = '';
 
   ResolvedAstPrinter({
@@ -41,9 +44,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     @required StringSink sink,
     @required String indent,
     CodeLinesProvider codeLinesProvider,
+    bool withNullability = false,
   })  : _selfUriStr = selfUriStr,
         _sink = sink,
         _codeLinesProvider = codeLinesProvider,
+        _withNullability = withNullability,
         _indent = indent;
 
   @override
@@ -126,6 +131,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       properties.addNode('leftHandSide', node.leftHandSide);
       properties.addToken('operator', node.operator);
       properties.addNode('rightHandSide', node.rightHandSide);
+      properties.addElement('readElement', node.readElement);
+      properties.addType('readType', node.readType);
+      properties.addElement('writeElement', node.writeElement);
+      properties.addType('writeType', node.writeType);
       _addExpression(properties, node);
       _addMethodReferenceExpression(properties, node);
       _writeProperties(properties);
@@ -770,10 +779,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('IndexExpression');
     _withIndent(() {
       var properties = _Properties();
-      properties.addAuxiliaryElements(
-        'auxiliaryElements',
-        node.auxiliaryElements,
-      );
       properties.addNode('index', node.index);
       properties.addToken('period', node.period);
       properties.addNode('target', node.target);
@@ -1034,6 +1039,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       var properties = _Properties();
       properties.addNode('operand', node.operand);
       properties.addToken('operator', node.operator);
+      if (node.operator.type.isIncrementOperator) {
+        properties.addElement('readElement', node.readElement);
+        properties.addType('readType', node.readType);
+        properties.addElement('writeElement', node.writeElement);
+        properties.addType('writeType', node.writeType);
+      }
       _addExpression(properties, node);
       _addMethodReferenceExpression(properties, node);
       _writeProperties(properties);
@@ -1062,6 +1073,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       var properties = _Properties();
       properties.addNode('operand', node.operand);
       properties.addToken('operator', node.operator);
+      if (node.operator.type.isIncrementOperator) {
+        properties.addElement('readElement', node.readElement);
+        properties.addType('readType', node.readType);
+        properties.addElement('writeElement', node.writeElement);
+        properties.addType('writeType', node.writeType);
+      }
       _addExpression(properties, node);
       _addMethodReferenceExpression(properties, node);
       _writeProperties(properties);
@@ -1152,7 +1169,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SimpleIdentifier');
     _withIndent(() {
-      _writeAuxiliaryElements('auxiliaryElements', node.auxiliaryElements);
       _writeElement('staticElement', node.staticElement);
       _writeType('staticType', node.staticType);
       _writeToken('token', node.token);
@@ -1671,7 +1687,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   String _typeStr(DartType type) {
-    return type?.getDisplayString(withNullability: false);
+    return type?.getDisplayString(withNullability: _withNullability);
   }
 
   void _withIndent(void Function() f) {
@@ -1679,14 +1695,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _indent = '$_indent  ';
     f();
     _indent = indent;
-  }
-
-  void _writeAuxiliaryElements(String name, AuxiliaryElements elements) {
-    if (elements != null) {
-      _sink.write(_indent);
-      _sink.write('$name: ');
-      _writeElement0(elements.staticElement);
-    }
   }
 
   void _writeElement(String name, Element element) {
@@ -1801,17 +1809,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 }
 
-class _AuxiliaryElementsProperty extends _Property {
-  final AuxiliaryElements elements;
-
-  _AuxiliaryElementsProperty(String name, this.elements) : super(name);
-
-  @override
-  void write(ResolvedAstPrinter printer) {
-    printer._writeAuxiliaryElements(name, elements);
-  }
-}
-
 class _ElementProperty extends _Property {
   final Element element;
 
@@ -1847,12 +1844,6 @@ class _NodeProperty extends _Property {
 
 class _Properties {
   final properties = <_Property>[];
-
-  void addAuxiliaryElements(String name, AuxiliaryElements elements) {
-    properties.add(
-      _AuxiliaryElementsProperty(name, elements),
-    );
-  }
 
   void addElement(String name, Element element) {
     properties.add(

@@ -74,3 +74,8 @@ class Z extends core::Object {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///native_as_name.dart:26:4 -> InstanceConstant(const _Override{})
+Extra constant evaluation: evaluated: 1, effectively constant: 1

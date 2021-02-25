@@ -12,18 +12,17 @@ import 'characters.dart' show $a, $z, $A, $Z;
  * Abstract state in a state machine for scanning keywords.
  */
 abstract class KeywordState {
-  KeywordState next(int c);
-  KeywordState nextCapital(int c);
+  KeywordState? next(int c);
+  KeywordState? nextCapital(int c);
 
-  analyzer.Keyword get keyword;
+  analyzer.Keyword? get keyword;
 
-  static KeywordState _KEYWORD_STATE;
+  static KeywordState? _KEYWORD_STATE;
   static KeywordState get KEYWORD_STATE {
     if (_KEYWORD_STATE == null) {
-      List<String> strings = new List<String>(analyzer.Keyword.values.length);
-      for (int i = 0; i < analyzer.Keyword.values.length; i++) {
-        strings[i] = analyzer.Keyword.values[i].lexeme;
-      }
+      List<String> strings = analyzer.Keyword.values
+          .map((keyword) => keyword.lexeme)
+          .toList(growable: false);
       strings.sort((a, b) => a.compareTo(b));
       _KEYWORD_STATE = computeKeywordStateTable(
           /* start = */ 0,
@@ -31,14 +30,15 @@ abstract class KeywordState {
           /* offset = */ 0,
           strings.length);
     }
-    return _KEYWORD_STATE;
+    return _KEYWORD_STATE!;
   }
 
   static KeywordState computeKeywordStateTable(
       int start, List<String> strings, int offset, int length) {
     bool isLowercase = true;
 
-    List<KeywordState> table = new List<KeywordState>($z - $A + 1);
+    List<KeywordState?> table =
+        new List<KeywordState?>.filled($z - $A + 1, null);
     assert(length != 0);
     int chunk = 0;
     int chunkStart = -1;
@@ -71,7 +71,7 @@ abstract class KeywordState {
       assert(length == 1);
       return new LeafKeywordState(strings[offset]);
     }
-    String syntax = isLeaf ? strings[offset] : null;
+    String? syntax = isLeaf ? strings[offset] : null;
     if (isLowercase) {
       table = table.sublist($a - $A);
       return new LowerCaseArrayKeywordState(table, syntax);
@@ -85,15 +85,15 @@ abstract class KeywordState {
  * A state with multiple outgoing transitions.
  */
 abstract class ArrayKeywordState implements KeywordState {
-  final List<KeywordState> table;
-  final analyzer.Keyword keyword;
+  final List<KeywordState?> table;
+  final analyzer.Keyword? keyword;
 
-  ArrayKeywordState(this.table, String syntax)
+  ArrayKeywordState(this.table, String? syntax)
       : keyword = ((syntax == null) ? null : analyzer.Keyword.keywords[syntax]);
 
-  KeywordState next(int c);
+  KeywordState? next(int c);
 
-  KeywordState nextCapital(int c);
+  KeywordState? nextCapital(int c);
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -103,7 +103,7 @@ abstract class ArrayKeywordState implements KeywordState {
       sb.write(keyword);
       sb.write(" ");
     }
-    List<KeywordState> foo = table;
+    List<KeywordState?> foo = table;
     for (int i = 0; i < foo.length; i++) {
       if (foo[i] != null) {
         sb.write("${new String.fromCharCodes([i + $a])}: "
@@ -116,25 +116,25 @@ abstract class ArrayKeywordState implements KeywordState {
 }
 
 class LowerCaseArrayKeywordState extends ArrayKeywordState {
-  LowerCaseArrayKeywordState(List<KeywordState> table, String syntax)
+  LowerCaseArrayKeywordState(List<KeywordState?> table, String? syntax)
       : super(table, syntax) {
     assert(table.length == $z - $a + 1);
   }
 
-  KeywordState next(int c) => table[c - $a];
+  KeywordState? next(int c) => table[c - $a];
 
-  KeywordState nextCapital(int c) => null;
+  KeywordState? nextCapital(int c) => null;
 }
 
 class UpperCaseArrayKeywordState extends ArrayKeywordState {
-  UpperCaseArrayKeywordState(List<KeywordState> table, String syntax)
+  UpperCaseArrayKeywordState(List<KeywordState?> table, String? syntax)
       : super(table, syntax) {
     assert(table.length == $z - $A + 1);
   }
 
-  KeywordState next(int c) => table[c - $A];
+  KeywordState? next(int c) => table[c - $A];
 
-  KeywordState nextCapital(int c) => table[c - $A];
+  KeywordState? nextCapital(int c) => table[c - $A];
 }
 
 /**
@@ -143,10 +143,11 @@ class UpperCaseArrayKeywordState extends ArrayKeywordState {
 class LeafKeywordState implements KeywordState {
   final analyzer.Keyword keyword;
 
-  LeafKeywordState(String syntax) : keyword = analyzer.Keyword.keywords[syntax];
+  LeafKeywordState(String syntax)
+      : keyword = analyzer.Keyword.keywords[syntax]!;
 
-  KeywordState next(int c) => null;
-  KeywordState nextCapital(int c) => null;
+  KeywordState? next(int c) => null;
+  KeywordState? nextCapital(int c) => null;
 
   String toString() => keyword.lexeme;
 }

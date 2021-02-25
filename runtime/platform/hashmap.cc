@@ -157,9 +157,6 @@ SimpleHashMap::Entry* SimpleHashMap::Probe(void* key, uint32_t hash) {
 void SimpleHashMap::Initialize(uint32_t capacity) {
   ASSERT(dart::Utils::IsPowerOfTwo(capacity));
   map_ = new Entry[capacity];
-  if (map_ == NULL) {
-    OUT_OF_MEMORY();
-  }
   capacity_ = capacity;
   occupancy_ = 0;
 }

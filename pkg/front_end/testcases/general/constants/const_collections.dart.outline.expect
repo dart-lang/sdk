@@ -1,0 +1,361 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:23:51: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+// const List<String> barWithIntSpread = [...foo, ...fortyTwo];
+//                                                   ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:25:51: Error: Unexpected type 'Map<String, String>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+// const List<String> barWithMapSpread = [...foo, ...quux];
+//                                                   ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:41:50: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
+// const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
+//                                                  ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:41:50: Error: Expected ',' before this.
+// const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
+//                                                  ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:42:38: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// const Set<String> quxWithMapSpread = {...baz, ...quux};
+//                                      ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:48:59: Error: A value of type 'CustomIterable' can't be assigned to a variable of type 'String'.
+//  - 'CustomIterable' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.
+// const Set<String> quxWithCustomIterableSpread3 = {...baz, customIterable};
+//                                                           ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:58:60: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
+// const Map<String, String> quuzWithIntSpread = {...quux, ...fortyTwo};
+//                                                            ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:59:47: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// const Map<String, String> quuzWithSetSpread = {...quux, ...baz};
+//                                               ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:60:46: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// const Map<String, String> mapWithSetSpread = {...baz};
+//                                              ^
+//
+import self as self;
+import "dart:collection" as col;
+import "dart:core" as core;
+
+import "dart:collection";
+
+class ConstIterable extends col::IterableBase<core::int*> /*hasConstConstructor*/  {
+  const constructor •() → self::ConstIterable*
+    : super col::IterableBase::•()
+    ;
+  get iterator() → core::Iterator<core::int*>*
+    ;
+  abstract member-signature method cast<R extends core::Object* = dynamic>() → core::Iterable<self::ConstIterable::cast::R*>*; -> core::Iterable::cast
+  abstract member-signature method followedBy(generic-covariant-impl core::Iterable<core::int*>* other) → core::Iterable<core::int*>*; -> core::Iterable::followedBy
+  abstract member-signature method map<T extends core::Object* = dynamic>((core::int*) →* self::ConstIterable::map::T* f) → core::Iterable<self::ConstIterable::map::T*>*; -> core::Iterable::map
+  abstract member-signature method where((core::int*) →* core::bool* test) → core::Iterable<core::int*>*; -> core::Iterable::where
+  abstract member-signature method whereType<T extends core::Object* = dynamic>() → core::Iterable<self::ConstIterable::whereType::T*>*; -> core::Iterable::whereType
+  abstract member-signature method expand<T extends core::Object* = dynamic>((core::int*) →* core::Iterable<self::ConstIterable::expand::T*>* f) → core::Iterable<self::ConstIterable::expand::T*>*; -> core::Iterable::expand
+  abstract member-signature method contains(core::Object* element) → core::bool*; -> core::Iterable::contains
+  abstract member-signature method forEach((core::int*) →* void f) → void; -> core::Iterable::forEach
+  abstract member-signature method reduce(generic-covariant-impl (core::int*, core::int*) →* core::int* combine) → core::int*; -> core::Iterable::reduce
+  abstract member-signature method fold<T extends core::Object* = dynamic>(self::ConstIterable::fold::T* initialValue, (self::ConstIterable::fold::T*, core::int*) →* self::ConstIterable::fold::T* combine) → self::ConstIterable::fold::T*; -> core::Iterable::fold
+  abstract member-signature method every((core::int*) →* core::bool* test) → core::bool*; -> core::Iterable::every
+  abstract member-signature method join([core::String* separator]) → core::String*; -> core::Iterable::join
+  abstract member-signature method any((core::int*) →* core::bool* test) → core::bool*; -> core::Iterable::any
+  abstract member-signature method toList({core::bool* growable}) → core::List<core::int*>*; -> core::Iterable::toList
+  abstract member-signature method toSet() → core::Set<core::int*>*; -> core::Iterable::toSet
+  abstract member-signature get length() → core::int*; -> core::Iterable::length
+  abstract member-signature get isEmpty() → core::bool*; -> core::Iterable::isEmpty
+  abstract member-signature get isNotEmpty() → core::bool*; -> core::Iterable::isNotEmpty
+  abstract member-signature method take(core::int* count) → core::Iterable<core::int*>*; -> core::Iterable::take
+  abstract member-signature method takeWhile((core::int*) →* core::bool* test) → core::Iterable<core::int*>*; -> core::Iterable::takeWhile
+  abstract member-signature method skip(core::int* count) → core::Iterable<core::int*>*; -> core::Iterable::skip
+  abstract member-signature method skipWhile((core::int*) →* core::bool* test) → core::Iterable<core::int*>*; -> core::Iterable::skipWhile
+  abstract member-signature method firstWhere((core::int*) →* core::bool* test, {generic-covariant-impl () →* core::int* orElse}) → core::int*; -> core::Iterable::firstWhere
+  abstract member-signature method lastWhere((core::int*) →* core::bool* test, {generic-covariant-impl () →* core::int* orElse}) → core::int*; -> core::Iterable::lastWhere
+  abstract member-signature method singleWhere((core::int*) →* core::bool* test, {generic-covariant-impl () →* core::int* orElse}) → core::int*; -> core::Iterable::singleWhere
+  abstract member-signature method elementAt(core::int* index) → core::int*; -> core::Iterable::elementAt
+  abstract member-signature method toString() → core::String*; -> core::Iterable::toString
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class WithEquals extends core::Object /*hasConstConstructor*/  {
+  final field core::int* i;
+  const constructor •(core::int* i) → self::WithEquals*
+    : self::WithEquals::i = i, super core::Object::•()
+    ;
+  operator ==(core::Object* o) → core::bool*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class CustomIterable extends col::IterableBase<core::String*> /*hasConstConstructor*/  {
+  const constructor •() → self::CustomIterable*
+    : super col::IterableBase::•()
+    ;
+  get iterator() → core::Iterator<core::String*>*
+    ;
+  abstract member-signature method cast<R extends core::Object* = dynamic>() → core::Iterable<self::CustomIterable::cast::R*>*; -> core::Iterable::cast
+  abstract member-signature method followedBy(generic-covariant-impl core::Iterable<core::String*>* other) → core::Iterable<core::String*>*; -> core::Iterable::followedBy
+  abstract member-signature method map<T extends core::Object* = dynamic>((core::String*) →* self::CustomIterable::map::T* f) → core::Iterable<self::CustomIterable::map::T*>*; -> core::Iterable::map
+  abstract member-signature method where((core::String*) →* core::bool* test) → core::Iterable<core::String*>*; -> core::Iterable::where
+  abstract member-signature method whereType<T extends core::Object* = dynamic>() → core::Iterable<self::CustomIterable::whereType::T*>*; -> core::Iterable::whereType
+  abstract member-signature method expand<T extends core::Object* = dynamic>((core::String*) →* core::Iterable<self::CustomIterable::expand::T*>* f) → core::Iterable<self::CustomIterable::expand::T*>*; -> core::Iterable::expand
+  abstract member-signature method contains(core::Object* element) → core::bool*; -> core::Iterable::contains
+  abstract member-signature method forEach((core::String*) →* void f) → void; -> core::Iterable::forEach
+  abstract member-signature method reduce(generic-covariant-impl (core::String*, core::String*) →* core::String* combine) → core::String*; -> core::Iterable::reduce
+  abstract member-signature method fold<T extends core::Object* = dynamic>(self::CustomIterable::fold::T* initialValue, (self::CustomIterable::fold::T*, core::String*) →* self::CustomIterable::fold::T* combine) → self::CustomIterable::fold::T*; -> core::Iterable::fold
+  abstract member-signature method every((core::String*) →* core::bool* test) → core::bool*; -> core::Iterable::every
+  abstract member-signature method join([core::String* separator]) → core::String*; -> core::Iterable::join
+  abstract member-signature method any((core::String*) →* core::bool* test) → core::bool*; -> core::Iterable::any
+  abstract member-signature method toList({core::bool* growable}) → core::List<core::String*>*; -> core::Iterable::toList
+  abstract member-signature method toSet() → core::Set<core::String*>*; -> core::Iterable::toSet
+  abstract member-signature get length() → core::int*; -> core::Iterable::length
+  abstract member-signature get isEmpty() → core::bool*; -> core::Iterable::isEmpty
+  abstract member-signature get isNotEmpty() → core::bool*; -> core::Iterable::isNotEmpty
+  abstract member-signature method take(core::int* count) → core::Iterable<core::String*>*; -> core::Iterable::take
+  abstract member-signature method takeWhile((core::String*) →* core::bool* test) → core::Iterable<core::String*>*; -> core::Iterable::takeWhile
+  abstract member-signature method skip(core::int* count) → core::Iterable<core::String*>*; -> core::Iterable::skip
+  abstract member-signature method skipWhile((core::String*) →* core::bool* test) → core::Iterable<core::String*>*; -> core::Iterable::skipWhile
+  abstract member-signature method firstWhere((core::String*) →* core::bool* test, {generic-covariant-impl () →* core::String* orElse}) → core::String*; -> core::Iterable::firstWhere
+  abstract member-signature method lastWhere((core::String*) →* core::bool* test, {generic-covariant-impl () →* core::String* orElse}) → core::String*; -> core::Iterable::lastWhere
+  abstract member-signature method singleWhere((core::String*) →* core::bool* test, {generic-covariant-impl () →* core::String* orElse}) → core::String*; -> core::Iterable::singleWhere
+  abstract member-signature method elementAt(core::int* index) → core::String*; -> core::Iterable::elementAt
+  abstract member-signature method toString() → core::String*; -> core::Iterable::toString
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class CustomMap extends core::Object implements core::Map<core::String*, core::String*> /*hasConstConstructor*/  {
+  const constructor •() → self::CustomMap*
+    : super core::Object::•()
+    ;
+  @core::override
+  get entries() → core::Iterable<core::MapEntry<core::String*, core::String*>*>*
+    ;
+  @core::override
+  operator [](core::Object* key) → core::String*
+    ;
+  @core::override
+  operator []=(generic-covariant-impl core::String* key, generic-covariant-impl core::String* value) → void
+    ;
+  @core::override
+  method cast<RK extends core::Object* = dynamic, RV extends core::Object* = dynamic>() → core::Map<self::CustomMap::cast::RK*, self::CustomMap::cast::RV*>*
+    ;
+  @core::override
+  method clear() → void
+    ;
+  @core::override
+  method containsKey(core::Object* key) → core::bool*
+    ;
+  @core::override
+  method containsValue(core::Object* value) → core::bool*
+    ;
+  @core::override
+  get isEmpty() → core::bool*
+    ;
+  @core::override
+  get isNotEmpty() → core::bool*
+    ;
+  @core::override
+  get keys() → core::Iterable<core::String*>*
+    ;
+  @core::override
+  get length() → core::int*
+    ;
+  @core::override
+  method remove(core::Object* key) → core::String*
+    ;
+  @core::override
+  get values() → core::Iterable<core::String*>*
+    ;
+  @core::override
+  method addAll(generic-covariant-impl core::Map<core::String*, core::String*>* other) → void
+    ;
+  @core::override
+  method addEntries(generic-covariant-impl core::Iterable<core::MapEntry<core::String*, core::String*>*>* newEntries) → void
+    ;
+  @core::override
+  method forEach((core::String*, core::String*) →* void f) → void
+    ;
+  @core::override
+  method putIfAbsent(generic-covariant-impl core::String* key, generic-covariant-impl () →* core::String* ifAbsent) → core::String*
+    ;
+  @core::override
+  method updateAll(generic-covariant-impl (core::String*, core::String*) →* core::String* update) → void
+    ;
+  @core::override
+  method removeWhere((core::String*, core::String*) →* core::bool* predicate) → void
+    ;
+  method update(generic-covariant-impl core::String* key, generic-covariant-impl (core::String*) →* core::String* update, {generic-covariant-impl () →* core::String* ifAbsent}) → core::String*
+    ;
+  method map<K2 extends core::Object* = dynamic, V2 extends core::Object* = dynamic>((core::String*, core::String*) →* core::MapEntry<self::CustomMap::map::K2*, self::CustomMap::map::V2*>* f) → core::Map<self::CustomMap::map::K2*, self::CustomMap::map::V2*>*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static const field core::int* fortyTwo = 42;
+static const field dynamic fortyTwoAsDynamic = (self::fortyTwo as dynamic).*(2).~/(2);
+static const field core::List<core::String*>* nullList = null;
+static const field core::List<core::String*>* foo = const <core::String*>["hello", "world"];
+static const field core::List<core::String*>* bar = self::foo + const <core::String*>["!"];
+static field core::List<core::String*>* barAsVar;
+static const field core::List<core::String*>* barWithNullSpread = self::foo + self::nullList;
+static const field core::List<core::String*>* barWithIntSpread = self::foo + const <core::String*>[invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:23:51: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+const List<String> barWithIntSpread = [...foo, ...fortyTwo];
+                                                  ^"];
+static const field core::List<core::String*>* barWithIntDynamicSpread = self::foo + self::fortyTwoAsDynamic as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+static const field core::List<core::String*>* barWithMapSpread = self::foo + const <core::String*>[invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:25:51: Error: Unexpected type 'Map<String, String>' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+const List<String> barWithMapSpread = [...foo, ...quux];
+                                                  ^"];
+static const field core::List<core::String*>* barWithCustomIterableSpread1 = self::bar + const self::CustomIterable::•();
+static const field core::List<core::String*>* barWithCustomIterableSpread2 = self::bar + const self::CustomIterable::•();
+static const field self::CustomIterable* customIterable = const self::CustomIterable::•();
+static const field core::List<core::String*>* barWithCustomIterableSpread3 = self::bar + self::customIterable;
+static const field core::List<core::String*>* listConcat = const <core::String*>["Hello"].{core::List::+}(const <core::String*>["World"]);
+static const field core::Set<core::String*>* nullSet = null;
+static const field core::Set<core::String*>* baz = const <core::String*>{"hello", "world"};
+static const field core::Set<core::String*>* qux = self::baz + const <core::String*>{"!"};
+static const field core::Set<core::String*>* quxWithNullSpread = self::baz + self::nullSet;
+static const field core::Set<core::String*>* quxWithIntSpread = self::baz + const <core::String*>{invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:41:50: Error: Expected ',' before this.
+const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
+                                                 ^"};
+static const field core::Set<core::String*>* quxWithMapSpread = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:42:38: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+const Set<String> quxWithMapSpread = {...baz, ...quux};
+                                     ^";
+static const field core::Set<core::String*>* quxWithCustomIterableSpread1 = self::baz + const self::CustomIterable::•();
+static const field core::Set<core::String*>* quxWithCustomIterableSpread2 = self::baz + const self::CustomIterable::•();
+static const field core::Set<core::String*>* quxWithCustomIterableSpread3 = self::baz + const <core::String*>{let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:48:59: Error: A value of type 'CustomIterable' can't be assigned to a variable of type 'String'.
+ - 'CustomIterable' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.
+const Set<String> quxWithCustomIterableSpread3 = {...baz, customIterable};
+                                                          ^" in self::customIterable as{TypeError} core::String*};
+static const field core::Set<dynamic>* setWithNonPrimitiveEquals = const <dynamic>{const self::WithEquals::•(42)};
+static const field core::Set<dynamic>* setWithDuplicates = const <dynamic>{42, 42};
+static const field core::Map<core::String*, core::String*>* nullMap = null;
+static const field core::Map<core::String*, core::String*>* quux = const <core::String*, core::String*>{"hello": "world"};
+static const field core::Map<core::String*, core::String*>* quuz = self::quux + const <core::String*, core::String*>{"!": "bye!"};
+static const field core::Map<core::String*, core::String*>* quuzWithNullSpread = self::quux + self::nullMap;
+static const field core::Map<core::String*, core::String*>* quuzWithIntSpread = self::quux + const <core::String*, core::String*>{invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:58:60: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
+const Map<String, String> quuzWithIntSpread = {...quux, ...fortyTwo};
+                                                           ^": null};
+static const field core::Map<core::String*, core::String*>* quuzWithSetSpread = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:59:47: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+const Map<String, String> quuzWithSetSpread = {...quux, ...baz};
+                                              ^";
+static const field core::Map<core::String*, core::String*>* mapWithSetSpread = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:60:46: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+const Map<String, String> mapWithSetSpread = {...baz};
+                                             ^";
+static const field core::Map<core::String*, core::String*>* mapWithCustomMap1 = const self::CustomMap::•();
+static const field core::Map<core::String*, core::String*>* mapWithCustomMap2 = const self::CustomMap::•();
+static const field core::Map<core::String*, core::String*>* customMap = const self::CustomMap::•();
+static const field core::Map<core::String*, core::String*>* mapWithCustomMap3 = self::customMap;
+static const field core::Map<dynamic, core::int*>* mapWithNonPrimitiveEqualsKey = const <dynamic, core::int*>{const self::WithEquals::•(42): 42};
+static const field core::Map<core::int*, core::int*>* mapWithDuplicates = const <core::int*, core::int*>{42: 42, 42: 42};
+static get fooAsGetter() → core::List<core::String*>*
+  ;
+static get barAsGetter() → core::List<core::String*>*
+  ;
+static get bazAsGetter() → core::Set<core::String*>*
+  ;
+static get quxAsGetter() → core::Set<core::String*>*
+  ;
+static get quuxAsGetter() → core::Map<core::String*, core::String*>*
+  ;
+static get quuzAsGetter() → core::Map<core::String*, core::String*>*
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:86:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:89:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:92:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:95:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:98:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:101:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:104:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:107:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:110:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:113:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:116:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:119:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:122:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:125:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:128:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:132:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:136:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:140:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:144:4 -> InstanceConstant(const _Override{})
+Evaluated: MethodInvocation @ org-dartlang-testcase:///const_collections.dart:14:63 -> IntConstant(42)
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_collections.dart:17:26 -> ListConstant(const <String*>["hello", "world"])
+Evaluated: ListConcatenation @ org-dartlang-testcase:///const_collections.dart:19:26 -> ListConstant(const <String*>["hello", "world", "!"])
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:22:44 -> ListConstant(const <String*>["hello", "world"])
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:22:52 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:23:43 -> ListConstant(const <String*>["hello", "world"])
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:24:50 -> ListConstant(const <String*>["hello", "world"])
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:24:58 -> IntConstant(42)
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:25:43 -> ListConstant(const <String*>["hello", "world"])
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:27:6 -> ListConstant(const <String*>["hello", "world", "!"])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:28:12 -> InstanceConstant(const CustomIterable{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:30:55 -> ListConstant(const <String*>["hello", "world", "!"])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:30:63 -> InstanceConstant(const CustomIterable{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:31:30 -> InstanceConstant(const CustomIterable{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:32:55 -> ListConstant(const <String*>["hello", "world", "!"])
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:32:63 -> InstanceConstant(const CustomIterable{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_collections.dart:33:33 -> ListConstant(const <String*>["Hello"])
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_collections.dart:33:45 -> ListConstant(const <String*>["World"])
+Evaluated: SetLiteral @ org-dartlang-testcase:///const_collections.dart:36:25 -> InstanceConstant(const _UnmodifiableSet<String*>{_UnmodifiableSet._map: const _ImmutableMap<String*, Null>{_ImmutableMap._kvPairs: const <dynamic>["hello", null, "world", null]}})
+Evaluated: SetConcatenation @ org-dartlang-testcase:///const_collections.dart:38:25 -> InstanceConstant(const _UnmodifiableSet<String*>{_UnmodifiableSet._map: const _ImmutableMap<String*, Null>{_ImmutableMap._kvPairs: const <dynamic>["hello", null, "world", null, "!", null]}})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:40:43 -> InstanceConstant(const _UnmodifiableSet<String*>{_UnmodifiableSet._map: const _ImmutableMap<String*, Null>{_ImmutableMap._kvPairs: const <dynamic>["hello", null, "world", null]}})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:40:51 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:41:42 -> InstanceConstant(const _UnmodifiableSet<String*>{_UnmodifiableSet._map: const _ImmutableMap<String*, Null>{_ImmutableMap._kvPairs: const <dynamic>["hello", null, "world", null]}})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:44:6 -> InstanceConstant(const _UnmodifiableSet<String*>{_UnmodifiableSet._map: const _ImmutableMap<String*, Null>{_ImmutableMap._kvPairs: const <dynamic>["hello", null, "world", null]}})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:45:12 -> InstanceConstant(const CustomIterable{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:47:54 -> InstanceConstant(const _UnmodifiableSet<String*>{_UnmodifiableSet._map: const _ImmutableMap<String*, Null>{_ImmutableMap._kvPairs: const <dynamic>["hello", null, "world", null]}})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:47:62 -> InstanceConstant(const CustomIterable{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:48:54 -> InstanceConstant(const _UnmodifiableSet<String*>{_UnmodifiableSet._map: const _ImmutableMap<String*, Null>{_ImmutableMap._kvPairs: const <dynamic>["hello", null, "world", null]}})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:48:59 -> InstanceConstant(const CustomIterable{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:49:55 -> InstanceConstant(const WithEquals{WithEquals.i: 42})
+Evaluated: MapLiteral @ org-dartlang-testcase:///const_collections.dart:53:34 -> InstanceConstant(const _ImmutableMap<String*, String*>{_ImmutableMap._kvPairs: const <dynamic>["hello", "world"]})
+Evaluated: MapConcatenation @ org-dartlang-testcase:///const_collections.dart:55:27 -> InstanceConstant(const _ImmutableMap<String*, String*>{_ImmutableMap._kvPairs: const <dynamic>["hello", "world", "!", "bye!"]})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:57:52 -> InstanceConstant(const _ImmutableMap<String*, String*>{_ImmutableMap._kvPairs: const <dynamic>["hello", "world"]})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:57:61 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:58:51 -> InstanceConstant(const _ImmutableMap<String*, String*>{_ImmutableMap._kvPairs: const <dynamic>["hello", "world"]})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:61:57 -> InstanceConstant(const CustomMap{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:62:51 -> InstanceConstant(const CustomMap{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:63:45 -> InstanceConstant(const CustomMap{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:64:51 -> InstanceConstant(const CustomMap{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:66:9 -> InstanceConstant(const WithEquals{WithEquals.i: 42})
+Extra constant evaluation: evaluated: 90, effectively constant: 59

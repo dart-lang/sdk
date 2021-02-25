@@ -5,7 +5,7 @@
 // Test for hello world built using emscripten with WASI.
 
 import "package:expect/expect.dart";
-import "dart:wasm";
+import "package:wasm/wasm.dart";
 import "dart:typed_data";
 
 void main() {
@@ -180,26 +180,26 @@ void main() {
     }
     return n;
   };
-  var inst = WasmModule(data).instantiate(WasmImports()
-    ..addFunction<Int32 Function(Int32, Int32, Int32, Int32)>(
-        "wasi_unstable", "fd_write",
-        (int fd, int iovs, int iovs_len, int unused) {
-      // iovs points to an array of length iovs_len. Each element is two I32s,
-      // a char* and a length.
-      String o = "";
-      for (var i = 0; i < iovs_len; ++i) {
-        var str = getI32(iovs + 8 * i);
-        var len = getI32(iovs + 4 + 8 * i);
-        for (var j = 0; j < len; ++j) {
-          o += String.fromCharCode(mem[str + j]);
-        }
+  var inst = WasmModule(data)
+      .instantiate()
+      .addFunction("wasi_unstable", "fd_write",
+          (int fd, int iovs, int iovs_len, int unused) {
+    // iovs points to an array of length iovs_len. Each element is two I32s,
+    // a char* and a length.
+    String o = "";
+    for (var i = 0; i < iovs_len; ++i) {
+      var str = getI32(iovs + 8 * i);
+      var len = getI32(iovs + 4 + 8 * i);
+      for (var j = 0; j < len; ++j) {
+        o += String.fromCharCode(mem[str + j]);
       }
-      out += o;
-      return o.length;
-    }));
+    }
+    out += o;
+    return o.length;
+  }).build();
   mem = inst.memory;
 
-  var fn = inst.lookupFunction<Void Function()>("_start");
-  fn.call([]);
+  var fn = inst.lookupFunction("_start");
+  fn();
   Expect.equals("hello, world!\n", out);
 }

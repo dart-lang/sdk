@@ -20,7 +20,7 @@ class RemoveTypeAnnotationTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.REMOVE_TYPE_ANNOTATION;
 
   Future<void> test_classField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int v = 1;
 }
@@ -33,7 +33,7 @@ class A {
   }
 
   Future<void> test_classField_final() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   final int v = 1;
 }
@@ -46,7 +46,7 @@ class A {
   }
 
   Future<void> test_field_noInitializer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int v;
 }
@@ -55,7 +55,7 @@ class A {
   }
 
   Future<void> test_instanceCreation_freeStanding() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 
 main() {
@@ -66,7 +66,7 @@ main() {
   }
 
   Future<void> test_localVariable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   int a = 1, b = 2;
 }
@@ -79,7 +79,7 @@ main() {
   }
 
   Future<void> test_localVariable_const() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   const int v = 1;
 }
@@ -92,7 +92,7 @@ main() {
   }
 
   Future<void> test_localVariable_final() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   final int v = 1;
 }
@@ -105,7 +105,7 @@ main() {
   }
 
   Future<void> test_localVariable_noInitializer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   int v;
 }
@@ -114,7 +114,7 @@ main() {
   }
 
   Future<void> test_localVariable_onInitializer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   final int v = 1;
 }
@@ -123,7 +123,7 @@ main() {
   }
 
   Future<void> test_loopVariable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   for(int i = 0; i < 3; i++) {}
 }
@@ -136,7 +136,7 @@ main() {
   }
 
   Future<void> test_loopVariable_nested() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v = () {
     for (int x in <int>[]) {}
@@ -153,7 +153,7 @@ main() {
   }
 
   Future<void> test_loopVariable_noType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   for(var i = 0; i < 3; i++) {}
 }
@@ -162,7 +162,7 @@ main() {
   }
 
   Future<void> test_topLevelVariable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 int V = 1;
 ''');
     await assertHasAssistAt('int ', '''
@@ -171,7 +171,7 @@ var V = 1;
   }
 
   Future<void> test_topLevelVariable_final() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 final int V = 1;
 ''');
     await assertHasAssistAt('int ', '''
@@ -181,7 +181,7 @@ final V = 1;
 
   Future<void> test_topLevelVariable_noInitializer() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 int v;
 ''');
     await assertNoAssistAt('v;');
@@ -189,7 +189,7 @@ int v;
 
   Future<void> test_topLevelVariable_syntheticName() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 MyType
 ''');
     await assertNoAssistAt('MyType');

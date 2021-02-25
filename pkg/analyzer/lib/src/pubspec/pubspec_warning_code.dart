@@ -52,6 +52,17 @@ class PubspecWarningCode extends ErrorCode {
       "The value of the 'flutter' field is expected to be a map.",
       correction: "Try converting the value to be a map.");
 
+  /// A code indicating that a versioned package has an invalid dependency (git
+  /// or path).
+  ///
+  /// Parameters:
+  /// 0: the kind of dependency.
+  static const PubspecWarningCode INVALID_DEPENDENCY = PubspecWarningCode(
+      'INVALID_DEPENDENCY', "Publishable packages can't have {0} dependencies.",
+      correction:
+          "Try adding a 'publish_to: none' entry to mark the package as not "
+          "for publishing or remove the {0} dependency.");
+
   /// A code indicating that the name field is missing.
   static const PubspecWarningCode MISSING_NAME = PubspecWarningCode(
       'MISSING_NAME', "The name field is required but missing.",
@@ -62,6 +73,34 @@ class PubspecWarningCode extends ErrorCode {
       'NAME_NOT_STRING',
       "The value of the name field is expected to be a string.",
       correction: "Try converting the value to be a string.");
+
+  /// A code indicating that a specified path dependency does not exist.
+  ///
+  /// Parameters:
+  /// 0: the path to the dependency as given in the file.
+  static const PubspecWarningCode PATH_DOES_NOT_EXIST = PubspecWarningCode(
+      'PATH_DOES_NOT_EXIST', "The path {0} does not exist.",
+      correction:
+          "Try creating the referenced path or using a path that exists.");
+
+  /// A code indicating that a path value is not is not posix-style.
+  ///
+  /// Parameters:
+  /// 0: the path as given in the file.
+  static const PubspecWarningCode PATH_NOT_POSIX = PubspecWarningCode(
+      'PATH_NOT_POSIX', "The path {0} is not posix.",
+      correction: "Try converting the value to a posix-style path.");
+
+  /// A code indicating that a specified path dependency points to a directory
+  /// that does not contain a pubspec.
+  ///
+  /// Parameters:
+  /// 0: the path to the dependency as given in the file.
+  static const PubspecWarningCode PATH_PUBSPEC_DOES_NOT_EXIST = PubspecWarningCode(
+      'PATH_PUBSPEC_DOES_NOT_EXIST',
+      "The directory {0} does not contain a pubspec.",
+      correction:
+          "Try creating a pubspec in the referenced directory or using a path that has a pubspec.");
 
   /// A code indicating that a package listed as a dev dependency is also listed
   /// as a normal dependency.
@@ -78,7 +117,12 @@ class PubspecWarningCode extends ErrorCode {
   /// Initialize a newly created warning code to have the given [name],
   /// [message] and [correction].
   const PubspecWarningCode(String name, String message, {String correction})
-      : super.temporary(name, message, correction: correction);
+      : super(
+          correction: correction,
+          message: message,
+          name: name,
+          uniqueName: 'PubspecWarningCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;

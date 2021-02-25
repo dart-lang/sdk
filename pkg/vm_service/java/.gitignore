@@ -25,6 +25,7 @@ src/org/dartlang/vm/service/consumer/GetStackConsumer.java
 src/org/dartlang/vm/service/consumer/InvokeConsumer.java
 src/org/dartlang/vm/service/consumer/KillConsumer.java
 src/org/dartlang/vm/service/consumer/PauseConsumer.java
+src/org/dartlang/vm/service/consumer/PortListConsumer.java
 src/org/dartlang/vm/service/consumer/ProcessMemoryUsageConsumer.java
 src/org/dartlang/vm/service/consumer/ProtocolListConsumer.java
 src/org/dartlang/vm/service/consumer/ReloadSourcesConsumer.java
@@ -79,6 +80,7 @@ src/org/dartlang/vm/service/element/InstanceKind.java
 src/org/dartlang/vm/service/element/InstanceRef.java
 src/org/dartlang/vm/service/element/InstanceSet.java
 src/org/dartlang/vm/service/element/Isolate.java
+src/org/dartlang/vm/service/element/IsolateFlag.java
 src/org/dartlang/vm/service/element/IsolateGroup.java
 src/org/dartlang/vm/service/element/IsolateGroupRef.java
 src/org/dartlang/vm/service/element/IsolateRef.java
@@ -94,6 +96,7 @@ src/org/dartlang/vm/service/element/Null.java
 src/org/dartlang/vm/service/element/NullRef.java
 src/org/dartlang/vm/service/element/Obj.java
 src/org/dartlang/vm/service/element/ObjRef.java
+src/org/dartlang/vm/service/element/PortList.java
 src/org/dartlang/vm/service/element/ProcessMemoryItem.java
 src/org/dartlang/vm/service/element/ProcessMemoryUsage.java
 src/org/dartlang/vm/service/element/ProfileFunction.java

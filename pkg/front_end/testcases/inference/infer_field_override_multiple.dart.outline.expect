@@ -2,36 +2,14 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:32:7: Error: Can't infer a type for 'x' as some of the inherited members have different types.
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:36:7: Error: Can't infer a type for 'x' as the overridden members don't have a combined signature.
 // Try adding an explicit type.
 //   var x;
 //       ^
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:9:11: Context: This is one of the inherited members.
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:9:11: Context: This is one of the overridden members.
 //   int get x;
 //           ^
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:17:11: Context: This is one of the inherited members.
-//   num get x;
-//           ^
-//
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:36:7: Error: Can't infer a type for 'x' as some of the inherited members have different types.
-// Try adding an explicit type.
-//   var x;
-//       ^
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:9:11: Context: This is one of the inherited members.
-//   int get x;
-//           ^
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:21:14: Context: This is one of the inherited members.
-//   double get x;
-//              ^
-//
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:40:7: Error: Can't infer a type for 'x' as some of the inherited members have different types.
-// Try adding an explicit type.
-//   var x;
-//       ^
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:17:11: Context: This is one of the inherited members.
-//   num get x;
-//           ^
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:21:14: Context: This is one of the inherited members.
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:21:14: Context: This is one of the overridden members.
 //   double get x;
 //              ^
 //
@@ -104,7 +82,7 @@ class E extends self::A implements self::B {
     ;
 }
 class F extends self::A implements self::C {
-  field invalid-type x;
+  field core::int* x;
   synthetic constructor •() → self::F*
     ;
 }
@@ -114,7 +92,7 @@ class G extends self::A implements self::D {
     ;
 }
 class H extends self::C implements self::D {
-  field invalid-type x;
+  field core::double* x;
   synthetic constructor •() → self::H*
     ;
 }

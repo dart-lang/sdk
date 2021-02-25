@@ -5,6 +5,7 @@
 // @dart = 2.7
 
 import 'dart:io' hide Link;
+import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
@@ -14,6 +15,9 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
+import 'package:compiler/src/js_emitter/model.dart';
+import 'package:compiler/src/js_emitter/startup_emitter/fragment_merger.dart';
+import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:expect/expect.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -23,7 +27,7 @@ import 'package:kernel/ast.dart' as ir;
 
 ///  Add in options to pass to the compiler like
 /// `Flags.disableTypeInference` or `Flags.disableInlining`
-const List<String> compilerOptions = const <String>[];
+const List<String> compilerOptions = const [];
 
 /// Compute the [OutputUnit]s for all source files involved in the test, and
 /// ensure that the compiler is correctly calculating what is used and what is
@@ -32,11 +36,13 @@ const List<String> compilerOptions = const <String>[];
 /// same name as the original file in `data`.
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const OutputUnitDataComputer(),
         options: compilerOptions, args: args, setUpFunction: () {
       importPrefixes.clear();
-    }, testedConfigs: allSpecConfigs);
+    },
+        testedConfigs: allSpecConfigs +
+            [twoDeferredFragmentConfig, threeDeferredFragmentConfig]);
   });
 }
 
@@ -44,13 +50,10 @@ main(List<String> args) {
 // artificial constraint of requiring every deferred import use a different
 // named prefix per test. We enforce this constraint here by checking that no
 // prefix name responds to two different libraries.
-Map<String, Uri> importPrefixes = <String, Uri>{};
+Map<String, Uri> importPrefixes = {};
 
-/// Create a consistent string representation of [OutputUnit]s for both
-/// KImportEntities and ImportElements.
-String outputUnitString(OutputUnit unit) {
-  if (unit == null) return 'none';
-  StringBuffer sb = new StringBuffer();
+String importPrefixString(OutputUnit unit) {
+  StringBuffer sb = StringBuffer();
   bool first = true;
   for (ImportEntity import in unit.importsForTesting) {
     if (!first) sb.write(', ');
@@ -72,10 +75,51 @@ String outputUnitString(OutputUnit unit) {
     }
     importPrefixes[import.name] = import.enclosingLibraryUri;
   }
-  return 'OutputUnit(${unit.name}, {$sb})';
+  return sb.toString();
 }
 
-class OutputUnitDataComputer extends DataComputer<String> {
+/// Create a consistent string representation of [OutputUnit]s for both
+/// KImportEntities and ImportElements.
+String outputUnitString(OutputUnit unit) {
+  if (unit == null) return 'none';
+  String sb = importPrefixString(unit);
+  return '${unit.name}{$sb}';
+}
+
+Map<String, List<PreFragment>> buildPreFragmentMap(
+    Map<String, List<Fragment>> loadMap,
+    List<PreFragment> preDeferredFragments) {
+  Map<DeferredFragment, PreFragment> fragmentMap = {};
+  for (var preFragment in preDeferredFragments) {
+    for (var fragment in preFragment.fragments) {
+      assert(!fragmentMap.containsKey(fragment));
+      fragmentMap[fragment] = preFragment;
+    }
+  }
+
+  Map<String, List<PreFragment>> preFragmentMap = {};
+  loadMap.forEach((loadId, fragments) {
+    Set<PreFragment> preFragments = {};
+    for (var fragment in fragments) {
+      preFragments.add(fragmentMap[fragment]);
+    }
+    assert(!preFragmentMap.containsKey(loadId));
+    preFragmentMap[loadId] = preFragments.toList();
+  });
+  return preFragmentMap;
+}
+
+class Tags {
+  static const String cls = 'class_unit';
+  static const String member = 'member_unit';
+  static const String closure = 'closure_unit';
+  static const String constants = 'constants';
+  static const String type = 'type_unit';
+  static const String steps = 'steps';
+  static const String outputUnits = 'output_units';
+}
+
+class OutputUnitDataComputer extends DataComputer<Features> {
   const OutputUnitDataComputer();
 
   /// OutputData for [member] as a kernel based element.
@@ -86,33 +130,106 @@ class OutputUnitDataComputer extends DataComputer<String> {
   /// is.
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<String>> actualMap,
+      Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new OutputUnitIrComputer(compiler.reporter, actualMap, elementMap,
+    OutputUnitIrComputer(compiler.reporter, actualMap, elementMap,
             closedWorld.outputUnitData, closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
   @override
-  void computeClassData(
-      Compiler compiler, ClassEntity cls, Map<Id, ActualData<String>> actualMap,
+  void computeClassData(Compiler compiler, ClassEntity cls,
+      Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     ClassDefinition definition = elementMap.getClassDefinition(cls);
-    new OutputUnitIrComputer(compiler.reporter, actualMap, elementMap,
+    OutputUnitIrComputer(compiler.reporter, actualMap, elementMap,
             closedWorld.outputUnitData, closedWorld.closureDataLookup)
         .computeForClass(definition.node);
   }
 
   @override
-  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
+  void computeLibraryData(Compiler compiler, LibraryEntity library,
+      Map<Id, ActualData<Features>> actualMap,
+      {bool verbose}) {
+    KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
+    ir.Library node = frontendStrategy.elementMap.getLibraryNode(library);
+    List<PreFragment> preDeferredFragments = compiler
+        .backendStrategy.emitterTask.emitter.preDeferredFragmentsForTesting;
+    Program program =
+        compiler.backendStrategy.emitterTask.emitter.programForTesting;
+    Map<String, List<PreFragment>> preFragmentMap =
+        buildPreFragmentMap(program.loadMap, preDeferredFragments);
+    PreFragmentsIrComputer(compiler.reporter, actualMap, preFragmentMap)
+        .computeForLibrary(node);
+  }
+
+  @override
+  DataInterpreter<Features> get dataValidator =>
+      const FeaturesDataInterpreter();
 }
 
-class OutputUnitIrComputer extends IrDataExtractor<String> {
+class PreFragmentsIrComputer extends IrDataExtractor<Features> {
+  final Map<String, List<PreFragment>> _preFragmentMap;
+
+  PreFragmentsIrComputer(DiagnosticReporter reporter,
+      Map<Id, ActualData<Features>> actualMap, this._preFragmentMap)
+      : super(reporter, actualMap);
+
+  @override
+  Features computeLibraryValue(Id id, ir.Library library) {
+    var name = '${library.importUri.pathSegments.last}';
+    Features features = new Features();
+    if (!name.startsWith('main')) return features;
+
+    int index = 1;
+    Map<PreFragment, int> preFragmentIndices = {};
+    Map<int, PreFragment> reversePreFragmentIndices = {};
+    _preFragmentMap.forEach((loadId, preFragments) {
+      List<String> preFragmentNeeds = [];
+      for (var preFragment in preFragments) {
+        if (!preFragmentIndices.containsKey(preFragment)) {
+          preFragmentIndices[preFragment] = index;
+          reversePreFragmentIndices[index++] = preFragment;
+        }
+        preFragmentNeeds.add('f${preFragmentIndices[preFragment]}');
+      }
+      features.addElement(
+          Tags.steps, '$loadId=(${preFragmentNeeds.join(', ')})');
+    });
+
+    for (int i = 1; i < index; i++) {
+      var preFragment = reversePreFragmentIndices[i];
+      List<int> needs = [];
+      List<OutputUnit> supplied = [];
+      List<int> usedBy = [];
+      for (var dependent in preFragment.successors) {
+        assert(preFragmentIndices.containsKey(dependent));
+        usedBy.add(preFragmentIndices[dependent]);
+      }
+
+      for (var dependency in preFragment.predecessors) {
+        assert(preFragmentIndices.containsKey(dependency));
+        needs.add(preFragmentIndices[dependency]);
+      }
+
+      for (var fragment in preFragment.fragments) {
+        supplied.add(fragment.outputUnit);
+      }
+      var suppliedString = '[${supplied.map(outputUnitString).join(', ')}]';
+      features.addElement(Tags.outputUnits,
+          'f$i: {units: $suppliedString, usedBy: $usedBy, needs: $needs}');
+    }
+
+    return features;
+  }
+}
+
+class OutputUnitIrComputer extends IrDataExtractor<Features> {
   final JsToElementMap _elementMap;
   final OutputUnitData _data;
   final ClosureData _closureDataLookup;
@@ -121,34 +238,36 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
 
   OutputUnitIrComputer(
       DiagnosticReporter reporter,
-      Map<Id, ActualData<String>> actualMap,
+      Map<Id, ActualData<Features>> actualMap,
       this._elementMap,
       this._data,
       this._closureDataLookup)
       : super(reporter, actualMap);
 
-  String getMemberValue(MemberEntity member, Set<String> constants) {
-    StringBuffer sb = new StringBuffer();
-    sb.write(outputUnitString(_data.outputUnitForMemberForTesting(member)));
-    if (constants.isNotEmpty) {
-      List<String> text = constants.toList()..sort();
-      sb.write(',constants=[${text.join(',')}]');
+  Features getMemberValue(
+      String tag, MemberEntity member, Set<String> constants) {
+    Features features = Features();
+    features.add(tag,
+        value: outputUnitString(_data.outputUnitForMemberForTesting(member)));
+    for (var constant in constants) {
+      features.addElement(Tags.constants, constant);
     }
-    return sb.toString();
+    return features;
   }
 
   @override
-  String computeClassValue(Id id, ir.Class node) {
+  Features computeClassValue(Id id, ir.Class node) {
     var cls = _elementMap.getClass(node);
-    StringBuffer sb = new StringBuffer();
-    sb.write(outputUnitString(_data.outputUnitForClassForTesting(cls)));
-    sb.write(', type=');
-    sb.write(outputUnitString(_data.outputUnitForClassTypeForTesting(cls)));
-    return sb.toString();
+    Features features = Features();
+    features.add(Tags.cls,
+        value: outputUnitString(_data.outputUnitForClassForTesting(cls)));
+    features.add(Tags.type,
+        value: outputUnitString(_data.outputUnitForClassTypeForTesting(cls)));
+    return features;
   }
 
   @override
-  String computeMemberValue(Id id, ir.Member node) {
+  Features computeMemberValue(Id id, ir.Member node) {
     if (node is ir.Field && node.isConst) {
       ir.Expression initializer = node.initializer;
       ConstantValue constant = _elementMap.getConstantValue(node, initializer);
@@ -160,11 +279,14 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
           // front of the constructor. The "-6" is an approximation assuming that
           // there is just a single space after "const" and no prefix.
           // TODO(sigmund): offsets should be fixed in the FE instead.
-          span = new SourceSpan(span.uri, span.begin - 6, span.end - 6);
+          span = SourceSpan(span.uri, span.begin - 6, span.end - 6);
         }
         _registerValue(
-            new NodeId(span.begin, IdKind.node),
-            outputUnitString(_data.outputUnitForConstantForTesting(constant)),
+            NodeId(span.begin, IdKind.node),
+            Features.fromMap({
+              Tags.member: outputUnitString(
+                  _data.outputUnitForConstantForTesting(constant))
+            }),
             node,
             span,
             actualMap,
@@ -172,9 +294,10 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
       }
     }
 
-    String value = getMemberValue(_elementMap.getMember(node), _constants);
+    Features features =
+        getMemberValue(Tags.member, _elementMap.getMember(node), _constants);
     _constants = {};
-    return value;
+    return features;
   }
 
   @override
@@ -188,10 +311,10 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
   }
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  Features computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
       ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
-      return getMemberValue(info.callMethod, const {});
+      return getMemberValue(Tags.closure, info.callMethod, const {});
     }
     return null;
   }
@@ -215,6 +338,6 @@ void _registerValue<T>(Id id, T value, Object object, SourceSpan sourceSpan,
   }
   if (value != null) {
     actualMap[id] =
-        new ActualData<T>(id, value, sourceSpan.uri, sourceSpan.begin, object);
+        ActualData<T>(id, value, sourceSpan.uri, sourceSpan.begin, object);
   }
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
@@ -25,11 +27,15 @@ main(List<String> args) async {
       onFailure: onFailure,
       runTest: runTestFor(const InheritanceDataComputer(), [
         new TestConfig(cfeMarker, 'cfe with nnbd',
-            experimentalFlags: const {ExperimentalFlag.nonNullable: true},
+            explicitExperimentalFlags: const {
+              ExperimentalFlag.nonNullable: true
+            },
             librariesSpecificationUri: createUriForFileName('libraries.json'),
             compileSdk: true),
         new TestConfig(cfeFromBuilderMarker, 'cfe from builder',
-            experimentalFlags: const {ExperimentalFlag.nonNullable: true},
+            explicitExperimentalFlags: const {
+              ExperimentalFlag.nonNullable: true
+            },
             librariesSpecificationUri: createUriForFileName('libraries.json'),
             compileSdk: true)
       ]));
@@ -121,8 +127,7 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
       InterfaceType supertype = _hierarchy.getTypeAsInstanceOf(
           _coreTypes.thisInterfaceType(node, node.enclosingLibrary.nonNullable),
           member.enclosingClass,
-          node.enclosingLibrary,
-          _coreTypes);
+          node.enclosingLibrary);
       Substitution substitution = Substitution.fromInterfaceType(supertype);
       DartType type;
       if (member is Procedure) {
@@ -151,7 +156,7 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
         return;
       }
 
-      String memberName = name.name;
+      String memberName = name.text;
       if (isSetter) {
         memberName += '=';
       }

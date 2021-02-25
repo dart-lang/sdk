@@ -14,15 +14,28 @@ library /*isNonNullableByDefault*/;
 //   static int staticFieldOfM; // Error.
 //              ^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:11:7: Error: This constructor should initialize field 'fieldOfA' because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:34:14: Error: Field 'staticFieldOfE' should be initialized because its type 'int' doesn't allow null.
+//   static int staticFieldOfE; // Error.
+//              ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:12:3: Error: This constructor should initialize field 'fieldOfA' because its type 'int' doesn't allow null.
+//   A.foo();
+//   ^
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:11:7: Context: 'fieldOfA' is defined here.
 //   int fieldOfA; // Error.
 //       ^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:17:5: Error: This constructor should initialize field 'fieldOfB' because its type 'X' doesn't allow null.
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:19:3: Error: This constructor should initialize field 'fieldOfB' because its type 'X' doesn't allow null.
+//   B.foo();
+//   ^
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:17:5: Context: 'fieldOfB' is defined here.
 //   X fieldOfB; // Error.
 //     ^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:18:5: Error: This constructor should initialize field 'fieldOfB2' because its type 'Y' doesn't allow null.
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:19:3: Error: This constructor should initialize field 'fieldOfB2' because its type 'Y' doesn't allow null.
+//   B.foo();
+//   ^
+// pkg/front_end/testcases/nnbd/non_nullable_field_initialization.dart:18:5: Context: 'fieldOfB2' is defined here.
 //   Y fieldOfB2; // Error.
 //     ^^^^^^^^^
 //
@@ -80,7 +93,7 @@ class C<X extends core::Object? = core::Object?, Y extends core::Object = core::
   generic-covariant-impl field self::C::X? fieldOfX = null;
   field core::int? fieldOfX2 = null;
   field dynamic fieldOfX3 = null;
-  field core::Null? fieldOfX4 = null;
+  field Null fieldOfX4 = null;
   field () →? core::int fieldOfX5 = null;
   generic-covariant-impl field self::C::Y? fieldOfX6 = null;
   late static field core::int lateStaticFieldOfC;
@@ -101,7 +114,7 @@ abstract class L<X extends core::Object? = core::Object?, Y extends core::Object
   generic-covariant-impl field self::L::X? fieldOfL = null;
   field core::int? fieldOfL2 = null;
   field dynamic fieldOfL3 = null;
-  field core::Null? fieldOfL4 = null;
+  field Null fieldOfL4 = null;
   field () →? core::int fieldOfL5 = null;
   generic-covariant-impl field self::L::Y? fieldOfL6 = null;
   late static field core::int lateStaticFieldOfM;

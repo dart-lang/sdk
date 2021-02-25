@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -21,33 +22,38 @@ class NullableDereferenceVerifier {
   })  : _typeSystem = typeSystem,
         _errorReporter = errorReporter;
 
-  bool expression(Expression expression, {DartType type}) {
+  bool expression(Expression expression, {DartType type, ErrorCode errorCode}) {
     if (!_typeSystem.isNonNullableByDefault) {
       return false;
     }
 
     type ??= expression.staticType;
-    return _check(expression, type);
+    return _check(expression, type, errorCode: errorCode);
   }
 
-  void report(AstNode errorNode, DartType receiverType) {
-    var errorCode = receiverType == _typeSystem.typeProvider.nullType
-        ? CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE
-        : CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE;
-    _errorReporter.reportErrorForNode(errorCode, errorNode);
+  void report(AstNode errorNode, DartType receiverType,
+      {ErrorCode errorCode, List<String> arguments = const <String>[]}) {
+    if (receiverType == _typeSystem.typeProvider.nullType) {
+      errorCode = CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE;
+    } else {
+      errorCode ??= CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE;
+    }
+    _errorReporter.reportErrorForNode(errorCode, errorNode, arguments);
   }
 
   /// If the [receiverType] is potentially nullable, report it.
   ///
   /// The [errorNode] is usually the receiver of the invocation, but if the
   /// receiver is the implicit `this`, the name of the invocation.
-  bool _check(AstNode errorNode, DartType receiverType) {
+  ///
+  /// Returns whether [receiverType] was reported.
+  bool _check(AstNode errorNode, DartType receiverType, {ErrorCode errorCode}) {
     if (identical(receiverType, DynamicTypeImpl.instance) ||
         !_typeSystem.isPotentiallyNullable(receiverType)) {
       return false;
     }
 
-    report(errorNode, receiverType);
+    report(errorNode, receiverType, errorCode: errorCode);
     return true;
   }
 }

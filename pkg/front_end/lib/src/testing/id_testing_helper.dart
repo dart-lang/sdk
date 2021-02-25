@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, ClassId, Id, IdKind, IdValue, MemberId, NodeId;
@@ -29,21 +31,27 @@ export '../fasta/messages.dart' show FormattedMessage;
 /// Test configuration used for testing CFE in its default state.
 const TestConfig defaultCfeConfig = const TestConfig(cfeMarker, 'cfe');
 
+/// Test configuration used for testing CFE without nnbd in addition to the
+/// default state.
+const TestConfig cfeNoNonNullableConfig = const TestConfig(
+    cfeMarker, 'cfe without nnbd',
+    explicitExperimentalFlags: const {ExperimentalFlag.nonNullable: false});
+
 /// Test configuration used for testing CFE with nnbd in addition to the
 /// default state.
 const TestConfig cfeNonNullableConfig = const TestConfig(
     cfeWithNnbdMarker, 'cfe with nnbd',
-    experimentalFlags: const {ExperimentalFlag.nonNullable: true});
+    explicitExperimentalFlags: const {ExperimentalFlag.nonNullable: true});
 
 /// Test configuration used for testing CFE with nnbd as the default state.
 const TestConfig cfeNonNullableOnlyConfig = const TestConfig(
     cfeMarker, 'cfe with nnbd',
-    experimentalFlags: const {ExperimentalFlag.nonNullable: true});
+    explicitExperimentalFlags: const {ExperimentalFlag.nonNullable: true});
 
 class TestConfig {
   final String marker;
   final String name;
-  final Map<ExperimentalFlag, bool> experimentalFlags;
+  final Map<ExperimentalFlag, bool> explicitExperimentalFlags;
   final AllowedExperimentalFlags allowedExperimentalFlags;
   final Uri librariesSpecificationUri;
   // TODO(johnniwinther): Tailor support to redefine selected platform
@@ -53,7 +61,7 @@ class TestConfig {
   final NnbdMode nnbdMode;
 
   const TestConfig(this.marker, this.name,
-      {this.experimentalFlags = const {},
+      {this.explicitExperimentalFlags = const {},
       this.allowedExperimentalFlags,
       this.librariesSpecificationUri,
       this.compileSdk: false,
@@ -151,19 +159,21 @@ class CfeCompiledData<T> extends CompiledData<T> {
       Member member;
       int offset;
       if (id.className != null) {
-        Class cls = lookupClass(library, id.className);
-        member = lookupClassMember(cls, id.memberName, required: false);
-        if (member != null) {
-          offset = member.fileOffset;
-          if (offset == -1) {
+        Class cls = lookupClass(library, id.className, required: false);
+        if (cls != null) {
+          member = lookupClassMember(cls, id.memberName, required: false);
+          if (member != null) {
+            offset = member.fileOffset;
+            if (offset == -1) {
+              offset = cls.fileOffset;
+            }
+          } else {
             offset = cls.fileOffset;
           }
-        } else {
-          offset = cls.fileOffset;
         }
       } else {
-        member = lookupLibraryMember(library, id.memberName);
-        offset = member.fileOffset;
+        member = lookupLibraryMember(library, id.memberName, required: false);
+        offset = member?.fileOffset ?? 0;
       }
       if (offset == -1) {
         offset = 0;
@@ -176,8 +186,8 @@ class CfeCompiledData<T> extends CompiledData<T> {
       if (extension != null) {
         return extension.fileOffset;
       }
-      Class cls = lookupClass(library, id.className);
-      return cls.fileOffset;
+      Class cls = lookupClass(library, id.className, required: false);
+      return cls?.fileOffset ?? 0;
     }
     return null;
   }
@@ -300,7 +310,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   };
   options.debugDump = printCode;
   options.target = new NoneTarget(config.targetFlags);
-  options.experimentalFlags.addAll(config.experimentalFlags);
+  options.explicitExperimentalFlags.addAll(config.explicitExperimentalFlags);
   options.allowedExperimentalFlagsForTesting = config.allowedExperimentalFlags;
   options.nnbdMode = config.nnbdMode;
   if (config.librariesSpecificationUri != null) {
@@ -375,7 +385,7 @@ Future<TestResult<T>> runTestForConfig<T>(
       if (member.enclosingClass.isEnum) {
         if (member is Constructor ||
             member.isInstanceMember ||
-            member.name == 'values') {
+            member.name.text == 'values') {
           return;
         }
       }

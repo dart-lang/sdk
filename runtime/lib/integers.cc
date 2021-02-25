@@ -143,7 +143,7 @@ DEFINE_NATIVE_ENTRY(Integer_greaterThanFromInteger, 0, 2) {
     OS::PrintErr("Integer_greaterThanFromInteger %s > %s\n", left.ToCString(),
                  right.ToCString());
   }
-  return Bool::Get(left.CompareWith(right) == 1).raw();
+  return Bool::Get(left.CompareWith(right) == 1).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 0, 2) {
@@ -155,7 +155,7 @@ DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 0, 2) {
     OS::PrintErr("Integer_equalToInteger %s == %s\n", left.ToCString(),
                  right.ToCString());
   }
-  return Bool::Get(left.CompareWith(right) == 0).raw();
+  return Bool::Get(left.CompareWith(right) == 0).ptr();
 }
 
 static IntegerPtr ParseInteger(const String& value) {
@@ -194,12 +194,12 @@ DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 0, 3) {
     const Integer& result = Integer::Handle(ParseInteger(env_value));
     if (!result.IsNull()) {
       if (result.IsSmi()) {
-        return result.raw();
+        return result.ptr();
       }
-      return result.CheckAndCanonicalize(thread, NULL);
+      return result.Canonicalize(thread);
     }
   }
-  return default_value.raw();
+  return default_value.ptr();
 }
 
 static IntegerPtr ShiftOperationHelper(Token::Kind kind,

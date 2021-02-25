@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/verifier.dart';
@@ -57,7 +59,7 @@ main() {
       VariableDeclaration variable = test.makeVariable();
       test.addNode(LogicalExpression(
           new Let(variable, new VariableGet(variable)),
-          '&&',
+          LogicalExpressionOperator.AND,
           new VariableGet(variable)));
       return variable;
     },
@@ -76,7 +78,7 @@ main() {
     'Member redeclared',
     (TestHarness test) {
       Field field =
-          new Field(new Name('field'), initializer: new NullLiteral());
+          new Field.mutable(new Name('field'), initializer: new NullLiteral());
       test.addNode(Class(
           name: 'Test',
           supertype: test.objectClass.asRawSupertype,
@@ -166,7 +168,7 @@ main() {
     'Class type parameter in static field',
     (TestHarness test) {
       TypeParameter node = test.classTypeParameter;
-      test.addNode(Field(new Name('field'),
+      test.addNode(Field.mutable(new Name('field'),
           initializer:
               new TypeLiteral(new TypeParameterType(node, Nullability.legacy)),
           isStatic: true));
@@ -235,8 +237,8 @@ main() {
   negative1Test(
     'Dangling field get',
     (TestHarness test) {
-      Field orphan = new Field(new Name('foo'));
-      test.addNode(new DirectPropertyGet(new NullLiteral(), orphan));
+      Field orphan = new Field.mutable(new Name('foo'));
+      test.addNode(new PropertyGet(new NullLiteral(), orphan.name, orphan));
       return orphan;
     },
     (Node node) => "Dangling reference to '$node', parent is: 'null'.",
@@ -292,7 +294,7 @@ main() {
           new FunctionNode(new EmptyStatement(),
               positionalParameters: [new VariableDeclaration('p')]),
           isStatic: true);
-      test.enclosingClass.addMember(method);
+      test.enclosingClass.addProcedure(method);
       test.addNode(
           StaticInvocation(method, new Arguments([new NullLiteral()])));
     },
@@ -303,7 +305,7 @@ main() {
       var method = new Procedure(new Name('bar'), ProcedureKind.Method,
           new FunctionNode(new EmptyStatement()),
           isStatic: true);
-      test.enclosingClass.addMember(method);
+      test.enclosingClass.addProcedure(method);
       test.addNode(
           StaticInvocation(method, new Arguments([new NullLiteral()])));
       return method;
@@ -320,7 +322,7 @@ main() {
           new FunctionNode(new EmptyStatement(),
               positionalParameters: [new VariableDeclaration('p')]),
           isStatic: true);
-      test.enclosingClass.addMember(method);
+      test.enclosingClass.addProcedure(method);
       test.addNode(StaticInvocation(method, new Arguments.empty()));
       return method;
     },
@@ -332,7 +334,7 @@ main() {
       var method = new Procedure(new Name('bar'), ProcedureKind.Method,
           new FunctionNode(new EmptyStatement()),
           isStatic: true);
-      test.enclosingClass.addMember(method);
+      test.enclosingClass.addProcedure(method);
       test.addNode(StaticInvocation(
           method,
           new Arguments([],
@@ -351,7 +353,7 @@ main() {
           new FunctionNode(new EmptyStatement(),
               typeParameters: [test.makeTypeParameter()]),
           isStatic: true);
-      test.enclosingClass.addMember(method);
+      test.enclosingClass.addProcedure(method);
       test.addNode(StaticInvocation(method, new Arguments.empty()));
       return method;
     },
@@ -363,7 +365,7 @@ main() {
     (TestHarness test) {
       var constructor = new Constructor(new FunctionNode(new EmptyStatement()),
           name: new Name('foo'));
-      test.enclosingClass.addMember(constructor);
+      test.enclosingClass.addConstructor(constructor);
       test.addNode(ConstructorInvocation(constructor, new Arguments.empty()));
       return constructor;
     },
@@ -421,10 +423,10 @@ main() {
           'Foo',
           new FunctionType(
               [test.otherLegacyRawType], const VoidType(), Nullability.legacy));
-      var field = new Field(new Name('field'),
+      var field = new Field.mutable(new Name('field'),
           type: new TypedefType(typedef_, Nullability.legacy), isStatic: true);
       test.enclosingLibrary.addTypedef(typedef_);
-      test.enclosingLibrary.addMember(field);
+      test.enclosingLibrary.addField(field);
     },
   );
   negative1Test(
@@ -632,10 +634,10 @@ main() {
       var foo =
           new Typedef('Foo', test.otherLegacyRawType, typeParameters: [param]);
       var typedefType = new TypedefType(foo, Nullability.legacy, []);
-      var field =
-          new Field(new Name('field'), type: typedefType, isStatic: true);
+      var field = new Field.mutable(new Name('field'),
+          type: typedefType, isStatic: true);
       test.enclosingLibrary.addTypedef(foo);
-      test.enclosingLibrary.addMember(field);
+      test.enclosingLibrary.addField(field);
       return typedefType;
     },
     (Node typedefType) =>
@@ -646,9 +648,9 @@ main() {
     'Dangling typedef reference',
     (TestHarness test) {
       var foo = new Typedef('Foo', test.otherLegacyRawType, typeParameters: []);
-      var field = new Field(new Name('field'),
+      var field = new Field.mutable(new Name('field'),
           type: new TypedefType(foo, Nullability.legacy, []), isStatic: true);
-      test.enclosingLibrary.addMember(field);
+      test.enclosingLibrary.addField(field);
       return foo;
     },
     (Node foo) => "Dangling reference to '$foo', parent is: 'null'",
@@ -656,8 +658,8 @@ main() {
   negative1Test(
     'Non-static top-level field',
     (TestHarness test) {
-      var field = new Field(new Name('field'));
-      test.enclosingLibrary.addMember(field);
+      var field = new Field.mutable(new Name('field'));
+      test.enclosingLibrary.addField(field);
       return null;
     },
     (Node node) => "The top-level field 'field' should be static",
@@ -715,11 +717,27 @@ class TestHarness {
   }
 
   void addClassMember(Member node) {
-    enclosingClass.addMember(node);
+    if (node is Procedure) {
+      enclosingClass.addProcedure(node);
+    } else if (node is Field) {
+      enclosingClass.addField(node);
+    } else if (node is Constructor) {
+      enclosingClass.addConstructor(node);
+    } else if (node is RedirectingFactoryConstructor) {
+      enclosingClass.addRedirectingFactoryConstructor(node);
+    } else {
+      throw "Unexpected class member: ${node.runtimeType}";
+    }
   }
 
   void addTopLevelMember(Member node) {
-    enclosingLibrary.addMember(node);
+    if (node is Procedure) {
+      enclosingLibrary.addProcedure(node);
+    } else if (node is Field) {
+      enclosingLibrary.addField(node);
+    } else {
+      throw "Unexpected top level member: ${node.runtimeType}";
+    }
   }
 
   void addClass(Class node) {
@@ -762,7 +780,7 @@ class TestHarness {
     enclosingLibrary.addClass(enclosingClass);
     enclosingMember = new Procedure(new Name('test'), ProcedureKind.Method,
         new FunctionNode(new EmptyStatement()));
-    enclosingClass.addMember(enclosingMember);
+    enclosingClass.addProcedure(enclosingMember);
     otherClass = new Class(
         name: 'OtherClass',
         typeParameters: [makeTypeParameter('OtherT')],

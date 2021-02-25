@@ -239,6 +239,11 @@ class ClosureDataBuilder {
             }
             break;
           case VariableUseKind.localReturnType:
+            if (usage.localFunction.function.asyncMarker !=
+                ir.AsyncMarker.Sync) {
+              // The Future/Iterator/Stream implementation requires the type.
+              return true;
+            }
             if (rtiNeed.localFunctionNeedsSignature(usage.localFunction)) {
               return true;
             }
@@ -476,7 +481,9 @@ class JsScopeInfo extends ScopeInfo {
         source.readLocalMap<Local, JRecordField>(() => source.readMember());
     Set<Local> freeVariables = source.readLocals().toSet();
     source.end(tag);
-    return new JsScopeInfo.internal(
+    if (boxedVariables.isEmpty) boxedVariables = const {};
+    if (freeVariables.isEmpty) freeVariables = const {};
+    return JsScopeInfo.internal(
         localsUsedInTryOrSync, thisLocal, boxedVariables, freeVariables);
   }
 
@@ -666,7 +673,10 @@ class KernelClosureClassInfo extends JsScopeInfo
     Map<Local, JField> localToFieldMap =
         source.readLocalMap(() => source.readMember());
     source.end(tag);
-    return new KernelClosureClassInfo.internal(
+    if (boxedVariables.isEmpty) boxedVariables = const {};
+    if (freeVariables.isEmpty) freeVariables = const {};
+    if (localToFieldMap.isEmpty) localToFieldMap = const {};
+    return KernelClosureClassInfo.internal(
         localsUsedInTryOrSync,
         thisLocal,
         boxedVariables,

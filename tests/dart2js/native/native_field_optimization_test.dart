@@ -42,10 +42,11 @@ void setup() {
     }
   });
 
-  makeFoo = function() { return new Foo() };
+  self.makeFoo = function() { return new Foo() };
 
   self.nativeConstructor(Foo);
 })()""");
+  applyTestExtensions(['Foo']);
 }
 
 test1() {

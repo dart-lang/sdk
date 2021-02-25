@@ -22,7 +22,83 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
     return driver.test.libraryContext.linkedCycles;
   }
 
+  test_change_field_staticFinal_hasConstConstructor_changeInitializer() async {
+    useEmptyByteStore();
+
+    newFile(testFilePath, content: r'''
+class A {
+  static const a = 0;
+  static const b = 1;
+  static final Set<int> f = {a};
+  const A {}
+}
+''');
+
+    await resolveTestFile();
+    assertType(findElement.field('f').type, 'Set<int>');
+
+    // The summary for the library was linked.
+    _assertContainsLinkedCycle({testFilePath}, andClear: true);
+
+    // Dispose the collection, with its driver.
+    // The next analysis will recreate it.
+    // We will reuse the byte store, so can reuse summaries.
+    disposeAnalysisContextCollection();
+
+    newFile(testFilePath, content: r'''
+class A {
+  static const a = 0;
+  static const b = 1;
+  static final Set<int> f = <int>{a, b, 2};
+  const A {}
+}
+''');
+
+    await resolveTestFile();
+    assertType(findElement.field('f').type, 'Set<int>');
+
+    // We changed the initializer of the final field. But it is static, so
+    // even though the class hsa a constant constructor, we don't need its
+    // initializer, so nothing should be linked.
+    _assertNoLinkedCycles();
+  }
+
+  test_change_functionBody() async {
+    useEmptyByteStore();
+
+    newFile(testFilePath, content: r'''
+void f() {
+  print(0);
+}
+''');
+
+    await resolveTestFile();
+    expect(findNode.integerLiteral('0'), isNotNull);
+
+    // The summary for the library was linked.
+    _assertContainsLinkedCycle({testFilePath}, andClear: true);
+
+    // Dispose the collection, with its driver.
+    // The next analysis will recreate it.
+    // We will reuse the byte store, so can reuse summaries.
+    disposeAnalysisContextCollection();
+
+    newFile(testFilePath, content: r'''
+void f() {
+  print(1);
+}
+''');
+
+    await resolveTestFile();
+    expect(findNode.integerLiteral('1'), isNotNull);
+
+    // We changed only the function body, nothing should be linked.
+    _assertNoLinkedCycles();
+  }
+
   test_lints() async {
+    useEmptyByteStore();
+
     newFile(testFilePath, content: r'''
 void f() {
   ![0].isEmpty;

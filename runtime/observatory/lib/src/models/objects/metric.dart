@@ -5,12 +5,12 @@
 part of models;
 
 abstract class Metric {
-  String get id;
-  String get name;
-  String get description;
+  String? get id;
+  String? get name;
+  String? get description;
 }
 
 abstract class MetricSample {
-  double get value;
-  DateTime get time;
+  double? get value;
+  DateTime? get time;
 }

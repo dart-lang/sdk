@@ -10,20 +10,20 @@ import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class PcDescriptorsRefElement extends CustomElement implements Renderable {
-  RenderingScheduler<PcDescriptorsRefElement> _r;
+  late RenderingScheduler<PcDescriptorsRefElement> _r;
 
   Stream<RenderedEvent<PcDescriptorsRefElement>> get onRendered =>
       _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.PcDescriptorsRef _descriptors;
+  late M.IsolateRef _isolate;
+  late M.PcDescriptorsRef _descriptors;
 
   M.IsolateRef get isolate => _isolate;
   M.PcDescriptorsRef get descriptors => _descriptors;
 
   factory PcDescriptorsRefElement(
       M.IsolateRef isolate, M.PcDescriptorsRef descriptors,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(descriptors != null);
     PcDescriptorsRefElement e = new PcDescriptorsRefElement.created();

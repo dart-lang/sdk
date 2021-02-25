@@ -1,0 +1,54 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+# Mixin something from the same file.
+
+type: newworld
+forceLateLoweringForTesting: true
+worlds:
+  - entry: main.dart
+    experiments: non-nullable,alternative-invalidation-strategy
+    sources:
+      lib1.dart: |
+        late int field;
+        method() {
+          print('foo');
+        }
+      lib2.dart: |
+        export 'lib1.dart';
+      main.dart: |
+        import 'lib2.dart';
+        main() {
+          field = 42;
+        }
+    expectedLibraryCount: 3
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'lib2.dart';
+        main() {
+          field = 87;
+        }
+    expectedLibraryCount: 3
+    expectsRebuildBodiesOnly: true
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - lib1.dart
+    sources:
+      lib1.dart: |
+        late int field;
+        method() {
+          print('bar');
+        }
+    expectedLibraryCount: 3
+    expectsRebuildBodiesOnly: true

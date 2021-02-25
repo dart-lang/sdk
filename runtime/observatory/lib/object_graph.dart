@@ -22,7 +22,7 @@ abstract class SnapshotReader {
 
 class _SnapshotReader implements SnapshotReader {
   bool _closed = false;
-  var _chunks = <Uint8List>[];
+  List<Uint8List>? _chunks = <Uint8List>[];
   final _onProgress = new StreamController<String>.broadcast();
   final _done = new Completer<SnapshotGraph>();
 
@@ -32,8 +32,8 @@ class _SnapshotReader implements SnapshotReader {
     if (_closed) {
       throw new StateError("Stream is closed");
     }
-    _chunks.add(chunk);
-    _onProgress.add("Receiving snapshot chunk ${_chunks.length}...");
+    _chunks!.add(chunk);
+    _onProgress.add("Receiving snapshot chunk ${_chunks!.length}...");
 
     // TODO(rmacnak): Incremental loading.
   }
@@ -45,7 +45,7 @@ class _SnapshotReader implements SnapshotReader {
     _closed = true;
 
     var graph = new _SnapshotGraph._new();
-    var chunks = _chunks;
+    var chunks = _chunks!;
     _chunks = null; // Let the binary chunks be GCable.
     _done.complete(graph._load(chunks, _onProgress));
     return _done.future;
@@ -270,39 +270,39 @@ class _SnapshotObject implements SnapshotObject {
   int get hashCode => _id ^ _graph.hashCode;
 
   int get shallowSize => internalSize + externalSize;
-  int get internalSize => _graph._internalSizes[_id];
-  int get externalSize => _graph._externalSizes[_id];
-  int get retainedSize => _graph._retainedSizes[_id];
+  int get internalSize => _graph._internalSizes![_id];
+  int get externalSize => _graph._externalSizes![_id];
+  int get retainedSize => _graph._retainedSizes![_id];
 
   String get description => _graph._describeObject(_id);
-  SnapshotClass get klass => _graph._classes[_graph._cids[_id]];
+  SnapshotClass get klass => _graph._classes![_graph._cids![_id]]!;
 
   Iterable<SnapshotObject> get successors sync* {
     final id = _id;
-    final cid = _graph._cids[id];
-    final startSuccIndex = _graph._firstSuccs[id];
-    final limitSuccIndex = _graph._firstSuccs[id + 1];
+    final cid = _graph._cids![id];
+    final startSuccIndex = _graph._firstSuccs![id];
+    final limitSuccIndex = _graph._firstSuccs![id + 1];
     for (var nextSuccIndex = startSuccIndex;
         nextSuccIndex < limitSuccIndex;
         nextSuccIndex++) {
       final index = nextSuccIndex - startSuccIndex;
-      final succId = _graph._succs[nextSuccIndex];
+      final succId = _graph._succs![nextSuccIndex];
       final name = _graph._edgeName(cid, index);
       yield _SnapshotObject._new(succId, _graph, name);
     }
   }
 
   Iterable<SnapshotObject> get predecessors sync* {
-    var firstSuccs = _graph._firstSuccs;
-    var succs = _graph._succs;
+    var firstSuccs = _graph._firstSuccs!;
+    var succs = _graph._succs!;
     var id = _id;
-    var N = _graph._N;
+    var N = _graph._N!;
     for (var predId = 1; predId <= N; predId++) {
       var base = firstSuccs[predId];
       var limit = firstSuccs[predId + 1];
       for (var i = base; i < limit; i++) {
         if (succs[i] == id) {
-          var cid = _graph._cids[predId];
+          var cid = _graph._cids![predId];
           var name = _graph._edgeName(cid, i - base);
           yield _SnapshotObject._new(predId, _graph, name);
         }
@@ -314,12 +314,12 @@ class _SnapshotObject implements SnapshotObject {
     if (_id == _ROOT) {
       return this;
     }
-    return _SnapshotObject._new(_graph._doms[_id], _graph, "");
+    return _SnapshotObject._new(_graph._doms![_id], _graph, "");
   }
 
   Iterable<SnapshotObject> get children sync* {
-    var N = _graph._N;
-    var doms = _graph._doms;
+    var N = _graph._N!;
+    var doms = _graph._doms!;
     var parentId = _id;
     for (var childId = _ROOT; childId <= N; childId++) {
       if (doms[childId] == parentId) {
@@ -334,17 +334,17 @@ class _SnapshotObject implements SnapshotObject {
 }
 
 class _SyntheticSnapshotObject implements SnapshotObject {
-  String _description;
-  SnapshotClass _klass;
-  int _internalSize;
-  int _externalSize;
-  int _retainedSize;
-  List<SnapshotObject> _successors;
-  List<SnapshotObject> _predecessors;
-  SnapshotObject _parent;
-  List<SnapshotObject> _children;
+  late String _description;
+  late SnapshotClass _klass;
+  late int _internalSize;
+  late int _externalSize;
+  late int _retainedSize;
+  late List<SnapshotObject> _successors;
+  late List<SnapshotObject> _predecessors;
+  late SnapshotObject _parent;
+  late List<SnapshotObject> _children;
 
-  String get label => null;
+  String get label => "";
   String get description => _description;
   SnapshotClass get klass => _klass;
 
@@ -404,7 +404,7 @@ abstract class SnapshotMergedDominator {
 class _SnapshotMergedDominator implements SnapshotMergedDominator {
   final int _id;
   final _SnapshotGraph _graph;
-  final _SnapshotMergedDominator _parent;
+  final _SnapshotMergedDominator? _parent;
 
   _SnapshotMergedDominator._new(this._id, this._graph, this._parent);
 
@@ -423,70 +423,78 @@ class _SnapshotMergedDominator implements SnapshotMergedDominator {
         : "$instanceCount instances of ${klass.name}";
   }
 
-  SnapshotClass get klass => _graph._classes[_graph._cids[_id]];
+  SnapshotClass get klass => _graph._classes![_graph._cids![_id]]!;
 
   int get shallowSize => internalSize + externalSize;
 
   int get internalSize {
-    var cids = _graph._cids;
+    var cids = _graph._cids!;
+    var internalSizes = _graph._internalSizes!;
+    var mergedDomNext = _graph._mergedDomNext!;
     var size = 0;
     var sibling = _id;
     while (sibling != _SENTINEL && cids[sibling] == cids[_id]) {
-      size += _graph._internalSizes[sibling];
-      sibling = _graph._mergedDomNext[sibling];
+      size += internalSizes[sibling];
+      sibling = mergedDomNext[sibling];
     }
     return size;
   }
 
   int get externalSize {
-    var cids = _graph._cids;
+    var cids = _graph._cids!;
+    var externalSizes = _graph._externalSizes!;
+    var mergedDomNext = _graph._mergedDomNext!;
     var size = 0;
     var sibling = _id;
     while (sibling != _SENTINEL && cids[sibling] == cids[_id]) {
-      size += _graph._externalSizes[sibling];
-      sibling = _graph._mergedDomNext[sibling];
+      size += externalSizes[sibling];
+      sibling = mergedDomNext[sibling];
     }
     return size;
   }
 
   int get retainedSize {
-    var cids = _graph._cids;
+    var cids = _graph._cids!;
+    var retainedSizes = _graph._retainedSizes!;
+    var mergedDomNext = _graph._mergedDomNext!;
     var size = 0;
     var sibling = _id;
     while (sibling != _SENTINEL && cids[sibling] == cids[_id]) {
-      size += _graph._retainedSizes[sibling];
-      sibling = _graph._mergedDomNext[sibling];
+      size += retainedSizes[sibling];
+      sibling = mergedDomNext[sibling];
     }
     return size;
   }
 
   int get instanceCount {
-    var cids = _graph._cids;
+    var cids = _graph._cids!;
+    var mergedDomNext = _graph._mergedDomNext!;
     var count = 0;
     var sibling = _id;
     while (sibling != _SENTINEL && cids[sibling] == cids[_id]) {
       count++;
-      sibling = _graph._mergedDomNext[sibling];
+      sibling = mergedDomNext[sibling];
     }
     return count;
   }
 
   Iterable<SnapshotObject> get objects sync* {
-    var cids = _graph._cids;
+    var cids = _graph._cids!;
+    var mergedDomNext = _graph._mergedDomNext!;
     var sibling = _id;
     while (sibling != _SENTINEL && cids[sibling] == cids[_id]) {
       yield _SnapshotObject._new(sibling, _graph, "");
-      sibling = _graph._mergedDomNext[sibling];
+      sibling = mergedDomNext[sibling];
     }
   }
 
   SnapshotMergedDominator get parent => _parent ?? this;
 
   Iterable<SnapshotMergedDominator> get children sync* {
-    var next = _graph._mergedDomNext;
-    var cids = _graph._cids;
+    var next = _graph._mergedDomNext!;
+    var cids = _graph._cids!;
     var prev = _SENTINEL;
-    var child = _graph._mergedDomHead[_id];
+    var child = _graph._mergedDomHead![_id];
     // Walk the list of children and look for the representative objects, i.e.
     // the first sibling of each cid.
     while (child != _SENTINEL) {
@@ -500,14 +508,14 @@ class _SnapshotMergedDominator implements SnapshotMergedDominator {
 }
 
 class _SyntheticSnapshotMergedDominator implements SnapshotMergedDominator {
-  String _description;
-  SnapshotClass _klass;
-  int _internalSize;
-  int _externalSize;
-  int _retainedSize;
-  List<SnapshotObject> _objects;
-  SnapshotMergedDominator _parent;
-  List<SnapshotMergedDominator> _children;
+  late String _description;
+  late SnapshotClass _klass;
+  late int _internalSize;
+  late int _externalSize;
+  late int _retainedSize;
+  late List<SnapshotObject> _objects;
+  late SnapshotMergedDominator _parent;
+  late List<SnapshotMergedDominator> _children;
 
   SnapshotClass get klass => _klass;
   String get description => _description;
@@ -560,9 +568,11 @@ class _SnapshotClass implements SnapshotClass {
   int get instanceCount => liveInstanceCount;
 
   Iterable<SnapshotObject> get instances sync* {
-    final N = _graph._N;
+    final N = _graph._N!;
+    final cids = _graph._cids!;
+    final retainedSizes = _graph._retainedSizes!;
     for (var id = 1; id <= N; id++) {
-      if (_graph._cids[id] == _cid && _graph._retainedSizes[id] > 0) {
+      if (cids[id] == _cid && retainedSizes[id] > 0) {
         yield _SnapshotObject._new(id, _graph, "");
       }
     }
@@ -613,36 +623,36 @@ const _kRootName = "Live Objects + External";
 const _kUnknownFieldName = "<unknown>";
 
 class _SnapshotGraph implements SnapshotGraph {
-  List<Uint8List> _chunks;
-  List<Uint8List> get chunks => _chunks;
+  List<Uint8List>? _chunks;
+  List<Uint8List> get chunks => _chunks!;
 
   _SnapshotGraph._new();
 
-  String get description => _description;
+  String get description => _description!;
 
-  int get size => _liveInternalSize + _liveExternalSize;
-  int get internalSize => _liveInternalSize;
-  int get externalSize => _liveExternalSize;
-  int get capacity => _capacity;
+  int get size => _liveInternalSize! + _liveExternalSize!;
+  int get internalSize => _liveInternalSize!;
+  int get externalSize => _liveExternalSize!;
+  int get capacity => _capacity!;
 
   SnapshotObject get root => _SnapshotObject._new(_ROOT, this, "Root");
   SnapshotMergedDominator get mergedRoot =>
       _SnapshotMergedDominator._new(_ROOT, this, null);
 
-  SnapshotObject _extendedRoot;
+  SnapshotObject? _extendedRoot;
   SnapshotObject get extendedRoot {
     if (_extendedRoot == null) {
       _createExtended();
     }
-    return _extendedRoot;
+    return _extendedRoot!;
   }
 
-  SnapshotMergedDominator _extendedMergedRoot;
+  SnapshotMergedDominator? _extendedMergedRoot;
   SnapshotMergedDominator get extendedMergedRoot {
     if (_extendedMergedRoot == null) {
       _createExtended();
     }
-    return _extendedMergedRoot;
+    return _extendedMergedRoot!;
   }
 
   void _createExtended() {
@@ -657,8 +667,8 @@ class _SnapshotGraph implements SnapshotGraph {
 
     capacity._description = "Capacity + External";
     capacity._klass = live.klass;
-    capacity._internalSize = _capacity;
-    capacity._externalSize = _totalExternalSize;
+    capacity._internalSize = _capacity!;
+    capacity._externalSize = _totalExternalSize!;
     capacity._retainedSize = capacity._internalSize + capacity._externalSize;
     capacity._successors = <SnapshotObject>[live, uncollected, fragmentation];
     capacity._predecessors = <SnapshotObject>[];
@@ -666,8 +676,8 @@ class _SnapshotGraph implements SnapshotGraph {
 
     mcapacity._description = "Capacity + External";
     mcapacity._klass = mlive.klass;
-    mcapacity._internalSize = _capacity;
-    mcapacity._externalSize = _totalExternalSize;
+    mcapacity._internalSize = _capacity!;
+    mcapacity._externalSize = _totalExternalSize!;
     mcapacity._retainedSize = mcapacity._internalSize + mcapacity._externalSize;
     mcapacity._children = <SnapshotMergedDominator>[
       mlive,
@@ -678,8 +688,8 @@ class _SnapshotGraph implements SnapshotGraph {
 
     uncollected._description = "Uncollected Garbage";
     uncollected._klass = live.klass;
-    uncollected._internalSize = _totalInternalSize - _liveInternalSize;
-    uncollected._externalSize = _totalExternalSize - _liveExternalSize;
+    uncollected._internalSize = _totalInternalSize! - _liveInternalSize!;
+    uncollected._externalSize = _totalExternalSize! - _liveExternalSize!;
     uncollected._retainedSize =
         uncollected._internalSize + uncollected._externalSize;
     uncollected._successors = <SnapshotObject>[];
@@ -689,8 +699,8 @@ class _SnapshotGraph implements SnapshotGraph {
 
     muncollected._description = "Uncollected Garbage";
     muncollected._klass = mlive.klass;
-    muncollected._internalSize = _totalInternalSize - _liveInternalSize;
-    muncollected._externalSize = _totalExternalSize - _liveExternalSize;
+    muncollected._internalSize = _totalInternalSize! - _liveInternalSize!;
+    muncollected._externalSize = _totalExternalSize! - _liveExternalSize!;
     muncollected._retainedSize =
         muncollected._internalSize + muncollected._externalSize;
     muncollected._parent = mcapacity;
@@ -699,7 +709,7 @@ class _SnapshotGraph implements SnapshotGraph {
 
     fragmentation._description = "Free";
     fragmentation._klass = live.klass;
-    fragmentation._internalSize = _capacity - _totalInternalSize;
+    fragmentation._internalSize = _capacity! - _totalInternalSize!;
     fragmentation._externalSize = 0;
     fragmentation._retainedSize = fragmentation._internalSize;
     fragmentation._successors = <SnapshotObject>[];
@@ -709,7 +719,7 @@ class _SnapshotGraph implements SnapshotGraph {
 
     mfragmentation._description = "Free";
     mfragmentation._klass = mlive.klass;
-    mfragmentation._internalSize = _capacity - _totalInternalSize;
+    mfragmentation._internalSize = _capacity! - _totalInternalSize!;
     mfragmentation._externalSize = 0;
     mfragmentation._retainedSize = mfragmentation._internalSize;
     mfragmentation._parent = mcapacity;
@@ -721,9 +731,10 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   Iterable<SnapshotObject> get objects sync* {
-    final N = _N;
+    final N = _N!;
+    final retainedSizes = _retainedSizes!;
     for (var id = 1; id <= N; id++) {
-      if (_retainedSizes[id] > 0) {
+      if (retainedSizes[id] > 0) {
         yield _SnapshotObject._new(id, this, "");
       }
     }
@@ -737,7 +748,7 @@ class _SnapshotGraph implements SnapshotGraph {
       return _kRootName;
     }
     var cls = _className(oid);
-    var data = _nonReferenceData[oid];
+    var data = _nonReferenceData![oid];
     if (data == null) {
       return cls;
     } else {
@@ -746,8 +757,8 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   String _className(int oid) {
-    var cid = _cids[oid];
-    var cls = _classes[cid];
+    var cid = _cids![oid];
+    var cls = _classes![cid];
     if (cls == null) {
       return "Class$cid";
     }
@@ -755,7 +766,7 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   String _edgeName(int cid, int index) {
-    var c = _classes[cid];
+    var c = _classes![cid];
     if (c == null) {
       return _kUnknownFieldName;
     }
@@ -767,7 +778,7 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   Iterable<SnapshotClass> get classes sync* {
-    for (final c in _classes) {
+    for (final c in _classes!) {
       // Not all CIDs are occupied.
       if (c != null) {
         yield c;
@@ -776,9 +787,9 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   Future<SnapshotGraph> _load(
-      List<Uint8List> chunks, StreamController<String> onProgress) async {
+      List<Uint8List>? chunks, StreamController<String> onProgress) async {
     _chunks = chunks;
-    var stream = _ReadStream._new(chunks);
+    _ReadStream? stream = _ReadStream._new(chunks!);
     chunks = null;
 
     // The phases of loading are placed in explicit `new Future(compuation)` so
@@ -786,13 +797,13 @@ class _SnapshotGraph implements SnapshotGraph {
     // defer to the microtask loop.
 
     onProgress.add("Loading classes...");
-    await new Future(() => _readClasses(stream));
+    await new Future(() => _readClasses(stream!));
 
     onProgress.add("Loading objects...");
-    await new Future(() => _readObjects(stream));
+    await new Future(() => _readObjects(stream!));
 
     onProgress.add("Loading external properties...");
-    await new Future(() => _readExternalProperties(stream));
+    await new Future(() => _readExternalProperties(stream!));
 
     stream = null;
 
@@ -839,46 +850,46 @@ class _SnapshotGraph implements SnapshotGraph {
     return this;
   }
 
-  Uint8List _encoded;
+  Uint8List? _encoded;
 
-  String _description;
+  String? _description;
 
-  int _kStackCid;
-  int _kFieldCid;
-  int _numCids;
-  int _N; // Objects in the snapshot.
-  int _Nconnected; // Objects reachable from root.
-  int _E; // References in the snapshot.
+  int? _kStackCid;
+  int? _kFieldCid;
+  int? _numCids;
+  int? _N; // Objects in the snapshot.
+  int? _Nconnected; // Objects reachable from root.
+  int? _E; // References in the snapshot.
 
-  int _capacity;
-  int _liveInternalSize;
-  int _liveExternalSize;
-  int _totalInternalSize;
-  int _totalExternalSize;
+  int? _capacity;
+  int? _liveInternalSize;
+  int? _liveExternalSize;
+  int? _totalInternalSize;
+  int? _totalExternalSize;
 
-  List<_SnapshotClass> _classes;
+  List<_SnapshotClass?>? _classes;
 
   // Indexed by node id, with id 0 representing invalid/uninitialized.
   // From snapshot.
-  List _nonReferenceData;
-  Uint16List _cids;
-  Uint32List _internalSizes;
-  Uint32List _externalSizes;
-  Uint32List _firstSuccs;
-  Uint32List _succs;
+  List? _nonReferenceData;
+  Uint16List? _cids;
+  Uint32List? _internalSizes;
+  Uint32List? _externalSizes;
+  Uint32List? _firstSuccs;
+  Uint32List? _succs;
 
   // Intermediates.
-  Uint32List _vertex;
-  Uint32List _parent;
-  Uint32List _semi;
-  Uint32List _firstPreds; // Offset into preds.
-  Uint32List _preds;
+  Uint32List? _vertex;
+  Uint32List? _parent;
+  Uint32List? _semi;
+  Uint32List? _firstPreds; // Offset into preds.
+  Uint32List? _preds;
 
   // Outputs.
-  Uint32List _doms;
-  Uint32List _retainedSizes;
-  Uint32List _mergedDomHead;
-  Uint32List _mergedDomNext;
+  Uint32List? _doms;
+  Uint32List? _retainedSizes;
+  Uint32List? _mergedDomHead;
+  Uint32List? _mergedDomNext;
 
   void _readClasses(_ReadStream stream) {
     for (var i = 0; i < 8; i++) {
@@ -892,7 +903,7 @@ class _SnapshotGraph implements SnapshotGraph {
     _totalExternalSize = stream.readUnsigned();
 
     var K = stream.readUnsigned();
-    var classes = new List<_SnapshotClass>.filled(K + 1, null);
+    var classes = new List<_SnapshotClass?>.filled(K + 1, null);
     classes[0] = _SnapshotClass._new(this, 0, "Root", "", "");
 
     for (var cid = 1; cid <= K; cid++) {
@@ -935,7 +946,7 @@ class _SnapshotGraph implements SnapshotGraph {
 
     var internalSizes = _newUint32Array(N + 1);
     var cids = _newUint16Array(N + 1);
-    var nonReferenceData = new List(N + 1);
+    var nonReferenceData = new List<dynamic>.filled(N + 1, null);
     var firstSuccs = _newUint32Array(N + 2);
     var succs = _newUint32Array(E);
     var eid = 0;
@@ -1011,7 +1022,7 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   void _readExternalProperties(_ReadStream stream) {
-    final N = _N;
+    final N = _N!;
     final externalPropertyCount = stream.readUnsigned();
 
     final externalSizes = _newUint32Array(N + 1);
@@ -1026,11 +1037,11 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   void _computeClassTable() {
-    final N = _N;
-    final classes = _classes;
-    final cids = _cids;
-    final internalSizes = _internalSizes;
-    final externalSizes = _externalSizes;
+    final N = _N!;
+    final classes = _classes!;
+    final cids = _cids!;
+    final internalSizes = _internalSizes!;
+    final externalSizes = _externalSizes!;
     var totalInternalSize = 0;
     var totalExternalSize = 0;
 
@@ -1041,7 +1052,7 @@ class _SnapshotGraph implements SnapshotGraph {
       var externalSize = externalSizes[oid];
       totalExternalSize += externalSize;
 
-      var cls = classes[cids[oid]];
+      var cls = classes[cids[oid]]!;
       cls.totalInternalSize += internalSize;
       cls.totalExternalSize += externalSize;
       cls.totalInstanceCount++;
@@ -1052,9 +1063,9 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   void _dfs() {
-    final N = _N;
-    final firstSuccs = _firstSuccs;
-    final succs = _succs;
+    final N = _N!;
+    final firstSuccs = _firstSuccs!;
+    final succs = _succs!;
 
     final stackNodes = _newUint32Array(N);
     final stackCurrentEdgePos = _newUint32Array(N);
@@ -1142,11 +1153,11 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   void _buildPredecessors() {
-    final N = _N;
-    final Nconnected = _Nconnected;
-    final E = _E;
-    final firstSuccs = _firstSuccs;
-    final succs = _succs;
+    final N = _N!;
+    final Nconnected = _Nconnected!;
+    final E = _E!;
+    final firstSuccs = _firstSuccs!;
+    final succs = _succs!;
 
     // This is first filled with the predecessor counts, then reused to hold the
     // offset to the first predecessor (see alias below).
@@ -1201,17 +1212,17 @@ class _SnapshotGraph implements SnapshotGraph {
   // Fold the size of any object with in-degree(1) into its parent.
   // Requires the DFS numbering and predecessor lists.
   void _buildOwnedSizes() {
-    final N = _N;
-    final Nconnected = _Nconnected;
+    final N = _N!;
+    final Nconnected = _Nconnected!;
     final kStackCid = _kStackCid;
     final kFieldCid = _kFieldCid;
 
-    final cids = _cids;
-    final internalSizes = _internalSizes;
-    final externalSizes = _externalSizes;
-    final vertex = _vertex;
-    final firstPreds = _firstPreds;
-    final preds = _preds;
+    final cids = _cids!;
+    final internalSizes = _internalSizes!;
+    final externalSizes = _externalSizes!;
+    final vertex = _vertex!;
+    final firstPreds = _firstPreds!;
+    final preds = _preds!;
 
     final ownedSizes = _newUint32Array(N + 1);
     for (var i = 1; i <= Nconnected; i++) {
@@ -1256,11 +1267,11 @@ class _SnapshotGraph implements SnapshotGraph {
 
     // TODO(rmacnak): Maybe keep the per-objects sizes to be able to provide
     // examples of large owners for each class.
-    final classes = _classes;
+    final classes = _classes!;
     for (var i = 1; i <= Nconnected; i++) {
       final v = vertex[i];
       final cid = cids[v];
-      final cls = classes[cid];
+      final cls = classes[cid]!;
       cls.ownedSize += ownedSizes[v];
     }
   }
@@ -1342,14 +1353,14 @@ class _SnapshotGraph implements SnapshotGraph {
   // T. Lengauer and R. E. Tarjan. "A Fast Algorithm for Finding Dominators
   // in a Flowgraph."
   void _buildDominators() {
-    final N = _N;
-    final Nconnected = _Nconnected;
+    final N = _N!;
+    final Nconnected = _Nconnected!;
 
-    final vertex = _vertex;
-    final semi = _semi;
-    final parent = _parent;
-    final firstPreds = _firstPreds;
-    final preds = _preds;
+    final vertex = _vertex!;
+    final semi = _semi!;
+    final parent = _parent!;
+    final firstPreds = _firstPreds!;
+    final preds = _preds!;
 
     final dom = _newUint32Array(N + 1);
 
@@ -1358,7 +1369,7 @@ class _SnapshotGraph implements SnapshotGraph {
     for (var i = 1; i <= N; i++) {
       label[i] = i;
     }
-    final buckets = new List(N + 1);
+    final buckets = new List<dynamic>.filled(N + 1, null);
     final child = _newUint32Array(N + 1);
     final size = _newUint32Array(N + 1);
     for (var i = 1; i <= N; i++) {
@@ -1385,7 +1396,7 @@ class _SnapshotGraph implements SnapshotGraph {
       // w.semi.bucket.add(w);
       var tmp = vertex[semi[w]];
       if (buckets[tmp] == null) {
-        buckets[tmp] = new List();
+        buckets[tmp] = [];
       }
       buckets[tmp].add(w);
 
@@ -1417,17 +1428,17 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   void _calculateRetainedSizes() {
-    final N = _N;
-    final Nconnected = _Nconnected;
+    final N = _N!;
+    final Nconnected = _Nconnected!;
 
     var liveInternalSize = 0;
     var liveExternalSize = 0;
-    final classes = _classes;
-    final cids = _cids;
-    final internalSizes = _internalSizes;
-    final externalSizes = _externalSizes;
-    final vertex = _vertex;
-    final doms = _doms;
+    final classes = _classes!;
+    final cids = _cids!;
+    final internalSizes = _internalSizes!;
+    final externalSizes = _externalSizes!;
+    final vertex = _vertex!;
+    final doms = _doms!;
 
     // Sum internal and external sizes.
     for (var i = 1; i <= Nconnected; i++) {
@@ -1437,7 +1448,7 @@ class _SnapshotGraph implements SnapshotGraph {
       liveInternalSize += internalSize;
       liveExternalSize += externalSize;
 
-      var cls = classes[cids[v]];
+      var cls = classes[cids[v]]!;
       cls.liveInternalSize += internalSize;
       cls.liveExternalSize += externalSize;
       cls.liveInstanceCount++;
@@ -1468,18 +1479,18 @@ class _SnapshotGraph implements SnapshotGraph {
     _liveInternalSize = liveInternalSize;
     _liveExternalSize = liveExternalSize;
 
-    print("internal-garbage: ${_totalInternalSize - _liveInternalSize}");
-    print("external-garbage: ${_totalExternalSize - _liveExternalSize}");
-    print("fragmentation: ${_capacity - _totalInternalSize}");
-    assert(_liveInternalSize <= _totalInternalSize);
-    assert(_liveExternalSize <= _totalExternalSize);
-    assert(_totalInternalSize <= _capacity);
+    print("internal-garbage: ${_totalInternalSize! - _liveInternalSize!}");
+    print("external-garbage: ${_totalExternalSize! - _liveExternalSize!}");
+    print("fragmentation: ${_capacity! - _totalInternalSize!}");
+    assert(_liveInternalSize! <= _totalInternalSize!);
+    assert(_liveExternalSize! <= _totalExternalSize!);
+    assert(_totalInternalSize! <= _capacity!);
   }
 
   // Build linked lists of the children for each node in the dominator tree.
   void _linkDominatorChildren() {
-    final N = _N;
-    final doms = _doms;
+    final N = _N!;
+    final doms = _doms!;
     final head = _newUint32Array(N + 1);
     final next = _newUint32Array(N + 1);
 
@@ -1533,10 +1544,10 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   void _sortDominatorChildren() {
-    final N = _N;
-    final cids = _cids;
-    final head = _mergedDomHead;
-    final next = _mergedDomNext;
+    final N = _N!;
+    final cids = _cids!;
+    final head = _mergedDomHead!;
+    final next = _mergedDomNext!;
 
     // Returns the new head of the sorted list.
     int sort(int head) {
@@ -1570,10 +1581,10 @@ class _SnapshotGraph implements SnapshotGraph {
   }
 
   void _mergeDominatorSiblings() {
-    var N = _N;
-    var cids = _cids;
-    var head = _mergedDomHead;
-    var next = _mergedDomNext;
+    var N = _N!;
+    var cids = _cids!;
+    var head = _mergedDomHead!;
+    var next = _mergedDomNext!;
     var workStack = _newUint32Array(N);
     var workStackTop = 0;
 

@@ -30,7 +30,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// ```dart
   /// Queue<SuperType> superQueue = ...;
   /// Queue<SubType> subQueue =
-  ///     new Queue<SubType>.from(superQueue.whereType<SubType>());
+  ///     Queue<SubType>.from(superQueue.whereType<SubType>());
   /// ```
   factory Queue.from(Iterable elements) = ListQueue<E>.from;
 
@@ -286,7 +286,7 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// ```dart
   /// Queue<SuperType> superQueue = ...;
   /// Queue<SubType> subQueue =
-  ///     new DoubleLinkedQueue<SubType>.from(superQueue.whereType<SubType>());
+  ///     DoubleLinkedQueue<SubType>.from(superQueue.whereType<SubType>());
   /// ```
   factory DoubleLinkedQueue.from(Iterable<dynamic> elements) {
     DoubleLinkedQueue<E> list = DoubleLinkedQueue<E>();
@@ -518,10 +518,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
     return true;
   }
 
-  E get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as E;
-  }
+  E get current => _current as E;
 }
 
 /// List based [Queue].
@@ -568,7 +565,7 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   /// ```dart
   /// Queue<SuperType> superQueue = ...;
   /// Queue<SubType> subQueue =
-  ///     new ListQueue<SubType>.from(superQueue.whereType<SubType>());
+  ///     ListQueue<SubType>.from(superQueue.whereType<SubType>());
   /// ```
   factory ListQueue.from(Iterable<dynamic> elements) {
     if (elements is List<dynamic>) {
@@ -901,10 +898,7 @@ class _ListQueueIterator<E> implements Iterator<E> {
         _modificationCount = queue._modificationCount,
         _position = queue._head;
 
-  E get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as E;
-  }
+  E get current => _current as E;
 
   bool moveNext() {
     _queue._checkModification(_modificationCount);

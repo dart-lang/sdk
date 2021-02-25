@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-library fasta.testing.suite;
+// @dart = 2.9
 
-import 'dart:async' show Future;
+library fasta.testing.suite;
 
 import 'dart:convert' show jsonDecode;
 
@@ -22,12 +22,14 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
+import 'package:front_end/src/api_prototype/constant_evaluator.dart'
+    show ConstantEvaluator, ErrorReporter, EvaluationMode;
+
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show
         AllowedExperimentalFlags,
         ExperimentalFlag,
         defaultAllowedExperimentalFlags,
-        defaultExperimentalFlags,
         isExperimentEnabled;
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
@@ -50,6 +52,9 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
+import 'package:front_end/src/fasta/incremental_compiler.dart'
+    show IncrementalCompiler;
+
 import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
     show ClassHierarchyNode;
 
@@ -59,18 +64,40 @@ import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
+import 'package:front_end/src/fasta/messages.dart' show LocatedMessage;
+
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
+import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
+
 import 'package:kernel/ast.dart'
-    show AwaitExpression, Component, Library, Node, Version, Visitor;
+    show
+        AwaitExpression,
+        BasicLiteral,
+        Component,
+        Constant,
+        ConstantExpression,
+        Expression,
+        FileUriExpression,
+        FileUriNode,
+        InvalidExpression,
+        Library,
+        Member,
+        Node,
+        NonNullableByDefaultCompiledMode,
+        TreeNode,
+        UnevaluatedConstant,
+        Version,
+        Visitor;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/kernel.dart' show loadComponentFromBytes;
+import 'package:kernel/kernel.dart'
+    show RecursiveVisitor, loadComponentFromBytes;
 
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 
@@ -78,7 +105,27 @@ import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 
 import 'package:kernel/target/targets.dart'
-    show NoneTarget, Target, TargetFlags, DiagnosticReporter;
+    show
+        ConstantsBackend,
+        DiagnosticReporter,
+        NoneConstantsBackend,
+        NoneTarget,
+        LateLowering,
+        Target,
+        TargetFlags;
+
+import 'package:kernel/target/targets.dart'
+    show
+        ConstantsBackend,
+        DiagnosticReporter,
+        NoneConstantsBackend,
+        NoneTarget,
+        NumberSemantics,
+        Target,
+        TargetFlags;
+
+import 'package:kernel/type_environment.dart'
+    show StaticTypeContext, TypeEnvironment;
 
 import 'package:testing/testing.dart'
     show
@@ -101,7 +148,6 @@ import '../../utils/kernel_chain.dart'
         MatchExpectation,
         Print,
         TypeCheck,
-        Verify,
         WriteDill;
 
 import '../../utils/validating_instrumentation.dart'
@@ -110,6 +156,9 @@ import '../../utils/validating_instrumentation.dart'
 export 'package:testing/testing.dart' show Chain, runMe;
 
 const String ENABLE_FULL_COMPILE = " full compile ";
+
+const String UPDATE_EXPECTATIONS = "updateExpectations";
+const String UPDATE_COMMENTS = "updateComments";
 
 const String EXPECTATIONS = '''
 [
@@ -144,6 +193,10 @@ const String EXPECTATIONS = '''
   {
     "name": "TextSerializationFailure",
     "group": "Fail"
+  },
+  {
+    "name": "SemiFuzzFailure",
+    "group": "Fail"
   }
 ]
 ''';
@@ -154,38 +207,51 @@ final Expectation runtimeError = ExpectationSet.Default["RuntimeError"];
 
 const String experimentalFlagOptions = '--enable-experiment=';
 const String overwriteCurrentSdkVersion = '--overwrite-current-sdk-version=';
+const String noVerifyCmd = '--no-verify';
 
 /// Options used for all tests within a given folder.
 ///
 /// This is used for instance for defining target, mode, and experiment specific
 /// test folders.
 class FolderOptions {
-  final Map<ExperimentalFlag, bool> _experimentalFlags;
-  final bool forceLateLowering;
+  final Map<ExperimentalFlag, bool> _explicitExperimentalFlags;
+  final int forceLateLowerings;
+  final bool forceLateLoweringSentinel;
   final bool forceStaticFieldLowering;
   final bool forceNoExplicitGetterCalls;
   final bool nnbdAgnosticMode;
+  final Map<String, String> defines;
+  final bool noVerify;
   final String target;
   final String overwriteCurrentSdkVersion;
 
-  FolderOptions(this._experimentalFlags,
-      {this.forceLateLowering: false,
+  FolderOptions(this._explicitExperimentalFlags,
+      {this.forceLateLowerings: LateLowering.none,
+      this.forceLateLoweringSentinel: false,
       this.forceStaticFieldLowering: false,
       this.forceNoExplicitGetterCalls: false,
       this.nnbdAgnosticMode: false,
+      this.defines: const {},
+      this.noVerify: false,
       this.target: "vm",
       // can be null
       this.overwriteCurrentSdkVersion})
-      : assert(forceLateLowering != null),
+      : assert(forceLateLowerings != null),
+        assert(forceLateLoweringSentinel != null),
         assert(forceStaticFieldLowering != null),
         assert(forceNoExplicitGetterCalls != null),
         assert(nnbdAgnosticMode != null),
+        assert(
+            // no this doesn't make any sense but left to underline
+            // that this is allowed to be null!
+            defines != null || defines == null),
+        assert(noVerify != null),
         assert(target != null);
 
-  Map<ExperimentalFlag, bool> computeExperimentalFlags(
+  Map<ExperimentalFlag, bool> computeExplicitExperimentalFlags(
       Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
-    Map<ExperimentalFlag, bool> flags = new Map.from(defaultExperimentalFlags);
-    flags.addAll(_experimentalFlags);
+    Map<ExperimentalFlag, bool> flags = {};
+    flags.addAll(_explicitExperimentalFlags);
     flags.addAll(forcedExperimentalFlags);
     return flags;
   }
@@ -217,8 +283,9 @@ class FastaContext extends ChainContext with MatchContext {
   final List<Step> steps;
   final Uri vm;
   final bool onlyCrashes;
-  final Map<ExperimentalFlag, bool> experimentalFlags;
+  final Map<ExperimentalFlag, bool> explicitExperimentalFlags;
   final bool skipVm;
+  final bool semiFuzz;
   final bool verify;
   final bool weak;
   final Map<Component, KernelTarget> componentToTarget =
@@ -235,6 +302,12 @@ class FastaContext extends ChainContext with MatchContext {
   final bool updateExpectations;
 
   @override
+  String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
+
+  @override
+  bool get canBeFixWithUpdateExpectations => true;
+
+  @override
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
 
@@ -247,11 +320,12 @@ class FastaContext extends ChainContext with MatchContext {
       this.vm,
       this.platformBinaries,
       this.onlyCrashes,
-      this.experimentalFlags,
+      this.explicitExperimentalFlags,
       bool ignoreExpectations,
       this.updateExpectations,
       bool updateComments,
       this.skipVm,
+      this.semiFuzz,
       bool kernelTextSerialization,
       bool fullCompile,
       this.verify,
@@ -269,6 +343,14 @@ class FastaContext extends ChainContext with MatchContext {
     } else {
       fullPrefix = '.strong';
       outlinePrefix = '.outline';
+    }
+
+    if (!fullCompile) {
+      // If not doing a full compile this is the only expect file so we run the
+      // extra constant evaluation now. If we do a full compilation, we'll do
+      // if after the transformation. That also ensures we don't get the same
+      // 'extra constant evaluation' output twice (in .transformed and not).
+      steps.add(const StressConstantEvaluatorStep());
     }
     if (!ignoreExpectations) {
       steps.add(new MatchExpectation(
@@ -289,20 +371,13 @@ class FastaContext extends ChainContext with MatchContext {
     }
     if (fullCompile) {
       steps.add(const Transform());
+      steps.add(const StressConstantEvaluatorStep());
       if (!ignoreExpectations) {
-        steps.add(new MatchExpectation(
-            fullCompile
-                ? "$fullPrefix.transformed.expect"
-                : "$outlinePrefix.transformed.expect",
-            serializeFirst: false,
-            isLastMatchStep: updateExpectations));
+        steps.add(new MatchExpectation("$fullPrefix.transformed.expect",
+            serializeFirst: false, isLastMatchStep: updateExpectations));
         if (!updateExpectations) {
-          steps.add(new MatchExpectation(
-              fullCompile
-                  ? "$fullPrefix.transformed.expect"
-                  : "$outlinePrefix.transformed.expect",
-              serializeFirst: true,
-              isLastMatchStep: true));
+          steps.add(new MatchExpectation("$fullPrefix.transformed.expect",
+              serializeFirst: true, isLastMatchStep: true));
         }
       }
       steps.add(const EnsureNoErrors());
@@ -310,23 +385,32 @@ class FastaContext extends ChainContext with MatchContext {
         steps.add(const WriteDill());
         steps.add(const Run());
       }
+      if (semiFuzz) {
+        steps.add(const FuzzCompiles());
+      }
     }
   }
 
   FolderOptions _computeFolderOptions(Directory directory) {
     FolderOptions folderOptions = _folderOptions[directory.uri];
     if (folderOptions == null) {
-      bool forceLateLowering = false;
+      int forceLateLowering = LateLowering.none;
+      bool forceLateLoweringSentinel = false;
       bool forceStaticFieldLowering = false;
       bool forceNoExplicitGetterCalls = false;
       bool nnbdAgnosticMode = false;
+      bool noVerify = false;
+      Map<String, String> defines = {};
       String target = "vm";
       if (directory.uri == baseUri) {
         folderOptions = new FolderOptions({},
-            forceLateLowering: forceLateLowering,
+            forceLateLowerings: forceLateLowering,
+            forceLateLoweringSentinel: forceLateLoweringSentinel,
             forceStaticFieldLowering: forceStaticFieldLowering,
             forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
             nnbdAgnosticMode: nnbdAgnosticMode,
+            defines: defines,
+            noVerify: noVerify,
             target: target);
       } else {
         File optionsFile =
@@ -342,8 +426,14 @@ class FastaContext extends ChainContext with MatchContext {
             } else if (line.startsWith(overwriteCurrentSdkVersion)) {
               overwriteCurrentSdkVersionArgument =
                   line.substring(overwriteCurrentSdkVersion.length);
+            } else if (line.startsWith(Flags.forceLateLoweringSentinel)) {
+              forceLateLoweringSentinel = true;
+            } else if (line.startsWith('${Flags.forceLateLowering}=')) {
+              int mask = int.parse(
+                  line.substring('${Flags.forceLateLowering}='.length));
+              forceLateLowering = mask;
             } else if (line.startsWith(Flags.forceLateLowering)) {
-              forceLateLowering = true;
+              forceLateLowering = LateLowering.all;
             } else if (line.startsWith(Flags.forceStaticFieldLowering)) {
               forceStaticFieldLowering = true;
             } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
@@ -352,6 +442,38 @@ class FastaContext extends ChainContext with MatchContext {
               forceNoExplicitGetterCalls = true;
             } else if (line.startsWith(Flags.nnbdAgnosticMode)) {
               nnbdAgnosticMode = true;
+            } else if (line.startsWith(Flags.noDefines)) {
+              if (defines == null) {
+                throw "Specifying ${Flags.noDefines} several times "
+                    "is unsupported.";
+              }
+              if (defines.isNotEmpty) {
+                throw "Can't have no defines and specific defines "
+                    "at the same time.";
+              }
+              defines = null;
+            } else if (line.startsWith("-D")) {
+              if (defines == null) {
+                throw "Can't have no defines and specific defines "
+                    "at the same time.";
+              }
+              String define = line.substring(2); // removes "-D".
+              int index = define.indexOf('=');
+              String name;
+              String expression;
+              if (index != -1) {
+                name = define.substring(0, index);
+                expression = define.substring(index + 1);
+              } else {
+                name = define;
+                expression = define;
+              }
+              if (defines.containsKey(name)) {
+                throw "Defining '$name' several times is unsupported.";
+              }
+              defines[name] = expression;
+            } else if (line.startsWith(noVerifyCmd)) {
+              noVerify = true;
             } else if (line.startsWith(Flags.target) &&
                 line.indexOf('=') == Flags.target.length) {
               target = line.substring(Flags.target.length + 1);
@@ -366,10 +488,13 @@ class FastaContext extends ChainContext with MatchContext {
                   onError: (String message) => throw new ArgumentError(message),
                   onWarning: (String message) =>
                       throw new ArgumentError(message)),
-              forceLateLowering: forceLateLowering,
+              forceLateLowerings: forceLateLowering,
+              forceLateLoweringSentinel: forceLateLoweringSentinel,
               forceStaticFieldLowering: forceStaticFieldLowering,
               forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
               nnbdAgnosticMode: nnbdAgnosticMode,
+              defines: defines,
+              noVerify: noVerify,
               target: target,
               overwriteCurrentSdkVersion: overwriteCurrentSdkVersionArgument);
         } else {
@@ -404,9 +529,9 @@ class FastaContext extends ChainContext with MatchContext {
         }
         ..sdkRoot = sdk
         ..packagesFileUri = uriConfiguration.packageConfigUri ?? packages
-        ..environmentDefines = {}
-        ..experimentalFlags =
-            folderOptions.computeExperimentalFlags(experimentalFlags)
+        ..environmentDefines = folderOptions.defines
+        ..explicitExperimentalFlags = folderOptions
+            .computeExplicitExperimentalFlags(explicitExperimentalFlags)
         ..nnbdMode = weak
             ? NnbdMode.Weak
             : (folderOptions.nnbdAgnosticMode
@@ -588,9 +713,10 @@ class FastaContext extends ChainContext with MatchContext {
     bool weak = environment["weak"] == "true";
     bool onlyCrashes = environment["onlyCrashes"] == "true";
     bool ignoreExpectations = environment["ignoreExpectations"] == "true";
-    bool updateExpectations = environment["updateExpectations"] == "true";
-    bool updateComments = environment["updateComments"] == "true";
+    bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
+    bool updateComments = environment[UPDATE_COMMENTS] == "true";
     bool skipVm = environment["skipVm"] == "true";
+    bool semiFuzz = environment["semiFuzz"] == "true";
     bool verify = environment["verify"] != "false";
     bool kernelTextSerialization =
         environment.containsKey(KERNEL_TEXT_SERIALIZATION);
@@ -610,6 +736,7 @@ class FastaContext extends ChainContext with MatchContext {
         updateExpectations,
         updateComments,
         skipVm,
+        semiFuzz,
         kernelTextSerialization,
         environment.containsKey(ENABLE_FULL_COMPILE),
         verify,
@@ -617,7 +744,7 @@ class FastaContext extends ChainContext with MatchContext {
   }
 }
 
-class Run extends Step<ComponentResult, int, FastaContext> {
+class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
   const Run();
 
   String get name => "run";
@@ -626,11 +753,12 @@ class Run extends Step<ComponentResult, int, FastaContext> {
 
   bool get isRuntime => true;
 
-  Future<Result<int>> run(ComponentResult result, FastaContext context) async {
+  Future<Result<ComponentResult>> run(
+      ComponentResult result, FastaContext context) async {
     FolderOptions folderOptions =
         context.computeFolderOptions(result.description);
-    Map<ExperimentalFlag, bool> experimentalFlags =
-        folderOptions.computeExperimentalFlags(context.experimentalFlags);
+    Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
+        .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
     switch (folderOptions.target) {
       case "vm":
         if (context.platformUri == null) {
@@ -640,7 +768,7 @@ class Run extends Step<ComponentResult, int, FastaContext> {
         StdioProcess process;
         try {
           var args = <String>[];
-          if (experimentalFlags[ExperimentalFlag.nonNullable]) {
+          if (experimentalFlags[ExperimentalFlag.nonNullable] == true) {
             args.add("--enable-experiment=non-nullable");
             if (!context.weak) {
               args.add("--sound-null-safety");
@@ -652,14 +780,433 @@ class Run extends Step<ComponentResult, int, FastaContext> {
         } finally {
           await generated.parent.delete(recursive: true);
         }
-        return process.toResult();
+        Result<int> runResult = process.toResult();
+        if (result.component.mode == NonNullableByDefaultCompiledMode.Invalid) {
+          // In this case we expect and want a runtime error.
+          if (runResult.outcome == ExpectationSet.Default["RuntimeError"]) {
+            // We convert this to pass because that's exactly what we'd expect.
+            return pass(result);
+          } else {
+            // Different outcome - that's a failure!
+            return new Result<ComponentResult>(result,
+                ExpectationSet.Default["MissingRuntimeError"], runResult.error);
+          }
+        }
+        return new Result<ComponentResult>(
+            result, runResult.outcome, runResult.error);
       case "none":
-        return pass(0);
+      case "noneWithJs":
+        return pass(result);
       default:
         throw new ArgumentError(
             "Unsupported run target '${folderOptions.target}'.");
     }
   }
+}
+
+class StressConstantEvaluatorStep
+    extends Step<ComponentResult, ComponentResult, FastaContext> {
+  const StressConstantEvaluatorStep();
+
+  String get name => "stress constant evaluator";
+
+  Future<Result<ComponentResult>> run(
+      ComponentResult result, FastaContext context) async {
+    KernelTarget target = result.sourceTarget;
+    ConstantsBackend constantsBackend =
+        target.backendTarget.constantsBackend(target.loader.coreTypes);
+    TypeEnvironment environment =
+        new TypeEnvironment(target.loader.coreTypes, target.loader.hierarchy);
+    StressConstantEvaluatorVisitor stressConstantEvaluatorVisitor =
+        new StressConstantEvaluatorVisitor(
+      constantsBackend,
+      result.options.environmentDefines,
+      target.isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
+      environment,
+      !target.backendTarget.supportsSetLiterals,
+      result.options.errorOnUnevaluatedConstant,
+      target.getConstantEvaluationModeForTesting(),
+    );
+    for (Library lib in result.component.libraries) {
+      if (!result.isUserLibrary(lib)) continue;
+      lib.accept(stressConstantEvaluatorVisitor);
+    }
+    if (stressConstantEvaluatorVisitor.success > 0) {
+      result.extraConstantStrings.addAll(stressConstantEvaluatorVisitor.output);
+      result.extraConstantStrings.add("Extra constant evaluation: "
+          "evaluated: ${stressConstantEvaluatorVisitor.tries}, "
+          "effectively constant: ${stressConstantEvaluatorVisitor.success}");
+    }
+    return pass(result);
+  }
+}
+
+class StressConstantEvaluatorVisitor extends RecursiveVisitor<Node>
+    implements ErrorReporter {
+  ConstantEvaluator constantEvaluator;
+  ConstantEvaluator constantEvaluatorWithEmptyEnvironment;
+  int tries = 0;
+  int success = 0;
+  List<String> output = [];
+
+  StressConstantEvaluatorVisitor(
+      ConstantsBackend backend,
+      Map<String, String> environmentDefines,
+      bool enableTripleShift,
+      TypeEnvironment typeEnvironment,
+      bool desugarSets,
+      bool errorOnUnevaluatedConstant,
+      EvaluationMode evaluationMode) {
+    constantEvaluator = new ConstantEvaluator(
+        backend, environmentDefines, typeEnvironment, this,
+        enableTripleShift: enableTripleShift,
+        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
+        evaluationMode: evaluationMode);
+    constantEvaluatorWithEmptyEnvironment = new ConstantEvaluator(
+        backend, {}, typeEnvironment, this,
+        enableTripleShift: enableTripleShift,
+        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
+        evaluationMode: evaluationMode);
+  }
+
+  Library currentLibrary;
+  Library visitLibrary(Library node) {
+    currentLibrary = node;
+    node.visitChildren(this);
+    currentLibrary = null;
+    return node;
+  }
+
+  Member currentMember;
+
+  Node defaultMember(Member node) {
+    Member prevCurrentMember = currentMember;
+    currentMember = node;
+    node.visitChildren(this);
+    currentMember = prevCurrentMember;
+    return node;
+  }
+
+  Node defaultExpression(Expression node) {
+    if (node is BasicLiteral) return node;
+    if (node is InvalidExpression) return node;
+    if (node is ConstantExpression) {
+      bool evaluate = false;
+      if (node.constant is UnevaluatedConstant) {
+        UnevaluatedConstant unevaluatedConstant = node.constant;
+        if (unevaluatedConstant.expression is! InvalidExpression) {
+          evaluate = true;
+        }
+      }
+      if (!evaluate) return node;
+      if (constantEvaluator.environmentDefines != null) {
+        throw "Unexpected UnevaluatedConstant "
+            "when the environment is not null.";
+      }
+    }
+
+    // Try to evaluate it as a constant.
+    tries++;
+    StaticTypeContext staticTypeContext;
+    if (currentMember == null) {
+      staticTypeContext = new StaticTypeContext.forAnnotations(
+          currentLibrary, constantEvaluator.typeEnvironment);
+    } else {
+      staticTypeContext = new StaticTypeContext(
+          currentMember, constantEvaluator.typeEnvironment);
+    }
+    Constant x = constantEvaluator.evaluate(staticTypeContext, node);
+    bool evaluatedWithEmptyEnvironment = false;
+    if (x is UnevaluatedConstant && x.expression is! InvalidExpression) {
+      // try with an environment
+      if (constantEvaluator.environmentDefines != null) {
+        throw "Unexpected UnevaluatedConstant (with an InvalidExpression in "
+            "it) when the environment is not null.";
+      }
+      x = constantEvaluatorWithEmptyEnvironment.evaluate(
+          new StaticTypeContext(
+              currentMember, constantEvaluator.typeEnvironment),
+          new ConstantExpression(x));
+      evaluatedWithEmptyEnvironment = true;
+    }
+    if (x is UnevaluatedConstant) {
+      if (x.expression is! InvalidExpression &&
+          x.expression is! FileUriExpression) {
+        throw "Unexpected ${x.runtimeType} with "
+            "${x.expression.runtimeType} inside.";
+      }
+      node.visitChildren(this);
+    } else {
+      success++;
+      if (!evaluatedWithEmptyEnvironment) {
+        output
+            .add("Evaluated: ${node.runtimeType} @ ${getLocation(node)} -> $x");
+        // Don't recurse into children - theoretically we could replace this
+        // node with a constant expression.
+      } else {
+        output.add("Evaluated with empty environment: "
+            "${node.runtimeType} @ ${getLocation(node)} -> $x");
+        // Here we (for now) recurse into children.
+        node.visitChildren(this);
+      }
+    }
+    return node;
+  }
+
+  String getLocation(TreeNode node) {
+    try {
+      return node.location.toString();
+    } catch (e) {
+      TreeNode n = node;
+      while (n != null && n is! FileUriNode) {
+        n = n.parent;
+      }
+      if (n == null) return "(unknown location)";
+      FileUriNode fileUriNode = n;
+      return ("(unknown position in ${fileUriNode.fileUri})");
+    }
+  }
+
+  @override
+  void report(LocatedMessage message, List<LocatedMessage> context) {
+    // ignored.
+  }
+
+  @override
+  void reportInvalidExpression(InvalidExpression node) {
+    // ignored.
+  }
+}
+
+class CompilationSetup {
+  final TestOptions testOptions;
+  final FolderOptions folderOptions;
+  final ProcessedOptions options;
+  final List<Iterable<String>> errors;
+  final ProcessedOptions Function(
+          NnbdMode nnbdMode,
+          AllowedExperimentalFlags allowedExperimentalFlags,
+          Map<ExperimentalFlag, Version> experimentEnabledVersion,
+          Map<ExperimentalFlag, Version> experimentReleasedVersion)
+      createProcessedOptions;
+
+  CompilationSetup(this.testOptions, this.folderOptions, this.options,
+      this.errors, this.createProcessedOptions);
+}
+
+CompilationSetup createCompilationSetup(
+    TestDescription description, FastaContext context) {
+  List<Iterable<String>> errors = <Iterable<String>>[];
+
+  Uri librariesSpecificationUri =
+      context.computeLibrariesSpecificationUri(description);
+  TestOptions testOptions = context.computeTestOptions(description);
+  FolderOptions folderOptions = context.computeFolderOptions(description);
+  Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
+      .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
+  NnbdMode nnbdMode = context.weak ||
+          !isExperimentEnabled(ExperimentalFlag.nonNullable,
+              explicitExperimentalFlags: experimentalFlags)
+      ? NnbdMode.Weak
+      : (folderOptions.nnbdAgnosticMode ? NnbdMode.Agnostic : NnbdMode.Strong);
+  List<Uri> inputs = <Uri>[description.uri];
+
+  ProcessedOptions createProcessedOptions(
+      NnbdMode nnbdMode,
+      AllowedExperimentalFlags allowedExperimentalFlags,
+      Map<ExperimentalFlag, Version> experimentEnabledVersion,
+      Map<ExperimentalFlag, Version> experimentReleasedVersion) {
+    CompilerOptions compilerOptions = new CompilerOptions()
+      ..onDiagnostic = (DiagnosticMessage message) {
+        errors.add(message.plainTextFormatted);
+      }
+      ..environmentDefines = folderOptions.defines
+      ..explicitExperimentalFlags = experimentalFlags
+      ..nnbdMode = nnbdMode
+      ..librariesSpecificationUri = librariesSpecificationUri
+      ..allowedExperimentalFlagsForTesting = allowedExperimentalFlags
+      ..experimentEnabledVersionForTesting = experimentEnabledVersion
+      ..experimentReleasedVersionForTesting = experimentReleasedVersion
+      ..skipPlatformVerification = true
+      ..target = createTarget(folderOptions, context);
+    if (folderOptions.overwriteCurrentSdkVersion != null) {
+      compilerOptions.currentSdkVersion =
+          folderOptions.overwriteCurrentSdkVersion;
+    }
+    return new ProcessedOptions(options: compilerOptions, inputs: inputs);
+  }
+
+  // Disable colors to ensure that expectation files are the same across
+  // platforms and independent of stdin/stderr.
+  colors.enableColors = false;
+
+  ProcessedOptions options = createProcessedOptions(
+      nnbdMode,
+      testOptions.allowedExperimentalFlags,
+      testOptions.experimentEnabledVersion,
+      testOptions.experimentReleasedVersion);
+
+  return new CompilationSetup(
+      testOptions, folderOptions, options, errors, createProcessedOptions);
+}
+
+class FuzzCompiles
+    extends Step<ComponentResult, ComponentResult, FastaContext> {
+  const FuzzCompiles();
+
+  String get name {
+    return "semifuzz";
+  }
+
+  Future<Result<ComponentResult>> run(
+      ComponentResult result, FastaContext context) async {
+    bool originalFlag = context.explicitExperimentalFlags[
+        ExperimentalFlag.alternativeInvalidationStrategy];
+    context.explicitExperimentalFlags[
+        ExperimentalFlag.alternativeInvalidationStrategy] = true;
+
+    CompilationSetup compilationSetup =
+        createCompilationSetup(result.description, context);
+
+    Target backendTarget = compilationSetup.options.target;
+    if (backendTarget is TestVmTarget) {
+      // For the fuzzing we want to run the VM transformations, i.e. have the
+      // incremental compiler behave as normal.
+      backendTarget.enabled = true;
+    }
+
+    UriTranslator uriTranslator =
+        await context.computeUriTranslator(result.description);
+
+    Component platform = await context.loadPlatform();
+    IncrementalCompiler incrementalCompiler =
+        new IncrementalCompiler.fromComponent(
+            new CompilerContext(compilationSetup.options), platform);
+    final Component component = await incrementalCompiler.computeDelta();
+
+    final Set<Uri> userLibraries =
+        createUserLibrariesImportUriSet(component, uriTranslator);
+    final bool expectErrors = compilationSetup.errors.isNotEmpty;
+    List<Iterable<String>> originalErrors =
+        new List<Iterable<String>>.from(compilationSetup.errors);
+
+    Set<Uri> intersectionUserLibraries =
+        result.userLibraries.intersection(userLibraries);
+    if (intersectionUserLibraries.length != userLibraries.length ||
+        userLibraries.length != result.userLibraries.length) {
+      return new Result<ComponentResult>(
+          result,
+          context.expectationSet["SemiFuzzFailure"],
+          "Got a different amount of user libraries on first compile "
+          "compared to 'original' compilation:\n\n"
+          "This compile:\n"
+          "${userLibraries.map((e) => e.toString()).join("\n")}\n\n"
+          "Original compile:\n"
+          "${result.userLibraries.map((e) => e.toString()).join("\n")}");
+    }
+
+    compilationSetup.errors.clear();
+    for (Uri importUri in userLibraries) {
+      incrementalCompiler.invalidate(importUri);
+      final Component newComponent =
+          await incrementalCompiler.computeDelta(fullComponent: true);
+
+      final Set<Uri> newUserLibraries =
+          createUserLibrariesImportUriSet(newComponent, uriTranslator);
+      final bool gotErrors = compilationSetup.errors.isNotEmpty;
+
+      if (expectErrors != gotErrors) {
+        if (expectErrors) {
+          String errorsString =
+              originalErrors.map((error) => error.join('\n')).join('\n\n');
+          return new Result<ComponentResult>(
+              result,
+              context.expectationSet["SemiFuzzFailure"],
+              "Expected these errors:\n${errorsString}\n\n"
+              "but didn't get any after invalidating $importUri");
+        } else {
+          String errorsString = compilationSetup.errors
+              .map((error) => error.join('\n'))
+              .join('\n\n');
+          return new Result<ComponentResult>(
+              result,
+              context.expectationSet["SemiFuzzFailure"],
+              "Unexpected errors:\n${errorsString}\n\n"
+              "after invalidating $importUri");
+        }
+      }
+
+      Set<Uri> intersectionUserLibraries =
+          userLibraries.intersection(newUserLibraries);
+      if (intersectionUserLibraries.length != newUserLibraries.length ||
+          newUserLibraries.length != userLibraries.length) {
+        return new Result<ComponentResult>(
+            result,
+            context.expectationSet["SemiFuzzFailure"],
+            "Got a different amount of user libraries on recompile "
+            "compared to 'original' compilation after having invalidated "
+            "$importUri.\n\n"
+            "This compile:\n"
+            "${newUserLibraries.map((e) => e.toString()).join("\n")}\n\n"
+            "Original compile:\n"
+            "${result.userLibraries.map((e) => e.toString()).join("\n")}");
+      }
+    }
+
+    context.explicitExperimentalFlags[
+        ExperimentalFlag.alternativeInvalidationStrategy] = originalFlag;
+
+    return pass(result);
+  }
+}
+
+Target createTarget(FolderOptions folderOptions, FastaContext context) {
+  TargetFlags targetFlags = new TargetFlags(
+    forceLateLoweringsForTesting: folderOptions.forceLateLowerings,
+    forceLateLoweringSentinelForTesting:
+        folderOptions.forceLateLoweringSentinel,
+    forceStaticFieldLoweringForTesting: folderOptions.forceStaticFieldLowering,
+    forceNoExplicitGetterCallsForTesting:
+        folderOptions.forceNoExplicitGetterCalls,
+    enableNullSafety: !context.weak,
+  );
+  Target target;
+  switch (folderOptions.target) {
+    case "vm":
+      target = new TestVmTarget(targetFlags);
+      break;
+    case "none":
+      target = new NoneTarget(targetFlags);
+      break;
+    case "noneWithJs":
+      target = new NoneWithJsTarget(targetFlags);
+      break;
+    default:
+      throw new ArgumentError(
+          "Unsupported test target '${folderOptions.target}'.");
+  }
+  return target;
+}
+
+Set<Uri> createUserLibrariesImportUriSet(
+    Component component, UriTranslator uriTranslator) {
+  Set<Uri> knownUris =
+      component.libraries.map((Library library) => library.importUri).toSet();
+  Set<Uri> userLibraries = component.libraries
+      .where((Library library) =>
+          library.importUri.scheme != 'dart' &&
+          library.importUri.scheme != 'package')
+      .map((Library library) => library.importUri)
+      .toSet();
+  // Mark custom "dart:" libraries defined in the test-specific libraries.json
+  // file as user libraries.
+  // Note that this method takes a uriTranslator directly because of
+  // inconsistencies with targets (namely that test-specific libraries.json
+  // specifies target 'none' even if the target is 'vm', which works because
+  // the normal testing pipeline use target 'none' for the dill loader).
+  userLibraries.addAll(uriTranslator.dartLibraries.allLibraries
+      .map((LibraryInfo info) => info.importUri));
+  return userLibraries.intersection(knownUris);
 }
 
 class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
@@ -677,76 +1224,35 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
 
   Future<Result<ComponentResult>> run(
       TestDescription description, FastaContext context) async {
-    List<Iterable<String>> errors = <Iterable<String>>[];
+    CompilationSetup compilationSetup =
+        createCompilationSetup(description, context);
 
-    Uri librariesSpecificationUri =
-        context.computeLibrariesSpecificationUri(description);
-    TestOptions testOptions = context.computeTestOptions(description);
-    FolderOptions folderOptions = context.computeFolderOptions(description);
-    Map<ExperimentalFlag, bool> experimentalFlags =
-        folderOptions.computeExperimentalFlags(context.experimentalFlags);
-    NnbdMode nnbdMode = context.weak ||
-            !isExperimentEnabled(ExperimentalFlag.nonNullable,
-                experimentalFlags: experimentalFlags)
-        ? NnbdMode.Weak
-        : (folderOptions.nnbdAgnosticMode
-            ? NnbdMode.Agnostic
-            : NnbdMode.Strong);
-    List<Uri> inputs = <Uri>[description.uri];
-
-    ProcessedOptions createProcessedOptions(
-        NnbdMode nnbdMode,
-        AllowedExperimentalFlags allowedExperimentalFlags,
-        Map<ExperimentalFlag, Version> experimentEnabledVersion,
-        Map<ExperimentalFlag, Version> experimentReleasedVersion) {
-      CompilerOptions compilerOptions = new CompilerOptions()
-        ..onDiagnostic = (DiagnosticMessage message) {
-          errors.add(message.plainTextFormatted);
-        }
-        ..environmentDefines = {}
-        ..experimentalFlags = experimentalFlags
-        ..nnbdMode = nnbdMode
-        ..librariesSpecificationUri = librariesSpecificationUri
-        ..allowedExperimentalFlagsForTesting = allowedExperimentalFlags
-        ..experimentEnabledVersionForTesting = experimentEnabledVersion
-        ..experimentReleasedVersionForTesting = experimentReleasedVersion;
-      if (folderOptions.overwriteCurrentSdkVersion != null) {
-        compilerOptions.currentSdkVersion =
-            folderOptions.overwriteCurrentSdkVersion;
-      }
-      return new ProcessedOptions(options: compilerOptions, inputs: inputs);
-    }
-
-    // Disable colors to ensure that expectation files are the same across
-    // platforms and independent of stdin/stderr.
-    colors.enableColors = false;
-
-    ProcessedOptions options = createProcessedOptions(
-        nnbdMode,
-        testOptions.allowedExperimentalFlags,
-        testOptions.experimentEnabledVersion,
-        testOptions.experimentReleasedVersion);
-
-    if (testOptions.linkDependencies.isNotEmpty &&
-        testOptions.component == null) {
+    if (compilationSetup.testOptions.linkDependencies.isNotEmpty &&
+        compilationSetup.testOptions.component == null) {
       // Compile linked dependency.
-      ProcessedOptions linkOptions = options;
-      if (testOptions.nnbdMode != null) {
-        linkOptions = createProcessedOptions(
-            testOptions.nnbdMode,
-            testOptions.allowedExperimentalFlags,
-            testOptions.experimentEnabledVersion,
-            testOptions.experimentReleasedVersion);
+      ProcessedOptions linkOptions = compilationSetup.options;
+      if (compilationSetup.testOptions.nnbdMode != null) {
+        linkOptions = compilationSetup.createProcessedOptions(
+            compilationSetup.testOptions.nnbdMode,
+            compilationSetup.testOptions.allowedExperimentalFlags,
+            compilationSetup.testOptions.experimentEnabledVersion,
+            compilationSetup.testOptions.experimentReleasedVersion);
       }
       await CompilerContext.runWithOptions(linkOptions, (_) async {
-        KernelTarget sourceTarget = await outlineInitialization(context,
-            description, folderOptions, testOptions.linkDependencies.toList());
-        if (testOptions.errors != null) {
-          errors.addAll(testOptions.errors);
+        KernelTarget sourceTarget = await outlineInitialization(
+            context,
+            description,
+            linkOptions,
+            compilationSetup.testOptions.linkDependencies.toList());
+        if (compilationSetup.testOptions.errors != null) {
+          compilationSetup.errors.addAll(compilationSetup.testOptions.errors);
         }
         Component p = await sourceTarget.buildOutlines();
         if (fullCompile) {
-          p = await sourceTarget.buildComponent(verify: context.verify);
+          p = await sourceTarget.buildComponent(
+              verify: compilationSetup.folderOptions.noVerify
+                  ? false
+                  : context.verify);
         }
 
         // To avoid possible crash in mixin transformation in the transformation
@@ -766,27 +1272,29 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           }
         }
 
-        testOptions.component = p;
-        List<Library> keepLibraries = new List<Library>();
+        compilationSetup.testOptions.component = p;
+        List<Library> keepLibraries = <Library>[];
         for (Library lib in p.libraries) {
-          if (testOptions.linkDependencies.contains(lib.importUri)) {
+          if (compilationSetup.testOptions.linkDependencies
+              .contains(lib.importUri)) {
             keepLibraries.add(lib);
           }
         }
         p.libraries.clear();
         p.libraries.addAll(keepLibraries);
-        testOptions.errors = errors.toList();
-        errors.clear();
+        compilationSetup.testOptions.errors = compilationSetup.errors.toList();
+        compilationSetup.errors.clear();
       });
     }
 
-    return await CompilerContext.runWithOptions(options, (_) async {
-      Component alsoAppend = testOptions.component;
+    return await CompilerContext.runWithOptions(compilationSetup.options,
+        (_) async {
+      Component alsoAppend = compilationSetup.testOptions.component;
       if (description.uri.pathSegments.last.endsWith(".no_link.dart")) {
         alsoAppend = null;
       }
-      KernelTarget sourceTarget = await outlineInitialization(
-          context, description, folderOptions, <Uri>[description.uri],
+      KernelTarget sourceTarget = await outlineInitialization(context,
+          description, compilationSetup.options, <Uri>[description.uri],
           alsoAppend: alsoAppend);
       ValidatingInstrumentation instrumentation =
           new ValidatingInstrumentation();
@@ -796,70 +1304,48 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       context.componentToTarget.clear();
       context.componentToTarget[p] = sourceTarget;
       context.componentToDiagnostics.clear();
-      context.componentToDiagnostics[p] = errors;
-      Set<Uri> userLibraries = p.libraries
-          .where((Library library) =>
-              library.importUri.scheme != 'dart' &&
-              library.importUri.scheme != 'package')
-          .map((Library library) => library.importUri)
-          .toSet();
-      // Mark custom dart: libraries defined in the test-specific libraries.json
-      // file as user libraries.
-      UriTranslator uriTranslator = sourceTarget.uriTranslator;
-      userLibraries.addAll(uriTranslator.dartLibraries.allLibraries
-          .map((LibraryInfo info) => info.importUri));
+      context.componentToDiagnostics[p] = compilationSetup.errors;
+      Set<Uri> userLibraries =
+          createUserLibrariesImportUriSet(p, sourceTarget.uriTranslator);
       if (fullCompile) {
-        p = await sourceTarget.buildComponent(verify: context.verify);
+        p = await sourceTarget.buildComponent(
+            verify: compilationSetup.folderOptions.noVerify
+                ? false
+                : context.verify);
         instrumentation.finish();
         if (instrumentation.hasProblems) {
           if (updateComments) {
             await instrumentation.fixSource(description.uri, false);
           } else {
             return new Result<ComponentResult>(
-                new ComponentResult(description, p, userLibraries),
+                new ComponentResult(description, p, userLibraries,
+                    compilationSetup.options, sourceTarget),
                 context.expectationSet["InstrumentationMismatch"],
                 instrumentation.problemsAsString,
-                null);
+                autoFixCommand: '${UPDATE_COMMENTS}=true',
+                canBeFixWithUpdateExpectations: true);
           }
         }
       }
-      return pass(new ComponentResult(description, p, userLibraries));
+      return pass(new ComponentResult(description, p, userLibraries,
+          compilationSetup.options, sourceTarget));
     });
   }
 
   Future<KernelTarget> outlineInitialization(
       FastaContext context,
       TestDescription description,
-      FolderOptions testOptions,
+      ProcessedOptions options,
       List<Uri> entryPoints,
       {Component alsoAppend}) async {
     Component platform = await context.loadPlatform();
     Ticker ticker = new Ticker();
     UriTranslator uriTranslator =
         await context.computeUriTranslator(description);
-    TargetFlags targetFlags = new TargetFlags(
-      forceLateLoweringForTesting: testOptions.forceLateLowering,
-      forceStaticFieldLoweringForTesting: testOptions.forceStaticFieldLowering,
-      forceNoExplicitGetterCallsForTesting:
-          testOptions.forceNoExplicitGetterCalls,
-      enableNullSafety: !context.weak,
-    );
-    Target target;
-    switch (testOptions.target) {
-      case "vm":
-        target = new TestVmTarget(targetFlags);
-        break;
-      case "none":
-        target = new NoneTarget(targetFlags);
-        break;
-      default:
-        throw new ArgumentError(
-            "Unsupported test target '${testOptions.target}'.");
-    }
     DillTarget dillTarget = new DillTarget(
       ticker,
       uriTranslator,
-      target,
+      options.target,
     );
     dillTarget.loader.appendLibraries(platform);
     if (alsoAppend != null) {
@@ -881,31 +1367,74 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
 
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
-    Component component = result.component;
-    KernelTarget sourceTarget = context.componentToTarget[component];
-    context.componentToTarget.remove(component);
-    Target backendTarget = sourceTarget.backendTarget;
-    if (backendTarget is TestVmTarget) {
-      backendTarget.enabled = true;
-    }
-    try {
-      if (sourceTarget.loader.coreTypes != null) {
-        sourceTarget.runBuildTransformations();
-      }
-    } finally {
+    return await CompilerContext.runWithOptions(result.options, (_) async {
+      Component component = result.component;
+      KernelTarget sourceTarget = context.componentToTarget[component];
+      context.componentToTarget.remove(component);
+      Target backendTarget = sourceTarget.backendTarget;
       if (backendTarget is TestVmTarget) {
-        backendTarget.enabled = false;
+        backendTarget.enabled = true;
       }
+      try {
+        if (sourceTarget.loader.coreTypes != null) {
+          sourceTarget.runBuildTransformations();
+        }
+      } finally {
+        if (backendTarget is TestVmTarget) {
+          backendTarget.enabled = false;
+        }
+      }
+      List<String> errors = VerifyTransformed.verify(component);
+      if (errors.isNotEmpty) {
+        return new Result<ComponentResult>(
+            result,
+            context.expectationSet["TransformVerificationError"],
+            errors.join('\n'));
+      }
+      return pass(result);
+    });
+  }
+}
+
+class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
+  final bool fullCompile;
+
+  const Verify(this.fullCompile);
+
+  String get name => "verify";
+
+  Future<Result<ComponentResult>> run(
+      ComponentResult result, FastaContext context) async {
+    FolderOptions folderOptions =
+        context.computeFolderOptions(result.description);
+
+    if (folderOptions.noVerify) {
+      return pass(result);
     }
-    List<String> errors = VerifyTransformed.verify(component);
-    if (errors.isNotEmpty) {
-      return new Result<ComponentResult>(
-          result,
-          context.expectationSet["TransformVerificationError"],
-          errors.join('\n'),
-          null);
-    }
-    return pass(result);
+
+    Component component = result.component;
+    StringBuffer messages = new StringBuffer();
+    ProcessedOptions options = new ProcessedOptions(
+        options: new CompilerOptions()
+          ..onDiagnostic = (DiagnosticMessage message) {
+            if (messages.isNotEmpty) {
+              messages.write("\n");
+            }
+            messages.writeAll(message.plainTextFormatted, "\n");
+          });
+    return await CompilerContext.runWithOptions(options,
+        (compilerContext) async {
+      compilerContext.uriToSource.addAll(component.uriToSource);
+      List<LocatedMessage> verificationErrors = verifyComponent(component,
+          isOutline: !fullCompile, skipPlatform: true);
+      assert(verificationErrors.isEmpty || messages.isNotEmpty);
+      if (messages.isEmpty) {
+        return pass(result);
+      } else {
+        return new Result<ComponentResult>(
+            null, context.expectationSet["VerificationError"], "$messages");
+      }
+    }, errorOnMissingInput: false);
   }
 }
 
@@ -1022,4 +1551,20 @@ class UriConfiguration {
         librariesSpecificationUri == other.librariesSpecificationUri &&
         packageConfigUri == other.packageConfigUri;
   }
+}
+
+class NoneWithJsTarget extends NoneTarget {
+  NoneWithJsTarget(TargetFlags flags) : super(flags);
+
+  @override
+  ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
+      const NoneConstantsBackendWithJs(supportsUnevaluatedConstants: true);
+}
+
+class NoneConstantsBackendWithJs extends NoneConstantsBackend {
+  const NoneConstantsBackendWithJs({bool supportsUnevaluatedConstants})
+      : super(supportsUnevaluatedConstants: supportsUnevaluatedConstants);
+
+  @override
+  NumberSemantics get numberSemantics => NumberSemantics.js;
 }

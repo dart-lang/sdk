@@ -1,0 +1,29 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension Extension on core::int* {
+  method syncStarMethod = self::Extension|syncStarMethod;
+  tearoff syncStarMethod = self::Extension|get#syncStarMethod;
+  method asyncMethod = self::Extension|asyncMethod;
+  tearoff asyncMethod = self::Extension|get#asyncMethod;
+  method asyncStarMethod = self::Extension|asyncStarMethod;
+  tearoff asyncStarMethod = self::Extension|get#asyncStarMethod;
+}
+static method Extension|syncStarMethod(lowered final core::int* #this) → dynamic sync* {}
+static method Extension|get#syncStarMethod(lowered final core::int* #this) → () →* dynamic
+  return () → dynamic => self::Extension|syncStarMethod(#this);
+static method Extension|asyncMethod(lowered final core::int* #this) → dynamic async {}
+static method Extension|get#asyncMethod(lowered final core::int* #this) → () →* dynamic
+  return () → dynamic => self::Extension|asyncMethod(#this);
+static method Extension|asyncStarMethod(lowered final core::int* #this) → dynamic async* {}
+static method Extension|get#asyncStarMethod(lowered final core::int* #this) → () →* dynamic
+  return () → dynamic => self::Extension|asyncStarMethod(#this);
+static method main() → dynamic {
+  self::Extension|syncStarMethod(0);
+  self::Extension|get#syncStarMethod(0);
+  self::Extension|asyncMethod(0);
+  self::Extension|get#asyncMethod(0);
+  self::Extension|asyncStarMethod(0);
+  self::Extension|get#asyncStarMethod(0);
+}

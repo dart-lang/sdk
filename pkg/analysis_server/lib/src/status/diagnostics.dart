@@ -16,7 +16,6 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
@@ -391,7 +390,7 @@ class ContentsPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    var file = await server.resourceProvider.getFile(filePath);
+    var file = server.resourceProvider.getFile(filePath);
     if (!file.exists) {
       p('The file <code>${escape(filePath)}</code> does not exist.', raw: true);
       return;
@@ -483,6 +482,8 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln(writeOption('Context location', escape(contextPath)));
     buf.writeln(writeOption('Analysis options path',
         escape(driver.contextRoot.optionsFilePath ?? 'none')));
+    buf.writeln(
+        writeOption('SDK root', escape(driver.analysisContext.sdkRoot.path)));
 
     buf.writeln('<div class="columns">');
 
@@ -497,16 +498,6 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln(writeOption(
         'Has pubspec.yaml file', folder.getChild('pubspec.yaml').exists));
     buf.writeln('</p>');
-
-    buf.writeln('</div>');
-
-    buf.writeln('<div class="column one-half">');
-    var sdk = driver?.sourceFactory?.dartSdk;
-    AnalysisOptionsImpl sdkOptions = sdk?.context?.analysisOptions;
-    if (sdkOptions != null) {
-      h3('SDK analysis options');
-      p(describe(sdkOptions), raw: true);
-    }
 
     buf.writeln('</div>');
 
@@ -769,7 +760,6 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     // Add server-specific pages. Ordering doesn't matter as the items are
     // sorted later.
     var server = socketServer.analysisServer;
-    pages.add(MLCompletionPage(this, server));
     pages.add(PluginsPage(this, server));
 
     if (server is AnalysisServer) {
@@ -1081,100 +1071,6 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
     } else {
       p('Error retrieving the memory and cpu usage information.');
     }
-  }
-}
-
-class MLCompletionPage extends DiagnosticPageWithNav {
-  @override
-  final AbstractAnalysisServer server;
-
-  MLCompletionPage(DiagnosticsSite site, this.server)
-      : super(site, 'ml-completion', 'ML Completion',
-            description: 'Statistics for ML code completion.');
-
-  path.Context get pathContext => server.resourceProvider.pathContext;
-
-  @override
-  Future<void> generateContent(Map<String, String> params) async {
-    var hasMLComplete = CompletionRanking.instance != null;
-    if (!hasMLComplete) {
-      blankslate('''ML code completion is not enabled (see <a
-href="https://github.com/dart-lang/sdk/wiki/Previewing-Dart-code-completions-powered-by-machine-learning"
->previewing Dart ML completion</a> for how to enable it).''');
-      return;
-    }
-
-    buf.writeln('ML completion enabled.<br>');
-
-    var isolateTimes = CompletionRanking
-        .instance.performanceMetrics.isolateInitTimes
-        .map((Duration time) {
-      return '${time.inMilliseconds}ms';
-    }).join(', ');
-    p('ML isolate init times: $isolateTimes');
-
-    var predictions = CompletionRanking
-        .instance.performanceMetrics.predictionResults
-        .toList();
-
-    if (predictions.isEmpty) {
-      blankslate('No completions recorded.');
-      return;
-    }
-
-    p('${CompletionRanking.instance.performanceMetrics.predictionRequestCount} '
-        'requests');
-
-    // draw a chart
-    buf.writeln(
-        '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
-    var rowData = StringBuffer();
-    for (var prediction in predictions.reversed) {
-      // [' ', 101.5]
-      if (rowData.isNotEmpty) {
-        rowData.write(',');
-      }
-      rowData.write("[' ', ${prediction.elapsedTime.inMilliseconds}]");
-    }
-    buf.writeln('''
-      <script type="text/javascript">
-      google.charts.load('current', {'packages':['bar']});
-      google.charts.setOnLoadCallback(drawChart);
-      function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          ['Completions', 'Time'],
-          $rowData
-        ]);
-        var options = { bars: 'vertical', vAxis: {format: 'decimal'}, height: 300 };
-        var chart = new google.charts.Bar(document.getElementById('chart-div'));
-        chart.draw(data, google.charts.Bar.convertOptions(options));
-      }
-      </script>
-''');
-
-    String summarize(PredictionResult prediction) {
-      var entries = prediction.results.entries.toList();
-      entries.sort((a, b) => b.value.compareTo(a.value));
-      var summary = entries
-          .take(3)
-          .map((entry) => '"${entry.key}":${entry.value.toStringAsFixed(3)}')
-          .join('<br>');
-      return summary;
-    }
-
-    // emit the data as a table
-    buf.writeln('<table>');
-    buf.writeln(
-        '<tr><th>Time</th><th>Results</th><th>Snippet</th><th>Top suggestions</th></tr>');
-    for (var prediction in predictions) {
-      buf.writeln('<tr>'
-          '<td class="pre right">${printMilliseconds(prediction.elapsedTime.inMilliseconds)}</td>'
-          '<td class="right">${prediction.results.length}</td>'
-          '<td><code>${escape(prediction.snippet)}</code></td>'
-          '<td class="right">${summarize(prediction)}</td>'
-          '</tr>');
-    }
-    buf.writeln('</table>');
   }
 }
 

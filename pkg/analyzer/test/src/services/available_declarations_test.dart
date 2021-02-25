@@ -201,6 +201,39 @@ class C {}
     expect(library.uriStr, 'package:test/test.dart');
   }
 
+  test_getLibrary_export_notExisting() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+export 'b.dart';
+class A {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+
+    var id = uriToLibrary['package:test/a.dart'].id;
+    var library = tracker.getLibrary(id);
+    expect(library.id, id);
+  }
+
+  test_getLibrary_exportViaRecursiveLink() async {
+    resourceProvider.newLink(
+      convertPath('/home/test/lib/foo'),
+      convertPath('/home/test/lib'),
+    );
+
+    newFile('/home/test/lib/a.dart', content: r'''
+export 'foo/a.dart';
+class A {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+
+    var id = uriToLibrary['package:test/a.dart'].id;
+    var library = tracker.getLibrary(id);
+    expect(library.id, id);
+  }
+
   test_readByteStore() async {
     newFile('/home/test/lib/a.dart', content: r'''
 class A {}
@@ -920,6 +953,60 @@ class A2 {}
         _ExpectedDeclaration.constructor(''),
       ]),
     ]);
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/44353
+  test_updated_library_hasPart() async {
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+
+    newFile(a, content: r'''
+part 'b.dart';
+class A {}
+''');
+    newFile(b, content: r'''
+part of 'a.dart';
+class B {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/a.dart');
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'A'),
+      'A',
+      DeclarationKind.CLASS,
+      relevanceTags: ['ElementKind.CLASS', 'package:test/a.dart::A'],
+    );
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'B'),
+      'B',
+      DeclarationKind.CLASS,
+      relevanceTags: ['ElementKind.CLASS', 'package:test/a.dart::B'],
+    );
+
+    newFile(a, content: r'''
+part 'b.dart';
+class A2 {}
+''');
+    tracker.changeFile(a);
+    await _doAllTrackerWork();
+
+    // We should not get duplicate relevance tags, specifically in the part.
+    library = _getLibrary('package:test/a.dart');
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'A2'),
+      'A2',
+      DeclarationKind.CLASS,
+      relevanceTags: ['ElementKind.CLASS', 'package:test/a.dart::A2'],
+    );
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'B'),
+      'B',
+      DeclarationKind.CLASS,
+      relevanceTags: ['ElementKind.CLASS', 'package:test/a.dart::B'],
+    );
   }
 
   test_updated_library_to_part() async {
@@ -1901,8 +1988,8 @@ void d(int a, {int b, @required int c, @required int d, int e}) {}
       _getDeclaration(library.declarations, 'd'),
       'd',
       DeclarationKind.FUNCTION,
-      defaultArgumentListString: 'a, c: null, d: null',
-      defaultArgumentListTextRanges: [0, 1, 6, 4, 15, 4],
+      defaultArgumentListString: 'a, c: c, d: d',
+      defaultArgumentListTextRanges: [0, 1, 6, 1, 12, 1],
       parameters: '(int a, {int b, @required int c, @required int d, int e})',
       parameterNames: ['a', 'b', 'c', 'd', 'e'],
       parameterTypes: ['int', 'int', 'int', 'int', 'int'],

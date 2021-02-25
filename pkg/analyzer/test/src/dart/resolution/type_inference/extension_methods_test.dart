@@ -6,15 +6,20 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionMethodsTest);
+    defineReflectiveTests(ExtensionMethodsWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ExtensionMethodsTest extends PubPackageResolutionTest {
+class ExtensionMethodsTest extends PubPackageResolutionTest
+    with ExtensionMethodsTestCases {}
+
+mixin ExtensionMethodsTestCases on ResolutionTest {
   test_implicit_getter() async {
     await assertNoErrorsInCode('''
 class A<T> {}
@@ -89,7 +94,7 @@ extension E<T> on T {
   Map<T, U> foo<U>(U value) => <T, U>{};
 }
 
-main(String a) {
+void f(String a) {
   a.foo(0);
 }
 ''');
@@ -143,11 +148,169 @@ void f(A<int> a) {
 }
 ''');
     var propertyAccess = findNode.prefixed('.foo =');
-    assertMember(
-      propertyAccess,
-      findElement.setter('foo', of: 'E'),
-      {'T': 'int'},
+
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        findElement.setter('foo', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
     );
+
+    if (hasAssignmentLeftResolution) {
+      assertMember(
+        propertyAccess,
+        findElement.setter('foo', of: 'E'),
+        {'T': 'int'},
+      );
+    }
+  }
+
+  test_implicit_targetTypeParameter_hasBound_methodInvocation() async {
+    await assertNoErrorsInCode('''
+extension Test<T> on T {
+  T Function(T) test() => throw 0;
+}
+
+void f<S extends num>(S x) {
+  x.test();
+}
+''');
+
+    if (result.libraryElement.isNonNullableByDefault) {
+      assertMethodInvocation2(
+        findNode.methodInvocation('test();'),
+        element: elementMatcher(
+          findElement.method('test'),
+          substitution: {'T': 'S'},
+        ),
+        typeArgumentTypes: [],
+        invokeType: 'S Function(S) Function()',
+        type: 'S Function(S)',
+      );
+    } else {
+      assertMethodInvocation2(
+        findNode.methodInvocation('test();'),
+        element: elementMatcher(
+          findElement.method('test'),
+          substitution: {'T': 'num'},
+        ),
+        typeArgumentTypes: [],
+        invokeType: 'num Function(num) Function()',
+        type: 'num Function(num)',
+      );
+    }
+  }
+
+  test_implicit_targetTypeParameter_hasBound_propertyAccess_getter() async {
+    await assertNoErrorsInCode('''
+extension Test<T> on T {
+  T Function(T) get test => throw 0;
+}
+
+void f<S extends num>(S x) {
+  (x).test;
+}
+''');
+
+    if (result.libraryElement.isNonNullableByDefault) {
+      assertPropertyAccess2(
+        findNode.propertyAccess('.test'),
+        element: elementMatcher(
+          findElement.getter('test'),
+          substitution: {'T': 'S'},
+        ),
+        type: 'S Function(S)',
+      );
+    } else {
+      assertPropertyAccess2(
+        findNode.propertyAccess('.test'),
+        element: elementMatcher(
+          findElement.getter('test'),
+          substitution: {'T': 'num'},
+        ),
+        type: 'num Function(num)',
+      );
+    }
+  }
+
+  test_implicit_targetTypeParameter_hasBound_propertyAccess_setter() async {
+    await assertNoErrorsInCode('''
+extension Test<T> on T {
+  void set test(T _) {}
+}
+
+T g<T>() => throw 0;
+
+void f<S extends num>(S x) {
+  (x).test = g();
+}
+''');
+
+    if (result.libraryElement.isNonNullableByDefault) {
+      assertAssignment(
+        findNode.assignment('(x).test'),
+        readElement: null,
+        readType: null,
+        writeElement: elementMatcher(
+          findElement.setter('test'),
+          substitution: {'T': 'S'},
+        ),
+        writeType: 'S',
+        operatorElement: null,
+        type: 'S',
+      );
+
+      if (hasAssignmentLeftResolution) {
+        assertPropertyAccess2(
+          findNode.propertyAccess('.test'),
+          element: elementMatcher(
+            findElement.setter('test'),
+            substitution: {'T': 'S'},
+          ),
+          type: 'S',
+        );
+      }
+
+      assertTypeArgumentTypes(
+        findNode.methodInvocation('g()'),
+        ['S'],
+      );
+    } else {
+      assertAssignment(
+        findNode.assignment('(x).test'),
+        readElement: null,
+        readType: null,
+        writeElement: elementMatcher(
+          findElement.setter('test'),
+          substitution: {'T': 'num'},
+        ),
+        writeType: 'num',
+        operatorElement: null,
+        type: 'num',
+      );
+
+      if (hasAssignmentLeftResolution) {
+        assertPropertyAccess2(
+          findNode.propertyAccess('.test'),
+          element: elementMatcher(
+            findElement.setter('test'),
+            substitution: {'T': 'num'},
+          ),
+          type: 'num',
+        );
+      }
+
+      assertTypeArgumentTypes(
+        findNode.methodInvocation('g()'),
+        ['num'],
+      );
+    }
   }
 
   test_override_downward_hasTypeArguments() async {
@@ -291,12 +454,27 @@ void f(A<int> a) {
     assertElementTypeStrings(override.typeArgumentTypes, ['num']);
     assertType(override.extendedType, 'A<num>');
 
-    var propertyAccess = findNode.propertyAccess('.foo =');
-    assertMember(
-      propertyAccess,
-      findElement.setter('foo', of: 'E'),
-      {'T': 'num'},
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        findElement.setter('foo', of: 'E'),
+        substitution: {'T': 'num'},
+      ),
+      writeType: 'num',
+      operatorElement: null,
+      type: 'double',
     );
+
+    if (hasAssignmentLeftResolution) {
+      var propertyAccess = findNode.propertyAccess('.foo =');
+      assertMember(
+        propertyAccess,
+        findElement.setter('foo', of: 'E'),
+        {'T': 'num'},
+      );
+    }
   }
 
   test_override_inferTypeArguments_error_couldNotInfer() async {
@@ -417,11 +595,30 @@ void f(A<int> a) {
     assertElementTypeStrings(override.typeArgumentTypes, ['int']);
     assertType(override.extendedType, 'A<int>');
 
-    var propertyAccess = findNode.propertyAccess('.foo =');
-    assertMember(
-      propertyAccess,
-      findElement.setter('foo', of: 'E'),
-      {'T': 'int'},
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        findElement.setter('foo', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
     );
+
+    if (hasAssignmentLeftResolution) {
+      var propertyAccess = findNode.propertyAccess('.foo =');
+      assertMember(
+        propertyAccess,
+        findElement.setter('foo', of: 'E'),
+        {'T': 'int'},
+      );
+    }
   }
 }
+
+@reflectiveTest
+class ExtensionMethodsWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin, ExtensionMethodsTestCases {}

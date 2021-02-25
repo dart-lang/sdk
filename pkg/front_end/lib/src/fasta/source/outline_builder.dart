@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.outline_builder;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
@@ -80,6 +82,8 @@ import '../operator.dart'
 
 import '../problems.dart' show unhandled;
 
+import 'source_extension_builder.dart';
+
 import 'source_library_builder.dart'
     show
         TypeParameterScopeBuilder,
@@ -125,7 +129,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   List<String> popIdentifierList(int count) {
     if (count == 0) return null;
-    List<String> list = new List<String>(count);
+    List<String> list = new List<String>.filled(count, null);
     bool isParserRecovery = false;
     for (int i = count - 1; i >= 0; i--) {
       popCharOffset();
@@ -387,7 +391,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleStringJuxtaposition(Token startToken, int literalCount) {
     debugEvent("StringJuxtaposition");
-    List<String> list = new List<String>(literalCount);
+    List<String> list = new List<String>.filled(literalCount, null);
     int charOffset = -1;
     for (int i = literalCount - 1; i >= 0; i--) {
       charOffset = pop();
@@ -862,7 +866,8 @@ class OutlineBuilder extends StackListenerImpl {
         endToken.charOffset,
         nativeMethodName,
         asyncModifier,
-        isTopLevel: true);
+        isTopLevel: true,
+        isExtensionInstanceMember: false);
     nativeMethodName = null;
   }
 
@@ -950,42 +955,42 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
-    _endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken, false);
+    _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
+        endToken, _MethodKind.classMethod);
   }
 
   void endClassConstructor(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
-    _endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken, true);
+    _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
+        endToken, _MethodKind.classConstructor);
   }
 
   void endMixinMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
-    _endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken, false);
+    _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
+        endToken, _MethodKind.mixinMethod);
   }
 
   void endExtensionMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
-    _endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken, false);
+    _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
+        endToken, _MethodKind.extensionMethod);
   }
 
   void endMixinConstructor(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
-    _endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken, true);
+    _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
+        endToken, _MethodKind.mixinConstructor);
   }
 
   void endExtensionConstructor(Token getOrSet, Token beginToken,
       Token beginParam, Token beginInitializers, Token endToken) {
-    _endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken, true);
+    _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
+        endToken, _MethodKind.extensionConstructor);
   }
 
   void _endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken, bool isConstructor) {
+      Token beginInitializers, Token endToken, _MethodKind methodKind) {
     assert(checkState(beginToken, [ValueKinds.MethodBody]));
     debugEvent("Method");
     MethodBody bodyKind = pop();
@@ -1113,12 +1118,23 @@ class OutlineBuilder extends StackListenerImpl {
       return;
     }
 
-    String constructorName = isConstructor
-        ? (libraryBuilder.computeAndValidateConstructorName(name, charOffset) ??
-            name)
-        : null;
+    String constructorName;
+    switch (methodKind) {
+      case _MethodKind.classConstructor:
+      case _MethodKind.mixinConstructor:
+      case _MethodKind.extensionConstructor:
+        constructorName = libraryBuilder.computeAndValidateConstructorName(
+                name, charOffset) ??
+            name;
+        break;
+      case _MethodKind.classMethod:
+      case _MethodKind.mixinMethod:
+      case _MethodKind.extensionMethod:
+        break;
+    }
+    bool isStatic = (modifiers & staticMask) != 0;
     if (constructorName == null &&
-        (modifiers & staticMask) == 0 &&
+        !isStatic &&
         libraryBuilder.currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.extensionDeclaration) {
       TypeParameterScopeBuilder extension =
@@ -1158,7 +1174,8 @@ class OutlineBuilder extends StackListenerImpl {
         libraryBuilder.boundlessTypeVariables.addAll(unboundTypeVariables);
       }
       synthesizedFormals.add(new FormalParameterBuilder(
-          null, finalMask, thisType, "#this", null, charOffset, uri));
+          null, finalMask, thisType, extensionThisName, null, charOffset,
+          fileUri: uri, isExtensionThis: true));
       if (formals != null) {
         synthesizedFormals.addAll(formals);
       }
@@ -1216,7 +1233,9 @@ class OutlineBuilder extends StackListenerImpl {
           endToken.charOffset,
           nativeMethodName,
           asyncModifier,
-          isTopLevel: false);
+          isTopLevel: false,
+          isExtensionInstanceMember:
+              methodKind == _MethodKind.extensionMethod && !isStatic);
     }
     nativeMethodName = null;
     inConstructor = false;
@@ -1475,7 +1494,7 @@ class OutlineBuilder extends StackListenerImpl {
         formals = last;
       } else if (last is! ParserRecovery) {
         assert(last != null);
-        formals = new List<FormalParameterBuilder>(1);
+        formals = new List<FormalParameterBuilder>.filled(1, null);
         formals[0] = last;
       }
     } else if (count > 1) {
@@ -1819,7 +1838,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   List<FieldInfo> popFieldInfos(int count) {
     if (count == 0) return null;
-    List<FieldInfo> fieldInfos = new List<FieldInfo>(count);
+    List<FieldInfo> fieldInfos = new List<FieldInfo>.filled(count, null);
     bool isParserRecovery = false;
     for (int i = count - 1; i != -1; i--) {
       int charEndOffset = pop();
@@ -1914,7 +1933,7 @@ class OutlineBuilder extends StackListenerImpl {
           }
           if (bound == builder && bound.bound != null) {
             // Write out cycle.
-            List<String> via = new List<String>();
+            List<String> via = <String>[];
             bound = typeVariablesByName[builder.bound.name];
             while (bound != builder) {
               via.add(bound.name);
@@ -2183,4 +2202,13 @@ class OutlineBuilder extends StackListenerImpl {
   void debugEvent(String name) {
     // printEvent('OutlineBuilder: $name');
   }
+}
+
+enum _MethodKind {
+  classConstructor,
+  classMethod,
+  mixinConstructor,
+  mixinMethod,
+  extensionConstructor,
+  extensionMethod,
 }

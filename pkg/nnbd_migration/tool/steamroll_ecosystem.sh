@@ -276,8 +276,8 @@ function add_package_to_workspace {
   case "${package_name}" in
     _fe_analyzer_shared) repo=sdk
       make_clone_from_package _fe_analyzer_shared "${repo}" master pkg/_fe_analyzer_shared ;;
-    analysis_tool) repo=sdk
-      make_clone_from_package analysis_tool "${repo}" master pkg/analysis_tool ;;
+    analyzer_utilities) repo=sdk
+      make_clone_from_package analyzer_utilities "${repo}" master pkg/analyzer_utilities ;;
     analyzer) repo=sdk
       make_clone_from_package analyzer "${repo}" master pkg/analyzer ;;
     build) repo=build
@@ -379,7 +379,7 @@ function add_package_to_workspace {
     # those here.
     case "${package_name}" in
       analyzer)
-        add_package_to_workspace "analysis_tool"
+        add_package_to_workspace "analyzer_utilities"
         ;;
     esac
     if [ -n "${NO_UPDATE}" ] || repo_changed_this_run "${repo}" ; then

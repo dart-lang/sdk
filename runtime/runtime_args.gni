@@ -68,9 +68,6 @@ declare_args() {
     dart_component_kind = "static_library"
   }
 
-  # Controls whether the VM uses bytecode.
-  dart_platform_bytecode = false
-
   # Whether the VM includes the kernel service in all modes (debug, release,
   # product).
   exclude_kernel_service = false

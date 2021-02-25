@@ -5,27 +5,22 @@
 part of dart.core;
 
 abstract class StringSink {
-  /**
-   * Converts [obj] to a String by invoking [Object.toString] and
-   * adds the result to `this`.
-   */
-  void write(Object? obj);
+  /// Writes the string representation of [object].
+  ///
+  /// Converts [object] to a string using `object.toString()`.
+  void write(Object? object);
 
-  /**
-   * Iterates over the given [objects] and [write]s them in sequence.
-   */
+  /// Iterates over the given [objects] and [write]s them in sequence.
   void writeAll(Iterable<dynamic> objects, [String separator = ""]);
 
-  /**
-   * Converts [obj] to a String by invoking [Object.toString] and
-   * adds the result to `this`, followed by a newline.
-   */
-  void writeln([Object? obj = ""]);
+  /// Writes [object] followed by a newline, `"\n"`.
+  ///
+  /// Calling `writeln(null)` will write the `"null"` string before the
+  /// newline.
+  void writeln([Object? object = ""]);
 
-  /**
-   * Writes the [charCode] to `this`.
-   *
-   * This method is equivalent to `write(new String.fromCharCode(charCode))`.
-   */
+  /// Writes the character represented by [charCode].
+  ///
+  /// Equivalent to `write(String.fromCharCode(charCode))`.
   void writeCharCode(int charCode);
 }

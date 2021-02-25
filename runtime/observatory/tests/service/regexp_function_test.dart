@@ -34,26 +34,26 @@ var tests = <IsolateTest>[
 
     Field field = lib.variables.singleWhere((v) => v.name == 'regex');
     await field.load();
-    Instance regex = field.staticValue;
+    Instance regex = field.staticValue as Instance;
     expect(regex.isInstance, isTrue);
     expect(regex.isRegExp, isTrue);
     await regex.load();
 
     if (regex.oneByteFunction == null) {
       // Running with interpreted regexp.
-      var b1 = await regex.oneByteBytecode.load();
+      var b1 = await regex.oneByteBytecode!.load();
       expect(b1.isTypedData, isTrue);
-      var b2 = await regex.twoByteBytecode.load();
+      var b2 = await regex.twoByteBytecode!.load();
       expect(b2.isTypedData, isFalse); // No two-byte string subject was used.
     } else {
       // Running with compiled regexp.
-      var f1 = await regex.oneByteFunction.load();
+      var f1 = await regex.oneByteFunction!.load();
       expect(f1 is ServiceFunction, isTrue);
-      var f2 = await regex.twoByteFunction.load();
+      var f2 = await regex.twoByteFunction!.load();
       expect(f2 is ServiceFunction, isTrue);
-      var f3 = await regex.externalOneByteFunction.load();
+      var f3 = await regex.externalOneByteFunction!.load();
       expect(f3 is ServiceFunction, isTrue);
-      var f4 = await regex.externalTwoByteFunction.load();
+      var f4 = await regex.externalTwoByteFunction!.load();
       expect(f4 is ServiceFunction, isTrue);
     }
   }

@@ -614,6 +614,8 @@ class CommandExecutorImpl implements CommandExecutor {
       return RunningProcess(command, timeout,
               configuration: globalConfiguration)
           .run();
+    } else if (command is RRCommand) {
+      return command.run(timeout);
     } else {
       throw ArgumentError("Unknown command type ${command.runtimeType}.");
     }
@@ -776,7 +778,7 @@ class CommandExecutorImpl implements CommandExecutor {
     // Start batch processes if needed.
     var runners = _batchProcesses[identifier];
     if (runners == null) {
-      runners = List<BatchRunnerProcess>(maxProcesses);
+      runners = List<BatchRunnerProcess>.filled(maxProcesses, null);
       for (var i = 0; i < maxProcesses; i++) {
         runners[i] = BatchRunnerProcess(useJson: identifier == "fasta");
       }

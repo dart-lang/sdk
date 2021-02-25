@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
@@ -25,7 +26,14 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
   /// Add the file containing the data used by the data-driven fix with the
   /// given [content].
   void addPackageDataFile(String content) {
-    addPackageFile('p', TransformSetManager.dataFileName, content);
+    newFile('$workspaceRootPath/p/lib/${TransformSetManager.dataFileName}',
+        content: content);
+  }
+
+  /// Return a code template that will produce the given [text].
+  CodeTemplate codeTemplate(String text) {
+    return CodeTemplate(
+        CodeTemplateKind.expression, [TemplateText(text)], null);
   }
 
   /// A method that can be used as an error filter to ignore any unused_import
@@ -36,7 +44,11 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
   /// Set the content of the library that defines the element referenced by the
   /// data on which this test is based.
   void setPackageContent(String content) {
-    addPackageFile('p', 'lib.dart', content);
+    newFile('$workspaceRootPath/p/lib/lib.dart', content: content);
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+    );
   }
 
   /// Set the data on which this test is based.

@@ -17,10 +17,7 @@ class WeakTable {
  public:
   static constexpr intptr_t kNoValue = 0;
 
-  WeakTable() : size_(kMinSize), used_(0), count_(0) {
-    ASSERT(Utils::IsPowerOfTwo(size_));
-    data_ = reinterpret_cast<intptr_t*>(calloc(size_, kEntrySize * kWordSize));
-  }
+  WeakTable() : WeakTable(kMinSize) {}
   explicit WeakTable(intptr_t size) : used_(0), count_(0) {
     ASSERT(size >= 0);
     ASSERT(Utils::IsPowerOfTwo(kMinSize));
@@ -36,7 +33,11 @@ class WeakTable {
     }
     size_ = size;
     ASSERT(Utils::IsPowerOfTwo(size_));
-    data_ = reinterpret_cast<intptr_t*>(calloc(size_, kEntrySize * kWordSize));
+    data_ = reinterpret_cast<intptr_t*>(malloc(size_ * kEntrySize * kWordSize));
+    for (intptr_t i = 0; i < size_; i++) {
+      data_[ObjectIndex(i)] = kNoEntry;
+      data_[ValueIndex(i)] = kNoValue;
+    }
   }
 
   ~WeakTable() { free(data_); }
@@ -68,9 +69,9 @@ class WeakTable {
 
   bool IsValidEntryAtExclusive(intptr_t i) const {
     ASSERT((ValueAtExclusive(i) == 0 &&
-            (ObjectAtExclusive(i) == nullptr ||
+            (data_[ObjectIndex(i)] == kNoEntry ||
              data_[ObjectIndex(i)] == kDeletedEntry)) ||
-           (ValueAtExclusive(i) != 0 && ObjectAtExclusive(i) != nullptr &&
+           (ValueAtExclusive(i) != 0 && data_[ObjectIndex(i)] != kNoEntry &&
             data_[ObjectIndex(i)] != kDeletedEntry));
     return (data_[ValueIndex(i)] != 0);
   }
@@ -98,7 +99,7 @@ class WeakTable {
     intptr_t mask = size() - 1;
     intptr_t idx = Hash(key) & mask;
     ObjectPtr obj = ObjectAtExclusive(idx);
-    while (obj != nullptr) {
+    while (obj != static_cast<ObjectPtr>(kNoEntry)) {
       if (obj == key) {
         return ValueAtExclusive(idx);
       }
@@ -115,7 +116,7 @@ class WeakTable {
     intptr_t mask = size() - 1;
     intptr_t idx = Hash(key) & mask;
     ObjectPtr obj = ObjectAtExclusive(idx);
-    while (obj != nullptr) {
+    while (obj != static_cast<ObjectPtr>(kNoEntry)) {
       if (obj == key) {
         intptr_t result = ValueAtExclusive(idx);
         InvalidateAtExclusive(idx);
@@ -132,8 +133,6 @@ class WeakTable {
 
   void Reset();
 
-  void MergeFrom(WeakTable* donor);
-
  private:
   enum {
     kObjectOffset = 0,
@@ -141,7 +140,8 @@ class WeakTable {
     kEntrySize,
   };
 
-  static const intptr_t kDeletedEntry = 1;  // Equivalent to a tagged NULL.
+  static const intptr_t kNoEntry = 1;       // Not a valid OOP.
+  static const intptr_t kDeletedEntry = 3;  // Not a valid OOP.
   static const intptr_t kMinSize = 8;
 
   static intptr_t SizeFor(intptr_t count, intptr_t size);

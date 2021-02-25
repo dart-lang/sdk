@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import '../ast.dart' hide MapEntry;
 import '../type_algebra.dart';
 
@@ -21,7 +23,11 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
     List<TypeParameter> newTypeParameters;
     for (int i = 0; i < node.typeParameters.length; i++) {
       TypeParameter typeParameter = node.typeParameters[i];
-      DartType newBound = typeParameter.bound.accept(this);
+      // TODO(johnniwinther): Bounds should not be null, even in case of
+      // cyclic typedefs. Currently
+      //   instantiate_to_bound/non_simple_class_parametrized_typedef_cycle
+      // fails with this.
+      DartType newBound = typeParameter.bound?.accept(this);
       DartType newDefaultType = typeParameter.defaultType?.accept(this);
       if (newBound != null || newDefaultType != null) {
         newTypeParameters ??= node.typeParameters.toList(growable: false);
@@ -35,7 +41,7 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
     Substitution substitution;
     if (newTypeParameters != null) {
       List<TypeParameterType> typeParameterTypes =
-          new List<TypeParameterType>(newTypeParameters.length);
+          new List<TypeParameterType>.filled(newTypeParameters.length, null);
       for (int i = 0; i < newTypeParameters.length; i++) {
         typeParameterTypes[i] = new TypeParameterType.forAlphaRenaming(
             node.typeParameters[i], newTypeParameters[i]);
@@ -146,11 +152,6 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
       // No nullability or type arguments needed to be substituted.
       return null;
     } else {
-      if (node.classNode.name == 'Null' &&
-          node.classNode.enclosingLibrary.importUri.scheme == 'dart' &&
-          node.classNode.enclosingLibrary.importUri.path == 'core') {
-        return null;
-      }
       return new InterfaceType(
           node.classNode,
           newNullability ?? node.nullability,
@@ -193,6 +194,9 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
       return new NeverType(newNullability);
     }
   }
+
+  @override
+  DartType visitNullType(NullType node) => null;
 
   @override
   DartType visitInvalidType(InvalidType node) => null;

@@ -1,0 +1,46 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class SubClass extends self::Class {
+  synthetic constructor •() → self::SubClass*
+    ;
+}
+extension Extension<T extends core::Object* = dynamic> on T* {
+  method method1 = self::Extension|method1;
+  tearoff method1 = self::Extension|get#method1;
+}
+extension BoundExtension<T extends self::Class* = self::Class*> on T* {
+  method method2 = self::BoundExtension|method2;
+  tearoff method2 = self::BoundExtension|get#method2;
+}
+static method Extension|method1<T extends core::Object* = dynamic>(lowered final self::Extension|method1::T* #this) → self::Extension|method1::T*
+  ;
+static method Extension|get#method1<T extends core::Object* = dynamic>(lowered final self::Extension|get#method1::T* #this) → () →* self::Extension|get#method1::T*
+  return () → self::Extension|get#method1::T* => self::Extension|method1<self::Extension|get#method1::T*>(#this);
+static method BoundExtension|method2<T extends self::Class* = self::Class*>(lowered final self::BoundExtension|method2::T* #this) → self::BoundExtension|method2::T*
+  ;
+static method BoundExtension|get#method2<T extends self::Class* = self::Class*>(lowered final self::BoundExtension|get#method2::T* #this) → () →* self::BoundExtension|get#method2::T*
+  return () → self::BoundExtension|get#method2::T* => self::BoundExtension|method2<self::BoundExtension|get#method2::T*>(#this);
+static method test1<T extends core::Object* = dynamic>(self::test1::T* t1) → self::Class*
+  ;
+static method test2<T extends self::Class* = self::Class*>(self::test2::T* t2) → dynamic
+  ;
+static method test3<T extends core::Object* = dynamic>(self::test3::T* t3) → dynamic
+  ;
+static method main() → dynamic
+  ;

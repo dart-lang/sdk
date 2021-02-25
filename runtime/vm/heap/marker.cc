@@ -34,7 +34,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         page_space_(page_space),
         work_list_(marking_stack),
         deferred_work_list_(deferred_marking_stack),
-        delayed_weak_properties_(nullptr),
+        delayed_weak_properties_(WeakProperty::null()),
         marked_bytes_(0),
         marked_micros_(0) {
     ASSERT(thread_->isolate_group() == isolate_group);
@@ -48,26 +48,26 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   bool ProcessPendingWeakProperties() {
     bool marked = false;
     WeakPropertyPtr cur_weak = delayed_weak_properties_;
-    delayed_weak_properties_ = nullptr;
-    while (cur_weak != nullptr) {
-      uword next_weak = cur_weak->ptr()->next_;
-      ObjectPtr raw_key = cur_weak->ptr()->key_;
+    delayed_weak_properties_ = WeakProperty::null();
+    while (cur_weak != WeakProperty::null()) {
+      WeakPropertyPtr next_weak = cur_weak->untag()->next_;
+      ObjectPtr raw_key = cur_weak->untag()->key_;
       // Reset the next pointer in the weak property.
-      cur_weak->ptr()->next_ = 0;
-      if (raw_key->ptr()->IsMarked()) {
-        ObjectPtr raw_val = cur_weak->ptr()->value_;
-        marked =
-            marked || (raw_val->IsHeapObject() && !raw_val->ptr()->IsMarked());
+      cur_weak->untag()->next_ = WeakProperty::null();
+      if (raw_key->untag()->IsMarked()) {
+        ObjectPtr raw_val = cur_weak->untag()->value_;
+        marked = marked ||
+                 (raw_val->IsHeapObject() && !raw_val->untag()->IsMarked());
 
         // The key is marked so we make sure to properly visit all pointers
         // originating from this weak property.
-        cur_weak->ptr()->VisitPointersNonvirtual(this);
+        cur_weak->untag()->VisitPointersNonvirtual(this);
       } else {
         // Requeue this weak property to be handled later.
         EnqueueWeakProperty(cur_weak);
       }
       // Advance to next weak property in the queue.
-      cur_weak = static_cast<WeakPropertyPtr>(next_weak);
+      cur_weak = next_weak;
     }
     return marked;
   }
@@ -89,7 +89,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
 
         intptr_t size;
         if (class_id != kWeakPropertyCid) {
-          size = raw_obj->ptr()->VisitPointersNonvirtual(this);
+          size = raw_obj->untag()->VisitPointersNonvirtual(this);
         } else {
           WeakPropertyPtr raw_weak = static_cast<WeakPropertyPtr>(raw_obj);
           size = ProcessWeakProperty(raw_weak, /* did_mark */ true);
@@ -132,25 +132,25 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     ASSERT(raw_weak->IsHeapObject());
     ASSERT(raw_weak->IsOldObject());
     ASSERT(raw_weak->IsWeakProperty());
-    ASSERT(raw_weak->ptr()->IsMarked());
-    ASSERT(raw_weak->ptr()->next_ == 0);
-    raw_weak->ptr()->next_ = static_cast<uword>(delayed_weak_properties_);
+    ASSERT(raw_weak->untag()->IsMarked());
+    ASSERT(raw_weak->untag()->next_ == WeakProperty::null());
+    raw_weak->untag()->next_ = delayed_weak_properties_;
     delayed_weak_properties_ = raw_weak;
   }
 
   intptr_t ProcessWeakProperty(WeakPropertyPtr raw_weak, bool did_mark) {
     // The fate of the weak property is determined by its key.
-    ObjectPtr raw_key = LoadPointerIgnoreRace(&raw_weak->ptr()->key_);
+    ObjectPtr raw_key = LoadPointerIgnoreRace(&raw_weak->untag()->key_);
     if (raw_key->IsHeapObject() && raw_key->IsOldObject() &&
-        !raw_key->ptr()->IsMarked()) {
+        !raw_key->untag()->IsMarked()) {
       // Key was white. Enqueue the weak property.
       if (did_mark) {
         EnqueueWeakProperty(raw_weak);
       }
-      return raw_weak->ptr()->HeapSize();
+      return raw_weak->untag()->HeapSize();
     }
     // Key is gray or black. Make the weak property black.
-    return raw_weak->ptr()->VisitPointersNonvirtual(this);
+    return raw_weak->untag()->VisitPointersNonvirtual(this);
   }
 
   void ProcessDeferredMarking() {
@@ -162,7 +162,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       const intptr_t class_id = raw_obj->GetClassId();
       intptr_t size;
       if (class_id != kWeakPropertyCid) {
-        size = raw_obj->ptr()->VisitPointersNonvirtual(this);
+        size = raw_obj->untag()->VisitPointersNonvirtual(this);
       } else {
         WeakPropertyPtr raw_weak = static_cast<WeakPropertyPtr>(raw_obj);
         size = ProcessWeakProperty(raw_weak, did_mark);
@@ -185,16 +185,16 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     work_list_.Finalize();
     // Clear pending weak properties.
     WeakPropertyPtr cur_weak = delayed_weak_properties_;
-    delayed_weak_properties_ = nullptr;
+    delayed_weak_properties_ = WeakProperty::null();
     intptr_t weak_properties_cleared = 0;
-    while (cur_weak != nullptr) {
-      uword next_weak = cur_weak->ptr()->next_;
-      cur_weak->ptr()->next_ = 0;
-      RELEASE_ASSERT(!cur_weak->ptr()->key_->ptr()->IsMarked());
+    while (cur_weak != WeakProperty::null()) {
+      WeakPropertyPtr next_weak = cur_weak->untag()->next_;
+      cur_weak->untag()->next_ = WeakProperty::null();
+      RELEASE_ASSERT(!cur_weak->untag()->key_->untag()->IsMarked());
       WeakProperty::Clear(cur_weak);
       weak_properties_cleared++;
       // Advance to next weak property in the queue.
-      cur_weak = static_cast<WeakPropertyPtr>(next_weak);
+      cur_weak = next_weak;
     }
   }
 
@@ -209,7 +209,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     ASSERT(raw_obj->IsOldObject());
 
     // Push the marked object on the marking stack.
-    ASSERT(raw_obj->ptr()->IsMarked());
+    ASSERT(raw_obj->untag()->IsMarked());
     work_list_.Push(raw_obj);
   }
 
@@ -219,10 +219,10 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       raw_obj = OldPage::ToWritable(raw_obj);
     }
     if (!sync) {
-      raw_obj->ptr()->SetMarkBitUnsynchronized();
+      raw_obj->untag()->SetMarkBitUnsynchronized();
       return true;
     } else {
-      return raw_obj->ptr()->TryAcquireMarkBit();
+      return raw_obj->untag()->TryAcquireMarkBit();
     }
   }
 
@@ -240,7 +240,11 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     // change in the value.
     // Doing this before checking for an Instructions object avoids
     // unnecessary queueing of pre-marked objects.
-    if (raw_obj->ptr()->IsMarked()) {
+    // Race: The concurrent marker may observe a pointer into a heap page that
+    // was allocated after the concurrent marker started. It can read either a
+    // zero or the header of an object allocated black, both of which appear
+    // marked.
+    if (raw_obj->untag()->IsMarkedIgnoreRace()) {
       return;
     }
 
@@ -286,7 +290,7 @@ static bool IsUnreachable(const ObjectPtr raw_obj) {
   if (!raw_obj->IsOldObject()) {
     return false;
   }
-  return !raw_obj->ptr()->IsMarked();
+  return !raw_obj->untag()->IsMarked();
 }
 
 class MarkingWeakVisitor : public HandleVisitor {
@@ -298,7 +302,7 @@ class MarkingWeakVisitor : public HandleVisitor {
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
-    ObjectPtr raw_obj = handle->raw();
+    ObjectPtr raw_obj = handle->ptr();
     if (IsUnreachable(raw_obj)) {
       handle->UpdateUnreachable(thread()->isolate_group());
     }
@@ -312,20 +316,6 @@ class MarkingWeakVisitor : public HandleVisitor {
 
 void GCMarker::Prologue() {
   isolate_group_->ReleaseStoreBuffers();
-
-#ifndef DART_PRECOMPILED_RUNTIME
-  isolate_group_->ForEachIsolate(
-      [&](Isolate* isolate) {
-        Thread* mutator_thread = isolate->mutator_thread();
-        if (mutator_thread != NULL) {
-          Interpreter* interpreter = mutator_thread->interpreter();
-          if (interpreter != NULL) {
-            interpreter->ClearLookupCache();
-          }
-        }
-      },
-      /*at_safepoint=*/true);
-#endif
 }
 
 void GCMarker::Epilogue() {}
@@ -436,8 +426,7 @@ void GCMarker::ProcessWeakTables(Thread* thread) {
     for (intptr_t i = 0; i < size; i++) {
       if (table->IsValidEntryAtExclusive(i)) {
         ObjectPtr raw_obj = table->ObjectAtExclusive(i);
-        ASSERT(raw_obj->IsHeapObject());
-        if (!raw_obj->ptr()->IsMarked()) {
+        if (raw_obj->IsHeapObject() && !raw_obj->untag()->IsMarked()) {
           table->InvalidateAtExclusive(i);
         }
       }
@@ -458,8 +447,8 @@ void GCMarker::ProcessRememberedSet(Thread* thread) {
     while (!reading->IsEmpty()) {
       ObjectPtr raw_object = reading->Pop();
       ASSERT(!raw_object->IsForwardingCorpse());
-      ASSERT(raw_object->ptr()->IsRemembered());
-      if (raw_object->ptr()->IsMarked()) {
+      ASSERT(raw_object->untag()->IsRemembered());
+      if (raw_object->untag()->IsMarked()) {
         writing->Push(raw_object);
         if (writing->IsFull()) {
           store_buffer->PushBlock(writing, StoreBuffer::kIgnoreThreshold);
@@ -484,7 +473,7 @@ class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
     for (ObjectPtr* current = first; current <= last; current++) {
       ObjectPtr raw_obj = *current;
       ASSERT(raw_obj->IsHeapObject());
-      if (raw_obj->IsOldObject() && !raw_obj->ptr()->IsMarked()) {
+      if (raw_obj->IsOldObject() && !raw_obj->untag()->IsMarked()) {
         // Object has become garbage. Replace it will null.
         *current = Object::null();
       }

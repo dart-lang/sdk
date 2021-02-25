@@ -20,10 +20,10 @@ main() {
 
 @reflectiveTest
 class TypeConstraintGathererTest extends AbstractTypeSystemNullSafetyTest {
-  TypeParameterElement T;
-  TypeParameterType T_none;
-  TypeParameterType T_question;
-  TypeParameterType T_star;
+  /*late*/ TypeParameterElement T;
+  /*late*/ TypeParameterType T_none;
+  /*late*/ TypeParameterType T_question;
+  /*late*/ TypeParameterType T_star;
 
   UnknownInferredType get unknownType => UnknownInferredType.instance;
 
@@ -681,6 +681,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemNullSafetyTest {
     ) {
       var library = library_(
         uriStr: 'package:test/test.dart',
+        analysisContext: analysisContext,
         analysisSession: analysisContext.analysisSession,
         typeSystem: typeSystem,
       );
@@ -839,6 +840,29 @@ class TypeConstraintGathererTest extends AbstractTypeSystemNullSafetyTest {
     _checkMatch([T], numStar, T_none, true, ['num* <: T <: _']);
     _checkMatch([T], numStar, T_question, true, ['num <: T <: _']);
     _checkMatch([T], numStar, T_star, true, ['num <: T <: _']);
+  }
+
+  /// If `Q` is a legacy type `Q0*` then the match holds under constraint
+  /// set `C`:
+  ///   If `P` is `dynamic` or `void` and `P` is a subtype match for `Q0`
+  ///   under constraint set `C`.
+  test_left_top_right_legacy() {
+    var U = typeParameter('U', bound: objectNone);
+    var U_star = typeParameterTypeStar(U);
+
+    _checkMatch([U], dynamicNone, U_star, false, ['dynamic <: U <: _']);
+    _checkMatch([U], voidNone, U_star, false, ['void <: U <: _']);
+  }
+
+  /// If `Q` is `Q0?` the match holds under constraint set `C`:
+  ///   Or if `P` is `dynamic` or `void` and `Object` is a subtype match
+  ///   for `Q0` under constraint set `C`.
+  test_left_top_right_nullable() {
+    var U = typeParameter('U', bound: objectNone);
+    var U_question = typeParameterTypeQuestion(U);
+
+    _checkMatch([U], dynamicNone, U_question, false, ['Object <: U <: _']);
+    _checkMatch([U], voidNone, U_question, false, ['Object <: U <: _']);
   }
 
   /// If `P` is a type variable `X` in `L`, then the match holds:

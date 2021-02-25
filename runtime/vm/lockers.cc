@@ -40,7 +40,8 @@ Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
   return result;
 }
 
-SafepointMutexLocker::SafepointMutexLocker(Mutex* mutex) : mutex_(mutex) {
+SafepointMutexLocker::SafepointMutexLocker(ThreadState* thread, Mutex* mutex)
+    : StackResource(thread), mutex_(mutex) {
   ASSERT(mutex != NULL);
   if (!mutex_->TryLock()) {
     // We did not get the lock and could potentially block, so transition
@@ -83,6 +84,122 @@ Monitor::WaitResult SafepointMonitorLocker::Wait(int64_t millis) {
   } else {
     return monitor_->Wait(millis);
   }
+}
+
+#if defined(DEBUG)
+bool SafepointRwLock::IsCurrentThreadReader() {
+  ThreadId id = OSThread::GetCurrentThreadId();
+  if (IsCurrentThreadWriter()) {
+    return true;
+  }
+  MonitorLocker ml(&monitor_);
+  for (intptr_t i = readers_ids_.length() - 1; i >= 0; i--) {
+    if (readers_ids_.At(i) == id) {
+      return true;
+    }
+  }
+  return false;
+}
+#endif  // defined(DEBUG)
+
+bool SafepointRwLock::EnterRead() {
+  // No need to safepoint if the current thread is not attached.
+  auto thread = Thread::Current();
+  const bool can_block_without_safepoint = thread == nullptr;
+
+  bool acquired_read_lock = false;
+  if (!TryEnterRead(can_block_without_safepoint, &acquired_read_lock)) {
+    // Important: must never hold monitor_ when blocking for safepoint.
+    TransitionVMToBlocked transition(thread);
+    const bool ok = TryEnterRead(/*can_block=*/true, &acquired_read_lock);
+    RELEASE_ASSERT(ok);
+    RELEASE_ASSERT(acquired_read_lock);
+  }
+  return acquired_read_lock;
+}
+
+bool SafepointRwLock::TryEnterRead(bool can_block, bool* acquired_read_lock) {
+  MonitorLocker ml(&monitor_);
+  if (IsCurrentThreadWriter()) {
+    *acquired_read_lock = false;
+    return true;
+  }
+  if (can_block) {
+    while (state_ < 0) {
+      ml.Wait();
+    }
+  }
+  if (state_ >= 0) {
+    ++state_;
+    DEBUG_ONLY(readers_ids_.Add(OSThread::GetCurrentThreadId()));
+    *acquired_read_lock = true;
+    return true;
+  }
+  return false;
+}
+
+void SafepointRwLock::LeaveRead() {
+  MonitorLocker ml(&monitor_);
+  ASSERT(state_ > 0);
+#if defined(DEBUG)
+  {
+    intptr_t i = readers_ids_.length() - 1;
+    ThreadId id = OSThread::GetCurrentThreadId();
+    while (i >= 0) {
+      if (readers_ids_.At(i) == id) {
+        readers_ids_.RemoveAt(i);
+        break;
+      }
+      i--;
+    }
+    ASSERT(i >= 0);
+  }
+#endif
+  if (--state_ == 0) {
+    ml.NotifyAll();
+  }
+}
+
+void SafepointRwLock::EnterWrite() {
+  // No need to safepoint if the current thread is not attached.
+  auto thread = Thread::Current();
+  const bool can_block_without_safepoint = thread == nullptr;
+
+  if (!TryEnterWrite(can_block_without_safepoint)) {
+    // Important: must never hold monitor_ when blocking for safepoint.
+    TransitionVMToBlocked transition(thread);
+    const bool ok = TryEnterWrite(/*can_block=*/true);
+    RELEASE_ASSERT(ok);
+  }
+}
+
+bool SafepointRwLock::TryEnterWrite(bool can_block) {
+  MonitorLocker ml(&monitor_);
+  if (IsCurrentThreadWriter()) {
+    state_--;
+    return true;
+  }
+  if (can_block) {
+    while (state_ != 0) {
+      ml.Wait();
+    }
+  }
+  if (state_ == 0) {
+    writer_id_ = OSThread::GetCurrentThreadId();
+    state_ = -1;
+    return true;
+  }
+  return false;
+}
+
+void SafepointRwLock::LeaveWrite() {
+  MonitorLocker ml(&monitor_);
+  ASSERT(state_ < 0);
+  if (++state_ < 0) {
+    return;
+  }
+  writer_id_ = OSThread::kInvalidThreadId;
+  ml.NotifyAll();
 }
 
 }  // namespace dart

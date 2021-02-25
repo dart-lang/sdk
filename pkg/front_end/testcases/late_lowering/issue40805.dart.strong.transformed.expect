@@ -9,12 +9,12 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   get x() → core::int
-    return let final core::int? #t1 = this.{self::C::_#C#x} in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'x' has not been initialized.") : #t1{core::int};
+    return let final core::int? #t1 = this.{self::C::_#C#x} in #t1.==(null) ?{core::int} throw new _in::LateError::fieldNI("x") : #t1{core::int};
   set x(covariant core::int #t2) → void
     if(this.{self::C::_#C#x}.==(null))
       this.{self::C::_#C#x} = #t2;
     else
-      throw new _in::LateInitializationErrorImpl::•("Field 'x' has already been initialized.");
+      throw new _in::LateError::fieldAI("x");
 }
 class D extends self::C {
   synthetic constructor •() → self::D

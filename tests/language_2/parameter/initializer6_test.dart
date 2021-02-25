@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 class Foo {
   num _y;
   Foo.private({this._y: 77}) {}
-  //           ^^^^^^^
+  //                ^^
   // [analyzer] COMPILE_TIME_ERROR.PRIVATE_OPTIONAL_PARAMETER
   //                ^
   // [cfe] An optional named parameter can't start with '_'.

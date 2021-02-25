@@ -16,9 +16,11 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
-  // Code accessing pp is generated, but not executed. Uninitialized pp is OK.
-  __ set_constant_pool_allowed(true);
+  // Code is generated, but not executed. Just parsed with CallPattern
+  __ set_constant_pool_allowed(true);  // Uninitialized pp is OK.
+  SPILLS_LR_TO_FRAME({});              // Clobbered LR is OK.
   __ BranchLinkPatchable(StubCode::InvokeDartCode());
+  RESTORES_LR_FROM_FRAME({});  // Clobbered LR is OK.
   __ ret();
 }
 
@@ -28,7 +30,7 @@ ASSEMBLER_TEST_RUN(Call, test) {
   // before the end of the code buffer.
   uword end = test->payload_start() + test->code().Size();
   CallPattern call(end - Instr::kInstrSize, test->code());
-  EXPECT_EQ(StubCode::InvokeDartCode().raw(), call.TargetCode());
+  EXPECT_EQ(StubCode::InvokeDartCode().ptr(), call.TargetCode());
 }
 
 }  // namespace dart

@@ -1,3 +1,248 @@
+## 2.12.0
+
+### Language
+
+*   **Breaking Change** [Null
+    Safety](https://dart.dev/null-safety/understanding-null-safety) is now
+    enabled by default in all packages with a lower sdk constraint of 2.12.0 or
+    greater.  Files that are not subject to language versioning (whether because
+    they are not contained in a pub package, or because the package that they
+    are contained in has no lower sdk constraint) are treated as opted into to
+    null safety by default and may report new errors.  Pub packages may be opted
+    out of null safety by setting a min sdk constraint in pubspec.yaml of 2.9.0
+    or less.  Files may be opted out of null safety by adding `// @dart=2.9` to
+    the beginning of the file.
+
+*   **Breaking Change** [#44660][]: Fixed an implementation bug where `this`
+    would sometimes undergo type promotion in extensions.
+
+[#44660]: https://github.com/dart-lang/sdk/issues/44660
+
+### Core libraries
+
+#### `dart:async`
+
+* Adds extension method `onError` on `Future` to allow better typing
+  of error handling.
+
+#### `dart:collection`
+
+* Added `UnmodifiableSetView` class, which allows users to guarantee that
+  methods that could change underlying `Set` instance can not be invoked.
+
+* `LinkedList` made it explicit that elements are compared by identity,
+  and updated `contains` to take advantage of this.
+
+#### `dart:core`
+
+* Added `unmodifiable` constructor to class `Set`, which allows users to create
+  unmodifiable `Set` instances.
+
+#### `dart:io`
+
+* `HttpRequest` will now correctly follow HTTP 308 redirects
+  (`HttpStatus.permanentRedirect`).
+
+#### `dart:isolate`
+
+* Added `debugName` positional parameter to `ReceivePort` and `RawReceivePort`
+  constructors, a name which can be associated with the port and displayed in
+  tooling.
+
+#### `dart:html`
+
+* `EventStreamSubscription.cancel` has been updated to retain its synchronous
+  timing when running in both sound and unsound null safety modes. See issue
+  [#44157][] for more details.
+
+[#44157]: https://github.com/dart-lang/sdk/issues/44157
+
+### Dart VM
+
+*   **Breaking Change** [#42312][]: `Dart_WeakPersistentHandle`s will no longer
+    auto-delete themselves when the referenced object is garbage collected to
+    avoid race conditions, but they are still automatically deleted when the
+    isolate group shuts down.
+*   **Breaking Change** [#42312][]: `Dart_WeakPersistentHandleFinalizer`
+    is renamed to `Dart_HandleFinalizer` and had its `handle` argument removed.
+    All api functions using that type have been updated.
+
+[#42312]: https://github.com/dart-lang/sdk/issues/42312
+
+### Foreign Function Interface (`dart:ffi`)
+
+*   **Breaking Change** [#44621][]: Invocations with a generic `T` of
+    `sizeOf<T>`, `Pointer<T>.elementAt()`, `Pointer<T extends Struct>.ref`, and
+    `Pointer<T extends Struct>[]` are being deprecated in the current stable
+    release (2.12), and are planned to be fully removed in the following stable
+    release (2.13). Consequently, `allocate` in `package:ffi` will no longer be
+    able to invoke `sizeOf<T>` generically, and will be deprecated as well.
+    Instead, the `Allocator` it is introduced to `dart:ffi`, and also requires
+    a constant `T` on invocations. For migration notes see the breaking change
+    request.
+*   **Breaking Change** [#44622][]: Subtypes of `Struct` without any native
+    member are being deprecated in the current stable release (2.12), and are
+    planned to be fully removed in the following stable release (2.13).
+    Migrate opaque types to extend `Opaque` rather than `Struct`.
+
+[#44621]: https://github.com/dart-lang/sdk/issues/44621
+[#44622]: https://github.com/dart-lang/sdk/issues/44622
+
+### Dart2JS
+
+* Removed `--no-defer-class-types` and `--no-new-deferred-split`.
+
+### Tools
+
+#### Dartanalyzer
+
+* Removed the `--use-fasta-parser`, `--preview-dart-2`, and
+  `--enable-assert-initializers` command line options. These options haven't
+  been supported in a while and were no-ops.
+* Report diagnostics regarding the
+  [`@internal`](https://pub.dev/documentation/meta/latest/meta/internal-constant.html)
+  annotation.
+* Improve diagnostic-reporting regarding the
+  [`@doNotStore`](https://pub.dev/documentation/meta/latest/meta/doNotStore-constant.html)
+  annotation.
+* Introduce a diagnostic which is reported when a library member named `main`
+  is not a function.
+* Introduce a diagnostic which is reported when a `main` function's first
+  parameter is not a supertype of `List<String>`.
+* Introduce a diagnostic which is reported when an `// ignore` comment contains
+  an error code which is not being reported.
+* Introduce a diagnostic which is reported when an `// ignore` comment contains
+  an error code which cannot be ignored.
+* Introduce a diagnostic which is reported when an `// ignore` comment contains
+  an error code which is already being ignored.
+* Report diagnostics when using
+  [`@visibleForTesting`](https://pub.dev/documentation/meta/latest/meta/visibleForTesting-constant.html)
+  on top-level variables.
+* Fix false positive reports of "unused element" for top-level setters and
+  getters.
+* Fix false positive reports regarding `@deprecated` field formal parameters at
+  their declaration.
+* For null safety, introduce a diagnostic which reports when a null-check will
+  always fail.
+* Fix false positive reports regarding optional parameters on privat
+  constructors being unused.
+* Introduce a diagnostic which is reported when a constructor includes
+  duplicate field formal parameters.
+* Improve the "unused import" diagnostic when multiple import directives share
+  a common prefix.
+* Fix false positive "unused import" diagnostic regarding an import which
+  provides an extension method which is used.
+* For null safety, improve the messaging of "use of nullable value" diagnostics
+  for eight different contexts.
+* Fix false positive reports regarding `@visibleForTesting` members in a "hide"
+  combinator of an import or export directive.
+* Improve the messaging of "invalid override" diagnostics.
+* Introduce a diagnostic which is reported when `Future<T>.catchError` is
+  called with an `onError` callback which does not return `FutureOr<T>`.
+
+#### dartfmt
+
+* Don't duplicate comments on chained if elements.
+* Preserve `?` in initializing formal function-typed parameters.
+
+#### Linter
+
+Updated the Linter to `0.1.129`, which includes:
+
+* New lint: `avoid_dynamic_calls`.
+* (Internal): `avoid_type_to_string` updated to use `addArgumentList` registry API.
+* Miscellaneous documentation improvements.
+* Fixed crash in `prefer_collection_literals` when there is no static parameter
+  element.
+* Fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
+  LinkedHashMap instantiation is passed as the argument to a function in any
+  position other than the first.
+* Fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
+  LinkedHashMap instantiation is used in a place with a static type other than
+  Set or Map.
+* (Internal): test updates to the new `PhysicalResourceProvider` API.
+* Fixed false positives in `prefer_constructors_over_static_methods`.
+* Updates to `package_names` to allow leading underscores.
+* Fixed NPEs in `unnecessary_null_checks`.
+* A fixed NPE in `missing_whitespace_between_adjacent_strings`.
+* Updates to `void_checks` for NNBD.
+* A fixed range error in `unnecessary_string_escapes`.
+* A fixed false positives in `unnecessary_null_types`.
+* Fixes to `prefer_constructors_over_static_methods` to respect type parameters.
+* Updates to `always_require_non_null_named_parameters` to be NNBD-aware.
+* Updates tp `unnecessary_nullable_for_final_variable_declarations` to allow dynamic.
+* Updates `overridden_fields` to not report on abstract parent fields.
+* Fixes to `unrelated_type_equality_checks` for NNBD.
+* Improvements to `type_init_formals`to allow types not equal to the field type.
+* Performance improvements to `always_use_package_imports`,
+  `avoid_renaming_method_parameters`, `prefer_relative_imports` and
+  `public_member_api_docs`.
+* (internal): updates to analyzer `0.40.4` APIs
+* New lint: `cast_nullable_to_non_nullable`.
+* New lint: `null_check_on_nullable_type_parameter`.
+* New lint: `tighten_type_of_initializing_formals`.
+* Updates to `public_member_apis` to check generic type aliases.
+* (Internal): updates to adopt new analyzer APIs.
+* Fixed `close_sinks` to handle `this`-prefixed property accesses.
+* New lint: `unnecessary_null_checks`.
+* Fixed `unawaited_futures` to handle `Future` subtypes.
+* New lint: `avoid_type_to_string`.
+
+#### Pub
+
+* **Breaking**: The Dart SDK constraint is now **required** in `pubspec.yaml`.
+
+  You now have to include a section like:
+
+  ```yaml
+  environment:
+    sdk: '>=2.10.0 <3.0.0'
+  ```
+
+  See [#44072][].
+
+  For legacy dependencies without an sdk constraint pub will now assume a
+  default language version of 2.7.
+* The top level `pub` executable has been deprecated. Use `dart pub` instead.
+  See [dart tool][].
+* New command `dart pub add` that adds  new dependencies to your `pubspec.yaml`.
+
+  And a corresponding `dart pub remove` that removes dependencies.
+* New option `dart pub upgrade --major-versions` will update constraints in
+  your `pubspec.yaml` to match the the _resolvable_ column reported in
+  `dart pub outdated`. This allows users to easily upgrade to latest version for
+  all dependencies where this is possible, even if such upgrade requires an
+  update to the version constraint in `pubspec.yaml`.
+
+  It is also possible to only upgrade the major version for a subset of your
+  dependencies using `dart pub upgrade --major-versions <dependencies...>`.
+* New option `dart pub upgrade --null-safety` will attempt to update constraints
+  in your `pubspec.yaml`, such that only null-safety migrated versions of
+  dependencies are allowed.
+* New option `dart pub outdated --mode=null-safety` that will analyze your
+  dependencies for null-safety.
+* `dart pub get` and `dart pub upgrade` will highlight dependencies that have
+  been [discontinued](https://dart.dev/tools/pub/publishing#discontinue) on
+  pub.dev.
+* `dart pub publish` will now check your pubspec keys for likely typos.
+* `dart pub upgrade package_foo` will fetch dependencies, but ignore the
+  `pubspec.lock` for `package_foo`, allowing users to only upgrade a subset of
+  dependencies.
+* New command `dart pub login` that logs in to pub.dev.
+* The `--server` option to `dart pub publish` and `dart pub uploader` have been
+  deprecated. Use `publish_to` in your `pubspec.yaml` or set the
+  `$PUB_HOSTED_URL` environment variable.
+* `pub global activate no longer re-precompiles if current global installed was
+   same version.
+* The Flutter SDK constraint upper bound is now ignored in pubspecs and
+  deprecated when publishing.
+
+  See: [flutter-upper-bound-deprecation][].
+
+[flutter-upper-bound-deprecation]: https://dart.dev/go/flutter-upper-bound-deprecation
+[#44072]: https://github.com/dart-lang/sdk/issues/44072
+[dart tool]: https://dart.dev/tools/dart-tool
+
 ## 2.10.5 - 2020-01-21
 
 This is a patch release that fixes a crash in the Dart VM. (issue [#44563][]).
@@ -44,7 +289,7 @@ This is a patch release that fixes a DDC compiler crash (issue [#43589]).
 
 This is a patch release that fixes the following issues:
 * crashes when developing Flutter applications (issue [#43464][]).
-* non-deterministicall weird program behaviour and/or crashes (issue
+* non-deterministic incorrect program behaviour and/or crashes (issue
   [flutter/flutter#66672][]).
 * uncaught TypeErrors in DDC (issue [#43661][]).
 
@@ -62,7 +307,7 @@ This is a patch release that fixes the following issues:
     to cancel outgoing HTTP requests and stop following IO operations.
 *   A validation check is added to `path` of class `Cookie`. Having characters
     ranging from 0x00 to 0x1f and 0x3b (";") will lead to a `FormatException`.
-*   The `HttpClient` and `HttpServer` clasess now have a 1 MiB limit for the
+*   The `HttpClient` and `HttpServer` classes now have a 1 MiB limit for the
     total size of the HTTP headers when parsing a request or response, instead
     of the former 8 KiB limit for each header name and value. This limit cannot
     be configured at this time.
@@ -71,6 +316,11 @@ This is a patch release that fixes the following issues:
 
 *   Class `BytesBuilder` is moved from `dart:io` to `dart:typed_data`.
     It's temporarily being exported from `dart:io` as well.
+
+### `dart:uri`
+
+*   [#42564]: Solved inconsistency in `Uri.https` and `Uri.http` constructors'
+    `queryParams` type.
 
 ### Dart VM
 
@@ -184,9 +434,14 @@ applications (issue [flutter/flutter#63038][]).
 *   [Abstract Unix Domain Socket][] is supported on Linux/Android now. Using an
     `InternetAddress` with `address` starting with '@' and type being
     `InternetAddressType.Unix` will create an abstract Unix Domain Socket.
+*   On Windows, file APIs can now handle files and directories identified by
+    long paths (greater than 260 characters). It complies with all restrictions
+    from [Long Path on Windows][]. Note that `Directory.current` does not work
+    with long path.
 
 [#42006]: https://github.com/dart-lang/sdk/issues/42006
 [Abstract Unix Domain Socket]: http://man7.org/linux/man-pages/man7/unix.7.html
+[Long Path on Windows]: https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#maximum-path-length-limitation
 
 #### `dart:html`
 

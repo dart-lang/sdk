@@ -25,7 +25,7 @@ scanAll(Map<Uri, List<int>> files, {bool verbose: false, bool verify: false}) {
 void printTokens(Token token) {
   while (!token.isEof) {
     print("${token.charOffset}: $token");
-    token = token.next;
+    token = token.next!;
   }
 }
 
@@ -35,7 +35,7 @@ void printTokens(Token token) {
 void verifyErrorTokens(Token firstToken, Uri uri) {
   Token token = firstToken;
   while (token is ErrorToken) {
-    token = token.next;
+    token = token.next!;
   }
 
   while (!token.isEof) {
@@ -49,11 +49,11 @@ void verifyErrorTokens(Token firstToken, Uri uri) {
       int count = 0;
       token = firstToken;
       while (token != errorToken) {
-        token = token.next;
+        token = token.next!;
         if (count < 10) {
           ++count;
         } else {
-          start = start.next;
+          start = start.next!;
         }
       }
 
@@ -62,12 +62,12 @@ void verifyErrorTokens(Token firstToken, Uri uri) {
       token = start;
       while (count < 20 && !token.isEof) {
         print("${token.charOffset}: $token");
-        token = token.next;
+        token = token.next!;
         ++count;
       }
       throw 'Out of order ErrorToken: $errorToken';
     }
-    token = token.next;
+    token = token.next!;
   }
 }
 

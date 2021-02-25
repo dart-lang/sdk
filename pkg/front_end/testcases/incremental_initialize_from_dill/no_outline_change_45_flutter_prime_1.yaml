@@ -1,0 +1,31 @@
+# Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Reproduce a crash.
+
+type: newworld
+trackWidgetCreation: true
+target: VM
+worlds:
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    sources:
+      main.dart: |
+        class Foo {
+          Foo();
+          factory Foo.bar() = Baz;
+          void bar() {}
+        }
+        class Baz extends Foo {}
+    expectedLibraryCount: 1
+
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 1
+    expectsRebuildBodiesOnly: true
+

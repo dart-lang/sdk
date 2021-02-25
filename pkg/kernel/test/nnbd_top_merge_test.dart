@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart" show Expect;
 
 import 'package:kernel/ast.dart' hide MapEntry;
@@ -111,7 +113,7 @@ const Map<String, dynamic> data = {
 };
 
 main() {
-  Env env = new Env('');
+  Env env = new Env('', isNonNullableByDefault: true);
   data.forEach((String input, dynamic output) {
     List<String> parts = input.split(' vs ');
     DartType aType = env.parseType(parts[0]);

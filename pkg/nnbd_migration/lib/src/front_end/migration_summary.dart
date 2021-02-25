@@ -60,75 +60,60 @@ class MigrationSummary {
 
   String _keyForKind(NullabilityFixKind kind) {
     switch (kind) {
+      case NullabilityFixKind.addImport:
+        return 'addImport';
       case NullabilityFixKind.addLate:
         return 'addLate';
-        break;
       case NullabilityFixKind.addLateDueToHint:
         return 'addLateDueToHint';
-        break;
       case NullabilityFixKind.addLateDueToTestSetup:
         return 'addLateDueToTestSetup';
-        break;
+      case NullabilityFixKind.addLateFinalDueToHint:
+        return 'addLateFinalDueToHint';
       case NullabilityFixKind.addRequired:
         return 'addRequired';
-        break;
       case NullabilityFixKind.addType:
         return 'addType';
-        break;
+      case NullabilityFixKind.changeMethodName:
+        return 'changeMethodName';
       case NullabilityFixKind.checkExpression:
         return 'checkExpression';
-        break;
       case NullabilityFixKind.checkExpressionDueToHint:
         return 'checkExpressionDueToHint';
-        break;
       case NullabilityFixKind.compoundAssignmentHasNullableSource:
         return 'compoundAssignmentHasNullableSource';
-        break;
       case NullabilityFixKind.compoundAssignmentHasBadCombinedType:
         return 'compoundAssignmentHasBadCombinedType';
-        break;
       case NullabilityFixKind.conditionFalseInStrongMode:
         return 'conditionFalseInStrongMode';
-        break;
       case NullabilityFixKind.conditionTrueInStrongMode:
         return 'conditionTrueInStrongMode';
-        break;
       case NullabilityFixKind.downcastExpression:
         return 'downcastExpression';
-        break;
       case NullabilityFixKind.makeTypeNullable:
         return 'makeTypeNullable';
-        break;
       case NullabilityFixKind.makeTypeNullableDueToHint:
         return 'makeTypeNullableDueToHint';
-        break;
+      case NullabilityFixKind.noValidMigrationForNull:
+        return 'noValidMigrationForNull';
       case NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode:
         return 'nullAwarenessUnnecessaryInStrongMode';
-        break;
       case NullabilityFixKind.nullAwareAssignmentUnnecessaryInStrongMode:
         return 'nullAwareAssignmentUnnecessaryInStrongMode';
-        break;
       case NullabilityFixKind.otherCastExpression:
         return 'otherCastExpression';
-        break;
       case NullabilityFixKind.removeAs:
         return 'removeAs';
-        break;
       case NullabilityFixKind.removeDeadCode:
         return 'removeDeadCode';
-        break;
       case NullabilityFixKind.removeLanguageVersionComment:
         return 'removeLanguageVersionComment';
-        break;
       case NullabilityFixKind.replaceVar:
         return 'replaceVar';
-        break;
       case NullabilityFixKind.typeNotMadeNullable:
         return 'typeNotMadeNullable';
-        break;
       case NullabilityFixKind.typeNotMadeNullableDueToHint:
         return 'typeNotMadeNullableDueToHint';
-        break;
     }
     return '???';
   }

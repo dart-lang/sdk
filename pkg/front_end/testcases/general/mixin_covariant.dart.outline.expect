@@ -45,6 +45,8 @@ abstract class _C&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasC
   const synthetic constructor •() → self::_C&Object&M1*
     : super core::Object::•()
     ;
+  mixin-super-stub method method(covariant core::int* a, core::int* b) → dynamic
+    return super.{self::M1::method}(a, b);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -61,7 +63,7 @@ abstract class _C&Object&M1&M2 = self::_C&Object&M1 with self::M2 /*isAnonymousM
     : super self::_C&Object&M1::•()
     ;
   forwarding-stub method method(covariant core::int* a, covariant core::int* b) → dynamic
-    return super.{self::M1::method}(a, b);
+    return super.{self::M2::method}(a, b);
 }
 class C extends self::_C&Object&M1&M2 {
   synthetic constructor •() → self::C*
@@ -284,20 +286,20 @@ abstract class _Mixed&Superclass&Mixin1 = self::Superclass with self::Mixin1 /*i
     : super self::Superclass::•()
     ;
   forwarding-stub method method(core::int* a, core::int* b, covariant core::int* c, core::int* d, covariant core::int* e) → void
-    return super.{self::Superclass::method}(a, b, c, d, e);
+    return super.{self::Mixin1::method}(a, b, c, d, e);
 }
 abstract class _Mixed&Superclass&Mixin1&Mixin2 = self::_Mixed&Superclass&Mixin1 with self::Mixin2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Mixed&Superclass&Mixin1&Mixin2*
     : super self::_Mixed&Superclass&Mixin1::•()
     ;
   forwarding-stub method method(core::int* a, core::int* b, covariant core::int* c, covariant core::int* d, covariant core::int* e) → void
-    return super.{self::Superclass::method}(a, b, c, d, e);
+    return super.{self::Mixin2::method}(a, b, c, d, e);
 }
 class Mixed extends self::_Mixed&Superclass&Mixin1&Mixin2 implements self::Interface1, self::Interface2 {
   synthetic constructor •() → self::Mixed*
     ;
   forwarding-stub method method(covariant core::int* a, covariant core::int* b, covariant core::int* c, covariant core::int* d, covariant core::int* e) → void
-    return super.{self::Superclass::method}(a, b, c, d, e);
+    return super.{self::Mixin2::method}(a, b, c, d, e);
 }
 static method main() → void
   ;

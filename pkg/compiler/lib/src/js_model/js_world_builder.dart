@@ -891,6 +891,9 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
           DummyInterceptorConstantValue constant, _) =>
       constant;
   @override
+  ConstantValue visitLateSentinel(LateSentinelConstantValue constant, _) =>
+      constant;
+  @override
   ConstantValue visitUnreachable(UnreachableConstantValue constant, _) =>
       constant;
   @override

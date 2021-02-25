@@ -75,7 +75,7 @@ op
 /// Boolean value caching whether or not we should display ANSI colors.
 ///
 /// If `null`, we haven't decided whether we should display ANSI colors or not.
-bool _enableColors;
+bool? _enableColors;
 
 /// Finds out whether we are displaying ANSI colors.
 ///
@@ -87,6 +87,7 @@ bool get enableColors => _enableColors ??= _computeEnableColors();
 /// Allows the client to override the decision of whether to disable ANSI
 /// colors.
 void set enableColors(bool value) {
+  // ignore: unnecessary_null_comparison
   assert(value != null);
   _enableColors = value;
 }
@@ -106,7 +107,7 @@ String white(String string) => wrap(string, WHITE_COLOR);
 
 /// Returns whether [sink] supports ANSI escapes or `null` if it could not be
 /// determined.
-bool _supportsAnsiEscapes(sink) {
+bool? _supportsAnsiEscapes(sink) {
   try {
     // ignore: undefined_getter
     return sink.supportsAnsiEscapes;
@@ -132,8 +133,8 @@ void Function(String) printEnableColorsReason = (_) {};
 /// Note: do not call this method directly, as it is expensive to
 /// compute. Instead, use [CompilerContext.enableColors].
 bool _computeEnableColors() {
-  bool stderrSupportsColors = _supportsAnsiEscapes(stdout);
-  bool stdoutSupportsColors = _supportsAnsiEscapes(stderr);
+  bool? stderrSupportsColors = _supportsAnsiEscapes(stdout);
+  bool? stdoutSupportsColors = _supportsAnsiEscapes(stderr);
 
   if (stdoutSupportsColors == false) {
     printEnableColorsReason(

@@ -7,6 +7,6 @@ static const field core::List<core::int> b = #C2;
 static method main() → void {}
 
 constants  {
-  #C1 = <core::Null?>[]
-  #C2 = <core::int*>[]
+  #C1 = <Null>[]
+  #C2 = <core::int?>[]
 }

@@ -7,12 +7,15 @@
 // These micro benchmarks track the speed of reading and writing C memory from
 // Dart with a specific marshalling and unmarshalling of data.
 
+// @dart=2.9
+
 import 'dart:ffi';
 import 'dart:io';
 
 import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
 
+import 'calloc.dart';
 import 'dlopen_helper.dart';
 
 //
@@ -1070,9 +1073,9 @@ class PointerUint8x01 extends BenchmarkBase {
 
   Pointer<Uint8> pointer;
   @override
-  void setup() => pointer = allocate(count: N + 1);
+  void setup() => pointer = calloc(N + 1);
   @override
-  void teardown() => free(pointer);
+  void teardown() => calloc.free(pointer);
 
   @override
   void run() {
@@ -1090,13 +1093,13 @@ class PointerUint8x02 extends BenchmarkBase {
 
   @override
   void setup() {
-    pointer = allocate(count: N + 1);
+    pointer = calloc(N + 1);
     pointer2 = pointer.elementAt(1);
   }
 
   @override
   void teardown() {
-    free(pointer);
+    calloc.free(pointer);
   }
 
   @override
@@ -1115,7 +1118,7 @@ class PointerUint8x04 extends BenchmarkBase {
 
   @override
   void setup() {
-    pointer = allocate(count: N + 1);
+    pointer = calloc(N + 1);
     pointer2 = pointer.elementAt(1);
     pointer3 = pointer.elementAt(2);
     pointer4 = pointer.elementAt(3);
@@ -1123,7 +1126,7 @@ class PointerUint8x04 extends BenchmarkBase {
 
   @override
   void teardown() {
-    free(pointer);
+    calloc.free(pointer);
   }
 
   @override
@@ -1152,7 +1155,7 @@ class PointerUint8x10 extends BenchmarkBase {
 
   @override
   void setup() {
-    pointer = allocate(count: N + 1);
+    pointer = calloc(N + 1);
     pointer2 = pointer.elementAt(1);
     pointer3 = pointer.elementAt(2);
     pointer4 = pointer.elementAt(3);
@@ -1166,7 +1169,7 @@ class PointerUint8x10 extends BenchmarkBase {
 
   @override
   void teardown() {
-    free(pointer);
+    calloc.free(pointer);
   }
 
   @override
@@ -1215,7 +1218,7 @@ class PointerUint8x20 extends BenchmarkBase {
 
   @override
   void setup() {
-    pointer = allocate(count: N + 1);
+    pointer = calloc(N + 1);
     pointer2 = pointer.elementAt(1);
     pointer3 = pointer.elementAt(2);
     pointer4 = pointer.elementAt(3);
@@ -1239,7 +1242,7 @@ class PointerUint8x20 extends BenchmarkBase {
 
   @override
   void teardown() {
-    free(pointer);
+    calloc.free(pointer);
   }
 
   @override

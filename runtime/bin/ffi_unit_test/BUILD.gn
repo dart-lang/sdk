@@ -1,0 +1,189 @@
+# Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../platform/platform_sources.gni")
+import("../../vm/compiler/compiler_sources.gni")
+import("../../vm/vm_sources.gni")
+
+template("build_run_ffi_unit_tests") {
+  extra_configs = []
+  if (defined(invoker.extra_configs)) {
+    extra_configs += invoker.extra_configs
+  }
+
+  executable(target_name) {
+    configs += [] + extra_configs
+
+    defines = [
+      "TESTING",
+      "FFI_UNIT_TESTS",
+    ]
+
+    include_dirs = [
+      "../..",
+      "//third_party",
+    ]
+
+    constants = rebase_path(constants_sources, ".", "../../vm")
+    ffi_tests = rebase_path(ffi_sources_tests, ".", "../../vm/compiler")
+    platform = rebase_path(platform_sources, ".", "../../platform")
+
+    sources = [ "run_ffi_unit_tests.cc" ] + constants + ffi_tests + platform
+  }
+}
+
+config("define_target_arch_arm") {
+  defines = [ "TARGET_ARCH_ARM" ]
+}
+
+config("define_target_arch_arm64") {
+  defines = [ "TARGET_ARCH_ARM64" ]
+}
+
+config("define_target_arch_ia32") {
+  defines = [ "TARGET_ARCH_IA32" ]
+}
+
+config("define_target_arch_x64") {
+  defines = [ "TARGET_ARCH_X64" ]
+}
+
+config("define_target_os_android") {
+  defines = [ "TARGET_OS_ANDROID" ]
+}
+
+config("define_target_os_ios") {
+  # This is TARGET_OS_MACOS_IOS instead of TARGET_OS_IOS because the latter is
+  # defined by Xcode already. See https://dartbug.com/24453.
+  defines = [ "TARGET_OS_MACOS_IOS" ]
+}
+
+config("define_target_os_linux") {
+  defines = [ "TARGET_OS_LINUX" ]
+}
+
+config("define_target_os_macos") {
+  defines = [ "TARGET_OS_MACOS" ]
+}
+
+config("define_target_os_windows") {
+  defines = [ "TARGET_OS_WINDOWS" ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_arm_android") {
+  extra_configs = [
+    ":define_target_arch_arm",
+    ":define_target_os_android",
+  ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_arm_ios") {
+  extra_configs = [
+    ":define_target_arch_arm",
+    ":define_target_os_ios",
+  ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_arm_linux") {
+  extra_configs = [
+    ":define_target_arch_arm",
+    ":define_target_os_linux",
+  ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_arm64_android") {
+  extra_configs = [
+    ":define_target_arch_arm64",
+    ":define_target_os_android",
+  ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_arm64_ios") {
+  extra_configs = [
+    ":define_target_arch_arm64",
+    ":define_target_os_ios",
+  ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_arm64_macos") {
+  extra_configs = [
+    ":define_target_arch_arm64",
+    ":define_target_os_macos",
+  ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_arm64_linux") {
+  extra_configs = [
+    ":define_target_arch_arm64",
+    ":define_target_os_linux",
+  ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_ia32_android") {
+  extra_configs = [
+    ":define_target_arch_ia32",
+    ":define_target_os_android",
+  ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_ia32_linux") {
+  extra_configs = [
+    ":define_target_arch_ia32",
+    ":define_target_os_linux",
+  ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_ia32_win") {
+  extra_configs = [
+    ":define_target_arch_ia32",
+    ":define_target_os_windows",
+  ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_x64_ios") {
+  extra_configs = [
+    ":define_target_arch_x64",
+    ":define_target_os_ios",
+  ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_x64_linux") {
+  extra_configs = [
+    ":define_target_arch_x64",
+    ":define_target_os_linux",
+  ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_x64_macos") {
+  extra_configs = [
+    ":define_target_arch_x64",
+    ":define_target_os_macos",
+  ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_x64_win") {
+  extra_configs = [
+    ":define_target_arch_x64",
+    ":define_target_os_windows",
+  ]
+}
+
+group("run_ffi_unit_tests") {
+  deps = [
+    ":run_ffi_unit_tests_arm64_android",
+    ":run_ffi_unit_tests_arm64_ios",  # No other test coverage.
+    ":run_ffi_unit_tests_arm64_linux",
+    ":run_ffi_unit_tests_arm64_macos",
+    ":run_ffi_unit_tests_arm_android",  # SoftFP
+    ":run_ffi_unit_tests_arm_ios",  # No other test coverage.
+    ":run_ffi_unit_tests_arm_linux",  # HardFP
+    ":run_ffi_unit_tests_ia32_android",  # Emulator, no other test coverage.
+    ":run_ffi_unit_tests_ia32_linux",
+    ":run_ffi_unit_tests_ia32_win",
+    ":run_ffi_unit_tests_x64_ios",  # Simulator, no other test coverage.
+    ":run_ffi_unit_tests_x64_linux",
+    ":run_ffi_unit_tests_x64_macos",
+    ":run_ffi_unit_tests_x64_win",
+  ]
+}

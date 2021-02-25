@@ -6,8 +6,10 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -20,13 +22,13 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
+import 'package:analyzer/src/error/ignore_validator.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/language_version_override_verifier.dart';
@@ -107,6 +109,10 @@ class LibraryAnalyzer {
 
   /// Compute analysis results for all units of the library.
   Map<FileState, UnitAnalysisResult> analyzeSync() {
+    // Analyzer understands null safety, so it should set
+    // NullSafetyUnderstandingFlag.
+    assert(NullSafetyUnderstandingFlag.isEnabled);
+
     timerLibraryAnalyzer.start();
     Map<FileState, CompilationUnit> units = {};
 
@@ -175,6 +181,16 @@ class LibraryAnalyzer {
 
     _checkForInconsistentLanguageVersionOverride(units);
 
+    // This must happen after all other diagnostics have been computed but
+    // before the list of diagnostics has been filtered.
+    for (var file in _library.libraryFiles) {
+      if (file.source != null) {
+        IgnoreValidator(_getErrorReporter(file), _getErrorListener(file).errors,
+                _fileToIgnoreInfo[file], _fileToLineInfo[file])
+            .reportErrors();
+      }
+    }
+
     timerLibraryAnalyzerVerify.stop();
 
     // Return full results.
@@ -232,9 +248,8 @@ class LibraryAnalyzer {
 
   void _computeConstantErrors(
       ErrorReporter errorReporter, CompilationUnit unit) {
-    ConstantVerifier constantVerifier = ConstantVerifier(
-        errorReporter, _libraryElement, _declaredVariables,
-        featureSet: unit.featureSet);
+    ConstantVerifier constantVerifier =
+        ConstantVerifier(errorReporter, _libraryElement, _declaredVariables);
     unit.accept(constantVerifier);
   }
 
@@ -422,39 +437,8 @@ class LibraryAnalyzer {
     bool isIgnored(AnalysisError error) {
       var code = error.errorCode;
       // Don't allow error severity issues to be ignored.
-      if (!code.isIgnorable) {
-        // The [code] is not ignorable, but we've allowed a few "privileged"
-        // cases. Each is annotated with an issue which represents technical
-        // debt. Once cleaned up, we may remove this notion of "privileged".
-        // In the case of [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY], we may
-        // just decide that it happens enough in tests that it can be declared
-        // an ignorable error, and in practice other back ends will prevent
-        // non-internal code from importing internal code.
-        bool privileged = false;
-
-        if (code == CompileTimeErrorCode.UNDEFINED_FUNCTION ||
-            code == CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME) {
-          // Special case a small number of errors in Flutter code which are
-          // ignored. The erroneous code is found in a conditionally imported
-          // library, which uses a special version of the "dart:ui" library
-          // which the Analyzer does not use during analysis. See
-          // https://github.com/flutter/flutter/issues/52899.
-          if (file.path.contains('flutter')) {
-            privileged = true;
-          }
-        }
-
-        if ((code == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY ||
-                code == CompileTimeErrorCode.UNDEFINED_ANNOTATION ||
-                code == ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE) &&
-            (file.path.contains('tests/compiler/dart2js') ||
-                file.path.contains('pkg/compiler/test'))) {
-          // Special case the dart2js language tests. Some of these import
-          // various internal libraries.
-          privileged = true;
-        }
-
-        if (!privileged) return false;
+      if (!IgnoreValidator.isIgnorable(file.path, code)) {
+        return false;
       }
 
       int errorLine = lineInfo.getLocation(error.offset).lineNumber;
@@ -563,7 +547,8 @@ class LibraryAnalyzer {
     LibraryIdentifier libraryNameNode;
     var seenPartSources = <Source>{};
     var directivesToResolve = <Directive>[];
-    int partIndex = 0;
+    int partDirectiveIndex = 0;
+    int partElementIndex = 0;
     for (Directive directive in definingCompilationUnit.directives) {
       if (directive is LibraryDirective) {
         libraryNameNode = directive.name;
@@ -598,12 +583,15 @@ class LibraryAnalyzer {
       } else if (directive is PartDirective) {
         StringLiteral partUri = directive.uri;
 
-        FileState partFile = _library.partedFiles[partIndex];
-        CompilationUnit partUnit = units[partFile];
-        CompilationUnitElement partElement = _libraryElement.parts[partIndex];
+        FileState partFile = _library.partedFiles[partDirectiveIndex++];
+        if (partFile == null) {
+          continue;
+        }
+
+        var partUnit = units[partFile];
+        var partElement = _libraryElement.parts[partElementIndex++];
         partUnit.element = partElement;
         directive.element = partElement;
-        partIndex++;
 
         Source partSource = directive.uriSource;
         if (partSource == null) {
@@ -824,7 +812,7 @@ class LibraryAnalyzer {
     }
     StringLiteral uriLiteral = directive.uri;
     CompileTimeErrorCode errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-    if (_isGenerated(source)) {
+    if (isGeneratedSource(source)) {
       errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
     }
     _getErrorReporter(file)
@@ -839,30 +827,6 @@ class LibraryAnalyzer {
         _validateUriBasedDirective(file, directive);
       }
     }
-  }
-
-  /// Return `true` if the given [source] refers to a file that is assumed to be
-  /// generated.
-  static bool _isGenerated(Source source) {
-    if (source == null) {
-      return false;
-    }
-    // TODO(brianwilkerson) Generalize this mechanism.
-    const List<String> suffixes = <String>[
-      '.g.dart',
-      '.pb.dart',
-      '.pbenum.dart',
-      '.pbserver.dart',
-      '.pbjson.dart',
-      '.template.dart'
-    ];
-    String fullName = source.fullName;
-    for (String suffix in suffixes) {
-      if (fullName.endsWith(suffix)) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 

@@ -38,3 +38,24 @@ static method main() → dynamic {
   self::a_lessEqual;
   self::a_modulo;
 }
+
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:8:36 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///infer_binary_int_int.dart:9:39 -> BoolConstant(true)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:10:36 -> IntConstant(3)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:11:36 -> IntConstant(0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:12:35 -> IntConstant(3)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:13:44 -> IntConstant(0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:14:43 -> IntConstant(4)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:15:33 -> IntConstant(3)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:16:38 -> IntConstant(-1)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:17:38 -> IntConstant(2)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:18:37 -> DoubleConstant(0.5)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:19:43 -> IntConstant(0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:20:37 -> BoolConstant(false)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:21:34 -> BoolConstant(true)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:22:43 -> BoolConstant(false)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:23:40 -> BoolConstant(true)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_int_int.dart:24:36 -> IntConstant(1)
+Extra constant evaluation: evaluated: 34, effectively constant: 17

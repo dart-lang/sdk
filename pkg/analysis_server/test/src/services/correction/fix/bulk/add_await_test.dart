@@ -19,7 +19,7 @@ class AddAwaitTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.unawaited_futures;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Future doSomething() => new Future.value('');
 Future doSomethingElse() => new Future.value('');
 

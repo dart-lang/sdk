@@ -118,11 +118,15 @@ class C {
 
   void instanceTest() {
     // v ??= e is equivalent to ((x) => x == null ? v = e : x)(v)
-    vGetValue = 1; check(1, () => v ??= bad(), ['$s.v']);
-    yGetValue = 1; check(1, () => v ??= y, ['$s.v', 'y', '$s.v=1']);
+    vGetValue = 1;
+    check(1, () => v ??= bad(), ['$s.v']);
+    yGetValue = 1;
+    check(1, () => v ??= y, ['$s.v', 'y', '$s.v=1']);
     finalOne ??= null;
 //  ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+// [cfe] Operand of null-aware operation '??=' has type 'int' which excludes null.
+//  ^
 // [cfe] The setter 'finalOne' isn't defined for the class 'C'.
 //               ^^^^
 // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
@@ -142,8 +146,10 @@ class D extends C {
   void derivedInstanceTest() {
     // super.v ??= e is equivalent to
     // ((x) => x == null ? super.v = e : x)(super.v)
-    vGetValue = 1; check(1, () => super.v ??= bad(), ['$s.v']);
-    yGetValue = 1; check(1, () => super.v ??= y, ['$s.v', 'y', '$s.v=1']);
+    vGetValue = 1;
+    check(1, () => super.v ??= bad(), ['$s.v']);
+    yGetValue = 1;
+    check(1, () => super.v ??= y, ['$s.v', 'y', '$s.v=1']);
   }
 }
 
@@ -157,26 +163,47 @@ main() {
   new D('d').derivedInstanceTest();
 
   // v ??= e is equivalent to ((x) => x == null ? v = e : x)(v)
-  xGetValue = 1; check(1, () => x ??= bad(), ['x']);
-  yGetValue = 1; check(1, () => x ??= y, ['x', 'y', 'x=1']);
-  h.xGetValue = 1; check(1, () => h.x ??= bad(), ['h.x']);
-  yGetValue = 1; check(1, () => h.x ??= y, ['h.x', 'y', 'h.x=1']);
-  { var l = 1; check(1, () => l ??= bad(), []); }
-  //                                ^^^^^
-  // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
-  { var l; yGetValue = 1; check(1, () => l ??= y, ['y']); Expect.equals(1, l); }
-  { final l = 1; l ??= null; }
-  //             ^
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
-  // [cfe] Can't assign to the final variable 'l'.
-  //                   ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  //                   ^^^^
-  // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
+  xGetValue = 1;
+  check(1, () => x ??= bad(), ['x']);
+  yGetValue = 1;
+  check(1, () => x ??= y, ['x', 'y', 'x=1']);
+  h.xGetValue = 1;
+  check(1, () => h.x ??= bad(), ['h.x']);
+  yGetValue = 1;
+  check(1, () => h.x ??= y, ['h.x', 'y', 'h.x=1']);
+  {
+    var l = 1;
+    check(1, () => l ??= bad(), []);
+    //             ^
+    // [cfe] Operand of null-aware operation '??=' has type 'int' which excludes null.
+    //                   ^^^^^
+    // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
+  }
+  {
+    var l;
+    yGetValue = 1;
+    check(1, () => l ??= y, ['y']);
+    Expect.equals(1, l);
+  }
+  {
+    final l = 1;
+    l ??= null;
+//  ^
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+// [cfe] Can't assign to the final variable 'l'.
+//  ^
+// [cfe] Operand of null-aware operation '??=' has type 'int' which excludes null.
+    //    ^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+    //    ^^^^
+    // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
+  }
   C ??= null;
 //^
 // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
 // [cfe] Can't assign to a type literal.
+//^
+// [cfe] Operand of null-aware operation '??=' has type 'Type' which excludes null.
   h ??= null;
 //^
 // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
@@ -187,39 +214,55 @@ main() {
 // [cfe] A prefix can't be used as an expression.
 
   // C.v ??= e is equivalent to ((x) => x == null ? C.v = e : x)(C.v)
-  C.xGetValue = 1; check(1, () => C.x ??= bad(), ['C.x']);
-  yGetValue = 1; check(1, () => C.x ??= y, ['C.x', 'y', 'C.x=1']);
-  h.C.xGetValue = 1; check(1, () => h.C.x ??= bad(), ['h.C.x']);
-  yGetValue = 1; check(1, () => h.C.x ??= y, ['h.C.x', 'y', 'h.C.x=1']);
+  C.xGetValue = 1;
+  check(1, () => C.x ??= bad(), ['C.x']);
+  yGetValue = 1;
+  check(1, () => C.x ??= y, ['C.x', 'y', 'C.x=1']);
+  h.C.xGetValue = 1;
+  check(1, () => h.C.x ??= bad(), ['h.C.x']);
+  yGetValue = 1;
+  check(1, () => h.C.x ??= y, ['h.C.x', 'y', 'h.C.x=1']);
 
   // e1.v ??= e2 is equivalent to
   // ((x) => ((y) => y == null ? x.v = e2 : y)(x.v))(e1)
-  xGetValue = new C('x'); xGetValue.vGetValue = 1;
+  xGetValue = new C('x');
+  xGetValue.vGetValue = 1;
   check(1, () => x.v ??= bad(), ['x', 'x.v']);
-  xGetValue = new C('x'); yGetValue = 1;
+  xGetValue = new C('x');
+  yGetValue = 1;
   check(1, () => x.v ??= y, ['x', 'x.v', 'y', 'x.v=1']);
-  fValue = new C('f()'); fValue.vGetValue = 1;
+  fValue = new C('f()');
+  fValue.vGetValue = 1;
   check(1, () => f().v ??= bad(), ['f()', 'f().v']);
-  fValue = new C('f()'); yGetValue = 1;
+  fValue = new C('f()');
+  yGetValue = 1;
   check(1, () => f().v ??= y, ['f()', 'f().v', 'y', 'f().v=1']);
 
   // e1[e2] ??= e3 is equivalent to
   // ((a, i) => ((x) => x == null ? a[i] = e3 : x)(a[i]))(e1, e2)
-  xGetValue = new C('x'); yGetValue = 1; xGetValue.indexGetValue = 2;
+  xGetValue = new C('x');
+  yGetValue = 1;
+  xGetValue.indexGetValue = 2;
   check(2, () => x[y] ??= bad(), ['x', 'y', 'x[1]']);
-  xGetValue = new C('x'); yGetValue = 1; zGetValue = 2;
+  xGetValue = new C('x');
+  yGetValue = 1;
+  zGetValue = 2;
   check(2, () => x[y] ??= z, ['x', 'y', 'x[1]', 'z', 'x[1]=2']);
 
   // e1?.v ??= e2 is equivalent to ((x) => x == null ? null : x.v ??= e2)(e1).
   check(null, () => x?.v ??= bad(), ['x']);
-  xGetValue = new C('x'); xGetValue.vGetValue = 1;
+  xGetValue = new C('x');
+  xGetValue.vGetValue = 1;
   check(1, () => x?.v ??= bad(), ['x', 'x.v']);
-  xGetValue = new C('x'); yGetValue = 1;
+  xGetValue = new C('x');
+  yGetValue = 1;
   check(1, () => x?.v ??= y, ['x', 'x.v', 'y', 'x.v=1']);
 
   // C?.v ??= e2 is equivalent to C.v ??= e2.
   C.xGetValue = 1;
   check(1, () => C?.x ??= bad(), ['C.x']);
+  //             ^
+  // [cfe] The class 'C' cannot be null.
   h.C.xgetValue = 1;
   //  ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
@@ -230,6 +273,10 @@ main() {
   // [cfe] Getter not found: 'c'.
   yGetValue = 1;
   check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']);
+  //             ^
+  // [cfe] The class 'C' cannot be null.
   yGetValue = 1;
   check(1, () => h.C?.x ??= y, ['h.C.x', 'y', 'h.C.x=1']);
+  //               ^
+  // [cfe] The class 'C' cannot be null.
 }

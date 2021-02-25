@@ -39,7 +39,10 @@ ${result.processResult.stderr}''');
 
 void expectOutput(String what, Result result) {
   if (result.output != what) {
-    reportError(result, 'Expected test to print \'${what}\' to stdout');
+    reportError(
+        result,
+        'Expected test to print \'${what}\' to stdout. '
+        'Actual: ${result.output}');
   }
 }
 
@@ -127,6 +130,12 @@ checkDeterministicSnapshot(String snapshotKind, String expectedStdout) async {
     final snapshot1Path = p.join(temp, 'snapshot1');
     final snapshot2Path = p.join(temp, 'snapshot2');
 
+    if (expectedStdout.isEmpty) {
+      expectedStdout = nullSafetyMessage;
+    } else {
+      expectedStdout = '$nullSafetyMessage\n$expectedStdout';
+    }
+
     print("Version ${Platform.version}");
 
     final generate1Result = await runDart('GENERATE SNAPSHOT 1', [
@@ -183,27 +192,15 @@ runAppJitTest(Uri testScriptUri,
       testPath,
       '--train'
     ]);
-    expectOutput("OK(Trained)", trainingResult);
+    expectOutput("$nullSafetyMessage\nOK(Trained)", trainingResult);
     final runResult = await runSnapshot!(snapshotPath);
     expectOutput("OK(Run)", runResult);
   });
 }
 
-Future<void> runAppJitBytecodeTest(Uri testScriptUri) async {
-  await withTempDir((String temp) async {
-    final snapshotPath = p.join(temp, 'app.jit');
-    final testPath = testScriptUri.toFilePath();
+final String nullSafetyMessage =
+    hasSoundNullSafety ? soundNullSafetyMessage : unsoundNullSafetyMessage;
 
-    final trainingResult = await runDart('TRAINING RUN', [
-      '--enable_interpreter',
-      '--snapshot=$snapshotPath',
-      '--snapshot-kind=app-jit',
-      testPath,
-      '--train'
-    ]);
-    expectOutput("OK(Trained)", trainingResult);
-    final runResult = await runDart(
-        'RUN FROM SNAPSHOT', ['--enable_interpreter', snapshotPath]);
-    expectOutput("OK(Run)", runResult);
-  });
-}
+const String soundNullSafetyMessage = 'Info: Compiling with sound null safety';
+const String unsoundNullSafetyMessage =
+    'Info: Compiling without sound null safety';

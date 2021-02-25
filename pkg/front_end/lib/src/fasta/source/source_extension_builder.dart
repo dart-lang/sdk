@@ -2,18 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../../base/common.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/field_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 
@@ -31,6 +36,8 @@ import '../problems.dart';
 import '../scope.dart';
 
 import 'source_library_builder.dart';
+
+const String extensionThisName = '#this';
 
 class SourceExtensionBuilder extends ExtensionBuilderImpl {
   final Extension _extension;
@@ -59,6 +66,9 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
           ..fileOffset = nameOffset,
         super(metadata, modifiers, name, parent, nameOffset, scope,
             typeParameters, onType);
+
+  @override
+  SourceLibraryBuilder get library => super.library;
 
   @override
   SourceExtensionBuilder get origin => _origin ?? this;
@@ -140,10 +150,20 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
                   break;
               }
               assert(kind != null);
-              libraryBuilder.library.addMember(member);
+              Reference memberReference;
+              if (member is Field) {
+                libraryBuilder.library.addField(member);
+                memberReference = member.getterReference;
+              } else if (member is Procedure) {
+                libraryBuilder.library.addProcedure(member);
+                memberReference = member.reference;
+              } else {
+                unhandled("${member.runtimeType}", "buildBuilders",
+                    member.fileOffset, member.fileUri);
+              }
               extension.members.add(new ExtensionMemberDescriptor(
                   name: new Name(memberBuilder.name, libraryBuilder.library),
-                  member: member.reference,
+                  member: memberReference,
                   isStatic: declaration.isStatic,
                   kind: kind));
             }
@@ -230,5 +250,36 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       count += declaration.finishPatch();
     });
     return count;
+  }
+
+  void checkTypesInOutline(TypeEnvironment typeEnvironment) {
+    library.checkBoundsInTypeParameters(
+        typeEnvironment, extension.typeParameters, fileUri);
+
+    // Check on clause.
+    if (_extension.onType != null) {
+      library.checkBoundsInType(_extension.onType, typeEnvironment,
+          onType.fileUri, onType.charOffset);
+    }
+
+    forEach((String name, Builder builder) {
+      if (builder is SourceFieldBuilder) {
+        // Check fields.
+        library.checkTypesInField(builder, typeEnvironment);
+      } else if (builder is ProcedureBuilder) {
+        // Check procedures
+        library.checkTypesInProcedureBuilder(builder, typeEnvironment);
+        if (builder.isGetter) {
+          Builder setterDeclaration =
+              scope.lookupLocalMember(builder.name, setter: true);
+          if (setterDeclaration != null) {
+            library.checkGetterSetterTypes(
+                builder, setterDeclaration, typeEnvironment);
+          }
+        }
+      } else {
+        assert(false, "Unexpected member: $builder.");
+      }
+    });
   }
 }

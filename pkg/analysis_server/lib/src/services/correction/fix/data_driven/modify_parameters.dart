@@ -4,8 +4,8 @@
 
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -26,22 +26,18 @@ class AddParameter extends ParameterModification {
   /// A flag indicating whether the parameter is a positional parameter.
   final bool isPositional;
 
-  /// The default value of the parameter, or `null` if the parameter doesn't
-  /// have a default value.
-  final ValueExtractor defaultValue;
-
-  /// The value of the new argument in invocations of the function, or `null` if
-  /// the parameter is optional and no argument needs to be added. The only time
-  /// an argument needs to be added for an optional parameter is if the
-  /// parameter is positional and there are pre-existing optional positional
-  /// parameters after the ones being added.
-  final ValueExtractor argumentValue;
+  /// The code template used to compute the value of the new argument in
+  /// invocations of the function, or `null` if the parameter is optional and no
+  /// argument needs to be added. The only time an argument needs to be added
+  /// for an optional parameter is if the parameter is positional and there are
+  /// pre-existing optional positional parameters after the ones being added.
+  final CodeTemplate argumentValue;
 
   /// Initialize a newly created parameter modification to represent the
   /// addition of a parameter. If provided, the [argumentValue] will be used as
   /// the value of the new argument in invocations of the function.
   AddParameter(this.index, this.name, this.isRequired, this.isPositional,
-      this.defaultValue, this.argumentValue)
+      this.argumentValue)
       : assert(index >= 0),
         assert(name != null);
 }
@@ -63,7 +59,8 @@ class ModifyParameters extends Change<_Data> {
     var argumentList = data.argumentList;
     var arguments = argumentList.arguments;
     var argumentCount = arguments.length;
-    var newNamed = <AddParameter>[];
+    var templateContext = TemplateContext(argumentList.parent, fix.utils);
+
     var indexToNewArgumentMap = <int, AddParameter>{};
     var argumentsToInsert = <int>[];
     var argumentsToDelete = <int>[];
@@ -72,10 +69,15 @@ class ModifyParameters extends Change<_Data> {
       if (modification is AddParameter) {
         var index = modification.index;
         indexToNewArgumentMap[index] = modification;
-        if (modification.isPositional) {
+        if (modification.isPositional || modification.isRequired) {
           argumentsToInsert.add(index);
-        } else if (modification.isRequired) {
-          newNamed.add(modification);
+        } else {
+          var requiredIfCondition =
+              modification.argumentValue?.requiredIfCondition;
+          if (requiredIfCondition != null &&
+              requiredIfCondition.evaluateIn(templateContext)) {
+            argumentsToInsert.add(index);
+          }
         }
       } else if (modification is RemoveParameter) {
         var argument = modification.parameter.argumentFrom(argumentList);
@@ -90,17 +92,15 @@ class ModifyParameters extends Change<_Data> {
       }
     }
     argumentsToInsert.sort();
-    newNamed.sort((first, second) => first.name.compareTo(second.name));
 
     /// Write to the [builder] the argument associated with a single
     /// [parameter].
     void writeArgument(DartEditBuilder builder, AddParameter parameter) {
-      var value = parameter.argumentValue.from(argumentList, fix.utils);
       if (!parameter.isPositional) {
         builder.write(parameter.name);
         builder.write(': ');
       }
-      builder.write(value);
+      parameter.argumentValue.writeOn(builder, templateContext);
     }
 
     var insertionRanges = argumentsToInsert.contiguousSubRanges.toList();
@@ -182,37 +182,19 @@ class ModifyParameters extends Change<_Data> {
         var insertionRange = insertionRanges[nextInsertionRange];
         var lower = insertionRange.lower;
         var upper = insertionRange.upper;
-        while (upper >= lower && !indexToNewArgumentMap[upper].isRequired) {
+        var parameter = indexToNewArgumentMap[upper];
+        while (upper >= lower &&
+            (parameter.isPositional && !parameter.isRequired)) {
           upper--;
         }
         if (upper >= lower) {
           builder.addInsertion(offset, (builder) {
-            writeInsertionRange(builder, _IndexRange(lower, upper), true);
+            writeInsertionRange(builder, _IndexRange(lower, upper),
+                nextRemaining > 0 || insertionCount > 0);
           });
         }
         nextInsertionRange++;
       }
-    }
-    //
-    // Insert arguments for required named parameters.
-    //
-    if (newNamed.isNotEmpty) {
-      int offset;
-      var needsInitialComma = false;
-      if (arguments.isEmpty) {
-        offset = argumentList.rightParenthesis.offset;
-      } else {
-        offset = arguments[arguments.length - 1].end;
-        needsInitialComma = true;
-      }
-      builder.addInsertion(offset, (builder) {
-        for (var i = 0; i < newNamed.length; i++) {
-          if (i > 0 || needsInitialComma) {
-            builder.write(', ');
-          }
-          writeArgument(builder, newNamed[i]);
-        }
-      });
     }
     //
     // The remaining deletion ranges are now ready to be removed.
@@ -229,6 +211,14 @@ class ModifyParameters extends Change<_Data> {
     var parent = node.parent;
     if (parent is InvocationExpression) {
       var argumentList = parent.argumentList;
+      return _Data(argumentList);
+    } else if (parent is Label) {
+      var argumentList = parent.parent.parent;
+      if (argumentList is ArgumentList) {
+        return _Data(argumentList);
+      }
+    } else if (parent?.parent is InvocationExpression) {
+      var argumentList = (parent.parent as InvocationExpression).argumentList;
       return _Data(argumentList);
     }
     return null;

@@ -74,10 +74,10 @@ void main() {
       final payload = '{ json payload }';
       final lspPacket =
           makeLspPacket(payload, 'application/vscode-jsonrpc; charset=ascii');
-      final outputStream = await Stream.fromIterable([lspPacket])
-          .transform(LspPacketTransformer());
+      final outputStream =
+          Stream.fromIterable([lspPacket]).transform(LspPacketTransformer());
 
-      expectLater(outputStream.toList(),
+      await expectLater(outputStream.toList(),
           throwsA(const TypeMatcher<InvalidEncodingError>()));
     });
   });

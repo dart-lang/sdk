@@ -106,6 +106,11 @@ TEST_CASE(PortMap_SetPortState) {
   EXPECT(PortMapTestPeer::IsActivePort(port));
   EXPECT(PortMapTestPeer::IsLivePort(port));
 
+  // Inactive port.
+  PortMap::SetPortState(port, PortMap::kInactivePort);
+  EXPECT(PortMapTestPeer::IsActivePort(port));
+  EXPECT(!PortMapTestPeer::IsLivePort(port));
+
   PortMap::ClosePort(port);
   EXPECT(!PortMapTestPeer::IsActivePort(port));
   EXPECT(!PortMapTestPeer::IsLivePort(port));

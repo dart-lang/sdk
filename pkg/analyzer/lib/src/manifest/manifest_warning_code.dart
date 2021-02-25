@@ -81,7 +81,12 @@ class ManifestWarningCode extends ErrorCode {
   /// Initialize a newly created warning code to have the given [name],
   /// [message] and [correction].
   const ManifestWarningCode(String name, String message, {String correction})
-      : super.temporary(name, message, correction: correction);
+      : super(
+          correction: correction,
+          message: message,
+          name: name,
+          uniqueName: 'ManifestWarningCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;

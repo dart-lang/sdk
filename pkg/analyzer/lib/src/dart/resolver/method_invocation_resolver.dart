@@ -132,31 +132,25 @@ class MethodInvocationResolver {
           name,
           _resolver.typeProvider.typeType.element,
         );
+      } else if (element is TypeAliasElement) {
+        var aliasedType = element.aliasedType;
+        if (aliasedType is InterfaceType) {
+          _resolveReceiverTypeLiteral(
+              node, aliasedType.element, nameNode, name);
+          return;
+        }
       }
     }
 
     DartType receiverType = receiver.staticType;
-    receiverType = _resolveTypeParameter(receiverType);
 
-    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node) &&
-        _typeSystem.isNonNullableByDefault) {
-      receiverType = _typeSystem.promoteToNonNull(receiverType);
-    }
-
-    if (receiverType is InterfaceType) {
-      _resolveReceiverInterfaceType(
-          node, receiver, receiverType, nameNode, name);
+    if (_typeSystem.isDynamicBounded(receiverType)) {
+      _resolveReceiverDynamicBounded(node);
       return;
     }
 
-    if (receiverType is DynamicTypeImpl) {
-      _resolveReceiverDynamic(node, name);
-      return;
-    }
-
-    if (receiverType is FunctionType) {
-      _resolveReceiverFunctionType(
-          node, receiver, receiverType, nameNode, name);
+    if (receiverType is NeverTypeImpl) {
+      _resolveReceiverNever(node, receiver, receiverType);
       return;
     }
 
@@ -165,10 +159,25 @@ class MethodInvocationResolver {
       return;
     }
 
-    if (receiverType is NeverTypeImpl) {
-      _resolveReceiverNever(node, receiver, receiverType);
+    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node) &&
+        _typeSystem.isNonNullableByDefault) {
+      receiverType = _typeSystem.promoteToNonNull(receiverType);
+    }
+
+    if (_typeSystem.isFunctionBounded(receiverType)) {
+      _resolveReceiverFunctionBounded(
+          node, receiver, receiverType, nameNode, name);
       return;
     }
+
+    _resolveReceiverType(
+      node: node,
+      receiver: receiver,
+      receiverType: receiverType,
+      nameNode: nameNode,
+      name: name,
+      receiverErrorNode: receiver,
+    );
   }
 
   bool _isCoreFunction(DartType type) {
@@ -291,15 +300,10 @@ class MethodInvocationResolver {
       node.methodName.staticType,
     );
 
-    // TODO(scheglov) Call this only when member lookup failed?
-    var inferred = _inferenceHelper.inferMethodInvocationObject(node);
-
-    if (!inferred) {
-      DartType staticStaticType = _inferenceHelper.computeInvokeReturnType(
-        node.staticInvokeType,
-      );
-      _inferenceHelper.recordStaticType(node, staticStaticType);
-    }
+    DartType staticStaticType = _inferenceHelper.computeInvokeReturnType(
+      node.staticInvokeType,
+    );
+    _inferenceHelper.recordStaticType(node, staticStaticType);
   }
 
   /// Given that we are accessing a property of the given [classElement] with the
@@ -387,12 +391,42 @@ class MethodInvocationResolver {
     _setResolution(node, member.type);
   }
 
-  void _resolveReceiverDynamic(MethodInvocation node, String name) {
-    _setDynamicResolution(node);
+  void _resolveReceiverDynamicBounded(MethodInvocation node) {
+    var nameNode = node.methodName;
+
+    var objectElement = _typeSystem.typeProvider.objectElement;
+    var target = objectElement.getMethod(nameNode.name);
+
+    var hasMatchingObjectMethod = false;
+    if (target is MethodElement) {
+      var arguments = node.argumentList.arguments;
+      hasMatchingObjectMethod = arguments.length == target.parameters.length &&
+          !arguments.any((e) => e is NamedExpression);
+      if (hasMatchingObjectMethod) {
+        target = _resolver.toLegacyElement(target);
+        nameNode.staticElement = target;
+        node.staticInvokeType = target.type;
+        node.staticType = target.returnType;
+      }
+    }
+
+    if (!hasMatchingObjectMethod) {
+      nameNode.staticType = DynamicTypeImpl.instance;
+      node.staticInvokeType = DynamicTypeImpl.instance;
+      node.staticType = DynamicTypeImpl.instance;
+    }
+
+    _setExplicitTypeArgumentTypes();
+    node.argumentList.accept(_resolver);
   }
 
-  void _resolveReceiverFunctionType(MethodInvocation node, Expression receiver,
-      FunctionType receiverType, SimpleIdentifier nameNode, String name) {
+  void _resolveReceiverFunctionBounded(
+    MethodInvocation node,
+    Expression receiver,
+    DartType receiverType,
+    SimpleIdentifier nameNode,
+    String name,
+  ) {
     if (name == FunctionElement.CALL_METHOD_NAME) {
       _setResolution(node, receiverType);
       // TODO(scheglov) Replace this with using FunctionType directly.
@@ -409,28 +443,6 @@ class MethodInvocationResolver {
       nameNode: nameNode,
       name: name,
       receiverErrorNode: nameNode,
-    );
-  }
-
-  void _resolveReceiverInterfaceType(MethodInvocation node, Expression receiver,
-      InterfaceType receiverType, SimpleIdentifier nameNode, String name) {
-    if (_isCoreFunction(receiverType) &&
-        name == FunctionElement.CALL_METHOD_NAME) {
-      _resolver.nullableDereferenceVerifier.expression(
-        receiver,
-        type: receiverType,
-      );
-      _setDynamicResolution(node);
-      return;
-    }
-
-    _resolveReceiverType(
-      node: node,
-      receiver: receiver,
-      receiverType: receiverType,
-      nameNode: nameNode,
-      name: name,
-      receiverErrorNode: receiver,
     );
   }
 
@@ -454,7 +466,9 @@ class MethodInvocationResolver {
         );
       } else {
         _setDynamicResolution(node);
-        _resolver.nullableDereferenceVerifier.report(receiver, receiverType);
+        _resolver.nullableDereferenceVerifier.report(receiver, receiverType,
+            errorCode: CompileTimeErrorCode
+                .UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE);
       }
       return;
     }
@@ -485,9 +499,7 @@ class MethodInvocationResolver {
 
   void _resolveReceiverNull(
       MethodInvocation node, SimpleIdentifier nameNode, String name) {
-    _resolver.checkReadOfNotAssignedLocalVariable(nameNode);
-
-    var element = nameScope.lookup2(name).getter;
+    var element = nameScope.lookup(name).getter;
     if (element != null) {
       element = _resolver.toLegacyElement(element);
       nameNode.staticElement = element;
@@ -502,6 +514,7 @@ class MethodInvocationResolver {
         return _setResolution(node, element.type);
       }
       if (element is VariableElement) {
+        _resolver.checkReadOfNotAssignedLocalVariable(nameNode, element);
         var targetType = _localVariableTypeProvider.getType(nameNode);
         return _rewriteAsFunctionExpressionInvocation(node, targetType);
       }
@@ -553,7 +566,7 @@ class MethodInvocationResolver {
       }
     }
 
-    var element = prefix.scope.lookup2(name).getter;
+    var element = prefix.scope.lookup(name).getter;
     element = _resolver.toLegacyElement(element);
     nameNode.staticElement = element;
 
@@ -638,13 +651,8 @@ class MethodInvocationResolver {
       receiverType: receiverType,
       name: name,
       receiverErrorNode: receiverErrorNode,
-      nameErrorNode: nameNode,
+      nameErrorEntity: nameNode,
     );
-
-    if (result.isAmbiguous) {
-      _setDynamicResolution(node);
-      return;
-    }
 
     var target = result.getter;
     if (target != null) {
@@ -665,6 +673,10 @@ class MethodInvocationResolver {
     }
 
     _setDynamicResolution(node);
+
+    if (!result.needsGetterError) {
+      return;
+    }
 
     String receiverClassName = '<unknown>';
     if (receiverType is InterfaceType) {

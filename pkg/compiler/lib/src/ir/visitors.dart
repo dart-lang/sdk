@@ -3,17 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/class_hierarchy.dart' as ir;
-import 'package:kernel/core_types.dart' as ir;
-import 'package:kernel/type_algebra.dart' as ir;
-import 'package:kernel/type_environment.dart' as ir;
 
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
-import '../options.dart';
 
 /// Visitor that converts string literals and concatenations of string literals
 /// into the string value.
@@ -44,18 +39,16 @@ class Stringifier extends ir.ExpressionVisitor<String> {
 
 /// Visitor that converts kernel dart types into [DartType].
 class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
-  final CompilerOptions _options;
   final IrToElementMap elementMap;
   final Map<ir.TypeParameter, DartType> currentFunctionTypeParameters =
       <ir.TypeParameter, DartType>{};
   bool topLevel = true;
 
-  DartTypeConverter(this._options, this.elementMap);
+  DartTypeConverter(this.elementMap);
 
   DartTypes get _dartTypes => elementMap.commonElements.dartTypes;
 
   DartType _convertNullability(DartType baseType, ir.Nullability nullability) {
-    if (!_options.useNullSafety) return baseType;
     switch (nullability) {
       case ir.Nullability.nullable:
         return _dartTypes.nullableType(baseType);
@@ -183,6 +176,11 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   @override
   DartType visitNeverType(ir.NeverType node) {
     return _convertNullability(_dartTypes.neverType(), node.nullability);
+  }
+
+  @override
+  DartType visitNullType(ir.NullType node) {
+    return elementMap.commonElements.nullType;
   }
 }
 

@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cli_util/cli_logging.dart';
 import 'package:nnbd_migration/instrumentation.dart';
+import 'package:nnbd_migration/migration_cli.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
 import 'package:nnbd_migration/src/front_end/info_builder.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/path_mapper.dart';
+import 'package:pub_semver/src/version.dart';
 
 /// The state of an NNBD migration.
 class MigrationState {
@@ -38,12 +41,34 @@ class MigrationState {
   /// If there have been changes to disk so the migration needs to be rerun.
   bool needsRerun = false;
 
+  final AnalysisResult analysisResult;
+
+  /*late*/ List<String> previewUrls;
+
+  /// Map of additional package dependencies that will be required by the
+  /// migrated code.  Keys are package names; values indicate the minimum
+  /// required version of each package.
+  final Map<String, Version> neededPackages;
+
+  /// A function which returns whether a file at a given path should be
+  /// migrated.
+  final bool Function(String) shouldBeMigratedFunction;
+
   /// Initialize a newly created migration state with the given values.
-  MigrationState(this.migration, this.includedRoot, this.listener,
-      this.instrumentationListener);
+  MigrationState(
+      this.migration,
+      this.includedRoot,
+      this.listener,
+      this.instrumentationListener,
+      this.neededPackages,
+      this.shouldBeMigratedFunction,
+      [this.analysisResult])
+      : assert(neededPackages != null);
 
   /// If the migration has been applied to disk.
   bool get hasBeenApplied => _hasBeenApplied;
+
+  bool get hasErrors => analysisResult?.hasErrors ?? false;
 
   /// Mark that the migration has been applied to disk.
   void markApplied() {
@@ -52,11 +77,19 @@ class MigrationState {
   }
 
   /// Refresh the state of the migration after the migration has been updated.
-  Future<void> refresh() async {
+  Future<void> refresh(Logger logger, Iterable<String> pathsToProcess) async {
     assert(!hasBeenApplied);
     var provider = listener.server.resourceProvider;
-    var infoBuilder = InfoBuilder(provider, includedRoot,
-        instrumentationListener.data, listener, migration, nodeMapper);
+    var infoBuilder = InfoBuilder(
+        provider,
+        includedRoot,
+        instrumentationListener.data,
+        listener,
+        migration,
+        nodeMapper,
+        logger,
+        shouldBeMigratedFunction,
+        pathsToProcess);
     var unitInfos = await infoBuilder.explainMigration();
     var pathContext = provider.pathContext;
     migrationInfo = MigrationInfo(

@@ -7,8 +7,8 @@
 #ifndef RUNTIME_INCLUDE_DART_API_DL_H_
 #define RUNTIME_INCLUDE_DART_API_DL_H_
 
-#include "include/dart_api.h"
-#include "include/dart_native_api.h"
+#include "dart_api.h"        /* NOLINT */
+#include "dart_native_api.h" /* NOLINT */
 
 /** \mainpage Dynamically Linked Dart API
  *
@@ -84,7 +84,7 @@ typedef void (*Dart_NativeMessageHandler_DL)(Dart_Port_DL dest_port_id,
   F(Dart_DeletePersistentHandle, void, (Dart_PersistentHandle object))         \
   F(Dart_NewWeakPersistentHandle, Dart_WeakPersistentHandle,                   \
     (Dart_Handle object, void* peer, intptr_t external_allocation_size,        \
-     Dart_WeakPersistentHandleFinalizer callback))                             \
+     Dart_HandleFinalizer callback))                                           \
   F(Dart_DeleteWeakPersistentHandle, void, (Dart_WeakPersistentHandle object)) \
   F(Dart_UpdateExternalSize, void,                                             \
     (Dart_WeakPersistentHandle object, intptr_t external_allocation_size))     \

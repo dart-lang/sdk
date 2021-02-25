@@ -15,7 +15,6 @@ import("../../sdk/lib/math/math_sources.gni")
 import("../../sdk/lib/mirrors/mirrors_sources.gni")
 import("../../sdk/lib/typed_data/typed_data_sources.gni")
 import("../../sdk/lib/vmservice/vmservice_sources.gni")
-import("../../sdk/lib/wasm/wasm_sources.gni")
 import("../../sdk_args.gni")
 import("../../utils/compile_platform.gni")
 import("../bin/cli_sources.gni")
@@ -34,7 +33,6 @@ import("../lib/mirrors_sources.gni")
 import("../lib/profiler_sources.gni")
 import("../lib/typed_data_sources.gni")
 import("../lib/vmservice_sources.gni")
-import("../lib/wasm_sources.gni")
 import("../runtime_args.gni")
 import("compiler/compiler_sources.gni")
 import("heap/heap_sources.gni")
@@ -51,8 +49,10 @@ config("libdart_vm_config") {
     libs = [
       "advapi32.lib",
       "shell32.lib",
-      "dbghelp.lib",
     ]
+    if (target_os != "winuwp") {
+      libs += [ "dbghelp.lib" ]
+    }
   } else {
     libs = [ "dl" ]
     if (!is_android) {
@@ -109,10 +109,6 @@ library_for_all_configs("libdart_vm") {
     }
   }
   public_configs = [ ":libdart_vm_config" ]
-  set_sources_assignment_filter([
-                                  "*_test.cc",
-                                  "*_test.h",
-                                ])
   sources = vm_sources + rebase_path(compiler_api_sources, ".", "./compiler/") +
             rebase_path(disassembler_sources, ".", "./compiler/") +
             rebase_path(heap_sources, ".", "./heap/")
@@ -122,10 +118,6 @@ library_for_all_configs("libdart_vm") {
 library_for_all_configs_with_compiler("libdart_compiler") {
   target_type = "source_set"
   public_configs = [ ":libdart_vm_config" ]
-  set_sources_assignment_filter([
-                                  "*_test.cc",
-                                  "*_test.h",
-                                ])
   sources = rebase_path(compiler_sources, ".", "./compiler/")
   include_dirs = [ ".." ]
   if (is_fuchsia) {
@@ -162,7 +154,7 @@ library_for_all_configs("libdart_lib") {
                internal_runtime_cc_files + isolate_runtime_cc_files +
                math_runtime_cc_files + mirrors_runtime_cc_files +
                typed_data_runtime_cc_files + vmservice_runtime_cc_files +
-               ffi_runtime_cc_files + wasm_runtime_cc_files
+               ffi_runtime_cc_files
   sources = [ "bootstrap.cc" ] + rebase_path(allsources, ".", "../lib")
   snapshot_sources = []
 }
@@ -188,19 +180,14 @@ template("gen_vm_platform") {
       "$root_out_dir/vm_outline" + output_postfix + ".dill",
     ]
     args = [ "dart:core" ]
-    allow_causal_async_stacks = !is_product_flag
     args += [
       "-Ddart.vm.product=$is_product_flag",
-      "-Ddart.developer.causal_async_stacks=$allow_causal_async_stacks",
       "-Ddart.isVM=true",
       "--enable-experiment=non-nullable",
       "--nnbd-agnostic",
     ]
     if (defined(invoker.exclude_source) && invoker.exclude_source) {
       args += [ "--exclude-source" ]
-    }
-    if (defined(invoker.bytecode) && invoker.bytecode) {
-      args += [ "--bytecode" ]
     }
     outline = "vm_outline" + output_postfix + ".dill"
   }
@@ -226,10 +213,6 @@ gen_vm_platform("vm_platform_stripped") {
   add_implicit_vm_platform_dependency = false
   exclude_source = true
   output_postfix = "_strong_stripped"
-
-  if (dart_platform_bytecode) {
-    bytecode = true
-  }
 }
 
 group("kernel_platform_files") {

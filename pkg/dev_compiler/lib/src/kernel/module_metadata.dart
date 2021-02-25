@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Module metadata format version
 ///
 /// Module reader always creates the current version but is able to read
@@ -27,7 +29,7 @@ class ModuleMetadataVersion {
   ///
   /// TODO(annagrin): create metadata package, make version the same as the
   /// metadata package version, automate updating with the package update
-  static const ModuleMetadataVersion current = ModuleMetadataVersion(1, 0, 0);
+  static const ModuleMetadataVersion current = ModuleMetadataVersion(1, 0, 1);
 
   /// Current metadata version created by the reader
   String get version => '$majorVersion.$minorVersion.$patchVersion';
@@ -124,7 +126,12 @@ class ModuleMetadata {
 
   final Map<String, LibraryMetadata> libraries = {};
 
+  /// True if the module corresponding to this metadata was compiled with sound
+  /// null safety enabled.
+  final bool soundNullSafety;
+
   ModuleMetadata(this.name, this.closureName, this.sourceMapUri, this.moduleUri,
+      this.soundNullSafety,
       {this.version}) {
     version ??= ModuleMetadataVersion.current.version;
   }
@@ -149,7 +156,8 @@ class ModuleMetadata {
         name = json['name'] as String,
         closureName = json['closureName'] as String,
         sourceMapUri = json['sourceMapUri'] as String,
-        moduleUri = json['moduleUri'] as String {
+        moduleUri = json['moduleUri'] as String,
+        soundNullSafety = json['soundNullSafety'] as bool {
     var fileVersion = json['version'] as String;
     if (!ModuleMetadataVersion.current.isCompatibleWith(version)) {
       throw Exception('Unsupported metadata version $fileVersion');
@@ -167,7 +175,8 @@ class ModuleMetadata {
       'closureName': closureName,
       'sourceMapUri': sourceMapUri,
       'moduleUri': moduleUri,
-      'libraries': [for (var lib in libraries.values) lib.toJson()]
+      'libraries': [for (var lib in libraries.values) lib.toJson()],
+      'soundNullSafety': soundNullSafety
     };
   }
 }

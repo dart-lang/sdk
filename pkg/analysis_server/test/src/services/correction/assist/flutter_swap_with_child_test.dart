@@ -19,9 +19,16 @@ class FlutterSwapWithChildTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_SWAP_WITH_CHILD;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   Future<void> test_aroundCenter() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 build() {
   return Scaffold(
@@ -60,8 +67,7 @@ startResize() {}
   }
 
   Future<void> test_notFormatted() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 class Foo extends StatefulWidget {

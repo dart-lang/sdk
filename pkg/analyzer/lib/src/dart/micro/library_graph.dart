@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -28,11 +29,12 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
-import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
@@ -53,6 +55,24 @@ class FileState {
   /// The [Source] of the file with the [uri].
   final Source source;
 
+  /// The [WorkspacePackage] that contains this file.
+  ///
+  /// It might be `null` if the file is outside of the workspace.
+  final WorkspacePackage workspacePackage;
+
+  /// The [FeatureSet] for all files in the analysis context.
+  ///
+  /// Usually it is the feature set of the latest language version, plus
+  /// possibly additional enabled experiments (from the analysis options file,
+  /// or from SDK allowed experiments).
+  ///
+  /// This feature set is then restricted, with the [_packageLanguageVersion],
+  /// or with a `@dart` language override token in the file header.
+  final FeatureSet _contextFeatureSet;
+
+  /// The language version for the package that contains this file.
+  final Version _packageLanguageVersion;
+
   /// Files that reference this file.
   final List<FileState> referencingFiles = [];
 
@@ -70,7 +90,18 @@ class FileState {
   UnlinkedUnit2 unlinked2;
   LibraryCycle _libraryCycle;
 
-  FileState._(this._fsState, this.path, this.uri, this.source);
+  /// id of the cache entry.
+  int id;
+
+  FileState._(
+    this._fsState,
+    this.path,
+    this.uri,
+    this.source,
+    this.workspacePackage,
+    this._contextFeatureSet,
+    this._packageLanguageVersion,
+  );
 
   List<int> get apiSignature => _apiSignature;
 
@@ -105,6 +136,18 @@ class FileState {
   /// Return the [uri] string.
   String get uriStr => uri.toString();
 
+  /// Recursively traverse imports, exports, and parts to collect all
+  /// files that are accessed.
+  void collectAllReferencedFiles(Set<String> referencedFiles) {
+    var deps = {...importedFiles, ...exportedFiles, ...partedFiles};
+    for (var file in deps) {
+      if (!referencedFiles.contains(file.path)) {
+        referencedFiles.add(file.path);
+        file.collectAllReferencedFiles(referencedFiles);
+      }
+    }
+  }
+
   /// Return the content of the file, the empty string if cannot be read.
   String getContent() {
     try {
@@ -134,20 +177,17 @@ class FileState {
   }
 
   CompilationUnit parse(AnalysisErrorListener errorListener, String content) {
-    AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
-    FeatureSet featureSet =
-        _fsState.featureSetProvider.getFeatureSet(path, uri);
-
     CharSequenceReader reader = CharSequenceReader(content);
     Scanner scanner = Scanner(source, reader, errorListener)
       ..configureFeatures(
-        featureSetForOverriding: featureSet,
-        featureSet: featureSet,
+        featureSetForOverriding: _contextFeatureSet,
+        featureSet: _contextFeatureSet.restrictToVersion(
+          _packageLanguageVersion,
+        ),
       );
     Token token = scanner.tokenize(reportScannerErrors: false);
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
-    bool useFasta = analysisOptions.useFastaParser;
     // Pass the feature set from the scanner to the parser
     // because the scanner may have detected a language version comment
     // and downgraded the feature set it holds.
@@ -155,7 +195,6 @@ class FileState {
       source,
       errorListener,
       featureSet: scanner.featureSet,
-      useFasta: useFasta,
     );
     parser.enableOptionalNewAndConst = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
@@ -191,7 +230,8 @@ class FileState {
     // Prepare bytes of the unlinked bundle - existing or new.
     List<int> bytes;
     {
-      bytes = _fsState._byteStore.get(unlinkedKey, _digest);
+      var cacheData = _fsState._byteStore.get(unlinkedKey, _digest);
+      bytes = cacheData?.bytes;
 
       if (bytes == null || bytes.isEmpty) {
         var content = performance.run('content', (_) {
@@ -208,7 +248,8 @@ class FileState {
           var unlinkedBuilder = serializeAstCiderUnlinked(_digest, unit);
           bytes = unlinkedBuilder.toBuffer();
           performance.getDataInt('length').add(bytes.length);
-          _fsState._byteStore.put(unlinkedKey, _digest, bytes);
+          cacheData = _fsState._byteStore.putGet(unlinkedKey, _digest, bytes);
+          bytes = cacheData.bytes;
         });
 
         performance.run('prefetch', (_) {
@@ -216,6 +257,7 @@ class FileState {
           _prefetchDirectReferences(unlinked2);
         });
       }
+      id = cacheData.id;
     }
 
     // Read the unlinked bundle.
@@ -378,7 +420,6 @@ class FileState {
         ),
       );
     }
-    var informativeData = createInformativeData(unit);
     var unlinkedBuilder = UnlinkedUnit2Builder(
       apiSignature: computeUnlinkedApiSignature(unit),
       exports: exports,
@@ -388,7 +429,6 @@ class FileState {
       hasPartOfDirective: hasPartOfDirective,
       partOfUri: partOfUriStr,
       lineStarts: unit.lineInfo.lineStarts,
-      informativeData: informativeData,
     );
     return CiderUnlinkedUnitBuilder(
         contentDigest: digest, unlinkedUnit: unlinkedBuilder);
@@ -415,7 +455,7 @@ class FileSystemState {
   final ResourceProvider _resourceProvider;
   final CiderByteStore _byteStore;
   final SourceFactory _sourceFactory;
-  final AnalysisOptions _analysisOptions;
+  final Workspace _workspace;
   final Uint32List _linkedSalt;
 
   /// A function that returns the digest for a file as a String. The function
@@ -440,7 +480,9 @@ class FileSystemState {
     this._resourceProvider,
     this._byteStore,
     this._sourceFactory,
-    this._analysisOptions,
+    this._workspace,
+    @Deprecated('No longer used; will be removed')
+        AnalysisOptions analysisOptions,
     this._linkedSalt,
     this.featureSetProvider,
     this.getFileDigest,
@@ -470,6 +512,41 @@ class FileSystemState {
     }
   }
 
+  /// Clears all the cached files. Returns the list of ids of all the removed
+  /// files.
+  Set<int> collectSharedDataIdentifiers() {
+    var files = _pathToFile.values.map((file) => file.id).toSet();
+    return files;
+  }
+
+  FeatureSet contextFeatureSet(
+    String path,
+    Uri uri,
+    WorkspacePackage workspacePackage,
+  ) {
+    var workspacePackageExperiments = workspacePackage?.enabledExperiments;
+    if (workspacePackageExperiments != null) {
+      return featureSetProvider.featureSetForExperiments(
+        workspacePackageExperiments,
+      );
+    }
+
+    return featureSetProvider.getFeatureSet(path, uri);
+  }
+
+  Version contextLanguageVersion(
+    String path,
+    Uri uri,
+    WorkspacePackage workspacePackage,
+  ) {
+    var workspaceLanguageVersion = workspacePackage?.languageVersion;
+    if (workspaceLanguageVersion != null) {
+      return workspaceLanguageVersion;
+    }
+
+    return featureSetProvider.getLanguageVersion(path, uri);
+  }
+
   FileState getFileForPath({
     @required String path,
     @required OperationPerformanceImpl performance,
@@ -482,7 +559,12 @@ class FileSystemState {
       );
 
       var source = _sourceFactory.forUri2(uri);
-      file = FileState._(this, path, uri, source);
+      var workspacePackage = _workspace?.findPackageFor(path);
+      var featureSet = contextFeatureSet(path, uri, workspacePackage);
+      var packageLanguageVersion =
+          contextLanguageVersion(path, uri, workspacePackage);
+      file = FileState._(this, path, uri, source, workspacePackage, featureSet,
+          packageLanguageVersion);
 
       _pathToFile[path] = file;
       _uriToFile[uri] = file;
@@ -508,7 +590,13 @@ class FileSystemState {
       }
       var path = source.fullName;
 
-      file = FileState._(this, path, uri, source);
+      var workspacePackage = _workspace?.findPackageFor(path);
+      var featureSet = contextFeatureSet(path, uri, workspacePackage);
+      var packageLanguageVersion =
+          contextLanguageVersion(path, uri, workspacePackage);
+
+      file = FileState._(this, path, uri, source, workspacePackage, featureSet,
+          packageLanguageVersion);
       _pathToFile[path] = file;
       _uriToFile[uri] = file;
 
@@ -526,10 +614,34 @@ class FileSystemState {
     }
     return source.fullName;
   }
+
+  /// Computes the set of [FileState]'s used/not used to analyze the given
+  /// [files]. Removes the [FileState]'s of the files not used for analysis from
+  /// the cache. Returns the set of unused [FileState]'s.
+  List<FileState> removeUnusedFiles(List<String> files) {
+    var removedFiles = <FileState>[];
+    var unusedFiles = _pathToFile.keys.toSet();
+    var deps = HashSet<String>();
+    for (var path in files) {
+      unusedFiles.remove(path);
+      _pathToFile[path].collectAllReferencedFiles(deps);
+    }
+    for (var path in deps) {
+      unusedFiles.remove(path);
+    }
+    for (var path in unusedFiles) {
+      var file = _pathToFile.remove(path);
+      _uriToFile.remove(file.uri);
+      removedFiles.add(file);
+    }
+    testView.unusedFiles = unusedFiles;
+    return removedFiles;
+  }
 }
 
 class FileSystemStateTestView {
   final List<String> refreshedFiles = [];
+  Set<String> unusedFiles = {};
 }
 
 class FileSystemStateTimer {
@@ -588,6 +700,12 @@ class LibraryCycle {
 
   /// The hash of all the paths of the files in this cycle.
   String cyclePathsHash;
+
+  /// id of the ast cache entry.
+  int astId;
+
+  /// id of the resolution cache entry.
+  int resolutionId;
 
   LibraryCycle();
 

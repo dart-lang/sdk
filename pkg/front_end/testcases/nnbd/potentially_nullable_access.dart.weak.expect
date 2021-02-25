@@ -417,17 +417,17 @@ import "dart:core" as core;
 
 class Class extends core::Object {
   field core::int property = 0;
-  field core::Function functionField = () → core::Null? {};
-  field () → void functionTypeField = () → core::Null? {};
+  field core::Function functionField = () → Null {};
+  field () → void functionTypeField = () → void {};
   synthetic constructor •() → self::Class
     : super core::Object::•()
     ;
   method method() → core::int
     return 0;
   get functionGetter() → core::Function
-    return () → core::Null? {};
+    return () → Null {};
   get functionTypeGetter() → () → void
-    return () → core::Null? {};
+    return () → void {};
 }
 extension Extension on self::Class {
   operator + = self::Extension|+;
@@ -617,32 +617,32 @@ static field void topLevelExtensionFunctionTypeGetter = let final<BottomType> #t
 Try calling using ?.call instead.
     nullableClass.extensionFunctionTypeGetter();
                   ^" in self::Extension|get#extensionFunctionTypeGetter(self::nullableClass).call();
-static method Extension|+(final self::Class #this, core::int value) → core::int
+static method Extension|+(lowered final self::Class #this, core::int value) → core::int
   return 0;
-static method Extension|unary-(final self::Class #this) → core::int
+static method Extension|unary-(lowered final self::Class #this) → core::int
   return 0;
-static method Extension|[](final self::Class #this, core::int index) → core::int
+static method Extension|[](lowered final self::Class #this, core::int index) → core::int
   return 0;
-static method Extension|[]=(final self::Class #this, core::int index, core::int value) → void {}
-static method Extension|call(final self::Class #this) → core::int
+static method Extension|[]=(lowered final self::Class #this, core::int index, core::int value) → void {}
+static method Extension|call(lowered final self::Class #this) → core::int
   return 0;
-static method Extension|get#call(final self::Class #this) → () → core::int
+static method Extension|get#call(lowered final self::Class #this) → () → core::int
   return () → core::int => self::Extension|call(#this);
-static method Extension|get#extensionProperty(final self::Class #this) → core::int
+static method Extension|get#extensionProperty(lowered final self::Class #this) → core::int
   return 0;
-static method Extension|set#extensionProperty(final self::Class #this, core::int value) → void {}
-static method Extension|extensionMethod(final self::Class #this) → core::int
+static method Extension|set#extensionProperty(lowered final self::Class #this, core::int value) → void {}
+static method Extension|extensionMethod(lowered final self::Class #this) → core::int
   return 0;
-static method Extension|get#extensionMethod(final self::Class #this) → () → core::int
+static method Extension|get#extensionMethod(lowered final self::Class #this) → () → core::int
   return () → core::int => self::Extension|extensionMethod(#this);
-static method Extension|get#extensionFunctionGetter(final self::Class #this) → core::Function
-  return () → core::Null? {};
-static method Extension|get#extensionFunctionTypeGetter(final self::Class #this) → () → void
-  return () → core::Null? {};
+static method Extension|get#extensionFunctionGetter(lowered final self::Class #this) → core::Function
+  return () → Null {};
+static method Extension|get#extensionFunctionTypeGetter(lowered final self::Class #this) → () → void
+  return () → void {};
 static get nullableFunction() → core::Function?
-  return () → core::Null? {};
+  return () → Null {};
 static get nullableFunctionType() → () →? void
-  return () → core::Null? {};
+  return () → void {};
 static get nullableInt() → core::int?
   return 0;
 static get nullableMap() → core::Map<dynamic, dynamic>?

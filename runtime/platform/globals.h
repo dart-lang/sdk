@@ -339,17 +339,17 @@ typedef simd128_value_t fpu_register_t;
 // Verify that host and target architectures match, we cannot
 // have a 64 bit Dart VM generating 32 bit code or vice-versa.
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
-#if !defined(ARCH_IS_64_BIT)
+#if !defined(ARCH_IS_64_BIT) && !defined(FFI_UNIT_TESTS)
 #error Mismatched Host/Target architectures.
-#endif  // !defined(ARCH_IS_64_BIT)
+#endif  // !defined(ARCH_IS_64_BIT) && !defined(FFI_UNIT_TESTS)
 #elif defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
 #if defined(HOST_ARCH_X64) && defined(TARGET_ARCH_ARM)
 // This is simarm_x64, which is the only case where host/target architecture
-// mismatch is allowed.
+// mismatch is allowed. Unless, we're running FFI unit tests.
 #define IS_SIMARM_X64 1
-#elif !defined(ARCH_IS_32_BIT)
+#elif !defined(ARCH_IS_32_BIT) && !defined(FFI_UNIT_TESTS)
 #error Mismatched Host/Target architectures.
-#endif  // !defined(ARCH_IS_32_BIT)
+#endif  // !defined(ARCH_IS_32_BIT) && !defined(FFI_UNIT_TESTS)
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
 
 // Determine whether we will be using the simulator.
@@ -372,12 +372,6 @@ typedef simd128_value_t fpu_register_t;
 
 #else
 #error Unknown architecture.
-#endif
-
-#if defined(ARCH_IS_32_BIT) || defined(IS_SIMARM_X64)
-#define TARGET_ARCH_IS_32_BIT 1
-#elif defined(ARCH_IS_64_BIT)
-#define TARGET_ARCH_IS_64_BIT 1
 #endif
 
 #if !defined(TARGET_OS_ANDROID) && !defined(TARGET_OS_FUCHSIA) &&              \
@@ -449,112 +443,136 @@ typedef simd128_value_t fpu_register_t;
 #define strtoll _strtoi64
 #endif
 
+// Byte sizes.
+constexpr int kInt8SizeLog2 = 0;
+constexpr int kInt8Size = 1 << kInt8SizeLog2;
+static_assert(kInt8Size == sizeof(int8_t), "Mismatched int8 size constant");
+constexpr int kInt16SizeLog2 = 1;
+constexpr int kInt16Size = 1 << kInt16SizeLog2;
+static_assert(kInt16Size == sizeof(int16_t), "Mismatched int16 size constant");
+constexpr int kInt32SizeLog2 = 2;
+constexpr int kInt32Size = 1 << kInt32SizeLog2;
+static_assert(kInt32Size == sizeof(int32_t), "Mismatched int32 size constant");
+constexpr int kInt64SizeLog2 = 3;
+constexpr int kInt64Size = 1 << kInt64SizeLog2;
+static_assert(kInt64Size == sizeof(int64_t), "Mismatched int64 size constant");
+
+constexpr int kDoubleSize = sizeof(double);
+constexpr int kFloatSize = sizeof(float);
+constexpr int kQuadSize = 4 * kFloatSize;
+constexpr int kSimd128Size = sizeof(simd128_value_t);
+
+// Bit sizes.
+constexpr int kBitsPerByteLog2 = 3;
+constexpr int kBitsPerByte = 1 << kBitsPerByteLog2;
+constexpr int kBitsPerInt8 = kInt8Size * kBitsPerByte;
+constexpr int kBitsPerInt16 = kInt16Size * kBitsPerByte;
+constexpr int kBitsPerInt32 = kInt32Size * kBitsPerByte;
+constexpr int kBitsPerInt64 = kInt64Size * kBitsPerByte;
+
 // The following macro works on both 32 and 64-bit platforms.
 // Usage: instead of writing 0x1234567890123456ULL
 //      write DART_2PART_UINT64_C(0x12345678,90123456);
 #define DART_2PART_UINT64_C(a, b)                                              \
-  (((static_cast<uint64_t>(a) << 32) + 0x##b##u))
+  (((static_cast<uint64_t>(a) << kBitsPerInt32) + 0x##b##u))
 
 // Integer constants.
-const int8_t kMinInt8 = 0x80;
-const int8_t kMaxInt8 = 0x7F;
-const uint8_t kMaxUint8 = 0xFF;
-const int16_t kMinInt16 = 0x8000;
-const int16_t kMaxInt16 = 0x7FFF;
-const uint16_t kMaxUint16 = 0xFFFF;
-const int32_t kMinInt32 = 0x80000000;
-const int32_t kMaxInt32 = 0x7FFFFFFF;
-const uint32_t kMaxUint32 = 0xFFFFFFFF;
-const int64_t kMinInt64 = DART_INT64_C(0x8000000000000000);
-const int64_t kMaxInt64 = DART_INT64_C(0x7FFFFFFFFFFFFFFF);
-const int kMinInt = INT_MIN;
-const int kMaxInt = INT_MAX;
-const int64_t kMinInt64RepresentableAsDouble = kMinInt64;
-const int64_t kMaxInt64RepresentableAsDouble = DART_INT64_C(0x7FFFFFFFFFFFFC00);
-const uint64_t kMaxUint64 = DART_2PART_UINT64_C(0xFFFFFFFF, FFFFFFFF);
-const int64_t kSignBitDouble = DART_INT64_C(0x8000000000000000);
+constexpr int8_t kMinInt8 = 0x80;
+constexpr int8_t kMaxInt8 = 0x7F;
+constexpr uint8_t kMaxUint8 = 0xFF;
+constexpr int16_t kMinInt16 = 0x8000;
+constexpr int16_t kMaxInt16 = 0x7FFF;
+constexpr uint16_t kMaxUint16 = 0xFFFF;
+constexpr int32_t kMinInt32 = 0x80000000;
+constexpr int32_t kMaxInt32 = 0x7FFFFFFF;
+constexpr uint32_t kMaxUint32 = 0xFFFFFFFF;
+constexpr int64_t kMinInt64 = DART_INT64_C(0x8000000000000000);
+constexpr int64_t kMaxInt64 = DART_INT64_C(0x7FFFFFFFFFFFFFFF);
+constexpr uint64_t kMaxUint64 = DART_2PART_UINT64_C(0xFFFFFFFF, FFFFFFFF);
+
+constexpr int kMinInt = INT_MIN;
+constexpr int kMaxInt = INT_MAX;
+constexpr int kMaxUint = UINT_MAX;
+
+constexpr int64_t kMinInt64RepresentableAsDouble = kMinInt64;
+constexpr int64_t kMaxInt64RepresentableAsDouble =
+    DART_INT64_C(0x7FFFFFFFFFFFFC00);
+constexpr int64_t kSignBitDouble = DART_INT64_C(0x8000000000000000);
 
 // Types for native machine words. Guaranteed to be able to hold pointers and
 // integers.
 typedef intptr_t word;
 typedef uintptr_t uword;
 
+// Byte sizes for native machine words.
+#ifdef ARCH_IS_32_BIT
+constexpr int kWordSizeLog2 = kInt32SizeLog2;
+#else
+constexpr int kWordSizeLog2 = kInt64SizeLog2;
+#endif
+constexpr int kWordSize = 1 << kWordSizeLog2;
+static_assert(kWordSize == sizeof(word), "Mismatched word size constant");
+
+// Bit sizes for native machine words.
+constexpr int kBitsPerWordLog2 = kWordSizeLog2 + kBitsPerByteLog2;
+constexpr int kBitsPerWord = 1 << kBitsPerWordLog2;
+
+// Integer constants for native machine words.
+constexpr word kWordMin = static_cast<uword>(1) << (kBitsPerWord - 1);
+constexpr word kWordMax = (static_cast<uword>(1) << (kBitsPerWord - 1)) - 1;
+constexpr uword kUwordMax = static_cast<uword>(-1);
+
 // Size of a class id assigned to concrete, abstract and top-level classes.
 //
 // We use a signed integer type here to make it comparable with intptr_t.
 typedef int32_t classid_t;
 
-// Byte sizes.
-const int kWordSize = sizeof(word);
-const int kDoubleSize = sizeof(double);  // NOLINT
-const int kFloatSize = sizeof(float);    // NOLINT
-const int kQuadSize = 4 * kFloatSize;
-const int kSimd128Size = sizeof(simd128_value_t);  // NOLINT
-const int kInt64Size = sizeof(int64_t);            // NOLINT
-const int kInt32Size = sizeof(int32_t);            // NOLINT
-const int kInt16Size = sizeof(int16_t);            // NOLINT
-#ifdef ARCH_IS_32_BIT
-const int kWordSizeLog2 = 2;
-const uword kUwordMax = kMaxUint32;
-#else
-const int kWordSizeLog2 = 3;
-const uword kUwordMax = kMaxUint64;
-#endif
-
-// Bit sizes.
-const int kBitsPerByte = 8;
-const int kBitsPerByteLog2 = 3;
-const int kBitsPerInt32 = kInt32Size * kBitsPerByte;
-const int kBitsPerInt64 = kInt64Size * kBitsPerByte;
-const int kBitsPerWord = kWordSize * kBitsPerByte;
-const int kBitsPerWordLog2 = kWordSizeLog2 + kBitsPerByteLog2;
-
 // System-wide named constants.
-const intptr_t KB = 1024;
-const intptr_t KBLog2 = 10;
-const intptr_t MB = KB * KB;
-const intptr_t MBLog2 = KBLog2 + KBLog2;
-const intptr_t GB = MB * KB;
-const intptr_t GBLog2 = MBLog2 + KBLog2;
+constexpr intptr_t KBLog2 = 10;
+constexpr intptr_t KB = 1 << KBLog2;
+constexpr intptr_t MBLog2 = KBLog2 + KBLog2;
+constexpr intptr_t MB = 1 << MBLog2;
+constexpr intptr_t GBLog2 = MBLog2 + KBLog2;
+constexpr intptr_t GB = 1 << GBLog2;
 
-const intptr_t KBInWords = KB >> kWordSizeLog2;
-const intptr_t KBInWordsLog2 = KBLog2 - kWordSizeLog2;
-const intptr_t MBInWords = KB * KBInWords;
-const intptr_t MBInWordsLog2 = KBLog2 + KBInWordsLog2;
-const intptr_t GBInWords = MB * KBInWords;
-const intptr_t GBInWordsLog2 = MBLog2 + KBInWordsLog2;
+constexpr intptr_t KBInWordsLog2 = KBLog2 - kWordSizeLog2;
+constexpr intptr_t KBInWords = 1 << KBInWordsLog2;
+constexpr intptr_t MBInWordsLog2 = KBLog2 + KBInWordsLog2;
+constexpr intptr_t MBInWords = 1 << MBInWordsLog2;
+constexpr intptr_t GBInWordsLog2 = MBLog2 + KBInWordsLog2;
+constexpr intptr_t GBInWords = 1 << GBInWordsLog2;
 
 // Helpers to round memory sizes to human readable values.
-inline intptr_t RoundWordsToKB(intptr_t size_in_words) {
+constexpr intptr_t RoundWordsToKB(intptr_t size_in_words) {
   return (size_in_words + (KBInWords >> 1)) >> KBInWordsLog2;
 }
-inline intptr_t RoundWordsToMB(intptr_t size_in_words) {
+constexpr intptr_t RoundWordsToMB(intptr_t size_in_words) {
   return (size_in_words + (MBInWords >> 1)) >> MBInWordsLog2;
 }
-inline intptr_t RoundWordsToGB(intptr_t size_in_words) {
+constexpr intptr_t RoundWordsToGB(intptr_t size_in_words) {
   return (size_in_words + (GBInWords >> 1)) >> GBInWordsLog2;
 }
 
-const intptr_t kIntptrOne = 1;
-const intptr_t kIntptrMin = (kIntptrOne << (kBitsPerWord - 1));
-const intptr_t kIntptrMax = ~kIntptrMin;
+constexpr intptr_t kIntptrOne = 1;
+constexpr intptr_t kIntptrMin = (kIntptrOne << (kBitsPerWord - 1));
+constexpr intptr_t kIntptrMax = ~kIntptrMin;
 
 // Time constants.
-const int kMillisecondsPerSecond = 1000;
-const int kMicrosecondsPerMillisecond = 1000;
-const int kMicrosecondsPerSecond =
+constexpr int kMillisecondsPerSecond = 1000;
+constexpr int kMicrosecondsPerMillisecond = 1000;
+constexpr int kMicrosecondsPerSecond =
     (kMicrosecondsPerMillisecond * kMillisecondsPerSecond);
-const int kNanosecondsPerMicrosecond = 1000;
-const int kNanosecondsPerMillisecond =
+constexpr int kNanosecondsPerMicrosecond = 1000;
+constexpr int kNanosecondsPerMillisecond =
     (kNanosecondsPerMicrosecond * kMicrosecondsPerMillisecond);
-const int kNanosecondsPerSecond =
+constexpr int kNanosecondsPerSecond =
     (kNanosecondsPerMicrosecond * kMicrosecondsPerSecond);
 
 // Helpers to scale micro second times to human understandable values.
-inline double MicrosecondsToSeconds(int64_t micros) {
+constexpr double MicrosecondsToSeconds(int64_t micros) {
   return static_cast<double>(micros) / kMicrosecondsPerSecond;
 }
-inline double MicrosecondsToMilliseconds(int64_t micros) {
+constexpr double MicrosecondsToMilliseconds(int64_t micros) {
   return static_cast<double>(micros) / kMicrosecondsPerMillisecond;
 }
 
@@ -598,7 +616,7 @@ inline double MicrosecondsToMilliseconds(int64_t micros) {
 // The USE(x) template is used to silence C++ compiler warnings issued
 // for unused variables.
 template <typename T>
-static inline void USE(T) {}
+static inline void USE(T&&) {}
 
 // The type-based aliasing rule allows the compiler to assume that
 // pointers of different types (for some definition of different)

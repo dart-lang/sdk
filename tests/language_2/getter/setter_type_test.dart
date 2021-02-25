@@ -11,6 +11,7 @@ int bar = 499;
 int get foo => bar;
 //      ^^^
 // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_ASSIGNABLE_SETTER_TYPES
+// [cfe] The type 'int' of the getter 'foo' is not assignable to the type 'String' of the setter 'foo'.
 
 void set foo(String str) {
   bar = str.length;

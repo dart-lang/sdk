@@ -423,15 +423,17 @@ class DirectChainedHashMap
 
 template <typename KeyValueTrait>
 class MallocDirectChainedHashMap
-    : public BaseDirectChainedHashMap<KeyValueTrait, EmptyBase, Malloc> {
+    : public BaseDirectChainedHashMap<KeyValueTrait, MallocAllocated, Malloc> {
  public:
   MallocDirectChainedHashMap()
-      : BaseDirectChainedHashMap<KeyValueTrait, EmptyBase, Malloc>(NULL) {}
+      : BaseDirectChainedHashMap<KeyValueTrait, MallocAllocated, Malloc>(NULL) {
+  }
 
   // The only use of the copy constructor seems to be in hash_map_test.cc.
   // Not disallowing it for now just in case there are other users.
   MallocDirectChainedHashMap(const MallocDirectChainedHashMap& other)
-      : BaseDirectChainedHashMap<KeyValueTrait, EmptyBase, Malloc>(other) {}
+      : BaseDirectChainedHashMap<KeyValueTrait, MallocAllocated, Malloc>(
+            other) {}
 
  private:
   void operator=(const MallocDirectChainedHashMap& other) = delete;

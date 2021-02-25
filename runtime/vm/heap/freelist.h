@@ -29,7 +29,7 @@ class FreeListElement {
   void set_next(FreeListElement* next) { next_ = next; }
 
   intptr_t HeapSize() {
-    intptr_t size = ObjectLayout::SizeTag::decode(tags_);
+    intptr_t size = UntaggedObject::SizeTag::decode(tags_);
     if (size != 0) return size;
     return *SizeAddress();
   }
@@ -57,11 +57,8 @@ class FreeListElement {
 
  private:
   // This layout mirrors the layout of RawObject.
-  RelaxedAtomic<uint32_t> tags_;
-#if defined(HASH_IN_OBJECT_HEADER)
-  uint32_t hash_;
-#endif
-  FreeListElement* next_;
+  RelaxedAtomic<uword> tags_;
+  RelaxedAtomic<FreeListElement*> next_;
 
   // Returns the address of the embedded size.
   intptr_t* SizeAddress() const {
@@ -156,8 +153,6 @@ class FreeList {
   void set_top(uword value) { top_ = value; }
   void set_end(uword value) { end_ = value; }
   void AddUnaccountedSize(intptr_t size) { unaccounted_size_ += size; }
-
-  void MergeFrom(FreeList* donor, bool is_protected);
 
  private:
   static const int kNumLists = 128;

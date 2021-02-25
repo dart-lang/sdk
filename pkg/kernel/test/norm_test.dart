@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart" show Expect;
 
 import 'package:kernel/ast.dart' hide MapEntry;
@@ -143,7 +145,8 @@ run() {
 }
 
 check(String input, String output, [String typeParameters = '']) {
-  Env env = new Env('')..extendWithTypeParameters(typeParameters);
+  Env env = new Env('', isNonNullableByDefault: true)
+    ..extendWithTypeParameters(typeParameters);
   DartType inputType = env.parseType(input);
   DartType expectedOutputType = env.parseType(output);
   DartType actualOutputType = norm(env.coreTypes, inputType);

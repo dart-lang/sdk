@@ -55,12 +55,12 @@ library /*isNonNullableByDefault*/;
 //   late String s2 = '${fisk}${await hest()}${fisk}';
 //                              ^^^^^
 //
-// pkg/front_end/testcases/nnbd/later.dart:46:9: Error: Constructor is marked 'const' so fields can't be late.
-//   const B();
-//         ^
-// pkg/front_end/testcases/nnbd/later.dart:44:18: Context: Field is late, but constructor is 'const'.
+// pkg/front_end/testcases/nnbd/later.dart:44:18: Error: Can't have a late final field in a class with a const constructor.
 //   late final int x = 42;
 //                  ^
+// pkg/front_end/testcases/nnbd/later.dart:46:9: Context: This constructor is const.
+//   const B();
+//         ^
 //
 import self as self;
 import "dart:core" as core;
@@ -113,7 +113,7 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
   block {
     final core::List<core::int> #t1 = <core::int>[];
     for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1))
-      #t1.{core::List::add}(i);
+      #t1.{core::List::add}{Invariant}(i);
   } =>#t1;
 }
 static method hest() → dynamic async {

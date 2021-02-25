@@ -611,7 +611,6 @@ class Compiler extends NamedEnum {
   static const appJitk = Compiler._('app_jitk');
   static const dartk = Compiler._('dartk');
   static const dartkp = Compiler._('dartkp');
-  static const dartkb = Compiler._('dartkb');
   static const specParser = Compiler._('spec_parser');
   static const fasta = Compiler._('fasta');
 
@@ -627,7 +626,6 @@ class Compiler extends NamedEnum {
     appJitk,
     dartk,
     dartkp,
-    dartkb,
     specParser,
     fasta,
   ], key: (compiler) => (compiler as Compiler).name);
@@ -665,10 +663,9 @@ class Compiler extends NamedEnum {
 
       case Compiler.dartdevc:
       case Compiler.dartdevk:
-        // TODO(rnystrom): Expand to support other JS execution environments
-        // (other browsers, d8) when tested and working.
         return const [
           Runtime.none,
+          Runtime.d8,
           Runtime.chrome,
           Runtime.edge,
           Runtime.firefox,
@@ -680,7 +677,6 @@ class Compiler extends NamedEnum {
         return const [Runtime.none];
       case Compiler.appJitk:
       case Compiler.dartk:
-      case Compiler.dartkb:
         return const [Runtime.vm, Runtime.selfCheck];
       case Compiler.dartkp:
         return const [Runtime.dartPrecompiled];
@@ -709,7 +705,6 @@ class Compiler extends NamedEnum {
         return Runtime.none;
       case Compiler.appJitk:
       case Compiler.dartk:
-      case Compiler.dartkb:
         return Runtime.vm;
       case Compiler.dartkp:
         return Runtime.dartPrecompiled;

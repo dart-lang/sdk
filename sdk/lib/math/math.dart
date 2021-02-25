@@ -5,13 +5,14 @@
 /// Mathematical constants and functions, plus a random number generator.
 ///
 /// To use this library in your code:
-///
-///     import 'dart:math';
-///
+/// ```dart
+/// import 'dart:math';
+/// ```
 /// {@category Core}
 library dart.math;
 
-part "jenkins_smi_hash.dart";
+import "dart:_internal" show SystemHash;
+
 part "point.dart";
 part "random.dart";
 part "rectangle.dart";

@@ -43,7 +43,6 @@ void main() {
       expect(config.analyticsForceEnabled, isNull);
       expect(config.crashReportingId, isNull);
       expect(config.crashReportingForceEnabled, isNull);
-      expect(config.mlModelPath, isNull);
     });
 
     test('is configured', () {
@@ -55,9 +54,7 @@ void main() {
   "server.analytics.forceEnabled": true,
 
   "server.crash.reporting.id": "Test_crash_id",
-  "server.crash.reporting.forceEnabled": true,
-
-  "server.ml.model.path": "/foo/bar/baz.ml"
+  "server.crash.reporting.forceEnabled": true
 }
 ''');
 
@@ -68,7 +65,6 @@ void main() {
       expect(config.analyticsForceEnabled, isTrue);
       expect(config.crashReportingId, 'Test_crash_id');
       expect(config.crashReportingForceEnabled, isTrue);
-      expect(config.mlModelPath, '/foo/bar/baz.ml');
     });
   });
 }

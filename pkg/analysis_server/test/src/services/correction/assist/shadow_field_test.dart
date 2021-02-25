@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'assist_processor.dart';
 
 void main() {
@@ -22,7 +22,7 @@ class ShadowFieldTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.SHADOW_FIELD;
 
   Future<void> test_is_assigned() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   num f = 0;
 
@@ -39,7 +39,7 @@ class C {
   }
 
   Future<void> test_is_noBlock_while() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   num f = 0;
 
@@ -55,7 +55,7 @@ class C {
   }
 
   Future<void> test_is_referencedViaThis() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   num f = 0;
 
@@ -81,7 +81,7 @@ class C {
   }
 
   Future<void> test_is_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   num f = 0;
 
@@ -108,15 +108,10 @@ class C {
 }
 
 @reflectiveTest
-class ShadowFieldWithNullSafetyTest extends ShadowFieldTest {
-  @override
-  void setUp() {
-    super.setUp();
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
-  }
-
+class ShadowFieldWithNullSafetyTest extends ShadowFieldTest
+    with WithNullSafetyMixin {
   Future<void> test_notNull() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   int? f;
 
@@ -142,7 +137,7 @@ class C {
   }
 
   Future<void> test_notNull_assigned() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   int? f;
 
@@ -159,7 +154,7 @@ class C {
   }
 
   Future<void> test_notNull_referencedViaThis() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   int? f;
 

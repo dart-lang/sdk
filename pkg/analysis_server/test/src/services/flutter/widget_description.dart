@@ -88,7 +88,9 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
   @override
   void setUp() {
     super.setUp();
-    addFlutterPackage();
+    writeTestPackageConfig(
+      flutter: true,
+    );
   }
 
   void _removeNotInterestingElements(Map<String, dynamic> json) {

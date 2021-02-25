@@ -91,6 +91,11 @@ const Register kWriteBarrierSlotReg = EDI;
 // ABI for allocation stubs.
 const Register kAllocationStubTypeArgumentsReg = EDX;
 
+// Common ABI for shared slow path stubs.
+struct SharedSlowPathStubABI {
+  static const Register kResultReg = EAX;
+};
+
 // ABI for instantiation stubs.
 struct InstantiationABI {
   static const Register kUninstantiatedTypeArgumentsReg = EBX;
@@ -113,7 +118,24 @@ struct TypeTestABI {
       EDI;  // On ia32 we don't use CODE_REG.
 
   // For call to InstanceOfStub.
-  static const Register kResultReg = kNoRegister;
+  static const Register kInstanceOfResultReg = kInstanceReg;
+  // For call to SubtypeNTestCacheStub.
+  static const Register kSubtypeTestCacheResultReg =
+      TypeTestABI::kSubtypeTestCacheReg;
+};
+
+// Calling convention when calling kSubtypeCheckRuntimeEntry, to match other
+// architectures. We don't generate a call to the AssertSubtypeStub because we
+// need CODE_REG to store a fifth argument.
+struct AssertSubtypeABI {
+  static const Register kSubTypeReg = EAX;
+  static const Register kSuperTypeReg = EBX;
+  static const Register kInstantiatorTypeArgumentsReg = EDX;
+  static const Register kFunctionTypeArgumentsReg = ECX;
+  static const Register kDstNameReg = EDI;  /// On ia32 we don't use CODE_REG.
+
+  // No result register, as AssertSubtype is only run for side effect
+  // (throws if the subtype check fails).
 };
 
 // ABI for InitStaticFieldStub.
@@ -134,6 +156,11 @@ struct InitLateInstanceFieldInternalRegs {
   static const Register kFunctionReg = EAX;
   static const Register kAddressReg = ECX;
   static const Register kScratchReg = EDI;
+};
+
+// ABI for LateInitializationError stubs.
+struct LateInitializationErrorABI {
+  static const Register kFieldReg = EDI;
 };
 
 // ABI for ThrowStub.
@@ -158,6 +185,12 @@ struct RangeErrorABI {
   static const Register kIndexReg = EBX;
 };
 
+// ABI for Allocate<TypedData>ArrayStub.
+struct AllocateTypedDataArrayABI {
+  static const Register kLengthReg = EAX;
+  static const Register kResultReg = EAX;
+};
+
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFF;
 
@@ -172,7 +205,16 @@ enum ScaleFactor {
   TIMES_4 = 2,
   TIMES_8 = 3,
   TIMES_16 = 4,
-  TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
+// We can't include vm/compiler/runtime_api.h, so just be explicit instead
+// of using (dart::)kWordSizeLog2.
+#if defined(TARGET_ARCH_IS_32_BIT)
+  // Used for Smi-boxed indices.
+  TIMES_HALF_WORD_SIZE = kInt32SizeLog2 - 1,
+  // Used for unboxed indices.
+  TIMES_WORD_SIZE = kInt32SizeLog2,
+#else
+#error "Unexpected word size"
+#endif
 };
 
 class Instr {
@@ -209,6 +251,7 @@ class CallingConventions {
   static const intptr_t kArgumentRegisters = 0;
   static const intptr_t kFpuArgumentRegisters = 0;
   static const intptr_t kNumArgRegs = 0;
+  static const Register kPointerToReturnStructRegisterCall = kNoRegister;
 
   static const XmmRegister FpuArgumentRegisters[];
   static const intptr_t kXmmArgumentRegisters = 0;
@@ -221,6 +264,16 @@ class CallingConventions {
 
   static constexpr Register kReturnReg = EAX;
   static constexpr Register kSecondReturnReg = EDX;
+  static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
+
+  // Whether the callee uses `ret 4` instead of `ret` to return with struct
+  // return values.
+  // See: https://c9x.me/x86/html/file_module_x86_id_280.html
+#if defined(_WIN32)
+  static const bool kUsesRet4 = false;
+#else
+  static const bool kUsesRet4 = true;
+#endif
 
   // Floating point values are returned on the "FPU stack" (in "ST" registers).
   // However, we use XMM0 in our compiler pipeline as the location.
@@ -228,7 +281,7 @@ class CallingConventions {
   // NativeReturnInstr::EmitNativeCode.
   static constexpr XmmRegister kReturnFpuReg = XMM0;
 
-  static constexpr Register kFirstCalleeSavedCpuReg = EBX;
+  static constexpr Register kFfiAnyNonAbiRegister = EBX;
   static constexpr Register kFirstNonArgumentRegister = EAX;
   static constexpr Register kSecondNonArgumentRegister = ECX;
   static constexpr Register kStackPointerRegister = SPREG;
@@ -242,7 +295,7 @@ class CallingConventions {
       kAlignedToWordSize;
 
   // How fields in composites are aligned.
-#if defined(_WIN32)
+#if defined(TARGET_OS_WINDOWS)
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
 #else
   static constexpr AlignmentStrategy kFieldAlignment =

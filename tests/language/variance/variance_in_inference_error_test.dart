@@ -47,41 +47,31 @@ main() {
   inferCovContra(Covariant<int>(), Contravariant<String>());
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-//                                 ^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] The argument type 'Contravariant<String>' can't be assigned to the parameter type 'Contravariant<int>'.
+// [cfe] unspecified
 
   // String <: T <: int is not a valid constraint.
   inferCovContra(Covariant<String>(), Contravariant<int>());
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-//                                    ^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] The argument type 'Contravariant<int>' can't be assigned to the parameter type 'Contravariant<String>'.
+// [cfe] unspecified
 
   // Middle <: T <: Lower is not a valid constraint
   inferCovContra(Covariant<Middle>(), Contravariant<Lower>());
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-//                                    ^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_NEW_EXPR
-// [cfe] The argument type 'Contravariant<Lower>' can't be assigned to the parameter type 'Contravariant<Middle>'.
+// [cfe] unspecified
 
   // Upper <: T <: Lower is not a valid constraint
   inferCovContra(Covariant<Upper>(), Contravariant<Lower>());
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-//                                   ^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_NEW_EXPR
-// [cfe] The argument type 'Contravariant<Lower>' can't be assigned to the parameter type 'Contravariant<Upper>'.
+// [cfe] unspecified
 
   // Upper <: T <: Middle is not a valid constraint
   inferCovContra(Covariant<Upper>(), Contravariant<Middle>());
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-//                                   ^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_NEW_EXPR
-// [cfe] The argument type 'Contravariant<Middle>' can't be assigned to the parameter type 'Contravariant<Upper>'.
+// [cfe] unspecified
 
   // Inference for Contrabound(...) produces Lower <: T <: Upper.
   // Since T is contravariant, we choose Upper as the solution.

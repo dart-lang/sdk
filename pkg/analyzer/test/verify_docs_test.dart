@@ -12,9 +12,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:test/test.dart';
-
-import 'utils/package_root.dart' as package_root;
 
 main() async {
   SnippetTester tester = SnippetTester();
@@ -25,30 +24,33 @@ main() async {
 }
 
 class SnippetTester {
-  OverlayResourceProvider provider;
-  Folder docFolder;
-  String snippetDirPath;
-  String snippetPath;
+  final OverlayResourceProvider provider;
+  final Folder docFolder;
+  final String snippetDirPath;
+  final String snippetPath;
 
-  StringBuffer output = StringBuffer();
+  final StringBuffer output = StringBuffer();
 
-  SnippetTester() {
-    provider = OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
-    String packageRoot =
-        provider.pathContext.normalize(package_root.packageRoot);
-    String analyzerPath = provider.pathContext.join(packageRoot, 'analyzer');
-    String docPath = provider.pathContext.join(analyzerPath, 'doc');
-    docFolder = provider.getFolder(docPath);
-    snippetDirPath =
+  factory SnippetTester() {
+    var provider = OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
+    var packageRoot = provider.pathContext.normalize(package_root.packageRoot);
+    var analyzerPath = provider.pathContext.join(packageRoot, 'analyzer');
+    var docPath = provider.pathContext.join(analyzerPath, 'doc');
+    var docFolder = provider.getFolder(docPath);
+    var snippetDirPath =
         provider.pathContext.join(analyzerPath, 'test', 'snippets');
-    snippetPath = provider.pathContext.join(snippetDirPath, 'snippet.dart');
+    var snippetPath = provider.pathContext.join(snippetDirPath, 'snippet.dart');
+    return SnippetTester._(provider, docFolder, snippetDirPath, snippetPath);
   }
 
-  void verify() async {
+  SnippetTester._(
+      this.provider, this.docFolder, this.snippetDirPath, this.snippetPath);
+
+  Future<void> verify() async {
     await verifyFolder(docFolder);
   }
 
-  void verifyFile(File file) async {
+  Future<void> verifyFile(File file) async {
     String content = file.readAsStringSync();
     List<String> lines = const LineSplitter().convert(content);
     List<String> codeLines = [];
@@ -73,7 +75,7 @@ class SnippetTester {
     }
   }
 
-  void verifyFolder(Folder folder) async {
+  Future<void> verifyFolder(Folder folder) async {
     for (Resource child in folder.getChildren()) {
       if (child is File) {
         if (child.shortName.endsWith('.md')) {
@@ -85,7 +87,7 @@ class SnippetTester {
     }
   }
 
-  void verifySnippet(File file, String snippet) async {
+  Future<void> verifySnippet(File file, String snippet) async {
     // TODO(brianwilkerson) When the files outside of 'src' contain only public
     //  API, write code to compute the list of imports so that new public API
     //  will automatically be allowed.

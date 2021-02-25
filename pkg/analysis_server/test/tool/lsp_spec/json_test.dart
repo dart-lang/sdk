@@ -142,6 +142,50 @@ void main() {
       expect(canParse, isTrue);
     });
 
+    test('canParse allows matching literal strings', () {
+      // The CreateFile type is defined with `{ kind: 'create' }` so the only
+      // allowed value for `kind` is "create".
+      final canParse = CreateFile.canParse({
+        'kind': 'create',
+        'uri': 'file:///temp/foo',
+      }, nullLspJsonReporter);
+      expect(canParse, isTrue);
+    });
+
+    test('canParse disallows non-matching literal strings', () {
+      // The CreateFile type is defined with `{ kind: 'create' }` so the only
+      // allowed value for `kind` is "create".
+      final canParse = CreateFile.canParse({
+        'kind': 'not-create',
+        'uri': 'file:///temp/foo',
+      }, nullLspJsonReporter);
+      expect(canParse, isFalse);
+    });
+
+    test('canParse handles unions of literals', () {
+      // Key = value to test
+      // Value whether expected to parse
+      const testTraceValues = {
+        'off': true,
+        'message': true,
+        'verbose': true,
+        null: true,
+        'invalid': false,
+      };
+      for (final testValue in testTraceValues.keys) {
+        final expected = testTraceValues[testValue];
+        final canParse = InitializeParams.canParse({
+          'processId': null,
+          'rootUri': null,
+          'capabilities': <String, Object>{},
+          'trace': testValue,
+        }, nullLspJsonReporter);
+        expect(canParse, expected,
+            reason: 'InitializeParams.canParse returned $canParse with a '
+                '"trace" value of "$testValue" but expected $expected');
+      }
+    });
+
     test('canParse validates optional fields', () {
       expect(
         RenameFileOptions.canParse(<String, Object>{}, nullLspJsonReporter),
@@ -336,7 +380,7 @@ void main() {
           InitializeParamsClientInfo(name: 'server name', version: '1.2.3'),
       rootPath: '!root',
       capabilities: ClientCapabilities(),
-      trace: '!trace',
+      trace: 'off',
       workspaceFolders: [
         WorkspaceFolder(uri: '!uri1', name: '!name1'),
         WorkspaceFolder(uri: '!uri2', name: '!name2'),

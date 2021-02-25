@@ -70,7 +70,7 @@ class Options {
 class ResultLogger extends Logger {
   final SuiteConfiguration suiteConfiguration;
   final Map<String, Stopwatch> stopwatches = {};
-  List<String> _log = new List<String>();
+  List<String> _log = <String>[];
 
   ResultLogger(this.suiteConfiguration);
 
@@ -201,7 +201,7 @@ main([List<String> arguments = const <String>[]]) async {
     options.flutterDir,
     options.flutterPlatformDir,
   );
-  Future future = Future<bool>(() async {
+  Future<bool> future = Future<bool>(() async {
     Stopwatch stopwatch = Stopwatch()..start();
     print("Running suite");
     Isolate isolate = await Isolate.spawn<SuiteConfiguration>(
@@ -209,6 +209,7 @@ main([List<String> arguments = const <String>[]]) async {
         onExit: exitPort.sendPort, onError: errorPort.sendPort);
     bool gotError = false;
     StreamSubscription errorSubscription = errorPort.listen((message) {
+      print("Got error: $message!");
       gotError = true;
       logs.add("$message");
     });

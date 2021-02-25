@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show Directory, File, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
@@ -87,9 +89,11 @@ class LanguageVersioningDataComputer extends DataComputer<Features> {
     for (Library library in component.libraries) {
       if (library.importUri.scheme == "dart") continue;
       Version lvFile =
-          await lv.languageVersionForUri(library.fileUri, stashedOptions);
+          (await lv.languageVersionForUri(library.fileUri, stashedOptions))
+              .version;
       Version lvImportUri =
-          await lv.languageVersionForUri(library.importUri, stashedOptions);
+          (await lv.languageVersionForUri(library.importUri, stashedOptions))
+              .version;
       if ((lvFile != lvImportUri || lvFile != library.languageVersion)) {
         throw """
 Language version disagreement:

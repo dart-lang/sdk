@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/parser_test.dart';
+import '../../../generated/parser_test_base.dart';
 import '../resolution/context_collection_resolution.dart';
 
 main() {
@@ -21,8 +21,8 @@ main() {
 
 @reflectiveTest
 class CompilationUnitImplTest extends ParserTestCase {
-  String testSource;
-  CompilationUnitImpl testUnit;
+  /*late*/ String testSource;
+  /*late*/ CompilationUnitImpl testUnit;
 
   parse(String source) {
     testSource = source;
@@ -84,7 +84,7 @@ class ExpressionImplTest extends ParserTestCase {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);
     NodeLocator visitor = NodeLocator(index);
-    AstNodeImpl node = visitor.searchWithin(testUnit);
+    var node = visitor.searchWithin(testUnit) as AstNodeImpl;
     expect(node, TypeMatcher<ExpressionImpl>());
     expect((node as ExpressionImpl).inConstantContext,
         isInContext ? isTrue : isFalse);

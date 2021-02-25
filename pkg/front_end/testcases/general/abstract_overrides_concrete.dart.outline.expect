@@ -25,12 +25,12 @@ library;
 // pkg/front_end/testcases/general/abstract_overrides_concrete.dart:23:7: Error: The implementation of 'foo' in the non-abstract class 'F' does not conform to its interface.
 // class F extends E {}
 //       ^
-// pkg/front_end/testcases/general/abstract_overrides_concrete.dart:6:8: Context: The method 'A.foo' has fewer positional arguments than those of overridden method 'E.foo'.
+// pkg/front_end/testcases/general/abstract_overrides_concrete.dart:6:8: Context: The method 'A.foo' has fewer positional arguments than those of overridden method 'I.foo'.
 //   void foo() {}
 //        ^
-// pkg/front_end/testcases/general/abstract_overrides_concrete.dart:21:16: Context: This is the overridden method ('foo').
-// abstract class E extends A implements I {}
-//                ^
+// pkg/front_end/testcases/general/abstract_overrides_concrete.dart:10:8: Context: This is the overridden method ('foo').
+//   void foo([a]);
+//        ^
 //
 import self as self;
 import "dart:core" as core;
@@ -78,12 +78,12 @@ class C extends self::B {
 class D extends self::A implements self::I {
   synthetic constructor •() → self::D*
     ;
-  abstract forwarding-stub method foo([dynamic a]) → void;
+  abstract member-signature method foo([dynamic a]) → void; -> self::I::foo
 }
 abstract class E extends self::A implements self::I {
   synthetic constructor •() → self::E*
     ;
-  abstract forwarding-stub method foo([dynamic a]) → void;
+  abstract member-signature method foo([dynamic a]) → void; -> self::I::foo
 }
 class F extends self::E {
   synthetic constructor •() → self::F*

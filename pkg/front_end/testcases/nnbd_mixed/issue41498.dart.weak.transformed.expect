@@ -45,7 +45,7 @@ static method test() → dynamic {
   (let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498.dart:24:3: Error: Non-nullable variable 'f' must be assigned before it can be used.
   f.toString(); // error
   ^" in f).{core::Object::toString}();
-  core::Function foo = () → core::Null? {
+  core::Function foo = () → Null {
     () → void f;
     (let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498.dart:29:5: Error: Non-nullable variable 'f' must be assigned before it can be used.
     f.toString(); // error
@@ -87,7 +87,7 @@ class C extends core::Object {
 static method test() → dynamic {
   () →* void f;
   f.{core::Object::toString}();
-  core::Function* foo = () → core::Null? {
+  core::Function* foo = () → Null {
     () →* void f;
     f.{core::Object::toString}();
   };

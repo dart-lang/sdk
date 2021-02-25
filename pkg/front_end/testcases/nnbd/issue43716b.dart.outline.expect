@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C<X extends (self::C::X%) →? void = (Never) →? void> extends core::Object {
+  generic-covariant-impl field self::C::X% x;
+  constructor •(self::C::X% x) → self::C<self::C::X%>
+    ;
+  method m() → void
+    ;
+}
+static field core::bool b;
+static method f(core::Object o) → void
+  ;
+static method main() → dynamic
+  ;

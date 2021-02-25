@@ -1,0 +1,31 @@
+main = main::main;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  static field dart.core::int? _#field = null;
+  static field dart.core::bool _#field#isSet = false;
+  static get field() → dart.core::int
+    return lib1::_#field#isSet ?{dart.core::int} let final dart.core::int? #t1 = lib1::_#field in #t1{dart.core::int} : throw new dart._internal::LateError::fieldNI("field");
+  static set field(dart.core::int #t2) → void {
+    lib1::_#field#isSet = true;
+    lib1::_#field = #t2;
+  }
+  static method method() → dynamic {
+    dart.core::print("foo");
+  }
+}
+library from "org-dartlang-test:///lib2.dart" as lib2 {
+additionalExports = (lib1::field,
+  lib1::method,
+  lib1::field)
+
+  export "org-dartlang-test:///lib1.dart";
+
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib2.dart";
+
+  static method main() → dynamic {
+    lib1::field = 87;
+  }
+}

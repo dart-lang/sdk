@@ -83,6 +83,10 @@ class FindNode {
     return _node(search, (n) => n is ConstructorFieldInitializer);
   }
 
+  ConstructorName constructorName(String search) {
+    return _node(search, (n) => n is ConstructorName);
+  }
+
   ContinueStatement continueStatement(String search) {
     return _node(search, (n) => n is ContinueStatement);
   }
@@ -163,6 +167,10 @@ class FindNode {
     return _node(search, (n) => n is IfElement);
   }
 
+  IfStatement ifStatement(String search) {
+    return _node(search, (n) => n is IfStatement);
+  }
+
   ImportDirective import(String search) {
     return _node(search, (n) => n is ImportDirective);
   }
@@ -209,6 +217,19 @@ class FindNode {
 
   NullLiteral nullLiteral(String search) {
     return _node(search, (n) => n is NullLiteral);
+  }
+
+  /// Return the unique offset where the [search] string occurs in [content].
+  /// Throws if not found, or if not unique.
+  int offset(String search) {
+    var offset = content.indexOf(search);
+    if (content.contains(search, offset + 1)) {
+      throw StateError('The pattern |$search| is not unique in:\n$content');
+    }
+    if (offset < 0) {
+      throw StateError('The pattern |$search| is not found in:\n$content');
+    }
+    return offset;
   }
 
   ParenthesizedExpression parenthesized(String search) {
@@ -337,15 +358,9 @@ class FindNode {
   }
 
   AstNode _node(String search, bool Function(AstNode) predicate) {
-    var index = content.indexOf(search);
-    if (content.contains(search, index + 1)) {
-      throw StateError('The pattern |$search| is not unique in:\n$content');
-    }
-    if (index < 0) {
-      throw StateError('The pattern |$search| is not found in:\n$content');
-    }
+    int offset = this.offset(search);
 
-    var node = NodeLocator2(index).searchWithin(unit);
+    var node = NodeLocator2(offset).searchWithin(unit);
     if (node == null) {
       throw StateError(
           'The pattern |$search| had no corresponding node in:\n$content');

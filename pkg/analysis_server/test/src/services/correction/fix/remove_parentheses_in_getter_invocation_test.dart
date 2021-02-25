@@ -20,7 +20,7 @@ class RemoveParenthesesInGetterInvocationTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REMOVE_PARENTHESIS_IN_GETTER_INVOCATION;
 
   Future<void> test_noArguments() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int get foo => 0;
 }

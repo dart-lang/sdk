@@ -19,7 +19,7 @@ class AddOverrideTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.annotate_overrides;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   void a() {}
   void aa() {}

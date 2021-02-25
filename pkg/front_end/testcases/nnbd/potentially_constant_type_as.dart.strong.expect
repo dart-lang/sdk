@@ -1,5 +1,6 @@
+library /*isNonNullableByDefault*/;
 //
-// Problems in component:
+// Problems in library:
 //
 // pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:61:9: Error: Constant evaluation error:
 //   const ClassWithFunction<Object>(objectFunction); // ok in weak mode
@@ -133,7 +134,6 @@
 //   const ClassWithFunction(dynamic value) : field = value as T Function(T);
 //                                                          ^
 //
-library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
@@ -254,3 +254,13 @@ constants  {
   #C28 = self::ClassWithFunction<core::int> {field:#C27}
   #C29 = self::ClassWithFunction<core::int> {field:#C3}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///potentially_constant_type_as.dart:
+- Class. (from org-dartlang-testcase:///potentially_constant_type_as.dart:16:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- ClassWithBound. (from org-dartlang-testcase:///potentially_constant_type_as.dart:22:9)
+- ClassWithBound.withValue (from org-dartlang-testcase:///potentially_constant_type_as.dart:24:9)
+- ClassWithList. (from org-dartlang-testcase:///potentially_constant_type_as.dart:30:9)
+- ClassWithFunction. (from org-dartlang-testcase:///potentially_constant_type_as.dart:36:9)

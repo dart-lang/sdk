@@ -745,6 +745,11 @@ class PowersetDomain implements AbstractValueDomain {
       _powersetBitsDomain.growableListType);
 
   @override
+  AbstractValue get mutableArrayType => PowersetValue(
+      _abstractValueDomain.mutableArrayType,
+      _powersetBitsDomain.mutableArrayType);
+
+  @override
   AbstractValue get nullType => PowersetValue(
       _abstractValueDomain.nullType, _powersetBitsDomain.nullType);
 

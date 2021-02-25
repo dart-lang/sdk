@@ -21,6 +21,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_exit.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_folding.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_format_on_type.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_format_range.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_formatting.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_hover.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_implementation.dart';
@@ -28,9 +29,11 @@ import 'package:analysis_server/src/lsp/handlers/handler_initialize.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialized.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_references.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_rename.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_semantic_tokens.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_shutdown.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_signature_help.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_text_document_changes.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_will_rename_files.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_workspace_configuration.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_workspace_symbols.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -81,6 +84,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(ImplementationHandler(server));
     registerHandler(FormattingHandler(server));
     registerHandler(FormatOnTypeHandler(server));
+    registerHandler(FormatRangeHandler(server));
     registerHandler(DocumentHighlightsHandler(server));
     registerHandler(DocumentSymbolHandler(server));
     registerHandler(CodeActionHandler(server));
@@ -98,6 +102,9 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(WorkspaceSymbolHandler(server));
     registerHandler(WorkspaceDidChangeConfigurationMessageHandler(server));
     registerHandler(ReanalyzeHandler(server));
+    registerHandler(WillRenameFilesHandler(server));
+    registerHandler(SemanticTokensFullHandler(server));
+    registerHandler(SemanticTokensRangeHandler(server));
   }
 }
 

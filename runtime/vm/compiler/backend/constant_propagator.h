@@ -36,7 +36,7 @@ class ConstantPropagator : public FlowGraphVisitor {
   static void OptimizeBranches(FlowGraph* graph);
 
   // Used to initialize the abstract value of definitions.
-  static ObjectPtr Unknown() { return Object::unknown_constant().raw(); }
+  static ObjectPtr Unknown() { return Object::unknown_constant().ptr(); }
 
  private:
   void Analyze();
@@ -60,9 +60,9 @@ class ConstantPropagator : public FlowGraphVisitor {
   // first one.
   void Join(Object* left, const Object& right);
 
-  bool IsUnknown(const Object& value) { return value.raw() == unknown_.raw(); }
+  bool IsUnknown(const Object& value) { return value.ptr() == unknown_.ptr(); }
   bool IsNonConstant(const Object& value) {
-    return value.raw() == non_constant_.raw();
+    return value.ptr() == non_constant_.ptr();
   }
   bool IsConstant(const Object& value) {
     return !IsNonConstant(value) && !IsUnknown(value);

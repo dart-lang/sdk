@@ -30,7 +30,7 @@ class FlutterCorrectionTest extends AbstractSingleUnitTest {
   @override
   void setUp() {
     super.setUp();
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
   }
 
 //  void _assertChange(SourceChange change, String expectedCode) {

@@ -24,7 +24,7 @@ class ReplaceNewWithConstTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_const_constructors;
 
   Future<void> test_new() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   const C();
 }
@@ -45,7 +45,7 @@ main() {
   }
 
   Future<void> test_noKeyword() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   const C();
 }

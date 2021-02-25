@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library kernel.transformations.track_widget_constructor_locations;
 
 import 'package:meta/meta.dart';
@@ -11,8 +13,8 @@ import '../target/changed_structure_notifier.dart';
 
 // Parameter name used to track were widget constructor calls were made from.
 //
-// The parameter name contains a randomly generated hex string to avoid collision
-// with user generated parameters.
+// The parameter name contains a randomly generated hex string to avoid
+// collision with user generated parameters.
 const String _creationLocationParameterName =
     r'$creationLocationd_0dea112b090073317d4';
 
@@ -360,7 +362,7 @@ class WidgetCreatorTracker {
   void _transformClassImplementingWidget(
       Class clazz, ChangedStructureNotifier changedStructureNotifier) {
     if (clazz.fields
-        .any((Field field) => field.name.name == _locationFieldName)) {
+        .any((Field field) => field.name.text == _locationFieldName)) {
       // This class has already been transformed. Skip
       return;
     }
@@ -375,14 +377,14 @@ class WidgetCreatorTracker {
       _locationFieldName,
       _hasCreationLocationClass.enclosingLibrary,
     );
-    final Field locationField = new Field(fieldName,
+    final Field locationField = new Field.immutable(fieldName,
         type:
             new InterfaceType(_locationClass, clazz.enclosingLibrary.nullable),
         isFinal: true,
-        reference: clazz.reference.canonicalName
+        getterReference: clazz.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
             ?.reference);
-    clazz.addMember(locationField);
+    clazz.addField(locationField);
 
     final Set<Constructor> _handledConstructors =
         new Set<Constructor>.identity();
@@ -396,10 +398,10 @@ class WidgetCreatorTracker {
         _creationLocationParameterName,
       ));
       final VariableDeclaration variable = new VariableDeclaration(
-        _creationLocationParameterName,
-        type:
-            new InterfaceType(_locationClass, clazz.enclosingLibrary.nullable),
-      );
+          _creationLocationParameterName,
+          type: new InterfaceType(
+              _locationClass, clazz.enclosingLibrary.nullable),
+          initializer: new NullLiteral());
       if (!_maybeAddNamedParameter(constructor.function, variable)) {
         return;
       }
@@ -424,14 +426,8 @@ class WidgetCreatorTracker {
         }
       }
       if (!hasRedirectingInitializer) {
-        constructor.initializers.add(new FieldInitializer(
-          locationField,
-          clazz.enclosingLibrary.isNonNullableByDefault
-              // The parameter is nullable so that it can be optional but the
-              // field is non-nullable so we check it here.
-              ? new NullCheck(new VariableGet(variable))
-              : new VariableGet(variable),
-        ));
+        constructor.initializers.add(
+            new FieldInitializer(locationField, new VariableGet(variable)));
         // TODO(jacobr): add an assert verifying the locationField is not
         // null. Currently, we cannot safely add this assert because we do not
         // handle Widget classes with optional positional arguments. There are
@@ -439,11 +435,12 @@ class WidgetCreatorTracker {
         // arguments but it is possible users could add classes with optional
         // positional arguments.
         //
-        // constructor.initializers.add(new AssertInitializer(new AssertStatement(
-        //   new IsExpression(
-        //       new VariableGet(variable), _locationClass.thisType),
-        //   conditionStartOffset: constructor.fileOffset,
-        //   conditionEndOffset: constructor.fileOffset,
+        // constructor.initializers.add(new AssertInitializer(
+        //   new AssertStatement(
+        //     new IsExpression(
+        //         new VariableGet(variable), _locationClass.thisType),
+        //     conditionStartOffset: constructor.fileOffset,
+        //     conditionEndOffset: constructor.fileOffset,
         // )));
       }
     }
@@ -547,7 +544,8 @@ class WidgetCreatorTracker {
           procedure.function,
           new VariableDeclaration(_creationLocationParameterName,
               type: new InterfaceType(
-                  _locationClass, clazz.enclosingLibrary.nullable)),
+                  _locationClass, clazz.enclosingLibrary.nullable),
+              initializer: new NullLiteral()),
         );
       }
     }
@@ -570,10 +568,12 @@ class WidgetCreatorTracker {
       final VariableDeclaration variable = new VariableDeclaration(
           _creationLocationParameterName,
           type: new InterfaceType(
-              _locationClass, clazz.enclosingLibrary.nullable));
+              _locationClass, clazz.enclosingLibrary.nullable),
+          initializer: new NullLiteral());
       if (_hasNamedParameter(
           constructor.function, _creationLocationParameterName)) {
-        // Constructor was already rewritten. TODO(jacobr): is this case actually hit?
+        // Constructor was already rewritten.
+        // TODO(jacobr): is this case actually hit?
         return;
       }
       if (!_maybeAddNamedParameter(constructor.function, variable)) {

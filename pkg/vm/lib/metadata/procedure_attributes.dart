@@ -110,8 +110,8 @@ class ProcedureAttributesMetadataRepository
     final bool hasNonThisUses = (flags & kNonThisUsesBit) != 0;
     final bool hasTearOffUses = (flags & kTearOffUsesBit) != 0;
 
-    final int methodOrSetterSelectorId = source.readUInt();
-    final int getterSelectorId = source.readUInt();
+    final int methodOrSetterSelectorId = source.readUInt30();
+    final int getterSelectorId = source.readUInt30();
 
     return new ProcedureAttributesMetadata(
         methodOrSetterCalledDynamically: methodOrSetterCalledDynamically,
@@ -121,14 +121,5 @@ class ProcedureAttributesMetadataRepository
         hasTearOffUses: hasTearOffUses,
         methodOrSetterSelectorId: methodOrSetterSelectorId,
         getterSelectorId: getterSelectorId);
-  }
-
-  /// Converts [metadata] into a bytecode attribute.
-  Constant getBytecodeAttribute(ProcedureAttributesMetadata metadata) {
-    return ListConstant(const DynamicType(), [
-      IntConstant(_getFlags(metadata)),
-      IntConstant(metadata.methodOrSetterSelectorId),
-      IntConstant(metadata.getterSelectorId),
-    ]);
   }
 }

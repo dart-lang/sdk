@@ -1,6 +1,7 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 library kernel.binary.tag;
 
 class Tag {
@@ -29,9 +30,9 @@ class Tag {
   // Expressions
   static const int CheckLibraryIsLoaded = 13;
   static const int LoadLibrary = 14;
-  static const int DirectPropertyGet = 15;
-  static const int DirectPropertySet = 16;
-  static const int DirectMethodInvocation = 17;
+  static const int EqualsNull = 15;
+  static const int EqualsCall = 16;
+  static const int StaticTearOff = 17;
   static const int ConstStaticInvocation = 18;
   static const int InvalidExpression = 19;
   static const int VariableGet = 20;
@@ -48,14 +49,9 @@ class Tag {
   static const int ConstructorInvocation = 31;
   static const int ConstConstructorInvocation = 32;
   static const int Not = 33;
-  static const int NullCheck = 117;
   static const int LogicalExpression = 34;
   static const int ConditionalExpression = 35;
   static const int StringConcatenation = 36;
-  static const int ListConcatenation = 111;
-  static const int SetConcatenation = 112;
-  static const int MapConcatenation = 113;
-  static const int InstanceCreation = 114;
   static const int IsExpression = 37;
   static const int AsExpression = 38;
   static const int StringLiteral = 39;
@@ -80,9 +76,27 @@ class Tag {
   static const int BigIntLiteral = 57;
   static const int ConstListLiteral = 58;
   static const int ConstMapLiteral = 59;
+
   static const int SetLiteral = 109;
   static const int ConstSetLiteral = 110;
+  static const int ListConcatenation = 111;
+  static const int SetConcatenation = 112;
+  static const int MapConcatenation = 113;
+  static const int InstanceCreation = 114;
   static const int FileUriExpression = 116;
+
+  /// 115 is occupied by [Extension].
+  static const int NullCheck = 117;
+  static const int InstanceGet = 118;
+  static const int InstanceSet = 119;
+  static const int InstanceInvocation = 120;
+  static const int InstanceTearOff = 121;
+  static const int DynamicGet = 122;
+  static const int DynamicSet = 123;
+  static const int DynamicInvocation = 124;
+  static const int FunctionInvocation = 125;
+  static const int FunctionTearOff = 126;
+  static const int LocalFunctionInvocation = 127;
 
   // Statements
   static const int ExpressionStatement = 61;
@@ -133,6 +147,16 @@ class Tag {
   /// 115 is occupied by [Extension].
   /// 116 is occupied by [FileUriExpression] (expression).
   /// 117 is occupied by [NullCheck] (expression).
+  /// 118 is occupied by [InstanceGet] (expression).
+  /// 119 is occupied by [InstanceSet] (expression).
+  /// 120 is occupied by [InstanceInvocation] (expression).
+  /// 121 is occupied by [InstanceTearOff] (expression).
+  /// 122 is occupied by [DynamicGet] (expression).
+  /// 123 is occupied by [DynamicSet] (expression).
+  /// 124 is occupied by [DynamicInvocation] (expression).
+  /// 125 is occupied by [FunctionInvocation] (expression).
+  /// 126 is occupied by [FunctionTearOff] (expression).
+  /// 127 is occupied by [LocalFunctionInvocation] (expression).
 
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000
@@ -149,7 +173,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 45;
+  static const int BinaryFormatVersion = 54;
 }
 
 abstract class ConstantTag {
@@ -180,7 +204,7 @@ const String sdkHashNull = '0000000000';
 // If null, local development setting (e.g. run gen_kernel.dart from source),
 // we put 0x00..00 into when producing, do not validate when consuming.
 String get expectedSdkHash {
-  final sdkHash =
+  final String sdkHash =
       const String.fromEnvironment('sdk_hash', defaultValue: sdkHashNull);
   if (sdkHash.length != sdkHashLength) {
     throw '-Dsdk_hash=<hash> must be a ${sdkHashLength} byte string!';

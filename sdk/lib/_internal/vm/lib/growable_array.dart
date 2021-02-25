@@ -107,6 +107,11 @@ class _GrowableList<T> extends ListBase<T> {
     return new _GrowableList<T>._withData(data);
   }
 
+  // Specialization of List.empty constructor for growable == true.
+  // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
+  @pragma("vm:prefer-inline")
+  factory _GrowableList.empty() => _GrowableList(0);
+
   // Specialization of List.filled constructor for growable == true.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
   factory _GrowableList.filled(int length, T fill) {
@@ -130,14 +135,83 @@ class _GrowableList<T> extends ListBase<T> {
     return result;
   }
 
+  // Specialization of List.of constructor for growable == true.
+  factory _GrowableList.of(Iterable<T> elements) {
+    if (elements is _GrowableList) {
+      return _GrowableList._ofGrowableList(unsafeCast(elements));
+    }
+    if (elements is _List) {
+      return _GrowableList._ofList(unsafeCast(elements));
+    }
+    if (elements is _ImmutableList) {
+      return _GrowableList._ofImmutableList(unsafeCast(elements));
+    }
+    if (elements is EfficientLengthIterable) {
+      return _GrowableList._ofEfficientLengthIterable(unsafeCast(elements));
+    }
+    return _GrowableList._ofOther(elements);
+  }
+
+  factory _GrowableList._ofList(_List<T> elements) {
+    final int length = elements.length;
+    final list = _GrowableList<T>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
+    }
+    return list;
+  }
+
+  factory _GrowableList._ofGrowableList(_GrowableList<T> elements) {
+    final int length = elements.length;
+    final list = _GrowableList<T>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
+    }
+    return list;
+  }
+
+  factory _GrowableList._ofImmutableList(_ImmutableList<T> elements) {
+    final int length = elements.length;
+    final list = _GrowableList<T>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
+    }
+    return list;
+  }
+
+  factory _GrowableList._ofEfficientLengthIterable(
+      EfficientLengthIterable<T> elements) {
+    final int length = elements.length;
+    final list = _GrowableList<T>(length);
+    if (length > 0) {
+      int i = 0;
+      for (var element in elements) {
+        list[i++] = element;
+      }
+      if (i != length) throw ConcurrentModificationError(elements);
+    }
+    return list;
+  }
+
+  factory _GrowableList._ofOther(Iterable<T> elements) {
+    final list = _GrowableList<T>(0);
+    for (var elements in elements) {
+      list.add(elements);
+    }
+    return list;
+  }
+
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type",
       <dynamic>[_GrowableList, "result-type-uses-passed-type-arguments"])
   factory _GrowableList._withData(_List data) native "GrowableList_allocate";
 
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
   int get _capacity native "GrowableList_getCapacity";
 
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
   int get length native "GrowableList_getLength";
@@ -170,16 +244,21 @@ class _GrowableList<T> extends ListBase<T> {
     _setLength(new_length);
   }
 
+  @pragma("vm:recognized", "graph-intrinsic")
   void _setLength(int new_length) native "GrowableList_setLength";
 
+  @pragma("vm:recognized", "graph-intrinsic")
   void _setData(_List array) native "GrowableList_setData";
 
+  @pragma("vm:recognized", "graph-intrinsic")
   T operator [](int index) native "GrowableList_getIndexed";
 
+  @pragma("vm:recognized", "other")
   void operator []=(int index, T value) {
     _setIndexed(index, value);
   }
 
+  @pragma("vm:recognized", "graph-intrinsic")
   void _setIndexed(int index, T? value) native "GrowableList_setIndexed";
 
   @pragma("vm:entry-point", "call")
@@ -187,7 +266,7 @@ class _GrowableList<T> extends ListBase<T> {
   void add(T value) {
     var len = length;
     if (len == _capacity) {
-      _grow(_nextCapacity(len));
+      _growToNextCapacity();
     }
     _setLength(len + 1);
     this[len] = value;
@@ -203,6 +282,9 @@ class _GrowableList<T> extends ListBase<T> {
       var cap = _capacity;
       // Pregrow if we know iterable.length.
       var iterLen = iterable.length;
+      if (iterLen == 0) {
+        return;
+      }
       var newLen = len + iterLen;
       if (newLen > cap) {
         do {
@@ -233,7 +315,7 @@ class _GrowableList<T> extends ListBase<T> {
         if (this.length != newLen) throw new ConcurrentModificationError(this);
         len = newLen;
       }
-      _grow(_nextCapacity(_capacity));
+      _growToNextCapacity();
     } while (true);
   }
 
@@ -291,6 +373,14 @@ class _GrowableList<T> extends ListBase<T> {
       }
     }
     _setData(newData);
+  }
+
+  // This method is marked as never-inline to conserve code size.
+  // It is called in rare cases, but used in the add() which is
+  // used very often and always inlined.
+  @pragma("vm:never-inline")
+  void _growToNextCapacity() {
+    _grow(_nextCapacity(_capacity));
   }
 
   void _shrink(int new_capacity, int new_length) {
@@ -430,5 +520,109 @@ class _GrowableList<T> extends ListBase<T> {
 
   Set<T> toSet() {
     return new Set<T>.of(this);
+  }
+
+  // Factory constructing a mutable List from a parser generated List literal.
+  // [elements] contains elements that are already type checked.
+  @pragma("vm:entry-point", "call")
+  factory _GrowableList._literal(_List elements) {
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(elements.length);
+    return result;
+  }
+
+  // Specialized list literal constructors.
+  // Used by pkg/vm/lib/transformations/list_literals_lowering.dart.
+  factory _GrowableList._literal1(T e0) {
+    _List elements = _List(1);
+    elements[0] = e0;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(1);
+    return result;
+  }
+
+  factory _GrowableList._literal2(T e0, T e1) {
+    _List elements = _List(2);
+    elements[0] = e0;
+    elements[1] = e1;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(2);
+    return result;
+  }
+
+  factory _GrowableList._literal3(T e0, T e1, T e2) {
+    _List elements = _List(3);
+    elements[0] = e0;
+    elements[1] = e1;
+    elements[2] = e2;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(3);
+    return result;
+  }
+
+  factory _GrowableList._literal4(T e0, T e1, T e2, T e3) {
+    _List elements = _List(4);
+    elements[0] = e0;
+    elements[1] = e1;
+    elements[2] = e2;
+    elements[3] = e3;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(4);
+    return result;
+  }
+
+  factory _GrowableList._literal5(T e0, T e1, T e2, T e3, T e4) {
+    _List elements = _List(5);
+    elements[0] = e0;
+    elements[1] = e1;
+    elements[2] = e2;
+    elements[3] = e3;
+    elements[4] = e4;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(5);
+    return result;
+  }
+
+  factory _GrowableList._literal6(T e0, T e1, T e2, T e3, T e4, T e5) {
+    _List elements = _List(6);
+    elements[0] = e0;
+    elements[1] = e1;
+    elements[2] = e2;
+    elements[3] = e3;
+    elements[4] = e4;
+    elements[5] = e5;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(6);
+    return result;
+  }
+
+  factory _GrowableList._literal7(T e0, T e1, T e2, T e3, T e4, T e5, T e6) {
+    _List elements = _List(7);
+    elements[0] = e0;
+    elements[1] = e1;
+    elements[2] = e2;
+    elements[3] = e3;
+    elements[4] = e4;
+    elements[5] = e5;
+    elements[6] = e6;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(7);
+    return result;
+  }
+
+  factory _GrowableList._literal8(
+      T e0, T e1, T e2, T e3, T e4, T e5, T e6, T e7) {
+    _List elements = _List(8);
+    elements[0] = e0;
+    elements[1] = e1;
+    elements[2] = e2;
+    elements[3] = e3;
+    elements[4] = e4;
+    elements[5] = e5;
+    elements[6] = e6;
+    elements[7] = e7;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(8);
+    return result;
   }
 }

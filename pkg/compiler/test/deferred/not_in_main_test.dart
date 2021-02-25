@@ -156,7 +156,7 @@ import 'shared.dart';
 typedef void F(x);
 
 main() {
-  print(foo is F);
+  print(getFoo() is F);
   def.loadLibrary().then((_) {
     def.toto();
   });
@@ -171,6 +171,7 @@ toto() { print(new A()); }
 class A {}
 class B extends A {}
 foo(B b) => null;
+getFoo() => foo;
 """,
 };
 
@@ -207,7 +208,8 @@ import 'def.dart' deferred as def;
 import 'shared.dart';
 
 main() {
-  print(5 is A);
+  var v = 5;
+  print(v is A);
   def.loadLibrary().then((_) {
     def.toto();
   });

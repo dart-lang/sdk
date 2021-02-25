@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -230,20 +228,19 @@ main() {
 
   Future<void> test_newInstance_nullElement() async {
     await indexTestUnit('');
-    var workspace = RefactoringWorkspace([driver], searchEngine);
+    var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);
     var refactoring = RenameRefactoring(workspace, testAnalysisResult, null);
     expect(refactoring, isNull);
   }
 
   void _createConstructorDeclarationRefactoring(String search) {
-    ConstructorElement element = findNodeElementAtString(
-        search, (node) => node is ConstructorDeclaration);
+    var element = findNode.constructor(search).declaredElement;
     createRenameRefactoringForElement(element);
   }
 
   void _createConstructorInvocationRefactoring(String search) {
-    ConstructorElement element = findNodeElementAtString(
-        search, (node) => node is InstanceCreationExpression);
+    var instanceCreation = findNode.instanceCreation(search);
+    var element = instanceCreation.constructorName.staticElement;
     createRenameRefactoringForElement(element);
   }
 }

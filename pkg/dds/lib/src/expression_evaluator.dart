@@ -2,15 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dds;
+import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+
+import 'client.dart';
+import 'dds_impl.dart';
+import 'rpc_error_codes.dart';
 
 /// A helper class which handles `evaluate` and `evaluateInFrame` calls by
 /// potentially forwarding compilation requests to an external compilation
 /// service like Flutter Tools.
-class _ExpressionEvaluator {
-  _ExpressionEvaluator(this.dds);
+class ExpressionEvaluator {
+  ExpressionEvaluator(this.dds);
 
   Future<Map<String, dynamic>> execute(json_rpc.Parameters parameters) async {
+    DartDevelopmentServiceClient externalClient =
+        dds.clientManager.findFirstClientThatHandlesService(
+      'compileExpression',
+    );
+    // If no compilation service is registered, just forward to the VM service.
+    if (externalClient == null) {
+      return await dds.vmServiceClient.sendRequest(
+        parameters.method,
+        parameters.value,
+      );
+    }
+
     final isolateId = parameters['isolateId'].asString;
     final expression = parameters['expression'].asString;
     Map<String, dynamic> buildScopeResponse;
@@ -18,8 +34,8 @@ class _ExpressionEvaluator {
     try {
       buildScopeResponse = await _buildScope(parameters);
     } on json_rpc.RpcException catch (e) {
-      throw _RpcErrorCodes.buildRpcException(
-        _RpcErrorCodes.kExpressionCompilationError,
+      throw RpcErrorCodes.buildRpcException(
+        RpcErrorCodes.kExpressionCompilationError,
         data: e.data,
       );
     }
@@ -28,8 +44,8 @@ class _ExpressionEvaluator {
       kernelBase64 =
           await _compileExpression(isolateId, expression, buildScopeResponse);
     } on json_rpc.RpcException catch (e) {
-      throw _RpcErrorCodes.buildRpcException(
-        _RpcErrorCodes.kExpressionCompilationError,
+      throw RpcErrorCodes.buildRpcException(
+        RpcErrorCodes.kExpressionCompilationError,
         data: e.data,
       );
     }
@@ -44,7 +60,7 @@ class _ExpressionEvaluator {
     if (parameters['scope'].asMapOr(null) != null) {
       params['scope'] = parameters['scope'].asMap;
     }
-    return await dds._vmServiceClient.sendRequest(
+    return await dds.vmServiceClient.sendRequest(
       '_buildExpressionEvaluationScope',
       params,
     );
@@ -52,10 +68,15 @@ class _ExpressionEvaluator {
 
   Future<String> _compileExpression(String isolateId, String expression,
       Map<String, dynamic> buildScopeResponseResult) async {
-    _DartDevelopmentServiceClient externalClient =
+    DartDevelopmentServiceClient externalClient =
         dds.clientManager.findFirstClientThatHandlesService(
       'compileExpression',
     );
+    if (externalClient == null) {
+      throw RpcErrorCodes.buildRpcException(
+          RpcErrorCodes.kExpressionCompilationError,
+          data: 'compileExpression service disappeared.');
+    }
 
     final compileParams = <String, dynamic>{
       'isolateId': isolateId,
@@ -70,23 +91,14 @@ class _ExpressionEvaluator {
     if (klass != null) {
       compileParams['klass'] = klass;
     }
-    // TODO(bkonyi): handle service disappeared case?
     try {
-      if (externalClient != null) {
-        return (await externalClient.sendRequest(
-          'compileExpression',
-          compileParams,
-        ))['kernelBytes'];
-      } else {
-        // Fallback to compiling using the kernel service.
-        return (await dds._vmServiceClient.sendRequest(
-          '_compileExpression',
-          compileParams,
-        ))['kernelBytes'];
-      }
+      return (await externalClient.sendRequest(
+        'compileExpression',
+        compileParams,
+      ))['kernelBytes'];
     } on json_rpc.RpcException catch (e) {
-      throw _RpcErrorCodes.buildRpcException(
-        _RpcErrorCodes.kExpressionCompilationError,
+      throw RpcErrorCodes.buildRpcException(
+        RpcErrorCodes.kExpressionCompilationError,
         data: e.data,
       );
     }
@@ -105,7 +117,7 @@ class _ExpressionEvaluator {
     if (parameters['scope'].asMapOr(null) != null) {
       params['scope'] = parameters['scope'].asMap;
     }
-    return await dds._vmServiceClient.sendRequest(
+    return await dds.vmServiceClient.sendRequest(
       '_evaluateCompiledExpression',
       params,
     );
@@ -124,5 +136,5 @@ class _ExpressionEvaluator {
     }
   }
 
-  final _DartDevelopmentService dds;
+  final DartDevelopmentServiceImpl dds;
 }

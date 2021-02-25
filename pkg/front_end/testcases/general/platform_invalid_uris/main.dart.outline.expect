@@ -47,16 +47,50 @@ class Class extends core::Object {
 }
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/patch_lib.dart:8:8: Error: Expected a URI.
+// import ':c';
+//        ^
+//
 import self as self3;
 
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/patch_lib.dart:9:1: Error: Expected a URI.
+// export ':d';
+// ^
+//
 import self as self4;
 
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/origin_lib.dart:5:8: Error: Expected a URI.
+// import ':a';
+//        ^
+//
 import self as self5;
 
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/origin_lib.dart:6:1: Error: Expected a URI.
+// export ':b';
+// ^
+//
 import self as self6;
+
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 1, effectively constant: 1

@@ -32,4 +32,10 @@ fi
 
 bin/flutter update-packages
 
+# Analyze the flutter/flutter source code.
 $dart --enable-asserts dev/bots/analyze.dart --dart-sdk $sdk
+
+# Test flutter's use of data-driven fixes.
+pushd packages/flutter/test_fixes
+../../../bin/dart fix --compare-to-golden
+popd

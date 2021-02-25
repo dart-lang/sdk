@@ -12,12 +12,14 @@ import 'dart:math' as math;
 
 import 'package:args/args.dart';
 import 'package:crypto/crypto.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 void main(List<String> args) async {
   var argParser = ArgParser()
     ..addFlag('verify', negatable: false)
     ..addFlag('dev', negatable: false)
+    ..addOption('dart2js_path')
     ..addFlag('help', negatable: false);
   var argResults = argParser.parse(args);
   if (argResults['help'] == true) {
@@ -44,11 +46,23 @@ Run with '--verify' to validate that the web resource have been regenerated.
   if (verify) {
     verifyResourcesGDartGenerated();
   } else {
-    await compileWebFrontEnd(devMode: dev);
+    await compileWebFrontEnd(
+        devMode: dev, dart2jsPath: dart2jsPath(argResults));
 
     print('');
 
     createResourcesGDart();
+  }
+}
+
+/// Returns the dart2jsPath, either from [argResults] or the Platform.
+String dart2jsPath(ArgResults argResults) {
+  if (argResults.wasParsed('dart2js_path')) {
+    return argResults['dart2js_path'] as String;
+  } else {
+    var sdkBinDir = path.dirname(Platform.resolvedExecutable);
+    var dart2jsBinary = Platform.isWindows ? 'dart2js.bat' : 'dart2js';
+    return path.join(sdkBinDir, dart2jsBinary);
   }
 }
 
@@ -88,11 +102,8 @@ String base64Encode(List<int> bytes) {
   return lines.join('\n');
 }
 
-void compileWebFrontEnd({bool devMode = false}) async {
-  var sdkBinDir = path.dirname(Platform.resolvedExecutable);
-  var dart2jsBinary = Platform.isWindows ? 'dart2js.bat' : 'dart2js';
-  var dart2jsPath = path.join(sdkBinDir, dart2jsBinary);
-
+Future<void> compileWebFrontEnd(
+    {@required bool devMode, @required String dart2jsPath}) async {
   // dart2js -m -o output source
   var process = await Process.start(dart2jsPath, [
     devMode ? '-O1' : '-m',

@@ -702,47 +702,12 @@ void FlowGraphAllocator::ProcessInitialDefinition(
     }
   }
 
-  if (defn->IsParameter()) {
-    // Only function entries may have unboxed parameters, possibly making the
-    // parameters size different from the number of parameters on 32-bit
-    // architectures.
-    const intptr_t parameters_size = block->IsFunctionEntry()
-                                         ? flow_graph_.direct_parameters_size()
-                                         : flow_graph_.num_direct_parameters();
-    ParameterInstr* param = defn->AsParameter();
-    intptr_t slot_index =
-        param->param_offset() + (second_location_for_definition ? -1 : 0);
-    ASSERT(slot_index >= 0);
-    if (param->base_reg() == FPREG) {
-      // Slot index for the rightmost fixed parameter is -1.
-      slot_index -= parameters_size;
-    } else {
-      // Slot index for a "frameless" parameter is reversed.
-      ASSERT(param->base_reg() == SPREG);
-      ASSERT(slot_index < parameters_size);
-      slot_index = parameters_size - 1 - slot_index;
-    }
-
-    if (param->base_reg() == FPREG) {
-      slot_index =
-          compiler::target::frame_layout.FrameSlotForVariableIndex(-slot_index);
-    } else {
-      ASSERT(param->base_reg() == SPREG);
-      slot_index += compiler::target::frame_layout.last_param_from_entry_sp;
-    }
-
-    if (param->representation() == kUnboxedInt64 ||
-        param->representation() == kTagged) {
-      const auto location = Location::StackSlot(slot_index, param->base_reg());
-      range->set_assigned_location(location);
-      range->set_spill_slot(location);
-    } else {
-      ASSERT(param->representation() == kUnboxedDouble);
-      const auto location =
-          Location::DoubleStackSlot(slot_index, param->base_reg());
-      range->set_assigned_location(location);
-      range->set_spill_slot(location);
-    }
+  if (auto param = defn->AsParameter()) {
+    const auto location =
+        ComputeParameterLocation(block, param, param->base_reg(),
+                                 second_location_for_definition ? 1 : 0);
+    range->set_assigned_location(location);
+    range->set_spill_slot(location);
   } else if (defn->IsSpecialParameter()) {
     SpecialParameterInstr* param = defn->AsSpecialParameter();
     ASSERT(param->kind() == SpecialParameterInstr::kArgDescriptor);
@@ -1405,7 +1370,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     }
   }
 
-// Block all allocatable registers for calls.
+  // Block all allocatable registers for calls.
   if (locs->always_calls() && !locs->callee_safe_call()) {
     // Expected shape of live range:
     //
@@ -1442,7 +1407,8 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
                pair->At(1).policy() == Location::kAny);
       } else {
         ASSERT(!locs->in(j).IsUnallocated() ||
-               locs->in(j).policy() == Location::kAny);
+               locs->in(j).policy() == Location::kAny ||
+               locs->in(j).policy() == Location::kRequiresStackSlot);
       }
     }
 
@@ -3011,6 +2977,164 @@ void FlowGraphAllocator::CollectRepresentations() {
   }
 }
 
+Location FlowGraphAllocator::ComputeParameterLocation(BlockEntryInstr* block,
+                                                      ParameterInstr* param,
+                                                      Register base_reg,
+                                                      intptr_t pair_index) {
+  ASSERT(pair_index == 0 || param->HasPairRepresentation());
+
+  // Only function entries may have unboxed parameters, possibly making the
+  // parameters size different from the number of parameters on 32-bit
+  // architectures.
+  const intptr_t parameters_size = block->IsFunctionEntry()
+                                       ? flow_graph_.direct_parameters_size()
+                                       : flow_graph_.num_direct_parameters();
+  intptr_t slot_index = param->param_offset() - pair_index;
+  ASSERT(slot_index >= 0);
+  if (base_reg == FPREG) {
+    // Slot index for the rightmost fixed parameter is -1.
+    slot_index -= parameters_size;
+  } else {
+    // Slot index for a "frameless" parameter is reversed.
+    ASSERT(base_reg == SPREG);
+    ASSERT(slot_index < parameters_size);
+    slot_index = parameters_size - 1 - slot_index;
+  }
+
+  if (base_reg == FPREG) {
+    slot_index =
+        compiler::target::frame_layout.FrameSlotForVariableIndex(-slot_index);
+  } else {
+    ASSERT(base_reg == SPREG);
+    slot_index += compiler::target::frame_layout.last_param_from_entry_sp;
+  }
+
+  if (param->representation() == kUnboxedInt64 ||
+      param->representation() == kTagged) {
+    return Location::StackSlot(slot_index, base_reg);
+  } else {
+    ASSERT(param->representation() == kUnboxedDouble);
+    return Location::DoubleStackSlot(slot_index, base_reg);
+  }
+}
+
+void FlowGraphAllocator::RemoveFrameIfNotNeeded() {
+  // Intrinsic functions are naturally frameless.
+  if (intrinsic_mode_) {
+    flow_graph_.graph_entry()->MarkFrameless();
+    return;
+  }
+
+  // For now only AOT compiled code in bare instructions mode supports
+  // frameless functions. Outside of bare instructions mode we need to preserve
+  // caller PP - so all functions need a frame if they have their own pool which
+  // is hard to determine at this stage.
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    return;
+  }
+
+  // Optional parameter handling needs special changes to become frameless.
+  // Specifically we need to rebase IL instructions which directly access frame
+  // ({Load,Store}IndexedUnsafeInstr) to use SP rather than FP.
+  // For now just always give such functions a frame.
+  if (flow_graph_.parsed_function().function().HasOptionalParameters()) {
+    return;
+  }
+
+  // If we have spills we need to create a frame.
+  if (flow_graph_.graph_entry()->spill_slot_count() > 0) {
+    return;
+  }
+
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM)
+  bool has_write_barrier_call = false;
+#endif
+  for (auto block : flow_graph_.reverse_postorder()) {
+    for (auto instruction : block->instructions()) {
+      if (instruction->HasLocs() && instruction->locs()->can_call()) {
+        // Function contains a call and thus needs a frame.
+        return;
+      }
+
+      // Some instructions contain write barriers inside, which can call
+      // a helper stub. This however is a leaf call and we can entirely
+      // ignore it on ia32 and x64, because return address is always on the
+      // stack. On ARM/ARM64 however return address is in LR and needs to
+      // be explicitly preserved in the frame. Write barrier instruction
+      // sequence has explicit support for emitting LR spill/restore
+      // if necessary, however for code size purposes it does not make
+      // sense to make function frameless if it contains more than 1
+      // write barrier invocation.
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM)
+      if (auto store_field = instruction->AsStoreInstanceField()) {
+        if (store_field->ShouldEmitStoreBarrier()) {
+          if (has_write_barrier_call) {
+            // We already have at least one write barrier call.
+            // For code size purposes it is better if we have copy of
+            // LR spill/restore.
+            return;
+          }
+          has_write_barrier_call = true;
+        }
+      }
+
+      if (auto store_indexed = instruction->AsStoreIndexed()) {
+        if (store_indexed->ShouldEmitStoreBarrier()) {
+          if (has_write_barrier_call) {
+            // We already have at least one write barrier call.
+            // For code size purposes it is better if we have copy of
+            // LR spill/restore.
+            return;
+          }
+          has_write_barrier_call = true;
+        }
+      }
+#endif
+    }
+  }
+
+  // Good to go. No need to setup a frame due to the call.
+  auto entry = flow_graph_.graph_entry();
+
+  entry->MarkFrameless();
+
+  // Fix location of parameters to use SP as their base register instead of FP.
+  auto fix_location_for = [&](BlockEntryInstr* block, ParameterInstr* param,
+                              intptr_t vreg, intptr_t pair_index) {
+    auto fp_relative =
+        ComputeParameterLocation(block, param, FPREG, pair_index);
+    auto sp_relative =
+        ComputeParameterLocation(block, param, SPREG, pair_index);
+    for (LiveRange* range = GetLiveRange(vreg); range != nullptr;
+         range = range->next_sibling()) {
+      if (range->assigned_location().Equals(fp_relative)) {
+        range->set_assigned_location(sp_relative);
+        range->set_spill_slot(sp_relative);
+        for (UsePosition* use = range->first_use(); use != nullptr;
+             use = use->next()) {
+          ASSERT(use->location_slot()->Equals(fp_relative));
+          *use->location_slot() = sp_relative;
+        }
+      }
+    }
+  };
+
+  for (auto block : entry->successors()) {
+    if (FunctionEntryInstr* entry = block->AsFunctionEntry()) {
+      for (auto defn : *entry->initial_definitions()) {
+        if (auto param = defn->AsParameter()) {
+          const auto vreg = param->ssa_temp_index();
+          fix_location_for(block, param, vreg, 0);
+          if (param->HasPairRepresentation()) {
+            fix_location_for(block, param, ToSecondPairVreg(vreg),
+                             /*pair_index=*/1);
+          }
+        }
+      }
+    }
+  }
+}
+
 void FlowGraphAllocator::AllocateRegisters() {
   CollectRepresentations();
 
@@ -3055,12 +3179,15 @@ void FlowGraphAllocator::AllocateRegisters() {
   PrepareForAllocation(Location::kFpuRegister, kNumberOfFpuRegisters,
                        unallocated_xmm_, fpu_regs_, blocked_fpu_registers_);
   AllocateUnallocatedRanges();
-  ResolveControlFlow();
 
   GraphEntryInstr* entry = block_order_[0]->AsGraphEntry();
   ASSERT(entry != NULL);
   intptr_t double_spill_slot_count = spill_slots_.length() * kDoubleSpillFactor;
   entry->set_spill_slot_count(cpu_spill_slot_count_ + double_spill_slot_count);
+
+  RemoveFrameIfNotNeeded();
+
+  ResolveControlFlow();
 
   if (FLAG_print_ssa_liveranges && CompilerState::ShouldTrace()) {
     const Function& function = flow_graph_.function();

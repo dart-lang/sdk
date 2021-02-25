@@ -21,7 +21,7 @@ import "dart:async"
         Zone,
         scheduleMicrotask;
 
-import "dart:collection" show HashMap;
+import "dart:collection" show HashMap, Queue;
 
 import "dart:convert" show Encoding, utf8;
 

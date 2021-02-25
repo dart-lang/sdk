@@ -27,12 +27,14 @@ class AddDiagnosticPropertyReferenceTest extends FixProcessorLintTest {
   @override
   void setUp() {
     super.setUp();
-    addFlutterPackage();
+    writeTestPackageConfig(
+      flutter: true,
+    );
   }
 
   Future<void> test_boolField() async {
     // todo(pq): when linter 0.1.118 is integrated, update DiagnosticableMixin to Diagnosticable
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -66,7 +68,7 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_boolField_empty() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -92,7 +94,7 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_boolField_empty_customParamName() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -118,7 +120,7 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_boolGetter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -148,7 +150,7 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_colorField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -178,7 +180,7 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_doubleField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -206,7 +208,7 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_dynamicField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -234,7 +236,7 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_enumField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -264,7 +266,7 @@ enum Foo {bar}
   }
 
   Future<void> test_functionField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -296,7 +298,7 @@ typedef ValueChanged<T> = void Function(T value);
   }
 
   Future<void> test_intField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -324,7 +326,7 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_iterableField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -352,7 +354,7 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_listField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -380,8 +382,11 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_matrix4Field() async {
-    addVectorMathPackage();
-    await resolveTestUnit('''
+    writeTestPackageConfig(
+      flutter: true,
+      vector_math: true,
+    );
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:vector_math/vector_math_64.dart';
@@ -411,7 +416,7 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_objectField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -439,7 +444,7 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_stringField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -467,7 +472,7 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_stringField_noDebugFillProperties() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -491,7 +496,7 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_typeOutOfScopeField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -523,7 +528,7 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_typeOutOfScopeGetter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -555,7 +560,7 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_varField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 

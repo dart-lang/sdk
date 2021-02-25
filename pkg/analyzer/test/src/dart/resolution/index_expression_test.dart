@@ -16,13 +16,39 @@ main() {
 
 @reflectiveTest
 class IndexExpressionTest extends PubPackageResolutionTest {
+  test_invalid_inDefaultValue_nullAware() async {
+    await assertInvalidTestCode(r'''
+void f({a = b?[0]}) {}
+''');
+
+    assertIndexExpression(
+      findNode.index('[0]'),
+      readElement: null,
+      writeElement: null,
+      type: 'dynamic',
+    );
+  }
+
+  test_invalid_inDefaultValue_nullAware2() async {
+    await assertInvalidTestCode(r'''
+typedef void F({a = b?[0]});
+''');
+
+    assertIndexExpression(
+      findNode.index('[0]'),
+      readElement: null,
+      writeElement: null,
+      type: 'dynamic',
+    );
+  }
+
   test_read() async {
     await assertNoErrorsInCode(r'''
 class A {
   bool operator[](int index) => false;
 }
 
-main(A a) {
+void f(A a) {
   a[0];
 }
 ''');
@@ -48,7 +74,7 @@ class A<T> {
   T operator[](int index) => throw 42;
 }
 
-main(A<double> a) {
+void f(A<double> a) {
   a[0];
 }
 ''');
@@ -78,7 +104,7 @@ class A {
   void operator[]=(int index, num value) {}
 }
 
-main(A a) {
+void f(A a) {
   a[0] += 1.2;
 }
 ''');
@@ -88,12 +114,14 @@ main(A a) {
     var numPlusElement = numElement.getMethod('+');
 
     var indexExpression = findNode.index('a[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: indexElement,
-      writeElement: indexEqElement,
-      type: 'num',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        indexExpression,
+        readElement: indexElement,
+        writeElement: indexEqElement,
+        type: 'num',
+      );
+    }
     assertParameterElement(
       indexExpression.index,
       indexEqElement.parameters[0],
@@ -125,7 +153,7 @@ class A<T> {
   void operator[]=(int index, T value) {}
 }
 
-main(A<double> a) {
+void f(A<double> a) {
   a[0] += 1.2;
 }
 ''');
@@ -135,18 +163,20 @@ main(A<double> a) {
     var doublePlusElement = doubleElement.getMethod('+');
 
     var indexExpression = findNode.index('a[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: elementMatcher(
-        indexElement,
-        substitution: {'T': 'double'},
-      ),
-      writeElement: elementMatcher(
-        indexEqElement,
-        substitution: {'T': 'double'},
-      ),
-      type: 'double',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        indexExpression,
+        readElement: elementMatcher(
+          indexElement,
+          substitution: {'T': 'double'},
+        ),
+        writeElement: elementMatcher(
+          indexEqElement,
+          substitution: {'T': 'double'},
+        ),
+        type: 'double',
+      );
+    }
     assertParameterElement(
       indexExpression.index,
       indexEqElement.parameters[0],
@@ -183,7 +213,7 @@ class A {
   void operator[]=(int index, num value) {}
 }
 
-main(A a) {
+void f(A a) {
   a[0] = 1.2;
 }
 ''');
@@ -191,12 +221,14 @@ main(A a) {
     var indexEqElement = findElement.method('[]=');
 
     var indexExpression = findNode.index('a[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: null,
-      writeElement: indexEqElement,
-      type: null,
-    );
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        indexExpression,
+        readElement: null,
+        writeElement: indexEqElement,
+        type: null,
+      );
+    }
     assertParameterElement(
       indexExpression.index,
       indexEqElement.parameters[0],
@@ -212,7 +244,10 @@ main(A a) {
       operatorElement: null,
       type: 'double',
     );
-    assertParameterElement(assignment.rightHandSide, null);
+    assertParameterElement(
+      assignment.rightHandSide,
+      indexEqElement.parameters[1],
+    );
   }
 
   test_write_generic() async {
@@ -221,7 +256,7 @@ class A<T> {
   void operator[]=(int index, T value) {}
 }
 
-main(A<double> a) {
+void f(A<double> a) {
   a[0] = 1.2;
 }
 ''');
@@ -229,15 +264,17 @@ main(A<double> a) {
     var indexEqElement = findElement.method('[]=');
 
     var indexExpression = findNode.index('a[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: null,
-      writeElement: elementMatcher(
-        indexEqElement,
-        substitution: {'T': 'double'},
-      ),
-      type: null,
-    );
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        indexExpression,
+        readElement: null,
+        writeElement: elementMatcher(
+          indexEqElement,
+          substitution: {'T': 'double'},
+        ),
+        type: null,
+      );
+    }
     assertParameterElement(
       indexExpression.index,
       indexEqElement.parameters[0],
@@ -256,7 +293,10 @@ main(A<double> a) {
       operatorElement: null,
       type: 'double',
     );
-    assertParameterElement(assignment.rightHandSide, null);
+    assertParameterElement(
+      assignment.rightHandSide,
+      indexEqElement.parameters[1],
+    );
   }
 }
 
@@ -269,7 +309,7 @@ class A {
   bool operator[](int index) => false;
 }
 
-main(A? a) {
+void f(A? a) {
   a?..[0]..[1];
 }
 ''');
@@ -299,7 +339,7 @@ class A {
   bool operator[](int index) => false;
 }
 
-main(A? a) {
+void f(A? a) {
   a?[0];
 }
 ''');
@@ -322,7 +362,7 @@ class A {
   void operator[]=(int index, num value) {}
 }
 
-main(A? a) {
+void f(A? a) {
   a?[0] += 1.2;
 }
 ''');
@@ -332,12 +372,14 @@ main(A? a) {
     var numPlusElement = numElement.getMethod('+');
 
     var indexExpression = findNode.index('a?[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: indexElement,
-      writeElement: indexEqElement,
-      type: 'num',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        indexExpression,
+        readElement: indexElement,
+        writeElement: indexEqElement,
+        type: 'num',
+      );
+    }
     assertParameterElement(
       indexExpression.index,
       indexEqElement.parameters[0],
@@ -365,26 +407,48 @@ class A {
   void operator[]=(int index, A a) {}
 }
 
-main(A? a) {
+void f(A? a) {
   a?..[0] = a..[1] = a;
 }
 ''');
 
     var indexEqElement = findElement.method('[]=');
 
-    assertIndexExpression(
-      findNode.index('..[0]'),
+    assertAssignment(
+      findNode.assignment('[0]'),
       readElement: null,
-      writeElement: indexEqElement,
-      type: null,
+      readType: null,
+      writeElement: findElement.method('[]='),
+      writeType: 'A',
+      operatorElement: null,
+      type: 'A',
     );
 
-    assertIndexExpression(
-      findNode.index('..[1]'),
+    assertAssignment(
+      findNode.assignment('[1]'),
       readElement: null,
-      writeElement: indexEqElement,
-      type: null,
+      readType: null,
+      writeElement: findElement.method('[]='),
+      writeType: 'A',
+      operatorElement: null,
+      type: 'A',
     );
+
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        findNode.index('..[0]'),
+        readElement: null,
+        writeElement: indexEqElement,
+        type: null,
+      );
+
+      assertIndexExpression(
+        findNode.index('..[1]'),
+        readElement: null,
+        writeElement: indexEqElement,
+        type: null,
+      );
+    }
 
     assertType(findNode.cascade('a?'), 'A?');
   }
@@ -395,7 +459,7 @@ class A {
   void operator[]=(int index, num value) {}
 }
 
-main(A? a) {
+void f(A? a) {
   a?[0] = 1.2;
 }
 ''');
@@ -403,12 +467,14 @@ main(A? a) {
     var indexEqElement = findElement.method('[]=');
 
     var indexExpression = findNode.index('a?[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: null,
-      writeElement: indexEqElement,
-      type: null,
-    );
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        indexExpression,
+        readElement: null,
+        writeElement: indexEqElement,
+        type: null,
+      );
+    }
     assertParameterElement(
       indexExpression.index,
       indexEqElement.parameters[0],
@@ -424,6 +490,9 @@ main(A? a) {
       operatorElement: null,
       type: 'double?',
     );
-    assertParameterElement(assignment.rightHandSide, null);
+    assertParameterElement(
+      assignment.rightHandSide,
+      indexEqElement.parameters[1],
+    );
   }
 }

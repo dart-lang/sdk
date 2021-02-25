@@ -95,8 +95,6 @@ throws(f(), String message) {
   dynamic value;
   try {
     value = f();
-  } on LateInitializationError catch (e) {
-    throw '$message: Unexpected LateInitializationError: $e';
   } catch (e) {
     print(e);
     return;

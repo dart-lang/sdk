@@ -140,6 +140,17 @@ void testCompleteManySuccessHandlers() {
     Expect.equals(3, after2);
     asyncEnd();
   });
+
+  // Regression test for fix to issue:
+  // https://github.com/dart-lang/sdk/issues/43445
+  asyncStart();
+  Future.wait<int>(<Future<int>>[]).then((list) {
+    Expect.equals(0, list.length);
+    Expect.type<List<int>>(list);
+    Expect.notType<List<Null>>(list);
+    Expect.notType<List<Never>>(list);
+    asyncEnd();
+  });
 }
 
 // Tests for [catchError]
@@ -698,7 +709,7 @@ void testCompleteErrorWithCustomFuture() {
 
 void testCompleteErrorWithNull() {
   final completer = new Completer<int>();
-  Expect.throwsArgumentError(() {
+  Expect.throwsTypeError(() {
     completer.completeError(null);
   });
 }
@@ -1076,7 +1087,7 @@ void testFutureResult() {
     var f = new UglyFuture(5);
     // Sanity check that our future is as mis-behaved as we think.
     f.then((v) {
-      Expect.isTrue(v is Future);
+      Expect.equals(UglyFuture(4), v);
     });
 
     var v = await f;
@@ -1084,13 +1095,11 @@ void testFutureResult() {
     // suggests that it flattens. In practice it currently doesn't.
     // The specification doesn't say anything special, so v should be the
     // completion value of the UglyFuture future which is a future.
-    Expect.isTrue(v is Future);
+    Expect.equals(UglyFuture(4), v);
 
-    // This used to hit an assert in checked mode.
-    // The CL adding this test changed the behavior to actually flatten the
-    // the future returned by the then-callback.
+    // We no longer flatten recursively in situations like this.
     var w = new Future.value(42).then((_) => f);
-    Expect.equals(42, await w);
+    Expect.equals(UglyFuture(4), await w);
     asyncEnd();
   }();
 }
@@ -1242,11 +1251,13 @@ class BadFuture<T> implements Future<T> {
 // An evil future that completes with another future.
 class UglyFuture implements Future<dynamic> {
   final _result;
+  final int _badness;
   UglyFuture(int badness)
-      : _result = (badness == 0) ? 42 : new UglyFuture(badness - 1);
+      : _badness = badness,
+        _result = (badness == 0) ? 42 : new UglyFuture(badness - 1);
   Future<S> then<S>(action(value), {Function onError}) {
     var c = new Completer<S>();
-    c.complete(new Future.microtask(() => action(_result)));
+    c.complete(new Future<S>.microtask(() => action(_result)));
     return c.future;
   }
 
@@ -1265,4 +1276,10 @@ class UglyFuture implements Future<dynamic> {
   Future timeout(Duration duration, {onTimeout()}) {
     return this;
   }
+
+  int get hashCode => _badness;
+  bool operator ==(Object other) =>
+      other is UglyFuture && _badness == other._badness;
+
+  String toString() => "UglyFuture($_badness)";
 }

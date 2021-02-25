@@ -5,16 +5,20 @@
 // part of "core_patch.dart";
 
 abstract class _IntegerImplementation implements int {
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   num operator +(num other) => other._addFromInteger(this);
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   num operator -(num other) => other._subFromInteger(this);
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   num operator *(num other) => other._mulFromInteger(this);
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator ~/(num other) {
@@ -36,6 +40,7 @@ abstract class _IntegerImplementation implements int {
     return other._moduloFromInteger(this);
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator -() {
@@ -44,12 +49,15 @@ abstract class _IntegerImplementation implements int {
     return unsafeCast<int>(0 - this);
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator &(int other) => other._bitAndFromInteger(this);
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator |(int other) => other._bitOrFromInteger(this);
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator ^(int other) => other._bitXorFromInteger(this);
@@ -60,24 +68,31 @@ abstract class _IntegerImplementation implements int {
 
   @pragma("vm:non-nullable-result-type")
   int _bitAndFromSmi(_Smi other) native "Integer_bitAndFromInteger";
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _bitAndFromInteger(int other) native "Integer_bitAndFromInteger";
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _bitOrFromInteger(int other) native "Integer_bitOrFromInteger";
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _bitXorFromInteger(int other) native "Integer_bitXorFromInteger";
   @pragma("vm:non-nullable-result-type")
   int _shrFromInteger(int other) native "Integer_shrFromInteger";
   @pragma("vm:non-nullable-result-type")
   int _shlFromInteger(int other) native "Integer_shlFromInteger";
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _addFromInteger(int other) native "Integer_addFromInteger";
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _subFromInteger(int other) native "Integer_subFromInteger";
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _mulFromInteger(int other) native "Integer_mulFromInteger";
   @pragma("vm:non-nullable-result-type")
   int _truncDivFromInteger(int other) native "Integer_truncDivFromInteger";
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _moduloFromInteger(int other) native "Integer_moduloFromInteger";
   int _remainderFromInteger(int other) {
@@ -86,41 +101,49 @@ abstract class _IntegerImplementation implements int {
     return unsafeCast<int>(other - (other ~/ this) * this);
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator >>(int other) => other._shrFromInteger(this);
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator <<(int other) => other._shlFromInteger(this);
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   @pragma("vm:never-inline")
   bool operator <(num other) {
     return other > this;
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   @pragma("vm:never-inline")
   bool operator >(num other) {
     return other._greaterThanFromInteger(this);
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   @pragma("vm:never-inline")
   bool operator >=(num other) {
     return (this == other) || (this > other);
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   @pragma("vm:never-inline")
   bool operator <=(num other) {
     return (this == other) || (this < other);
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   bool _greaterThanFromInteger(int other)
       native "Integer_greaterThanFromInteger";
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   @pragma("vm:never-inline")
   bool operator ==(Object other) {
@@ -130,6 +153,7 @@ abstract class _IntegerImplementation implements int {
     return false;
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   bool _equalToInteger(int other) native "Integer_equalToInteger";
   int abs() {
@@ -137,7 +161,11 @@ abstract class _IntegerImplementation implements int {
   }
 
   int get sign {
-    return (this > 0) ? 1 : (this < 0) ? -1 : 0;
+    return (this > 0)
+        ? 1
+        : (this < 0)
+            ? -1
+            : 0;
   }
 
   bool get isEven => ((this & 1) == 0);
@@ -268,6 +296,7 @@ abstract class _IntegerImplementation implements int {
     return this;
   }
 
+  @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Double)
   double toDouble() {
     return new _Double.fromInteger(this);
@@ -515,13 +544,16 @@ class _Smi extends _IntegerImplementation {
 
   int get hashCode => this;
   int get _identityHashCode => this;
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator ~() native "Smi_bitNegate";
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get bitLength native "Smi_bitLength";
 
   int operator &(int other) => other._bitAndFromSmi(this);
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int _bitAndFromSmi(_Smi other) native "Smi_bitAndFromSmi";
 

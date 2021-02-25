@@ -7,7 +7,7 @@ static method helper(core::Map<core::String*, dynamic>* input) → void {
   core::print(input);
 }
 static method main() → void {
-  final core::Map<core::String*, core::Null?>* nullValueMap = core::Map::fromEntries<core::String*, core::Null?>((#C4).{core::Map::entries}.{core::Iterable::map}<core::MapEntry<core::String*, core::Null?>*>((core::MapEntry<core::String*, dynamic>* e) → core::MapEntry<core::String*, core::Null?>* => new core::MapEntry::_<core::String*, core::Null?>(e.{core::MapEntry::key}, null)));
+  final core::Map<core::String*, Null>* nullValueMap = core::Map::fromEntries<core::String*, Null>((#C4).{core::Map::entries}.{core::Iterable::map}<core::MapEntry<core::String*, Null>*>((core::MapEntry<core::String*, dynamic>* e) → core::MapEntry<core::String*, Null>* => new core::MapEntry::_<core::String*, Null>(e.{core::MapEntry::key}, null)));
   self::helper(nullValueMap);
 }
 

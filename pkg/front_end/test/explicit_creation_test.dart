@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart';
@@ -39,16 +41,10 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import "package:vm/target/vm.dart" show VmTarget;
 
-final Uri repoDir = _computeRepoDir();
+import 'testing_utils.dart' show getGitFiles;
+import "utils/io_utils.dart";
 
-Uri _computeRepoDir() {
-  ProcessResult result = Process.runSync(
-      'git', ['rev-parse', '--show-toplevel'],
-      runInShell: true,
-      workingDirectory: new File.fromUri(Platform.script).parent.path);
-  String dirPath = (result.stdout as String).trim();
-  return new Directory(dirPath).uri;
-}
+final Uri repoDir = computeRepoDirUri();
 
 Set<Uri> libUris = {};
 
@@ -77,10 +73,13 @@ Future<void> main(List<String> args) async {
     }
   }
   for (Uri uri in libUris) {
+    Set<Uri> gitFiles = await getGitFiles(uri);
     List<FileSystemEntity> entities =
         new Directory.fromUri(uri).listSync(recursive: true);
     for (FileSystemEntity entity in entities) {
-      if (entity is File && entity.path.endsWith(".dart")) {
+      if (entity is File &&
+          entity.path.endsWith(".dart") &&
+          gitFiles.contains(entity.uri)) {
         options.inputs.add(entity.uri);
       }
     }

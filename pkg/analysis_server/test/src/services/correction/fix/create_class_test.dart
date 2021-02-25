@@ -22,7 +22,7 @@ class CreateClassTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_CLASS;
 
   Future<void> test_annotation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 @Test('a')
 void f() {}
 ''');
@@ -39,7 +39,7 @@ class Test {
   }
 
   Future<void> test_extends() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyClass extends BaseClass {}
 ''');
     await assertHasFix('''
@@ -51,7 +51,7 @@ class BaseClass {
   }
 
   Future<void> test_hasUnresolvedPrefix() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   prefix.Test v = null;
   print(v);
@@ -61,7 +61,7 @@ main() {
   }
 
   Future<void> test_implements() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyClass implements BaseClass {}
 ''');
     await assertHasFix('''
@@ -77,7 +77,7 @@ class BaseClass {
 class A {}
 ''');
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'lib.dart' as lib;
 
 main() {
@@ -97,7 +97,7 @@ class Test {
   }
 
   Future<void> test_innerLocalFunction() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   g() {
     Test v = null;
@@ -122,7 +122,7 @@ class Test {
   }
 
   Future<void> test_instanceCreation_withoutNew_fromFunction() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Test ();
 }
@@ -139,7 +139,7 @@ class Test {
   }
 
   Future<void> test_instanceCreation_withoutNew_fromMethod() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   main() {
     Test ();
@@ -160,7 +160,7 @@ class Test {
   }
 
   Future<void> test_itemOfList() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var a = [Test];
   print(a);
@@ -179,7 +179,7 @@ class Test {
   }
 
   Future<void> test_itemOfList_inAnnotation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyAnnotation {
   const MyAnnotation(a, b);
 }
@@ -202,7 +202,7 @@ class Test {
   }
 
   Future<void> test_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Test v = null;
   print(v);
@@ -221,7 +221,7 @@ class Test {
   }
 
   Future<void> test_with() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyClass with BaseClass {}
 ''');
     await assertHasFix('''

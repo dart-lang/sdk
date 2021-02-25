@@ -13,7 +13,6 @@ import 'completion_contributor_util.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeMemberContributorTest);
-    defineReflectiveTests(TypeMemberContributorWithNewRelevanceTest);
   });
 }
 
@@ -78,7 +77,7 @@ void main() {new A().a^}''');
   }
 
   Future<void> test_ArgDefaults_method_with_optional_positional() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -93,7 +92,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_ArgDefaults_method_with_required_named() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -105,7 +104,7 @@ void main() {new A().f^}''');
     await computeSuggestions();
 
     assertSuggestMethod('foo', 'A', 'bool',
-        defaultArgListString: 'bar, baz: null');
+        defaultArgListString: 'bar, baz: baz');
   }
 
   Future<void> test_ArgumentList() async {
@@ -1075,7 +1074,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_Block_unimported() async {
-    addPackageFile('aaa', 'a.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
     addTestSource('main() { ^ }');
 
     await computeSuggestions();
@@ -4264,11 +4263,4 @@ class C with M {
     assertNotSuggested('x');
     assertNotSuggested('e');
   }
-}
-
-@reflectiveTest
-class TypeMemberContributorWithNewRelevanceTest
-    extends TypeMemberContributorTest {
-  @override
-  bool get useNewRelevance => true;
 }

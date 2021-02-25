@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show exitCode, File, stdout;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
@@ -139,8 +141,8 @@ class TestCompiler {
 
     final Set<String> formattedErrors = new Set<String>();
     final Set<String> formattedWarnings = new Set<String>();
-    final List<Code> formattedErrorsCodes = new List<Code>();
-    final List<Code> formattedWarningsCodes = new List<Code>();
+    final List<Code> formattedErrorsCodes = <Code>[];
+    final List<Code> formattedWarningsCodes = <Code>[];
 
     options.onDiagnostic = (DiagnosticMessage message) {
       String stringId = message.ansiFormatted.join("\n");
@@ -223,6 +225,6 @@ class Generator {
   Generator(this.typeParameters, this.beforePlug, this.afterPlug);
 
   String generate(String plug) {
-    return "${beforePlug}${plug}${afterPlug}";
+    return "// @dart = 2.9\n${beforePlug}${plug}${afterPlug}";
   }
 }

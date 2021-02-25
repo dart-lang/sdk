@@ -192,6 +192,24 @@ final Matcher isAvailableSuggestionSet = LazyMatcher(() => MatchesJsonObject(
     'AvailableSuggestionSet',
     {'id': isInt, 'uri': isString, 'items': isListOf(isAvailableSuggestion)}));
 
+/// BulkFix
+///
+/// {
+///   "path": FilePath
+///   "fixes": List<BulkFixDetail>
+/// }
+final Matcher isBulkFix = LazyMatcher(() => MatchesJsonObject(
+    'BulkFix', {'path': isFilePath, 'fixes': isListOf(isBulkFixDetail)}));
+
+/// BulkFixDetail
+///
+/// {
+///   "code": String
+///   "occurrences": int
+/// }
+final Matcher isBulkFixDetail = LazyMatcher(() => MatchesJsonObject(
+    'BulkFixDetail', {'code': isString, 'occurrences': isInt}));
+
 /// ChangeContentOverlay
 ///
 /// {
@@ -288,6 +306,7 @@ final Matcher isCompletionSuggestion =
 ///   OPTIONAL_ARGUMENT
 ///   OVERRIDE
 ///   PARAMETER
+///   PACKAGE_NAME
 /// }
 final Matcher isCompletionSuggestionKind =
     MatchesEnum('CompletionSuggestionKind', [
@@ -299,7 +318,8 @@ final Matcher isCompletionSuggestionKind =
   'NAMED_ARGUMENT',
   'OPTIONAL_ARGUMENT',
   'OVERRIDE',
-  'PARAMETER'
+  'PARAMETER',
+  'PACKAGE_NAME'
 ]);
 
 /// ContextData
@@ -428,6 +448,7 @@ final Matcher isElementDeclaration =
 ///   PREFIX
 ///   SETTER
 ///   TOP_LEVEL_VARIABLE
+///   TYPE_ALIAS
 ///   TYPE_PARAMETER
 ///   UNIT_TEST_GROUP
 ///   UNIT_TEST_TEST
@@ -457,6 +478,7 @@ final Matcher isElementKind = MatchesEnum('ElementKind', [
   'PREFIX',
   'SETTER',
   'TOP_LEVEL_VARIABLE',
+  'TYPE_ALIAS',
   'TYPE_PARAMETER',
   'UNIT_TEST_GROUP',
   'UNIT_TEST_TEST',
@@ -703,6 +725,7 @@ final Matcher isFlutterWidgetPropertyValueEnumItem = LazyMatcher(() =>
 ///   ANNOTATIONS
 ///   BLOCK
 ///   CLASS_BODY
+///   COMMENT
 ///   DIRECTIVES
 ///   DOCUMENTATION_COMMENT
 ///   FILE_HEADER
@@ -714,6 +737,7 @@ final Matcher isFoldingKind = MatchesEnum('FoldingKind', [
   'ANNOTATIONS',
   'BLOCK',
   'CLASS_BODY',
+  'COMMENT',
   'DIRECTIVES',
   'DOCUMENTATION_COMMENT',
   'FILE_HEADER',
@@ -824,6 +848,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   TOP_LEVEL_SETTER_DECLARATION
 ///   TOP_LEVEL_SETTER_REFERENCE
 ///   TOP_LEVEL_VARIABLE_DECLARATION
+///   TYPE_ALIAS
 ///   TYPE_NAME_DYNAMIC
 ///   TYPE_PARAMETER
 ///   UNRESOLVED_INSTANCE_MEMBER_REFERENCE
@@ -899,6 +924,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'TOP_LEVEL_SETTER_DECLARATION',
   'TOP_LEVEL_SETTER_REFERENCE',
   'TOP_LEVEL_VARIABLE_DECLARATION',
+  'TYPE_ALIAS',
   'TYPE_NAME_DYNAMIC',
   'TYPE_PARAMETER',
   'UNRESOLVED_INSTANCE_MEMBER_REFERENCE',
@@ -1206,12 +1232,17 @@ final Matcher isParameterInfo = LazyMatcher(() => MatchesJsonObject(
 /// ParameterKind
 ///
 /// enum {
-///   NAMED
-///   OPTIONAL
-///   REQUIRED
+///   OPTIONAL_NAMED
+///   OPTIONAL_POSITIONAL
+///   REQUIRED_NAMED
+///   REQUIRED_POSITIONAL
 /// }
-final Matcher isParameterKind =
-    MatchesEnum('ParameterKind', ['NAMED', 'OPTIONAL', 'REQUIRED']);
+final Matcher isParameterKind = MatchesEnum('ParameterKind', [
+  'OPTIONAL_NAMED',
+  'OPTIONAL_POSITIONAL',
+  'REQUIRED_NAMED',
+  'REQUIRED_POSITIONAL'
+]);
 
 /// Position
 ///
@@ -1365,6 +1396,7 @@ final Matcher isRequestError = LazyMatcher(() => MatchesJsonObject(
 ///   FORMAT_INVALID_FILE
 ///   FORMAT_WITH_ERRORS
 ///   GET_ERRORS_INVALID_FILE
+///   GET_FIXES_INVALID_FILE
 ///   GET_IMPORTED_ELEMENTS_INVALID_FILE
 ///   GET_KYTHE_ENTRIES_INVALID_FILE
 ///   GET_NAVIGATION_INVALID_FILE
@@ -1401,6 +1433,7 @@ final Matcher isRequestErrorCode = MatchesEnum('RequestErrorCode', [
   'FORMAT_INVALID_FILE',
   'FORMAT_WITH_ERRORS',
   'GET_ERRORS_INVALID_FILE',
+  'GET_FIXES_INVALID_FILE',
   'GET_IMPORTED_ELEMENTS_INVALID_FILE',
   'GET_KYTHE_ENTRIES_INVALID_FILE',
   'GET_NAVIGATION_INVALID_FILE',
@@ -1595,23 +1628,6 @@ final Matcher isSourceEdit = LazyMatcher(() => MatchesJsonObject(
 final Matcher isSourceFileEdit = LazyMatcher(() => MatchesJsonObject(
     'SourceFileEdit',
     {'file': isFilePath, 'fileStamp': isInt, 'edits': isListOf(isSourceEdit)}));
-
-/// TokenDetails
-///
-/// {
-///   "lexeme": String
-///   "type": optional String
-///   "validElementKinds": optional List<String>
-///   "offset": int
-/// }
-final Matcher isTokenDetails = LazyMatcher(() => MatchesJsonObject(
-        'TokenDetails', {
-      'lexeme': isString,
-      'offset': isInt
-    }, optionalFields: {
-      'type': isString,
-      'validElementKinds': isListOf(isString)
-    }));
 
 /// TypeHierarchyItem
 ///
@@ -2105,24 +2121,6 @@ final Matcher isCompletionGetSuggestionsResult = LazyMatcher(() =>
     MatchesJsonObject(
         'completion.getSuggestions result', {'id': isCompletionId}));
 
-/// completion.listTokenDetails params
-///
-/// {
-///   "file": FilePath
-/// }
-final Matcher isCompletionListTokenDetailsParams = LazyMatcher(() =>
-    MatchesJsonObject(
-        'completion.listTokenDetails params', {'file': isFilePath}));
-
-/// completion.listTokenDetails result
-///
-/// {
-///   "tokens": List<TokenDetails>
-/// }
-final Matcher isCompletionListTokenDetailsResult = LazyMatcher(() =>
-    MatchesJsonObject('completion.listTokenDetails result',
-        {'tokens': isListOf(isTokenDetails)}));
-
 /// completion.registerLibraryPaths params
 ///
 /// {
@@ -2214,17 +2212,21 @@ final Matcher isDiagnosticGetServerPortResult = LazyMatcher(() =>
 ///
 /// {
 ///   "included": List<FilePath>
+///   "inTestMode": optional bool
 /// }
 final Matcher isEditBulkFixesParams = LazyMatcher(() => MatchesJsonObject(
-    'edit.bulkFixes params', {'included': isListOf(isFilePath)}));
+    'edit.bulkFixes params', {'included': isListOf(isFilePath)},
+    optionalFields: {'inTestMode': isBool}));
 
 /// edit.bulkFixes result
 ///
 /// {
 ///   "edits": List<SourceFileEdit>
+///   "details": List<BulkFix>
 /// }
 final Matcher isEditBulkFixesResult = LazyMatcher(() => MatchesJsonObject(
-    'edit.bulkFixes result', {'edits': isListOf(isSourceFileEdit)}));
+    'edit.bulkFixes result',
+    {'edits': isListOf(isSourceFileEdit), 'details': isListOf(isBulkFix)}));
 
 /// edit.dartfix params
 ///

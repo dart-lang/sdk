@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'package:kernel/core_types.dart';
 
 import 'package:kernel/type_algebra.dart';
-
-import 'package:kernel/src/replacement_visitor.dart';
 
 import 'package:kernel/type_environment.dart';
 
@@ -295,106 +295,7 @@ abstract class TypeConstraintGatherer {
     // it return `true` for both Null and bottom types?  Revisit this once
     // enough functionality is implemented that we can compare the behavior with
     // the old analyzer-based implementation.
-    return type == coreTypes.nullType;
-  }
-
-  /// Computes [type] as if declared without nullability markers.
-  ///
-  /// The algorithm implemented by [_isNullabilityAwareSubtypeMatch] uses the
-  /// notion of the nullable and the legacy type constructors, that is, int? and
-  /// int* are applications of the nullable and the legacy type constructors to
-  /// type int correspondingly.  The algorithm requires the ability to peel off
-  /// the two type constructors from the underlying types, which is done by
-  /// [_computeRawType].
-  DartType _computeRawType(DartType type) {
-    if (type is TypeParameterType) {
-      if (type.promotedBound == null) {
-        // The default nullability for library is used when there are no
-        // nullability markers on the type.
-        return new TypeParameterType.withDefaultNullabilityForLibrary(
-            type.parameter, _currentLibrary);
-      } else {
-        // Intersection types can't be arguments to the nullable and the legacy
-        // type constructors, so nothing can be peeled off.
-        return type;
-      }
-    } else if (type == coreTypes.nullType) {
-      return type;
-    } else {
-      // For most types, peeling off the nullability constructors means that
-      // they become non-nullable.
-      return type.withDeclaredNullability(Nullability.nonNullable);
-    }
-  }
-
-  /// Returns true if [type] is declared without nullability markers.
-  ///
-  /// The algorithm implemented by [_isNullabilityAwareSubtypeMatch] uses the
-  /// notion of the nullable and the legacy type constructors, that is, int? and
-  /// int* are applications of the nullable and the legacy type constructors to
-  /// type int correspondingly.  The algorithm requires the ability to detect if
-  /// a type is raw, that is, if it is declared without any of the two
-  /// constructors.  Method [_isRawTypeParameterType] implements that check for
-  /// [TypeParameterType]s.  For most types, comparing their
-  /// [DartType.declaredNullability] is enough, but the case of
-  /// [TypeParameterType]s is more complex for two reasons: (1) intersection
-  /// types are encoded as [TypeParameterType]s, and they can't be arguments of
-  /// the nullability constructors, and (2) if a [TypeParameterType] is declared
-  /// raw, its semantic nullability can be anything from
-  /// [Nullability.nonNullable], [Nullability.undetermined], and
-  /// [Nullability.legacy], depending on the bound.  [_isRawTypeParameterType]
-  /// checks if [type] has the same nullability as if it was declared without
-  /// any nullability markers by the programmer.
-  bool _isRawTypeParameterType(TypeParameterType type) {
-    // The default nullability for library is used when there are no nullability
-    // markers on the type.
-    return type.promotedBound == null &&
-        type.declaredNullability ==
-            new TypeParameterType.withDefaultNullabilityForLibrary(
-                    type.parameter, _currentLibrary)
-                .declaredNullability;
-  }
-
-  /// Returns true if [type] is an application of the nullable type constructor.
-  ///
-  /// The algorithm implemented by [_isNullabilityAwareSubtypeMatch] uses the
-  /// notion of the nullable type constructor, that is, int? is an application
-  /// of the nullable type constructor to type int.  The algorithm requires the
-  /// ability to detect if a type is an application of the nullable constructor
-  /// to another type, which is done by [_isNullableTypeConstructorApplication].
-  bool _isNullableTypeConstructorApplication(DartType type) {
-    return type.declaredNullability == Nullability.nullable &&
-        type is! DynamicType &&
-        type is! VoidType &&
-        type != coreTypes.nullType;
-  }
-
-  /// Returns true if [type] is an application of the legacy type constructor.
-  ///
-  /// The algorithm implemented by [_isNullabilityAwareSubtypeMatch] uses the
-  /// notion of the legacy type constructor, that is, int* is an application of
-  /// the legacy type constructor to type int.  The algorithm requires the
-  /// ability to detect if a type is an application of the nullable constructor
-  /// to another type, which is done by [_isNullableTypeConstructorApplication].
-  bool _isLegacyTypeConstructorApplication(DartType type) {
-    if (type is TypeParameterType) {
-      if (type.promotedBound == null) {
-        // The legacy nullability is considered an application of the legacy
-        // nullability constructor if it doesn't match the default nullability
-        // of the type-parameter type for the library.
-        return type.declaredNullability == Nullability.legacy &&
-            type.declaredNullability !=
-                new TypeParameterType.withDefaultNullabilityForLibrary(
-                        type.parameter, _currentLibrary)
-                    .declaredNullability;
-      } else {
-        return false;
-      }
-    } else if (type is InvalidType) {
-      return false;
-    } else {
-      return type.declaredNullability == Nullability.legacy;
-    }
+    return type is NullType;
   }
 
   /// Matches [p] against [q] as a subtype against supertype.
@@ -475,7 +376,8 @@ abstract class TypeConstraintGatherer {
     //
     // Under constraint _ <: X <: Q.
     if (p is TypeParameterType &&
-        _isRawTypeParameterType(p) &&
+        isTypeParameterTypeWithoutNullabilityMarker(p,
+            isNonNullableByDefault: _currentLibrary.isNonNullableByDefault) &&
         _parametersToConstrain.contains(p.parameter)) {
       _constrainParameterUpper(p.parameter, q);
       return true;
@@ -485,7 +387,8 @@ abstract class TypeConstraintGatherer {
     //
     // Under constraint P <: X <: _.
     if (q is TypeParameterType &&
-        _isRawTypeParameterType(q) &&
+        isTypeParameterTypeWithoutNullabilityMarker(q,
+            isNonNullableByDefault: _currentLibrary.isNonNullableByDefault) &&
         _parametersToConstrain.contains(q.parameter)) {
       _constrainParameterLower(q.parameter, p);
       return true;
@@ -504,18 +407,44 @@ abstract class TypeConstraintGatherer {
     // If P is a legacy type P0* then the match holds under constraint set C:
     //
     // Only if P0 is a subtype match for Q under constraint set C.
-    if (_isLegacyTypeConstructorApplication(p)) {
-      return _isNullabilityAwareSubtypeMatch(_computeRawType(p), q,
+    if (isLegacyTypeConstructorApplication(p,
+        isNonNullableByDefault: _currentLibrary.isNonNullableByDefault)) {
+      return _isNullabilityAwareSubtypeMatch(
+          computeTypeWithoutNullabilityMarker(p,
+              isNonNullableByDefault: _currentLibrary.isNonNullableByDefault),
+          q,
           constrainSupertype: constrainSupertype);
     }
 
     // If Q is a legacy type Q0* then the match holds under constraint set C:
     //
-    // Only if P is a subtype match for Q? under constraint set C.
-    if (_isLegacyTypeConstructorApplication(q)) {
-      return _isNullabilityAwareSubtypeMatch(
-          p, q.withDeclaredNullability(Nullability.nullable),
-          constrainSupertype: constrainSupertype);
+    // If P is dynamic or void and P is a subtype match for Q0 under constraint
+    // set C.
+    // Or if P is not dynamic or void and P is a subtype match for Q0? under
+    // constraint set C.
+    if (isLegacyTypeConstructorApplication(q,
+        isNonNullableByDefault: _currentLibrary.isNonNullableByDefault)) {
+      final int baseConstraintCount = _protoConstraints.length;
+
+      if ((p is DynamicType || p is VoidType) &&
+          _isNullabilityAwareSubtypeMatch(
+              p,
+              computeTypeWithoutNullabilityMarker(q,
+                  isNonNullableByDefault:
+                      _currentLibrary.isNonNullableByDefault),
+              constrainSupertype: constrainSupertype)) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+
+      if (p is! DynamicType &&
+          p is! VoidType &&
+          _isNullabilityAwareSubtypeMatch(
+              p, q.withDeclaredNullability(Nullability.nullable),
+              constrainSupertype: constrainSupertype)) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
     }
 
     // If Q is FutureOr<Q0> the match holds under constraint set C:
@@ -560,16 +489,28 @@ abstract class TypeConstraintGatherer {
     // If Q is Q0? the match holds under constraint set C:
     //
     // If P is P0? and P0 is a subtype match for Q0 under constraint set C.
+    // Or if P is dynamic or void and Object is a subtype match for Q0 under
+    // constraint set C.
     // Or if P is a subtype match for Q0 under non-empty constraint set C.
     // Or if P is a subtype match for Null under constraint set C.
     // Or if P is a subtype match for Q0 under empty constraint set C.
-    if (_isNullableTypeConstructorApplication(q)) {
+    if (isNullableTypeConstructorApplication(q)) {
       final int baseConstraintCount = _protoConstraints.length;
-      final DartType rawP = _computeRawType(p);
-      final DartType rawQ = _computeRawType(q);
+      final DartType rawP = computeTypeWithoutNullabilityMarker(p,
+          isNonNullableByDefault: _currentLibrary.isNonNullableByDefault);
+      final DartType rawQ = computeTypeWithoutNullabilityMarker(q,
+          isNonNullableByDefault: _currentLibrary.isNonNullableByDefault);
 
-      if (_isNullableTypeConstructorApplication(p) &&
+      if (isNullableTypeConstructorApplication(p) &&
           _isNullabilityAwareSubtypeMatch(rawP, rawQ,
+              constrainSupertype: constrainSupertype)) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+
+      if ((p is DynamicType || p is VoidType) &&
+          _isNullabilityAwareSubtypeMatch(
+              coreTypes.objectNonNullableRawType, rawQ,
               constrainSupertype: constrainSupertype)) {
         return true;
       }
@@ -584,7 +525,7 @@ abstract class TypeConstraintGatherer {
       }
       _protoConstraints.length = baseConstraintCount;
 
-      if (_isNullabilityAwareSubtypeMatch(p, coreTypes.nullType,
+      if (_isNullabilityAwareSubtypeMatch(p, const NullType(),
           constrainSupertype: constrainSupertype)) {
         return true;
       }
@@ -616,11 +557,15 @@ abstract class TypeConstraintGatherer {
     //
     // If P0 is a subtype match for Q under constraint set C1.
     // And if Null is a subtype match for Q under constraint set C2.
-    if (_isNullableTypeConstructorApplication(p)) {
+    if (isNullableTypeConstructorApplication(p)) {
       final int baseConstraintCount = _protoConstraints.length;
-      if (_isNullabilityAwareSubtypeMatch(_computeRawType(p), q,
+      if (_isNullabilityAwareSubtypeMatch(
+              computeTypeWithoutNullabilityMarker(p,
+                  isNonNullableByDefault:
+                      _currentLibrary.isNonNullableByDefault),
+              q,
               constrainSupertype: constrainSupertype) &&
-          _isNullabilityAwareSubtypeMatch(coreTypes.nullType, q,
+          _isNullabilityAwareSubtypeMatch(const NullType(), q,
               constrainSupertype: constrainSupertype)) {
         return true;
       }
@@ -650,7 +595,7 @@ abstract class TypeConstraintGatherer {
     // If P is Null, then the match holds under no constraints:
     //
     // Only if Q is nullable.
-    if (p == coreTypes.nullType) {
+    if (p is NullType) {
       return q.nullability == Nullability.nullable;
     }
 
@@ -850,12 +795,18 @@ abstract class TypeConstraintGatherer {
           List<_ProtoConstraint> constraints =
               _protoConstraints.sublist(baseConstraintCount);
           _protoConstraints.length = baseConstraintCount;
-          _NullabilityAwareTypeVariableEliminator eliminator =
-              new _NullabilityAwareTypeVariableEliminator(
-                  freshTypeParameters.freshTypeParameters.toSet(),
-                  const NeverType(Nullability.nonNullable),
-                  coreTypes.objectNullableRawType,
-                  coreTypes.functionNonNullableRawType);
+          NullabilityAwareTypeVariableEliminator eliminator =
+              new NullabilityAwareTypeVariableEliminator(
+                  eliminationTargets:
+                      freshTypeParameters.freshTypeParameters.toSet(),
+                  bottomType: const NeverType(Nullability.nonNullable),
+                  topType: coreTypes.objectNullableRawType,
+                  topFunctionType: coreTypes.functionNonNullableRawType,
+                  unhandledTypeHandler: (DartType type, ignored) =>
+                      type is UnknownType
+                          ? false
+                          : throw new UnsupportedError(
+                              "Unsupported type '${type.runtimeType}'."));
           for (_ProtoConstraint constraint in constraints) {
             if (constraint.isUpper) {
               _constrainParameterUpper(constraint.parameter,
@@ -1148,87 +1099,5 @@ class _ProtoConstraint {
     return isUpper
         ? "${parameter.name} <: $bound"
         : "$bound <: ${parameter.name}";
-  }
-}
-
-/// Eliminates specified free type parameters in a type.
-///
-/// The algorithm for elimination of type variables is described in
-/// https://github.com/dart-lang/language/pull/957
-class _NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
-  final DartType bottomType;
-  final DartType topType;
-  final DartType topFunctionType;
-  final Set<TypeParameter> eliminationTargets;
-  bool isLeastClosure;
-  bool isCovariant = true;
-
-  _NullabilityAwareTypeVariableEliminator(this.eliminationTargets,
-      this.bottomType, this.topType, this.topFunctionType);
-
-  /// Returns a subtype of [type] for all values of [eliminationTargets].
-  DartType eliminateToLeast(DartType type) {
-    isCovariant = true;
-    isLeastClosure = true;
-    return type.accept(this) ?? type;
-  }
-
-  /// Returns a supertype of [type] for all values of [eliminationTargets].
-  DartType eliminateToGreatest(DartType type) {
-    isCovariant = true;
-    isLeastClosure = false;
-    return type.accept(this) ?? type;
-  }
-
-  DartType get typeParameterReplacement {
-    return isLeastClosure && isCovariant || (!isLeastClosure && !isCovariant)
-        ? bottomType
-        : topType;
-  }
-
-  DartType get functionReplacement {
-    return isLeastClosure && isCovariant || (!isLeastClosure && !isCovariant)
-        ? bottomType
-        : topFunctionType;
-  }
-
-  @override
-  void changeVariance() {
-    isCovariant = !isCovariant;
-  }
-
-  @override
-  DartType visitFunctionType(FunctionType node) {
-    // - if `S` is
-    //   `T Function<X0 extends B0, ...., Xk extends Bk>(T0 x0, ...., Tn xn,
-    //       [Tn+1 xn+1, ..., Tm xm])`
-    //   or `T Function<X0 extends B0, ...., Xk extends Bk>(T0 x0, ...., Tn xn,
-    //       {Tn+1 xn+1, ..., Tm xm})`
-    //   and `L` contains any free type variables from any of the `Bi`:
-    //  - The least closure of `S` with respect to `L` is `Never`
-    //  - The greatest closure of `S` with respect to `L` is `Function`
-    if (node.typeParameters.isNotEmpty) {
-      for (TypeParameter typeParameter in node.typeParameters) {
-        if (containsTypeVariable(typeParameter.bound, eliminationTargets,
-            unhandledTypeHandler: (DartType type, ignored) =>
-                type is UnknownType
-                    ? false
-                    : throw new UnsupportedError(
-                        "Unsupported type '${type.runtimeType}'."))) {
-          return functionReplacement;
-        }
-      }
-    }
-    return super.visitFunctionType(node);
-  }
-
-  @override
-  DartType visitTypeParameterType(TypeParameterType node) {
-    if (eliminationTargets.contains(node.parameter)) {
-      return typeParameterReplacement.withDeclaredNullability(
-          uniteNullabilities(
-              typeParameterReplacement.nullability, node.nullability));
-    }
-    return super.visitTypeParameterType(node);
   }
 }

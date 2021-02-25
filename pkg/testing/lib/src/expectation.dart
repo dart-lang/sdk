@@ -34,6 +34,8 @@ class Expectation {
 
   const Expectation(this.name, this.group);
 
+  const Expectation.fail(this.name) : group = ExpectationGroup.Fail;
+
   /// Returns the canonical expectation representing [group]. That is, one of
   /// the above expectations (except for `Meta` which returns `this`).
   Expectation get canonical => fromGroup(group) ?? this;

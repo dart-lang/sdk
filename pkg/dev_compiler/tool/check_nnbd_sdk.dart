@@ -3,6 +3,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Command-line tool that runs dartanalyzer on a sdk under the perspective of
 /// one tool.
 // TODO(sigmund): generalize this to support other tools, not just ddc.
@@ -132,6 +134,12 @@ main() {}
 
   // Trim temporary directory paths and sort errors.
   errors = errors.replaceAll(sdkDir, '');
+  if (!(args['keep-lines'] as bool)) {
+    // Golden files change frequenty if line numbers are recorded.
+    // We remove them by default but provide an option to show them if
+    // they can be helpful.
+    errors = errors.replaceAll(RegExp(r'\|[0-9]*\|[0-9]*\|[0-9]*\|'), '|');
+  }
   var errorList = errors.isEmpty ? <String>[] : errors.trim().split('\n');
   var count = errorList.length;
   print('$count analyzer errors.');
@@ -207,4 +215,6 @@ final _parser = ArgParser()
       allowed: ['dartdevc', 'dart2js', 'dart2js_server', 'vm', 'flutter'],
       defaultsTo: 'dartdevc')
   ..addFlag('update-golden', help: 'Update the golden file.', defaultsTo: false)
+  ..addFlag('keep-lines',
+      help: 'Show line numbers on errors.', defaultsTo: false)
   ..addFlag('help', abbr: 'h', help: 'Display this message.');

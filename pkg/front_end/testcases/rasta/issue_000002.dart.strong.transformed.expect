@@ -25,7 +25,7 @@ class Foo extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static field core::List<core::int*>* list = <core::int*>[1, 2, 3];
+static field core::List<core::int*>* list = core::_GrowableList::_literal3<core::int*>(1, 2, 3);
 static method main() → dynamic {
   exp::Expect::isTrue(typ::Uint8List::fromList(self::list).{core::List::[]}(1).{core::num::==}(2));
   exp::Expect::isTrue(self::Foo::fac(10).{self::Foo::value}.{core::Object::==}(10));

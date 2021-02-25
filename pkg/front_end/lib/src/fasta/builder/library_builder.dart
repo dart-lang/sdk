@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.library_builder;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -156,6 +158,8 @@ abstract class LibraryBuilder implements ModifierBuilder {
   void addSyntheticDeclarationOfDynamic();
 
   void addSyntheticDeclarationOfNever();
+
+  void addSyntheticDeclarationOfNull();
 
   /// Lookups the member [name] declared in this library.
   ///
@@ -386,6 +390,9 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
     }
     if (scope.lookupLocalMember("Never", setter: false) == null) {
       addSyntheticDeclarationOfNever();
+    }
+    if (scope.lookupLocalMember("Null", setter: false) == null) {
+      addSyntheticDeclarationOfNull();
     }
   }
 

@@ -2,28 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dds;
+import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+
+import 'client.dart';
+import 'constants.dart';
+import 'dds_impl.dart';
+import 'named_lookup.dart';
+import 'stream_manager.dart';
 
 /// [_ClientResumePermissions] associates a list of
-/// [_DartDevelopmentServiceClient]s, all of the same client name, with a
+/// [DartDevelopmentServiceClient]s, all of the same client name, with a
 /// permissions mask used to determine which pause event types require approval
 /// from one of the listed clients before resuming an isolate.
 class _ClientResumePermissions {
-  final List<_DartDevelopmentServiceClient> clients = [];
+  final List<DartDevelopmentServiceClient> clients = [];
   int permissionsMask = 0;
 }
 
-/// The [_ClientManager] has the responsibility of managing all state and
+/// The [ClientManager] has the responsibility of managing all state and
 /// requests related to client connections, including:
 ///   - A list of all currently connected clients
 ///   - Tracking client names and associated permissions for isolate resume
 ///     synchronization
 ///   - Handling RPC invocations which change client state
-class _ClientManager {
-  _ClientManager(this.dds);
+class ClientManager {
+  ClientManager(this.dds);
 
   /// Initialize state for a newly connected client.
-  void addClient(_DartDevelopmentServiceClient client) {
+  void addClient(DartDevelopmentServiceClient client) {
     _setClientNameHelper(
       client,
       client.defaultClientName,
@@ -34,20 +40,20 @@ class _ClientManager {
       dds.isolateManager.initialize().then((_) {
         dds.streamManager.streamListen(
           null,
-          _StreamManager.kDebugStream,
+          StreamManager.kDebugStream,
         );
       });
     }
   }
 
   /// Cleanup state for a disconnected client.
-  void removeClient(_DartDevelopmentServiceClient client) {
+  void removeClient(DartDevelopmentServiceClient client) {
     _clearClientName(client);
     clients.remove(client);
     if (clients.isEmpty) {
       dds.streamManager.streamCancel(
         null,
-        _StreamManager.kDebugStream,
+        StreamManager.kDebugStream,
       );
     }
   }
@@ -67,37 +73,37 @@ class _ClientManager {
   ///
   /// The provided client name is used to track isolate resume approvals.
   Map<String, dynamic> setClientName(
-    _DartDevelopmentServiceClient client,
+    DartDevelopmentServiceClient client,
     json_rpc.Parameters parameters,
   ) {
     _setClientNameHelper(client, parameters['name'].asString);
-    return _RPCResponses.success;
+    return RPCResponses.success;
   }
 
   /// Require permission from this client before resuming an isolate.
   Map<String, dynamic> requirePermissionToResume(
-    _DartDevelopmentServiceClient client,
+    DartDevelopmentServiceClient client,
     json_rpc.Parameters parameters,
   ) {
     int pauseTypeMask = 0;
     if (parameters['onPauseStart'].asBoolOr(false)) {
-      pauseTypeMask |= _PauseTypeMasks.pauseOnStartMask;
+      pauseTypeMask |= PauseTypeMasks.pauseOnStartMask;
     }
     if (parameters['onPauseReload'].asBoolOr(false)) {
-      pauseTypeMask |= _PauseTypeMasks.pauseOnReloadMask;
+      pauseTypeMask |= PauseTypeMasks.pauseOnReloadMask;
     }
     if (parameters['onPauseExit'].asBoolOr(false)) {
-      pauseTypeMask |= _PauseTypeMasks.pauseOnExitMask;
+      pauseTypeMask |= PauseTypeMasks.pauseOnExitMask;
     }
 
     clientResumePermissions[client.name].permissionsMask = pauseTypeMask;
-    return _RPCResponses.success;
+    return RPCResponses.success;
   }
 
   /// Changes `client`'s name to `name` while also updating resume permissions
   /// and approvals.
   void _setClientNameHelper(
-    _DartDevelopmentServiceClient client,
+    DartDevelopmentServiceClient client,
     String name,
   ) {
     _clearClientName(client);
@@ -112,7 +118,7 @@ class _ClientManager {
   /// Resets the client's name while also cleaning up resume permissions and
   /// approvals.
   void _clearClientName(
-    _DartDevelopmentServiceClient client,
+    DartDevelopmentServiceClient client,
   ) {
     final name = client.name;
     client.name = null;
@@ -147,7 +153,7 @@ class _ClientManager {
     }
   }
 
-  _DartDevelopmentServiceClient findFirstClientThatHandlesService(
+  DartDevelopmentServiceClient findFirstClientThatHandlesService(
       String service) {
     for (final client in clients) {
       if (client.services.containsKey(service)) {
@@ -159,7 +165,7 @@ class _ClientManager {
 
   // Handles namespace generation for service extensions.
   static const _kServicePrologue = 's';
-  final NamedLookup<_DartDevelopmentServiceClient> clients = NamedLookup(
+  final NamedLookup<DartDevelopmentServiceClient> clients = NamedLookup(
     prologue: _kServicePrologue,
   );
 
@@ -167,5 +173,5 @@ class _ClientManager {
   /// permissions.
   final Map<String, _ClientResumePermissions> clientResumePermissions = {};
 
-  final _DartDevelopmentService dds;
+  final DartDevelopmentServiceImpl dds;
 }

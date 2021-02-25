@@ -6,10 +6,13 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:test/test.dart';
 
 import 'abstract_refactoring.dart';
+
+export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
 /// The base class for all [RenameRefactoring] tests.
 class RenameRefactoringTest extends RefactoringTest {
@@ -37,8 +40,8 @@ class RenameRefactoringTest extends RefactoringTest {
   /// Creates a new [RenameRefactoring] in [refactoring] for the [Element] of
   /// the [SimpleIdentifier] at the given [search] pattern.
   void createRenameRefactoringAtString(String search) {
-    var identifier = findIdentifier(search);
-    var element = identifier.staticElement;
+    var identifier = findNode.simple(search);
+    var element = identifier.writeOrReadElement;
     if (element is PrefixElement) {
       element = getImportElement(identifier);
     }
@@ -48,7 +51,10 @@ class RenameRefactoringTest extends RefactoringTest {
   /// Creates a new [RenameRefactoring] in [refactoring] for [element].
   /// Fails if no [RenameRefactoring] can be created.
   void createRenameRefactoringForElement(Element element) {
-    var workspace = RefactoringWorkspace([driver], searchEngine);
+    var workspace = RefactoringWorkspace(
+      [driverFor(testFile)],
+      searchEngine,
+    );
     refactoring = RenameRefactoring(workspace, testAnalysisResult, element);
     expect(refactoring, isNotNull, reason: "No refactoring for '$element'.");
   }

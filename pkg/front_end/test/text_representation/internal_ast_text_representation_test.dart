@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 import 'package:front_end/src/fasta/kernel/collections.dart';
 import 'package:front_end/src/fasta/kernel/forest.dart';
@@ -316,7 +318,7 @@ void _testFactoryConstructorInvocationJudgment() {
   library.addClass(cls);
   Procedure factoryConstructor = new Procedure(
       new Name(''), ProcedureKind.Factory, new FunctionNode(null));
-  cls.addMember(factoryConstructor);
+  cls.addProcedure(factoryConstructor);
 
   testExpression(
       new FactoryConstructorInvocationJudgment(
@@ -549,27 +551,17 @@ pre.loadLibrary''');
 }
 
 void _testIfNullPropertySet() {
-  VariableDeclaration variable =
-      new VariableDeclarationImpl.forValue(new IntLiteral(0));
   testExpression(
       new IfNullPropertySet(
-          variable,
-          new PropertyGet(new VariableGet(variable), new Name('foo')),
-          new PropertySet(
-              new VariableGet(variable), new Name('foo'), new IntLiteral(1)),
+          new IntLiteral(0), new Name('foo'), new IntLiteral(1),
           forEffect: false),
-      '''
-let final dynamic #0 = 0 in if-null #0.foo ?? #0.foo = 1''');
+      '0.foo ??= 1');
 
   testExpression(
       new IfNullPropertySet(
-          variable,
-          new PropertyGet(new VariableGet(variable), new Name('foo')),
-          new PropertySet(
-              new VariableGet(variable), new Name('foo'), new IntLiteral(1)),
+          new IntLiteral(0), new Name('foo'), new IntLiteral(1),
           forEffect: true),
-      '''
-let final dynamic #0 = 0 in if-null #0.foo ?? #0.foo = 1''');
+      '0.foo ??= 1');
 }
 
 void _testIfNullSet() {
@@ -591,7 +583,17 @@ foo ?? foo = 1''');
 
 void _testCompoundExtensionSet() {}
 
-void _testCompoundPropertySet() {}
+void _testCompoundPropertySet() {
+  testExpression(
+      new CompoundPropertySet(
+          new IntLiteral(0), new Name('foo'), new Name('+'), new IntLiteral(1),
+          readOffset: TreeNode.noOffset,
+          binaryOffset: TreeNode.noOffset,
+          writeOffset: TreeNode.noOffset,
+          forEffect: false),
+      '''
+0.foo += 1''');
+}
 
 void _testPropertyPostIncDec() {}
 
@@ -607,7 +609,27 @@ void _testIndexSet() {}
 
 void _testSuperIndexSet() {}
 
-void _testExtensionIndexSet() {}
+void _testExtensionIndexSet() {
+  Library library = new Library(dummyUri);
+  Extension extension = new Extension(
+      name: 'Extension', typeParameters: [new TypeParameter('T')]);
+  library.addExtension(extension);
+  Procedure setter =
+      new Procedure(new Name(''), ProcedureKind.Method, new FunctionNode(null));
+  library.addProcedure(setter);
+
+  testExpression(
+      new ExtensionIndexSet(extension, null, new IntLiteral(0), setter,
+          new IntLiteral(1), new IntLiteral(2)),
+      '''
+Extension(0)[1] = 2''');
+
+  testExpression(
+      new ExtensionIndexSet(extension, [const VoidType()], new IntLiteral(0),
+          setter, new IntLiteral(1), new IntLiteral(2)),
+      '''
+Extension<void>(0)[1] = 2''');
+}
 
 void _testIfNullIndexSet() {}
 
@@ -615,11 +637,73 @@ void _testIfNullSuperIndexSet() {}
 
 void _testIfNullExtensionIndexSet() {}
 
-void _testCompoundIndexSet() {}
+void _testCompoundIndexSet() {
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
+          new IntLiteral(2),
+          forEffect: false, forPostIncDec: false),
+      '''
+0[1] += 2''');
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
+          new IntLiteral(1),
+          forEffect: false, forPostIncDec: true),
+      '''
+0[1]++''');
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('-'),
+          new IntLiteral(1),
+          forEffect: false, forPostIncDec: true),
+      '''
+0[1]--''');
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('*'),
+          new IntLiteral(1),
+          forEffect: false, forPostIncDec: true),
+      '''
+0[1] *= 1''');
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
+          new IntLiteral(2),
+          forEffect: false, forPostIncDec: true),
+      '''
+0[1] += 2''');
+}
 
-void _testNullAwareCompoundSet() {}
+void _testNullAwareCompoundSet() {
+  testExpression(
+      new NullAwareCompoundSet(
+          new IntLiteral(0), new Name('foo'), new Name('+'), new IntLiteral(1),
+          readOffset: TreeNode.noOffset,
+          binaryOffset: TreeNode.noOffset,
+          writeOffset: TreeNode.noOffset,
+          forPostIncDec: false,
+          forEffect: false),
+      '''
+0?.foo += 1''');
+  testExpression(
+      new NullAwareCompoundSet(
+          new IntLiteral(0), new Name('foo'), new Name('+'), new IntLiteral(1),
+          readOffset: TreeNode.noOffset,
+          binaryOffset: TreeNode.noOffset,
+          writeOffset: TreeNode.noOffset,
+          forPostIncDec: true,
+          forEffect: false),
+      '''
+0?.foo++''');
+}
 
-void _testNullAwareIfNullSet() {}
+void _testNullAwareIfNullSet() {
+  testExpression(
+      new NullAwareIfNullSet(
+          new IntLiteral(0), new Name('foo'), new IntLiteral(1),
+          readOffset: TreeNode.noOffset,
+          testOffset: TreeNode.noOffset,
+          writeOffset: TreeNode.noOffset,
+          forEffect: false),
+      '''
+0?.foo ??= 1''');
+}
 
 void _testCompoundSuperIndexSet() {}
 

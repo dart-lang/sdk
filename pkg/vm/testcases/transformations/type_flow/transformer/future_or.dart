@@ -4,14 +4,31 @@
 
 import 'dart:async';
 
+dynamic usedObject;
+
+void use(dynamic object) {
+  usedObject ??= object;
+}
+
 class A {}
 
 class B extends A {}
 
-void foo1_a1(x) {}
-void foo1_a2(x) {}
-void foo1_a3(x) {}
-void foo1_a4(x) {}
+void foo1_a1(x) {
+  use(x);
+}
+
+void foo1_a2(x) {
+  use(x);
+}
+
+void foo1_a3(x) {
+  use(x);
+}
+
+void foo1_a4(x) {
+  use(x);
+}
 
 void foo1(Future<A> a1, A a2, FutureOr<A> a3, FutureOr<A> a4) {
   foo1_a1(a1);
@@ -20,10 +37,21 @@ void foo1(Future<A> a1, A a2, FutureOr<A> a3, FutureOr<A> a4) {
   foo1_a4(a4);
 }
 
-void foo2_a1(x) {}
-void foo2_a2(x) {}
-void foo2_a3(x) {}
-void foo2_a4(x) {}
+void foo2_a1(x) {
+  use(x);
+}
+
+void foo2_a2(x) {
+  use(x);
+}
+
+void foo2_a3(x) {
+  use(x);
+}
+
+void foo2_a4(x) {
+  use(x);
+}
 
 void foo2(Future<A> a1, A a2, FutureOr<A> a3, FutureOr<A> a4) {
   foo2_a1(a1);

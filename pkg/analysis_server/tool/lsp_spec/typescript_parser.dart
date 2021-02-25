@@ -29,6 +29,8 @@ final _validIdentifierCharacters = RegExp('[a-zA-Z0-9_]');
 bool isAnyType(TypeBase t) =>
     t is Type && (t.name == 'any' || t.name == 'object');
 
+bool isLiteralType(TypeBase t) => t is LiteralType;
+
 bool isNullType(TypeBase t) => t is Type && t.name == 'null';
 
 bool isUndefinedType(TypeBase t) => t is Type && t.name == 'undefined';
@@ -85,6 +87,7 @@ class Const extends Member {
   Token valueToken;
   Const(Comment comment, this.nameToken, this.type, this.valueToken)
       : super(comment);
+
   @override
   String get name => nameToken.lexeme;
 
@@ -172,6 +175,36 @@ class Interface extends AstNode {
       : '';
 }
 
+class LiteralType extends TypeBase {
+  final Type type;
+  final String literal;
+
+  LiteralType(this.type, this.literal);
+
+  @override
+  String get dartType => type.dartType;
+
+  @override
+  String get typeArgsString => type.typeArgsString;
+
+  @override
+  String get uniqueTypeIdentifier => '$literal:${super.uniqueTypeIdentifier}';
+}
+
+/// A special class of Union types where the values are all literals of the same
+/// type so the Dart field can be the base type rather than an EitherX<>.
+class LiteralUnionType extends UnionType {
+  final List<LiteralType> literalTypes;
+
+  LiteralUnionType(this.literalTypes) : super(literalTypes);
+
+  @override
+  String get dartType => types.first.dartType;
+
+  @override
+  String get typeArgsString => types.first.typeArgsString;
+}
+
 class MapType extends TypeBase {
   final TypeBase indexType;
   final TypeBase valueType;
@@ -180,6 +213,7 @@ class MapType extends TypeBase {
 
   @override
   String get dartType => 'Map';
+
   @override
   String get typeArgsString =>
       '<${indexType.dartTypeWithTypeArgs}, ${valueType.dartTypeWithTypeArgs}>';
@@ -253,6 +287,9 @@ class Parser {
   /// Ensures the next token is [type] and moves to the next, throwing [message]
   /// if not.
   Token _consume(TokenType type, String message) {
+    // Skip over any inline comments when looking for a specific token.
+    _match([TokenType.COMMENT]);
+
     if (_check(type)) {
       return _advance();
     }
@@ -364,9 +401,7 @@ class Parser {
       // simplify the unions.
       remainingTypes.removeWhere((t) => !allowTypeInSignatures(t));
 
-      type = remainingTypes.length > 1
-          ? UnionType(remainingTypes)
-          : remainingTypes.single;
+      type = _simplifyUnionTypes(remainingTypes);
     } else if (isAnyType(type)) {
       // There are values in the spec marked as `any` that allow nulls (for
       // example, the result field on ResponseMessage can be null for a
@@ -374,25 +409,6 @@ class Parser {
       canBeNull = true;
     }
     return Field(leadingComment, name, type, canBeNull, canBeUndefined);
-  }
-
-  /// Remove any duplicate types (for ex. if we map multiple types into dynamic)
-  /// we don't want to end up with `dynamic | dynamic`. Key on dartType to
-  /// ensure we different types that will map down to the same type.
-  List<TypeBase> _getUniqueTypes(List<TypeBase> types) {
-    final uniqueTypes = Map.fromEntries(
-      types.map((t) => MapEntry(t.dartTypeWithTypeArgs, t)),
-    ).values.toList();
-
-    // If our list includes something that maps to dynamic as well as other
-    // types, we should just treat the whole thing as dynamic as we get no value
-    // typing Either4<bool, String, num, dynamic> but it becomes much more
-    // difficult to use.
-    if (uniqueTypes.any(isAnyType)) {
-      return [uniqueTypes.firstWhere(isAnyType)];
-    }
-
-    return uniqueTypes;
   }
 
   Indexer _indexer(String containerName, Comment leadingComment) {
@@ -490,6 +506,29 @@ class Parser {
   /// Returns the next token without advancing.
   Token _peek() => _tokenAt(_current);
 
+  /// Remove any duplicate types (for ex. if we map multiple types into dynamic)
+  /// we don't want to end up with `dynamic | dynamic`. Key on dartType to
+  /// ensure we different types that will map down to the same type.
+  TypeBase _simplifyUnionTypes(List<TypeBase> types) {
+    final uniqueTypes = Map.fromEntries(
+      types.map((t) => MapEntry(t.uniqueTypeIdentifier, t)),
+    ).values.toList();
+
+    // If our list includes something that maps to dynamic as well as other
+    // types, we should just treat the whole thing as dynamic as we get no value
+    // typing Either4<bool, String, num, dynamic> but it becomes much more
+    // difficult to use.
+    if (uniqueTypes.any(isAnyType)) {
+      return uniqueTypes.firstWhere(isAnyType);
+    }
+
+    return uniqueTypes.length == 1
+        ? uniqueTypes.single
+        : uniqueTypes.every(isLiteralType)
+            ? LiteralUnionType(uniqueTypes.cast<LiteralType>())
+            : UnionType(uniqueTypes);
+  }
+
   Token _tokenAt(int index) =>
       index < _tokens.length ? _tokens[index] : Token.EOF;
 
@@ -562,17 +601,17 @@ class Parser {
         // Some types are in (parens), so we just parse the contents as a nested type.
         type = _type(containerName, fieldName);
         _consume(TokenType.RIGHT_PAREN, 'Expected )');
-      } else if (_match([TokenType.STRING])) {
+      } else if (_check(TokenType.STRING)) {
+        final token = _advance();
         // In TS and the spec, literal strings can be types:
         // export const PlainText: 'plaintext' = 'plaintext';
         // trace?: 'off' | 'messages' | 'verbose';
-        // the best we can do is use their base type (string).
-        type = Type.identifier('string');
-      } else if (_match([TokenType.NUMBER])) {
+        type = LiteralType(Type.identifier('string'), token.lexeme);
+      } else if (_check(TokenType.NUMBER)) {
+        final token = _advance();
         // In TS and the spec, literal numbers can be types:
         // export const Invoked: 1 = 1;
-        // the best we can do is use their base type (number).
-        type = Type.identifier('number');
+        type = LiteralType(Type.identifier('number'), token.lexeme);
       } else if (_match([TokenType.LEFT_BRACKET])) {
         // Tuples will just be converted to List/Array.
         final tupleElementTypes = <TypeBase>[];
@@ -583,10 +622,7 @@ class Parser {
         }
         _consume(TokenType.RIGHT_BRACKET, 'Expected ]');
 
-        final uniqueTypes = _getUniqueTypes(tupleElementTypes);
-        var tupleType = uniqueTypes.length == 1
-            ? uniqueTypes.single
-            : UnionType(uniqueTypes);
+        var tupleType = _simplifyUnionTypes(tupleElementTypes);
         type = ArrayType(tupleType);
       } else {
         var typeName = _consume(TokenType.IDENTIFIER, 'Expected identifier');
@@ -629,10 +665,7 @@ class Parser {
       }
     }
 
-    final uniqueTypes = _getUniqueTypes(types);
-
-    var type =
-        uniqueTypes.length == 1 ? uniqueTypes.single : UnionType(uniqueTypes);
+    var type = _simplifyUnionTypes(types);
 
     // Handle improved type mappings for things that aren't very tight in the spec.
     if (improveTypes) {
@@ -957,6 +990,10 @@ abstract class TypeBase {
   String get dartType;
   String get dartTypeWithTypeArgs => '$dartType$typeArgsString';
   String get typeArgsString;
+
+  /// A unique identifier for this type. Used for folding types together
+  /// (for example two types that resolve to "dynamic" in Dart).
+  String get uniqueTypeIdentifier => dartTypeWithTypeArgs;
 }
 
 class UnionType extends TypeBase {

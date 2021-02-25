@@ -6,7 +6,7 @@ part of models;
 
 abstract class ObjectRef {
   /// A unique identifier for an Object.
-  String get id;
+  String? get id;
 }
 
 abstract class Object implements ObjectRef {
@@ -18,7 +18,7 @@ abstract class Object implements ObjectRef {
   ///
   /// Moving an Object into or out of the heap is considered a
   /// backwards compatible change for types other than Instance.
-  ClassRef get clazz;
+  ClassRef? get clazz;
 
   /// [optional] The size of this object in the heap.
   ///
@@ -27,9 +27,9 @@ abstract class Object implements ObjectRef {
   /// Note that the size can be zero for some objects. In the current
   /// VM implementation, this occurs for small integers, which are
   /// stored entirely within their object pointers.
-  int get size;
+  int? get size;
 
-  String get vmName;
+  String? get vmName;
 }
 
 abstract class RetainingObject {

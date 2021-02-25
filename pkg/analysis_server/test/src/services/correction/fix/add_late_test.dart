@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -22,7 +23,7 @@ class AddLatePreNnbdTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_LATE;
 
   Future<void> test_withFinal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   final String s;
 }
@@ -32,28 +33,135 @@ class C {
 }
 
 @reflectiveTest
-class AddLateTest extends FixProcessorTest {
-  @override
-  List<String> get experiments => [EnableString.non_nullable];
-
+class AddLateTest extends FixProcessorTest with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.ADD_LATE;
 
+  Future<void> test_changeInImportedLib() async {
+    addSource('/home/test/lib/a.dart', '''
+class C {
+  final String s;
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+void f(C c) {
+  c.s = '';
+}
+''');
+    await assertHasFix('''
+class C {
+  late final String s;
+}
+''', target: '/home/test/lib/a.dart');
+  }
+
+  @FailingTest(reason: 'The lint does not fire for parts.')
+  Future<void> test_changeInPart() async {
+    addSource('/home/test/lib/a.dart', '''
+part 'test.dart';
+
+class C {
+  final String s;
+}
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
+void f(C c) {
+  c.s = '';
+}
+''');
+    await assertHasFix('''
+part 'test.dart';
+
+class C {
+  late final String s;
+}
+''', target: '/home/test/lib/a.dart');
+  }
+
   Future<void> test_withFinal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   final String s;
 }
 ''');
     await assertHasFix('''
 class C {
-  final late String s;
+  late final String s;
 }
 ''');
   }
 
+  Future<void> test_withFinalAssignedInConstructor() async {
+    await resolveTestCode('''
+class C {
+  final String s;
+  C() {
+    s = '';
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  late final String s;
+  C() {
+    s = '';
+  }
+}
+''',
+        errorFilter: (error) =>
+            error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL);
+  }
+
+  Future<void> test_withFinalAssignedInLibrary() async {
+    await resolveTestCode('''
+class C {
+  final String s;
+}
+
+void f(C c) {
+  c.s = '';
+}
+''');
+    await assertHasFix('''
+class C {
+  late final String s;
+}
+
+void f(C c) {
+  c.s = '';
+}
+''',
+        errorFilter: (error) =>
+            error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL);
+  }
+
+  Future<void> test_withFinalStaticAssignedInConstructor() async {
+    await resolveTestCode('''
+class C {
+  static final String s;
+  C() {
+    s = '';
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  static late final String s;
+  C() {
+    s = '';
+  }
+}
+''',
+        errorFilter: (error) =>
+            error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL);
+  }
+
   Future<void> test_withLate() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   late s;
 }
@@ -62,7 +170,7 @@ class C {
   }
 
   Future<void> test_withType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   String s;
 }

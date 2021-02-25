@@ -48,3 +48,18 @@ static field core::int* f2;
 @self::A::•(4)
 static method main() → void
   ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///annotation_top.dart:5:2 -> InstanceConstant(const Object{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:6:2 -> InstanceConstant(const A{})
+Evaluated: StaticGet @ org-dartlang-testcase:///annotation_top.dart:15:2 -> InstanceConstant(const Object{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:16:2 -> InstanceConstant(const A{})
+Evaluated: StaticGet @ org-dartlang-testcase:///annotation_top.dart:31:2 -> InstanceConstant(const Object{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:32:2 -> InstanceConstant(const A{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:9:24 -> InstanceConstant(const Object{})
+Evaluated: StaticGet @ org-dartlang-testcase:///annotation_top.dart:27:2 -> InstanceConstant(const Object{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:28:2 -> InstanceConstant(const A{})
+Evaluated: StaticGet @ org-dartlang-testcase:///annotation_top.dart:27:2 -> InstanceConstant(const Object{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:28:2 -> InstanceConstant(const A{})
+Extra constant evaluation: evaluated: 11, effectively constant: 11

@@ -2,14 +2,14 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/conflicts_can_happen2.dart:34:7: Error: Can't infer a return type for 'a' as some of the inherited members have different types.
+// pkg/front_end/testcases/inference/conflicts_can_happen2.dart:34:7: Error: Can't infer a return type for 'a' as the overridden members don't have a combined signature.
 // Try adding an explicit type.
 //   get a => null;
 //       ^
-// pkg/front_end/testcases/inference/conflicts_can_happen2.dart:22:12: Context: This is one of the inherited members.
+// pkg/front_end/testcases/inference/conflicts_can_happen2.dart:22:12: Context: This is one of the overridden members.
 //   final I1 a = null;
 //            ^
-// pkg/front_end/testcases/inference/conflicts_can_happen2.dart:26:12: Context: This is one of the inherited members.
+// pkg/front_end/testcases/inference/conflicts_can_happen2.dart:26:12: Context: This is one of the overridden members.
 //   final I2 a = null;
 //            ^
 //

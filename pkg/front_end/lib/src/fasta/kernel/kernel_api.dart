@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// This library exports all API from Kernel that can be used throughout fasta.
 library fasta.kernel_api;
 
@@ -47,6 +49,6 @@ void printQualifiedNameOn(Member member, StringSink sink,
       sink.write(cls.name ?? syntheticNames.nameClass(cls));
       sink.write("::");
     }
-    sink.write(member.name?.name ?? syntheticNames.nameMember(member));
+    sink.write(member.name?.text ?? syntheticNames.nameMember(member));
   }
 }

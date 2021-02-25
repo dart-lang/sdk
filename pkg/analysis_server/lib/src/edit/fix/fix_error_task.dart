@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 /// A processor used by [EditDartFix] to manage [FixErrorTask]s.
@@ -45,6 +46,7 @@ class FixErrorTask {
   Future<void> fixError(ResolvedUnitResult result, AnalysisError error) async {
     final workspace = DartChangeWorkspace(listener.server.currentSessions);
     final dartContext = DartFixContextImpl(
+      InstrumentationService.NULL_SERVICE,
       workspace,
       result,
       error,

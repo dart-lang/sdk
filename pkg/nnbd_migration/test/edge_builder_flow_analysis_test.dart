@@ -994,8 +994,7 @@ void f(Function<T>() f) {
   f();
 }
 ''');
-    var fNode =
-        this.decoratedGenericFunctionTypeAnnotation('Function<T>() f').node;
+    var fNode = decoratedGenericFunctionTypeAnnotation('Function<T>() f').node;
     // No edge to never because it had been promoted before invoked.
     assertNoEdge(fNode, graph.never);
   }

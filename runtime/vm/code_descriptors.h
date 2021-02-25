@@ -9,8 +9,8 @@
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/log.h"
-#include "vm/object.h"
 #include "vm/runtime_entry.h"
+#include "vm/token_position.h"
 
 namespace dart {
 
@@ -18,15 +18,13 @@ static const intptr_t kInvalidTryIndex = -1;
 
 class DescriptorList : public ZoneAllocated {
  public:
-  explicit DescriptorList(intptr_t initial_capacity)
-      : encoded_data_(initial_capacity),
-        prev_pc_offset(0),
-        prev_deopt_id(0),
-        prev_token_pos(0) {}
+  explicit DescriptorList(
+      Zone* zone,
+      const GrowableArray<const Function*>* inline_id_to_function = nullptr);
 
   ~DescriptorList() {}
 
-  void AddDescriptor(PcDescriptorsLayout::Kind kind,
+  void AddDescriptor(UntaggedPcDescriptors::Kind kind,
                      intptr_t pc_offset,
                      intptr_t deopt_id,
                      TokenPosition token_pos,
@@ -36,20 +34,23 @@ class DescriptorList : public ZoneAllocated {
   PcDescriptorsPtr FinalizePcDescriptors(uword entry_point);
 
  private:
-  GrowableArray<uint8_t> encoded_data_;
+  static constexpr intptr_t kInitialStreamSize = 64;
+
+  const Function& function_;
+  const Script& script_;
+  ZoneWriteStream encoded_data_;
 
   intptr_t prev_pc_offset;
   intptr_t prev_deopt_id;
-  intptr_t prev_token_pos;
+  int32_t prev_token_pos;
 
   DISALLOW_COPY_AND_ASSIGN(DescriptorList);
 };
 
 class CompressedStackMapsBuilder : public ZoneAllocated {
  public:
-  CompressedStackMapsBuilder() : encoded_bytes_() {}
-
-  static void EncodeLEB128(GrowableArray<uint8_t>* data, uintptr_t value);
+  explicit CompressedStackMapsBuilder(Zone* zone)
+      : encoded_bytes_(zone, kInitialStreamSize) {}
 
   void AddEntry(intptr_t pc_offset,
                 BitmapBuilder* bitmap,
@@ -58,80 +59,11 @@ class CompressedStackMapsBuilder : public ZoneAllocated {
   CompressedStackMapsPtr Finalize() const;
 
  private:
+  static constexpr intptr_t kInitialStreamSize = 16;
+
+  ZoneWriteStream encoded_bytes_;
   intptr_t last_pc_offset_ = 0;
-  GrowableArray<uint8_t> encoded_bytes_;
   DISALLOW_COPY_AND_ASSIGN(CompressedStackMapsBuilder);
-};
-
-class CompressedStackMapsIterator : public ValueObject {
- public:
-  // We use the null value to represent CompressedStackMaps with no
-  // entries, so any CompressedStackMaps arguments to constructors can be null.
-  CompressedStackMapsIterator(const CompressedStackMaps& maps,
-                              const CompressedStackMaps& global_table);
-  explicit CompressedStackMapsIterator(const CompressedStackMaps& maps);
-
-  explicit CompressedStackMapsIterator(const CompressedStackMapsIterator& it);
-
-  // Loads the next entry from [maps_], if any. If [maps_] is the null
-  // value, this always returns false.
-  bool MoveNext();
-
-  // Finds the entry with the given PC offset starting at the current
-  // position of the iterator. If [maps_] is the null value, this always
-  // returns false.
-  bool Find(uint32_t pc_offset) {
-    // We should never have an entry with a PC offset of 0 inside an
-    // non-empty CSM, so fail.
-    if (pc_offset == 0) return false;
-    do {
-      if (current_pc_offset_ >= pc_offset) break;
-    } while (MoveNext());
-    return current_pc_offset_ == pc_offset;
-  }
-
-  // Methods for accessing parts of an entry should not be called until
-  // a successful MoveNext() or Find() call has been made.
-
-  uint32_t pc_offset() const {
-    ASSERT(HasLoadedEntry());
-    return current_pc_offset_;
-  }
-  // We lazily load and cache information from the global table if the
-  // CSM uses it, so these methods cannot be const.
-  intptr_t Length();
-  intptr_t SpillSlotBitCount();
-  bool IsObject(intptr_t bit_offset);
-
-  void EnsureFullyLoadedEntry() {
-    ASSERT(HasLoadedEntry());
-    if (current_spill_slot_bit_count_ < 0) {
-      LazyLoadGlobalTableEntry();
-    }
-    ASSERT(current_spill_slot_bit_count_ >= 0);
-  }
-
-  const char* ToCString(Zone* zone) const;
-  const char* ToCString() const;
-
- private:
-  static uintptr_t DecodeLEB128(const CompressedStackMaps& data,
-                                uintptr_t* byte_index);
-  bool HasLoadedEntry() const { return next_offset_ > 0; }
-  void LazyLoadGlobalTableEntry();
-
-  const CompressedStackMaps& maps_;
-  const CompressedStackMaps& bits_container_;
-
-  uintptr_t next_offset_ = 0;
-  uint32_t current_pc_offset_ = 0;
-  // Only used when looking up non-PC information in the global table.
-  uintptr_t current_global_table_offset_ = 0;
-  intptr_t current_spill_slot_bit_count_ = -1;
-  intptr_t current_non_spill_slot_bit_count_ = -1;
-  intptr_t current_bits_offset_ = -1;
-
-  friend class StackMapEntry;
 };
 
 class ExceptionHandlerList : public ZoneAllocated {
@@ -226,12 +158,61 @@ class CatchEntryMovesMapBuilder : public ZoneAllocated {
   TrieNode* root_;
   intptr_t current_pc_offset_;
   GrowableArray<CatchEntryMove> moves_;
-  uint8_t* buffer_;
-  WriteStream stream_;
+  ZoneWriteStream stream_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchEntryMovesMapBuilder);
 };
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+// Instructions have two pieces of information needed to get accurate source
+// locations: the token position and the inlining id. The inlining id tells us
+// which function, and thus which script, to use for this instruction and the
+// token position, when real, tells us the position in the source for the
+// script for the instruction.
+//
+// Thus, we bundle the two pieces of information in InstructionSource structs
+// when copying or retrieving to lower the likelihood that the token position
+// is used without the appropriate inlining id.
+struct InstructionSource {
+  // Treat an instruction source without inlining id information as unset.
+  InstructionSource() : InstructionSource(TokenPosition::kNoSource) {}
+  explicit InstructionSource(TokenPosition pos) : InstructionSource(pos, -1) {}
+  InstructionSource(TokenPosition pos, intptr_t id)
+      : token_pos(pos), inlining_id(id) {}
+
+  const TokenPosition token_pos;
+  const intptr_t inlining_id;
+
+  DISALLOW_ALLOCATION();
+};
+
+struct CodeSourceMapOps : AllStatic {
+  static const uint8_t kChangePosition = 0;
+  static const uint8_t kAdvancePC = 1;
+  static const uint8_t kPushFunction = 2;
+  static const uint8_t kPopFunction = 3;
+  static const uint8_t kNullCheck = 4;
+
+  static uint8_t Read(ReadStream* stream,
+                      int32_t* arg1,
+                      int32_t* arg2 = nullptr);
+
+  static void Write(BaseWriteStream* stream,
+                    uint8_t op,
+                    int32_t arg1 = 0,
+                    int32_t arg2 = 0);
+
+ private:
+  static constexpr intptr_t kOpBits = 3;
+
+  using OpField = BitField<int32_t, uint8_t, 0, kOpBits>;
+  using ArgField = BitField<int32_t, int32_t, OpField::kNextBit>;
+
+  static constexpr int32_t kMaxArgValue =
+      Utils::NBitMaskUnsafe(ArgField::bitsize() - 1);
+  static constexpr int32_t kMinArgValue = ~kMaxArgValue;
+  static constexpr int32_t kSignBits = static_cast<uint32_t>(kMinArgValue) << 1;
+};
 
 // A CodeSourceMap maps from pc offsets to a stack of inlined functions and
 // their positions. This is encoded as a little bytecode that pushes and pops
@@ -246,6 +227,7 @@ class CatchEntryMovesMapBuilder : public ZoneAllocated {
 class CodeSourceMapBuilder : public ZoneAllocated {
  public:
   CodeSourceMapBuilder(
+      Zone* zone,
       bool stack_traces_only,
       const GrowableArray<intptr_t>& caller_inline_id,
       const GrowableArray<TokenPosition>& inline_id_to_token_pos,
@@ -254,36 +236,37 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   // The position at which a function implicitly starts, for both the root and
   // after a push bytecode. We use the classifying position kDartCodePrologue
   // since it is the most common.
-  static const TokenPosition kInitialPosition;
+  static const TokenPosition& kInitialPosition;
 
-  static const uint8_t kChangePosition = 0;
-  static const uint8_t kAdvancePC = 1;
-  static const uint8_t kPushFunction = 2;
-  static const uint8_t kPopFunction = 3;
-  static const uint8_t kNullCheck = 4;
-
-  void StartInliningInterval(int32_t pc_offset, intptr_t inline_id);
-  void BeginCodeSourceRange(int32_t pc_offset);
-  void EndCodeSourceRange(int32_t pc_offset, TokenPosition pos);
-  void NoteDescriptor(PcDescriptorsLayout::Kind kind,
+  void BeginCodeSourceRange(int32_t pc_offset, const InstructionSource& source);
+  void EndCodeSourceRange(int32_t pc_offset, const InstructionSource& source);
+  void NoteDescriptor(UntaggedPcDescriptors::Kind kind,
                       int32_t pc_offset,
-                      TokenPosition pos);
-  void NoteNullCheck(int32_t pc_offset, TokenPosition pos, intptr_t name_index);
+                      const InstructionSource& source);
+  void NoteNullCheck(int32_t pc_offset,
+                     const InstructionSource& source,
+                     intptr_t name_index);
 
+  // If source is from an inlined call, returns the token position of the
+  // original call in the root function, otherwise the source's token position.
+  TokenPosition RootPosition(const InstructionSource& source);
   ArrayPtr InliningIdToFunction();
   CodeSourceMapPtr Finalize();
 
+  const GrowableArray<const Function*>& inline_id_to_function() const {
+    return inline_id_to_function_;
+  }
+
  private:
   intptr_t GetFunctionId(intptr_t inline_id);
+  void StartInliningInterval(int32_t pc_offset,
+                             const InstructionSource& source);
 
-  void BufferChangePosition(TokenPosition pos) {
-    buffered_token_pos_stack_.Last() = pos;
-  }
+  void BufferChangePosition(TokenPosition pos);
   void WriteChangePosition(TokenPosition pos);
   void BufferAdvancePC(int32_t distance) { buffered_pc_offset_ += distance; }
   void WriteAdvancePC(int32_t distance) {
-    stream_.Write<uint8_t>(kAdvancePC);
-    stream_.Write<int32_t>(distance);
+    CodeSourceMapOps::Write(&stream_, CodeSourceMapOps::kAdvancePC, distance);
     written_pc_offset_ += distance;
   }
   void BufferPush(intptr_t inline_id) {
@@ -291,8 +274,8 @@ class CodeSourceMapBuilder : public ZoneAllocated {
     buffered_token_pos_stack_.Add(kInitialPosition);
   }
   void WritePush(intptr_t inline_id) {
-    stream_.Write<uint8_t>(kPushFunction);
-    stream_.Write<int32_t>(GetFunctionId(inline_id));
+    CodeSourceMapOps::Write(&stream_, CodeSourceMapOps::kPushFunction,
+                            GetFunctionId(inline_id));
     written_inline_id_stack_.Add(inline_id);
     written_token_pos_stack_.Add(kInitialPosition);
   }
@@ -301,19 +284,15 @@ class CodeSourceMapBuilder : public ZoneAllocated {
     buffered_token_pos_stack_.RemoveLast();
   }
   void WritePop() {
-    stream_.Write<uint8_t>(kPopFunction);
+    CodeSourceMapOps::Write(&stream_, CodeSourceMapOps::kPopFunction);
     written_inline_id_stack_.RemoveLast();
     written_token_pos_stack_.RemoveLast();
   }
   void WriteNullCheck(int32_t name_index) {
-    stream_.Write<uint8_t>(kNullCheck);
-    stream_.Write<int32_t>(name_index);
+    CodeSourceMapOps::Write(&stream_, CodeSourceMapOps::kNullCheck, name_index);
   }
 
   void FlushBuffer();
-  void FlushBufferStack();
-  void FlushBufferPosition();
-  void FlushBufferPC();
 
   bool IsOnBufferedStack(intptr_t inline_id) {
     for (intptr_t i = 0; i < buffered_inline_id_stack_.length(); i++) {
@@ -322,6 +301,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
     return false;
   }
 
+  Zone* const zone_;
   intptr_t buffered_pc_offset_;
   GrowableArray<intptr_t> buffered_inline_id_stack_;
   GrowableArray<TokenPosition> buffered_token_pos_stack_;
@@ -336,8 +316,8 @@ class CodeSourceMapBuilder : public ZoneAllocated {
 
   const GrowableObjectArray& inlined_functions_;
 
-  uint8_t* buffer_;
-  WriteStream stream_;
+  Script& script_;
+  ZoneWriteStream stream_;
 
   const bool stack_traces_only_;
 
@@ -361,6 +341,16 @@ class CodeSourceMapReader : public ValueObject {
   intptr_t GetNullCheckNameIndexAt(int32_t pc_offset);
 
  private:
+  static const TokenPosition& InitialPosition() {
+    if (FLAG_precompiled_mode) {
+      // In precompiled mode, the CodeSourceMap stores lines instead of
+      // real token positions and uses kNoSourcePos for no line information.
+      return TokenPosition::kNoSource;
+    } else {
+      return CodeSourceMapBuilder::kInitialPosition;
+    }
+  }
+
   // Reads a TokenPosition value from a CSM, handling the different encoding for
   // when non-symbolic stack traces are enabled.
   static TokenPosition ReadPosition(ReadStream* stream);

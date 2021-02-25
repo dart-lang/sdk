@@ -116,7 +116,7 @@ class Handles {
   // is allocated from the chunk until we run out space in the chunk,
   // at this point another chunk is allocated. These chunks are chained
   // together.
-  class HandlesBlock {
+  class HandlesBlock : public MallocAllocated {
    public:
     explicit HandlesBlock(HandlesBlock* next)
         : next_handle_slot_(0), next_block_(next) {}

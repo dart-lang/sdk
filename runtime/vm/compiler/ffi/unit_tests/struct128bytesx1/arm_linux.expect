@@ -1,0 +1,4 @@
+M((r2, r3) int64, S+0 int64, S+8 int64, S+16 int64, S+24 int64, S+32 int64, S+40 int64, S+48 int64, S+56 int64, S+64 int64, S+72 int64, S+80 int64, S+88 int64, S+96 int64, S+104 int64, S+112 int64) Compound(size: 128)
+S+120 int32
+=>
+P(r0 uint32) Compound(size: 128)

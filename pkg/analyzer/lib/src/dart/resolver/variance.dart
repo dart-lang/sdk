@@ -204,4 +204,20 @@ class Variance {
             'Missing keyword lexeme representation for variance: $this');
     }
   }
+
+  @override
+  String toString() {
+    switch (this) {
+      case contravariant:
+        return 'contravariant';
+      case invariant:
+        return 'invariant';
+      case covariant:
+        return 'covariant';
+      case unrelated:
+        return 'unrelated';
+      default:
+        throw UnimplementedError('encoding: $_encoding');
+    }
+  }
 }

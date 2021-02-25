@@ -193,10 +193,10 @@ Future withTempDir(String prefix, Future<void> test(Directory dir)) async {
 void main() async {
   try {
     await withTempDir('unix_socket_test', (Directory dir) async {
-      await testAddress('${dir.path}');
+      await testBind('${dir.path}');
     });
     await withTempDir('unix_socket_test', (Directory dir) async {
-      await testBind('${dir.path}');
+      await testAddress('${dir.path}');
     });
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testBindShared('${dir.path}');

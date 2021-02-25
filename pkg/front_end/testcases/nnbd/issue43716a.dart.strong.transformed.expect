@@ -1,0 +1,29 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue43716a.dart:15:14: Error: A value of type 'Object?' can't be returned from a function with return type 'Object' because 'Object?' is nullable and 'Object' isn't.
+//  - 'Object' is from 'dart:core'.
+//     return z.x; // Error.
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C<X extends self::C<self::C::X%, self::C::X%>? = self::C<dynamic, dynamic>?, Y extends self::C<self::C::Y%, self::C::Y%>? = self::C<dynamic, dynamic>?> extends core::Object {
+  generic-covariant-impl field self::C::X% x;
+  constructor •(self::C::X% x) → self::C<self::C::X%, self::C::Y%>
+    : self::C::x = x, super core::Object::•()
+    ;
+  method m(generic-covariant-impl self::C::X% x, generic-covariant-impl self::C::Y% y) → core::Object {
+    self::C<core::Object?, core::Object?>? z = self::b ?{self::C<core::Object?, core::Object?>?} x : y;
+    if(z.{core::Object::==}(null))
+      throw 0;
+    return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue43716a.dart:15:14: Error: A value of type 'Object?' can't be returned from a function with return type 'Object' because 'Object?' is nullable and 'Object' isn't.
+ - 'Object' is from 'dart:core'.
+    return z.x; // Error.
+             ^" in let core::Object? #t2 = z{self::C<core::Object?, core::Object?>}.{self::C::x} in #t2.==(null) ?{core::Object} #t2 as{TypeError,ForNonNullableByDefault} core::Object : #t2{core::Object};
+  }
+}
+static field core::bool b = true;
+static method main() → dynamic {}

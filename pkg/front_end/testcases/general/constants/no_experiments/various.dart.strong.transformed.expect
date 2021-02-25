@@ -1,0 +1,19 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/no_experiments/various.dart:5:40: Error: Constant evaluation error:
+// const Symbol tripleShiftSymbol = const Symbol(">>>");
+//                                        ^
+// pkg/front_end/testcases/general/constants/no_experiments/various.dart:5:47: Context: The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '">>>"'.
+// const Symbol tripleShiftSymbol = const Symbol(">>>");
+//                                               ^
+// pkg/front_end/testcases/general/constants/no_experiments/various.dart:5:14: Context: While analyzing:
+// const Symbol tripleShiftSymbol = const Symbol(">>>");
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+static const field core::Symbol* tripleShiftSymbol = invalid-expression "The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '\">>>\"'.";
+static method main() → dynamic {}

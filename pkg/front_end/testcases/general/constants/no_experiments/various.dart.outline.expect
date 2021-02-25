@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static const field core::Symbol* tripleShiftSymbol = const _in::Symbol::•(">>>");
+static method main() → dynamic
+  ;

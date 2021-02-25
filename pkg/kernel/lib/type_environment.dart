@@ -1,6 +1,9 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 library kernel.type_environment;
 
 import 'package:kernel/type_algebra.dart';
@@ -36,7 +39,6 @@ abstract class TypeEnvironment extends Types {
 
   InterfaceType get objectLegacyRawType => coreTypes.objectLegacyRawType;
   InterfaceType get objectNullableRawType => coreTypes.objectNullableRawType;
-  InterfaceType get nullType => coreTypes.nullType;
   InterfaceType get functionLegacyRawType => coreTypes.functionLegacyRawType;
 
   /// Returns the type `List<E>` with the given [nullability] and [elementType]
@@ -82,7 +84,7 @@ abstract class TypeEnvironment extends Types {
   }
 
   DartType _withDeclaredNullability(DartType type, Nullability nullability) {
-    if (type == nullType) return type;
+    if (type is NullType) return type;
     return type.withDeclaredNullability(
         uniteNullabilities(type.declaredNullability, nullability));
   }
@@ -156,7 +158,7 @@ abstract class TypeEnvironment extends Types {
       if (class_ == coreTypes.intClass ||
           class_ == coreTypes.numClass ||
           class_ == coreTypes.doubleClass) {
-        String name = member.name.name;
+        String name = member.name.text;
         return name == '+' ||
             name == '-' ||
             name == '*' ||
@@ -166,7 +168,7 @@ abstract class TypeEnvironment extends Types {
     } else {
       Class class_ = member.enclosingClass;
       if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
-        String name = member.name.name;
+        String name = member.name.text;
         return name == '+' ||
             name == '-' ||
             name == '*' ||
@@ -184,7 +186,7 @@ abstract class TypeEnvironment extends Types {
     if (isNonNullableByDefault) {
       Class class_ = member.enclosingClass;
       if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
-        String name = member.name.name;
+        String name = member.name.text;
         return name == 'clamp';
       }
     }
@@ -270,7 +272,8 @@ abstract class TypeEnvironment extends Types {
                 SubtypeCheckMode.withNullabilities) &&
             isSubtypeOf(type3, coreTypes.intNonNullableRawType,
                 SubtypeCheckMode.withNullabilities)) {
-          // If T1, T2 and T3 are all subtypes of int, the static type of e is int.
+          // If T1, T2 and T3 are all subtypes of int, the static type of e is
+          // int.
           return coreTypes.intNonNullableRawType;
         } else if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
                 SubtypeCheckMode.withNullabilities) &&
@@ -278,7 +281,8 @@ abstract class TypeEnvironment extends Types {
                 SubtypeCheckMode.withNullabilities) &&
             isSubtypeOf(type3, coreTypes.doubleNonNullableRawType,
                 SubtypeCheckMode.withNullabilities)) {
-          // If T1, T2 and T3 are all subtypes of double, the static type of e is double.
+          // If T1, T2 and T3 are all subtypes of double, the static type of e
+          // is double.
           return coreTypes.doubleNonNullableRawType;
         }
       }
@@ -343,10 +347,15 @@ class IsSubtypeOf {
   /// The only state of an [IsSubtypeOf] object.
   final int _value;
 
-  const IsSubtypeOf._internal(int value) : _value = value;
+  final DartType subtype;
+
+  final DartType supertype;
+
+  const IsSubtypeOf._internal(int value, this.subtype, this.supertype)
+      : _value = value;
 
   /// Subtype check succeeds in both modes.
-  const IsSubtypeOf.always() : this._internal(_valueAlways);
+  const IsSubtypeOf.always() : this._internal(_valueAlways, null, null);
 
   /// Subtype check succeeds only if the nullability markers are ignored.
   ///
@@ -356,11 +365,12 @@ class IsSubtypeOf {
   /// mode).  By contraposition, if a subtype check fails for two types when the
   /// nullability markers are ignored, it should also fail for those types in
   /// full-NNBD mode.
-  const IsSubtypeOf.onlyIfIgnoringNullabilities()
-      : this._internal(_valueOnlyIfIgnoringNullabilities);
+  const IsSubtypeOf.onlyIfIgnoringNullabilities(
+      {DartType subtype, DartType supertype})
+      : this._internal(_valueOnlyIfIgnoringNullabilities, subtype, supertype);
 
   /// Subtype check fails in both modes.
-  const IsSubtypeOf.never() : this._internal(_valueNever);
+  const IsSubtypeOf.never() : this._internal(_valueNever, null, null);
 
   /// Checks if two types are in relation based solely on their nullabilities.
   ///
@@ -378,10 +388,12 @@ class IsSubtypeOf {
       if (supertype is InvalidType) {
         return const IsSubtypeOf.always();
       }
-      return const IsSubtypeOf.onlyIfIgnoringNullabilities();
+      return new IsSubtypeOf.onlyIfIgnoringNullabilities(
+          subtype: subtype, supertype: supertype);
     }
     if (supertype is InvalidType) {
-      return const IsSubtypeOf.onlyIfIgnoringNullabilities();
+      return new IsSubtypeOf.onlyIfIgnoringNullabilities(
+          subtype: subtype, supertype: supertype);
     }
 
     if (subtype.isPotentiallyNullable && supertype.isPotentiallyNonNullable) {
@@ -406,7 +418,8 @@ class IsSubtypeOf {
           return const IsSubtypeOf.always();
         }
       }
-      return const IsSubtypeOf.onlyIfIgnoringNullabilities();
+      return new IsSubtypeOf.onlyIfIgnoringNullabilities(
+          subtype: subtype, supertype: supertype);
     }
     return const IsSubtypeOf.always();
   }
@@ -421,7 +434,21 @@ class IsSubtypeOf {
   /// `Rb.and(Rc)` where `Rb` is the result of `B1 <: B2`, `Rc` is the result
   /// of `C1 <: C2`.
   IsSubtypeOf and(IsSubtypeOf other) {
-    return _all[_andValues(_value, other._value)];
+    int resultValue = _andValues(_value, other._value);
+    if (resultValue == IsSubtypeOf._valueOnlyIfIgnoringNullabilities) {
+      // If the type mismatch is due to nullabilities, the mismatching parts are
+      // remembered in either 'this' or [other].  In that case we need to return
+      // exactly one of those objects, so that the information about mismatching
+      // parts is propagated upwards.
+      if (_value == IsSubtypeOf._valueOnlyIfIgnoringNullabilities) {
+        return this;
+      } else {
+        assert(other._value == IsSubtypeOf._valueOnlyIfIgnoringNullabilities);
+        return other;
+      }
+    } else {
+      return _all[resultValue];
+    }
   }
 
   /// Shorts the computation of [and] if `this` is [IsSubtypeOf.never].
@@ -448,7 +475,21 @@ class IsSubtypeOf {
   /// as `Rs.or(Rf)` where `Rs` is the result of `T <: S`, `Rf` is the result of
   /// `T <: Future<S>`.
   IsSubtypeOf or(IsSubtypeOf other) {
-    return _all[_orValues(_value, other._value)];
+    int resultValue = _orValues(_value, other._value);
+    if (resultValue == IsSubtypeOf._valueOnlyIfIgnoringNullabilities) {
+      // If the type mismatch is due to nullabilities, the mismatching parts are
+      // remembered in either 'this' or [other].  In that case we need to return
+      // exactly one of those objects, so that the information about mismatching
+      // parts is propagated upwards.
+      if (_value == IsSubtypeOf._valueOnlyIfIgnoringNullabilities) {
+        return this;
+      } else {
+        assert(other._value == IsSubtypeOf._valueOnlyIfIgnoringNullabilities);
+        return other;
+      }
+    } else {
+      return _all[resultValue];
+    }
   }
 
   /// Shorts the computation of [or] if `this` is [IsSubtypeOf.always].
@@ -491,13 +532,89 @@ enum SubtypeCheckMode {
   ignoringNullabilities,
 }
 
+abstract class StaticTypeCache {
+  DartType getExpressionType(Expression node, StaticTypeContext context);
+
+  DartType getForInIteratorType(ForInStatement node, StaticTypeContext context);
+
+  DartType getForInElementType(ForInStatement node, StaticTypeContext context);
+}
+
+class StaticTypeCacheImpl implements StaticTypeCache {
+  Map<Expression, DartType> _expressionTypes;
+  Map<ForInStatement, DartType> _forInIteratorTypes;
+  Map<ForInStatement, DartType> _forInElementTypes;
+
+  DartType getExpressionType(Expression node, StaticTypeContext context) {
+    _expressionTypes ??= <Expression, DartType>{};
+    return _expressionTypes[node] ??= node.getStaticTypeInternal(context);
+  }
+
+  DartType getForInIteratorType(
+      ForInStatement node, StaticTypeContext context) {
+    _forInIteratorTypes ??= <ForInStatement, DartType>{};
+    return _forInIteratorTypes[node] ??= node.getIteratorTypeInternal(context);
+  }
+
+  DartType getForInElementType(ForInStatement node, StaticTypeContext context) {
+    _forInElementTypes ??= <ForInStatement, DartType>{};
+    return _forInElementTypes[node] ??= node.getElementTypeInternal(context);
+  }
+}
+
 /// Context object needed for computing `Expression.getStaticType`.
 ///
 /// The [StaticTypeContext] provides access to the [TypeEnvironment] and the
 /// current 'this type' as well as determining the nullability state of the
 /// enclosing library.
-// TODO(johnniwinther): Support static type caching through [StaticTypeContext].
-class StaticTypeContext {
+abstract class StaticTypeContext {
+  /// The [TypeEnvironment] used for the static type computation.
+  ///
+  /// This provides access to the core types and the class hierarchy.
+  TypeEnvironment get typeEnvironment;
+
+  /// The static type of a `this` expression.
+  InterfaceType get thisType;
+
+  /// Creates a static type context for computing static types in the body
+  /// of [member].
+  factory StaticTypeContext(Member member, TypeEnvironment typeEnvironment,
+      {StaticTypeCache cache}) = StaticTypeContextImpl;
+
+  /// Creates a static type context for computing static types of annotations
+  /// in [library].
+  factory StaticTypeContext.forAnnotations(
+      Library library, TypeEnvironment typeEnvironment,
+      {StaticTypeCache cache}) = StaticTypeContextImpl.forAnnotations;
+
+  /// The [Nullability] used for non-nullable types.
+  ///
+  /// For opt out libraries this is [Nullability.legacy].
+  Nullability get nonNullable;
+
+  /// The [Nullability] used for nullable types.
+  ///
+  /// For opt out libraries this is [Nullability.legacy].
+  Nullability get nullable;
+
+  /// Return `true` if the current library is opted in to non-nullable by
+  /// default.
+  bool get isNonNullableByDefault;
+
+  /// Returns the mode under which the current library was compiled.
+  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode;
+
+  /// Returns the static type of [node].
+  DartType getExpressionType(Expression node);
+
+  /// Returns the static type of the iterator in for-in statement [node].
+  DartType getForInIteratorType(ForInStatement node);
+
+  /// Returns the static type of the element in for-in statement [node].
+  DartType getForInElementType(ForInStatement node);
+}
+
+class StaticTypeContextImpl implements StaticTypeContext {
   /// The [TypeEnvironment] used for the static type computation.
   ///
   /// This provides access to the core types and the class hierarchy.
@@ -512,17 +629,23 @@ class StaticTypeContext {
   /// The static type of a `this` expression.
   final InterfaceType thisType;
 
+  final StaticTypeCache _cache;
+
   /// Creates a static type context for computing static types in the body
   /// of [member].
-  StaticTypeContext(Member member, this.typeEnvironment)
+  StaticTypeContextImpl(Member member, this.typeEnvironment,
+      {StaticTypeCache cache})
       : _library = member.enclosingLibrary,
         thisType = member.enclosingClass?.getThisType(
-            typeEnvironment.coreTypes, member.enclosingLibrary.nonNullable);
+            typeEnvironment.coreTypes, member.enclosingLibrary.nonNullable),
+        _cache = cache;
 
   /// Creates a static type context for computing static types of annotations
   /// in [library].
-  StaticTypeContext.forAnnotations(this._library, this.typeEnvironment)
-      : thisType = null;
+  StaticTypeContextImpl.forAnnotations(this._library, this.typeEnvironment,
+      {StaticTypeCache cache})
+      : thisType = null,
+        _cache = cache;
 
   /// The [Nullability] used for non-nullable types.
   ///
@@ -541,6 +664,30 @@ class StaticTypeContext {
   /// Returns the mode under which the current library was compiled.
   NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
       _library.nonNullableByDefaultCompiledMode;
+
+  DartType getExpressionType(Expression node) {
+    if (_cache != null) {
+      return _cache.getExpressionType(node, this);
+    } else {
+      return node.getStaticTypeInternal(this);
+    }
+  }
+
+  DartType getForInIteratorType(ForInStatement node) {
+    if (_cache != null) {
+      return _cache.getForInIteratorType(node, this);
+    } else {
+      return node.getIteratorTypeInternal(this);
+    }
+  }
+
+  DartType getForInElementType(ForInStatement node) {
+    if (_cache != null) {
+      return _cache.getForInElementType(node, this);
+    } else {
+      return node.getElementTypeInternal(this);
+    }
+  }
 }
 
 /// Implementation of [StaticTypeContext] that update its state when entering
@@ -597,7 +744,6 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
   _FlatStatefulStaticTypeContext(TypeEnvironment typeEnvironment)
       : super._internal(typeEnvironment);
 
-  @override
   Library get _library {
     Library library = _currentLibrary ?? _currentMember?.enclosingLibrary;
     assert(library != null,
@@ -679,6 +825,18 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
         "Trying to leave $node but current is ${_currentLibrary}.");
     _currentLibrary = null;
   }
+
+  @override
+  DartType getExpressionType(Expression node) =>
+      node.getStaticTypeInternal(this);
+
+  @override
+  DartType getForInIteratorType(ForInStatement node) =>
+      node.getIteratorTypeInternal(this);
+
+  @override
+  DartType getForInElementType(ForInStatement node) =>
+      node.getElementTypeInternal(this);
 }
 
 /// Implementation of [StatefulStaticTypeContext] that use a stack to change
@@ -690,7 +848,6 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
   _StackedStatefulStaticTypeContext(TypeEnvironment typeEnvironment)
       : super._internal(typeEnvironment);
 
-  @override
   Library get _library {
     assert(_contextStack.isNotEmpty,
         "No library currently associated with StaticTypeContext.");
@@ -766,6 +923,18 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
         "Inconsistent static type context stack: "
         "Trying to leave $node but current is ${state._node}.");
   }
+
+  @override
+  DartType getExpressionType(Expression node) =>
+      node.getStaticTypeInternal(this);
+
+  @override
+  DartType getForInIteratorType(ForInStatement node) =>
+      node.getIteratorTypeInternal(this);
+
+  @override
+  DartType getForInElementType(ForInStatement node) =>
+      node.getElementTypeInternal(this);
 }
 
 class _StaticTypeContextState {

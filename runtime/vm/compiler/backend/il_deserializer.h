@@ -67,7 +67,6 @@ class FlowGraphDeserializer : ValueObject {
         name_library_(Library::Handle(zone)),
         type_class_(Class::Handle(zone)),
         type_param_class_(Class::Handle(zone)),
-        type_param_function_(Function::Handle(zone)),
         tmp_string_(String::Handle(zone)) {
     // See canonicalization comment in ParseDartValue as to why this is
     // currently necessary.
@@ -196,8 +195,8 @@ class FlowGraphDeserializer : ValueObject {
 #undef HANDLER_DECL
 
   struct InstrInfo {
-    intptr_t deopt_id;
-    TokenPosition token_pos;
+    const intptr_t deopt_id;
+    const InstructionSource source;
   };
 
   enum HandledInstruction {
@@ -282,9 +281,12 @@ class FlowGraphDeserializer : ValueObject {
   bool ParseClosure(SExpList* list, Object* out);
   bool ParseField(SExpList* list, Object* out);
   bool ParseFunction(SExpList* list, Object* out);
+  bool ParseSignature(SExpList* list, Object* out);
+  bool ParseArray(SExpList* list, Object* out);
   bool ParseImmutableList(SExpList* list, Object* out);
   bool ParseInstance(SExpList* list, Object* out);
   bool ParseType(SExpression* sexp, Object* out);
+  bool ParseFunctionType(SExpList* list, Object* out);
   bool ParseTypeParameter(SExpList* list, Object* out);
   bool ParseTypeArguments(SExpression* sexp, Object* out);
   bool ParseTypeRef(SExpList* list, Object* out);
@@ -401,7 +403,6 @@ class FlowGraphDeserializer : ValueObject {
   Library& name_library_;              // ParseCanonicalName
   Class& type_class_;                  // ParseType
   Class& type_param_class_;            // ParseTypeParameter
-  Function& type_param_function_;      // ParseTypeParameter
   // Uses of string handles tend to be immediate, so we only need one.
   String& tmp_string_;
 

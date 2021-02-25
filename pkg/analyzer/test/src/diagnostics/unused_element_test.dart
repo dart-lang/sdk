@@ -11,6 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedElementTest);
     defineReflectiveTests(UnusedElementWithNullSafetyTest);
+    defineReflectiveTests(UnusedElementWithNonFunctionTypeAliasesTest);
   });
 }
 
@@ -153,6 +154,31 @@ print(x) {}
 ''', [
       error(HintCode.UNUSED_ELEMENT, 6, 2),
     ]);
+  }
+
+  test_classGetterSetter_isUsed_assignmentExpression_compound() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get _foo => 0;
+  set _foo(int _) {}
+
+  void f() {
+    _foo += 2;
+  }
+}
+''');
+  }
+
+  test_classSetter_isUsed_assignmentExpression_simple() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  set _foo(int _) {}
+
+  void f() {
+    _foo = 0;
+  }
+}
+''');
   }
 
   test_constructor_isUsed_asRedirectee() async {
@@ -686,6 +712,17 @@ void main() {
 ''');
   }
 
+  test_method_isUsed_privateExtension_indexEqOperator() async {
+    await assertNoErrorsInCode(r'''
+extension _A on bool {
+  operator []=(int index, int value) {}
+}
+void main() {
+  false[0] = 1;
+}
+''');
+  }
+
   test_method_isUsed_privateExtension_indexOperator() async {
     await assertNoErrorsInCode(r'''
 extension _A on bool {
@@ -807,8 +844,18 @@ extension _A on String {
     ]);
   }
 
-  // Postfix operators can only be called, not defined. The "notUsed" sibling to
-  // this test is the test on a binary operator.
+  /// Postfix operators can only be called, not defined. The "notUsed" sibling to
+  /// this test is the test on a binary operator.
+  test_method_notUsed_privateExtension_indexEqOperator() async {
+    await assertErrorsInCode(r'''
+extension _A on bool {
+  operator []=(int index, int value) {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 34, 3),
+    ]);
+  }
+
   test_method_notUsed_privateExtension_indexOperator() async {
     await assertErrorsInCode(r'''
 extension _A on bool {
@@ -819,8 +866,8 @@ extension _A on bool {
     ]);
   }
 
-  // Assignment operators can only be called, not defined. The "notUsed" sibling
-  // to this test is the test on a binary operator.
+  /// Assignment operators can only be called, not defined. The "notUsed" sibling
+  /// to this test is the test on a binary operator.
   test_method_notUsed_privateExtension_operator() async {
     await assertErrorsInCode(r'''
 extension _A on String {
@@ -911,26 +958,13 @@ mixin _M {}
     ]);
   }
 
-  test_optionalParameter_constructor_named_notUsed() async {
-    await assertErrorsInCode(r'''
-class A {
-  A._([int a]);
-}
-f() => A._();
-''', [
-      error(HintCode.UNUSED_ELEMENT_PARAMETER, 21, 1),
-    ]);
-  }
-
-  test_optionalParameter_constructor_unnamed_notUsed() async {
-    await assertErrorsInCode(r'''
+  test_optionalParameter_isUsed_constructor() async {
+    await assertNoErrorsInCode(r'''
 class _A {
-  _A([int a]);
+  _A([int a = 0]);
 }
-f() => _A();
-''', [
-      error(HintCode.UNUSED_ELEMENT_PARAMETER, 21, 1),
-    ]);
+f() => _A(0);
+''');
   }
 
   test_optionalParameter_isUsed_functionTearoff() async {
@@ -1056,6 +1090,28 @@ class A {
 }
 f() => A()._m(0);
 ''');
+  }
+
+  test_optionalParameter_notUsed_constructor_named() async {
+    await assertErrorsInCode(r'''
+class A {
+  A._([int a]);
+}
+f() => A._();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 21, 1),
+    ]);
+  }
+
+  test_optionalParameter_notUsed_constructor_unnamed() async {
+    await assertErrorsInCode(r'''
+class _A {
+  _A([int a]);
+}
+f() => _A();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 21, 1),
+    ]);
   }
 
   test_optionalParameter_notUsed_extension() async {
@@ -1362,6 +1418,57 @@ _f(int p) => 7;
     ]);
   }
 
+  test_topLevelGetterSetter_isUsed_assignmentExpression_compound() async {
+    await assertNoErrorsInCode(r'''
+int get _foo => 0;
+set _foo(int _) {}
+
+void f() {
+  _foo += 2;
+}
+''');
+  }
+
+  test_topLevelGetterSetter_isUsed_postfixExpression_increment() async {
+    await assertNoErrorsInCode(r'''
+int get _foo => 0;
+set _foo(int _) {}
+
+void f() {
+  _foo++;
+}
+''');
+  }
+
+  test_topLevelGetterSetter_isUsed_prefixExpression_increment() async {
+    await assertNoErrorsInCode(r'''
+int get _foo => 0;
+set _foo(int _) {}
+
+void f() {
+  ++_foo;
+}
+''');
+  }
+
+  test_topLevelSetter_isUsed_assignmentExpression_simple() async {
+    await assertNoErrorsInCode(r'''
+set _foo(int _) {}
+
+void f() {
+  _foo = 0;
+}
+''');
+  }
+
+  test_topLevelSetter_notUsed() async {
+    await assertErrorsInCode(r'''
+set _foo(int _) {}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 4, 4),
+    ]);
+  }
+
   test_topLevelVariable_isUsed() async {
     await assertNoErrorsInCode(r'''
 int _a = 1;
@@ -1418,6 +1525,94 @@ f() {
 int _a = 7;
 ''', [
       error(HintCode.UNUSED_ELEMENT, 34, 2),
+    ]);
+  }
+
+  test_typeAlias_functionType_isUsed_isExpression() async {
+    await assertNoErrorsInCode(r'''
+typedef _F = void Function();
+main(f) {
+  if (f is _F) {
+    print('F');
+  }
+}
+''');
+  }
+
+  test_typeAlias_functionType_isUsed_reference() async {
+    await assertNoErrorsInCode(r'''
+typedef _F = void Function();
+main(_F f) {
+}
+''');
+  }
+
+  test_typeAlias_functionType_isUsed_typeArgument() async {
+    await assertNoErrorsInCode(r'''
+typedef _F = void Function();
+main() {
+  var v = new List<_F>();
+  print(v);
+}
+''');
+  }
+
+  test_typeAlias_functionType_isUsed_variableDeclaration() async {
+    await assertNoErrorsInCode(r'''
+typedef _F = void Function();
+class A {
+  _F f;
+}
+''');
+  }
+
+  test_typeAlias_functionType_notUsed_noReference() async {
+    await assertErrorsInCode(r'''
+typedef _F = void Function();
+main() {
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 8, 2),
+    ]);
+  }
+}
+
+@reflectiveTest
+class UnusedElementWithNonFunctionTypeAliasesTest
+    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+  test_typeAlias_interfaceType_isUsed_typeName_isExpression() async {
+    await assertNoErrorsInCode(r'''
+typedef _A = List<int>;
+
+void f(a) {
+  a is _A;
+}
+''');
+  }
+
+  test_typeAlias_interfaceType_isUsed_typeName_parameter() async {
+    await assertNoErrorsInCode(r'''
+typedef _A = List<int>;
+
+void f(_A a) {}
+''');
+  }
+
+  test_typeAlias_interfaceType_isUsed_typeName_typeArgument() async {
+    await assertNoErrorsInCode(r'''
+typedef _A = List<int>;
+
+void f() {
+  Map<_A, int>();
+}
+''');
+  }
+
+  test_typeAlias_interfaceType_notUsed() async {
+    await assertErrorsInCode(r'''
+typedef _A = List<int>;
+''', [
+      error(HintCode.UNUSED_ELEMENT, 8, 2),
     ]);
   }
 }

@@ -2,7 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*library: scope=[AmbiguousExtension1,AmbiguousExtension2,UnambiguousExtension1]*/
+// @dart = 2.9
+
+/*library: scope=[
+  AmbiguousExtension1,
+  AmbiguousExtension2,
+  UnambiguousExtension1,
+  async.dart.FutureExtensions]*/
 
 /*class: AmbiguousExtension1:
  builder-name=AmbiguousExtension1,

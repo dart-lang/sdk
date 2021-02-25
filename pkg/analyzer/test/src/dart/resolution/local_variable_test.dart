@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -30,9 +28,7 @@ void f<T>(T a, T b) {
 }
 ''');
 
-    var type = findNode.simple('o; // ref').staticType;
-    assertType(type, 'T');
-    _assertPromotedBound(type, isNull);
+    assertType(findNode.simple('o; // ref'), 'T');
   }
 
   test_element_block() async {
@@ -99,12 +95,6 @@ void f() {
     expect(x.isLate, isFalse);
     expect(x.isStatic, isFalse);
   }
-
-  void _assertPromotedBound(DartType type, Matcher promotedBound) {
-    if (type is TypeParameterTypeImpl) {
-      expect(type.promotedBound, promotedBound);
-    }
-  }
 }
 
 @reflectiveTest
@@ -132,14 +122,16 @@ void f() {
 var a = 0;
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 
 void f() {
   var x = a;
   x;
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
     var x = findElement.localVar('x');
     assertType(x.type, 'int');

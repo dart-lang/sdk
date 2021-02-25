@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -44,6 +45,18 @@ f() {
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 50, 3),
+    ]);
+  }
+
+  test_emptyName() async {
+    await assertErrorsInCode('''
+class A {
+}
+main() {
+  print(A().);
+}
+''', [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 33, 1),
     ]);
   }
 
@@ -123,11 +136,11 @@ f(C c) {
     // Referencing `.call` on a `Function` type works similarly to referencing
     // it on `dynamic`--the reference is accepted at compile time, and all type
     // checking is deferred until runtime.
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 f(Function f) {
   return f.call;
 }
-''', []);
+''');
   }
 
   test_ifElement_inList_notPromoted() async {
@@ -235,7 +248,6 @@ m() {
 ''',
         expectedErrorsByNullability(nullable: [
           error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 22, 5),
-          error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
         ], legacy: [
           error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
         ]));
@@ -261,6 +273,26 @@ void f<X extends num, Y extends X>(Y y) {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 66, 6),
     ]);
+  }
+
+  test_propertyAccess_functionClass_call() async {
+    await assertNoErrorsInCode('''
+void f(Function a) {
+  return (a).call;
+}
+''');
+  }
+
+  test_propertyAccess_functionType_call() async {
+    await assertNoErrorsInCode('''
+class A {
+  void staticMethod() {}
+}
+
+void f(A a) {
+  a.staticMethod.call;
+}
+''');
   }
 
   test_proxy_annotation_fakeProxy() async {

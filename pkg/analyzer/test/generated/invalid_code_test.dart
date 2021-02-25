@@ -20,6 +20,19 @@ main() {
 /// and analysis finishes without exceptions.
 @reflectiveTest
 class InvalidCodeTest extends PubPackageResolutionTest {
+  test_const_AwaitExpression() async {
+    await _assertCanBeAnalyzed(r'''
+const a = await b();
+''');
+  }
+
+  test_const_ForPartsWithExpression() async {
+    await _assertCanBeAnalyzed(r'''
+@A([for (;;) 0])
+void f() {}
+''');
+  }
+
   /// This code results in a method with the empty name, and the default
   /// constructor, which also has the empty name. The `Map` in `f` initializer
   /// references the empty name.
@@ -79,6 +92,25 @@ extension E on Object {
 ''');
   }
 
+  test_extensionOverrideInAnnotationContext_importedWithPrefix() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+extension E on Object {
+  int f() => 0;
+}
+''');
+    await _assertCanBeAnalyzed('''
+import 'a.dart' as prefix;
+
+class A {
+  const A(int x);
+}
+
+@R(prefix.E(null).f())
+void g() {}
+}
+''');
+  }
+
   test_extensionOverrideInConstContext() async {
     await _assertCanBeAnalyzed('''
 extension E on Object {
@@ -101,7 +133,7 @@ void main() {
     await _assertCanBeAnalyzed(r'''
 typedef F = void Function(bool, int a(double b));
 ''');
-    var alias = findElement.functionTypeAlias('F');
+    var alias = findElement.typeAlias('F');
     assertType(
         alias.instantiate(
           typeArguments: const [],
@@ -170,7 +202,7 @@ class C {
     await _assertCanBeAnalyzed(r'''
 typedef void F(int a, this.b);
 ''');
-    var alias = findElement.functionTypeAlias('F');
+    var alias = findElement.typeAlias('F');
     assertType(
         alias.instantiate(
           typeArguments: const [],
@@ -196,11 +228,11 @@ class A<T extends F> {}
 ''');
   }
 
-  @failingTest
   test_fuzz_12() async {
     // This code crashed with summary2 because usually AST reader is lazy,
     // so we did not read metadata `@b` for `c`. But default values must be
     // read fully.
+    // Fixed 2020-11-12.
     await _assertCanBeAnalyzed(r'''
 void f({a = [for (@b c = 0;;)]}) {}
 ''');
@@ -294,6 +326,13 @@ C<int Function()> c;
 ''');
   }
 
+  test_invalidPart_withPart() async {
+    await _assertCanBeAnalyzed('''
+part of a;
+part 'test.dart';
+''');
+  }
+
   test_keywordInConstructorInitializer_assert() async {
     await _assertCanBeAnalyzed('''
 class C {
@@ -326,6 +365,23 @@ class C {
 ''');
   }
 
+  test_localFunction_defaultFieldFormalParameter_metadata() async {
+    await _assertCanBeAnalyzed(r'''
+const my = 0;
+
+void foo() {
+  // ignore:unused_element
+  void bar({@my this.x}) {}
+}
+''');
+  }
+
+  test_syntheticImportPrefix() async {
+    await _assertCanBeAnalyzed('''
+import 'dart:math' as;
+''');
+  }
+
   test_typeBeforeAnnotation() async {
     await _assertCanBeAnalyzed('''
 class A {
@@ -346,6 +402,39 @@ class B {
 @reflectiveTest
 class InvalidCodeWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
+  test_functionExpression_emptyBody() async {
+    await _assertCanBeAnalyzed(r'''
+var v = <T>();
+''');
+  }
+
+  test_functionExpressionInvocation_mustBeNullShortingTerminated() async {
+    // It looks like MethodInvocation, but because `8` is not SimpleIdentifier,
+    // we parse it as FunctionExpressionInvocation.
+    await _assertCanBeAnalyzed(r'''
+var v = a?.8(b);
+''');
+  }
+
+  test_inAnnotation_noFlow_labeledStatement() async {
+    await _assertCanBeAnalyzed('''
+@A(() { label: })
+typedef F = void Function();
+''');
+  }
+
+  test_inDefaultValue_noFlow_ifExpression() async {
+    await _assertCanBeAnalyzed('''
+typedef void F({a = [if (true) 0]});
+''');
+  }
+
+  test_inDefaultValue_noFlow_ifStatement() async {
+    await _assertCanBeAnalyzed('''
+typedef void F([a = () { if (true) 0; }]);
+''');
+  }
+
   test_issue_40837() async {
     await _assertCanBeAnalyzed('''
 class A {

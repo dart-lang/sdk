@@ -10,7 +10,6 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -30,41 +29,13 @@ Version languageVersionFromSdkVersion(String sdkVersionStr) {
 /// library map.
 abstract class AbstractDartSdk implements DartSdk {
   /// The resource provider used to access the file system.
-  ResourceProvider resourceProvider;
+  /*late final*/ ResourceProvider resourceProvider;
 
   /// A mapping from Dart library URI's to the library represented by that URI.
   LibraryMap libraryMap = LibraryMap();
 
-  /// The [AnalysisOptions] to use to create the [context].
-  AnalysisOptions _analysisOptions;
-
-  /// The [AnalysisContext] which is used for all of the sources in this SDK.
-  SdkAnalysisContext _analysisContext;
-
   /// The mapping from Dart URI's to the corresponding sources.
   final Map<String, Source> _uriToSourceMap = HashMap<String, Source>();
-
-  /// Return the analysis options for this SDK analysis context.
-  AnalysisOptions get analysisOptions => _analysisOptions;
-
-  /// Set the [options] for this SDK analysis context.  Throw [StateError] if
-  /// the context has been already created.
-  set analysisOptions(AnalysisOptions options) {
-    if (_analysisContext != null) {
-      throw StateError(
-          'Analysis options cannot be changed after context creation.');
-    }
-    _analysisOptions = options;
-  }
-
-  @override
-  AnalysisContext get context {
-    if (_analysisContext == null) {
-      var factory = SourceFactory([DartUriResolver(this)]);
-      _analysisContext = SdkAnalysisContext(_analysisOptions, factory);
-    }
-    return _analysisContext;
-  }
 
   @override
   List<SdkLibrary> get sdkLibraries => libraryMap.sdkLibraries;
@@ -159,7 +130,7 @@ abstract class AbstractDartSdk implements DartSdk {
   }
 
   @override
-  Source mapDartUri(String dartUri) {
+  Source mapDartUri(String /*!*/ dartUri) {
     Source source = _uriToSourceMap[dartUri];
     if (source == null) {
       source = internalMapDartUri(dartUri);
@@ -171,7 +142,7 @@ abstract class AbstractDartSdk implements DartSdk {
   String _getPath(File file) {
     List<SdkLibrary> libraries = libraryMap.sdkLibraries;
     int length = libraries.length;
-    List<String> paths = List(length);
+    List<String> paths = List.filled(length, null);
     String filePath = getRelativePathFromFile(file);
     if (filePath == null) {
       return null;
@@ -317,9 +288,9 @@ class EmbedderSdk extends AbstractDartSdk {
   ///
   /// If a key doesn't begin with `dart:` it is ignored.
   void _processEmbedderYaml(Folder libDir, YamlMap map) {
-    YamlNode embedded_libs = map[_EMBEDDED_LIB_MAP_KEY];
-    if (embedded_libs is YamlMap) {
-      embedded_libs.forEach((k, v) => _processEmbeddedLibs(k, v, libDir));
+    YamlNode embeddedLibs = map[_EMBEDDED_LIB_MAP_KEY];
+    if (embeddedLibs is YamlMap) {
+      embeddedLibs.forEach((k, v) => _processEmbeddedLibs(k, v, libDir));
     }
   }
 }
@@ -380,17 +351,17 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   final Folder _sdkDirectory;
 
   /// The directory within the SDK directory that contains the libraries.
-  Folder _libraryDirectory;
+  /*late final*/ Folder _libraryDirectory;
 
   /// The revision number of this SDK, or `"0"` if the revision number cannot be
   /// discovered.
-  String _sdkVersion;
+  /*late final*/ String _sdkVersion;
 
   /// The cached language version of this SDK.
-  Version _languageVersion;
+  /*late final*/ Version _languageVersion;
 
   /// The file containing the pub executable.
-  File _pubExecutable;
+  /*late final*/ File _pubExecutable;
 
   /// Initialize a newly created SDK to represent the Dart SDK installed in the
   /// [sdkDirectory].
@@ -502,8 +473,8 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   /// Return the initialized library map.
   LibraryMap initialLibraryMap() {
     List<String> searchedPaths = <String>[];
-    StackTrace lastStackTrace;
-    Object lastException;
+    /*late*/ StackTrace lastStackTrace;
+    /*late*/ Object lastException;
     for (File librariesFile in _libraryMapLocations) {
       try {
         String contents = librariesFile.readAsStringSync();

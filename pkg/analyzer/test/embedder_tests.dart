@@ -14,8 +14,8 @@ abstract class EmbedderRelatedTest {
   final String foxPath = '/home/.pub-cache/fox';
   final String foxLib = '/home/.pub-cache/fox/lib';
 
-  TestPathTranslator pathTranslator;
-  ResourceProvider resourceProvider;
+  /*late*/ TestPathTranslator pathTranslator;
+  /*late*/ ResourceProvider resourceProvider;
 
   buildResourceProvider() {
     MemoryResourceProvider rawProvider = MemoryResourceProvider();
@@ -34,16 +34,7 @@ embedded_libs:
 ''');
   }
 
-  clearResourceProvider() {
-    resourceProvider = null;
-    pathTranslator = null;
-  }
-
   void setUp() {
     buildResourceProvider();
-  }
-
-  void tearDown() {
-    clearResourceProvider();
   }
 }

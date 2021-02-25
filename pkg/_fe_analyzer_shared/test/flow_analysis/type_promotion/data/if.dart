@@ -87,7 +87,12 @@ isType_factor_declaredType(int? v) {
   if (v is int?) {
     v;
   } else {
-    /*Never*/ v;
+    // Type promotion never promotes a variable to type `Never`, since that
+    // could lead to code being deemed unreachable when in fact it is reachable
+    // due to mixed mode unsoundness.  (In this particular case mixed mode
+    // unsoundness couldn't cause this "else" block to be reached, but flow
+    // analysis isn't smart enough to know that.)
+    v;
   }
   v;
 }
@@ -96,7 +101,12 @@ isType_factor_supertype(int? v) {
   if (v is num?) {
     v;
   } else {
-    /*Never*/ v;
+    // Type promotion never promotes a variable to type `Never`, since that
+    // could lead to code being deemed unreachable when in fact it is reachable
+    // due to mixed mode unsoundness.  (In this particular case mixed mode
+    // unsoundness couldn't cause this "else" block to be reached, but flow
+    // analysis isn't smart enough to know that.)
+    v;
   }
   v;
 }

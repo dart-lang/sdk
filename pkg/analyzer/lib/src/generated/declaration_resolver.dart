@@ -27,7 +27,7 @@ class ElementWalker {
   int _mixinIndex = 0;
   List<ParameterElement> _parameters;
   int _parameterIndex = 0;
-  List<FunctionTypeAliasElement> _typedefs;
+  List<TypeAliasElement> _typedefs;
   int _typedefIndex = 0;
   List<TypeParameterElement> _typeParameters;
   int _typeParameterIndex = 0;
@@ -56,7 +56,7 @@ class ElementWalker {
         _extensions = element.extensions,
         _functions = element.functions,
         _mixins = element.mixins,
-        _typedefs = element.functionTypeAliases,
+        _typedefs = element.typeAliases,
         _variables = element.topLevelVariables.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a compilation
@@ -85,7 +85,7 @@ class ElementWalker {
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element defined using a generic function type.
-  ElementWalker.forGenericTypeAlias(FunctionTypeAliasElement element)
+  ElementWalker.forGenericTypeAlias(TypeAliasElement element)
       : element = element,
         _typeParameters = element.typeParameters;
 
@@ -98,7 +98,7 @@ class ElementWalker {
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.
-  ElementWalker.forTypedef(GenericTypeAliasElementImpl element)
+  ElementWalker.forTypedef(FunctionTypeAliasElementImpl element)
       : element = element,
         _parameters = element.function.parameters,
         _typeParameters = element.typeParameters;
@@ -144,7 +144,7 @@ class ElementWalker {
 
   /// Returns the next non-synthetic child of [element] which is a typedef;
   /// throws an [IndexError] if there are no more.
-  FunctionTypeAliasElement getTypedef() => _typedefs[_typedefIndex++];
+  TypeAliasElement getTypedef() => _typedefs[_typedefIndex++];
 
   /// Returns the next non-synthetic child of [element] which is a type
   /// parameter; throws an [IndexError] if there are no more.

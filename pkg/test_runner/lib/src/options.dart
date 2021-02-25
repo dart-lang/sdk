@@ -15,7 +15,7 @@ import 'repository.dart';
 import 'utils.dart';
 
 const _defaultTestSelectors = [
-  'samples',
+  'samples_2',
   'standalone_2',
   'corelib_2',
   'language_2',
@@ -24,9 +24,9 @@ const _defaultTestSelectors = [
   'utils',
   'lib_2',
   'analyze_library',
-  'service',
+  'service_2',
   'kernel',
-  'observatory_ui',
+  'observatory_ui_2',
   'ffi_2'
 ];
 
@@ -106,8 +106,6 @@ dartdevk:             Compile to JavaScript using dartdevk.
 app_jitk:             Compile the Dart code into Kernel and then into an app
                       snapshot.
 dartk:                Compile the Dart code into Kernel before running test.
-dartkb:               Compile the Dart code into Kernel with bytecode before
-                      running test.
 dartkp:               Compile the Dart code into Kernel and then Kernel into
                       AOT snapshot before running the test.
 spec_parser:          Parse Dart code using the specification parser.
@@ -166,6 +164,8 @@ simarm, simarmv6, simarm64, arm_x64''',
 test options, specifying how tests should be run.''',
         abbr: 'n',
         hide: true),
+    _Option.bool(
+        'build', 'Build the necessary targets to test this configuration'),
     // TODO(sigmund): rename flag once we migrate all dart2js bots to the test
     // matrix.
     _Option.bool('host_checked', 'Run compiler with assertions enabled.',
@@ -293,6 +293,8 @@ settings.''',
         '''If we see a crash that we did not expect, copy the core dumps to
 "/tmp".''',
         hide: true),
+    _Option.bool('rr', '''Run VM tests under rr and save traces from crashes''',
+        hide: true),
     _Option(
         'local_ip',
         '''IP address the HTTP servers should listen on. This address is also
@@ -355,6 +357,7 @@ compiler.''',
   /// For printing out reproducing command lines, we don't want to add these
   /// options.
   static final _denylistedOptions = {
+    'build',
     'build_directory',
     'chrome',
     'clean_exit',
@@ -385,12 +388,31 @@ compiler.''',
   };
 
   /// The set of objects which the named configuration should imply.
-  static final _namedConfigurationOptions = {
+  static const _namedConfigurationOptions = {
     'system',
     'arch',
     'mode',
     'compiler',
     'runtime',
+    'timeout',
+    'nnbd',
+    'sanitizer',
+    'enable_asserts',
+    'use_cfe',
+    'analyzer_use_fasta_parser',
+    'use_elf',
+    'use_sdk',
+    'hot_reload',
+    'hot_reload_rollback',
+    'host_checked',
+    'csp',
+    'minified',
+    'vm_options',
+    'dart2js_options',
+    'experiments',
+    'babel',
+    'builder_tag',
+    'use_qemu'
   };
 
   /// Parses a list of strings as test options.
@@ -448,13 +470,24 @@ compiler.''',
         // option. Use it as a test selector pattern.
         var patterns = options.putIfAbsent("selectors", () => <String>[]);
 
+        var allSuiteDirectories = [
+          ...testSuiteDirectories,
+          "tests/co19",
+          "tests/co19_2",
+        ];
         // Allow passing in the full relative path to a test or directory and
         // infer the selector from it. This lets users use tab completion on
         // the command line.
-        for (var suiteDirectory in testSuiteDirectories) {
+        for (var suiteDirectory in allSuiteDirectories) {
           var path = suiteDirectory.toString();
           if (arg.startsWith("$path/") || arg.startsWith("$path\\")) {
             arg = arg.substring(path.lastIndexOf("/") + 1);
+
+            // Remove the `src/` subdirectories from the co19 and co19_2
+            // directories that do not appear in the test names.
+            if (arg.startsWith("co19")) {
+              arg = arg.replaceFirst(RegExp("src[/\]"), "");
+            }
             break;
           }
         }
@@ -544,8 +577,8 @@ compiler.''',
       for (var optionName in _namedConfigurationOptions) {
         if (options.containsKey(optionName)) {
           var namedConfig = options['named_configuration'];
-          _fail("The named configuration '$namedConfig' implies "
-              "'$optionName'. Try removing '$optionName'.");
+          _fail("Can't pass '--$optionName' since it is determined by the "
+              "named configuration '$namedConfig'.");
         }
       }
     }
@@ -719,11 +752,13 @@ compiler.''',
           configuration: innerConfiguration,
           progress: progress,
           selectors: selectors,
+          build: data["build"] as bool,
           testList: data["test_list_contents"] as List<String>,
           repeat: data["repeat"] as int,
           batch: !(data["noBatch"] as bool),
           batchDart2JS: data["dart2js_batch"] as bool,
           copyCoreDumps: data["copy_coredumps"] as bool,
+          rr: data["rr"] as bool,
           isVerbose: data["verbose"] as bool,
           listTests: data["list"] as bool,
           listStatusFiles: data["list_status_files"] as bool,
@@ -793,6 +828,7 @@ compiler.''',
     }
 
     // Expand runtimes.
+    var configurationNumber = 1;
     for (var runtime in runtimes) {
       // Expand architectures.
       var architectures = data["arch"] as String;
@@ -817,8 +853,13 @@ compiler.''',
             }
             for (var sanitizerName in sanitizers.split(",")) {
               var sanitizer = Sanitizer.find(sanitizerName);
-              var configuration = Configuration("custom configuration",
-                  architecture, compiler, mode, runtime, system,
+              var configuration = Configuration(
+                  "custom configuration_${configurationNumber++}",
+                  architecture,
+                  compiler,
+                  mode,
+                  runtime,
+                  system,
                   nnbdMode: nnbdMode,
                   sanitizer: sanitizer,
                   timeout: data["timeout"] as int,

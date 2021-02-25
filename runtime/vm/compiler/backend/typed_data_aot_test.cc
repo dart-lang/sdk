@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "vm/closure_functions_cache.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/il_test_helper.h"
 #include "vm/compiler/call_specializer.h"
@@ -45,7 +46,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Inlining) {
   LoadIndexedInstr* load_indexed = nullptr;
 
   ILMatcher cursor(flow_graph, entry);
-  if (Isolate::Current()->null_safety()) {
+  if (IsolateGroup::Current()->null_safety()) {
     RELEASE_ASSERT(cursor.TryMatch({
         kMoveGlob,
         {kMatchAndMoveLoadField, &load_field},
@@ -134,10 +135,10 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_NotInlining) {
       kMatchReturn,
   }));
 
-  EXPECT(length_call->Selector() == Symbols::GetLength().raw());
+  EXPECT(length_call->Selector() == Symbols::GetLength().ptr());
   EXPECT(pusharg1->InputAt(0)->definition()->IsParameter());
   EXPECT(pusharg2->InputAt(0)->definition()->IsParameter());
-  EXPECT(index_get_call->Selector() == Symbols::IndexToken().raw());
+  EXPECT(index_get_call->Selector() == Symbols::IndexToken().ptr());
 }
 
 // This test asserts that we are inlining get:length, [] and []= for all typed
@@ -182,7 +183,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
 
     // Ensure the IL matches what we expect.
     ILMatcher cursor(flow_graph, entry);
-    if (Isolate::Current()->null_safety()) {
+    if (IsolateGroup::Current()->null_safety()) {
       EXPECT(cursor.TryMatch({
           // Before loop
           kMoveGlob,
@@ -327,7 +328,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
 
     // Ensure the IL matches what we expect.
     ILMatcher cursor(flow_graph, entry, /*trace=*/true);
-    if (Isolate::Current()->null_safety()) {
+    if (IsolateGroup::Current()->null_safety()) {
       EXPECT(cursor.TryMatch({
           // LoadField length
           kMoveGlob,
@@ -435,7 +436,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
   // With null safety nulls cannot be passed as non-nullable arguments, so
   // skip all error stages and only run the last stage.
   const intptr_t first_stage =
-      Isolate::Current()->null_safety() ? kLastStage : 0;
+      IsolateGroup::Current()->null_safety() ? kLastStage : 0;
   for (intptr_t stage = first_stage; stage <= kLastStage; ++stage) {
     run_test("Uint8List", "int", int8_list, int_value, stage);
     run_test("Int8List", "int", uint8_list, int_value, stage);
@@ -449,6 +450,51 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
     run_test("Float32List", "double", float32_list, float_value, stage);
     run_test("Float64List", "double", float64_list, float_value, stage);
   }
+}
+
+ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Regress43534) {
+  const char* kScript =
+      R"(
+      import 'dart:typed_data';
+
+      @pragma('vm:never-inline')
+      void callWith<T>(void Function(T arg) fun, T arg) {
+        fun(arg);
+      }
+
+      void test() {
+        callWith<Uint8List>((Uint8List list) {
+          if (list[0] != 0) throw 'a';
+        }, Uint8List(10));
+      }
+      )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "test");
+  const auto& test_function =
+      Function::Handle(GetFunction(root_library, "test"));
+
+  const auto& function = Function::Handle(
+      ClosureFunctionsCache::GetUniqueInnerClosure(test_function));
+  RELEASE_ASSERT(function.IsFunction());
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true);
+  RELEASE_ASSERT(cursor.TryMatch(
+      {
+          kMatchAndMoveLoadField,
+          kMatchAndMoveGenericCheckBound,
+          kMatchAndMoveLoadUntagged,
+          kMatchAndMoveLoadIndexed,
+          kMatchAndMoveBranchFalse,
+          kMoveGlob,
+          kMatchReturn,
+      },
+      kMoveGlob));
 }
 
 #endif  // defined(DART_PRECOMPILER)

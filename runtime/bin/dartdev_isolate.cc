@@ -40,6 +40,7 @@ Monitor* DartDevIsolate::DartDevRunner::monitor_ = new Monitor();
 DartDevIsolate::DartDev_Result DartDevIsolate::DartDevRunner::result_ =
     DartDevIsolate::DartDev_Result_Unknown;
 char** DartDevIsolate::DartDevRunner::script_ = nullptr;
+char** DartDevIsolate::DartDevRunner::package_config_override_ = nullptr;
 std::unique_ptr<char*[], void (*)(char*[])>
     DartDevIsolate::DartDevRunner::argv_ =
         std::unique_ptr<char*[], void (*)(char**)>(nullptr, [](char**) {});
@@ -56,21 +57,22 @@ bool DartDevIsolate::ShouldParseCommand(const char* script_uri) {
           (strncmp(script_uri, "google3://", 10) != 0));
 }
 
-Utils::CStringUniquePtr DartDevIsolate::TryResolveDartDevSnapshotPath() {
+Utils::CStringUniquePtr DartDevIsolate::TryResolveArtifactPath(
+    const char* filename) {
   // |dir_prefix| includes the last path seperator.
   auto dir_prefix = EXEUtils::GetDirectoryPrefixFromExeName();
 
   // First assume we're in dart-sdk/bin.
   char* snapshot_path =
-      Utils::SCreate("%s../lib/_internal/dartdev.dill", dir_prefix.get());
+      Utils::SCreate("%ssnapshots/%s", dir_prefix.get(), filename);
   if (File::Exists(nullptr, snapshot_path)) {
     return Utils::CreateCStringUniquePtr(snapshot_path);
   }
   free(snapshot_path);
 
   // If we're not in dart-sdk/bin, we might be in one of the $SDK/out/*
-  // directories. Try to use a snapshot rom a previously built SDK.
-  snapshot_path = Utils::SCreate("%sdartdev.dill", dir_prefix.get());
+  // directories. Try to use a snapshot from a previously built SDK.
+  snapshot_path = Utils::SCreate("%s%s", dir_prefix.get(), filename);
   if (File::Exists(nullptr, snapshot_path)) {
     return Utils::CreateCStringUniquePtr(snapshot_path);
   }
@@ -78,14 +80,22 @@ Utils::CStringUniquePtr DartDevIsolate::TryResolveDartDevSnapshotPath() {
   return Utils::CreateCStringUniquePtr(nullptr);
 }
 
+Utils::CStringUniquePtr DartDevIsolate::TryResolveDartDevSnapshotPath() {
+  return TryResolveArtifactPath("dartdev.dart.snapshot");
+}
+
+Utils::CStringUniquePtr DartDevIsolate::TryResolveDartDevKernelPath() {
+  return TryResolveArtifactPath("dartdev.dill");
+}
+
 void DartDevIsolate::DartDevRunner::Run(
     Dart_IsolateGroupCreateCallback create_isolate,
-    const char* packages_file,
+    char** packages_file,
     char** script,
     CommandLineOptions* dart_options) {
   create_isolate_ = create_isolate;
   dart_options_ = dart_options;
-  packages_file_ = packages_file;
+  package_config_override_ = packages_file;
   script_ = script;
 
   MonitorLocker locker(monitor_);
@@ -111,18 +121,33 @@ static Dart_CObject* GetArrayItem(Dart_CObject* message, intptr_t index) {
 void DartDevIsolate::DartDevRunner::DartDevResultCallback(
     Dart_Port dest_port_id,
     Dart_CObject* message) {
+  // These messages are produced in pkg/dartdev/lib/src/vm_interop_handler.dart.
   ASSERT(message->type == Dart_CObject_kArray);
   int32_t type = GetArrayItem(message, 0)->value.as_int32;
   switch (type) {
     case DartDevIsolate::DartDev_Result_Run: {
       result_ = DartDevIsolate::DartDev_Result_Run;
       ASSERT(GetArrayItem(message, 1)->type == Dart_CObject_kString);
+      auto item2 = GetArrayItem(message, 2);
+
+      ASSERT(item2->type == Dart_CObject_kString ||
+             item2->type == Dart_CObject_kNull);
+
       if (*script_ != nullptr) {
         free(*script_);
       }
+      if (*package_config_override_ != nullptr) {
+        free(*package_config_override_);
+        *package_config_override_ = nullptr;
+      }
       *script_ = Utils::StrDup(GetArrayItem(message, 1)->value.as_string);
-      ASSERT(GetArrayItem(message, 2)->type == Dart_CObject_kArray);
-      Dart_CObject* args = GetArrayItem(message, 2);
+
+      if (item2->type == Dart_CObject_kString) {
+        *package_config_override_ = Utils::StrDup(item2->value.as_string);
+      }
+
+      ASSERT(GetArrayItem(message, 3)->type == Dart_CObject_kArray);
+      Dart_CObject* args = GetArrayItem(message, 3);
       argc_ = args->value.as_array.length;
       Dart_CObject** dart_args = args->value.as_array.values;
 
@@ -145,9 +170,7 @@ void DartDevIsolate::DartDevRunner::DartDevResultCallback(
 
       // If we're given a non-zero exit code, DartDev is signaling for us to
       // shutdown.
-      if (dartdev_exit_code != 0) {
-        Process::SetGlobalExitCode(dartdev_exit_code);
-      }
+      Process::SetGlobalExitCode(dartdev_exit_code);
 
       // If DartDev hasn't signaled for us to do anything else, we can assume
       // there's nothing else for the VM to run and that we can exit.
@@ -215,15 +238,12 @@ void DartDevIsolate::DartDevRunner::RunCallback(uword args) {
   Dart_Handle send_port = Dart_NewSendPort(send_port_id);
   CHECK_RESULT(send_port);
 
-  const intptr_t kNumIsolateArgs = 7;
+  const intptr_t kNumIsolateArgs = 4;
   Dart_Handle isolate_args[kNumIsolateArgs];
-  isolate_args[0] = Dart_Null();   // parentPort
-  isolate_args[1] = main_closure;  // entryPoint
-  isolate_args[2] = runner->dart_options_->CreateRuntimeOptions();  // args
-  isolate_args[3] = send_port;                                      // message
-  isolate_args[4] = Dart_True();  // isSpawnUri
-  isolate_args[5] = Dart_Null();  // controlPort
-  isolate_args[6] = Dart_Null();  // capabilities
+  isolate_args[0] = main_closure;  // entryPoint
+  isolate_args[1] = runner->dart_options_->CreateRuntimeOptions();  // args
+  isolate_args[2] = send_port;                                      // message
+  isolate_args[3] = Dart_True();  // isSpawnUri
 
   Dart_Handle isolate_lib =
       Dart_LookupLibrary(Dart_NewStringFromCString("dart:isolate"));
@@ -249,7 +269,7 @@ void DartDevIsolate::DartDevRunner::ProcessError(const char* msg,
 
 DartDevIsolate::DartDev_Result DartDevIsolate::RunDartDev(
     Dart_IsolateGroupCreateCallback create_isolate,
-    const char* packages_file,
+    char** packages_file,
     char** script,
     CommandLineOptions* dart_options) {
   runner_.Run(create_isolate, packages_file, script, dart_options);

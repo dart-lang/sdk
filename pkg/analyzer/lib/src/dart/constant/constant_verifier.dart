@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -46,41 +45,31 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// The current library that is being analyzed.
   final LibraryElement _currentLibrary;
 
-  final bool _constantUpdate2018Enabled;
-
   final ConstantEvaluationEngine _evaluationEngine;
 
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
   /// Initialize a newly created constant verifier.
-  ConstantVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
-      DeclaredVariables declaredVariables,
-      {
-      // TODO(paulberry): make [featureSet] a required parameter.
-      FeatureSet featureSet})
-      : this._(
-            errorReporter,
-            currentLibrary,
-            currentLibrary.typeSystem,
-            currentLibrary.typeProvider,
-            declaredVariables,
-            featureSet ??
-                (currentLibrary.context.analysisOptions as AnalysisOptionsImpl)
-                    .contextFeatures);
+  ConstantVerifier(
+    ErrorReporter errorReporter,
+    LibraryElement currentLibrary,
+    DeclaredVariables declaredVariables,
+  ) : this._(
+          errorReporter,
+          currentLibrary,
+          currentLibrary.typeSystem,
+          currentLibrary.typeProvider,
+          declaredVariables,
+        );
 
   ConstantVerifier._(
-      this._errorReporter,
-      this._currentLibrary,
-      this._typeSystem,
-      this._typeProvider,
-      this.declaredVariables,
-      FeatureSet featureSet)
-      : _constantUpdate2018Enabled =
-            featureSet.isEnabled(Feature.constant_update_2018),
-        _intType = _typeProvider.intType,
-        _evaluationEngine = ConstantEvaluationEngine(
-            _typeProvider, declaredVariables,
-            typeSystem: _typeSystem, experimentStatus: featureSet);
+    this._errorReporter,
+    this._currentLibrary,
+    this._typeSystem,
+    this._typeProvider,
+    this.declaredVariables,
+  )   : _intType = _typeProvider.intType,
+        _evaluationEngine = ConstantEvaluationEngine(declaredVariables);
 
   bool get _isNonNullableByDefault => _currentLibrary.isNonNullableByDefault;
 
@@ -139,8 +128,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       ConstructorElement constructor = node.constructorName.staticElement;
       if (constructor != null) {
         ConstantVisitor constantVisitor =
-            ConstantVisitor(_evaluationEngine, _errorReporter);
+            ConstantVisitor(_evaluationEngine, _currentLibrary, _errorReporter);
         _evaluationEngine.evaluateConstructorCall(
+            _currentLibrary,
             node,
             node.argumentList.arguments,
             constructor,
@@ -406,6 +396,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  /// Check if the object [obj] matches the type [type] according to runtime
+  /// type checking rules.
+  bool _runtimeTypeMatch(DartObjectImpl obj, DartType type) {
+    return _evaluationEngine.runtimeTypeMatch(_currentLibrary, obj, type);
+  }
+
   /// Validate that the given expression is a compile time constant. Return the
   /// value of the compile time constant, or `null` if the expression is not a
   /// compile time constant.
@@ -421,8 +417,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.source,
       isNonNullableByDefault: _currentLibrary.isNonNullableByDefault,
     );
-    DartObjectImpl result =
-        expression.accept(ConstantVisitor(_evaluationEngine, subErrorReporter));
+    DartObjectImpl result = expression.accept(
+        ConstantVisitor(_evaluationEngine, _currentLibrary, subErrorReporter));
     _reportErrors(errorListener.errors, errorCode);
     return result;
   }
@@ -520,8 +516,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               _errorReporter.source,
               isNonNullableByDefault: _currentLibrary.isNonNullableByDefault,
             );
-            DartObjectImpl result = initializer
-                .accept(ConstantVisitor(_evaluationEngine, subErrorReporter));
+            DartObjectImpl result = initializer.accept(ConstantVisitor(
+                _evaluationEngine, _currentLibrary, subErrorReporter));
             if (result == null) {
               _errorReporter.reportErrorForToken(
                   CompileTimeErrorCode
@@ -699,10 +695,6 @@ class _ConstLiteralVerifier {
       verifier._errorReporter.reportErrorForNode(errorCode, element);
       return false;
     } else if (element is IfElement) {
-      if (!verifier._constantUpdate2018Enabled) {
-        verifier._errorReporter.reportErrorForNode(errorCode, element);
-        return false;
-      }
       var conditionValue = verifier._validate(element.condition, errorCode);
       var conditionBool = conditionValue?.toBoolValue();
 
@@ -730,10 +722,6 @@ class _ConstLiteralVerifier {
     } else if (element is MapLiteralEntry) {
       return _validateMapLiteralEntry(element);
     } else if (element is SpreadElement) {
-      if (!verifier._constantUpdate2018Enabled) {
-        verifier._errorReporter.reportErrorForNode(errorCode, element);
-        return false;
-      }
       var value = verifier._validate(element.expression, errorCode);
       if (value == null) return false;
 
@@ -789,7 +777,7 @@ class _ConstLiteralVerifier {
   }
 
   bool _validateListExpression(Expression expression, DartObjectImpl value) {
-    if (!verifier._evaluationEngine.runtimeTypeMatch(value, listElementType)) {
+    if (!verifier._runtimeTypeMatch(value, listElementType)) {
       verifier._errorReporter.reportErrorForNode(
         CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
         expression,
@@ -866,7 +854,7 @@ class _ConstLiteralVerifier {
     if (keyValue != null) {
       var keyType = keyValue.type;
 
-      if (!verifier._evaluationEngine.runtimeTypeMatch(keyValue, mapKeyType)) {
+      if (!verifier._runtimeTypeMatch(keyValue, mapKeyType)) {
         verifier._errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
           keyExpression,
@@ -895,8 +883,7 @@ class _ConstLiteralVerifier {
     }
 
     if (valueValue != null) {
-      if (!verifier._evaluationEngine
-          .runtimeTypeMatch(valueValue, mapValueType)) {
+      if (!verifier._runtimeTypeMatch(valueValue, mapValueType)) {
         verifier._errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
           valueExpression,
@@ -944,7 +931,7 @@ class _ConstLiteralVerifier {
   }
 
   bool _validateSetExpression(Expression expression, DartObjectImpl value) {
-    if (!verifier._evaluationEngine.runtimeTypeMatch(value, setElementType)) {
+    if (!verifier._runtimeTypeMatch(value, setElementType)) {
       verifier._errorReporter.reportErrorForNode(
         CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
         expression,

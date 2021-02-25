@@ -202,14 +202,14 @@ class DuplicateDefinitionVerifier {
       for (FunctionElement function in element.functions) {
         definedGetters[function.name] = function;
       }
-      for (FunctionTypeAliasElement alias in element.functionTypeAliases) {
-        definedGetters[alias.name] = alias;
-      }
       for (TopLevelVariableElement variable in element.topLevelVariables) {
         definedGetters[variable.name] = variable;
         if (!variable.isFinal && !variable.isConst) {
           definedGetters[variable.name + '='] = variable;
         }
+      }
+      for (TypeAliasElement alias in element.typeAliases) {
+        definedGetters[alias.name] = alias;
       }
       for (ClassElement type in element.types) {
         definedGetters[type.name] = type;
@@ -367,7 +367,10 @@ class DuplicateDefinitionVerifier {
     }
 
     ErrorCode getError(Element previous, Element current) {
-      if (previous is PrefixElement) {
+      if (previous is FieldFormalParameterElement &&
+          current is FieldFormalParameterElement) {
+        return CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER;
+      } else if (previous is PrefixElement) {
         return CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER;
       }
       return CompileTimeErrorCode.DUPLICATE_DEFINITION;
@@ -383,7 +386,9 @@ class DuplicateDefinitionVerifier {
       if (_isGetterSetterPair(element, previous)) {
         // OK
       } else if (element is FieldFormalParameterElement &&
-          previous is FieldFormalParameterElement) {
+          previous is FieldFormalParameterElement &&
+          element.field != null &&
+          element.field.isFinal) {
         // Reported as CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES.
       } else {
         _errorReporter.reportErrorForNode(

@@ -9,6 +9,10 @@
 
 #include "platform/utils.h"
 
+#include "platform/allocation.h"
+
+#define MAX_LONG_PATH 32767
+
 namespace dart {
 namespace bin {
 

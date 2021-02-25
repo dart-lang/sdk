@@ -8,7 +8,7 @@ part of 'experiments.dart';
 
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '2.10.0';
+const _currentVersion = '2.12.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -68,7 +68,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.constant_update_2018,
     documentation: 'Enhanced constant expressions',
     experimentalReleaseVersion: null,
-    releaseVersion: Version.parse('2.4.1'),
+    releaseVersion: Version.parse('2.0.0'),
   );
 
   static final control_flow_collections = ExperimentalFeature(
@@ -78,7 +78,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.control_flow_collections,
     documentation: 'Control Flow Collections',
     experimentalReleaseVersion: null,
-    releaseVersion: Version.parse('2.2.2'),
+    releaseVersion: Version.parse('2.0.0'),
   );
 
   static final extension_methods = ExperimentalFeature(
@@ -98,7 +98,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.non_nullable,
     documentation: 'Non Nullable by default',
     experimentalReleaseVersion: Version.parse('2.10.0'),
-    releaseVersion: null,
+    releaseVersion: Version.parse('2.12.0'),
   );
 
   static final nonfunction_type_aliases = ExperimentalFeature(
@@ -118,7 +118,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.set_literals,
     documentation: 'Set Literals',
     experimentalReleaseVersion: null,
-    releaseVersion: Version.parse('2.2.0'),
+    releaseVersion: Version.parse('2.0.0'),
   );
 
   static final spread_collections = ExperimentalFeature(
@@ -128,7 +128,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.spread_collections,
     documentation: 'Spread Collections',
     experimentalReleaseVersion: null,
-    releaseVersion: Version.parse('2.2.2'),
+    releaseVersion: Version.parse('2.0.0'),
   );
 
   static final triple_shift = ExperimentalFeature(
@@ -175,7 +175,7 @@ class IsEnabledByDefault {
   static const bool extension_methods = true;
 
   /// Default state of the experiment "non-nullable"
-  static const bool non_nullable = false;
+  static const bool non_nullable = true;
 
   /// Default state of the experiment "nonfunction-type-aliases"
   static const bool nonfunction_type_aliases = false;

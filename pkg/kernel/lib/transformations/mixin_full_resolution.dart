@@ -1,6 +1,9 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 library kernel.transformations.mixin_full_resolution;
 
 import '../ast.dart';
@@ -19,20 +22,14 @@ void transformLibraries(
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
     List<Library> libraries,
-    ReferenceFromIndex referenceFromIndex,
-    {bool doSuperResolution: true}) {
-  new MixinFullResolution(targetInfo, coreTypes, hierarchy,
-          doSuperResolution: doSuperResolution)
+    ReferenceFromIndex referenceFromIndex) {
+  new MixinFullResolution(targetInfo, coreTypes, hierarchy)
       .transform(libraries, referenceFromIndex);
 }
 
 /// Replaces all mixin applications with regular classes, cloning all fields
 /// and procedures from the mixed-in class, cloning all constructors from the
 /// base class.
-///
-/// When [doSuperResolution] constructor parameter is [true], super calls
-/// (as well as super initializer invocations) are also resolved to their
-/// targets in this pass.
 class MixinFullResolution {
   final Target targetInfo;
   final CoreTypes coreTypes;
@@ -44,13 +41,7 @@ class MixinFullResolution {
   /// valid anymore.
   ClassHierarchy hierarchy;
 
-  // This enables `super` resolution transformation, which is not compatible
-  // with Dart VM's requirements around incremental compilation and has been
-  // moved to Dart VM itself.
-  final bool doSuperResolution;
-
-  MixinFullResolution(this.targetInfo, this.coreTypes, this.hierarchy,
-      {this.doSuperResolution: true});
+  MixinFullResolution(this.targetInfo, this.coreTypes, this.hierarchy);
 
   /// Transform the given new [libraries].  It is expected that all other
   /// libraries have already been transformed.
@@ -73,22 +64,6 @@ class MixinFullResolution {
     // We might need to update the class hierarchy.
     hierarchy =
         hierarchy.applyMemberChanges(transformedClasses, findDescendants: true);
-
-    if (!doSuperResolution) {
-      return;
-    }
-    // Resolve all super call expressions and super initializers.
-    for (var library in libraries) {
-      for (var class_ in library.classes) {
-        for (var procedure in class_.procedures) {
-          if (procedure.containsSuperCalls) {
-            new SuperCallResolutionTransformer(
-                    hierarchy, coreTypes, class_.superclass, targetInfo)
-                .visit(procedure);
-          }
-        }
-      }
-    }
   }
 
   transformClass(
@@ -111,8 +86,7 @@ class MixinFullResolution {
     }
 
     // Ensure super classes have been transformed before this class.
-    if (class_.superclass != null &&
-        class_.superclass.level.index >= ClassLevel.Mixin.index) {
+    if (class_.superclass != null) {
       transformClass(librariesToBeTransformed, processedClasses,
           transformedClasses, class_.superclass, referenceFromIndex);
     }
@@ -122,50 +96,59 @@ class MixinFullResolution {
     if (!class_.isMixinApplication) return;
     assert(librariesToBeTransformed.contains(enclosingLibrary));
 
-    if (class_.mixedInClass.level.index < ClassLevel.Mixin.index) {
-      throw new Exception(
-          'Class "${class_.name}" mixes in "${class_.mixedInClass.name}" from'
-          ' an external library.  Did you forget --link?');
-    }
-
     transformedClasses.add(class_);
 
     // Clone fields and methods from the mixin class.
     var substitution = getSubstitutionMap(class_.mixedInType);
     var cloner = new CloneVisitorWithMembers(typeSubstitution: substitution);
 
-    // When we copy a field from the mixed in class, we remove any
-    // forwarding-stub getters/setters from the superclass, but copy their
-    // covariance-bits onto the new field.
-    var nonSetters = <Name, Procedure>{};
-    var setters = <Name, Procedure>{};
-    for (var procedure in class_.procedures) {
-      if (procedure.isSetter) {
-        setters[procedure.name] = procedure;
-      } else {
-        nonSetters[procedure.name] = procedure;
-      }
-    }
-
     IndexedLibrary indexedLibrary =
         referenceFromIndex?.lookupLibrary(enclosingLibrary);
     IndexedClass indexedClass = indexedLibrary?.lookupIndexedClass(class_.name);
 
-    for (var field in class_.mixin.fields) {
-      Field clone =
-          cloner.cloneField(field, indexedClass?.lookupField(field.name.name));
-      Procedure setter = setters[field.name];
-      if (setter != null) {
-        setters.remove(field.name);
-        VariableDeclaration parameter =
-            setter.function.positionalParameters.first;
-        clone.isGenericCovariantImpl = parameter.isGenericCovariantImpl;
+    if (class_.mixin.fields.isNotEmpty) {
+      // When we copy a field from the mixed in class, we remove any
+      // forwarding-stub getters/setters from the superclass, but copy their
+      // covariance-bits onto the new field.
+      var nonSetters = <Name, Procedure>{};
+      var setters = <Name, Procedure>{};
+      for (var procedure in class_.procedures) {
+        if (procedure.isSetter) {
+          setters[procedure.name] = procedure;
+        } else {
+          nonSetters[procedure.name] = procedure;
+        }
       }
-      nonSetters.remove(field.name);
-      class_.addMember(clone);
+
+      for (var field in class_.mixin.fields) {
+        Reference getterReference =
+            indexedClass?.lookupGetterReference(field.name);
+        Reference setterReference =
+            indexedClass?.lookupSetterReference(field.name);
+        if (getterReference == null) {
+          getterReference = nonSetters[field.name]?.reference;
+          getterReference?.canonicalName?.unbind();
+        }
+        if (setterReference == null) {
+          setterReference = setters[field.name]?.reference;
+          setterReference?.canonicalName?.unbind();
+        }
+        Field clone =
+            cloner.cloneField(field, getterReference, setterReference);
+        Procedure setter = setters[field.name];
+        if (setter != null) {
+          setters.remove(field.name);
+          VariableDeclaration parameter =
+              setter.function.positionalParameters.first;
+          clone.isCovariant = parameter.isCovariant;
+          clone.isGenericCovariantImpl = parameter.isGenericCovariantImpl;
+        }
+        nonSetters.remove(field.name);
+        class_.addField(clone);
+      }
+      class_.procedures.clear();
+      class_.procedures..addAll(nonSetters.values)..addAll(setters.values);
     }
-    class_.procedures.clear();
-    class_.procedures..addAll(nonSetters.values)..addAll(setters.values);
 
     // Existing procedures in the class should only be forwarding stubs.
     // Replace them with methods from the mixin class if they have the same
@@ -184,13 +167,11 @@ class MixinFullResolution {
       // NoSuchMethod forwarders aren't cloned.
       if (procedure.isNoSuchMethodForwarder) continue;
 
-      Procedure referenceFrom;
+      Reference reference;
       if (procedure.isSetter) {
-        referenceFrom =
-            indexedClass?.lookupProcedureSetter(procedure.name.name);
+        reference = indexedClass?.lookupSetterReference(procedure.name);
       } else {
-        referenceFrom =
-            indexedClass?.lookupProcedureNotSetter(procedure.name.name);
+        reference = indexedClass?.lookupGetterReference(procedure.name);
       }
 
       // Linear search for a forwarding stub with the same name.
@@ -214,9 +195,9 @@ class MixinFullResolution {
         }
       }
       if (originalIndex != null) {
-        referenceFrom ??= class_.procedures[originalIndex];
+        reference ??= class_.procedures[originalIndex]?.reference;
       }
-      Procedure clone = cloner.cloneProcedure(procedure, referenceFrom);
+      Procedure clone = cloner.cloneProcedure(procedure, reference);
       if (originalIndex != null) {
         Procedure originalProcedure = class_.procedures[originalIndex];
         FunctionNode src = originalProcedure.function;
@@ -231,12 +212,16 @@ class MixinFullResolution {
         // TODO(kernel team): The named parameters are not sorted,
         // this might not be correct.
         for (int j = 0; j < src.namedParameters.length; ++j) {
-          dst.namedParameters[j].flags = src.namedParameters[j].flags;
+          dst.namedParameters[j].isCovariant =
+              src.namedParameters[j].isCovariant;
+          dst.namedParameters[j].isGenericCovariantImpl =
+              src.namedParameters[j].isGenericCovariantImpl;
         }
 
         class_.procedures[originalIndex] = clone;
+        clone.parent = class_;
       } else {
-        class_.addMember(clone);
+        class_.addProcedure(clone);
       }
     }
     assert(class_.constructors.isNotEmpty);
@@ -250,162 +235,5 @@ class MixinFullResolution {
 
     // Leave breadcrumbs for backends (e.g. for dart:mirrors implementation).
     class_.isEliminatedMixin = true;
-  }
-}
-
-class SuperCallResolutionTransformer extends Transformer {
-  final ClassHierarchy hierarchy;
-  final CoreTypes coreTypes;
-  final Class lookupClass;
-  final Target targetInfo;
-
-  SuperCallResolutionTransformer(
-      this.hierarchy, this.coreTypes, this.lookupClass, this.targetInfo);
-
-  TreeNode visit(TreeNode node) => node.accept(this);
-
-  visitSuperPropertyGet(SuperPropertyGet node) {
-    Member target = hierarchy.getDispatchTarget(lookupClass, node.name);
-    if (target != null) {
-      return new DirectPropertyGet(new ThisExpression(), target)
-        ..fileOffset = node.fileOffset;
-    } else {
-      return _callNoSuchMethod(node.name.name, new Arguments.empty(), node,
-          isGetter: true, isSuper: true);
-    }
-  }
-
-  visitSuperPropertySet(SuperPropertySet node) {
-    Member target =
-        hierarchy.getDispatchTarget(lookupClass, node.name, setter: true);
-    if (target != null) {
-      return new DirectPropertySet(
-          new ThisExpression(), target, visit(node.value))
-        ..fileOffset = node.fileOffset;
-    } else {
-      // Call has to return right-hand-side.
-      VariableDeclaration rightHandSide =
-          new VariableDeclaration.forValue(visit(node.value));
-      Expression result = _callNoSuchMethod(
-          node.name.name, new Arguments([new VariableGet(rightHandSide)]), node,
-          isSetter: true, isSuper: true);
-      VariableDeclaration call = new VariableDeclaration.forValue(result);
-      return new Let(
-          rightHandSide, new Let(call, new VariableGet(rightHandSide)));
-    }
-  }
-
-  visitSuperMethodInvocation(SuperMethodInvocation node) {
-    Member target = hierarchy.getDispatchTarget(lookupClass, node.name);
-    Arguments visitedArguments = visit(node.arguments);
-    if (target is Procedure &&
-        !target.isAccessor &&
-        _callIsLegal(target.function, visitedArguments)) {
-      return new DirectMethodInvocation(
-          new ThisExpression(), target, visitedArguments)
-        ..fileOffset = node.fileOffset;
-    } else if (target == null || (target is Procedure && !target.isAccessor)) {
-      // Target not found at all, or call was illegal.
-      return _callNoSuchMethod(node.name.name, visitedArguments, node,
-          isSuper: true);
-    } else {
-      return new MethodInvocation(
-          new DirectPropertyGet(new ThisExpression(), target),
-          new Name('call'),
-          visitedArguments)
-        ..fileOffset = node.fileOffset;
-    }
-  }
-
-  /// Create a call to no such method.
-  Expression _callNoSuchMethod(
-      String methodName, Arguments methodArguments, TreeNode node,
-      {isSuper: false, isGetter: false, isSetter: false}) {
-    Member noSuchMethod =
-        hierarchy.getDispatchTarget(lookupClass, new Name("noSuchMethod"));
-    String methodNameUsed = (isGetter)
-        ? "get:$methodName"
-        : (isSetter) ? "set:$methodName=" : methodName;
-    if (noSuchMethod != null &&
-        noSuchMethod.function.positionalParameters.length == 1 &&
-        noSuchMethod.function.namedParameters.isEmpty) {
-      // We have a correct noSuchMethod method.
-      ConstructorInvocation invocation = _createInvocation(
-          methodNameUsed, methodArguments, isSuper, new ThisExpression());
-      return new DirectMethodInvocation(
-          new ThisExpression(), noSuchMethod, new Arguments([invocation]))
-        ..fileOffset = node.fileOffset;
-    } else {
-      // Incorrect noSuchMethod method: Call noSuchMethod on Object
-      // with Invocation of noSuchMethod as the method that did not exist.
-      noSuchMethod = hierarchy.getDispatchTarget(
-          coreTypes.objectClass, new Name("noSuchMethod"));
-      ConstructorInvocation invocation = _createInvocation(
-          methodNameUsed, methodArguments, isSuper, new ThisExpression());
-      ConstructorInvocation invocationPrime = _createInvocation("noSuchMethod",
-          new Arguments([invocation]), false, new ThisExpression());
-      return new DirectMethodInvocation(
-          new ThisExpression(), noSuchMethod, new Arguments([invocationPrime]))
-        ..fileOffset = node.fileOffset;
-    }
-  }
-
-  /// Creates an "new _InvocationMirror(...)" invocation.
-  ConstructorInvocation _createInvocation(String methodName,
-      Arguments callArguments, bool isSuperInvocation, Expression receiver) {
-    return targetInfo.instantiateInvocation(
-        coreTypes, receiver, methodName, callArguments, -1, isSuperInvocation);
-  }
-
-  /// Check that a call to the targetFunction is legal given the arguments.
-  ///
-  /// I.e. check that the number of positional parameters and the names of the
-  /// given named parameters represents a valid call to the function.
-  bool _callIsLegal(FunctionNode targetFunction, Arguments arguments) {
-    if ((targetFunction.requiredParameterCount > arguments.positional.length) ||
-        (targetFunction.positionalParameters.length <
-            arguments.positional.length)) {
-      // Given too few or too many positional arguments
-      return false;
-    }
-
-    // Do we give named that we don't take?
-    Set<String> givenNamed = arguments.named.map((v) => v.name).toSet();
-    Set<String> takenNamed =
-        targetFunction.namedParameters.map((v) => v.name).toSet();
-    givenNamed.removeAll(takenNamed);
-    return givenNamed.isEmpty;
-  }
-}
-
-class SuperInitializerResolutionTransformer extends InitializerVisitor {
-  final Class lookupClass;
-
-  SuperInitializerResolutionTransformer(this.lookupClass);
-
-  transformInitializers(List<Initializer> initializers) {
-    for (var initializer in initializers) {
-      initializer.accept(this);
-    }
-  }
-
-  visitSuperInitializer(SuperInitializer node) {
-    Constructor constructor = node.target;
-    if (constructor.enclosingClass != lookupClass) {
-      // If [node] refers to a constructor target which is not directly the
-      // superclass but some indirect base class then this is because classes in
-      // the middle are mixin applications.  These mixin applications will have
-      // received a forwarding constructor which we are required to use instead.
-      for (var replacement in lookupClass.constructors) {
-        if (constructor.name == replacement.name) {
-          node.target = replacement;
-          return null;
-        }
-      }
-
-      throw new Exception(
-          'Could not find a generative constructor named "${constructor.name}" '
-          'in lookup class "${lookupClass.name}"!');
-    }
   }
 }

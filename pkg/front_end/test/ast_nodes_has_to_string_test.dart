@@ -1,3 +1,9 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE.md file.
+
+// @dart = 2.9
+
 import 'dart:io' show File, Platform, stdin, exitCode;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
@@ -51,18 +57,18 @@ main(List<String> args) async {
               .getInterfaceMembers(c)
               .where((Member m) =>
                   !m.isAbstract &&
-                  m.name.name == "toString" &&
+                  m.name.text == "toString" &&
                   m.enclosingLibrary.importUri.scheme != "dart")
               .toList();
           if (toStringList.length > 1) throw "What?";
           if (toStringList.length == 1) {
-            classMapWithOne[c.fileUri] ??= new List<Class>();
+            classMapWithOne[c.fileUri] ??= <Class>[];
             classMapWithOne[c.fileUri].add(c);
             continue;
           }
           toGo++;
 
-          classMap[c.fileUri] ??= new List<Class>();
+          classMap[c.fileUri] ??= <Class>[];
           classMap[c.fileUri].add(c);
         }
       }
@@ -153,7 +159,7 @@ main(List<String> args) async {
             .getInterfaceMembers(c)
             .where((Member m) =>
                 !m.isAbstract &&
-                m.name.name == "toString" &&
+                m.name.text == "toString" &&
                 m.enclosingLibrary.importUri.scheme != "dart")
             .toList();
         Member toString = toStringList.single;

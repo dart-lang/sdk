@@ -63,11 +63,11 @@ bin/flutter update-packages
 popd  # flutter
 
 # Directly in temp directory again.
-mkdir src
+git clone --single-branch --depth=1 -vv \
+    https://dart.googlesource.com/external/github.com/flutter/buildroot src
 pushd src
 git clone --single-branch --depth=1 -vv \
     https://dart.googlesource.com/external/github.com/flutter/engine flutter
-mkdir third_party
 pushd third_party
 ln -s $checkout dart
 popd  # third_party
@@ -82,7 +82,6 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
     $checkout/pkg/front_end/tool/_fasta/compile_platform.dart \
     dart:core \
     -Ddart.vm.product=false \
-    -Ddart.developer.causal_async_stacks=true \
     -Ddart.isVM=true \
     --enable-experiment=non-nullable \
     --nnbd-agnostic \
@@ -97,7 +96,7 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
     --packages=$checkout/.packages \
     $checkout/pkg/front_end/tool/_fasta/compile_platform.dart \
     --enable-experiment=non-nullable \
-    --nnbd-weak \
+    --nnbd-agnostic \
     --target=flutter \
     dart:core \
     --single-root-scheme=org-dartlang-sdk \

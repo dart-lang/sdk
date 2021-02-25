@@ -46,3 +46,15 @@ static method test(self::C<core::num*>* c) → void {
   self::B<(core::num*) →* void>* y = let final self::C<core::num*>* #t9 = c in let final core::int* #t10 = 0 in let final self::B<(core::num*) →* void>* #t11 = #t9.{self::C::[]}(#t10) as{TypeError,CovarianceCheck} self::B<(core::num*) →* void>* in #t11.{self::B::==}(null) ?{self::B<(core::num*) →* void>*} let final self::B<(core::num*) →* void>* #t12 = new self::B::•<(core::num*) →* void>() in let final void #t13 = #t9.{self::C::[]=}(#t10, #t12) in #t12 : #t11;
 }
 static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:21:45 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:21:45 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:22:53 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:22:53 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:23:45 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:23:45 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:24:53 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_index_assign.dart:24:53 -> IntConstant(0)
+Extra constant evaluation: evaluated: 64, effectively constant: 8

@@ -43,14 +43,14 @@ static set Extension|staticProperty(core::int* value) → void {
 }
 static method Extension|staticMethod() → core::int*
   return def::Extension|staticField;
-static method Extension|get#property(final core::int* #this) → core::int*
+static method Extension|get#property(lowered final core::int* #this) → core::int*
   return #this.{core::num::+}(def::Extension|staticField);
-static method Extension|set#property(final core::int* #this, core::int* value) → void {
+static method Extension|set#property(lowered final core::int* #this, core::int* value) → void {
   def::Extension|staticField = value;
 }
-static method Extension|method(final core::int* #this) → core::int*
+static method Extension|method(lowered final core::int* #this) → core::int*
   return #this.{core::num::+}(def::Extension|staticField);
-static method Extension|get#method(final core::int* #this) → () →* core::int*
+static method Extension|get#method(lowered final core::int* #this) → () →* core::int*
   return () → core::int* => def::Extension|method(#this);
 static get topLevelProperty() → core::int*
   return def::Extension|staticField;

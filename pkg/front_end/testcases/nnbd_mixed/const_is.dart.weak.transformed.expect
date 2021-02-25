@@ -1,0 +1,38 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///const_is_lib.dart";
+
+static method main() → dynamic {
+  self::expect(true, (#C1) is{ForNonNullableByDefault} <T extends core::Object? = core::Object?>() → void);
+  self::expect(true, #C2);
+  self::expect(true, (#C3) is{ForNonNullableByDefault} <T extends Never = dynamic>() → void);
+  self::expect(true, #C2);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+typedef fnTypeWithNullableObjectBound = <T extends core::Object? = core::Object?>() → void;
+typedef fnTypeWithNeverBound = <T extends Never = dynamic>() → void;
+static method fnWithNonNullObjectBound<T extends core::Object = core::Object>() → void
+  return null;
+static method fnWithNullBound<T extends Null = Null>() → void
+  return null;
+
+constants  {
+  #C1 = tearoff self2::fnWithNonNullObjectBound
+  #C2 = true
+  #C3 = tearoff self2::fnWithNullBound
+}
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:13:41 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:20:32 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 14, effectively constant: 2

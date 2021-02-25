@@ -1,4 +1,4 @@
-main = <No Member>;
+main = com::main;
 library from "org-dartlang-test:///compileme.dart" as com {
 
   import "package:module/lib1.dart";

@@ -84,6 +84,7 @@ class InvokeDynamicSpecializer {
         int argumentCount = selector.argumentCount;
         if (argumentCount == 0) {
           if (name == 'abs') return const AbsSpecializer();
+          if (name == 'removeLast') return const RemoveLastSpecializer();
           if (name == 'round') return const RoundSpecializer();
           if (name == 'toInt') return const ToIntSpecializer();
           if (name == 'trim') return const TrimSpecializer();
@@ -106,6 +107,34 @@ class InvokeDynamicSpecializer {
       }
     }
     return const InvokeDynamicSpecializer();
+  }
+
+  bool requiresBoundsCheck(HInvokeDynamic node, JClosedWorld closedWorld) {
+    if (node.isBoundsSafe) return false;
+    return closedWorld.annotationsData
+        .getIndexBoundsCheckPolicy(node.instructionContext)
+        .isEmitted;
+  }
+
+  HBoundsCheck insertBoundsCheck(HInstruction indexerNode, HInstruction array,
+      HInstruction indexArgument, JClosedWorld closedWorld) {
+    final abstractValueDomain = closedWorld.abstractValueDomain;
+    HGetLength length = HGetLength(array, abstractValueDomain.positiveIntType,
+        isAssignable: abstractValueDomain
+            .isFixedLengthJsIndexable(array.instructionType)
+            .isPotentiallyFalse);
+    indexerNode.block.addBefore(indexerNode, length);
+
+    AbstractValue type =
+        indexArgument.isPositiveInteger(abstractValueDomain).isDefinitelyTrue
+            ? indexArgument.instructionType
+            : abstractValueDomain.positiveIntType;
+    HBoundsCheck check = HBoundsCheck(indexArgument, length, array, type)
+      ..sourceInformation = indexerNode.sourceInformation;
+    indexerNode.block.addBefore(indexerNode, check);
+    // TODO(sra): This should be useful but causes some crashes. Figure out why:
+    //     indexArgument.replaceAllUsersDominatedBy(indexerNode, check);
+    return check;
   }
 }
 
@@ -178,8 +207,14 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
         return null;
       }
     }
-    HIndexAssign converted = new HIndexAssign(
-        closedWorld.abstractValueDomain, receiver, index, value);
+
+    HInstruction checkedIndex = index;
+    if (requiresBoundsCheck(instruction, closedWorld)) {
+      checkedIndex =
+          insertBoundsCheck(instruction, receiver, index, closedWorld);
+    }
+    HIndexAssign converted = HIndexAssign(
+        closedWorld.abstractValueDomain, receiver, checkedIndex, value);
     log?.registerIndexAssign(instruction, converted);
     return converted;
   }
@@ -192,6 +227,9 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
       HInstruction value,
       JCommonElements commonElements,
       JClosedWorld closedWorld) {
+    if (instruction.isInvariant) {
+      return true;
+    }
     // Handle typed arrays by recognizing the exact implementation of `[]=` and
     // checking if [value] has the appropriate type.
     if (instruction.element != null) {
@@ -228,32 +266,78 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
       JCommonElements commonElements,
       JClosedWorld closedWorld,
       OptimizationTestLog log) {
+    HInstruction receiver = instruction.getDartReceiver(closedWorld);
     var abstractValueDomain = closedWorld.abstractValueDomain;
-    if (instruction.inputs[1]
-        .isIndexablePrimitive(abstractValueDomain)
-        .isPotentiallyFalse) {
+    if (receiver.isIndexablePrimitive(abstractValueDomain).isPotentiallyFalse) {
       return null;
     }
-    if (instruction.inputs[2]
-            .isInteger(abstractValueDomain)
-            .isPotentiallyFalse &&
+    HInstruction index = instruction.inputs.last;
+    if (index.isInteger(abstractValueDomain).isPotentiallyFalse &&
         // TODO(johnniwinther): Support annotations on the possible targets
         // and used their parameter check policy here.
         closedWorld.annotationsData.getParameterCheckPolicy(null).isEmitted) {
       // We want the right checked mode error.
       return null;
     }
-    AbstractValue receiverType =
-        instruction.getDartReceiver(closedWorld).instructionType;
+    AbstractValue receiverType = receiver.instructionType;
     AbstractValue elementType =
         AbstractValueFactory.inferredResultTypeForSelector(
             instruction.selector, receiverType, results);
     if (abstractValueDomain.isTypedArray(receiverType).isDefinitelyTrue) {
       elementType = abstractValueDomain.excludeNull(elementType);
     }
-    HIndex converted =
-        new HIndex(instruction.inputs[1], instruction.inputs[2], elementType);
+
+    HInstruction checkedIndex = index;
+    if (requiresBoundsCheck(instruction, closedWorld)) {
+      checkedIndex =
+          insertBoundsCheck(instruction, receiver, index, closedWorld);
+    }
+    HIndex converted = HIndex(receiver, checkedIndex, elementType);
     log?.registerIndex(instruction, converted);
+    return converted;
+  }
+}
+
+class RemoveLastSpecializer extends InvokeDynamicSpecializer {
+  const RemoveLastSpecializer();
+
+  @override
+  HInstruction tryConvertToBuiltin(
+      HInvokeDynamic instruction,
+      HGraph graph,
+      GlobalTypeInferenceResults results,
+      JCommonElements commonElements,
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
+    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+    final abstractValueDomain = closedWorld.abstractValueDomain;
+    if (receiver.isExtendableArray(abstractValueDomain).isPotentiallyFalse) {
+      return null;
+    }
+
+    // We are essentially inlining `result = a[a.length - 1]`. `0` is the only
+    // index that can fail so we check zero directly, but we want to report the
+    // error index as `-1`, so we add `-1` as an extra input that to the check.
+    if (requiresBoundsCheck(instruction, closedWorld)) {
+      HConstant zeroIndex = graph.addConstantInt(0, closedWorld);
+      HBoundsCheck check =
+          insertBoundsCheck(instruction, receiver, zeroIndex, closedWorld);
+      HInstruction minusOne = graph.addConstantInt(-1, closedWorld);
+      check.inputs.add(minusOne);
+      minusOne.usedBy.add(check);
+    }
+    // `Array.pop` is encoded as a non-intercepted call to `JSArray.removeLast`.
+    // TODO(sra): Add a better encoding for `Array.pop`, perhaps a HInstruction.
+    HInvokeDynamic converted = HInvokeDynamicMethod(
+        instruction.selector,
+        instruction.receiverType,
+        [receiver], // Drop interceptor.
+        instruction.instructionType,
+        instruction.typeArguments,
+        instruction.sourceInformation,
+        isIntercepted: false)
+      ..element = commonElements.jsArrayRemoveLast;
+    log?.registerRemoveLast(instruction, converted);
     return converted;
   }
 }

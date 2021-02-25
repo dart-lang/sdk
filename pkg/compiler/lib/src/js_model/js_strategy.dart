@@ -125,6 +125,7 @@ class JsBackendStrategy implements BackendStrategy {
   Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
 
   String getGeneratedCodeForTesting(MemberEntity element) {
+    if (generatedCode[element] == null) return null;
     return js.prettyPrint(generatedCode[element],
         enableMinification: _compiler.options.enableMinification);
   }
@@ -529,11 +530,6 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
 
   @override
   AbstractValue receiverTypeOfGet(ir.PropertyGet node) {
-    return _targetResults.typeOfReceiver(node);
-  }
-
-  @override
-  AbstractValue receiverTypeOfDirectGet(ir.DirectPropertyGet node) {
     return _targetResults.typeOfReceiver(node);
   }
 

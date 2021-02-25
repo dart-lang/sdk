@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart';
 
 import '../fasta/builder/class_builder.dart';
@@ -20,8 +22,16 @@ import '../kernel_generator_impl.dart';
 
 /// Returns a canonical simple name for [member].
 String getMemberName(Member member) {
-  if (member is Procedure && member.isSetter) return '${member.name.name}=';
-  return member.name.name;
+  if (member is Procedure && member.isSetter) return '${member.name.text}=';
+  return member.name.text;
+}
+
+/// Returns a canonical qualified name for [member].
+String getQualifiedMemberName(Member member) {
+  if (member.enclosingClass != null) {
+    return '${member.enclosingClass.name}.${getMemberName(member)}';
+  }
+  return getMemberName(member);
 }
 
 /// Returns the enclosing [Member] for [node].
@@ -174,7 +184,7 @@ MemberBuilder lookupMemberBuilder(
     {bool required: true}) {
   MemberBuilder memberBuilder;
   if (member.isExtensionMember) {
-    String memberName = member.name.name;
+    String memberName = member.name.text;
     String extensionName = memberName.substring(0, memberName.indexOf('|'));
     memberName = memberName.substring(extensionName.length + 1);
     bool isSetter = member is Procedure && member.isSetter;
@@ -191,16 +201,16 @@ MemberBuilder lookupMemberBuilder(
         isSetter: isSetter, required: required);
   } else if (member.enclosingClass != null) {
     memberBuilder = lookupClassMemberBuilder(
-        compilerResult, member.enclosingClass, member, member.name.name,
+        compilerResult, member.enclosingClass, member, member.name.text,
         required: required);
   } else {
     TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
         compilerResult, member.enclosingLibrary,
         required: required);
     if (member is Procedure && member.isSetter) {
-      memberBuilder = libraryBuilder.setters[member.name.name];
+      memberBuilder = libraryBuilder.setters[member.name.text];
     } else {
-      memberBuilder = libraryBuilder.members[member.name.name];
+      memberBuilder = libraryBuilder.members[member.name.text];
     }
   }
   if (memberBuilder == null && required) {
@@ -467,6 +477,10 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     }
   }
 
+  void visitNullType(NullType node) {
+    sb.write('Null');
+  }
+
   void visitInterfaceType(InterfaceType node) {
     sb.write(node.classNode.name);
     if (node.typeArguments.isNotEmpty) {
@@ -570,11 +584,7 @@ bool isObject(DartType type) {
 }
 
 /// Returns `true` if [type] is `Null` from `dart:core`.
-bool isNull(DartType type) {
-  return type is InterfaceType &&
-      type.classNode.name == 'Null' &&
-      '${type.classNode.enclosingLibrary.importUri}' == 'dart:core';
-}
+bool isNull(DartType type) => type is NullType;
 
 /// Returns a textual representation of the [typeParameter] to be used in
 /// testing.
@@ -659,10 +669,10 @@ String extensionMethodDescriptorToText(ExtensionMemberDescriptor descriptor) {
       sb.write('tearoff ');
       break;
   }
-  sb.write(descriptor.name.name);
+  sb.write(descriptor.name.text);
   sb.write('=');
   Member member = descriptor.member.asMember;
-  String name = member.name.name;
+  String name = member.name.text;
   if (member is Procedure && member.isSetter) {
     sb.write('$name=');
   } else {

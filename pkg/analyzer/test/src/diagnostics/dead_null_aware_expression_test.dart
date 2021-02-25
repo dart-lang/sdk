@@ -29,8 +29,7 @@ f() {
   x ??= 0;
 }
 ''', [
-      // See https://github.com/dart-lang/sdk/issues/43263.
-      error(HintCode.DEAD_CODE, 32, 2),
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
     ]);
   }
 
@@ -54,8 +53,6 @@ f(int x) {
 }
 ''', [
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 19, 1),
-      // See https://github.com/dart-lang/sdk/issues/43263.
-      error(HintCode.DEAD_CODE, 19, 2),
     ]);
   }
 
@@ -80,8 +77,7 @@ f() {
   x ?? 0;
 }
 ''', [
-      // See https://github.com/dart-lang/sdk/issues/43263.
-      error(HintCode.DEAD_CODE, 31, 2),
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
     ]);
   }
 
@@ -92,8 +88,6 @@ f(int x) {
 }
 ''', [
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 18, 1),
-      // See https://github.com/dart-lang/sdk/issues/43263.
-      error(HintCode.DEAD_CODE, 18, 2),
     ]);
   }
 

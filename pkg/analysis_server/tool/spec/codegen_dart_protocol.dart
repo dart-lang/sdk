@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:analysis_tool/tools.dart';
+import 'package:analyzer_utilities/tools.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:path/path.dart' as path;
 

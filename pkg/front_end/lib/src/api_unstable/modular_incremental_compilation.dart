@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async' show Future;
+// @dart = 2.9
 
 import 'package:kernel/kernel.dart' show Component, CanonicalName, Library;
 
@@ -51,7 +51,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     {bool compileSdk: false,
     Uri sdkRoot: null,
     FileSystem fileSystem,
-    Map<ExperimentalFlag, bool> experimentalFlags,
+    Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     Map<String, String> environmentDefines: const {},
     bool outlineOnly,
     bool omitPlatform: false,
@@ -82,7 +82,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           oldState.options.compileSdk != compileSdk ||
           oldState.incrementalCompiler.outlineOnly != outlineOnly ||
           oldState.options.nnbdMode != nnbdMode ||
-          !equalMaps(oldState.options.experimentalFlags, experimentalFlags) ||
+          !equalMaps(oldState.options.explicitExperimentalFlags,
+              explicitExperimentalFlags) ||
           !equalMaps(oldState.options.environmentDefines, environmentDefines) ||
           !equalSets(oldState.tags, tags) ||
           cachedSdkInput == null ||
@@ -103,7 +104,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           ..fileSystem = fileSystem
           ..omitPlatform = omitPlatform
           ..environmentDefines = environmentDefines
-          ..experimentalFlags = experimentalFlags
+          ..explicitExperimentalFlags = explicitExperimentalFlags
           ..verbose = verbose
           ..nnbdMode = nnbdMode;
 
@@ -157,7 +158,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       if (trackNeededDillLibraries) {
         libraryToInputDill = new Map<Uri, Uri>();
       }
-      List<int> loadFromDillIndexes = new List<int>();
+      List<int> loadFromDillIndexes = <int>[];
 
       // Notice that the ordering of the input summaries matter, so we need to
       // keep them in order.

@@ -1,0 +1,43 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1
+    ;
+  method method(core::int o) → core::double
+    ;
+}
+class Class2<T extends core::Object? = dynamic> extends core::Object {
+  generic-covariant-impl field self::Class2::T% field;
+  field core::Function nonNullableFunctionField;
+  field core::Function? nullableFunctionField;
+  field () → void nonNullableFunctionTypedField;
+  field () →? void nullableFunctionTypedField;
+  constructor •(self::Class2::T% field, core::Function nonNullableFunctionField, () → void nonNullableFunctionTypedField) → self::Class2<self::Class2::T%>
+    ;
+  method call() → self::Class2::T%
+    ;
+  method method(core::int o) → self::Class2::T%
+    ;
+  get nonNullableFunctionGetter() → core::Function
+    ;
+  get nullableFunctionGetter() → core::Function?
+    ;
+  get nonNullableFunctionTypedGetter() → () → void
+    ;
+  get nullableFunctionTypedGetter() → () →? void
+    ;
+}
+static const field core::int i = 4;
+static const field core::int j = 24;
+static const field core::int k = self::i.{core::num::*}(self::j){(core::num) → core::int};
+static method test<T1 extends core::Function = core::Function, T2 extends (core::int) → core::int = (core::int) → core::int, T3 extends core::Object? = dynamic>(self::Class1 nonNullableClass1, self::Class1? nullableClass1, dynamic dyn, Never never, self::Class2<core::String> nonNullableClass2, self::Class2<core::String>? nullableClass2, core::Function nonNullableFunction, core::Function? nullableFunction, (core::int) → core::int nonNullableFunctionType, (core::int) →? core::int nullableFunctionType, <T extends core::Object? = dynamic>(T%) → T% genericFunctionType, self::test::T1 nonNullableTypeVariable1, self::test::T1? nullableTypeVariable1, self::test::T2 nonNullableTypeVariable2, self::test::T2? nullableTypeVariable2, self::test::T3% undeterminedTypeVariable) → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///method_invocation.dart:40:17 -> IntConstant(96)
+Extra constant evaluation: evaluated: 1, effectively constant: 1

@@ -17,24 +17,22 @@ intptr_t GraphIntrinsifier::ParameterSlotFromSp() {
   return -1;
 }
 
-static bool IsABIPreservedRegister(Register reg) {
-  return ((1 << reg) & kAbiPreservedCpuRegs) != 0;
-}
-
 void GraphIntrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
-  ASSERT(IsABIPreservedRegister(CODE_REG));
-  ASSERT(IsABIPreservedRegister(ARGS_DESC_REG));
-  ASSERT(IsABIPreservedRegister(CALLEE_SAVED_TEMP));
+  COMPILE_ASSERT(IsAbiPreservedRegister(CODE_REG));
+  COMPILE_ASSERT(IsAbiPreservedRegister(ARGS_DESC_REG));
+  COMPILE_ASSERT(IsAbiPreservedRegister(CALLEE_SAVED_TEMP));
 
   // Save LR by moving it to a callee saved temporary register.
-  assembler->Comment("IntrinsicCallPrologue");
-  assembler->mov(CALLEE_SAVED_TEMP, Operand(LR));
+  __ Comment("IntrinsicCallPrologue");
+  SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(
+      __ mov(CALLEE_SAVED_TEMP, Operand(LR)));
 }
 
 void GraphIntrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   // Restore LR.
-  assembler->Comment("IntrinsicCallEpilogue");
-  assembler->mov(LR, Operand(CALLEE_SAVED_TEMP));
+  __ Comment("IntrinsicCallEpilogue");
+  RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(
+      __ mov(LR, Operand(CALLEE_SAVED_TEMP)));
 }
 
 #undef __

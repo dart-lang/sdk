@@ -24,14 +24,14 @@ extension Extension on self::Class* {
   tearoff method = self::Extension|get#method;
   set property = self::Extension|set#property;
 }
-static method Extension|get#property(final self::Class* #this) → core::int*
+static method Extension|get#property(lowered final self::Class* #this) → core::int*
   return #this.{self::Class::field};
-static method Extension|set#property(final self::Class* #this, core::int* value) → void {
+static method Extension|set#property(lowered final self::Class* #this, core::int* value) → void {
   #this.{self::Class::field} = value;
 }
-static method Extension|method(final self::Class* #this) → core::int*
+static method Extension|method(lowered final self::Class* #this) → core::int*
   return #this.{self::Class::field};
-static method Extension|get#method(final self::Class* #this) → () →* core::int*
+static method Extension|get#method(lowered final self::Class* #this) → () →* core::int*
   return () → core::int* => self::Extension|method(#this);
 static method main() → dynamic {
   self::Class* c;
@@ -47,3 +47,13 @@ static method main() → dynamic {
   let final core::int* #t21 = self::Extension|get#property(c) in #t21.{core::num::==}(null) ?{core::int*} 0 : #t21;
   let final core::int* #t22 = self::Extension|get#property(c) in #t22.{core::num::==}(null) ?{core::int*} 0 : #t22;
 }
+
+
+Extra constant evaluation status:
+Evaluated: Let @ org-dartlang-testcase:///if_null.dart:21:20 -> IntConstant(42)
+Evaluated: Let @ org-dartlang-testcase:///if_null.dart:22:31 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:23:18 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:23:18 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:24:29 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:24:29 -> IntConstant(42)
+Extra constant evaluation: evaluated: 122, effectively constant: 6

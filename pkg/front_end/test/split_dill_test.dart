@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show Directory, File, Platform, Process, ProcessResult;
 
 import 'dart:typed_data' show Uint8List;
@@ -33,7 +35,7 @@ main() async {
   component.computeCanonicalNames();
 
   stopwatch.reset();
-  List<List<int>> libComponents = new List<List<int>>();
+  List<List<int>> libComponents = <List<int>>[];
   for (Library lib in component.libraries) {
     Component libComponent = new Component(nameRoot: component.root);
     libComponent.libraries.add(lib);

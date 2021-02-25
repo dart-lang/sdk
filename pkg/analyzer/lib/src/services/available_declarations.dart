@@ -58,7 +58,8 @@ class Declaration {
   final String returnType;
   final String typeParameters;
 
-  List<String> _relevanceTags;
+  final List<String> _relevanceTagsInFile;
+  List<String> _relevanceTagsInLibrary = const [];
   Uri _locationLibraryUri;
 
   Declaration({
@@ -85,15 +86,18 @@ class Declaration {
     @required this.parameterNames,
     @required this.parameterTypes,
     @required this.parent,
-    @required List<String> relevanceTags,
+    @required List<String> relevanceTagsInFile,
     @required this.requiredParameterCount,
     @required this.returnType,
     @required this.typeParameters,
-  }) : _relevanceTags = relevanceTags;
+  }) : _relevanceTagsInFile = relevanceTagsInFile;
 
   Uri get locationLibraryUri => _locationLibraryUri;
 
-  List<String> get relevanceTags => _relevanceTags;
+  List<String> get relevanceTags => [
+        ..._relevanceTagsInFile,
+        ..._relevanceTagsInLibrary,
+      ];
 
   @override
   String toString() {
@@ -704,15 +708,31 @@ class DeclarationsTracker {
 
   _File _getFileByUri(DeclarationsContext context, Uri uri) {
     var file = _uriToFile[uri];
-    if (file == null) {
-      var path = context._resolveUri(uri);
-      if (path != null) {
-        file = _File(this, path, uri);
-        _pathToFile[path] = file;
-        _uriToFile[uri] = file;
-        file.refresh(context);
-      }
+    if (file != null) {
+      return file;
     }
+
+    var path = context._resolveUri(uri);
+    if (path == null) {
+      return null;
+    }
+
+    try {
+      path = _resolveLinks(path);
+    } on FileSystemException {
+      // Not existing file, or the link target.
+    }
+
+    file = _pathToFile[path];
+    if (file != null) {
+      return file;
+    }
+
+    file = _File(this, path, uri);
+    _pathToFile[path] = file;
+    _uriToFile[uri] = file;
+
+    file.refresh(context);
     return file;
   }
 
@@ -790,6 +810,13 @@ class DeclarationsTracker {
     _changesController.add(
       LibraryChange._(changedLibraries, removedLibraries),
     );
+  }
+
+  /// Return the [path] with resolved file system links.
+  String _resolveLinks(String path) {
+    var resource = _resourceProvider.getFile(path);
+    resource = resource.resolveSymbolicLinksSync();
+    return resource.path;
   }
 }
 
@@ -904,9 +931,6 @@ class _DeclarationStorage {
     var kind = kindFromIdl(d.kind);
 
     var relevanceTags = d.relevanceTags.toList();
-    if (relevanceTags.isEmpty) {
-      relevanceTags = null;
-    }
 
     var children = <Declaration>[];
     var declaration = Declaration(
@@ -937,7 +961,7 @@ class _DeclarationStorage {
       parameterNames: hasParameters ? d.parameterNames.toList() : null,
       parameterTypes: hasParameters ? d.parameterTypes.toList() : null,
       parent: parent,
-      relevanceTags: relevanceTags,
+      relevanceTagsInFile: relevanceTags,
       requiredParameterCount: hasParameters ? d.requiredParameterCount : null,
       returnType: hasReturnType ? d.returnType : null,
       typeParameters: hasTypeParameters ? d.typeParameters : null,
@@ -1059,7 +1083,7 @@ class _DeclarationStorage {
       parameters: d.parameters,
       parameterNames: d.parameterNames,
       parameterTypes: d.parameterTypes,
-      relevanceTags: d.relevanceTags,
+      relevanceTags: d._relevanceTagsInFile,
       requiredParameterCount: d.requiredParameterCount,
       returnType: d.returnType,
       typeParameters: d.typeParameters,
@@ -1107,7 +1131,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 15;
+  static const int DATA_VERSION = 16;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -1362,7 +1386,7 @@ class _File {
         parameterNames: parameterNames,
         parameterTypes: parameterTypes,
         parent: parent,
-        relevanceTags: relevanceTags,
+        relevanceTagsInFile: relevanceTags,
         requiredParameterCount: requiredParameterCount,
         returnType: returnType,
         typeParameters: typeParameters,
@@ -1534,7 +1558,7 @@ class _File {
             parameterNames: [],
             parameterTypes: [],
             parent: classDeclaration,
-            relevanceTags: ['ElementKind.CONSTRUCTOR'],
+            relevanceTagsInFile: ['ElementKind.CONSTRUCTOR'],
             requiredParameterCount: 0,
             returnType: node.name.name,
             typeParameters: null,
@@ -1688,10 +1712,7 @@ class _File {
   void _computeRelevanceTags(List<Declaration> declarations) {
     for (var declaration in declarations) {
       var tags = RelevanceTags._forDeclaration(uriStr, declaration);
-      if (tags != null) {
-        declaration._relevanceTags ??= [];
-        declaration._relevanceTags.addAll(tags);
-      }
+      declaration._relevanceTagsInLibrary = tags ?? const [];
       _computeRelevanceTags(declaration.children);
     }
   }
@@ -1805,30 +1826,20 @@ class _File {
     var buffer = StringBuffer();
     var ranges = <int>[];
     for (var parameter in parameters.parameters) {
-      if (parameter.isRequired) {
+      if (parameter.isRequired ||
+          (parameter.isNamed && _hasRequiredAnnotation(parameter))) {
         if (buffer.isNotEmpty) {
           buffer.write(', ');
         }
+
         if (parameter.isNamed) {
           buffer.write(parameter.identifier.name);
           buffer.write(': ');
         }
+
         var valueOffset = buffer.length;
         buffer.write(parameter.identifier.name);
         var valueLength = buffer.length - valueOffset;
-        ranges.add(valueOffset);
-        ranges.add(valueLength);
-      } else if (parameter.isNamed && _hasRequiredAnnotation(parameter)) {
-        if (buffer.isNotEmpty) {
-          buffer.write(', ');
-        }
-        buffer.write(parameter.identifier.name);
-        buffer.write(': ');
-
-        var valueOffset = buffer.length;
-        buffer.write('null');
-        var valueLength = buffer.length - valueOffset;
-
         ranges.add(valueOffset);
         ranges.add(valueLength);
       }

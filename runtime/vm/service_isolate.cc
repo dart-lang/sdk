@@ -60,7 +60,7 @@ static ArrayPtr MakeServiceControlMessage(Dart_Port port_id,
   list.SetAt(1, port_int);
   list.SetAt(2, send_port);
   list.SetAt(3, name);
-  return list.raw();
+  return list.ptr();
 }
 
 static ArrayPtr MakeServerControlMessage(const SendPort& sp,
@@ -73,7 +73,7 @@ static ArrayPtr MakeServerControlMessage(const SendPort& sp,
   list.SetAt(1, sp);
   list.SetAt(2, Bool::Get(enable));
   list.SetAt(3, silenceOutput);
-  return list.raw();
+  return list.ptr();
 }
 
 const char* ServiceIsolate::kName = DART_VM_SERVICE_ISOLATE_NAME;
@@ -398,18 +398,18 @@ class RunServiceTask : public ThreadPool::Task {
     if (FLAG_trace_service) {
       OS::PrintErr("vm-service: ShutdownIsolate\n");
     }
-    Isolate* I = reinterpret_cast<Isolate*>(parameter);
-    ASSERT(ServiceIsolate::IsServiceIsolate(I));
+    Dart_EnterIsolate(reinterpret_cast<Dart_Isolate>(parameter));
     {
-      // Print the error if there is one.  This may execute dart code to
-      // print the exception object, so we need to use a StartIsolateScope.
-      ASSERT(Isolate::Current() == NULL);
-      StartIsolateScope start_scope(I);
-      Thread* T = Thread::Current();
-      ASSERT(I == T->isolate());
-      I->WaitForOutstandingSpawns();
+      auto T = Thread::Current();
+      TransitionNativeToVM transition(T);
       StackZone zone(T);
       HandleScope handle_scope(T);
+
+      auto I = T->isolate();
+      ASSERT(ServiceIsolate::IsServiceIsolate(I));
+
+      // Print the error if there is one.  This may execute dart code to
+      // print the exception object, so we need to use a StartIsolateScope.
       Error& error = Error::Handle(Z);
       error = T->sticky_error();
       if (!error.IsNull() && !error.IsUnwindError()) {
@@ -421,11 +421,8 @@ class RunServiceTask : public ThreadPool::Task {
         OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Error: %s\n",
                      error.ToErrorCString());
       }
-      Dart::RunShutdownCallback();
     }
-
-    // Shut the isolate down.
-    Dart::ShutdownIsolate(I);
+    Dart_ShutdownIsolate();
     if (FLAG_trace_service) {
       OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Shutdown.\n");
     }
@@ -439,7 +436,7 @@ class RunServiceTask : public ThreadPool::Task {
     HANDLESCOPE(T);
     // Invoke main which will set up the service port.
     const Library& root_library =
-        Library::Handle(Z, I->object_store()->root_library());
+        Library::Handle(Z, I->group()->object_store()->root_library());
     if (root_library.IsNull()) {
       if (FLAG_trace_service) {
         OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME

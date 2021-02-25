@@ -41,6 +41,8 @@ abstract class _MyTest2&Object&MyTest = core::Object with self::MyTest /*isAnony
   const synthetic constructor •() → self::_MyTest2&Object&MyTest*
     : super core::Object::•()
     ;
+  mixin-super-stub method foo() → void
+    return super.{self::MyTest::foo}();
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -63,3 +65,9 @@ static method _hasFailingTestAnnotation(mir::MethodMirror* method) → core::boo
   ;
 static method _hasAnnotationInstance(mir::DeclarationMirror* declaration, dynamic instance) → core::bool*
   ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///bug33099.dart:14:4 -> InstanceConstant(const _FailingTest{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bug33099.dart:7:40 -> InstanceConstant(const _FailingTest{})
+Extra constant evaluation: evaluated: 3, effectively constant: 2

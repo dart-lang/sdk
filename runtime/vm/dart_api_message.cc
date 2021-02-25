@@ -195,7 +195,7 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectVmIsolateObj(intptr_t id) {
   switch (cid) {
     case kOneByteStringCid: {
       OneByteStringPtr raw_str = static_cast<OneByteStringPtr>(raw);
-      const char* str = reinterpret_cast<const char*>(raw_str->ptr()->data());
+      const char* str = reinterpret_cast<const char*>(raw_str->untag()->data());
       ASSERT(str != NULL);
       Dart_CObject* object = NULL;
       for (intptr_t i = 0; i < vm_isolate_references_.length(); i++) {
@@ -331,10 +331,10 @@ intptr_t ApiMessageReader::NextAvailableObjectId() const {
 Dart_CObject* ApiMessageReader::CreateDartCObjectString(ObjectPtr raw) {
   ASSERT(IsOneByteStringClassId(raw->GetClassId()));
   OneByteStringPtr raw_str = static_cast<OneByteStringPtr>(raw);
-  intptr_t len = Smi::Value(raw_str->ptr()->length_);
+  intptr_t len = Smi::Value(raw_str->untag()->length());
   Dart_CObject* object = AllocateDartCObjectString(len);
   char* p = object->value.as_string;
-  memmove(p, raw_str->ptr()->data(), len);
+  memmove(p, raw_str->untag()->data(), len);
   p[len] = '\0';
   return object;
 }
@@ -774,15 +774,8 @@ Dart_CObject* ApiMessageReader::GetBackRef(intptr_t id) {
   return NULL;
 }
 
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
 ApiMessageWriter::ApiMessageWriter()
-    : BaseWriter(malloc_allocator, NULL, kInitialSize),
+    : BaseWriter(kInitialSize),
       object_id_(0),
       forward_list_(NULL),
       forward_list_length_(0),
@@ -849,11 +842,11 @@ void ApiMessageWriter::AddToForwardList(Dart_CObject* object) {
     if (forward_list_length_ == 0) {
       forward_list_length_ = 4;
       intptr_t new_size = forward_list_length_ * sizeof(object);
-      new_list = ::malloc(new_size);
+      new_list = dart::malloc(new_size);
     } else {
       forward_list_length_ *= 2;
       intptr_t new_size = (forward_list_length_ * sizeof(object));
-      new_list = ::realloc(forward_list_, new_size);
+      new_list = dart::realloc(forward_list_, new_size);
     }
     ASSERT(new_list != NULL);
     forward_list_ = reinterpret_cast<Dart_CObject**>(new_list);
@@ -1046,7 +1039,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteSmi(len);
       if (type == Utf8::kLatin1) {
         uint8_t* latin1_str =
-            reinterpret_cast<uint8_t*>(::malloc(len * sizeof(uint8_t)));
+            reinterpret_cast<uint8_t*>(dart::malloc(len * sizeof(uint8_t)));
         bool success =
             Utf8::DecodeToLatin1(utf8_str, utf8_len, latin1_str, len);
         ASSERT(success);
@@ -1056,7 +1049,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
         ::free(latin1_str);
       } else {
         uint16_t* utf16_str =
-            reinterpret_cast<uint16_t*>(::malloc(len * sizeof(uint16_t)));
+            reinterpret_cast<uint16_t*>(dart::malloc(len * sizeof(uint16_t)));
         bool success = Utf8::DecodeToUTF16(utf8_str, utf8_len, utf16_str, len);
         ASSERT(success);
         for (intptr_t i = 0; i < len; i++) {
@@ -1131,7 +1124,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       }
       uint8_t* data = object->value.as_external_typed_data.data;
       void* peer = object->value.as_external_typed_data.peer;
-      Dart_WeakPersistentHandleFinalizer callback =
+      Dart_HandleFinalizer callback =
           object->value.as_external_typed_data.callback;
       if (callback == NULL) {
         return false;
@@ -1170,7 +1163,8 @@ std::unique_ptr<Message> ApiMessageWriter::WriteCMessage(
   bool success = WriteCObject(object);
   if (!success) {
     UnmarkAllCObjects(object);
-    free(buffer());
+    intptr_t unused;
+    free(Steal(&unused));
     return nullptr;
   }
 
@@ -1181,16 +1175,18 @@ std::unique_ptr<Message> ApiMessageWriter::WriteCMessage(
     success = WriteForwardedCObject(forward_list_[i]);
     if (!success) {
       UnmarkAllCObjects(object);
-      free(buffer());
+      intptr_t unused;
+      free(Steal(&unused));
       return nullptr;
     }
   }
 
   UnmarkAllCObjects(object);
   MessageFinalizableData* finalizable_data = finalizable_data_;
-  finalizable_data_ = NULL;
-  return Message::New(dest_port, buffer(), BytesWritten(), finalizable_data,
-                      priority);
+  finalizable_data_ = nullptr;
+  intptr_t size;
+  uint8_t* buffer = Steal(&size);
+  return Message::New(dest_port, buffer, size, finalizable_data, priority);
 }
 
 }  // namespace dart

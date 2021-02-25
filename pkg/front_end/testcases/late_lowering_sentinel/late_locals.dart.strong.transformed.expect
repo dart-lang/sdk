@@ -1,0 +1,61 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method test() → dynamic {
+  lowered core::int? #nullableTopLevelLocal = _in::createSentinel<core::int?>();
+  function #nullableTopLevelLocal#get() → core::int?
+    return let final core::int? #t1 = #nullableTopLevelLocal in _in::isSentinel(#t1) ?{core::int?} throw new _in::LateError::localNI("nullableTopLevelLocal") : #t1{core::int?};
+  function #nullableTopLevelLocal#set(core::int? #t2) → dynamic
+    return #nullableTopLevelLocal = #t2;
+  lowered core::int? #nonNullableTopLevelLocal;
+  function #nonNullableTopLevelLocal#get() → core::int
+    return let final core::int? #t3 = #nonNullableTopLevelLocal in #t3.==(null) ?{core::int} throw new _in::LateError::localNI("nonNullableTopLevelLocal") : #t3{core::int};
+  function #nonNullableTopLevelLocal#set(core::int #t4) → dynamic
+    return #nonNullableTopLevelLocal = #t4;
+  lowered core::int? #nullableTopLevelLocalWithInitializer = _in::createSentinel<core::int?>();
+  function #nullableTopLevelLocalWithInitializer#get() → core::int?
+    return let final core::int? #t5 = #nullableTopLevelLocalWithInitializer in _in::isSentinel(#t5) ?{core::int?} #nullableTopLevelLocalWithInitializer = null : #t5{core::int?};
+  function #nullableTopLevelLocalWithInitializer#set(core::int? #t6) → dynamic
+    return #nullableTopLevelLocalWithInitializer = #t6;
+  lowered core::int? #nonNullableTopLevelLocalWithInitializer;
+  function #nonNullableTopLevelLocalWithInitializer#get() → core::int
+    return let final core::int? #t7 = #nonNullableTopLevelLocalWithInitializer in #t7.==(null) ?{core::int} #nonNullableTopLevelLocalWithInitializer = 0 : #t7{core::int};
+  function #nonNullableTopLevelLocalWithInitializer#set(core::int #t8) → dynamic
+    return #nonNullableTopLevelLocalWithInitializer = #t8;
+  lowered final core::int? #nullableFinalTopLevelLocal = _in::createSentinel<core::int?>();
+  function #nullableFinalTopLevelLocal#get() → core::int?
+    return let final core::int? #t9 = #nullableFinalTopLevelLocal in _in::isSentinel(#t9) ?{core::int?} throw new _in::LateError::localNI("nullableFinalTopLevelLocal") : #t9{core::int?};
+  function #nullableFinalTopLevelLocal#set(core::int? #t10) → dynamic
+    if(_in::isSentinel(#nullableFinalTopLevelLocal))
+      return #nullableFinalTopLevelLocal = #t10;
+    else
+      throw new _in::LateError::localAI("nullableFinalTopLevelLocal");
+  lowered final core::int? #nonNullableFinalTopLevelLocal;
+  function #nonNullableFinalTopLevelLocal#get() → core::int
+    return let final core::int? #t11 = #nonNullableFinalTopLevelLocal in #t11.==(null) ?{core::int} throw new _in::LateError::localNI("nonNullableFinalTopLevelLocal") : #t11{core::int};
+  function #nonNullableFinalTopLevelLocal#set(core::int #t12) → dynamic
+    if(#nonNullableFinalTopLevelLocal.==(null))
+      return #nonNullableFinalTopLevelLocal = #t12;
+    else
+      throw new _in::LateError::localAI("nonNullableFinalTopLevelLocal");
+  lowered final core::int? #nullableFinalTopLevelLocalWithInitializer = _in::createSentinel<core::int?>();
+  function #nullableFinalTopLevelLocalWithInitializer#get() → core::int?
+    return let final core::int? #t13 = #nullableFinalTopLevelLocalWithInitializer in _in::isSentinel(#t13) ?{core::int?} let final core::int? #t14 = null in _in::isSentinel(#nullableFinalTopLevelLocalWithInitializer) ?{core::int?} #nullableFinalTopLevelLocalWithInitializer = #t14 : throw new _in::LateError::localADI("nullableFinalTopLevelLocalWithInitializer") : #t13;
+  lowered final core::int? #nonNullableFinalTopLevelLocalWithInitializer;
+  function #nonNullableFinalTopLevelLocalWithInitializer#get() → core::int
+    return let final core::int? #t15 = #nonNullableFinalTopLevelLocalWithInitializer in #t15.==(null) ?{core::int} let final core::int #t16 = 0 in #nonNullableFinalTopLevelLocalWithInitializer.==(null) ?{core::int} #nonNullableFinalTopLevelLocalWithInitializer = #t16 : throw new _in::LateError::localADI("nonNullableFinalTopLevelLocalWithInitializer") : #t15{core::int};
+  lowered Null #neverLocal;
+  function #neverLocal#get() → Never
+    return let final Never? #t17 = #neverLocal in #t17.==(null) ?{Never} throw new _in::LateError::localNI("neverLocal") : #t17{Never};
+  function #neverLocal#set(Never #t18) → dynamic
+    return #neverLocal = #t18;
+}
+static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///late_locals.dart:12:19 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///late_locals.dart:13:18 -> IntConstant(0)
+Extra constant evaluation: evaluated: 108, effectively constant: 2

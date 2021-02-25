@@ -26,7 +26,9 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
     return new JSArray<E>.fixed(length);
   }
 
-  /// Returns a fresh JavaScript Array, marked as fixed-length.
+  /// Returns a fresh JavaScript Array, marked as fixed-length. The holes in the
+  /// array yield `undefined`, making the Dart List appear to be filled with
+  /// `null` values.
   ///
   /// [length] must be a non-negative integer.
   factory JSArray.fixed(int length) {
@@ -36,8 +38,34 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
     if (length is! int) {
       throw new ArgumentError.value(length, 'length', 'is not an integer');
     }
-    // The JavaScript Array constructor with one argument throws if
-    // the value is not a UInt32. Give a better error message.
+    // The JavaScript Array constructor with one argument throws if the value is
+    // not a UInt32 but the error message does not contain the bad value. Give a
+    // better error message.
+    int maxJSArrayLength = 0xFFFFFFFF;
+    if (length < 0 || length > maxJSArrayLength) {
+      throw new RangeError.range(length, 0, maxJSArrayLength, 'length');
+    }
+    return new JSArray<E>.markFixed(JS('', 'new Array(#)', length));
+  }
+
+  /// Returns a fresh JavaScript Array, marked as fixed-length.  The Array is
+  /// allocated but no elements are assigned.
+  ///
+  /// All elements of the array must be assigned before the array is valid. This
+  /// is essentially the same as `JSArray.fixed` except that global type
+  /// inference starts with bottom for the element type.
+  ///
+  /// [length] must be a non-negative integer.
+  factory JSArray.allocateFixed(int length) {
+    // Explicit type test is necessary to guard against JavaScript conversions
+    // in unchecked mode, and against `new Array(null)` which creates a single
+    // element Array containing `null`.
+    if (length is! int) {
+      throw new ArgumentError.value(length, 'length', 'is not an integer');
+    }
+    // The JavaScript Array constructor with one argument throws if the value is
+    // not a UInt32 but the error message does not contain the bad value. Give a
+    // better error message.
     int maxJSArrayLength = 0xFFFFFFFF;
     if (length < 0 || length > maxJSArrayLength) {
       throw new RangeError.range(length, 0, maxJSArrayLength, 'length');
@@ -48,10 +76,29 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
   /// Returns a fresh growable JavaScript Array of zero length length.
   factory JSArray.emptyGrowable() => new JSArray<E>.markGrowable(JS('', '[]'));
 
-  /// Returns a fresh growable JavaScript Array with initial length.
+  /// Returns a fresh growable JavaScript Array with initial length. The holes
+  /// in the array yield `undefined`, making the Dart List appear to be filled
+  /// with `null` values.
   ///
-  /// [validatedLength] must be a non-negative integer.
+  /// [length] must be a non-negative integer.
   factory JSArray.growable(int length) {
+    // Explicit type test is necessary to guard against JavaScript conversions
+    // in unchecked mode.
+    if ((length is! int) || (length < 0)) {
+      throw new ArgumentError('Length must be a non-negative integer: $length');
+    }
+    return new JSArray<E>.markGrowable(JS('', 'new Array(#)', length));
+  }
+
+  /// Returns a fresh growable JavaScript Array with initial length. The Array
+  /// is allocated but no elements are assigned.
+  ///
+  /// All elements of the array must be assigned before the array is valid. This
+  /// is essentially the same as `JSArray.growable` except that global type
+  /// inference starts with bottom for the element type.
+  ///
+  /// [length] must be a non-negative integer.
+  factory JSArray.allocateGrowable(int length) {
     // Explicit type test is necessary to guard against JavaScript conversions
     // in unchecked mode.
     if ((length is! int) || (length < 0)) {
@@ -235,12 +282,24 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
   }
 
   void addAll(Iterable<E> collection) {
-    int i = this.length;
     checkGrowable('addAll');
+    if (collection is JSArray) {
+      _addAllFromArray(JS('', '#', collection));
+      return;
+    }
+    int i = this.length;
     for (E e in collection) {
-      assert(
-          i++ == this.length || (throw new ConcurrentModificationError(this)));
+      assert(i++ == this.length || (throw ConcurrentModificationError(this)));
       JS('void', r'#.push(#)', this, e);
+    }
+  }
+
+  void _addAllFromArray(JSArray array) {
+    int len = array.length;
+    if (len == 0) return;
+    if (identical(this, array)) throw ConcurrentModificationError(this);
+    for (int i = 0; i < len; i++) {
+      JS('', '#.push(#[#])', this, array, i);
     }
   }
 

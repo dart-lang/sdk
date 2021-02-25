@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object {
+  synthetic constructor •() → self::C<self::C::X%, self::C::Y>
+    ;
+  method test(generic-covariant-impl self::C::X% x, generic-covariant-impl self::C::Y? y) → dynamic
+    ;
+}
+static method assertRightSubtype(dynamic x) → dynamic
+  ;
+static method assertLeftSubtype<X extends core::Object? = dynamic>(self::assertLeftSubtype::X% x) → dynamic
+  ;
+static method main() → dynamic
+  ;

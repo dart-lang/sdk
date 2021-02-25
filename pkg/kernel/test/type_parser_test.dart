@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart' show Expect;
 
 import 'package:kernel/testing/type_parser.dart';
@@ -42,6 +44,7 @@ class A<T extends List<Object>>;
 class B<T extends List<List<Object>>>;
 <E>(E) -> int
 S & T
+S & T & U
 class C;
 <E>(E) -> int & <E>(E) -> void
 C*

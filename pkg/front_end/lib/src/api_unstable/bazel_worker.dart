@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// API needed by `utils/front_end/summary_worker.dart`, a tool used to compute
 /// summaries in build systems like bazel, pub-build, and package-build.
-
-import 'dart:async' show Future;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
@@ -79,7 +79,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     bool verbose: false,
     NnbdMode nnbdMode: NnbdMode.Weak}) async {
   List<Component> outputLoadedAdditionalDills =
-      new List<Component>(additionalDills.length);
+      new List<Component>.filled(additionalDills.length, null);
   Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
       parseExperimentalArguments(experiments),
       onError: (e) => throw e);
@@ -94,7 +94,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       workerInputDigests,
       target,
       fileSystem: fileSystem,
-      experimentalFlags: experimentalFlags,
+      explicitExperimentalFlags: experimentalFlags,
       outlineOnly: outlineOnly,
       omitPlatform: true,
       trackNeededDillLibraries: trackNeededDillLibraries,
@@ -129,7 +129,7 @@ Future<InitializedCompilerState> initializeCompiler(
     ..target = target
     ..fileSystem = fileSystem
     ..environmentDefines = environmentDefines
-    ..experimentalFlags = parseExperimentalFlags(
+    ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experiments),
         onError: (e) => throw e)
     ..verbose = verbose

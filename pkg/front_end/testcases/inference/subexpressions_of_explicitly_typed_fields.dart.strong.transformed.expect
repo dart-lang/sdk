@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  field core::List<core::num*>* x = <core::num*>[0];
+  field core::List<core::num*>* x = core::_GrowableList::_literal1<core::num*>(0);
   synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
@@ -18,5 +18,5 @@ class C extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static field core::List<core::num*>* y = <core::num*>[0];
+static field core::List<core::num*>* y = core::_GrowableList::_literal1<core::num*>(0);
 static method main() → dynamic {}

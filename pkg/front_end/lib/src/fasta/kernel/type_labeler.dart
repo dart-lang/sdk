@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert' show json;
 
 import 'package:kernel/ast.dart'
@@ -26,6 +28,7 @@ import 'package:kernel/ast.dart'
         MapConstant,
         NeverType,
         NullConstant,
+        NullType,
         Nullability,
         PartialInstantiationConstant,
         Procedure,
@@ -34,6 +37,7 @@ import 'package:kernel/ast.dart'
         SymbolConstant,
         TearOffConstant,
         TreeNode,
+        Typedef,
         TypedefType,
         TypeLiteralConstant,
         TypeParameter,
@@ -141,7 +145,26 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   void defaultDartType(DartType type) {}
-  void visitTypedefType(TypedefType node) {}
+
+  void visitTypedefType(TypedefType node) {
+    Typedef typedefNode = node.typedefNode;
+    result.add(nameForEntity(
+        typedefNode,
+        typedefNode.name,
+        typedefNode.enclosingLibrary.importUri,
+        typedefNode.enclosingLibrary.fileUri));
+    if (node.typeArguments.isNotEmpty) {
+      result.add("<");
+      bool first = true;
+      for (DartType typeArg in node.typeArguments) {
+        if (!first) result.add(", ");
+        typeArg.accept(this);
+        first = false;
+      }
+      result.add(">");
+    }
+    addNullability(node.nullability);
+  }
 
   void visitInvalidType(InvalidType node) {
     // TODO(askesc): Throw internal error if InvalidType appears in diagnostics.
@@ -156,6 +179,10 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   void visitNeverType(NeverType node) {
     result.add("Never");
     addNullability(node.declaredNullability);
+  }
+
+  void visitNullType(NullType node) {
+    result.add("Null");
   }
 
   void visitDynamicType(DynamicType node) {
@@ -255,12 +282,6 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       }
       result.add(">");
     }
-    if (classNode.name == 'Null' &&
-        classNode.enclosingLibrary.importUri.scheme == 'dart' &&
-        classNode.enclosingLibrary.importUri.path == 'core') {
-      // Don't print nullability on `Null`.
-      return;
-    }
     addNullability(node.nullability);
   }
 
@@ -309,7 +330,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       if (field.isStatic) continue;
       if (!first) result.add(", ");
       result.add("${field.name}: ");
-      node.fieldValues[field.reference].accept(this);
+      node.fieldValues[field.getterReference].accept(this);
       first = false;
     }
     result.add("}");
@@ -369,7 +390,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
           classNode.enclosingLibrary.fileUri));
       result.add(".");
     }
-    result.add(procedure.name.name);
+    result.add(procedure.name.text);
   }
 
   void visitPartialInstantiationConstant(PartialInstantiationConstant node) {

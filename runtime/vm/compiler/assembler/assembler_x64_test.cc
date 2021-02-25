@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_X64)
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/cpu.h"
 #include "vm/os.h"
 #include "vm/unit_test.h"
@@ -3765,7 +3766,8 @@ ASSEMBLER_TEST_GENERATE(PackedIntOperations2, assembler) {
   const intptr_t cpu_register_set = 0;
   const intptr_t fpu_register_set =
       ((1 << XMM10) | (1 << XMM11)) & CallingConventions::kVolatileXmmRegisters;
-  __ PushRegisters(cpu_register_set, fpu_register_set);
+  const RegisterSet register_set(cpu_register_set, fpu_register_set);
+  __ PushRegisters(register_set);
   __ movl(RAX, Immediate(0x2));
   __ movd(XMM10, RAX);
   __ shufps(XMM10, XMM10, Immediate(0x0));
@@ -3778,7 +3780,7 @@ ASSEMBLER_TEST_GENERATE(PackedIntOperations2, assembler) {
   __ pushq(RAX);
   __ movss(Address(RSP, 0), XMM10);
   __ popq(RAX);
-  __ PopRegisters(cpu_register_set, fpu_register_set);
+  __ PopRegisters(register_set);
   __ ret();
 }
 
@@ -4933,7 +4935,7 @@ ASSEMBLER_TEST_RUN(DoubleToInt32Conversion, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
-  ObjectStore* object_store = Isolate::Current()->object_store();
+  ObjectStore* object_store = IsolateGroup::Current()->object_store();
   const Object& obj = Object::ZoneHandle(object_store->smi_class());
   Label fail;
   EnterTestFrame(assembler);
@@ -5878,7 +5880,7 @@ ASSEMBLER_TEST_GENERATE(ImmediateMacros, assembler) {
   }
   {
     __ LoadImmediate(RAX, Immediate(42));
-    __ MulImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
+    __ MulImmediate(RAX, Immediate(kBillion), kFourBytes);
     Label ok;
     __ CompareImmediate(RAX, Immediate((42 * kBillion) & 0xffffffffll));
     __ j(EQUAL, &ok);
@@ -5896,9 +5898,9 @@ ASSEMBLER_TEST_GENERATE(ImmediateMacros, assembler) {
   }
   {
     __ LoadImmediate(RAX, Immediate(kBillion));
-    __ AddImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
-    __ AddImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
-    __ AddImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
+    __ AddImmediate(RAX, Immediate(kBillion), kFourBytes);
+    __ AddImmediate(RAX, Immediate(kBillion), kFourBytes);
+    __ AddImmediate(RAX, Immediate(kBillion), kFourBytes);
     Label ok;
     __ CompareImmediate(RAX, Immediate((4 * kBillion) & 0xffffffffll));
     __ j(EQUAL, &ok);
@@ -5908,9 +5910,9 @@ ASSEMBLER_TEST_GENERATE(ImmediateMacros, assembler) {
   {
     __ LoadImmediate(RAX, Immediate(kBillion));
     __ AddImmediate(RAX, Immediate(static_cast<int32_t>(3 * kBillion)),
-                    Assembler::k32Bit);
-    __ AddImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
-    __ AddImmediate(RAX, Immediate(-kBillion), Assembler::k32Bit);
+                    kFourBytes);
+    __ AddImmediate(RAX, Immediate(kBillion), kFourBytes);
+    __ AddImmediate(RAX, Immediate(-kBillion), kFourBytes);
     Label ok;
     __ CompareImmediate(RAX, Immediate((4 * kBillion) & 0xffffffffll));
     __ j(EQUAL, &ok);
@@ -5928,9 +5930,9 @@ ASSEMBLER_TEST_GENERATE(ImmediateMacros, assembler) {
   }
   {
     __ LoadImmediate(RAX, Immediate(-kBillion));
-    __ SubImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
-    __ SubImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
-    __ SubImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
+    __ SubImmediate(RAX, Immediate(kBillion), kFourBytes);
+    __ SubImmediate(RAX, Immediate(kBillion), kFourBytes);
+    __ SubImmediate(RAX, Immediate(kBillion), kFourBytes);
     Label ok;
     __ CompareImmediate(RAX, Immediate((-4 * kBillion) & 0xffffffffll));
     __ j(EQUAL, &ok);
@@ -5939,10 +5941,9 @@ ASSEMBLER_TEST_GENERATE(ImmediateMacros, assembler) {
   }
   {
     __ LoadImmediate(RAX, Immediate(kBillion));
-    __ SubImmediate(RAX, Immediate((-3 * kBillion) & 0xffffffffll),
-                    Assembler::k32Bit);
-    __ SubImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
-    __ SubImmediate(RAX, Immediate(-kBillion), Assembler::k32Bit);
+    __ SubImmediate(RAX, Immediate((-3 * kBillion) & 0xffffffffll), kFourBytes);
+    __ SubImmediate(RAX, Immediate(kBillion), kFourBytes);
+    __ SubImmediate(RAX, Immediate(-kBillion), kFourBytes);
     Label ok;
     __ CompareImmediate(RAX, Immediate((4 * kBillion) & 0xffffffffll));
     __ j(EQUAL, &ok);

@@ -22,92 +22,72 @@ class AImpl implements A {
 }
 
 main() {
-  Expect.throws(() {
-    neverParameter(null);
-  });
+  Expect.equals(42, neverParameter(null));
 
-  Expect.throws(() {
-    NeverField().n = null;
-  });
+  var neverField = NeverField.initializingFormal(null);
+  // Write.
+  Expect.equals(null, neverField.n = null);
+  // Read.
+  Expect.equals(null, neverField.n);
 
-  Expect.throws(() {
-    // Write.
-    topLevelNever = null;
-  });
+  // Write.
+  Expect.equals(null, topLevelNever = null);
+  // Read.
+  Expect.equals(null, topLevelNever);
 
-  Expect.throws(() {
-    // Read.
-    topLevelNever;
-  });
+  Expect.isFalse(isPromoteToNever(null));
+  Expect.isFalse(isPromoteToNever_noIf(null));
+  Expect.isTrue(isNotPromoteToNever(null));
+  Expect.isTrue(isNotPromoteToNever_noIf(null));
+  Expect.equals(42, equalNullPromoteToNever(() => null));
+  Expect.equals(42, equalNullPromoteToNever_noIf(() => null));
+  Expect.equals(42, notEqualNullPromoteToNever(() => null));
+  Expect.equals(42, notEqualNullPromoteToNever_noIf(() => null));
+  Expect.equals(42, nullEqualPromoteToNever(() => null));
+  Expect.equals(42, nullEqualPromoteToNever_noIf(() => null));
+  Expect.equals(42, nullNotEqualPromoteToNever(() => null));
+  Expect.equals(42, nullNotEqualPromoteToNever_noIf(() => null));
+  Expect.equals(42, unnecessaryIfNull(() => null, () => 42));
+  Expect.equals(42, ifNullAssignLocal(null, () => 42));
 
-  Expect.throws(() {
-    NeverField.initializingFormal(null);
-  });
+  // Write.
+  Expect.equals(null, C.staticField = null);
 
-  Expect.throws(() {
-    isPromoteToNever(null);
-  });
+  // Read.
+  Expect.equals(null, C.staticField);
 
-  Expect.throws(() {
-    isNotPromoteToNever(null);
-  });
+  Expect.equals(42, ifNullAssignStatic(() => 42));
+  Expect.equals(42, ifNullAssignStaticGetter_nullableSetter(() => 42));
+  Expect.equals(42, ifNullAssignField(C(null), () => 42));
+  Expect.equals(42, ifNullAssignGetter_nullableSetter(C(null), () => 42));
+  Expect.equals(42, ifNullAssignGetter_implicitExtension(E(null), () => 42));
+  Expect.equals(42, ifNullAssignGetter_explicitExtension(E(null), () => 42));
+  Expect.equals(42, ifNullAssignIndex(<int>[null], () => 42));
+  Expect.equals(42, ifNullAssignIndex_nullAware(<int>[null], () => 42));
+  Expect.equals(42, ifNullAssignIndex_nullableSetter(C(null), () => 42));
+  Expect.equals(42, ifNullAssignIndex_implicitExtension(E(null), () => 42));
+  Expect.equals(42, ifNullAssignIndex_explicitExtension(E(null), () => 42));
+  Expect.equals(42, ifNullAssignSuper(D(null), () => 42));
+  Expect.equals(42, ifNullAssignSuper_nullableSetter(D(null), () => 42));
+  Expect.equals(42, ifNullAssignSuperIndex(D(null), () => 42));
+  Expect.equals(42, ifNullAssignNullAwareField(C(null), () => 42));
+  Expect.equals(null, ifNullAssignNullAwareField(null, () => 42));
+  Expect.equals(42, ifNullAssignNullAwareStatic(() => 42));
 
-  Expect.throws(() {
-    equalNullPromoteToNever(() => null);
-  });
-
-  Expect.throws(() {
-    notEqualNullPromoteToNever(() => null);
-  });
-
-  Expect.throws(() {
-    nullEqualPromoteToNever(() => null);
-  });
-
-  Expect.throws(() {
-    nullNotEqualPromoteToNever(() => null);
-  });
-
-  Expect.throws(() {
-    unnecessaryIfNull(() => null, () => throw "should not reach");
-  }, (error) => error != "should not reach");
-
-  Expect.throws(() {
-    ifNullAssignLocal(null, () => throw "should not reach");
-  }, (error) => error != "should not reach");
-
-  C.staticField = null;
-  Expect.throws(() {
-    ifNullAssignStatic(() => throw "should not reach");
-  }, (error) => error != "should not reach");
-
-  Expect.throws(() {
-    ifNullAssignField(C(null), () => throw "should not reach");
-  }, (error) => error != "should not reach");
-
-  Expect.throws(() {
-    ifNullAssignIndex(<int>[null], () => throw "should not reach");
-  }, (error) => error != "should not reach");
-
-  Expect.throws(() {
-    ifNullAssignSuper(D(null), () => throw "should not reach");
-  }, (error) => error != "should not reach");
-
-  Expect.throws(() {
-    ifNullAssignNullAwareField(C(null), () => throw "should not reach");
-  }, (error) => error != "should not reach");
-
-  Expect.equals(
-      ifNullAssignNullAwareField(null, () => throw "should not reach"), null);
-
-  C.staticField = null;
-  Expect.throws(() {
-    ifNullAssignNullAwareStatic(() => throw "should not reach");
-  }, (error) => error != "should not reach");
-
-  Expect.throws(() {
-    unnecessaryNullAwareAccess(() => null, "should not reach");
-  }, (error) => error != "should not reach");
+  unnecessaryNullAwareAccess(() => null);
+  unnecessaryNullAwareAccess_methodOnObject(() => null);
+  unnecessaryNullAwareAccess_cascaded_methodOnObject(() => null);
+  unnecessaryNullAwareAccess_methodOnExtension(() => null);
+  unnecessaryNullAwareAccess_cascaded_methodOnExtension(() => null);
+  unnecessaryNullAwareAccess_methodOnExtension_explicit(() => null);
+  unnecessaryNullAwareAccess_getter(() => null);
+  unnecessaryNullAwareAccess_cascaded(() => null);
+  unnecessaryNullAwareAccess_cascaded_getter(() => null);
+  unnecessaryNullAwareAccess_getterOnObject(() => null);
+  unnecessaryNullAwareAccess_cascaded_getterOnObject(() => null);
+  unnecessaryNullAwareAccess_getterOnExtension(() => null);
+  unnecessaryNullAwareAccess_cascaded_getterOnExtension(() => null);
+  unnecessaryNullAwareAccess_getterOnExtension_explicit(() => null);
 
   Expect.throws(() {
     getterReturnsNever(AImpl());
@@ -133,11 +113,22 @@ main() {
     returnsNeverInVariable(AImpl());
   });
 
-  Expect.throws(() {
-    switchOnBool(null);
-  });
+  Expect.equals(42, switchOnBool(null));
 
   Expect.throws(() {
     switchOnEnum(null);
   });
+}
+
+bool isCalled;
+
+registerCallAndReturnNull() {
+  isCalled = true;
+  return null;
+}
+
+expectCall(void Function() f) {
+  isCalled = false;
+  f();
+  Expect.isTrue(isCalled);
 }

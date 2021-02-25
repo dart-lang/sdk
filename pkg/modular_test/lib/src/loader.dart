@@ -20,11 +20,12 @@
 ///     The format is described in `test_specification_parser.dart`.
 import 'dart:io';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'suite.dart';
 import 'test_specification_parser.dart';
 import 'find_sdk_root.dart';
 
-import 'package:package_config/packages_file.dart' as package_config;
+import 'package:package_config/src/packages_file.dart' as packages_file;
 
 /// Returns the [ModularTest] associated with a folder under [uri].
 ///
@@ -38,7 +39,7 @@ Future<ModularTest> loadTest(Uri uri) async {
   var testUri = folder.uri; // normalized in case the trailing '/' was missing.
   Uri root = await findRoot();
   Map<String, Uri> defaultPackages =
-      package_config.parse(_defaultPackagesInput, root);
+      _parseDotPackagesBytesToLibMap(_defaultPackagesInput, root);
   Module sdkModule = await _createSdkModule(root);
   Map<String, Module> modules = {'sdk': sdkModule};
   String specString;
@@ -76,7 +77,7 @@ Future<ModularTest> loadTest(Uri uri) async {
         modules[moduleName] = module;
       } else if (fileName == '.packages') {
         List<int> packagesBytes = await entry.readAsBytes();
-        packages = package_config.parse(packagesBytes, entryUri);
+        packages = _parseDotPackagesBytesToLibMap(packagesBytes, entryUri);
       } else if (fileName == 'modules.yaml') {
         specString = await entry.readAsString();
       }
@@ -312,4 +313,16 @@ int _compareFileSystemEntity(FileSystemEntity a, FileSystemEntity b) {
       return a.path.compareTo(b.path);
     }
   }
+}
+
+/// Parse [bytes] representing a `.packages` file into the map of package names
+/// to URIs of their `lib` locations.
+Map<String, Uri> _parseDotPackagesBytesToLibMap(Uint8List bytes, Uri baseUri) {
+  var map = <String, Uri>{};
+  var packageConfig =
+      packages_file.parse(bytes, baseUri, (error) => throw error);
+  for (var package in packageConfig.packages) {
+    map[package.name] = package.packageUriRoot;
+  }
+  return map;
 }

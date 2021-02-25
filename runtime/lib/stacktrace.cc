@@ -63,69 +63,20 @@ static StackTracePtr CurrentSyncStackTrace(Thread* thread,
   return StackTrace::New(code_array, pc_offset_array);
 }
 
-static StackTracePtr CurrentStackTrace(
-    Thread* thread,
-    bool for_async_function,
-    intptr_t skip_frames = 1,
-    bool causal_async_stacks = FLAG_causal_async_stacks) {
+// Gets current stack trace for `thread`.
+// This functions itself handles the --causel-async-stacks case.
+// For --lazy-async-stacks see `CurrentSyncStackTraceLazy`.
+// For fallback see `CurrentSyncStackTrace`.
+// Extracts the causal async stack from the thread if any set, then prepends
+// the current sync. stack up until the current async function (if any).
+static StackTracePtr CurrentStackTrace(Thread* thread,
+                                       bool for_async_function,
+                                       intptr_t skip_frames = 1) {
   if (FLAG_lazy_async_stacks) {
     return CurrentSyncStackTraceLazy(thread, skip_frames);
   }
-  if (!causal_async_stacks) {
-    // Return the synchronous stack trace.
-    return CurrentSyncStackTrace(thread, skip_frames);
-  }
-
-  Zone* zone = thread->zone();
-  Code& code = Code::ZoneHandle(zone);
-  Smi& offset = Smi::ZoneHandle(zone);
-  Function& async_function = Function::ZoneHandle(zone);
-  StackTrace& async_stack_trace = StackTrace::ZoneHandle(zone);
-  Array& async_code_array = Array::ZoneHandle(zone);
-  Array& async_pc_offset_array = Array::ZoneHandle(zone);
-
-  StackTraceUtils::ExtractAsyncStackTraceInfo(
-      thread, &async_function, &async_stack_trace, &async_code_array,
-      &async_pc_offset_array);
-
-  // Determine the size of the stack trace.
-  const intptr_t extra_frames = for_async_function ? 1 : 0;
-  bool sync_async_end = false;
-  const intptr_t synchronous_stack_trace_length = StackTraceUtils::CountFrames(
-      thread, skip_frames, async_function, &sync_async_end);
-
-  const intptr_t capacity = synchronous_stack_trace_length +
-                            extra_frames;  // For the asynchronous gap.
-
-  // Allocate memory for the stack trace.
-  const Array& code_array = Array::ZoneHandle(zone, Array::New(capacity));
-  const Array& pc_offset_array = Array::ZoneHandle(zone, Array::New(capacity));
-
-  intptr_t write_cursor = 0;
-  if (for_async_function) {
-    // Place the asynchronous gap marker at the top of the stack trace.
-    code = StubCode::AsynchronousGapMarker().raw();
-    ASSERT(!code.IsNull());
-    offset = Smi::New(0);
-    code_array.SetAt(write_cursor, code);
-    pc_offset_array.SetAt(write_cursor, offset);
-    write_cursor++;
-  }
-
-  // Append the synchronous stack trace.
-  const intptr_t collected_frames_count = StackTraceUtils::CollectFrames(
-      thread, code_array, pc_offset_array, write_cursor,
-      synchronous_stack_trace_length, skip_frames);
-
-  write_cursor += collected_frames_count;
-
-  ASSERT(write_cursor == capacity);
-
-  const StackTrace& result = StackTrace::Handle(
-      zone, StackTrace::New(code_array, pc_offset_array, async_stack_trace,
-                            sync_async_end));
-
-  return result.raw();
+  // Return the synchronous stack trace.
+  return CurrentSyncStackTrace(thread, skip_frames);
 }
 
 StackTracePtr GetStackTraceForException() {
@@ -135,39 +86,6 @@ StackTracePtr GetStackTraceForException() {
 
 DEFINE_NATIVE_ENTRY(StackTrace_current, 0, 0) {
   return CurrentStackTrace(thread, false);
-}
-
-DEFINE_NATIVE_ENTRY(StackTrace_asyncStackTraceHelper, 0, 1) {
-  if (!FLAG_causal_async_stacks) {
-    // If causal async stacks are not enabled we should recognize this method
-    // and never call to the NOP runtime.
-    // See kernel_to_il.cc/bytecode_reader.cc/interpreter.cc.
-    UNREACHABLE();
-  }
-#if !defined(PRODUCT)
-  GET_NATIVE_ARGUMENT(Closure, async_op, arguments->NativeArgAt(0));
-  Debugger* debugger = isolate->debugger();
-  if (debugger != NULL) {
-    debugger->MaybeAsyncStepInto(async_op);
-  }
-#endif
-  return CurrentStackTrace(thread, true);
-}
-
-DEFINE_NATIVE_ENTRY(StackTrace_clearAsyncThreadStackTrace, 0, 0) {
-  thread->clear_async_stack_trace();
-  return Object::null();
-}
-
-DEFINE_NATIVE_ENTRY(StackTrace_setAsyncThreadStackTrace, 0, 1) {
-  if (!FLAG_causal_async_stacks) {
-    return Object::null();
-  }
-
-  GET_NON_NULL_NATIVE_ARGUMENT(StackTrace, stack_trace,
-                               arguments->NativeArgAt(0));
-  thread->set_async_stack_trace(stack_trace);
-  return Object::null();
 }
 
 static void AppendFrames(const GrowableObjectArray& code_list,
@@ -180,7 +98,6 @@ static void AppendFrames(const GrowableObjectArray& code_list,
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle(zone);
-  Bytecode& bytecode = Bytecode::Handle(zone);
   Smi& offset = Smi::Handle(zone);
   for (; frame != NULL; frame = frames.NextFrame()) {
     if (!frame->IsDartFrame()) {
@@ -191,18 +108,9 @@ static void AppendFrames(const GrowableObjectArray& code_list,
       continue;
     }
 
-    if (frame->is_interpreted()) {
-      bytecode = frame->LookupDartBytecode();
-      if (bytecode.function() == Function::null()) {
-        continue;
-      }
-      offset = Smi::New(frame->pc() - bytecode.PayloadStart());
-      code_list.Add(bytecode);
-    } else {
-      code = frame->LookupDartCode();
-      offset = Smi::New(frame->pc() - code.PayloadStart());
-      code_list.Add(code);
-    }
+    code = frame->LookupDartCode();
+    offset = Smi::New(frame->pc() - code.PayloadStart());
+    code_list.Add(code);
     pc_offset_list.Add(offset);
   }
 }
@@ -222,6 +130,14 @@ const StackTrace& GetCurrentStackTrace(int skip_frames) {
   const StackTrace& stacktrace =
       StackTrace::Handle(StackTrace::New(code_array, pc_offset_array));
   return stacktrace;
+}
+
+bool HasStack() {
+  Thread* thread = Thread::Current();
+  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
+                            StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* frame = frames.NextFrame();
+  return frame != nullptr;
 }
 
 }  // namespace dart

@@ -1,0 +1,223 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:7:11: Error: 'duplicateInstanceGetter' is already declared in this scope.
+//   int get duplicateInstanceGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:6:11: Context: Previous declaration of 'duplicateInstanceGetter'.
+//   int get duplicateInstanceGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:10:12: Error: 'duplicateInstanceSetter' is already declared in this scope.
+//   void set duplicateInstanceSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:9:12: Context: Previous declaration of 'duplicateInstanceSetter'.
+//   void set duplicateInstanceSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:13:8: Error: 'duplicateInstanceMethod' is already declared in this scope.
+//   void duplicateInstanceMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:12:8: Context: Previous declaration of 'duplicateInstanceMethod'.
+//   void duplicateInstanceMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:16:14: Error: 'duplicateStaticField' is already declared in this scope.
+//   static int duplicateStaticField = 0;
+//              ^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:15:14: Context: Previous declaration of 'duplicateStaticField'.
+//   static int duplicateStaticField = 0;
+//              ^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:19:18: Error: 'duplicateStaticGetter' is already declared in this scope.
+//   static int get duplicateStaticGetter => 0;
+//                  ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:18:18: Context: Previous declaration of 'duplicateStaticGetter'.
+//   static int get duplicateStaticGetter => 0;
+//                  ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:22:19: Error: 'duplicateStaticSetter' is already declared in this scope.
+//   static void set duplicateStaticSetter(int value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:21:19: Context: Previous declaration of 'duplicateStaticSetter'.
+//   static void set duplicateStaticSetter(int value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:25:15: Error: 'duplicateStaticMethod' is already declared in this scope.
+//   static void duplicateStaticMethod() {}
+//               ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:24:15: Context: Previous declaration of 'duplicateStaticMethod'.
+//   static void duplicateStaticMethod() {}
+//               ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:28:11: Error: 'duplicateInstanceGetterPlusSetter' is already declared in this scope.
+//   int get duplicateInstanceGetterPlusSetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:27:11: Context: Previous declaration of 'duplicateInstanceGetterPlusSetter'.
+//   int get duplicateInstanceGetterPlusSetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:33:12: Error: 'duplicateInstanceSetterPlusGetter' is already declared in this scope.
+//   void set duplicateInstanceSetterPlusGetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:32:12: Context: Previous declaration of 'duplicateInstanceSetterPlusGetter'.
+//   void set duplicateInstanceSetterPlusGetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:36:11: Error: 'duplicateInstanceGetterAndSetter' is already declared in this scope.
+//   int get duplicateInstanceGetterAndSetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:35:11: Context: Previous declaration of 'duplicateInstanceGetterAndSetter'.
+//   int get duplicateInstanceGetterAndSetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:38:12: Error: 'duplicateInstanceGetterAndSetter' is already declared in this scope.
+//   void set duplicateInstanceGetterAndSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:37:12: Context: Previous declaration of 'duplicateInstanceGetterAndSetter'.
+//   void set duplicateInstanceGetterAndSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:41:18: Error: 'duplicateStaticGetterPlusSetter' is already declared in this scope.
+//   static int get duplicateStaticGetterPlusSetter => 0;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:40:18: Context: Previous declaration of 'duplicateStaticGetterPlusSetter'.
+//   static int get duplicateStaticGetterPlusSetter => 0;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:46:19: Error: 'duplicateStaticSetterPlusGetter' is already declared in this scope.
+//   static void set duplicateStaticSetterPlusGetter(int value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:45:19: Context: Previous declaration of 'duplicateStaticSetterPlusGetter'.
+//   static void set duplicateStaticSetterPlusGetter(int value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:49:18: Error: 'duplicateStaticGetterAndSetter' is already declared in this scope.
+//   static int get duplicateStaticGetterAndSetter => 0;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:48:18: Context: Previous declaration of 'duplicateStaticGetterAndSetter'.
+//   static int get duplicateStaticGetterAndSetter => 0;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:51:19: Error: 'duplicateStaticGetterAndSetter' is already declared in this scope.
+//   static void set duplicateStaticGetterAndSetter(int value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:50:19: Context: Previous declaration of 'duplicateStaticGetterAndSetter'.
+//   static void set duplicateStaticGetterAndSetter(int value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:60:14: Error: 'instanceGetterAndStaticField' is already declared in this scope.
+//   static int instanceGetterAndStaticField = 0;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:59:11: Context: Previous declaration of 'instanceGetterAndStaticField'.
+//   int get instanceGetterAndStaticField => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:63:20: Error: 'instanceGetterAndStaticField' is already declared in this scope.
+//   static final int instanceGetterAndStaticField = 0;
+//                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:60:14: Context: Previous declaration of 'instanceGetterAndStaticField'.
+//   static int instanceGetterAndStaticField = 0;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:54:19: Error: Conflicts with member 'instanceGetterAndStaticSetter'.
+//   static void set instanceGetterAndStaticSetter(int value) {}
+//                   ^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:53:11: Error: Conflicts with setter 'instanceGetterAndStaticSetter'.
+//   int get instanceGetterAndStaticSetter => 0;
+//           ^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:57:12: Error: Conflicts with member 'instanceSetterAndStaticGetter'.
+//   void set instanceSetterAndStaticGetter(int value) {}
+//            ^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:56:18: Error: Conflicts with setter 'instanceSetterAndStaticGetter'.
+//   static int get instanceSetterAndStaticGetter => 0;
+//                  ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension Extension<T extends core::Object* = dynamic> on core::int* {
+  get duplicateInstanceGetter = self::Extension|get#duplicateInstanceGetter;
+  method duplicateInstanceMethod = self::Extension|duplicateInstanceMethod;
+  tearoff duplicateInstanceMethod = self::Extension|get#duplicateInstanceMethod;
+  static field duplicateStaticField = self::Extension|duplicateStaticField;
+  static get duplicateStaticGetter = get self::Extension|duplicateStaticGetter;
+  static method duplicateStaticMethod = self::Extension|duplicateStaticMethod;
+  get duplicateInstanceGetterPlusSetter = self::Extension|get#duplicateInstanceGetterPlusSetter;
+  get duplicateInstanceSetterPlusGetter = self::Extension|get#duplicateInstanceSetterPlusGetter;
+  get duplicateInstanceGetterAndSetter = self::Extension|get#duplicateInstanceGetterAndSetter;
+  static get duplicateStaticGetterPlusSetter = get self::Extension|duplicateStaticGetterPlusSetter;
+  static get duplicateStaticSetterPlusGetter = get self::Extension|duplicateStaticSetterPlusGetter;
+  static get duplicateStaticGetterAndSetter = get self::Extension|duplicateStaticGetterAndSetter;
+  get instanceGetterAndStaticSetter = self::Extension|get#instanceGetterAndStaticSetter;
+  static get instanceSetterAndStaticGetter = get self::Extension|instanceSetterAndStaticGetter;
+  get instanceGetterAndStaticField = self::Extension|get#instanceGetterAndStaticField;
+  set duplicateInstanceSetter = self::Extension|set#duplicateInstanceSetter;
+  static set duplicateStaticSetter = set self::Extension|duplicateStaticSetter;
+  set duplicateInstanceGetterPlusSetter = self::Extension|set#duplicateInstanceGetterPlusSetter;
+  set duplicateInstanceSetterPlusGetter = self::Extension|set#duplicateInstanceSetterPlusGetter;
+  set duplicateInstanceGetterAndSetter = self::Extension|set#duplicateInstanceGetterAndSetter;
+  static set duplicateStaticGetterPlusSetter = set self::Extension|duplicateStaticGetterPlusSetter;
+  static set duplicateStaticSetterPlusGetter = set self::Extension|duplicateStaticSetterPlusGetter;
+  static set duplicateStaticGetterAndSetter = set self::Extension|duplicateStaticGetterAndSetter;
+  static set instanceGetterAndStaticSetter = set self::Extension|instanceGetterAndStaticSetter;
+  set instanceSetterAndStaticGetter = self::Extension|set#instanceSetterAndStaticGetter;
+  set instanceSetterAndStaticField = self::Extension|set#instanceSetterAndStaticField;
+}
+static field core::int* Extension|duplicateStaticField;
+static method Extension|get#duplicateInstanceGetter<T extends core::Object* = dynamic>(lowered final core::int* #this) → core::int*
+  ;
+static method Extension|set#duplicateInstanceSetter<T extends core::Object* = dynamic>(lowered final core::int* #this, core::int* value) → void
+  ;
+static method Extension|duplicateInstanceMethod<T extends core::Object* = dynamic>(lowered final core::int* #this) → void
+  ;
+static method Extension|get#duplicateInstanceMethod<T extends core::Object* = dynamic>(lowered final core::int* #this) → () →* void
+  return () → void => self::Extension|duplicateInstanceMethod<self::Extension|get#duplicateInstanceMethod::T*>(#this);
+static get Extension|duplicateStaticGetter() → core::int*
+  ;
+static set Extension|duplicateStaticSetter(core::int* value) → void
+  ;
+static method Extension|duplicateStaticMethod() → void
+  ;
+static method Extension|get#duplicateInstanceGetterPlusSetter<T extends core::Object* = dynamic>(lowered final core::int* #this) → core::int*
+  ;
+static method Extension|set#duplicateInstanceGetterPlusSetter<T extends core::Object* = dynamic>(lowered final core::int* #this, core::int* value) → void
+  ;
+static method Extension|get#duplicateInstanceSetterPlusGetter<T extends core::Object* = dynamic>(lowered final core::int* #this) → core::int*
+  ;
+static method Extension|set#duplicateInstanceSetterPlusGetter<T extends core::Object* = dynamic>(lowered final core::int* #this, core::int* value) → void
+  ;
+static method Extension|get#duplicateInstanceGetterAndSetter<T extends core::Object* = dynamic>(lowered final core::int* #this) → core::int*
+  ;
+static method Extension|set#duplicateInstanceGetterAndSetter<T extends core::Object* = dynamic>(lowered final core::int* #this, core::int* value) → void
+  ;
+static get Extension|duplicateStaticGetterPlusSetter() → core::int*
+  ;
+static set Extension|duplicateStaticGetterPlusSetter(core::int* value) → void
+  ;
+static get Extension|duplicateStaticSetterPlusGetter() → core::int*
+  ;
+static set Extension|duplicateStaticSetterPlusGetter(core::int* value) → void
+  ;
+static get Extension|duplicateStaticGetterAndSetter() → core::int*
+  ;
+static set Extension|duplicateStaticGetterAndSetter(core::int* value) → void
+  ;
+static method Extension|get#instanceGetterAndStaticSetter<T extends core::Object* = dynamic>(lowered final core::int* #this) → core::int*
+  ;
+static set Extension|instanceGetterAndStaticSetter(core::int* value) → void
+  ;
+static get Extension|instanceSetterAndStaticGetter() → core::int*
+  ;
+static method Extension|set#instanceSetterAndStaticGetter<T extends core::Object* = dynamic>(lowered final core::int* #this, core::int* value) → void
+  ;
+static method Extension|get#instanceGetterAndStaticField<T extends core::Object* = dynamic>(lowered final core::int* #this) → core::int*
+  ;
+static method Extension|set#instanceSetterAndStaticField<T extends core::Object* = dynamic>(lowered final core::int* #this, core::int* value) → void
+  ;
+static method main() → dynamic
+  ;

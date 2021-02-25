@@ -10,6 +10,7 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -59,7 +60,7 @@ void main() => print('Hello, world!')
     String content = '''
 void main() => print('Hello, world!')
 ''';
-    String expectedPath;
+    /*late*/ String expectedPath;
     ParseStringResult result =
         _withMemoryFile(content, (resourceProvider, path) {
       expectedPath = path;
@@ -91,7 +92,10 @@ void main() => print('Hello, world!')
     String content = '''
 int? f() => 1;
 ''';
-    var featureSet = FeatureSet.forTesting(sdkVersion: '2.3.0');
+    var featureSet = FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: Version.parse('2.9.0'),
+      flags: [],
+    );
     expect(featureSet.isEnabled(Feature.non_nullable), isFalse);
     ParseStringResult result = _withMemoryFile(
         content,
@@ -179,7 +183,10 @@ void main() => print('Hello, world!')
     String content = '''
 int? f() => 1;
 ''';
-    var featureSet = FeatureSet.forTesting(sdkVersion: '2.3.0');
+    var featureSet = FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: Version.parse('2.9.0'),
+      flags: [],
+    );
     expect(featureSet.isEnabled(Feature.non_nullable), isFalse);
     ParseStringResult result = parseString(
         content: content, throwIfDiagnostics: false, featureSet: featureSet);

@@ -46,6 +46,9 @@ abstract class _Foo&Object&C extends core::Object implements self::C<self::B*> /
   synthetic constructor •() → self::_Foo&Object&C*
     : super core::Object::•()
     ;
+  method foo(generic-covariant-impl self::B* x) → dynamic {
+    this.{self::C::_field} = x;
+  }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -56,9 +59,6 @@ abstract class _Foo&Object&C extends core::Object implements self::C<self::B*> /
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  method foo(generic-covariant-impl self::B* x) → dynamic {
-    this.{self::C::_field} = x;
-  }
 }
 class Foo extends self::_Foo&Object&C {
   synthetic constructor •() → self::Foo*
@@ -72,5 +72,5 @@ class B extends self::A {
 }
 static method main() → dynamic {
   self::Foo* foo = new self::Foo::•();
-  foo.{self::C::foo}(new self::B::•());
+  foo.{self::_Foo&Object&C::foo}(new self::B::•());
 }

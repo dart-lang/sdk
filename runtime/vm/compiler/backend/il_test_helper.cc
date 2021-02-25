@@ -35,7 +35,7 @@ LibraryPtr LoadTestScript(const char* script,
   auto& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(api_lib);
   EXPECT(!lib.IsNull());
-  return lib.raw();
+  return lib.ptr();
 }
 
 FunctionPtr GetFunction(const Library& lib, const char* name) {
@@ -43,7 +43,7 @@ FunctionPtr GetFunction(const Library& lib, const char* name) {
   const auto& func = Function::Handle(lib.LookupFunctionAllowPrivate(
       String::Handle(Symbols::New(thread, name))));
   EXPECT(!func.IsNull());
-  return func.raw();
+  return func.ptr();
 }
 
 ClassPtr GetClass(const Library& lib, const char* name) {
@@ -51,14 +51,14 @@ ClassPtr GetClass(const Library& lib, const char* name) {
   const auto& cls = Class::Handle(
       lib.LookupClassAllowPrivate(String::Handle(Symbols::New(thread, name))));
   EXPECT(!cls.IsNull());
-  return cls.raw();
+  return cls.ptr();
 }
 
 TypeParameterPtr GetClassTypeParameter(const Class& klass, const char* name) {
   const auto& param = TypeParameter::Handle(
       klass.LookupTypeParameter(String::Handle(String::New(name))));
   EXPECT(!param.IsNull());
-  return param.raw();
+  return param.ptr();
 }
 
 TypeParameterPtr GetFunctionTypeParameter(const Function& fun,
@@ -67,18 +67,12 @@ TypeParameterPtr GetFunctionTypeParameter(const Function& fun,
   const auto& param = TypeParameter::Handle(
       fun.LookupTypeParameter(String::Handle(String::New(name)), &fun_level));
   EXPECT(!param.IsNull());
-  return param.raw();
+  return param.ptr();
 }
 
 ObjectPtr Invoke(const Library& lib, const char* name) {
-  // These tests rely on running unoptimized code to collect type feedback. The
-  // interpreter does not collect type feedback for interface calls, so set
-  // compilation threshold to 0 in order to compile invoked function
-  // immediately and execute compiled code.
-  SetFlagScope<int> sfs(&FLAG_compilation_counter_threshold, 0);
-
   Thread* thread = Thread::Current();
-  Dart_Handle api_lib = Api::NewHandle(thread, lib.raw());
+  Dart_Handle api_lib = Api::NewHandle(thread, lib.ptr());
   Dart_Handle result;
   {
     TransitionVMToNative transition(thread);
@@ -103,7 +97,7 @@ FlowGraph* TestPipeline::RunPasses(
   auto pipeline = CompilationPipeline::New(zone, function_);
 
   parsed_function_ = new (zone)
-      ParsedFunction(thread, Function::ZoneHandle(zone, function_.raw()));
+      ParsedFunction(thread, Function::ZoneHandle(zone, function_.ptr()));
   pipeline->ParseFunction(parsed_function_);
 
   // Extract type feedback before the graph is built, as the graph
@@ -131,15 +125,6 @@ FlowGraph* TestPipeline::RunPasses(
   pass_state_->reorder_blocks = reorder_blocks;
 
   if (optimized) {
-    pass_state_->inline_id_to_function.Add(&function_);
-    // We do not add the token position now because we don't know the
-    // position of the inlined call until later. A side effect of this
-    // is that the length of |inline_id_to_function| is always larger
-    // than the length of |inline_id_to_token_pos| by one.
-    // Top scope function has no caller (-1). We do this because we expect
-    // all token positions to be at an inlined call.
-    pass_state_->caller_inline_id.Add(-1);
-
     JitCallSpecializer jit_call_specializer(flow_graph_, &speculative_policy);
     AotCallSpecializer aot_call_specializer(/*precompiler=*/nullptr,
                                             flow_graph_, &speculative_policy);
@@ -186,8 +171,13 @@ void TestPipeline::CompileGraphAndAttachFunction() {
   const auto& deopt_info_array =
       Array::Handle(zone, graph_compiler.CreateDeoptInfo(&assembler));
   const auto pool_attachment = Code::PoolAttachment::kAttachPool;
-  const auto& code = Code::Handle(Code::FinalizeCode(
-      &graph_compiler, &assembler, pool_attachment, optimized, nullptr));
+  Code& code = Code::Handle();
+  {
+    SafepointWriteRwLocker ml(thread_,
+                              thread_->isolate_group()->program_lock());
+    code ^= Code::FinalizeCode(&graph_compiler, &assembler, pool_attachment,
+                               optimized, nullptr);
+  }
   code.set_is_optimized(optimized);
   code.set_owner(function_);
 
@@ -201,11 +191,15 @@ void TestPipeline::CompileGraphAndAttachFunction() {
   graph_compiler.FinalizeStaticCallTargetsTable(code);
   graph_compiler.FinalizeCodeSourceMap(code);
 
-  if (optimized) {
-    function_.InstallOptimizedCode(code);
-  } else {
-    function_.set_unoptimized_code(code);
-    function_.AttachCode(code);
+  {
+    SafepointWriteRwLocker ml(thread_,
+                              thread_->isolate_group()->program_lock());
+    if (optimized) {
+      function_.InstallOptimizedCode(code);
+    } else {
+      function_.set_unoptimized_code(code);
+      function_.AttachCode(code);
+    }
   }
 
   // We expect there to be no deoptimizations.
@@ -307,6 +301,13 @@ Instruction* ILMatcher::MatchInternal(std::vector<MatchCode> match_codes,
     }
   }
 
+  if (opcode == kMoveDebugStepChecks) {
+    while (cursor != nullptr && cursor->IsDebugStepCheck()) {
+      cursor = cursor->next();
+    }
+    return cursor;
+  }
+
   if (opcode == kMatchAndMoveGoto) {
     if (auto goto_instr = cursor->AsGoto()) {
       return goto_instr->successor();
@@ -361,6 +362,9 @@ const char* ILMatcher::MatchOpCodeToCString(MatchOpCode opcode) {
   }
   if (opcode == kMoveGlob) {
     return "kMoveGlob";
+  }
+  if (opcode == kMoveDebugStepChecks) {
+    return "kMoveDebugStepChecks";
   }
 
   switch (opcode) {

@@ -262,10 +262,8 @@ class _MemberInfo {
   final int end;
   final String text;
 
-  _MemberInfo(this.item, this.name, int offset, int length, this.text)
-      : offset = offset,
-        length = length,
-        end = offset + length;
+  _MemberInfo(this.item, this.name, this.offset, this.length, this.text)
+      : end = offset + length;
 
   @override
   String toString() {

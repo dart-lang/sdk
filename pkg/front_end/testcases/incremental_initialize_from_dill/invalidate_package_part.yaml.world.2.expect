@@ -1,4 +1,4 @@
-main = <No Member>;
+main = main::main;
 library from "package:example/main.dart" as main {
 
   part b.dart;

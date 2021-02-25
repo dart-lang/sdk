@@ -6,6 +6,11 @@ final bool kTrue = int.parse('1') == 1 ? true : false;
 final bool kFalse = int.parse('1') == 2 ? true : false;
 int get mint => 0xaabbccddaabbccdd;
 int get smiOrMint => kTrue ? 1 : mint;
+dynamic usedObject;
+
+void use(dynamic object) {
+  usedObject ??= object;
+}
 
 abstract class BI1 {
   int get value;
@@ -86,5 +91,3 @@ main() {
   final ubib = UBIB(); // getter returns smiOrMint
   use((kTrue ? ubia : ubib).value);
 }
-
-void use(dynamic object) {}

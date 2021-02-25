@@ -45,7 +45,7 @@ main() {
 
   // e1?.v++ is equivalent to ((x) => x == null ? null : x.v++)(e1).
 
-  { C? c = new C(1); Expect.equals(1, c?.v++); Expect.equals(2, c!.v); }
+  { var c = new C(1) as C?; Expect.equals(1, c?.v++); Expect.equals(2, c!.v); }
 
   // C?.v++ is equivalent to C.v++.
 

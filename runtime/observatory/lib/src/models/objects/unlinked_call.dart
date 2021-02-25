@@ -5,9 +5,9 @@
 part of models;
 
 abstract class UnlinkedCallRef extends ObjectRef {
-  String get selector;
+  String? get selector;
 }
 
 abstract class UnlinkedCall extends Object implements UnlinkedCallRef {
-  InstanceRef get argumentsDescriptor;
+  InstanceRef? get argumentsDescriptor;
 }

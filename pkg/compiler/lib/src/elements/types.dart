@@ -28,7 +28,7 @@ extension on DataSource {
   List<DartType> _readDartTypes(
       List<FunctionTypeVariable> functionTypeVariables) {
     int count = readInt();
-    List<DartType> types = List<DartType>(count);
+    List<DartType> types = List<DartType>.filled(count, null);
     for (int index = 0; index < count; index++) {
       types[index] = DartType.readFromDataSource(this, functionTypeVariables);
     }
@@ -313,8 +313,13 @@ class InterfaceType extends DartType {
   final ClassEntity element;
   final List<DartType> typeArguments;
 
-  InterfaceType._(this.element, this.typeArguments)
-      : assert(typeArguments.every((e) => e != null));
+  InterfaceType._allocate(this.element, this.typeArguments);
+
+  factory InterfaceType._(ClassEntity element, List<DartType> typeArguments) {
+    assert(typeArguments.every((e) => e != null));
+    if (typeArguments.isEmpty) typeArguments = const [];
+    return InterfaceType._allocate(element, typeArguments);
+  }
 
   factory InterfaceType._readFromDataSource(
       DataSource source, List<FunctionTypeVariable> functionTypeVariables) {
@@ -683,6 +688,7 @@ class FunctionType extends DartType {
     // Canonicalize empty collections to constants to save storage.
     if (parameterTypes.isEmpty) parameterTypes = const [];
     if (optionalParameterTypes.isEmpty) optionalParameterTypes = const [];
+    if (namedParameters.isEmpty) namedParameters = const [];
     if (namedParameterTypes.isEmpty) namedParameterTypes = const [];
     if (requiredNamedParameters.isEmpty) requiredNamedParameters = const {};
     if (typeVariables.isEmpty) typeVariables = const [];
@@ -717,7 +723,8 @@ class FunctionType extends DartType {
         source._readDartTypes(functionTypeVariables);
     List<DartType> namedParameterTypes =
         source._readDartTypes(functionTypeVariables);
-    List<String> namedParameters = List<String>(namedParameterTypes.length);
+    List<String> namedParameters =
+        List<String>.filled(namedParameterTypes.length, null);
     var requiredNamedParameters = <String>{};
     for (int i = 0; i < namedParameters.length; i++) {
       namedParameters[i] = source.readString();
@@ -1036,7 +1043,7 @@ class _LegacyErasureVisitor extends DartTypeVisitor<DartType, Null> {
     var length = oldTypeVariables.length;
 
     List<FunctionTypeVariable> typeVariables =
-        List<FunctionTypeVariable>(length);
+        List<FunctionTypeVariable>.filled(length, null);
     List<FunctionTypeVariable> erasableTypeVariables = [];
     List<FunctionTypeVariable> erasedTypeVariables = [];
     for (int i = 0; i < length; i++) {
@@ -1734,7 +1741,6 @@ abstract class DartTypes {
   /// The types defined in 'dart:core'.
   CommonElements get commonElements;
 
-  bool get useNullSafety;
   bool get useLegacySubtyping;
 
   DartType bottomType() =>
@@ -1844,7 +1850,7 @@ abstract class DartTypes {
     } else if (typeArgument.isNull) {
       DartType futureOfNull =
           commonElements.futureType(commonElements.nullType);
-      result = useNullSafety ? nullableType(futureOfNull) : futureOfNull;
+      result = nullableType(futureOfNull);
     } else {
       result = FutureOrType._(typeArgument);
     }
@@ -2281,14 +2287,10 @@ abstract class DartTypes {
     if (isCovariant) {
       // A covariant parameter has type `Object` in the method signature.
       var objectType = commonElements.objectType;
-      if (useNullSafety) {
-        if (isNonNullableByDefaultLibrary) {
-          return nullableType(objectType);
-        } else {
-          return legacyType(objectType);
-        }
+      if (isNonNullableByDefaultLibrary) {
+        return nullableType(objectType);
       } else {
-        return objectType;
+        return legacyType(objectType);
       }
     }
     return type;

@@ -39,12 +39,13 @@ int sizeOf<T extends NativeType>() {
 
 int _sizeOf<T extends NativeType>() native "Ffi_sizeOf";
 
-// Implemented in the method recognizer, bytecode interpreter uses runtime.
+@pragma("vm:recognized", "other")
 Pointer<T> _fromAddress<T extends NativeType>(int ptr) native "Ffi_fromAddress";
 
 // The real implementation of this function (for interface calls) lives in
 // BuildFfiAsFunctionCall in the Kernel frontend. No calls can actually reach
 // this function.
+@pragma("vm:recognized", "other")
 DS _asFunctionInternal<DS extends Function, NS extends Function>(
     Pointer<NativeFunction<NS>> ptr) native "Ffi_asFunctionInternal";
 
@@ -67,6 +68,7 @@ dynamic _asExternalTypedData(Pointer ptr, int count)
 //
 // Function objects returned by this native method are not Dart instances,
 // so we need to use top type as a return type to avoid type check.
+@pragma("vm:recognized", "other")
 dynamic _nativeCallbackFunction<NS extends Function>(Function target,
     Object? exceptionalReturn) native "Ffi_nativeCallbackFunction";
 
@@ -92,8 +94,8 @@ class Pointer<T extends NativeType> {
         "Pointer.fromFunction cannot be called dynamically.");
   }
 
-  // Implemented in the method recognizer, bytecode interpreter uses runtime.
   @patch
+  @pragma("vm:recognized", "other")
   int get address native "Ffi_address";
 
   // For statically known types, this is rewired.
@@ -112,78 +114,144 @@ class Pointer<T extends NativeType> {
 
 /// Returns an integer encoding the ABI used for size and alignment
 /// calculations. See pkg/vm/lib/transformations/ffi.dart.
+@pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
 int _abi()
-    native "Recognized method: method is directly interpreted by the bytecode interpreter or IR graph is built in the flow graph builder.";
+    native "Recognized method: IR graph is built in the flow graph builder.";
 
-// The following functions are implemented in the method recognizer, but the
-// bytecode interpreter uses native entries.
+/// Copies data byte-wise from [source] to [target].
+///
+/// [source] and [target] should either be [Pointer] or [TypedData].
+///
+/// TODO(dartbug.com/37271): Make recognized method and use MemoryCopyInstr.
+void _memCopy(Object target, int targetOffsetInBytes, Object source,
+    int sourceOffsetInBytes, int lengthInBytes) {
+  assert(source is Pointer || source is TypedData);
+  assert(target is Pointer || target is TypedData);
+  if (source is Pointer) {
+    final sourcePointer = source.cast<Uint8>();
+    if (target is Pointer) {
+      final targetPointer = target.cast<Uint8>();
+      for (int i = 0; i < lengthInBytes; i++) {
+        targetPointer[i + targetOffsetInBytes] =
+            sourcePointer[i + sourceOffsetInBytes];
+      }
+    } else if (target is TypedData) {
+      final targetTypedData = target.buffer.asUint8List(target.offsetInBytes);
+      for (int i = 0; i < lengthInBytes; i++) {
+        targetTypedData[i + targetOffsetInBytes] =
+            sourcePointer[i + sourceOffsetInBytes];
+      }
+    }
+  } else if (source is TypedData) {
+    final sourceTypedData = source.buffer.asUint8List(source.offsetInBytes);
+    if (target is Pointer) {
+      final targetPointer = target.cast<Uint8>();
+      for (int i = 0; i < lengthInBytes; i++) {
+        targetPointer[i + targetOffsetInBytes] =
+            sourceTypedData[i + sourceOffsetInBytes];
+      }
+    } else if (target is TypedData) {
+      final targetTypedData = target.buffer.asUint8List(target.offsetInBytes);
+      targetTypedData.setRange(
+          targetOffsetInBytes,
+          targetOffsetInBytes + lengthInBytes,
+          sourceTypedData.sublist(sourceOffsetInBytes));
+    }
+  }
+}
+
+// The following functions are implemented in the method recognizer.
 //
 // TODO(38172): Since these are not inlined (force optimize), they force
 // allocating a Pointer with in elementAt/offsetBy. Allocating these pointers
 // and GCing new spaces takes a lot of the benchmark time. The next speedup is
 // getting rid of these allocations by inlining these functions.
+@pragma("vm:recognized", "other")
 int _loadInt8(Pointer pointer, int offsetInBytes) native "Ffi_loadInt8";
 
+@pragma("vm:recognized", "other")
 int _loadInt16(Pointer pointer, int offsetInBytes) native "Ffi_loadInt16";
 
+@pragma("vm:recognized", "other")
 int _loadInt32(Pointer pointer, int offsetInBytes) native "Ffi_loadInt32";
 
+@pragma("vm:recognized", "other")
 int _loadInt64(Pointer pointer, int offsetInBytes) native "Ffi_loadInt64";
 
+@pragma("vm:recognized", "other")
 int _loadUint8(Pointer pointer, int offsetInBytes) native "Ffi_loadUint8";
 
+@pragma("vm:recognized", "other")
 int _loadUint16(Pointer pointer, int offsetInBytes) native "Ffi_loadUint16";
 
+@pragma("vm:recognized", "other")
 int _loadUint32(Pointer pointer, int offsetInBytes) native "Ffi_loadUint32";
 
+@pragma("vm:recognized", "other")
 int _loadUint64(Pointer pointer, int offsetInBytes) native "Ffi_loadUint64";
 
+@pragma("vm:recognized", "other")
 int _loadIntPtr(Pointer pointer, int offsetInBytes) native "Ffi_loadIntPtr";
 
+@pragma("vm:recognized", "other")
 double _loadFloat(Pointer pointer, int offsetInBytes) native "Ffi_loadFloat";
 
+@pragma("vm:recognized", "other")
 double _loadDouble(Pointer pointer, int offsetInBytes) native "Ffi_loadDouble";
 
+@pragma("vm:recognized", "other")
 Pointer<S> _loadPointer<S extends NativeType>(
     Pointer pointer, int offsetInBytes) native "Ffi_loadPointer";
 
 S _loadStruct<S extends Struct>(Pointer<S> pointer, int index)
     native "Ffi_loadStruct";
 
+@pragma("vm:recognized", "other")
 void _storeInt8(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeInt8";
 
+@pragma("vm:recognized", "other")
 void _storeInt16(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeInt16";
 
+@pragma("vm:recognized", "other")
 void _storeInt32(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeInt32";
 
+@pragma("vm:recognized", "other")
 void _storeInt64(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeInt64";
 
+@pragma("vm:recognized", "other")
 void _storeUint8(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeUint8";
 
+@pragma("vm:recognized", "other")
 void _storeUint16(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeUint16";
 
+@pragma("vm:recognized", "other")
 void _storeUint32(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeUint32";
 
+@pragma("vm:recognized", "other")
 void _storeUint64(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeUint64";
 
+@pragma("vm:recognized", "other")
 void _storeIntPtr(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeIntPtr";
 
+@pragma("vm:recognized", "other")
 void _storeFloat(Pointer pointer, int offsetInBytes, double value)
     native "Ffi_storeFloat";
 
+@pragma("vm:recognized", "other")
 void _storeDouble(Pointer pointer, int offsetInBytes, double value)
     native "Ffi_storeDouble";
 
+@pragma("vm:recognized", "other")
 void _storePointer<S extends NativeType>(Pointer pointer, int offsetInBytes,
     Pointer<S> value) native "Ffi_storePointer";
 

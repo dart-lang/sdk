@@ -42,7 +42,7 @@ typedef NewName(); // existing
     var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage:
-            "Library already declares function type alias with name 'NewName'.",
+            "Library already declares type alias with name 'NewName'.",
         expectedContextSearch: 'NewName(); // existing');
   }
 
@@ -236,11 +236,17 @@ main() {
   }
 
   Future<void> test_checkInitialConditions_outsideOfProject() async {
-    addPackageFile('aaa', 'lib.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
 class A {}
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+    );
+
     await indexTestUnit('''
-import "package:aaa/lib.dart";
+import "package:aaa/a.dart";
 main() {
   A a;
 }
@@ -374,7 +380,7 @@ main() {
   }
 
   Future<void> test_createChange_ClassElement_flutterWidget() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -387,7 +393,7 @@ class TestPage extends StatefulWidget {
 
 class TestPageState extends State<TestPage> {
   @override
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context) => throw 0;
 }
 ''');
     createRenameRefactoringAtString('TestPage extends');
@@ -409,14 +415,14 @@ class NewPage extends StatefulWidget {
 
 class NewPageState extends State<NewPage> {
   @override
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context) => throw 0;
 }
 ''');
   }
 
   Future<void>
       test_createChange_ClassElement_flutterWidget_privateBoth() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -429,7 +435,7 @@ class _TestPage extends StatefulWidget {
 
 class _TestPageState extends State<_TestPage> {
   @override
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context) => throw 0;
 }
 ''');
     createRenameRefactoringAtString('_TestPage extends');
@@ -451,14 +457,14 @@ class _NewPage extends StatefulWidget {
 
 class _NewPageState extends State<_NewPage> {
   @override
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context) => throw 0;
 }
 ''');
   }
 
   Future<void>
       test_createChange_ClassElement_flutterWidget_privateState() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -471,7 +477,7 @@ class TestPage extends StatefulWidget {
 
 class _TestPageState extends State<TestPage> {
   @override
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context) => throw 0;
 }
 ''');
     createRenameRefactoringAtString('TestPage extends');
@@ -493,7 +499,7 @@ class NewPage extends StatefulWidget {
 
 class _NewPageState extends State<NewPage> {
   @override
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context) => throw 0;
 }
 ''');
   }
@@ -525,10 +531,8 @@ main() {
 
   Future<void> test_createChange_ClassElement_parameterTypeNested() async {
     await indexTestUnit('''
-class Test {
-}
-main(f(Test p)) {
-}
+class Test {}
+void f(g(Test p)) {}
 ''');
     // configure refactoring
     createRenameRefactoringAtString('Test {');
@@ -537,10 +541,8 @@ main(f(Test p)) {
     refactoring.newName = 'NewName';
     // validate change
     return assertSuccessfulRefactoring('''
-class NewName {
-}
-main(f(NewName p)) {
-}
+class NewName {}
+void f(g(NewName p)) {}
 ''');
   }
 
@@ -548,8 +550,7 @@ main(f(NewName p)) {
     await indexTestUnit('''
 class A {}
 class Test = Object with A;
-main(Test t) {
-}
+void f(Test t) {}
 ''');
     // configure refactoring
     createRenameRefactoringAtString('Test =');
@@ -561,8 +562,7 @@ main(Test t) {
     return assertSuccessfulRefactoring('''
 class A {}
 class NewName = Object with A;
-main(NewName t) {
-}
+void f(NewName t) {}
 ''');
   }
 
@@ -639,7 +639,7 @@ void main() {
     // configure refactoring
     createRenameRefactoringAtString('F()');
     expect(refactoring.refactoringName, 'Rename Function Type Alias');
-    expect(refactoring.elementKindName, 'function type alias');
+    expect(refactoring.elementKindName, 'type alias');
     expect(refactoring.oldName, 'F');
     refactoring.newName = 'G';
     // validate change
@@ -669,7 +669,7 @@ part '../../part.dart';
 
 class Test {}
 
-Test test;
+void f(Test a) {}
 ''');
     createRenameRefactoringAtString('Test {}');
     refactoring.newName = 'NewName';
@@ -681,7 +681,7 @@ part '../../part.dart';
 
 class NewName {}
 
-NewName test;
+void f(NewName a) {}
 ''');
 
     expect(refactoringChange.edits, hasLength(1));

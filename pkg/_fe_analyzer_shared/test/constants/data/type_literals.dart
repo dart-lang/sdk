@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 
 typedef Typedef();
@@ -16,7 +18,7 @@ const genericFunctionTypedef =
     /*cfe.TypeLiteral(void Function<T>(T))*/ GenericFunctionTypedef;
 const typedefWithFutureOr =
     /*cfe.TypeLiteral(void Function<T>(FutureOr<T>))*/ TypedefWithFutureOr;
-const futureOr = /*cfe.TypeLiteral(FutureOr<dynamic>)*/ FutureOr;
+const futureOr = /*cfe.TypeLiteral(dynamic)*/ FutureOr;
 const null_ = /*cfe.TypeLiteral(Null)*/ Null;
 
 main() {
@@ -46,8 +48,7 @@ main() {
 
   print(
       /*analyzer.TypeLiteral(FutureOr<dynamic>*)*/
-      /*cfe.TypeLiteral(FutureOr<dynamic>)*/
-      /*dart2js.TypeLiteral(dynamic)*/
+      /*cfe|dart2js.TypeLiteral(dynamic)*/
       futureOr);
 
   print(

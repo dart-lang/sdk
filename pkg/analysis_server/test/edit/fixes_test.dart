@@ -8,7 +8,6 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,6 +26,24 @@ class FixesTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     handler = EditDomainHandler(server);
+  }
+
+  Future<void> test_fileOutsideRoot() async {
+    final outsideFile = '/foo/test.dart';
+    newFile(outsideFile, content: 'bad code to create error');
+
+    // Set up the original project, as the code fix code won't run at all
+    // if there are no contexts.
+    createProject();
+    await waitForTasksFinished();
+
+    var request =
+        EditGetFixesParams(convertPath(outsideFile), 0).toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.GET_FIXES_INVALID_FILE),
+    );
   }
 
   Future<void> test_fixUndefinedClass() async {

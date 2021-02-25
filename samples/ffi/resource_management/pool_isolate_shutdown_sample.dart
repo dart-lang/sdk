@@ -22,7 +22,7 @@ void main() {
       receiveFromHelper.sendPort,
     );
     print("Main: Helper started.");
-    Pointer<SomeResource> resource;
+    Pointer<SomeResource> resource = nullptr;
     receiveFromHelper.listen((message) {
       if (message is int) {
         resource = Pointer<SomeResource>.fromAddress(message);
@@ -86,4 +86,4 @@ final releaseResource = ffiTestDynamicLibrary.lookupFunction<
     void Function(Pointer<SomeResource>)>("ReleaseResource");
 
 /// Represents some opaque resource being managed by a library.
-class SomeResource extends Struct {}
+class SomeResource extends Opaque {}

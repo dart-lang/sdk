@@ -19,7 +19,7 @@ class RenameToCamelCaseTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.non_constant_identifier_names;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   int my_integer_variable = 42;
   int foo;

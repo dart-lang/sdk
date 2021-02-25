@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.tool.command_line;
+// @dart=2.9
 
-import 'dart:async' show Future;
+library fasta.tool.command_line;
 
 import 'dart:io' show exit;
 
@@ -18,7 +18,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
+    show ExperimentalFlag, isExperimentEnabled;
 
 import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
 
@@ -53,7 +53,7 @@ import 'package:front_end/src/scheme_based_file_system.dart'
     show SchemeBasedFileSystem;
 
 import 'package:kernel/target/targets.dart'
-    show Target, getTarget, TargetFlags, targets;
+    show LateLowering, Target, getTarget, TargetFlags, targets;
 
 class CommandLineProblem {
   final Message message;
@@ -171,7 +171,6 @@ class ParsedArguments {
 //  * Get an explicit approval from the front-end team.
 const Map<String, ValueSpecification> optionSpecification =
     const <String, ValueSpecification>{
-  Flags.bytecode: const BoolValue(false),
   Flags.compileSdk: const UriValue(),
   Flags.dumpIr: const BoolValue(false),
   Flags.enableExperiment: const StringListValue(),
@@ -196,9 +195,13 @@ const Map<String, ValueSpecification> optionSpecification =
   Flags.nnbdAgnosticMode: const BoolValue(false),
   Flags.target: const StringValue(),
   Flags.verbose: const BoolValue(false),
+  Flags.verbosity: const StringValue(),
   Flags.verify: const BoolValue(false),
+  Flags.skipPlatformVerification: const BoolValue(false),
+  Flags.warnOnReachabilityCheck: const BoolValue(false),
   Flags.linkDependencies: const UriListValue(),
   Flags.noDeps: const BoolValue(false),
+  Flags.invocationModes: const StringValue(),
   "-D": const DefineValue(),
   "-h": const AliasValue(Flags.help),
   "--out": const AliasValue(Flags.output),
@@ -236,20 +239,22 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final String targetName = options[Flags.target] ?? "vm";
 
-  Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
-      parseExperimentalArguments(options[Flags.enableExperiment]),
-      onError: throwCommandLineProblem,
-      onWarning: print);
+  Map<ExperimentalFlag, bool> explicitExperimentalFlags =
+      parseExperimentalFlags(
+          parseExperimentalArguments(options[Flags.enableExperiment]),
+          onError: throwCommandLineProblem,
+          onWarning: print);
 
   final TargetFlags flags = new TargetFlags(
-      forceLateLoweringForTesting: options[Flags.forceLateLowering],
+      forceLateLoweringsForTesting: options[Flags.forceLateLowering]
+          ? LateLowering.all
+          : LateLowering.none,
       forceStaticFieldLoweringForTesting:
           options[Flags.forceStaticFieldLowering],
       forceNoExplicitGetterCallsForTesting:
           options[Flags.forceNoExplicitGetterCalls],
-      enableNullSafety:
-          experimentalFlags.containsKey(ExperimentalFlag.nonNullable) &&
-              experimentalFlags[ExperimentalFlag.nonNullable]);
+      enableNullSafety: isExperimentEnabled(ExperimentalFlag.nonNullable,
+          explicitExperimentalFlags: explicitExperimentalFlags));
 
   final Target target = getTarget(targetName, flags);
   if (target == null) {
@@ -263,6 +268,8 @@ ProcessedOptions analyzeCommandLine(String programName,
   final bool noDeps = options[Flags.noDeps];
 
   final bool verify = options[Flags.verify];
+
+  final bool skipPlatformVerification = options[Flags.skipPlatformVerification];
 
   final bool dumpIr = options[Flags.dumpIr];
 
@@ -281,8 +288,6 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final int fatalSkip = int.tryParse(options[Flags.fatalSkip] ?? "0") ?? -1;
 
-  final bool bytecode = options[Flags.bytecode];
-
   final bool compileSdk = options.containsKey(Flags.compileSdk);
 
   final String singleRootScheme = options[Flags.singleRootScheme];
@@ -298,7 +303,13 @@ ProcessedOptions analyzeCommandLine(String programName,
       ? NnbdMode.Agnostic
       : (nnbdStrongMode ? NnbdMode.Strong : NnbdMode.Weak);
 
+  final bool warnOnReachabilityCheck = options[Flags.warnOnReachabilityCheck];
+
   final List<Uri> linkDependencies = options[Flags.linkDependencies] ?? [];
+
+  final String invocationModes = options[Flags.invocationModes] ?? '';
+
+  final String verbosity = options[Flags.verbosity] ?? Verbosity.defaultValue;
 
   if (nnbdStrongMode && nnbdWeakMode) {
     return throw new CommandLineProblem.deprecated(
@@ -344,11 +355,15 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..omitPlatform = omitPlatform
     ..verbose = verbose
     ..verify = verify
-    ..experimentalFlags = experimentalFlags
+    ..skipPlatformVerification = skipPlatformVerification
+    ..explicitExperimentalFlags = explicitExperimentalFlags
     ..environmentDefines = noDefines ? null : parsedArguments.defines
     ..nnbdMode = nnbdMode
     ..additionalDills = linkDependencies
-    ..emitDeps = !noDeps;
+    ..emitDeps = !noDeps
+    ..warnOnReachabilityCheck = warnOnReachabilityCheck
+    ..invocationModes = InvocationMode.parseArguments(invocationModes)
+    ..verbosity = Verbosity.parseArgument(verbosity);
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {
@@ -368,8 +383,7 @@ ProcessedOptions analyzeCommandLine(String programName,
         options: compilerOptions
           ..sdkSummary = options[Flags.platform]
           ..librariesSpecificationUri = resolveInputUri(arguments[1])
-          ..setExitCodeOnProblem = true
-          ..bytecode = bytecode,
+          ..setExitCodeOnProblem = true,
         inputs: <Uri>[Uri.parse(arguments[0])],
         output: resolveInputUri(arguments[3]));
   } else if (arguments.isEmpty) {

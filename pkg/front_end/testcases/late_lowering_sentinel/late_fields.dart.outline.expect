@@ -1,0 +1,31 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static field core::int? _#nullableTopLevelField;
+static field core::int? _#nonNullableTopLevelField;
+static field core::int? _#nullableTopLevelFieldWithInitializer;
+static field core::int? _#nonNullableTopLevelFieldWithInitializer;
+static field core::int? _#nullableFinalTopLevelField;
+static field core::int? _#nonNullableFinalTopLevelField;
+static field core::int? _#nullableFinalTopLevelFieldWithInitializer;
+static field core::int? _#nonNullableFinalTopLevelFieldWithInitializer;
+static field Never? _#neverTopLevelField;
+static get nullableTopLevelField() → core::int?;
+static set nullableTopLevelField(core::int? #t1) → void;
+static get nonNullableTopLevelField() → core::int;
+static set nonNullableTopLevelField(core::int #t2) → void;
+static get nullableTopLevelFieldWithInitializer() → core::int?;
+static set nullableTopLevelFieldWithInitializer(core::int? #t3) → void;
+static get nonNullableTopLevelFieldWithInitializer() → core::int;
+static set nonNullableTopLevelFieldWithInitializer(core::int #t4) → void;
+static get nullableFinalTopLevelField() → core::int?;
+static set nullableFinalTopLevelField(core::int? #t5) → void;
+static get nonNullableFinalTopLevelField() → core::int;
+static set nonNullableFinalTopLevelField(core::int #t6) → void;
+static get nullableFinalTopLevelFieldWithInitializer() → core::int?;
+static get nonNullableFinalTopLevelFieldWithInitializer() → core::int;
+static get neverTopLevelField() → Never;
+static set neverTopLevelField(Never #t7) → void;
+static method main() → dynamic
+  ;

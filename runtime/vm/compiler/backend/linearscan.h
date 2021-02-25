@@ -172,6 +172,8 @@ class FlowGraphAllocator : public ValueObject {
   void AllocateUnallocatedRanges();
   void AdvanceActiveIntervals(const intptr_t start);
 
+  void RemoveFrameIfNotNeeded();
+
   // Connect split siblings over non-linear control flow edges.
   void ResolveControlFlow();
 
@@ -259,6 +261,11 @@ class FlowGraphAllocator : public ValueObject {
   void SplitInitialDefinitionAt(LiveRange* range, intptr_t pos);
 
   void PrintLiveRanges();
+
+  Location ComputeParameterLocation(BlockEntryInstr* block,
+                                    ParameterInstr* param,
+                                    Register base_reg,
+                                    intptr_t pair_index);
 
   const FlowGraph& flow_graph_;
 

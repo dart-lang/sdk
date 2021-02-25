@@ -11,7 +11,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 class ReanalyzeHandler extends MessageHandler<void, void> {
   ReanalyzeHandler(LspAnalysisServer server) : super(server);
   @override
-  Method get handlesMessage => CustomMethods.Reanalyze;
+  Method get handlesMessage => CustomMethods.reanalyze;
 
   @override
   LspJsonHandler<void> get jsonHandler => NullJsonHandler;

@@ -48,7 +48,7 @@ List<AnalysisError> analyzeAnalysisOptions(
         ];
         errors.add(AnalysisError(
             initialSource,
-            initialIncludeSpan.start.column + 1,
+            initialIncludeSpan.start.offset,
             initialIncludeSpan.length,
             AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
             args));
@@ -68,7 +68,7 @@ List<AnalysisError> analyzeAnalysisOptions(
     if (includedSource == null || !includedSource.exists()) {
       errors.add(AnalysisError(
           initialSource,
-          initialIncludeSpan.start.column + 1,
+          initialIncludeSpan.start.offset,
           initialIncludeSpan.length,
           AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
           [includeUri, source.fullName]));
@@ -89,7 +89,7 @@ List<AnalysisError> analyzeAnalysisOptions(
       // on the include directive located in the initial options file.
       errors.add(AnalysisError(
           initialSource,
-          initialIncludeSpan.start.column + 1,
+          initialIncludeSpan.start.offset,
           initialIncludeSpan.length,
           AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
           args));
@@ -101,7 +101,7 @@ List<AnalysisError> analyzeAnalysisOptions(
     validate(source, options);
   } on OptionsFormatException catch (e) {
     SourceSpan span = e.span;
-    errors.add(AnalysisError(source, span.start.column + 1, span.length,
+    errors.add(AnalysisError(source, span.start.offset, span.length,
         AnalysisOptionsErrorCode.PARSE_ERROR, [e.message]));
   }
   return errors;

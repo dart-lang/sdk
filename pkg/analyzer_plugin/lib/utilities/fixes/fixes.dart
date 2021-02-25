@@ -33,7 +33,7 @@ abstract class FixCollector {
 abstract class FixContributor {
   /// Contribute fixes for the location in the file specified by the given
   /// [request] into the given [collector].
-  void computeFixes(covariant FixesRequest request, FixCollector collector);
+  Future<void> computeFixes(covariant FixesRequest request, FixCollector collector);
 }
 
 /// The information about a requested set of fixes.
@@ -64,13 +64,13 @@ class FixGenerator {
   /// Create an 'edit.getFixes' response for the location in the file specified
   /// by the given [request]. If any of the contributors throws an exception,
   /// also create a non-fatal 'plugin.error' notification.
-  GeneratorResult<EditGetFixesResult> generateFixesResponse(
-      FixesRequest request) {
+  Future<GeneratorResult<EditGetFixesResult>> generateFixesResponse(
+      FixesRequest request) async {
     var notifications = <Notification>[];
     var collector = FixCollectorImpl();
     for (var contributor in contributors) {
       try {
-        contributor.computeFixes(request, collector);
+        await contributor.computeFixes(request, collector);
       } catch (exception, stackTrace) {
         notifications.add(PluginErrorParams(
                 false, exception.toString(), stackTrace.toString())

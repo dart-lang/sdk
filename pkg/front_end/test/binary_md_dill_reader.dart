@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "dart:math" as math;
 
 class BinaryMdDillReader {
@@ -517,7 +519,7 @@ class BinaryMdDillReader {
 
         if (intCount >= 0) {
           readNothingIsOk = intCount == 0;
-          List<dynamic> value = new List(intCount);
+          List<dynamic> value = new List.filled(intCount, null);
           for (int i = 0; i < intCount; ++i) {
             int oldOffset2 = _binaryOffset;
             value[i] = _readBinary(type);

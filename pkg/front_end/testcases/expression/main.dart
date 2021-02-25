@@ -42,7 +42,7 @@ class B extends A<Object> {
     return "";
   }
 
-  void set z(int _) {}
+  void set z(_) {}
   void _privMethod() {}
 }
 

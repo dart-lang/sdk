@@ -176,6 +176,9 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
       visitPropertyInducingElement(element);
 
   @override
+  R visitTypeAliasElement(TypeAliasElement element) => visitElement(element);
+
+  @override
   R visitTypeParameterElement(TypeParameterElement element) =>
       visitElement(element);
 
@@ -318,6 +321,12 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
+  R visitTypeAliasElement(TypeAliasElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
   R visitTypeParameterElement(TypeParameterElement element) {
     element.visitChildren(this);
     return null;
@@ -394,6 +403,9 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R visitTopLevelVariableElement(TopLevelVariableElement element) => null;
+
+  @override
+  R visitTypeAliasElement(TypeAliasElement element) => null;
 
   @override
   R visitTypeParameterElement(TypeParameterElement element) => null;
@@ -476,6 +488,9 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
   @override
   R visitTopLevelVariableElement(TopLevelVariableElement element) =>
       _throw(element);
+
+  @override
+  R visitTypeAliasElement(TypeAliasElement element) => _throw(element);
 
   @override
   R visitTypeParameterElement(TypeParameterElement element) => _throw(element);

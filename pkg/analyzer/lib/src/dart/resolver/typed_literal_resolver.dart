@@ -768,8 +768,9 @@ class TypedLiteralResolver {
       nullabilitySuffix: _noneOrStarSuffix,
     );
 
-    var parameters = List<ParameterElement>(2 * inferredTypes.length);
-    var argumentTypes = List<DartType>(2 * inferredTypes.length);
+    var parameters =
+        List<ParameterElement>.filled(2 * inferredTypes.length, null);
+    var argumentTypes = List<DartType>.filled(2 * inferredTypes.length, null);
     for (var i = 0; i < inferredTypes.length; i++) {
       parameters[2 * i + 0] = ParameterElementImpl.synthetic(
           'key', genericKeyType, ParameterKind.POSITIONAL);
@@ -802,8 +803,8 @@ class TypedLiteralResolver {
       nullabilitySuffix: _noneOrStarSuffix,
     );
 
-    var parameters = List<ParameterElement>(inferredTypes.length);
-    var argumentTypes = List<DartType>(inferredTypes.length);
+    var parameters = List<ParameterElement>.filled(inferredTypes.length, null);
+    var argumentTypes = List<DartType>.filled(inferredTypes.length, null);
     for (var i = 0; i < inferredTypes.length; i++) {
       parameters[i] = ParameterElementImpl.synthetic(
           'element', genericElementType, ParameterKind.POSITIONAL);

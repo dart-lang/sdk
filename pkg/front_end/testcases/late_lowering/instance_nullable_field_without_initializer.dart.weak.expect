@@ -19,7 +19,7 @@ class Class extends core::Object {
     : self::Class::_#Class#field#isSet = true, self::Class::_#Class#field = field, super core::Object::•()
     ;
   get field() → core::int?
-    return this.{self::Class::_#Class#field#isSet} ?{core::int?} this.{self::Class::_#Class#field} : throw new _in::LateInitializationErrorImpl::•("Field 'field' has not been initialized.");
+    return this.{self::Class::_#Class#field#isSet} ?{core::int?} this.{self::Class::_#Class#field} : throw new _in::LateError::fieldNI("field");
   set field(core::int? #t1) → void {
     this.{self::Class::_#Class#field#isSet} = true;
     this.{self::Class::_#Class#field} = #t1;
@@ -96,7 +96,7 @@ static method throws(() → dynamic f, core::String message) → dynamic {
   try {
     value = f.call();
   }
-  on core::LateInitializationError catch(final core::LateInitializationError e) {
+  on core::Error catch(final core::Error e) {
     core::print(e);
     return;
   }

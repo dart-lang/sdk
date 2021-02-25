@@ -9,6 +9,9 @@ import '../../../tool/lsp_spec/typescript_parser.dart';
 
 Matcher isArrayOf(Matcher matcher) => ArrayTypeMatcher(wrapMatcher(matcher));
 
+Matcher isLiteralOf(Matcher typeMatcher, Object value) =>
+    LiteralTypeMatcher(typeMatcher, value);
+
 Matcher isMapOf(Matcher indexMatcher, Matcher valueMatcher) =>
     MapTypeMatcher(wrapMatcher(indexMatcher), wrapMatcher(valueMatcher));
 
@@ -40,6 +43,25 @@ class ArrayTypeMatcher extends Matcher {
   bool matches(item, Map matchState) {
     return item is ArrayType &&
         _elementTypeMatcher.matches(item.elementType, matchState);
+  }
+}
+
+class LiteralTypeMatcher extends Matcher {
+  final Matcher _typeMatcher;
+  final String _value;
+  LiteralTypeMatcher(this._typeMatcher, this._value);
+
+  @override
+  Description describe(Description description) => description
+      .add('a literal where type is ')
+      .addDescriptionOf(_typeMatcher)
+      .add(' and value is $_value');
+
+  @override
+  bool matches(item, Map matchState) {
+    return item is LiteralType &&
+        _typeMatcher.matches(item.type, matchState) &&
+        item.literal == _value;
   }
 }
 

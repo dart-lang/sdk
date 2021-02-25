@@ -1,11 +1,14 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE.md file.
+
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:io';
 
-import "package:vm_service/vm_service.dart" as vmService;
-import "package:vm_service/vm_service_io.dart" as vmService;
-
-import "vm_service_heap_helper.dart" as helper;
 import "simple_stats.dart";
+import "vm_service_helper.dart" as vmService;
 
 const int limit = 10;
 
@@ -22,7 +25,7 @@ main(List<String> args) async {
   ]);
 }
 
-class LeakFinder extends helper.LaunchingVMServiceHeapHelper {
+class LeakFinder extends vmService.LaunchingVMServiceHelper {
   @override
   Future<void> run() async {
     vmService.VM vm = await serviceClient.getVM();
@@ -39,15 +42,22 @@ class LeakFinder extends helper.LaunchingVMServiceHeapHelper {
         new Map<vmService.ClassRef, vmService.Class>();
 
     Completer<String> cTimeout = new Completer();
-    Timer timer = new Timer(new Duration(minutes: 4), () {
+    Timer timer = new Timer(new Duration(minutes: 6), () {
       cTimeout.complete("Timeout");
       killProcess();
     });
 
     Completer<String> cRunDone = new Completer();
     // ignore: unawaited_futures
-    runInternal(isolateRef, classInfo, instanceCounts,
-        () => cTimeout.isCompleted || cProcessExited.isCompleted).then((value) {
+    runInternal(
+        isolateRef,
+        classInfo,
+        instanceCounts,
+        (int iteration) =>
+            // Subtract 2 as it's logically one ahead and asks _before_ the run.
+            (iteration - 2) > limit ||
+            cTimeout.isCompleted ||
+            cProcessExited.isCompleted).then((value) {
       cRunDone.complete("Done");
     });
 
@@ -57,6 +67,9 @@ class LeakFinder extends helper.LaunchingVMServiceHeapHelper {
     print("\n\n======================\n\n");
 
     findPossibleLeaks(instanceCounts, classInfo);
+
+    // Make sure the process doesn't hang.
+    killProcess();
   }
 
   void findPossibleLeaks(Map<vmService.ClassRef, List<int>> instanceCounts,
@@ -118,11 +131,11 @@ class LeakFinder extends helper.LaunchingVMServiceHeapHelper {
       vmService.IsolateRef isolateRef,
       Map<vmService.ClassRef, vmService.Class> classInfo,
       Map<vmService.ClassRef, List<int>> instanceCounts,
-      bool Function() shouldBail) async {
+      bool Function(int iteration) shouldBail) async {
     int iterationNumber = 1;
     try {
       while (true) {
-        if (shouldBail()) break;
+        if (shouldBail(iterationNumber)) break;
         if (!await waitUntilPaused(isolateRef.id)) break;
         print("\n\n====================\n\nIteration #$iterationNumber");
         iterationNumber++;
@@ -136,8 +149,7 @@ class LeakFinder extends helper.LaunchingVMServiceHeapHelper {
           }
           List<int> listOfInstanceCounts = instanceCounts[member.classRef];
           if (listOfInstanceCounts == null) {
-            listOfInstanceCounts =
-                instanceCounts[member.classRef] = new List<int>();
+            listOfInstanceCounts = instanceCounts[member.classRef] = <int>[];
           }
           while (listOfInstanceCounts.length < iterationNumber - 2) {
             listOfInstanceCounts.add(0);
@@ -185,6 +197,8 @@ class LeakFinder extends helper.LaunchingVMServiceHeapHelper {
       if (classDetails.name == "ConstructorScope") return true;
       if (classDetails.name == "ScopeBuilder") return true;
       if (classDetails.name == "ConstructorScopeBuilder") return true;
+      if (classDetails.name == "NullTypeDeclarationBuilder") return true;
+      if (classDetails.name == "NullabilityBuilder") return true;
 
       return false;
     } else if (uriString.startsWith("package:kernel/")) {

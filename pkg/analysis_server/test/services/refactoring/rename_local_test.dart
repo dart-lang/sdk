@@ -420,7 +420,7 @@ main() {
 
   Future<void> test_createChange_parameter_named() async {
     await indexTestUnit('''
-myFunction({int test}) {
+myFunction({required int test}) {
   test = 1;
   test += 2;
   print(test);
@@ -436,7 +436,7 @@ main() {
     refactoring.newName = 'newName';
     // validate change
     return assertSuccessfulRefactoring('''
-myFunction({int newName}) {
+myFunction({required int newName}) {
   newName = 1;
   newName += 2;
   print(newName);
@@ -463,14 +463,10 @@ main() {
   new A(test: 2);
 }
 ''');
-    driver.addFile(a);
-    driver.addFile(b);
+    await analyzeTestPackageFiles();
 
-    var session = driver.currentSession;
-    testAnalysisResult = await session.getResolvedUnit(a);
-    testFile = testAnalysisResult.path;
-    testCode = testAnalysisResult.content;
-    testUnit = testAnalysisResult.unit;
+    testFile = a;
+    await resolveTestFile();
 
     createRenameRefactoringAtString('test});');
     expect(refactoring.refactoringName, 'Rename Parameter');
@@ -494,7 +490,7 @@ main() {
       test_createChange_parameter_named_ofConstructor_genericClass() async {
     await indexTestUnit('''
 class A<T> {
-  A({T test});
+  A({required T test});
 }
 
 main() {
@@ -509,7 +505,7 @@ main() {
     // validate change
     return assertSuccessfulRefactoring('''
 class A<T> {
-  A({T newName});
+  A({required T newName});
 }
 
 main() {
@@ -521,10 +517,10 @@ main() {
   Future<void> test_createChange_parameter_named_ofMethod_genericClass() async {
     await indexTestUnit('''
 class A<T> {
-  void foo({T test}) {}
+  void foo({required T test}) {}
 }
 
-main(A<int> a) {
+void f(A<int> a) {
   a.foo(test: 0);
 }
 ''');
@@ -536,10 +532,10 @@ main(A<int> a) {
     // validate change
     return assertSuccessfulRefactoring('''
 class A<T> {
-  void foo({T newName}) {}
+  void foo({required T newName}) {}
 }
 
-main(A<int> a) {
+void f(A<int> a) {
   a.foo(newName: 0);
 }
 ''');
@@ -549,12 +545,12 @@ main(A<int> a) {
     await indexUnit('/home/test/lib/test2.dart', '''
 library test2;
 class A {
-  void foo({int test}) {
+  void foo({int? test}) {
     print(test);
   }
 }
 class B extends A {
-  void foo({int test}) {
+  void foo({int? test}) {
     print(test);
   }
 }
@@ -567,7 +563,7 @@ main() {
   new C().foo(test: 30);
 }
 class C extends A {
-  void foo({int test}) {
+  void foo({int? test}) {
     print(test);
   }
 }
@@ -585,7 +581,7 @@ main() {
   new C().foo(newName: 30);
 }
 class C extends A {
-  void foo({int newName}) {
+  void foo({int? newName}) {
     print(newName);
   }
 }
@@ -593,12 +589,12 @@ class C extends A {
     assertFileChangeResult('/home/test/lib/test2.dart', '''
 library test2;
 class A {
-  void foo({int newName}) {
+  void foo({int? newName}) {
     print(newName);
   }
 }
 class B extends A {
-  void foo({int newName}) {
+  void foo({int? newName}) {
     print(newName);
   }
 }
@@ -607,7 +603,7 @@ class B extends A {
 
   Future<void> test_createChange_parameter_optionalPositional() async {
     await indexTestUnit('''
-myFunction([int test]) {
+myFunction([int? test]) {
   test = 1;
   test += 2;
   print(test);
@@ -623,7 +619,7 @@ main() {
     refactoring.newName = 'newName';
     // validate change
     return assertSuccessfulRefactoring('''
-myFunction([int newName]) {
+myFunction([int? newName]) {
   newName = 1;
   newName += 2;
   print(newName);

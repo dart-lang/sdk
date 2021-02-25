@@ -96,7 +96,7 @@ class NativeArguments {
     ASSERT((index >= 0) && (index < ArgCount()));
     ObjectPtr* arg_ptr =
         &(argv_[ReverseArgOrderBit::decode(argc_tag_) ? index : -index]);
-    *arg_ptr = value.raw();
+    *arg_ptr = value.ptr();
   }
 
   // Does not include hidden type arguments vector.
@@ -152,14 +152,14 @@ class NativeArguments {
     TypeArguments& type_args = TypeArguments::Handle(NativeTypeArgs());
     if (type_args.IsNull()) {
       // null vector represents infinite list of dynamics
-      return Type::dynamic_type().raw();
+      return Type::dynamic_type().ptr();
     }
     return type_args.TypeAt(index);
   }
 
   void SetReturn(const Object& value) const {
     ASSERT(thread_->execution_state() == Thread::kThreadInVM);
-    *retval_ = value.raw();
+    *retval_ = value.ptr();
   }
 
   ObjectPtr ReturnValue() const {
@@ -234,10 +234,9 @@ class NativeArguments {
       : public BitField<intptr_t, bool, kReverseArgOrderBit, 1> {};
   friend class Api;
   friend class NativeEntry;
-  friend class Interpreter;
   friend class Simulator;
 
-  // Allow simulator and interpreter to create NativeArguments in reverse order
+  // Allow simulator to create NativeArguments in reverse order
   // on the stack.
   NativeArguments(Thread* thread,
                   int argc_tag,

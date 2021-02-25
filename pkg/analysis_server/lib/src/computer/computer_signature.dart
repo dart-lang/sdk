@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart'
-    show AnalysisGetSignatureResult;
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -80,11 +78,13 @@ class DartUnitSignatureComputer {
 
   ParameterInfo _convertParam(ParameterElement param) {
     return ParameterInfo(
-        param.isOptionalPositional
-            ? ParameterKind.OPTIONAL
-            : param.isPositional
-                ? ParameterKind.REQUIRED
-                : ParameterKind.NAMED,
+        param.isOptionalNamed
+            ? ParameterKind.OPTIONAL_NAMED
+            : param.isOptionalPositional
+                ? ParameterKind.OPTIONAL_POSITIONAL
+                : param.isRequiredNamed
+                    ? ParameterKind.REQUIRED_NAMED
+                    : ParameterKind.REQUIRED_POSITIONAL,
         param.displayName,
         param.type.getDisplayString(withNullability: false),
         defaultValue: param.defaultValueCode);

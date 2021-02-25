@@ -85,7 +85,7 @@ front_end/test/fasta/strong4_test: Pass, ExtraSlow
 front_end/test/fasta/text_serialization_test: Pass, ExtraSlow
 front_end/test/fasta/types/dart2js_benchmark_test: Pass, Slow
 front_end/test/fasta/types/large_app_benchmark_test: Pass, ExtraSlow
-front_end/test/incremental_compiler_leak_test: Pass, Slow
+front_end/test/incremental_compiler_leak_test: Pass, ExtraSlow
 front_end/test/incremental_dart2js_test: Pass, Slow
 front_end/test/minimal_incremental_kernel_generator_test: Slow, Pass
 front_end/testcases/*: Skip # These are not tests but input for tests.
@@ -114,7 +114,6 @@ analyzer_plugin/tool/*: SkipByDesign # Only meant to run on vm
 build_integration/test/*: SkipByDesign # Only meant to run on vm, most use dart:mirrors and dart:io
 compiler/tool/*: SkipByDesign # Only meant to run on vm
 dartdev/test/*: SkipByDesign # Only meant to run on vm
-dartfix/test/*: SkipByDesign # Only meant to run on vm
 front_end/test/*: SkipByDesign # Only meant to run on vm, most use dart:mirrors and dart:io
 front_end/tool/*: SkipByDesign # Only meant to run on vm
 modular_test/test/memory_pipeline_test: Slow, Pass
@@ -174,6 +173,7 @@ dds/test/*: SkipByDesign # Only meant to run on vm
 dev_compiler/test/options/*: SkipByDesign
 front_end/test/hot_reload_e2e_test: Skip
 frontend_server/test/*: SkipByDesign # Only meant to run on vm
+js_runtime/test/*: SkipByDesign # Only meant to run on vm
 vm/test/*: SkipByDesign # Only meant to run on vm
 vm_service/test/*: SkipByDesign # Uses dart:io
 vm_snapshot_analysis/test/*: SkipByDesign # Only meant to run on vm

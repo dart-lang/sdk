@@ -4,50 +4,107 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(DeadNullAwareAssignmentExpressionTest);
     defineReflectiveTests(DeadNullAwareExpressionTest);
     defineReflectiveTests(UnnecessaryNullInIfNullOperatorsTest);
   });
 }
 
 @reflectiveTest
-class DeadNullAwareExpressionTest extends FixProcessorTest {
+class DeadNullAwareAssignmentExpressionTest extends FixProcessorTest
+    with WithNullSafetyMixin {
   @override
-  List<String> get experiments => [EnableString.non_nullable];
+  FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
 
+  Future<void> test_assignmentExpression_nonPromotable() async {
+    await resolveTestCode('''
+class C {
+  int a = 1;
+  void f(int b) {
+    a ??= b;
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  int a = 1;
+  void f(int b) {
+    a;
+  }
+}
+''');
+  }
+
+  Future<void> test_assignmentExpression_promotable() async {
+    await resolveTestCode('''
+void f(int a, int b) {
+  a ??= b;
+}
+''');
+    await assertHasFix('''
+void f(int a, int b) {
+}
+''');
+  }
+
+  Future<void> test_immediateChild() async {
+    await resolveTestCode('''
+void f(int a, int b) => a ??= b;
+''');
+    await assertHasFix('''
+void f(int a, int b) => a;
+''');
+  }
+
+  Future<void> test_nestedChild() async {
+    await resolveTestCode('''
+void f(int a, int b) => a ??= b * 2 + 1;
+''');
+    await assertHasFix('''
+void f(int a, int b) => a;
+''');
+  }
+
+  Future<void> test_nestedChild_onRight() async {
+    await resolveTestCode('''
+void f(int a, int b, int c) => a = b ??= c;
+''');
+    await assertHasFix('''
+void f(int a, int b, int c) => a = b;
+''');
+  }
+}
+
+@reflectiveTest
+class DeadNullAwareExpressionTest extends FixProcessorTest
+    with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
 
   Future<void> test_immediateChild() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 int f(int a, int b) => a ?? b;
 ''');
     await assertHasFix('''
 int f(int a, int b) => a;
-''', errorFilter: (e) {
-      // See https://github.com/dart-lang/sdk/issues/43263.
-      return e.errorCode != HintCode.DEAD_CODE;
-    });
+''');
   }
 
   Future<void> test_nestedChild() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 int f(int a, int b) => a ?? b * 2 + 1;
 ''');
     await assertHasFix('''
 int f(int a, int b) => a;
-''', errorFilter: (e) {
-      // See https://github.com/dart-lang/sdk/issues/43263.
-      return e.errorCode != HintCode.DEAD_CODE;
-    });
+''');
   }
 }
 
@@ -60,7 +117,7 @@ class UnnecessaryNullInIfNullOperatorsTest extends FixProcessorLintTest {
   String get lintCode => LintNames.unnecessary_null_in_if_null_operators;
 
   Future<void> test_left() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var a = '';
 var b = null ?? a;
 ''');
@@ -71,7 +128,7 @@ var b = a;
   }
 
   Future<void> test_right() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var a = '';
 var b = a ?? null;
 ''');

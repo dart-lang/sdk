@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart'
     show DartType, Expression, TypeParameterType, VariableDeclaration;
 
@@ -190,6 +192,11 @@ abstract class TypePromoterImpl extends TypePromoter {
   /// created.
   int _lastFactSequenceNumber = 0;
 
+  /// Map from variables to the set of scopes in which the variable is mutated.
+  /// If a variable is missing from the map, it is not mutated anywhere.
+  Map<VariableDeclaration, Set<TypePromotionScope>> _variableMutationScopes =
+      new Map<VariableDeclaration, Set<TypePromotionScope>>.identity();
+
   TypePromoterImpl.private(TypeSchemaEnvironment typeSchemaEnvironment)
       : this._(typeSchemaEnvironment, new _NullFact());
 
@@ -207,7 +214,8 @@ abstract class TypePromoterImpl extends TypePromoter {
   DartType computePromotedType(
       TypePromotionFact fact, TypePromotionScope scope, bool mutatedInClosure) {
     if (mutatedInClosure) return null;
-    return fact?._computePromotedType(this, scope);
+    return fact?._computePromotedType(
+        this, scope, _variableMutationScopes[fact.variable]);
   }
 
   /// For internal debugging use, optionally prints the current state followed
@@ -220,28 +228,28 @@ abstract class TypePromoterImpl extends TypePromoter {
   @override
   void enterElse() {
     debugEvent('enterElse');
+    // Pop the scope and restore the facts to the state they were in before we
+    // entered the conditional.  No promotion happens in the "else" branch.
     _ConditionalScope scope = _currentScope;
-    // Record the current fact state so that once we exit the "else" branch, we
-    // can merge facts from the two branches.
-    scope.afterTrue = _currentFacts;
-    // While processing the "else" block, assume the condition was false.
+    _currentScope = _currentScope._enclosing;
     _currentFacts = scope.beforeElse;
   }
 
   @override
   void enterLogicalExpression(Expression lhs, String operator) {
     debugEvent('enterLogicalExpression');
-    // Figure out what the facts are based on possible LHS outcomes.
-    TypePromotionFact trueFacts = _factsWhenTrue(lhs);
-    TypePromotionFact falseFacts = _factsWhenFalse(lhs);
-    // Record the fact that we are entering a new scope, and save the
-    // appropriate facts for the case where the expression gets short-cut.
-    bool isAnd = identical(operator, '&&');
-    _currentScope =
-        new _LogicalScope(_currentScope, isAnd, isAnd ? falseFacts : trueFacts);
-    // While processing the RHS, assume the condition was false or true,
-    // depending on the type of logical expression.
-    _currentFacts = isAnd ? trueFacts : falseFacts;
+    if (!identical(operator, '&&')) {
+      // We don't promote for `||`.
+      _currentScope = new _LogicalScope(_currentScope, false, _currentFacts);
+    } else {
+      // Figure out what the facts are based on possible LHS outcomes.
+      TypePromotionFact trueFacts = _factsWhenTrue(lhs);
+      // Record the fact that we are entering a new scope, and save the
+      // appropriate facts for the case where the expression gets short-cut.
+      _currentScope = new _LogicalScope(_currentScope, true, _currentFacts);
+      // While processing the RHS, assume the condition was true.
+      _currentFacts = _addBlockingScopeToFacts(trueFacts);
+    }
   }
 
   @override
@@ -249,36 +257,29 @@ abstract class TypePromoterImpl extends TypePromoter {
     debugEvent('enterThen');
     // Figure out what the facts are based on possible condition outcomes.
     TypePromotionFact trueFacts = _factsWhenTrue(condition);
-    TypePromotionFact falseFacts = _factsWhenFalse(condition);
-    // Record the fact that we are entering a new scope, and save the "false"
+    // Record the fact that we are entering a new scope, and save the current
     // facts for when we enter the "else" branch.
-    _currentScope = new _ConditionalScope(_currentScope, falseFacts);
+    _currentScope = new _ConditionalScope(_currentScope, _currentFacts);
     // While processing the "then" block, assume the condition was true.
-    _currentFacts = trueFacts;
+    _currentFacts = _addBlockingScopeToFacts(trueFacts);
   }
 
   @override
   void exitConditional() {
     debugEvent('exitConditional');
-    _ConditionalScope scope = _currentScope;
-    _currentScope = _currentScope._enclosing;
-    _currentFacts = _mergeFacts(scope.afterTrue, _currentFacts);
   }
 
   @override
   void exitLogicalExpression(Expression rhs, Expression logicalExpression) {
     debugEvent('exitLogicalExpression');
     _LogicalScope scope = _currentScope;
-    _currentScope = _currentScope._enclosing;
     if (scope.isAnd) {
-      _recordPromotionExpression(logicalExpression, _factsWhenTrue(rhs),
-          _mergeFacts(scope.shortcutFacts, _currentFacts));
-    } else {
+      TypePromotionFact factsWhenTrue = _factsWhenTrue(rhs);
+      _currentFacts = scope.shortcutFacts;
       _recordPromotionExpression(
-          logicalExpression,
-          _mergeFacts(scope.shortcutFacts, _currentFacts),
-          _factsWhenFalse(rhs));
+          logicalExpression, _addBlockingScopeToFacts(factsWhenTrue));
     }
+    _currentScope = _currentScope._enclosing;
   }
 
   @override
@@ -317,9 +318,9 @@ abstract class TypePromoterImpl extends TypePromoter {
         _currentFacts,
         _computeCurrentFactMap()[variable],
         functionNestingLevel,
-        type);
+        type, []);
     if (!isInverted) {
-      _recordPromotionExpression(isExpression, isCheck, _currentFacts);
+      _recordPromotionExpression(isExpression, isCheck);
     }
   }
 
@@ -335,27 +336,55 @@ abstract class TypePromoterImpl extends TypePromoter {
   /// mutated.
   void mutateVariable(VariableDeclaration variable, int functionNestingLevel) {
     debugEvent('mutateVariable');
-    TypePromotionFact fact = _computeCurrentFactMap()[variable];
-    TypePromotionFact._recordMutatedInScope(fact, _currentScope);
+    (_variableMutationScopes[variable] ??=
+            new Set<TypePromotionScope>.identity())
+        .add(_currentScope);
     if (getVariableFunctionNestingLevel(variable) < functionNestingLevel) {
       setVariableMutatedInClosure(variable);
     }
-    setVariableMutatedAnywhere(variable);
   }
 
   /// Determines whether [a] and [b] represent the same expression, after
   /// dropping redundant enclosing parentheses.
   bool sameExpressions(Expression a, Expression b);
 
-  /// Records that the given variable was mutated somewhere inside the method.
-  void setVariableMutatedAnywhere(VariableDeclaration variable);
-
   /// Records that the given variable was mutated inside a closure.
   void setVariableMutatedInClosure(VariableDeclaration variable);
 
-  /// Indicates whether [setVariableMutatedAnywhere] has been called for the
-  /// given [variable].
-  bool wasVariableMutatedAnywhere(VariableDeclaration variable);
+  /// Updates any facts that are present in [facts] but not in [_currentFacts]
+  /// so that they include [_currentScope] in their list of blocking scopes, and
+  /// returns the resulting new linked list of facts.
+  ///
+  /// This is used when entering the body of a conditional, or the RHS of a
+  /// logical "and", to ensure that promotions are blocked if the construct
+  /// being entered contains any modifications of the corresponding variables.
+  /// It is also used when leaving the RHS of a logical "and", to ensure that
+  /// any promotions induced by the RHS of the "and" are blocked if the RHS of
+  /// the "and" contains any modifications of the corresponding variables.
+  TypePromotionFact _addBlockingScopeToFacts(TypePromotionFact facts) {
+    List<TypePromotionFact> factsToUpdate = [];
+    while (facts != _currentFacts) {
+      factsToUpdate.add(facts);
+      facts = facts.previous;
+    }
+    Map<VariableDeclaration, TypePromotionFact> factMap =
+        _computeCurrentFactMap();
+    for (TypePromotionFact fact in factsToUpdate.reversed) {
+      _IsCheck isCheck = fact as _IsCheck;
+      VariableDeclaration variable = isCheck.variable;
+      facts = new _IsCheck(
+          ++_lastFactSequenceNumber,
+          variable,
+          facts,
+          factMap[variable],
+          isCheck.functionNestingLevel,
+          isCheck.checkedType,
+          [...isCheck._blockingScopes, _currentScope]);
+      factMap[variable] = facts;
+      _factCacheState = facts;
+    }
+    return facts;
+  }
 
   /// Returns a map from variable declaration to the most recent
   /// [TypePromotionFact] associated with the variable.
@@ -401,20 +430,6 @@ abstract class TypePromoterImpl extends TypePromoter {
   }
 
   /// Returns the set of facts known to be true after the execution of [e]
-  /// assuming it evaluates to `false`.
-  ///
-  /// [e] must be the most recently parsed expression or statement.
-  TypePromotionFact _factsWhenFalse(Expression e) {
-    // Type promotion currently only occurs when an "is" or logical expression
-    // evaluates to `true`, so no special logic is required; we just use
-    // [_currentFacts].
-    //
-    // TODO(paulberry): experiment with supporting promotion in cases like
-    // `if (x is! T) { ... } else { ...access x... }`
-    return _currentFacts;
-  }
-
-  /// Returns the set of facts known to be true after the execution of [e]
   /// assuming it evaluates to `true`.
   ///
   /// [e] must be the most recently parsed expression or statement.
@@ -422,31 +437,6 @@ abstract class TypePromoterImpl extends TypePromoter {
       sameExpressions(_promotionExpression, e)
           ? _trueFactsForPromotionExpression
           : _currentFacts;
-
-  /// Returns the set of facts known to be true after two branches of execution
-  /// rejoin.
-  TypePromotionFact _mergeFacts(TypePromotionFact a, TypePromotionFact b) {
-    // Type promotion currently doesn't support any mechanism for facts to
-    // accumulate along a straight-line execution path (they can only accumulate
-    // when entering a scope), so we can simply find the common ancestor fact.
-    //
-    // TODO(paulberry): experiment with supporting promotion in cases like:
-    //     if (...) {
-    //       if (x is! T) return;
-    //     } else {
-    //       if (x is! T) return;
-    //     }
-    //     ...access x...
-    while (a.sequenceNumber != b.sequenceNumber) {
-      if (a.sequenceNumber > b.sequenceNumber) {
-        a = a.previous;
-      } else {
-        b = b.previous;
-      }
-    }
-    assert(identical(a, b));
-    return a;
-  }
 
   /// For internal debugging use, prints the current state followed by the event
   /// name.
@@ -466,26 +456,19 @@ abstract class TypePromoterImpl extends TypePromoter {
     if (_promotionExpression != null) {
       print('  _promotionExpression: $_promotionExpression');
       if (!identical(_trueFactsForPromotionExpression, _currentFacts)) {
-        print('    if true: $_trueFactsForPromotionExpression');
+        print('    if true: '
+            '${factChain(_trueFactsForPromotionExpression).join(' -> ')}');
       }
     }
     print(name);
   }
 
   /// Records that after the evaluation of [expression], the facts will be
-  /// [ifTrue] on a branch where the expression evaluated to `true`, and
-  /// [ifFalse] on a branch where the expression evaluated to `false` (or where
-  /// the truth value of the expression doesn't matter).
-  ///
-  /// TODO(paulberry): when we start handling promotion in "else" clauses, we'll
-  /// need to split [ifFalse] into two cases, one for when the expression
-  /// evaluated to `false`, and one where the truth value of the expression
-  /// doesn't matter.
-  void _recordPromotionExpression(Expression expression,
-      TypePromotionFact ifTrue, TypePromotionFact ifFalse) {
+  /// [ifTrue] on a branch where the expression evaluated to `true`.
+  void _recordPromotionExpression(
+      Expression expression, TypePromotionFact ifTrue) {
     _promotionExpression = expression;
     _trueFactsForPromotionExpression = ifTrue;
-    _currentFacts = ifFalse;
   }
 }
 
@@ -533,19 +516,9 @@ abstract class TypePromotionFact {
   /// The function nesting level of the expression that led to this fact.
   final int functionNestingLevel;
 
-  /// If this fact's variable was mutated within any scopes the
-  /// fact applies to, a set of the corresponding scopes.  Otherwise `null`.
-  ///
-  /// TODO(paulberry): the size of this set is probably very small most of the
-  /// time.  Would it be better to use a list?
-  Set<TypePromotionScope> _mutatedInScopes;
-
-  /// If this fact's variable was accessed inside a closure within any scopes
-  /// the fact applies to, a set of the corresponding scopes.  Otherwise `null`.
-  ///
-  /// TODO(paulberry): the size of this set is probably very small most of the
-  /// time.  Would it be better to use a list?
-  Set<TypePromotionScope> _accessedInClosureInScopes;
+  /// Indicates whether this fact's variable was accessed inside a closure
+  /// within the scope the fact applies to.
+  bool _accessedInClosureInScope = false;
 
   TypePromotionFact(this.sequenceNumber, this.variable, this.previous,
       this.previousForVariable, this.functionNestingLevel);
@@ -553,9 +526,13 @@ abstract class TypePromotionFact {
   /// Computes the promoted type for [variable] at a location in the code where
   /// this fact applies.
   ///
+  /// [scope] is the scope containing the read that might be promoted, and
+  /// [mutationScopes] is the set of scopes in which the variable is mutated, or
+  /// `null` if the variable isn't mutated anywhere.
+  ///
   /// Should not be called until after parsing of the entire method is complete.
-  DartType _computePromotedType(
-      TypePromoterImpl promoter, TypePromotionScope scope);
+  DartType _computePromotedType(TypePromoterImpl promoter,
+      TypePromotionScope scope, Iterable<TypePromotionScope> mutationScopes);
 
   /// Records the fact that the variable referenced by [fact] was accessed
   /// within the given scope, at the given function nesting level.
@@ -569,23 +546,14 @@ abstract class TypePromotionFact {
     // to testing it against getVariableFunctionNestingLevel(variable)).
     while (fact != null) {
       if (functionNestingLevel > fact.functionNestingLevel) {
-        fact._accessedInClosureInScopes ??=
-            new Set<TypePromotionScope>.identity();
-        if (!fact._accessedInClosureInScopes.add(scope)) return;
+        if (fact._accessedInClosureInScope) {
+          // The variable has already been accessed in a closure in the scope of
+          // the current promotion (and this, any enclosing promotions), so
+          // no further information needs to be updated.
+          return;
+        }
+        fact._accessedInClosureInScope = true;
       }
-      fact = fact.previousForVariable;
-    }
-  }
-
-  /// Records the fact that the variable referenced by [fact] was mutated
-  /// within the given scope.
-  ///
-  /// If `null` is passed in for [fact], there is no effect.
-  static void _recordMutatedInScope(
-      TypePromotionFact fact, TypePromotionScope scope) {
-    while (fact != null) {
-      fact._mutatedInScopes ??= new Set<TypePromotionScope>.identity();
-      if (!fact._mutatedInScopes.add(scope)) return;
       fact = fact.previousForVariable;
     }
   }
@@ -629,9 +597,6 @@ class _ConditionalScope extends TypePromotionScope {
   /// The fact state in effect at the top of the "else" block.
   final TypePromotionFact beforeElse;
 
-  /// The fact state which was in effect at the bottom of the "then" block.
-  TypePromotionFact afterTrue;
-
   _ConditionalScope(TypePromotionScope enclosing, this.beforeElse)
       : super(enclosing);
 }
@@ -641,13 +606,18 @@ class _IsCheck extends TypePromotionFact {
   /// The type appearing on the right hand side of "is".
   final DartType checkedType;
 
+  /// List of the scopes in which a mutation to the variable would block
+  /// promotion.
+  final List<TypePromotionScope> _blockingScopes;
+
   _IsCheck(
       int sequenceNumber,
       VariableDeclaration variable,
       TypePromotionFact previous,
       TypePromotionFact previousForVariable,
       int functionNestingLevel,
-      this.checkedType)
+      this.checkedType,
+      this._blockingScopes)
       : super(sequenceNumber, variable, previous, previousForVariable,
             functionNestingLevel);
 
@@ -655,30 +625,27 @@ class _IsCheck extends TypePromotionFact {
   String toString() => 'isCheck($checkedType)';
 
   @override
-  DartType _computePromotedType(
-      TypePromoterImpl promoter, TypePromotionScope scope) {
-    DartType previousPromotedType =
-        previousForVariable?._computePromotedType(promoter, scope);
+  DartType _computePromotedType(TypePromoterImpl promoter,
+      TypePromotionScope scope, Iterable<TypePromotionScope> mutationScopes) {
+    DartType previousPromotedType = previousForVariable?._computePromotedType(
+        promoter, scope, mutationScopes);
 
-    // If the variable was mutated somewhere in the scope of the potential
-    // promotion, promotion does not occur.
-    if (_mutatedInScopes != null) {
-      for (TypePromotionScope assignmentScope in _mutatedInScopes) {
-        if (assignmentScope.containsScope(scope)) {
-          return previousPromotedType;
+    if (mutationScopes != null) {
+      // If the variable was mutated somewhere in a that blocks the promotion,
+      // promotion does not occur.
+      for (TypePromotionScope blockingScope in _blockingScopes) {
+        for (TypePromotionScope mutationScope in mutationScopes) {
+          if (blockingScope.containsScope(mutationScope)) {
+            return previousPromotedType;
+          }
         }
       }
-    }
 
-    // If the variable was mutated anywhere, and it was accessed inside a
-    // closure somewhere in the scope of the potential promotion, promotion does
-    // not occur.
-    if (promoter.wasVariableMutatedAnywhere(variable) &&
-        _accessedInClosureInScopes != null) {
-      for (TypePromotionScope accessScope in _accessedInClosureInScopes) {
-        if (accessScope.containsScope(scope)) {
-          return previousPromotedType;
-        }
+      // If the variable was mutated anywhere, and it was accessed inside a
+      // closure somewhere in the scope of the potential promotion, promotion
+      // does not occur.
+      if (_accessedInClosureInScope) {
+        return previousPromotedType;
       }
     }
 
@@ -725,8 +692,8 @@ class _NullFact extends TypePromotionFact {
   String toString() => 'null';
 
   @override
-  DartType _computePromotedType(
-      TypePromoter promoter, TypePromotionScope scope) {
+  DartType _computePromotedType(TypePromoter promoter, TypePromotionScope scope,
+      Iterable<TypePromotionScope> mutationScopes) {
     throw new StateError('Tried to create promoted type for no variable');
   }
 }

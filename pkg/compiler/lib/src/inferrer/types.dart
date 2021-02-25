@@ -139,7 +139,8 @@ abstract class GlobalTypeInferenceResults {
   /// check.
   bool isFixedArrayCheckedForGrowable(ir.TreeNode node);
 
-  /// Returns the type of a list new expression [node].
+  /// Returns the type of a list new expression [node].  Returns `null` if
+  /// [node] does not represent the construction of a new list.
   AbstractValue typeOfNewList(ir.TreeNode node);
 
   /// Returns the type of a list literal [node].
@@ -310,22 +311,29 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
   @override
   AbstractValue resultTypeOfSelector(
       Selector selector, AbstractValue receiver) {
-    // Bailout for closure calls. We're not tracking types of
-    // closures.
-    if (selector.isClosureCall)
-      return closedWorld.abstractValueDomain.dynamicType;
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+
+    // Bailout for closure calls. We're not tracking types of closures.
+    if (selector.isClosureCall) {
+      // But if the receiver is not callable, the call will fail.
+      if (abstractValueDomain.isEmpty(receiver).isDefinitelyTrue ||
+          abstractValueDomain.isNull(receiver).isDefinitelyTrue) {
+        return abstractValueDomain.emptyType;
+      }
+      return abstractValueDomain.dynamicType;
+    }
     if (selector.isSetter || selector.isIndexSet) {
-      return closedWorld.abstractValueDomain.dynamicType;
+      return abstractValueDomain.dynamicType;
     }
     if (returnsListElementType(selector, receiver)) {
-      return closedWorld.abstractValueDomain.getContainerElementType(receiver);
+      return abstractValueDomain.getContainerElementType(receiver);
     }
     if (returnsMapValueType(selector, receiver)) {
-      return closedWorld.abstractValueDomain.getMapValueType(receiver);
+      return abstractValueDomain.getMapValueType(receiver);
     }
 
     if (closedWorld.includesClosureCall(selector, receiver)) {
-      return closedWorld.abstractValueDomain.dynamicType;
+      return abstractValueDomain.dynamicType;
     } else {
       Iterable<MemberEntity> elements =
           closedWorld.locateMembers(selector, receiver);
@@ -334,7 +342,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
         AbstractValue type = typeOfMemberWithSelector(element, selector);
         types.add(type);
       }
-      return closedWorld.abstractValueDomain.unionOfMany(types);
+      return abstractValueDomain.unionOfMany(types);
     }
   }
 

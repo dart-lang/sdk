@@ -21,7 +21,7 @@ class ConvertToIntLiteralTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_TO_INT_LITERAL;
 
   Future<void> test_decimal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 const double myDouble = /*caret*/42.0;
 ''');
     await assertHasAssist('''
@@ -32,21 +32,21 @@ const double myDouble = 42;
   Future<void> test_decimal_noAssistWithLint() async {
     createAnalysisOptionsFile(lints: [LintNames.prefer_int_literals]);
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 const double myDouble = /*caret*/42.0;
 ''');
     await assertNoAssist();
   }
 
   Future<void> test_notDouble() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 const double myDouble = /*caret*/42;
 ''');
     await assertNoAssist();
   }
 
   Future<void> test_scientific() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 const double myDouble = /*caret*/4.2e1;
 ''');
     await assertHasAssist('''
@@ -55,7 +55,7 @@ const double myDouble = 42;
   }
 
   Future<void> test_tooBig() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 const double myDouble = /*caret*/4.2e99999;
 ''');
     await assertNoAssist();

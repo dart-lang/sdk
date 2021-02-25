@@ -167,12 +167,12 @@ abstract class ImpactRegistry {
   void registerInstanceSet(
       ir.DartType receiverType, ClassRelation relation, ir.Member target);
 
-  void registerSuperInvocation(ir.Name name, int positionalArguments,
+  void registerSuperInvocation(ir.Member target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments);
 
-  void registerSuperGet(ir.Name name);
+  void registerSuperGet(ir.Member target);
 
-  void registerSuperSet(ir.Name name);
+  void registerSuperSet(ir.Member target);
 
   void registerSuperInitializer(
       ir.Constructor source,
@@ -201,9 +201,10 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   @override
   final ir.StaticTypeContext staticTypeContext;
 
-  ImpactBuilderBase(this.staticTypeContext, ir.ClassHierarchy classHierarchy,
-      this.variableScopeModel)
-      : super(staticTypeContext.typeEnvironment, classHierarchy);
+  ImpactBuilderBase(this.staticTypeContext, StaticTypeCacheImpl staticTypeCache,
+      ir.ClassHierarchy classHierarchy, this.variableScopeModel)
+      : super(
+            staticTypeContext.typeEnvironment, classHierarchy, staticTypeCache);
 
   @override
   void handleIntLiteral(ir.IntLiteral node) {
@@ -542,7 +543,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
             positionArguments, namedArguments, typeArguments);
         // TODO(johnniwinther): Avoid treating a known function call as a
         // dynamic call when CFE provides a way to distinguish the two.
-        if (operatorFromString(node.name.name) == null &&
+        if (operatorFromString(node.name.text) == null &&
             receiverType is ir.DynamicType) {
           // We might implicitly call a getter that returns a function.
           registerFunctionInvocation(const ir.DynamicType(), positionArguments,
@@ -565,21 +566,6 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   }
 
   @override
-  void handleDirectMethodInvocation(
-      ir.DirectMethodInvocation node,
-      ir.DartType receiverType,
-      ArgumentTypes argumentTypes,
-      ir.DartType returnType) {
-    registerInstanceInvocation(
-        receiverType,
-        ClassRelation.exact,
-        node.target,
-        node.arguments.positional.length,
-        _getNamedArguments(node.arguments),
-        node.arguments.types);
-  }
-
-  @override
   void handlePropertyGet(
       ir.PropertyGet node, ir.DartType receiverType, ir.DartType resultType) {
     ClassRelation relation = computeClassRelationFromType(receiverType);
@@ -588,12 +574,6 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
     } else {
       registerDynamicGet(receiverType, relation, node.name);
     }
-  }
-
-  @override
-  void handleDirectPropertyGet(ir.DirectPropertyGet node,
-      ir.DartType receiverType, ir.DartType resultType) {
-    registerInstanceGet(receiverType, ClassRelation.exact, node.target);
   }
 
   @override
@@ -608,27 +588,24 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   }
 
   @override
-  void handleDirectPropertySet(ir.DirectPropertySet node,
-      ir.DartType receiverType, ir.DartType valueType) {
-    registerInstanceSet(receiverType, ClassRelation.exact, node.target);
-  }
-
-  @override
   void handleSuperMethodInvocation(ir.SuperMethodInvocation node,
       ArgumentTypes argumentTypes, ir.DartType returnType) {
-    registerSuperInvocation(node.name, node.arguments.positional.length,
-        _getNamedArguments(node.arguments), node.arguments.types);
+    registerSuperInvocation(
+        getEffectiveSuperTarget(node.interfaceTarget),
+        node.arguments.positional.length,
+        _getNamedArguments(node.arguments),
+        node.arguments.types);
   }
 
   @override
   void handleSuperPropertyGet(
       ir.SuperPropertyGet node, ir.DartType resultType) {
-    registerSuperGet(node.name);
+    registerSuperGet(getEffectiveSuperTarget(node.interfaceTarget));
   }
 
   @override
   void handleSuperPropertySet(ir.SuperPropertySet node, ir.DartType valueType) {
-    registerSuperSet(node.name);
+    registerSuperSet(getEffectiveSuperTarget(node.interfaceTarget));
   }
 
   @override
@@ -669,10 +646,15 @@ class ImpactBuilder extends ImpactBuilderBase with ImpactRegistryMixin {
   @override
   final inferEffectivelyFinalVariableTypes;
 
-  ImpactBuilder(ir.StaticTypeContext staticTypeContext,
-      ir.ClassHierarchy classHierarchy, VariableScopeModel variableScopeModel,
-      {this.useAsserts: false, this.inferEffectivelyFinalVariableTypes: true})
-      : super(staticTypeContext, classHierarchy, variableScopeModel);
+  ImpactBuilder(
+      ir.StaticTypeContext staticTypeContext,
+      StaticTypeCacheImpl staticTypeCache,
+      ir.ClassHierarchy classHierarchy,
+      VariableScopeModel variableScopeModel,
+      {this.useAsserts: false,
+      this.inferEffectivelyFinalVariableTypes: true})
+      : super(staticTypeContext, staticTypeCache, classHierarchy,
+            variableScopeModel);
 
   ImpactBuilderData computeImpact(ir.Member node) {
     if (retainDataForTesting) {

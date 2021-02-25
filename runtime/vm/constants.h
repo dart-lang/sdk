@@ -53,6 +53,12 @@ static constexpr bool IsCalleeSavedRegister(Register reg) {
   return ((1 << reg) & CallingConventions::kCalleeSaveCpuRegisters) != 0;
 }
 
+#if !defined(TARGET_ARCH_IA32)
+constexpr bool IsAbiPreservedRegister(Register reg) {
+  return (kAbiPreservedCpuRegs & (1 << reg)) != 0;
+}
+#endif
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_H_

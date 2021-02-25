@@ -45,10 +45,13 @@ void NativeCallbackTrampolines::AllocateTrampoline() {
   }
 
   if (trampolines_left_on_page_ == 0) {
+    // Fuchsia requires memory to be allocated with ZX_RIGHT_EXECUTE in order
+    // to be flipped to kReadExecute after being kReadWrite.
     VirtualMemory* const memory = VirtualMemory::AllocateAligned(
         /*size=*/VirtualMemory::PageSize(),
         /*alignment=*/VirtualMemory::PageSize(),
-        /*is_executable=*/false, /*name=*/"Dart VM FFI callback trampolines");
+        /*is_executable=*/true, /*name=*/"Dart VM FFI callback trampolines");
+    memory->Protect(VirtualMemory::kReadWrite);
 
     if (memory == nullptr) {
       Exceptions::ThrowOOM();

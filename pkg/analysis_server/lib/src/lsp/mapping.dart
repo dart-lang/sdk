@@ -8,8 +8,6 @@ import 'dart:math';
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
     as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart'
-    show ResponseError;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
@@ -17,6 +15,7 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart'
     show ErrorOr, Either2, Either4;
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
 import 'package:analysis_server/src/lsp/source_edits.dart';
@@ -28,14 +27,12 @@ import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
+import 'package:analyzer/source/source_range.dart' as server;
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/source.dart' as server;
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/services/available_declarations.dart' as dec;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
-import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart'
-    as server;
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart' as server;
+import 'package:analyzer_plugin/utilities/pair.dart';
 import 'package:meta/meta.dart';
 
 const diagnosticTagsForErrorCode = <server.ErrorCode, List<lsp.DiagnosticTag>>{
@@ -64,32 +61,53 @@ lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
           _asMarkup(preferredFormats, content));
 }
 
-/// Builds an LSP snippet string that uses a $1 tabstop to set the selected text
-/// after insertion.
-String buildSnippetStringWithSelection(
+/// Builds an LSP snippet string with supplied ranges as tabstops.
+String buildSnippetStringWithTabStops(
   String text,
-  int selectionOffset,
-  int selectionLength,
+  List<int> offsetLengthPairs,
 ) {
+  text ??= '';
+  offsetLengthPairs ??= const [];
+
   String escape(String input) => input.replaceAllMapped(
         RegExp(r'[$}\\]'), // Replace any of $ } \
         (c) => '\\${c[0]}', // Prefix with a backslash
       );
+
   // Snippets syntax is documented in the LSP spec:
-  // https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#snippet-syntax
+  // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#snippet_syntax
   //
   // $1, $2, etc. are used for tab stops and ${1:foo} inserts a placeholder of foo.
-  // Since we only need to support a single tab stop, our string is constructed of three parts:
-  // - Anything before the selection
-  // - The selection (which may or may not include text, depending on selectionLength)
-  // - Anything after the selection
-  final prefix = escape(text.substring(0, selectionOffset));
-  final selectionText = escape(
-      text.substring(selectionOffset, selectionOffset + selectionLength));
-  final selection = '\${1:$selectionText}';
-  final suffix = escape(text.substring(selectionOffset + selectionLength));
 
-  return '$prefix$selection$suffix';
+  final output = [];
+  var offset = 0;
+
+  // When there's only a single tabstop, it should be ${0} as this is treated
+  // specially as the final cursor position (if we use 1, the editor will insert
+  // a 0 at the end of the string which is not what we expect).
+  // When there are multiple, start with ${1} since these are placeholders the
+  // user can tab through and the editor-inserted ${0} at the end is expected.
+  var tabStopNumber = offsetLengthPairs.length <= 2 ? 0 : 1;
+
+  for (var i = 0; i < offsetLengthPairs.length; i += 2) {
+    final pairOffset = offsetLengthPairs[i];
+    final pairLength = offsetLengthPairs[i + 1];
+
+    // Add any text that came before this tabstop to the result.
+    output.add(escape(text.substring(offset, pairOffset)));
+
+    // Add this tabstop
+    final tabStopText =
+        escape(text.substring(pairOffset, pairOffset + pairLength));
+    output.add('\${${tabStopNumber++}:$tabStopText}');
+
+    offset = pairOffset + pairLength;
+  }
+
+  // Add any remaining text that was after the last tabstop.
+  output.add(escape(text.substring(offset)));
+
+  return output.join('');
 }
 
 /// Note: This code will fetch the version of each document being modified so
@@ -158,8 +176,9 @@ lsp.SymbolKind declarationKindToSymbolKind(
       case server.DeclarationKind.CONSTRUCTOR:
         return const [lsp.SymbolKind.Constructor];
       case server.DeclarationKind.ENUM:
-      case server.DeclarationKind.ENUM_CONSTANT:
         return const [lsp.SymbolKind.Enum];
+      case server.DeclarationKind.ENUM_CONSTANT:
+        return const [lsp.SymbolKind.EnumMember, lsp.SymbolKind.Enum];
       case server.DeclarationKind.FIELD:
         return const [lsp.SymbolKind.Field];
       case server.DeclarationKind.FUNCTION:
@@ -201,44 +220,69 @@ lsp.CompletionItem declarationToCompletionItem(
   server.LineInfo lineInfo,
   dec.Declaration declaration,
   int replacementOffset,
-  int replacementLength,
-) {
-  // Build display labels and text to insert. insertText and filterText may
-  // differ from label (for ex. if the label includes things like (…)). If
-  // either are missing then label will be used by the client.
-  String label;
-  String insertText;
-  String filterText;
+  int replacementLength, {
+  @required bool includeCommitCharacters,
+  @required bool completeFunctionCalls,
+}) {
+  final supportsSnippets =
+      completionCapabilities?.completionItem?.snippetSupport == true;
+
+  String completion;
   switch (declaration.kind) {
     case DeclarationKind.ENUM_CONSTANT:
-      label = '${declaration.parent.name}.${declaration.name}';
+      completion = '${declaration.parent.name}.${declaration.name}';
       break;
     case DeclarationKind.GETTER:
     case DeclarationKind.FIELD:
-      label = declaration.parent != null &&
+      completion = declaration.parent != null &&
               declaration.parent.name != null &&
               declaration.parent.name.isNotEmpty
           ? '${declaration.parent.name}.${declaration.name}'
           : declaration.name;
       break;
     case DeclarationKind.CONSTRUCTOR:
-      label = declaration.parent.name;
+      completion = declaration.parent.name;
       if (declaration.name.isNotEmpty) {
-        label += '.${declaration.name}';
+        completion += '.${declaration.name}';
       }
-      insertText = label;
-      filterText = label;
-      label += declaration.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
-      break;
-    case DeclarationKind.FUNCTION:
-      label = declaration.name;
-      insertText = label;
-      filterText = label;
-      label += declaration.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
       break;
     default:
-      label = declaration.name;
+      completion = declaration.name;
+      break;
   }
+  // By default, label is the same as the completion text, but may be added to
+  // later (parens/snippets).
+  var label = completion;
+
+  // isCallable is used to suffix the label with parens so it's clear the item
+  // is callable.
+  final declarationKind = declaration.kind;
+  final isCallable = declarationKind == DeclarationKind.CONSTRUCTOR ||
+      declarationKind == DeclarationKind.FUNCTION ||
+      declarationKind == DeclarationKind.METHOD;
+
+  if (isCallable) {
+    label += declaration.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
+  }
+
+  final insertTextInfo = _buildInsertText(
+    supportsSnippets: supportsSnippets,
+    includeCommitCharacters: includeCommitCharacters,
+    completeFunctionCalls: completeFunctionCalls,
+    isCallable: isCallable,
+    // For SuggestionSets, we don't have a CompletionKind to check if it's
+    // an invocation, but since they do not show in show/hide combinators
+    // we can assume if an item is callable it's probably being used in a context
+    // that can invoke it.
+    isInvocation: isCallable,
+    defaultArgumentListString: declaration.defaultArgumentListString,
+    defaultArgumentListTextRanges: declaration.defaultArgumentListTextRanges,
+    completion: completion,
+    selectionOffset: 0,
+    selectionLength: 0,
+  );
+  final insertText = insertTextInfo.first;
+  final insertTextFormat = insertTextInfo.last;
 
   final supportsDeprecatedFlag =
       completionCapabilities?.completionItem?.deprecatedSupport == true;
@@ -269,6 +313,8 @@ lsp.CompletionItem declarationToCompletionItem(
               lsp.CompletionItemTag.Deprecated
           ]
         : null,
+    commitCharacters:
+        includeCommitCharacters ? lsp.dartCompletionCommitCharacters : null,
     detail: getDeclarationCompletionDetail(declaration, completionKind,
         supportsDeprecatedFlag || supportsDeprecatedTag),
     deprecated:
@@ -279,14 +325,17 @@ lsp.CompletionItem declarationToCompletionItem(
     //  10 -> 999990
     //   1 -> 999999
     sortText: (1000000 - itemRelevance).toString(),
-    filterText: filterText != label
-        ? filterText
+    filterText: completion != label
+        ? completion
         : null, // filterText uses label if not set
     insertText: insertText != label
         ? insertText
         : null, // insertText uses label if not set
+    insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
+        ? insertTextFormat
+        : null, // Defaults to PlainText if not supplied
     // data, used for completionItem/resolve.
-    data: lsp.CompletionItemResolutionInfo(
+    data: lsp.DartCompletionItemResolutionInfo(
         file: file,
         offset: offset,
         libId: includedSuggestionSet.id,
@@ -379,8 +428,9 @@ lsp.SymbolKind elementKindToSymbolKind(
       case server.ElementKind.CONSTRUCTOR_INVOCATION:
         return const [lsp.SymbolKind.Constructor];
       case server.ElementKind.ENUM:
-      case server.ElementKind.ENUM_CONSTANT:
         return const [lsp.SymbolKind.Enum];
+      case server.ElementKind.ENUM_CONSTANT:
+        return const [lsp.SymbolKind.EnumMember, lsp.SymbolKind.Enum];
       case server.ElementKind.EXTENSION:
         return const [lsp.SymbolKind.Namespace];
       case server.ElementKind.FIELD:
@@ -764,28 +814,39 @@ lsp.CompletionItem toCompletionItem(
   server.LineInfo lineInfo,
   server.CompletionSuggestion suggestion,
   int replacementOffset,
-  int replacementLength,
-) {
+  int replacementLength, {
+  @required bool includeCommitCharacters,
+  @required bool completeFunctionCalls,
+  Object resolutionData,
+}) {
   // Build display labels and text to insert. insertText and filterText may
   // differ from label (for ex. if the label includes things like (…)). If
   // either are missing then label will be used by the client.
   var label = suggestion.displayText ?? suggestion.completion;
-  var insertText = suggestion.completion;
-  var filterText = suggestion.completion;
 
   // Trim any trailing comma from the (displayed) label.
   if (label.endsWith(',')) {
     label = label.substring(0, label.length - 1);
   }
 
-  if (suggestion.displayText == null) {
-    switch (suggestion.element?.kind) {
-      case server.ElementKind.CONSTRUCTOR:
-      case server.ElementKind.FUNCTION:
-      case server.ElementKind.METHOD:
-        label += suggestion.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
-        break;
-    }
+  // isCallable is used to suffix the label with parens so it's clear the item
+  // is callable.
+  //
+  // isInvocation means the location at which it's used is an invocation (and
+  // therefore it is appropriate to include the parens/parameters in the
+  // inserted text).
+  //
+  // In the case of show combinators, the parens will still be shown to indicate
+  // functions but they should not be included in the completions.
+  final elementKind = suggestion.element?.kind;
+  final isCallable = elementKind == server.ElementKind.CONSTRUCTOR ||
+      elementKind == server.ElementKind.FUNCTION ||
+      elementKind == server.ElementKind.METHOD;
+  final isInvocation =
+      suggestion.kind == server.CompletionSuggestionKind.INVOCATION;
+
+  if (suggestion.displayText == null && isCallable) {
+    label += suggestion.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
   }
 
   final supportsDeprecatedFlag =
@@ -804,15 +865,20 @@ lsp.CompletionItem toCompletionItem(
       : suggestionKindToCompletionItemKind(
           supportedCompletionItemKinds, suggestion.kind, label);
 
-  var insertTextFormat = lsp.InsertTextFormat.PlainText;
-  if (supportsSnippets && suggestion.selectionOffset != 0) {
-    insertTextFormat = lsp.InsertTextFormat.Snippet;
-    insertText = buildSnippetStringWithSelection(
-      suggestion.completion,
-      suggestion.selectionOffset,
-      suggestion.selectionLength,
-    );
-  }
+  final insertTextInfo = _buildInsertText(
+    supportsSnippets: supportsSnippets,
+    includeCommitCharacters: includeCommitCharacters,
+    completeFunctionCalls: completeFunctionCalls,
+    isCallable: isCallable,
+    isInvocation: isInvocation,
+    defaultArgumentListString: suggestion.defaultArgumentListString,
+    defaultArgumentListTextRanges: suggestion.defaultArgumentListTextRanges,
+    completion: suggestion.completion,
+    selectionOffset: suggestion.selectionOffset,
+    selectionLength: suggestion.selectionLength,
+  );
+  final insertText = insertTextInfo.first;
+  final insertTextFormat = insertTextInfo.last;
 
   // Because we potentially send thousands of these items, we should minimise
   // the generated JSON as much as possible - for example using nulls in place
@@ -826,6 +892,9 @@ lsp.CompletionItem toCompletionItem(
               lsp.CompletionItemTag.Deprecated
           ]
         : null,
+    commitCharacters:
+        includeCommitCharacters ? dartCompletionCommitCharacters : null,
+    data: resolutionData,
     detail: getCompletionDetail(suggestion, completionKind,
         supportsDeprecatedFlag || supportsDeprecatedTag),
     documentation:
@@ -837,8 +906,8 @@ lsp.CompletionItem toCompletionItem(
     //  10 -> 999990
     //   1 -> 999999
     sortText: (1000000 - suggestion.relevance).toString(),
-    filterText: filterText != label
-        ? filterText
+    filterText: suggestion.completion != label
+        ? suggestion.completion
         : null, // filterText uses label if not set
     insertText: insertText != label
         ? insertText
@@ -986,6 +1055,7 @@ lsp.FoldingRange toFoldingRange(
 
 lsp.FoldingRangeKind toFoldingRangeKind(server.FoldingKind kind) {
   switch (kind) {
+    case server.FoldingKind.COMMENT:
     case server.FoldingKind.DOCUMENTATION_COMMENT:
     case server.FoldingKind.FILE_HEADER:
       return lsp.FoldingRangeKind.Comment;
@@ -1022,7 +1092,8 @@ ErrorOr<int> toOffset(
   lsp.Position pos, {
   failureIsCritial = false,
 }) {
-  if (pos.line > lineInfo.lineCount) {
+  // line is zero-based so cannot equal lineCount
+  if (pos.line >= lineInfo.lineCount) {
     return ErrorOr<int>.error(lsp.ResponseError(
         code: failureIsCritial
             ? lsp.ServerErrorCodes.ClientServerInconsistentState
@@ -1073,27 +1144,31 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
   ///     String s = 'foo'
   String getParamLabel(server.ParameterInfo p) {
     final def = p.defaultValue != null ? ' = ${p.defaultValue}' : '';
-    return '${p.type} ${p.name}$def';
+    final prefix =
+        p.kind == server.ParameterKind.REQUIRED_NAMED ? 'required ' : '';
+    return '$prefix${p.type} ${p.name}$def';
   }
 
   /// Gets the full signature label in the form
   ///     foo(String s, int i, bool a = true)
   String getSignatureLabel(server.AnalysisGetSignatureResult resp) {
-    final req = signature.parameters
-        .where((p) => p.kind == server.ParameterKind.REQUIRED)
+    final positionalRequired = signature.parameters
+        .where((p) => p.kind == server.ParameterKind.REQUIRED_POSITIONAL)
         .toList();
-    final opt = signature.parameters
-        .where((p) => p.kind == server.ParameterKind.OPTIONAL)
+    final positionalOptional = signature.parameters
+        .where((p) => p.kind == server.ParameterKind.OPTIONAL_POSITIONAL)
         .toList();
     final named = signature.parameters
-        .where((p) => p.kind == server.ParameterKind.NAMED)
+        .where((p) =>
+            p.kind == server.ParameterKind.OPTIONAL_NAMED ||
+            p.kind == server.ParameterKind.REQUIRED_NAMED)
         .toList();
     final params = [];
-    if (req.isNotEmpty) {
-      params.add(req.map(getParamLabel).join(', '));
+    if (positionalRequired.isNotEmpty) {
+      params.add(positionalRequired.map(getParamLabel).join(', '));
     }
-    if (opt.isNotEmpty) {
-      params.add('[' + opt.map(getParamLabel).join(', ') + ']');
+    if (positionalOptional.isNotEmpty) {
+      params.add('[' + positionalOptional.map(getParamLabel).join(', ') + ']');
     }
     if (named.isNotEmpty) {
       params.add('{' + named.map(getParamLabel).join(', ') + '}');
@@ -1132,10 +1207,36 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
   );
 }
 
+ErrorOr<server.SourceRange> toSourceRange(
+    server.LineInfo lineInfo, Range range) {
+  if (range == null) {
+    return success(null);
+  }
+
+  // If there is a range, convert to offsets because that's what
+  // the tokens are computed using initially.
+  final start = toOffset(lineInfo, range.start);
+  final end = toOffset(lineInfo, range.end);
+  if (start?.isError ?? false) {
+    return failure(start);
+  }
+  if (end?.isError ?? false) {
+    return failure(end);
+  }
+
+  final startOffset = start?.result;
+  final endOffset = end?.result;
+
+  return success(server.SourceRange(startOffset, endOffset - startOffset));
+}
+
 lsp.TextDocumentEdit toTextDocumentEdit(FileEditInformation edit) {
   return lsp.TextDocumentEdit(
     textDocument: edit.doc,
-    edits: edit.edits.map((e) => toTextEdit(edit.lineInfo, e)).toList(),
+    edits: edit.edits
+        .map((e) => Either2<TextEdit, AnnotatedTextEdit>.t1(
+            toTextEdit(edit.lineInfo, e)))
+        .toList(),
   );
 }
 
@@ -1201,4 +1302,60 @@ lsp.MarkupContent _asMarkup(
       : lsp.MarkupKind.Markdown;
 
   return lsp.MarkupContent(kind: format, value: content);
+}
+
+Pair<String, lsp.InsertTextFormat> _buildInsertText({
+  @required bool supportsSnippets,
+  @required bool includeCommitCharacters,
+  @required bool completeFunctionCalls,
+  @required bool isCallable,
+  @required bool isInvocation,
+  @required String defaultArgumentListString,
+  @required List<int> defaultArgumentListTextRanges,
+  @required String completion,
+  @required int selectionOffset,
+  @required int selectionLength,
+}) {
+  var insertText = completion;
+  var insertTextFormat = lsp.InsertTextFormat.PlainText;
+
+  // SuggestionBuilder already does the equiv of completeFunctionCalls for
+  // some methods (for example Flutter's setState). If the completion already
+  // includes any `(` then disable our own insertion as the special-cased code
+  // will likely provide better code.
+  if (completion.contains('(')) {
+    completeFunctionCalls = false;
+  }
+
+  // If the client supports snippets, we can support completeFunctionCalls or
+  // setting a selection.
+  if (supportsSnippets) {
+    // completeFunctionCalls should only work if commit characters are disabled
+    // otherwise the editor may insert parens that we're also inserting.
+    if (!includeCommitCharacters &&
+        completeFunctionCalls &&
+        isCallable &&
+        isInvocation) {
+      insertTextFormat = lsp.InsertTextFormat.Snippet;
+      final hasRequiredParameters =
+          (defaultArgumentListTextRanges?.length ?? 0) > 0;
+      final functionCallSuffix = hasRequiredParameters
+          ? buildSnippetStringWithTabStops(
+              defaultArgumentListString,
+              defaultArgumentListTextRanges,
+            )
+          : '\${0:}'; // No required params still gets a tabstop in the parens.
+      insertText += '($functionCallSuffix)';
+    } else if (selectionOffset != 0 &&
+        // We don't need a tabstop if the selection is the end of the string.
+        selectionOffset != completion.length) {
+      insertTextFormat = lsp.InsertTextFormat.Snippet;
+      insertText = buildSnippetStringWithTabStops(
+        completion,
+        [selectionOffset, selectionLength],
+      );
+    }
+  }
+
+  return Pair(insertText, insertTextFormat);
 }
