@@ -108,7 +108,7 @@ vars = {
   "glob_rev": "a62acf590598f458d3198d9f2930c1c9dd4b1379",
   "html_rev": "00cd3c22dac0e68e6ed9e7e4945101aedb1b3109",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
-  "http_multi_server_rev" : "e8c8be7f15b4fb50757ff5bf29766721fbe24fe4",
+  "http_multi_server_rev" : "6bf4b6e5d4d890e6d54559b858ff229d79711171",
   "http_parser_rev": "5dd4d16693242049dfb43b5efa429fedbf932e98",
   "http_retry_tag": "0.1.1",
   "http_rev": "d5c678cd63c3e9c1d779a09acfa95b7e3af84665",
