@@ -14,6 +14,9 @@ class ReplaceNewWithConst extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_NEW_WITH_CONST;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_NEW_WITH_CONST_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is ConstructorName) {

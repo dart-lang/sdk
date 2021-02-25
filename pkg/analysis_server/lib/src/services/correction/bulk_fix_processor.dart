@@ -23,9 +23,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -176,8 +176,9 @@ class BulkFixProcessor {
   /// diagnostics in the libraries in the given [contexts].
   Future<ChangeBuilder> fixErrors(List<AnalysisContext> contexts) async {
     for (var context in contexts) {
+      var pathContext = context.contextRoot.resourceProvider.pathContext;
       for (var path in context.contextRoot.analyzedFiles()) {
-        if (!AnalysisEngine.isDartFileName(path)) {
+        if (!file_paths.isDart(pathContext, path)) {
           continue;
         }
         var kind = await context.currentSession.getSourceKind(path);

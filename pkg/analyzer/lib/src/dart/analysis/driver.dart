@@ -41,6 +41,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:meta/meta.dart';
 
 /// TODO(scheglov) We could use generalized Function in
@@ -447,7 +448,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return;
     }
     analyzedFiles.reset();
-    if (AnalysisEngine.isDartFileName(path)) {
+    if (file_paths.isDart(resourceProvider.pathContext, path)) {
       _fileTracker.addFile(path);
       // If the file is known, it has already been read, even if it did not
       // exist. Now we are notified that the file exists, so we need to
@@ -834,7 +835,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The [path] must be absolute and normalized.
   Future<SourceKind?> getSourceKind(String path) async {
     _throwIfNotAbsolutePath(path);
-    if (AnalysisEngine.isDartFileName(path)) {
+    if (file_paths.isDart(resourceProvider.pathContext, path)) {
       FileState file = _fileTracker.getFile(path);
       return file.isPart ? SourceKind.PART : SourceKind.LIBRARY;
     }
@@ -2304,10 +2305,11 @@ class _DiscoverAvailableFilesTask {
 
   void _appendFilesRecursively(Folder folder) {
     try {
+      var pathContext = driver.resourceProvider.pathContext;
       for (var child in folder.getChildren()) {
         if (child is File) {
           var path = child.path;
-          if (AnalysisEngine.isDartFileName(path)) {
+          if (file_paths.isDart(pathContext, path)) {
             files!.add(path);
           }
         } else if (child is Folder) {

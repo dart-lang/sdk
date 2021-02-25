@@ -350,9 +350,7 @@ class FileTest extends OverlayTestSupport {
       withOverlay: true,
     );
 
-    expect(() {
-      file.resolveSymbolicLinksSync();
-    }, throwsA(isFileSystemException));
+    expect(file.resolveSymbolicLinksSync(), file);
   }
 
   test_shortName() {
@@ -485,12 +483,46 @@ class FolderTest extends OverlayTestSupport {
     expect(() => folder.delete(), throwsA(TypeMatcher<ArgumentError>()));
   }
 
-  test_exists_false() {
+  void test_exists_links_existing() {
+    var foo_path = baseProvider.convertPath('/foo');
+    var bar_path = baseProvider.convertPath('/bar');
+
+    baseProvider.newFolder(foo_path);
+    baseProvider.newLink(bar_path, foo_path);
+
+    var bar = provider.getFolder(bar_path);
+    expect(bar.exists, isTrue);
+  }
+
+  void test_exists_links_notExisting() {
+    var foo_path = baseProvider.convertPath('/foo');
+    var bar_path = baseProvider.convertPath('/bar');
+
+    baseProvider.newLink(bar_path, foo_path);
+
+    var bar = provider.getFolder(bar_path);
+    expect(bar.exists, isFalse);
+  }
+
+  void test_exists_links_notExisting_withOverlay() {
+    var foo_path = baseProvider.convertPath('/foo');
+    var bar_path = baseProvider.convertPath('/bar');
+
+    _file(exists: false, path: '/foo/aaa/a.dart', withOverlay: true);
+    baseProvider.newLink(bar_path, foo_path);
+
+    // We cannot resolve `/bar` to `/foo` using the base provider.
+    // So, we don't know that we should check that `/foo/aaa/a.dart` exists.
+    var bar = provider.getFolder(bar_path);
+    expect(bar.exists, isFalse);
+  }
+
+  test_exists_noLinks_false() {
     Folder folder = _folder(exists: false);
     expect(folder.exists, isFalse);
   }
 
-  test_exists_true() {
+  test_exists_noLinks_true() {
     Folder folder = _folder(exists: true);
     expect(folder.exists, isTrue);
   }
@@ -615,14 +647,61 @@ class FolderTest extends OverlayTestSupport {
     fail('Not tested');
   }
 
-  void test_resolveSymbolicLinksSync_noLinks_existingFile() {
-    _resolveSymbolicLinksSync_noLinks(
-        _folder(exists: true, path: '/temp/a/b/test.txt'));
+  void test_resolveSymbolicLinksSync_links_existing() {
+    var foo_path = baseProvider.convertPath('/foo');
+    var bar_path = baseProvider.convertPath('/bar');
+
+    baseProvider.newFolder(foo_path);
+    baseProvider.newLink(bar_path, foo_path);
+
+    var foo = provider.getFolder(foo_path);
+    var bar = provider.getFolder(bar_path);
+    expect(bar.resolveSymbolicLinksSync(), foo);
+  }
+
+  void test_resolveSymbolicLinksSync_links_notExisting() {
+    var foo_path = baseProvider.convertPath('/foo');
+    var bar_path = baseProvider.convertPath('/bar');
+
+    baseProvider.newLink(bar_path, foo_path);
+
+    expect(() {
+      var bar = provider.getFolder(bar_path);
+      bar.resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
+  }
+
+  void test_resolveSymbolicLinksSync_links_notExisting_withOverlay() {
+    var foo_path = baseProvider.convertPath('/foo');
+    var bar_path = baseProvider.convertPath('/bar');
+
+    _file(exists: false, path: '/foo/aaa/a.dart', withOverlay: true);
+    baseProvider.newLink(bar_path, foo_path);
+
+    // We cannot resolve `/bar` to `/foo` using the base provider.
+    // So, we don't know that we should check that `/foo/aaa/a.dart` exists.
+    expect(() {
+      var bar = provider.getFolder(bar_path);
+      bar.resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
+  }
+
+  void test_resolveSymbolicLinksSync_noLinks_existing() {
+    var folder = _folder(exists: true, path: '/test');
+    expect(folder.resolveSymbolicLinksSync(), folder);
   }
 
   void test_resolveSymbolicLinksSync_noLinks_notExisting() {
-    _resolveSymbolicLinksSync_noLinks(
-        _folder(exists: false, path: '/temp/a/b/test.txt'));
+    var folder = _folder(exists: false, path: '/test');
+    expect(() {
+      folder.resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
+  }
+
+  void test_resolveSymbolicLinksSync_noLinks_notExisting_withOverlay() {
+    _file(exists: false, path: '/test/aaa/a.dart', withOverlay: true);
+    var folder = _folder(exists: false, path: '/test');
+    expect(folder.resolveSymbolicLinksSync(), folder);
   }
 
   test_shortName() {
@@ -632,16 +711,6 @@ class FolderTest extends OverlayTestSupport {
   test_toUri() {
     Folder folder = _folder(exists: true);
     expect(folder.toUri(), Uri.directory(folder.path));
-  }
-
-  void _resolveSymbolicLinksSync_noLinks(Folder folder) {
-    //
-    // On some platforms the path to the temp directory includes a symbolic
-    // link. We remove that from the equation before creating the File in order
-    // to show that the operation works as expected without symbolic links.
-    //
-    folder = baseProvider.getFolder(folder.resolveSymbolicLinksSync().path);
-    expect(folder.resolveSymbolicLinksSync(), folder);
   }
 
   /// Verify that the [copy] has the same name and content as the [source].

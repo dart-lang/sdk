@@ -26,8 +26,6 @@ DEFINE_FLAG(
 #define OFFSET_OF_FROM(obj)                                                    \
   obj.ptr()->from() - reinterpret_cast<ObjectPtr*>(obj.ptr()->untag())
 
-// TODO(18854): Need to assert No GC can happen here, even though
-// allocations may happen.
 #define READ_OBJECT_FIELDS(object, from, to, as_reference)                     \
   intptr_t num_flds = (to) - (from);                                           \
   for (intptr_t i = 0; i <= num_flds; i++) {                                   \

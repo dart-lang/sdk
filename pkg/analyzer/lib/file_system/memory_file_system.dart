@@ -295,11 +295,6 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   String _resolveLinks(String path) {
-    var linkTarget = _pathToLinkedPath[path];
-    if (linkTarget != null) {
-      return linkTarget;
-    }
-
     var parentPath = _pathContext.dirname(path);
     if (parentPath == path) {
       return path;
@@ -310,10 +305,14 @@ class MemoryResourceProvider implements ResourceProvider {
     var baseName = _pathContext.basename(path);
     var result = _pathContext.join(canonicalParentPath, baseName);
 
-    linkTarget = _pathToLinkedPath[result];
-    if (linkTarget != null) {
-      return linkTarget;
-    }
+    do {
+      var linkTarget = _pathToLinkedPath[result];
+      if (linkTarget != null) {
+        result = linkTarget;
+      } else {
+        break;
+      }
+    } while (true);
 
     return result;
   }
@@ -638,7 +637,13 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   @override
   Folder resolveSymbolicLinksSync() {
     var canonicalPath = provider._resolveLinks(path);
-    return provider.getFolder(canonicalPath);
+    var result = provider.getFolder(canonicalPath);
+
+    if (!result.exists) {
+      throw FileSystemException(path, 'Folder "$path" does not exist.');
+    }
+
+    return result;
   }
 
   @override

@@ -20,6 +20,9 @@ class SortChildPropertyLast extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.SORT_CHILD_PROPERTY_LAST;
 
   @override
+  FixKind get multiFixKind => DartFixKind.SORT_CHILD_PROPERTY_LAST_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var childProp = _findNamedExpression(node);
     if (childProp == null) {

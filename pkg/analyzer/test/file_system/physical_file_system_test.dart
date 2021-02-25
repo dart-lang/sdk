@@ -54,7 +54,7 @@ abstract class BaseTest extends FileSystemTestSupport {
 
   @override
   void createLink({required String path, required String target}) {
-    io.Link(path).createSync(target);
+    io.Link(path).createSync(target, recursive: true);
   }
 
   /// Create the resource provider to be used by the tests. Subclasses can
@@ -122,51 +122,6 @@ class PhysicalFileTest extends BaseTest with FileTestMixin {
     File oldFile = getFile(exists: false, filePath: oldPath);
 
     expect(() => oldFile.renameSync(newPath), throwsA(isFileSystemException));
-  }
-
-  @override
-  test_resolveSymbolicLinksSync_links_existing() {
-    String pathA = join(tempPath, defaultFileContent);
-    String pathB = join(pathA, 'b');
-    io.Directory(pathB).createSync(recursive: true);
-    String filePath = join(pathB, 'test.txt');
-    io.File testFile = io.File(filePath);
-    testFile.writeAsStringSync('test');
-
-    String pathC = join(tempPath, 'c');
-    String pathD = join(pathC, 'd');
-    io.Link(pathD).createSync(pathA, recursive: true);
-
-    String pathE = join(tempPath, 'e');
-    String pathF = join(pathE, 'f');
-    io.Link(pathF).createSync(pathC, recursive: true);
-
-    String linkPath = join(tempPath, 'e', 'f', 'd', 'b', 'test.txt');
-    File file = provider.getFile(linkPath);
-
-    expect(file.resolveSymbolicLinksSync().path,
-        testFile.resolveSymbolicLinksSync());
-  }
-
-  @override
-  test_resolveSymbolicLinksSync_links_notExisting() {
-    var a = join(tempPath, 'a.dart');
-    var b = join(tempPath, 'b.dart');
-
-    io.Link(b).createSync(a, recursive: true);
-
-    expect(() {
-      provider.getFile(b).resolveSymbolicLinksSync();
-    }, throwsA(isFileSystemException));
-  }
-
-  @override
-  test_resolveSymbolicLinksSync_noLinks_notExisting() {
-    File file = getFile(exists: false);
-
-    expect(() {
-      file.resolveSymbolicLinksSync();
-    }, throwsA(isFileSystemException));
   }
 
   @override

@@ -14,6 +14,9 @@ class ReplaceWithBrackets extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_WITH_BRACKETS;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_BRACKETS_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     if (node is EmptyStatement && node.parent is! Block) {
       await builder.addDartFileEdit(file, (builder) {

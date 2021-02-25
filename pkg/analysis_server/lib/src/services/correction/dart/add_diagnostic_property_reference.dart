@@ -22,6 +22,10 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;
 
   @override
+  FixKind get multiFixKind =>
+      DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
     if (node is! SimpleIdentifier) {

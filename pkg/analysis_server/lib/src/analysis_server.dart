@@ -50,6 +50,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
@@ -209,7 +210,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Return the cached analysis result for the file with the given [path].
   /// If there is no cached result, return `null`.
   ResolvedUnitResult getCachedResolvedUnit(String path) {
-    if (!AnalysisEngine.isDartFileName(path)) {
+    if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
     }
 
@@ -583,7 +584,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       // The result will be produced by the "results" stream with
       // the fully resolved unit, and processed with sending analysis
       // notifications as it happens after content changes.
-      if (AnalysisEngine.isDartFileName(file)) {
+      if (file_paths.isDart(resourceProvider.pathContext, file)) {
         getResolvedUnit(file, sendCachedToStream: true);
       }
     }

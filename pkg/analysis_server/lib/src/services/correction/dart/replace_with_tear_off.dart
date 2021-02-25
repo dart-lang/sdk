@@ -14,6 +14,9 @@ class ReplaceWithTearOff extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_WITH_TEAR_OFF;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_TEAR_OFF_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var ancestor = node.thisOrAncestorOfType<FunctionExpression>();
     if (ancestor == null) {

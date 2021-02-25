@@ -39,8 +39,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -96,7 +96,8 @@ class DartCompletionManager {
     bool enableUriContributor = true,
   }) async {
     request.checkAborted();
-    if (!AnalysisEngine.isDartFileName(request.result.path)) {
+    var pathContext = request.resourceProvider.pathContext;
+    if (!file_paths.isDart(pathContext, request.result.path)) {
       return const <CompletionSuggestion>[];
     }
 

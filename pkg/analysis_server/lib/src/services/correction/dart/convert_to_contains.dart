@@ -15,6 +15,9 @@ class ConvertToContains extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_CONTAINS;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_CONTAINS_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var comparison = node.thisOrAncestorOfType<BinaryExpression>();
     if (comparison == null) {

@@ -14,6 +14,9 @@ class RemoveEmptyElse extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_EMPTY_ELSE;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_EMPTY_ELSE_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var parent = node.parent;
     if (parent is IfStatement) {

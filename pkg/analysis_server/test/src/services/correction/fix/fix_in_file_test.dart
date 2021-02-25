@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -57,14 +58,45 @@ void main() {
 
 @reflectiveTest
 class SingleFixInFileTest extends FixInFileProcessorTest {
-  Future<void> test_fix_isNull() async {
+  Future<void> test_fix_lint_annotate_overrides() async {
+    createAnalysisOptionsFile(lints: [LintNames.annotate_overrides]);
+    await resolveTestCode('''
+class A {
+  void a() {}
+  void aa() {}
+}
+
+class B extends A {
+  void a() {}
+  void aa() {}
+}
+''');
+    var fixes = await getFixesForFirstError();
+    expect(fixes, hasLength(1));
+    assertProduces(fixes.first, '''
+class A {
+  void a() {}
+  void aa() {}
+}
+
+class B extends A {
+  @override
+  void a() {}
+  @override
+  void aa() {}
+}
+''');
+  }
+
+  @FailingTest(reason: 'enable once nonLintProducers are supported')
+  Future<void> test_fix_nonLint_isNull() async {
     await resolveTestCode('''
 bool f(p, q) {
   return p is Null && q is Null;
 }
 ''');
 
-    var fixes = await getFixes();
+    var fixes = await getFixesForFirstError();
     expect(fixes, hasLength(1));
     assertProduces(fixes.first, '''
 bool f(p, q) {
@@ -80,32 +112,16 @@ bool f(p, q) {
 }
 ''');
 
-    var fixes = await getFixes();
+    var fixes = await getFixesForFirstError();
     expect(fixes, isEmpty);
-  }
-}
-
-@reflectiveTest
-class VerificationTest extends FixInFileProcessorTest {
-  Future<void> test_fixInFileTestsHaveApplyTogetherMessages() async {
-    for (var fixInfos in FixProcessor.lintProducerMap2.values) {
-      for (var fixInfo in fixInfos) {
-        if (fixInfo.canBeBulkApplied) {
-          for (var generator in fixInfo.generators) {
-            test('', () {
-              expect(generator().fixKind.canBeAppliedTogether(), isTrue);
-            });
-          }
-        }
-      }
-    }
   }
 }
 
 class VerificationTests {
   static void defineTests() {
     verify_fixInFileFixesHaveBulkFixTests();
-    verify_fixInFileFixKindsHaveApplyTogetherMessages();
+    verify_fixInFileFixKindsHaveMultiFixes();
+    verify_fixInFileFixesHaveUniqueBulkFixes();
   }
 
   static void verify_fixInFileFixesHaveBulkFixTests() {
@@ -123,24 +139,50 @@ class VerificationTests {
     });
   }
 
-  static void verify_fixInFileFixKindsHaveApplyTogetherMessages() {
-    group('VerificationTests | fixInFileFixKindsHaveApplyTogetherMessages |',
-        () {
+  static void verify_fixInFileFixesHaveUniqueBulkFixes() {
+    group('VerificationTests | fixInFileFixesHaveUniqueBulkFixes | lint |', () {
       for (var fixEntry in FixProcessor.lintProducerMap2.entries) {
         var errorCode = fixEntry.key;
         for (var fixInfo in fixEntry.value) {
           if (fixInfo.canBeAppliedToFile) {
-            var generators = fixInfo.generators;
-            for (var i = 0; i < generators.length; ++i) {
-              var generator = generators[i];
-              var fixKind = generator().fixKind;
-              // Cases where fix kinds are determined by context are not verified here.
-              if (fixKind != null) {
-                test('$errorCode | generator ($i) | ${fixKind.id}', () {
-                  expect(fixKind.canBeAppliedTogether(), isTrue);
-                });
+            test('$errorCode |', () {
+              for (var generator in fixInfo.generators) {
+                var g = generator();
+                var multiFixKind = g.multiFixKind;
+                var fixKind = g.fixKind;
+                if (multiFixKind != null) {
+                  expect(multiFixKind, isNot(equals(fixKind)));
+                }
               }
-            }
+              expect(fixInfo.canBeBulkApplied, isTrue);
+            });
+          }
+        }
+      }
+    });
+  }
+
+  static void verify_fixInFileFixKindsHaveMultiFixes() {
+    // todo (pq): find a better way to verify dynamic producers.
+    var dynamicProducerTypes = ['ReplaceWithIsEmpty'];
+
+    group('VerificationTests | fixInFileFixKindsHaveMultiFixes | lint |', () {
+      for (var fixEntry in FixProcessor.lintProducerMap2.entries) {
+        var errorCode = fixEntry.key;
+        for (var fixInfo in fixEntry.value) {
+          // At least one generator should have a multiFix.
+          if (fixInfo.canBeAppliedToFile) {
+            test('$errorCode |', () {
+              var generators = fixInfo.generators;
+              var foundMultiFix = false;
+              for (var i = 0; i < generators.length && !foundMultiFix; ++i) {
+                var generator = generators[i]();
+                foundMultiFix = generator.multiFixKind != null ||
+                    dynamicProducerTypes
+                        .contains(generator.runtimeType.toString());
+              }
+              expect(foundMultiFix, isTrue);
+            });
           }
         }
       }

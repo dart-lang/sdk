@@ -305,9 +305,40 @@ mixin FileTestMixin implements FileSystemTestSupport {
 
   test_renameSync_notExisting();
 
-  test_resolveSymbolicLinksSync_links_existing();
+  test_resolveSymbolicLinksSync_links_existing() {
+    var a_path = join(tempPath, 'aaa', 'a.dart');
+    var b_path = join(tempPath, 'bbb', 'b.dart');
 
-  test_resolveSymbolicLinksSync_links_notExisting();
+    getFile(exists: true, filePath: a_path);
+    createLink(path: b_path, target: a_path);
+
+    var resolved = provider.getFile(b_path).resolveSymbolicLinksSync();
+    expect(resolved.path, a_path);
+  }
+
+  test_resolveSymbolicLinksSync_links_existing2() {
+    var a = join(tempPath, 'aaa', 'a.dart');
+    var b = join(tempPath, 'bbb', 'b.dart');
+    var c = join(tempPath, 'ccc', 'c.dart');
+
+    getFile(exists: true, filePath: a);
+    createLink(path: b, target: a);
+    createLink(path: c, target: b);
+
+    var resolved = provider.getFile(c).resolveSymbolicLinksSync();
+    expect(resolved.path, a);
+  }
+
+  test_resolveSymbolicLinksSync_links_notExisting() {
+    var a = join(tempPath, 'a.dart');
+    var b = join(tempPath, 'b.dart');
+
+    createLink(path: b, target: a);
+
+    expect(() {
+      provider.getFile(b).resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
+  }
 
   test_resolveSymbolicLinksSync_noLinks_existing() {
     File file = getFile(exists: true);
@@ -315,7 +346,13 @@ mixin FileTestMixin implements FileSystemTestSupport {
     expect(file.resolveSymbolicLinksSync(), file);
   }
 
-  test_resolveSymbolicLinksSync_noLinks_notExisting();
+  test_resolveSymbolicLinksSync_noLinks_notExisting() {
+    var path = join(tempPath, 'a.dart');
+
+    expect(() {
+      provider.getFile(path).resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
+  }
 
   test_shortName() {
     File file = getFile(exists: false);
@@ -738,6 +775,36 @@ mixin FolderTestMixin implements FileSystemTestSupport {
       expect(grandParent.path.length, lessThan(parent.path.length));
       parent = grandParent;
     }
+  }
+
+  test_resolveSymbolicLinksSync_links_existing() {
+    var foo = join(tempPath, 'foo');
+    var bar = join(tempPath, 'bar');
+
+    getFolder(exists: true, folderPath: foo);
+    createLink(path: bar, target: foo);
+
+    var resolved = provider.getFolder(bar).resolveSymbolicLinksSync();
+    expect(resolved.path, foo);
+  }
+
+  test_resolveSymbolicLinksSync_links_notExisting() {
+    var foo = join(tempPath, 'foo');
+    var bar = join(tempPath, 'bar');
+
+    createLink(path: bar, target: foo);
+
+    expect(() {
+      provider.getFolder(bar).resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
+  }
+
+  test_resolveSymbolicLinksSync_noLinks_notExisting() {
+    var path = join(tempPath, 'foo');
+
+    expect(() {
+      provider.getFolder(path).resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
   }
 
   test_toUri() {

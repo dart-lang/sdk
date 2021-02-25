@@ -19,6 +19,9 @@ class ConvertToExpressionFunctionBody extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_INTO_EXPRESSION_BODY;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_INTO_EXPRESSION_BODY_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     // prepare current body
     var body = getEnclosingFunctionBody();

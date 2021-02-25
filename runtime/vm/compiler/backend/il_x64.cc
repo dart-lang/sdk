@@ -4785,18 +4785,22 @@ LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   ASSERT((from_representation() == kUnboxedInt32) ||
          (from_representation() == kUnboxedUint32));
+#if !defined(DART_COMPRESSED_POINTERS)
+  // ValueFitsSmi() may be overly conservative and false because we only
+  // perform range analysis during optimized compilation.
+  const bool kMayAllocateMint = false;
+#else
+  const bool kMayAllocateMint = !ValueFitsSmi();
+#endif
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
+  const intptr_t kNumTemps = kMayAllocateMint ? 1 : 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps,
-                      ValueFitsSmi() ? LocationSummary::kNoCall
-                                     : LocationSummary::kCallOnSlowPath);
-  const bool needs_writable_input =
-      ValueFitsSmi() || (from_representation() == kUnboxedUint32) || true;
-  summary->set_in(0, needs_writable_input ? Location::WritableRegister()
-                                          : Location::RequiresRegister());
+                      kMayAllocateMint ? LocationSummary::kCallOnSlowPath
+                                       : LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
-  if (!ValueFitsSmi()) {
+  if (kMayAllocateMint) {
     summary->set_temp(0, Location::RequiresRegister());
   }
   return summary;

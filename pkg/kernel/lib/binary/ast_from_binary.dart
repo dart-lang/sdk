@@ -100,6 +100,18 @@ class SubComponentView {
       this.libraries, this.componentStartOffset, this.componentFileSize);
 }
 
+/// [StringInterner] allows Strings created from the binary to be shared with
+/// other components.
+///
+/// The [StringInterner] is an optional parameter to [BinaryBuilder], so sharing
+/// should not be required for correctness, and an implementation of
+/// [StringInterner] method may be partial (sometimes not finding an existing
+/// object) or trivial (returning the argument).
+abstract class StringInterner {
+  /// Returns a string with the same contents as [string].
+  String internString(String string);
+}
+
 class BinaryBuilder {
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final List<LabeledStatement> labelStack = <LabeledStatement>[];
@@ -135,6 +147,10 @@ class BinaryBuilder {
   /// will not be resolved correctly.
   bool _disableLazyClassReading = false;
 
+  /// [stringInterner] (optional) may be used to allow components to share
+  /// instances of [String] that have the same contents.
+  final StringInterner /*?*/ stringInterner;
+
   /// When creating lists that *might* be growable, use this boolean as the
   /// setting to pass to `growable` so the dill can be loaded in a more compact
   /// manner if the caller knows that the growability isn't needed.
@@ -147,6 +163,7 @@ class BinaryBuilder {
       bool disableLazyReading = false,
       bool disableLazyClassReading = false,
       bool alwaysCreateNewNamedNodes,
+      this.stringInterner,
       this.useGrowableLists = true})
       : _disableLazyReading = disableLazyReading,
         _disableLazyClassReading = disableLazyReading ||
@@ -225,6 +242,12 @@ class BinaryBuilder {
   }
 
   String readStringEntry(int numBytes) {
+    String string = _readStringEntry(numBytes);
+    if (stringInterner == null) return string;
+    return stringInterner.internString(string);
+  }
+
+  String _readStringEntry(int numBytes) {
     int start = _byteOffset;
     int end = start + numBytes;
     _byteOffset = end;

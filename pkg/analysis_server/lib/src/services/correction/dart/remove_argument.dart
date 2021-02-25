@@ -14,6 +14,9 @@ class RemoveArgument extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_ARGUMENT;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_ARGUMENT_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var arg = node;
     if (arg.parent is NamedExpression) {

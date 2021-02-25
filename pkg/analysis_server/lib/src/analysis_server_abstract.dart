@@ -42,6 +42,7 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 
 /// Implementations of [AbstractAnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.
@@ -311,7 +312,7 @@ abstract class AbstractAnalysisServer {
 
   /// Return the unresolved unit for the file with the given [path].
   ParsedUnitResult getParsedUnit(String path) {
-    if (!AnalysisEngine.isDartFileName(path)) {
+    if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
     }
 
@@ -323,7 +324,7 @@ abstract class AbstractAnalysisServer {
   /// otherwise in the first driver, otherwise `null` is returned.
   Future<ResolvedUnitResult> getResolvedUnit(String path,
       {bool sendCachedToStream = false}) {
-    if (!AnalysisEngine.isDartFileName(path)) {
+    if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
     }
 

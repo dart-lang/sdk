@@ -14,6 +14,9 @@ class RemoveInitializer extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_INITIALIZER;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_INITIALIZER_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var parameter = node.thisOrAncestorOfType<DefaultFormalParameter>();
     if (parameter != null) {

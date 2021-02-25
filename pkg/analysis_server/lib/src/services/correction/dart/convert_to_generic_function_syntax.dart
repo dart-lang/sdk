@@ -20,6 +20,10 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX;
 
   @override
+  FixKind get multiFixKind =>
+      DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     while (node != null) {

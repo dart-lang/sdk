@@ -14,6 +14,9 @@ class RemoveAwait extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_AWAIT;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_AWAIT_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     final awaitExpression = node;
     if (awaitExpression is AwaitExpression) {

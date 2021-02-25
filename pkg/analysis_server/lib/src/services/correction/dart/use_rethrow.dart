@@ -14,6 +14,9 @@ class UseRethrow extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.USE_RETHROW;
 
   @override
+  FixKind get multiFixKind => DartFixKind.USE_RETHROW_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     if (coveredNode is ThrowExpression) {
       await builder.addDartFileEdit(file, (builder) {

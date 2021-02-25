@@ -256,39 +256,6 @@ class MemoryFileTest extends BaseTest with FileTestMixin {
   }
 
   @override
-  test_resolveSymbolicLinksSync_links_existing() {
-    var a_path = provider.convertPath('/test/lib/a.dart');
-    var b_path = provider.convertPath('/test/lib/b.dart');
-
-    provider.newLink(b_path, a_path);
-    provider.newFile(a_path, '');
-
-    var resolved = provider.getFile(b_path).resolveSymbolicLinksSync();
-    expect(resolved.path, a_path);
-  }
-
-  @override
-  test_resolveSymbolicLinksSync_links_notExisting() {
-    var a = provider.convertPath('/test/lib/a.dart');
-    var b = provider.convertPath('/test/lib/b.dart');
-
-    provider.newLink(b, a);
-
-    expect(() {
-      provider.getFile(b).resolveSymbolicLinksSync();
-    }, throwsA(isFileSystemException));
-  }
-
-  @override
-  test_resolveSymbolicLinksSync_noLinks_notExisting() {
-    File file = getFile(exists: false);
-
-    expect(() {
-      file.resolveSymbolicLinksSync();
-    }, throwsA(isFileSystemException));
-  }
-
-  @override
   test_writeAsBytesSync_notExisting() {
     File file = getFile(exists: false);
 
@@ -317,17 +284,6 @@ class MemoryFolderTest extends BaseTest with FolderTestMixin {
   test_isRoot_true() {
     var path = provider.convertPath('/');
     expect(provider.getFolder(path).isRoot, isTrue);
-  }
-
-  test_resolveSymbolicLinksSync() {
-    var lib = provider.convertPath('/test/lib');
-    var foo = provider.convertPath('/test/lib/foo');
-
-    provider.newLink(foo, lib);
-    provider.newFolder(lib);
-
-    var resolved = provider.getFolder(foo).resolveSymbolicLinksSync();
-    expect(resolved.path, lib);
   }
 }
 
