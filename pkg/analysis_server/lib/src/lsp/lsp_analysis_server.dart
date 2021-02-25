@@ -338,14 +338,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }, socketError);
   }
 
-  /// Returns `true` if the [file] with the given absolute path is included
-  /// in an analysis root and not excluded.
-  bool isAnalyzedFile(String file) {
-    return contextManager.isInAnalysisRoot(file) &&
-        // Dot folders are not analyzed (skipped over in _handleWatchEventImpl)
-        !contextManager.isContainedInDotFolder(file);
-  }
-
   /// Logs the error on the client using window/logMessage.
   void logErrorToClient(String message) {
     channel.sendNotification(NotificationMessage(
@@ -584,13 +576,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     // workspace.
     return initializationOptions.closingLabels &&
         priorityFiles.contains(file) &&
-        contextManager.isInAnalysisRoot(file);
-  }
-
-  /// Returns `true` if errors should be reported for [file] with the given
-  /// absolute path.
-  bool shouldSendErrorsNotificationFor(String file) {
-    return isAnalyzedFile(file);
+        isAnalyzed(file);
   }
 
   /// Returns `true` if Flutter outlines should be sent for [file] with the
@@ -817,7 +803,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisDriver.results.listen((result) {
       var path = result.path;
       filesToFlush.add(path);
-      if (analysisServer.shouldSendErrorsNotificationFor(path)) {
+      if (analysisServer.isAnalyzed(path)) {
         final serverErrors = protocol.mapEngineErrors(
             result,
             result.errors.where(_shouldSendDiagnostic).toList(),

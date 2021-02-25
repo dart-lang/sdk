@@ -454,6 +454,35 @@ analyzer:
     assertHasErrors(a_path);
   }
 
+  Future<void> test_fileSystem_addFile_dart_dotFolder() async {
+    var a_path = '$projectPath/lib/.foo/a.dart';
+    var b_path = '$projectPath/lib/b.dart';
+
+    newFile(b_path, content: r'''
+import '.foo/a.dart';
+void f(A a) {}
+''');
+
+    createProject();
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+
+    // We don't have a.dart, so the import cannot be resolved.
+    assertHasErrors(b_path);
+
+    newFile(a_path, content: r'''
+class A {}
+''');
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+
+    // 'a.dart' is in a dot-folder, so excluded from analysis.
+    assertNoErrorsNotification(a_path);
+
+    // We added a.dart with `A`, so no errors.
+    assertNoErrors(b_path);
+  }
+
   Future<void> test_fileSystem_addFile_dart_excluded() async {
     var a_path = '$projectPath/lib/a.dart';
     var b_path = '$projectPath/lib/b.dart';
@@ -744,6 +773,42 @@ void f(A a) {}
 
     // The update of a.dart fixed the error in b.dart
     assertNoErrors(a_path);
+    assertNoErrors(b_path);
+  }
+
+  Future<void> test_fileSystem_changeFile_dart_dotFolder() async {
+    var a_path = '$testPackageLibPath/.foo/a.dart';
+    var b_path = '$testPackageLibPath/b.dart';
+
+    newFile(a_path, content: r'''
+class B {}
+''');
+
+    newFile(b_path, content: r'''
+import '.foo/a.dart';
+void f(A a) {}
+''');
+
+    setRoots(included: [workspaceRootPath], excluded: []);
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+
+    // 'a.dart' is in a dot-folder, so excluded from analysis.
+    assertNoErrorsNotification(a_path);
+
+    // We have `B`, not `A`, in a.dart, so has errors.
+    assertHasErrors(b_path);
+
+    newFile(a_path, content: r'''
+class A {}
+''');
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+
+    // 'a.dart' is in a dot-folder, so excluded from analysis.
+    assertNoErrorsNotification(a_path);
+
+    // We changed a.dart, to have `A`, so no errors.
     assertNoErrors(b_path);
   }
 
