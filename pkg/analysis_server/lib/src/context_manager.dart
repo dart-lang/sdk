@@ -434,7 +434,9 @@ class ContextManagerImpl implements ContextManager {
         if (_isContainedInDotFolder(contextImpl.contextRoot.root.path, file)) {
           continue;
         }
-        if (file_paths.isDart(pathContext, file)) {
+        if (file_paths.isAndroidManifestXml(pathContext, file)) {
+          _analyzeAndroidManifestXml(driver, file);
+        } else if (file_paths.isDart(pathContext, file)) {
           driver.addFile(file);
         }
       }
@@ -455,28 +457,6 @@ class ContextManagerImpl implements ContextManager {
       if (pubspecFile.exists) {
         _analyzePubspecYaml(driver, pubspecFile.path);
       }
-
-      void checkManifestFilesIn(Folder folder) {
-        // Don't traverse into dot directories.
-        if (folder.shortName.startsWith('.')) {
-          return;
-        }
-
-        for (var child in folder.getChildren()) {
-          if (child is File) {
-            if (file_paths.isAndroidManifestXml(pathContext, child.path) &&
-                !excludedPaths.contains(child.path)) {
-              _analyzeAndroidManifestXml(driver, child.path);
-            }
-          } else if (child is Folder) {
-            if (!excludedPaths.contains(child.path)) {
-              checkManifestFilesIn(child);
-            }
-          }
-        }
-      }
-
-      checkManifestFilesIn(rootFolder);
     }
 
     callbacks.afterContextsCreated();
