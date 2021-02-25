@@ -380,6 +380,7 @@ Future<CompilerResult> _compile(List<String> args,
     kernel.BinaryPrinter(sink).writeComponentFile(component);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
+  String fullDillUri;
   if (argResults['experimental-output-compiled-kernel'] as bool) {
     if (outPaths.length > 1) {
       print(
@@ -396,8 +397,8 @@ Future<CompilerResult> _compile(List<String> args,
     if (identical(compilerState, oldCompilerState)) {
       compiledLibraries.unbindCanonicalNames();
     }
-    var sink =
-        File(p.withoutExtension(outPaths.first) + '.full.dill').openWrite();
+    fullDillUri = p.withoutExtension(outPaths.first) + '.full.dill';
+    var sink = File(fullDillUri).openWrite();
     kernel.BinaryPrinter(sink).writeComponentFile(compiledLibraries);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
@@ -445,6 +446,7 @@ Future<CompilerResult> _compile(List<String> args,
         emitDebugMetadata: options.emitDebugMetadata,
         jsUrl: p.toUri(output).toString(),
         mapUrl: mapUrl,
+        fullDillUri: fullDillUri,
         customScheme: options.multiRootScheme,
         multiRootOutputPath: multiRootOutputPath,
         component: compiledLibraries);
@@ -647,6 +649,7 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     bool emitDebugMetadata = false,
     String jsUrl,
     String mapUrl,
+    String fullDillUri,
     String sourceMapBase,
     String customScheme,
     String multiRootOutputPath,
@@ -705,19 +708,20 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
       SharedCompiler.metricsLocationID, '$compileTimeStatistics');
 
   var debugMetadata = emitDebugMetadata
-      ? _emitMetadata(moduleTree, component, mapUrl, jsUrl)
+      ? _emitMetadata(moduleTree, component, mapUrl, jsUrl, fullDillUri)
       : null;
 
   return JSCode(text, builtMap, metadata: debugMetadata);
 }
 
 ModuleMetadata _emitMetadata(js_ast.Program program, Component component,
-    String sourceMapUri, String moduleUri) {
+    String sourceMapUri, String moduleUri, String fullDillUri) {
   var metadata = ModuleMetadata(
       program.name,
       loadFunctionName(program.name),
       sourceMapUri,
       moduleUri,
+      fullDillUri,
       component.mode == NonNullableByDefaultCompiledMode.Strong);
 
   for (var lib in component.libraries) {
