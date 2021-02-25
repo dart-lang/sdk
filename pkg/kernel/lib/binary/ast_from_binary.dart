@@ -2944,7 +2944,14 @@ class BinaryBuilder {
   List<TypeParameter> readAndPushTypeParameterList(
       [List<TypeParameter> list, TreeNode parent]) {
     int length = readUInt30();
-    if (length == 0) return list ?? <TypeParameter>[];
+    if (length == 0) {
+      if (list != null) return list;
+      if (useGrowableLists) {
+        return <TypeParameter>[];
+      } else {
+        return emptyListOfTypeParameter;
+      }
+    }
     if (list == null) {
       list = new List<TypeParameter>.generate(
           length, (_) => new TypeParameter(null, null)..parent = parent,

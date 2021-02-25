@@ -13378,6 +13378,11 @@ final List<DartType> emptyListOfDartType =
 final List<NamedType> emptyListOfNamedType =
     List.filled(0, dummyNamedType, growable: false);
 
+/// Almost const <TypeParameter>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<TypeParameter> emptyListOfTypeParameter =
+    List.filled(0, dummyTypeParameter, growable: false);
+
 /// Non-nullable [DartType] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
