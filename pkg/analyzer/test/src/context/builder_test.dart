@@ -103,7 +103,7 @@ class ContextBuilderTest with ResourceProviderMixin {
     ];
 
     String path = convertPath('/some/directory/path');
-    newOptionsFile(path, content: '''
+    newAnalysisOptionsYamlFile(path, content: '''
 linter:
   rules:
     - mock_lint_rule
@@ -127,7 +127,7 @@ linter:
     ];
 
     String path = convertPath('/some/directory/path');
-    newOptionsFile(path, content: '''
+    newAnalysisOptionsYamlFile(path, content: '''
 linter:
   rules:
     - mock_lint_rule
@@ -151,7 +151,7 @@ linter:
     ];
 
     String path = convertPath('/some/directory/path');
-    newOptionsFile(path, content: '''
+    newAnalysisOptionsYamlFile(path, content: '''
 linter:
   rules:
     - mock_lint_rule
@@ -173,7 +173,7 @@ linter:
     expected.lintRules = <LintRule>[];
 
     String path = convertPath('/some/directory/path');
-    newOptionsFile(path, content: '''
+    newAnalysisOptionsYamlFile(path, content: '''
 ''');
 
     var options = _getAnalysisOptions(builder, path);
@@ -532,7 +532,7 @@ linter:
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
     String path = convertPath('/some/directory/path');
-    newOptionsFile(path, content: '''
+    newAnalysisOptionsYamlFile(path, content: '''
 linter:
   rules:
     - non_existent_lint_rule
@@ -549,7 +549,7 @@ linter:
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
     expected.implicitDynamic = false;
     String path = convertPath('/some/directory/path');
-    newOptionsFile(path, content: '''
+    newAnalysisOptionsYamlFile(path, content: '''
 analyzer:
   strong-mode:
     implicit-dynamic: false
@@ -603,7 +603,7 @@ linter:
   rules:
     - mock_lint_rule2
 ''');
-    newOptionsFile(path, content: '''
+    newAnalysisOptionsYamlFile(path, content: '''
 include: bar.yaml
 linter:
   rules:
@@ -616,7 +616,7 @@ linter:
 
   void test_getAnalysisOptions_invalid() {
     String path = convertPath('/some/directory/path');
-    newOptionsFile(path, content: ';');
+    newAnalysisOptionsYamlFile(path, content: ';');
 
     AnalysisOptions options = _getAnalysisOptions(builder, path);
     expect(options, isNotNull);
@@ -624,7 +624,7 @@ linter:
 
   void test_getAnalysisOptions_noDefault_noOverrides() {
     String path = convertPath('/some/directory/path');
-    newOptionsFile(path, content: '''
+    newAnalysisOptionsYamlFile(path, content: '''
 linter:
   rules:
     - non_existent_lint_rule
@@ -638,7 +638,7 @@ linter:
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
     expected.implicitDynamic = false;
     String path = convertPath('/some/directory/path');
-    newOptionsFile(path, content: '''
+    newAnalysisOptionsYamlFile(path, content: '''
 analyzer:
   strong-mode:
     implicit-dynamic: false
@@ -650,7 +650,7 @@ analyzer:
 
   void test_getAnalysisOptions_optionsPath() {
     String path = convertPath('/some/directory/path');
-    String filePath = newOptionsFile(path, content: '''
+    String filePath = newAnalysisOptionsYamlFile(path, content: '''
 linter:
   rules:
     - empty_constructor_bodies
@@ -693,7 +693,7 @@ environment:
   void test_getOptionsFile_inParentOfRoot_new() {
     String parentPath = convertPath('/some/directory');
     String path = join(parentPath, 'path');
-    String filePath = newOptionsFile(path).path;
+    String filePath = newAnalysisOptionsYamlFile(path).path;
 
     var result = builder.getOptionsFile(path)!;
     expect(result, isNotNull);
@@ -702,7 +702,7 @@ environment:
 
   void test_getOptionsFile_inRoot_new() {
     String path = convertPath('/some/directory/path');
-    String filePath = newOptionsFile(path).path;
+    String filePath = newAnalysisOptionsYamlFile(path).path;
 
     var result = builder.getOptionsFile(path)!;
     expect(result, isNotNull);

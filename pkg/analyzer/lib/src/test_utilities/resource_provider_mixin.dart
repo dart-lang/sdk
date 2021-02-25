@@ -50,6 +50,16 @@ mixin ResourceProviderMixin {
     resourceProvider.modifyFile(convertedPath, content);
   }
 
+  File newAnalysisOptionsYamlFile(String directoryPath, {String content = ''}) {
+    String path = join(directoryPath, file_paths.analysisOptionsYaml);
+    return newFile(path, content: content);
+  }
+
+  File newDotPackagesFile(String directoryPath, {String content = ''}) {
+    String path = join(directoryPath, file_paths.dotPackages);
+    return newFile(path, content: content);
+  }
+
   File newFile(String path, {String content = ''}) {
     String convertedPath = convertPath(path);
     return resourceProvider.newFile(convertedPath, content);
@@ -58,16 +68,6 @@ mixin ResourceProviderMixin {
   Folder newFolder(String path) {
     String convertedPath = convertPath(path);
     return resourceProvider.newFolder(convertedPath);
-  }
-
-  File newOptionsFile(String directoryPath, {String content = ''}) {
-    String path = join(directoryPath, file_paths.analysisOptionsYaml);
-    return newFile(path, content: content);
-  }
-
-  File newPackagesFile(String directoryPath) {
-    String path = join(directoryPath, file_paths.dotPackages);
-    return newFile(path);
   }
 
   File newPubspecYamlFile(String directoryPath, String content) {

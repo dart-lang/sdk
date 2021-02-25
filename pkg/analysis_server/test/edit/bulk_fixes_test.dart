@@ -92,7 +92,7 @@ analyzer:
 
     // Sub-project.
     var subprojectRoot = '$projectPath/test/data/subproject';
-    newOptionsFile(subprojectRoot, content: '''
+    newAnalysisOptionsYamlFile(subprojectRoot, content: '''
 linter:
   rules:
     - annotate_overrides
@@ -116,7 +116,7 @@ class B extends A {
 
   Future<void> test_annotateOverrides_subProject() async {
     var subprojectRoot = '$projectPath/test/data/subproject';
-    newOptionsFile(subprojectRoot, content: '''
+    newAnalysisOptionsYamlFile(subprojectRoot, content: '''
 linter:
   rules:
     - annotate_overrides

@@ -64,7 +64,7 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
     newFile('/test/outer/lib/outer.dart');
 
     var innerFolder = newFolder('/test/outer/inner');
-    newOptionsFile('/test/outer/inner');
+    newAnalysisOptionsYamlFile('/test/outer/inner');
     newFile('/test/outer/inner/inner.dart');
 
     var collection = _newCollection(includedPaths: [outerFolder.path]);
