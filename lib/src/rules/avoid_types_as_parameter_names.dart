@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     final result = context.resolveNameInScope(node.name, false, scope);
     if (result.isRequestedName) {
       final element = result.element;
-      return element is ClassElement || element is FunctionTypeAliasElement;
+      return element is ClassElement || element is TypeAliasElement;
     }
     return false;
   }

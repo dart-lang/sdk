@@ -63,17 +63,17 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parent == null) return;
 
     DartType? returnType;
-    bool? isAsync;
+    bool isAsync;
     if (parent is FunctionExpression) {
       returnType = parent.declaredElement?.returnType;
-      isAsync = parent.body?.isAsynchronous;
+      isAsync = parent.body.isAsynchronous;
     } else if (parent is MethodDeclaration) {
       returnType = parent.declaredElement?.returnType;
       isAsync = parent.body.isAsynchronous;
     } else {
       throw StateError('unexpected type');
     }
-    if (returnType != null && returnType.isDartAsyncFuture && !isAsync!) {
+    if (returnType != null && returnType.isDartAsyncFuture && !isAsync) {
       rule.reportLint(expression);
     }
   }

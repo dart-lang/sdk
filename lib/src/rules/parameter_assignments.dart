@@ -136,7 +136,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parameters != null) {
       // Getter do not have formal parameters.
       parameters.parameters.forEach((e) {
-        if (node.functionExpression.body!
+        if (node.functionExpression.body
             .isPotentiallyMutatedInScope(e.declaredElement!)) {
           _reportIfSimpleParameterOrWithDefaultValue(e, node);
         }

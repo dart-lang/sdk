@@ -89,14 +89,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     bool? isAsync;
     if (parent is FunctionExpression) {
       type = parent.declaredElement?.returnType;
-      isAsync = parent.body?.isAsynchronous;
+      isAsync = parent.body.isAsynchronous;
     } else if (parent is MethodDeclaration) {
       type = parent.declaredElement?.returnType;
       isAsync = parent.body.isAsynchronous;
     } else {
       throw StateError('unexpected type');
     }
-    if (isAsync == null || type == null) return;
+    if (type == null) return;
 
     if (!isAsync && type.isVoid) {
       rule.reportLint(node);
