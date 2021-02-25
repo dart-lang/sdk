@@ -39,6 +39,7 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t01: SkipSlow # Very slow on si
 LibTest/collection/ListMixin/ListMixin_class_A01_t04: SkipSlow # Very slow on sim* architectures.
 LibTest/collection/ListMixin/ListMixin_class_A01_t05: SkipSlow # Very slow on sim* architectures.
 LibTest/collection/ListMixin/ListMixin_class_A01_t06: SkipSlow # Very slow on sim* architectures.
+LibTest/ffi/*: SkipByDesign # dart:ffi is not supported on sim architectures
 
 [ $compiler == fasta || $runtime == dart_precompiled || $runtime == vm ]
 LibTest/html/*: SkipByDesign # dart:html not supported on VM.
