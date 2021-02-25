@@ -227,7 +227,7 @@ analysis_server/test/socket_server_test: Skip # Pass, Slow
 
 # Timeout. These tests do not run efficiently on our simulator or low-end
 # devices.
-[ $runtime == vm && ($arch == armv6 || $arch == simarm || $arch == simarm64 || $arch == simarmv6) ]
+[ $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 *: Skip
 
 [ $mode == debug || $runtime != vm || $system == android ]

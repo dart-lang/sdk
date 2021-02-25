@@ -11,5 +11,8 @@
 [ $arch == simarm64 ]
 *: Skip
 
+[ $arch == simarm64c ]
+*: Skip
+
 [ $arch == x64 ]
 *: Skip

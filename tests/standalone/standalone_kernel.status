@@ -20,9 +20,6 @@ io/network_policy_tie_breaker_test: Skip # Can't pass -D params containing quote
 [ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
 io/file_lock_test: SkipSlow # Timeout
 
-[ $arch == simarm64 && $compiler == dartk ]
-io/http_bind_test: Slow, Pass
-
 [ $builder_tag == optimization_counter_threshold && $compiler == dartk ]
 map_insert_remove_oom_test: Skip # Heap limit too low.
 
@@ -57,10 +54,13 @@ io/echo_server_stream_test: Slow, Pass
 # Enabling of dartk for sim{arm,arm64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64) ]
+[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 io/file_blocking_lock_test: Crash # Please triage.
 io/file_lock_test: Slow, Pass
 map_insert_remove_oom_test: Skip # Heap limit too low.
+
+[ $compiler == dartk && ($arch == simarm64 || $arch == simarm64c) ]
+io/http_bind_test: Slow, Pass
 
 [ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
 io/addlatexhash_test: Skip # Timeout

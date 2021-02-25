@@ -4,8 +4,8 @@
 html/cross_frame_test: Skip # Issue 32039, test reloads itself (not by design - investigate)
 wasm/*: Skip # dart:wasm is currently behind a Dart SDK build flag.
 
-[ $arch == simarm64 ]
-convert/utf85_test: Skip # Pass, Slow Issue 20111.
+[ $arch == simarm ]
+convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
 [ $mode == product ]
 developer/timeline_test: Skip # Not supported
@@ -60,8 +60,8 @@ html/transition_event_test: Skip # Times out. Issue 22167
 [ $runtime != dart_precompiled && ($runtime != vm || $compiler != dartk && $compiler != none) ]
 isolate/vm_rehash_test: SkipByDesign
 
-[ $arch == simarm || $arch == simarmv6 ]
-convert/utf85_test: Skip # Pass, Slow Issue 12644.
+[ $arch == simarm64 || $arch == simarm64c ]
+convert/utf85_test: Skip # Pass, Slow Issue 20111.
 
 [ $arch != x64 || $runtime != vm ]
 isolate/int32_length_overflow_test: SkipSlow
@@ -77,7 +77,7 @@ isolate/isolate_stress_test: Skip # Issue 12588: Uses dart:html. This should be 
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
-[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64) ]
+[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 isolate/count_test: Skip # Isolate.spawnUri
 isolate/cross_isolate_message_test: Skip # Isolate.spawnUri
 isolate/deferred_in_isolate2_test: Skip # Isolate.spawnUri
