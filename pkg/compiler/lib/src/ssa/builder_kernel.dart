@@ -7134,7 +7134,54 @@ class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   @override
+  visitInstanceGet(ir.InstanceGet node) {
+    registerCall();
+    registerRegularNode();
+    registerReductiveNode();
+    skipReductiveNodes(() => visit(node.name));
+    visit(node.receiver);
+  }
+
+  @override
+  visitInstanceTearOff(ir.InstanceTearOff node) {
+    registerCall();
+    registerRegularNode();
+    registerReductiveNode();
+    skipReductiveNodes(() => visit(node.name));
+    visit(node.receiver);
+  }
+
+  @override
+  visitDynamicGet(ir.DynamicGet node) {
+    registerCall();
+    registerRegularNode();
+    registerReductiveNode();
+    skipReductiveNodes(() => visit(node.name));
+    visit(node.receiver);
+  }
+
+  @override
   visitPropertySet(ir.PropertySet node) {
+    registerCall();
+    registerRegularNode();
+    registerReductiveNode();
+    skipReductiveNodes(() => visit(node.name));
+    visit(node.receiver);
+    visit(node.value);
+  }
+
+  @override
+  visitInstanceSet(ir.InstanceSet node) {
+    registerCall();
+    registerRegularNode();
+    registerReductiveNode();
+    skipReductiveNodes(() => visit(node.name));
+    visit(node.receiver);
+    visit(node.value);
+  }
+
+  @override
+  visitDynamicSet(ir.DynamicSet node) {
     registerCall();
     registerRegularNode();
     registerReductiveNode();
@@ -7199,6 +7246,63 @@ class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     visit(node.receiver);
     skipReductiveNodes(() => visit(node.name));
     _processArguments(node.arguments, null);
+  }
+
+  @override
+  visitInstanceInvocation(ir.InstanceInvocation node) {
+    registerRegularNode();
+    registerReductiveNode();
+    registerCall();
+    visit(node.receiver);
+    skipReductiveNodes(() => visit(node.name));
+    _processArguments(node.arguments, null);
+  }
+
+  @override
+  visitDynamicInvocation(ir.DynamicInvocation node) {
+    registerRegularNode();
+    registerReductiveNode();
+    registerCall();
+    visit(node.receiver);
+    skipReductiveNodes(() => visit(node.name));
+    _processArguments(node.arguments, null);
+  }
+
+  @override
+  visitFunctionInvocation(ir.FunctionInvocation node) {
+    registerRegularNode();
+    registerReductiveNode();
+    registerCall();
+    visit(node.receiver);
+    skipReductiveNodes(() => visit(node.name));
+    _processArguments(node.arguments, null);
+  }
+
+  @override
+  visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) {
+    registerRegularNode();
+    registerReductiveNode();
+    registerCall();
+    _processArguments(node.arguments, null);
+    // Account for the implicit access to the local variable:
+    registerRegularNode();
+    registerReductiveNode();
+  }
+
+  @override
+  visitEqualsNull(ir.EqualsNull node) {
+    registerRegularNode();
+    registerReductiveNode();
+    visit(node.expression);
+  }
+
+  @override
+  visitEqualsCall(ir.EqualsCall node) {
+    registerRegularNode();
+    registerReductiveNode();
+    registerCall();
+    visit(node.left);
+    visit(node.right);
   }
 
   _processArguments(ir.Arguments arguments, ir.FunctionNode target) {

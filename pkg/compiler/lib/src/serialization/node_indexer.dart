@@ -112,15 +112,87 @@ class _TreeNodeIndexerVisitor extends ir.Visitor<void>
   }
 
   @override
+  void visitInstanceGet(ir.InstanceGet node) {
+    registerNode(node);
+    super.visitInstanceGet(node);
+  }
+
+  @override
+  void visitInstanceTearOff(ir.InstanceTearOff node) {
+    registerNode(node);
+    super.visitInstanceTearOff(node);
+  }
+
+  @override
+  void visitDynamicGet(ir.DynamicGet node) {
+    registerNode(node);
+    super.visitDynamicGet(node);
+  }
+
+  @override
+  void visitFunctionTearOff(ir.FunctionTearOff node) {
+    registerNode(node);
+    super.visitFunctionTearOff(node);
+  }
+
+  @override
   void visitPropertySet(ir.PropertySet node) {
     registerNode(node);
     super.visitPropertySet(node);
   }
 
   @override
+  void visitInstanceSet(ir.InstanceSet node) {
+    registerNode(node);
+    super.visitInstanceSet(node);
+  }
+
+  @override
+  void visitDynamicSet(ir.DynamicSet node) {
+    registerNode(node);
+    super.visitDynamicSet(node);
+  }
+
+  @override
   void visitMethodInvocation(ir.MethodInvocation node) {
     registerNode(node);
     super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitInstanceInvocation(ir.InstanceInvocation node) {
+    registerNode(node);
+    super.visitInstanceInvocation(node);
+  }
+
+  @override
+  void visitDynamicInvocation(ir.DynamicInvocation node) {
+    registerNode(node);
+    super.visitDynamicInvocation(node);
+  }
+
+  @override
+  void visitFunctionInvocation(ir.FunctionInvocation node) {
+    registerNode(node);
+    super.visitFunctionInvocation(node);
+  }
+
+  @override
+  void visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) {
+    registerNode(node);
+    super.visitLocalFunctionInvocation(node);
+  }
+
+  @override
+  void visitEqualsNull(ir.EqualsNull node) {
+    registerNode(node);
+    super.visitEqualsNull(node);
+  }
+
+  @override
+  void visitEqualsCall(ir.EqualsCall node) {
+    registerNode(node);
+    super.visitEqualsCall(node);
   }
 
   @override
