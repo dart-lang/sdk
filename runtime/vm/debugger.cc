@@ -1935,7 +1935,6 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAwaiterReturn() {
   Function& function = Function::Handle(zone);
   Code& inlined_code = Code::Handle(zone);
   Closure& async_activation = Closure::Handle(zone);
-  Object& next_async_activation = Object::Handle(zone);
   Array& deopt_frame = Array::Handle(zone);
   bool stack_has_async_function = false;
   Closure& closure = Closure::Handle();
@@ -2045,13 +2044,10 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAwaiterReturn() {
   while (!async_activation.IsNull() &&
          async_activation.context() != Object::null()) {
     ActivationFrame* activation = new (zone) ActivationFrame(async_activation);
-
-    if (!(activation->function().IsAsyncClosure() ||
-          activation->function().IsAsyncGenClosure())) {
-      break;
+    if (activation->function().IsAsyncClosure() ||
+        activation->function().IsAsyncGenClosure()) {
+      activation->ExtractTokenPositionFromAsyncClosure();
     }
-
-    activation->ExtractTokenPositionFromAsyncClosure();
     stack_trace->AddActivation(activation);
     if (FLAG_trace_debugger_stacktrace) {
       OS::PrintErr(
@@ -2059,13 +2055,7 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAwaiterReturn() {
           "closures:\n\t%s\n",
           activation->function().ToFullyQualifiedCString());
     }
-
-    next_async_activation = activation->GetAsyncAwaiter(&caller_closure_finder);
-    if (next_async_activation.IsNull()) {
-      break;
-    }
-
-    async_activation = Closure::RawCast(next_async_activation.ptr());
+    async_activation = caller_closure_finder.FindCaller(async_activation);
   }
 
   return stack_trace;
