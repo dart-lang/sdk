@@ -1487,7 +1487,8 @@ class StaticAccessGenerator extends Generator {
       int offset, List<UnresolvedType> typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     if (_helper.constantContext != ConstantContext.none &&
-        !_helper.isIdentical(readTarget)) {
+        !_helper.isIdentical(readTarget) &&
+        !_helper.enableConstFunctionsInLibrary) {
       return _helper.buildProblem(
           templateNotConstantExpression.withArguments('Method invocation'),
           offset,

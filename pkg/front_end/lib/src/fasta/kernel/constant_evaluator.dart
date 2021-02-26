@@ -2598,6 +2598,17 @@ class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
   Constant visitStaticInvocation(StaticInvocation node) {
     final Procedure target = node.target;
     final Arguments arguments = node.arguments;
+    List<DartType> types = _evaluateTypeArguments(node, arguments);
+    if (types == null && _gotError != null) {
+      AbortConstant error = _gotError;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
+    assert(types != null);
+
+    final List<DartType> typeArguments = convertTypes(types);
+
     final List<Constant> positionals = _evaluatePositionalArguments(arguments);
     if (positionals == null && _gotError != null) {
       AbortConstant error = _gotError;
@@ -2684,6 +2695,8 @@ class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
       }
     } else if (target.isExtensionMember) {
       return createErrorConstant(node, messageConstEvalExtension);
+    } else if (enableConstFunctions && target.kind == ProcedureKind.Method) {
+      return _handleStaticInvocation(node, typeArguments, positionals, named);
     }
 
     String name = target.name.text;
@@ -2695,6 +2708,47 @@ class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
       }
     }
     return createInvalidExpressionConstant(node, "Invocation of $name");
+  }
+
+  Constant _handleStaticInvocation(
+      StaticInvocation node,
+      List<DartType> typeArguments,
+      List<Constant> positionalArguments,
+      Map<String, Constant> namedArguments) {
+    return withNewEnvironment(() {
+      final FunctionNode function = node.target.function;
+
+      // Map arguments from caller to callee.
+      for (int i = 0; i < function.typeParameters.length; i++) {
+        env.addTypeParameterValue(function.typeParameters[i], typeArguments[i]);
+      }
+      for (int i = 0; i < function.positionalParameters.length; i++) {
+        final VariableDeclaration parameter = function.positionalParameters[i];
+        final Constant value = (i < positionalArguments.length)
+            ? positionalArguments[i]
+            // TODO(johnniwinther): This should call [_evaluateSubexpression].
+            : _evaluateNullableSubexpression(parameter.initializer);
+        if (value is AbortConstant) return value;
+        env.addVariableValue(parameter, value);
+      }
+      for (final VariableDeclaration parameter in function.namedParameters) {
+        final Constant value = namedArguments[parameter.name] ??
+            // TODO(johnniwinther): This should call [_evaluateSubexpression].
+            _evaluateNullableSubexpression(parameter.initializer);
+        if (value is AbortConstant) return value;
+        env.addVariableValue(parameter, value);
+      }
+      return function.body.accept(this);
+    });
+  }
+
+  @override
+  Constant visitReturnStatement(ReturnStatement node) {
+    if (!enableConstFunctions) {
+      return createInvalidExpressionConstant(
+          node, "Return statements are not supported.");
+    }
+    return node.expression.accept(this);
   }
 
   @override
