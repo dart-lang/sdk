@@ -159,7 +159,16 @@ class D<@m X> {}
 typedef void F1<@m X>();
 
 @m
-typedef F2<@m X>= void Function();
+typedef F2<@m X> = void Function();
+
+@m
+typedef F3 = void Function<@m X, @m Y extends X>(@m X, {@m List<X> name});
+
+@m
+typedef F4 = F3 Function<@m X>([@m X, @m int]);
+
+@m
+const int Function<@m X extends Y, @m Y>(@m void, [@m List<X>])? c = null;
 
 @m
 void main() {
