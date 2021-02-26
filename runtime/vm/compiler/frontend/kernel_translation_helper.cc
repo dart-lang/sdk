@@ -433,15 +433,18 @@ const String& TranslationHelper::DartConstructorName(NameIndex constructor) {
 }
 
 const String& TranslationHelper::DartProcedureName(NameIndex procedure) {
-  ASSERT(IsProcedure(procedure));
+  ASSERT(IsProcedure(procedure) || IsConstructor(procedure));
   if (IsSetter(procedure)) {
     return DartSetterName(procedure);
   } else if (IsGetter(procedure)) {
     return DartGetterName(procedure);
   } else if (IsFactory(procedure)) {
     return DartFactoryName(procedure);
-  } else {
+  } else if (IsMethod(procedure)) {
     return DartMethodName(procedure);
+  } else {
+    ASSERT(IsConstructor(procedure));
+    return DartConstructorName(procedure);
   }
 }
 
