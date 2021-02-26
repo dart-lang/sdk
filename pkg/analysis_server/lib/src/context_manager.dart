@@ -87,15 +87,9 @@ abstract class ContextManager {
   /// If no driver contains the given path, `null` is returned.
   AnalysisDriver getDriverFor(String path);
 
-  /// Determine whether the given [path], when interpreted relative to innermost
-  /// context root, contains a folder whose name starts with '.'.
-  ///
-  /// TODO(scheglov) Remove it, just [isInAnalysisRoot] should be enough.
-  bool isContainedInDotFolder(String path);
-
-  /// Return `true` if the given absolute [path] is in one of the current
-  /// root folders and is not excluded.
-  bool isInAnalysisRoot(String path);
+  /// Return `true` if the file or directory with the given [path] will be
+  /// analyzed in one of the analysis contexts.
+  bool isAnalyzed(String path);
 
   /// Rebuild the set of contexts from scratch based on the data last sent to
   /// [setRoots].
@@ -221,21 +215,8 @@ class ContextManagerImpl implements ContextManager {
     return getContextFor(path)?.driver;
   }
 
-  /// Determine whether the given [path], when interpreted relative to innermost
-  /// context root, contains a folder whose name starts with '.'.
   @override
-  bool isContainedInDotFolder(String path) {
-    for (var analysisContext in _collection.contexts) {
-      var contextImpl = analysisContext as DriverBasedAnalysisContext;
-      if (_isContainedInDotFolder(contextImpl.contextRoot.root.path, path)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool isInAnalysisRoot(String path) {
+  bool isAnalyzed(String path) {
     var collection = _collection;
     if (collection == null) {
       return false;
@@ -431,9 +412,6 @@ class ContextManagerImpl implements ContextManager {
       _watchBazelFilesIfNeeded(rootFolder, driver);
 
       for (var file in contextImpl.contextRoot.analyzedFiles()) {
-        if (_isContainedInDotFolder(contextImpl.contextRoot.root.path, file)) {
-          continue;
-        }
         if (file_paths.isAndroidManifestXml(pathContext, file)) {
           _analyzeAndroidManifestXml(driver, file);
         } else if (file_paths.isDart(pathContext, file)) {
@@ -554,12 +532,11 @@ class ContextManagerImpl implements ContextManager {
         var analysisContext = analysisContext_ as DriverBasedAnalysisContext;
         switch (type) {
           case ChangeType.ADD:
-            // TODO(scheglov) Why not `isInAnalysisRoot()`?
-            if (_isContainedInDotFolder(
-                analysisContext.contextRoot.root.path, path)) {
-              return;
+            if (analysisContext.contextRoot.isAnalyzed(path)) {
+              analysisContext.driver.addFile(path);
+            } else {
+              analysisContext.driver.changeFile(path);
             }
-            analysisContext.driver.addFile(path);
             break;
           case ChangeType.MODIFY:
             analysisContext.driver.changeFile(path);
@@ -590,25 +567,6 @@ class ContextManagerImpl implements ContextManager {
         .logError('Watcher error; refreshing contexts.\n$error\n$stackTrace');
     // TODO(mfairhurst): Optimize this, or perhaps be less complete.
     refresh();
-  }
-
-  /// Determine whether the given [path], when interpreted relative to the
-  /// context root [root], contains a folder whose name starts with '.' but is
-  /// not included in [exclude].
-  bool _isContainedInDotFolder(String root, String path,
-      {Set<String> exclude}) {
-    var pathDir = pathContext.dirname(path);
-    var rootPrefix = root + pathContext.separator;
-    if (pathDir.startsWith(rootPrefix)) {
-      var suffixPath = pathDir.substring(rootPrefix.length);
-      for (var pathComponent in pathContext.split(suffixPath)) {
-        if (pathComponent.startsWith('.') &&
-            !(exclude?.contains(pathComponent) ?? false)) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   /// Read the contents of the file at the given [path], or throw an exception

@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -78,6 +80,14 @@ class ContextRootTest with ResourceProviderMixin {
     expect(contextRoot.isAnalyzed(filePath), isFalse);
   }
 
+  test_isAnalyzed_implicitlyExcluded_dotFolder_containsRoot() {
+    var contextRoot = _createContextRoot('/home/.foo/root');
+
+    expect(_isAnalyzed(contextRoot, ''), isTrue);
+    expect(_isAnalyzed(contextRoot, 'lib/a.dart'), isTrue);
+    expect(_isAnalyzed(contextRoot, 'lib/.bar/a.dart'), isFalse);
+  }
+
   test_isAnalyzed_implicitlyExcluded_dotFolder_directParent() {
     String filePath = convertPath('/test/root/lib/.aaa/a.dart');
     expect(contextRoot.isAnalyzed(filePath), isFalse);
@@ -86,6 +96,14 @@ class ContextRootTest with ResourceProviderMixin {
   test_isAnalyzed_implicitlyExcluded_dotFolder_indirectParent() {
     String filePath = convertPath('/test/root/lib/.aaa/bbb/a.dart');
     expect(contextRoot.isAnalyzed(filePath), isFalse);
+  }
+
+  test_isAnalyzed_implicitlyExcluded_dotFolder_isRoot() {
+    var contextRoot = _createContextRoot('/home/.root');
+
+    expect(_isAnalyzed(contextRoot, ''), isTrue);
+    expect(_isAnalyzed(contextRoot, 'lib/a.dart'), isTrue);
+    expect(_isAnalyzed(contextRoot, 'lib/.bar/a.dart'), isFalse);
   }
 
   test_isAnalyzed_included() {
@@ -109,5 +127,25 @@ class ContextRootTest with ResourceProviderMixin {
     String folderPath = convertPath('/test/root/lib/packages');
     newFolder(folderPath);
     expect(contextRoot.isAnalyzed(folderPath), isTrue);
+  }
+
+  ContextRootImpl _createContextRoot(String posixPath) {
+    var rootPath = convertPath(posixPath);
+    var rootFolder = newFolder(rootPath);
+    var workspace = BasicWorkspace.find(resourceProvider, {}, rootPath);
+    var contextRoot = ContextRootImpl(resourceProvider, rootFolder, workspace);
+    contextRoot.included.add(rootFolder);
+    return contextRoot;
+  }
+
+  static bool _isAnalyzed(ContextRoot contextRoot, String relPosix) {
+    var pathContext = contextRoot.resourceProvider.pathContext;
+    var path = pathContext.join(
+      contextRoot.root.path,
+      pathContext.joinAll(
+        posix.split(relPosix),
+      ),
+    );
+    return contextRoot.isAnalyzed(path);
   }
 }

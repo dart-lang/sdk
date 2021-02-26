@@ -46,7 +46,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     }
 
     final path = pathOfDoc(params.textDocument);
-    if (!path.isError && !server.isAnalyzedFile(path.result)) {
+    if (!path.isError && !server.isAnalyzed(path.result)) {
       return success(const []);
     }
 

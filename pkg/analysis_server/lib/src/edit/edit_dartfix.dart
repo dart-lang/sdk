@@ -175,7 +175,7 @@ class EditDartFix
       if (res is Folder) {
         for (var child in res.getChildren()) {
           if (!child.shortName.startsWith('.') &&
-              contextManager.isInAnalysisRoot(child.path)) {
+              server.isAnalyzed(child.path)) {
             resources.add(child);
           }
         }

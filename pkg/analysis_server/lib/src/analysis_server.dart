@@ -429,16 +429,6 @@ class AnalysisServer extends AbstractAnalysisServer {
     });
   }
 
-  /// Returns `true` if errors should be reported for [file] with the given
-  /// absolute path.
-  bool shouldSendErrorsNotificationFor(String file) {
-    // Errors should not be reported for things that are explicitly skipped
-    // during normal analysis (for example dot folders are skipped over in
-    // _handleWatchEventImpl).
-    return contextManager.isInAnalysisRoot(file) &&
-        !contextManager.isContainedInDotFolder(file);
-  }
-
   Future<void> shutdown() {
     if (options.analytics != null) {
       options.analytics
@@ -674,7 +664,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisDriver.results.listen((result) {
       var path = result.path;
       filesToFlush.add(path);
-      if (analysisServer.shouldSendErrorsNotificationFor(path)) {
+      if (analysisServer.isAnalyzed(path)) {
         _notificationManager.recordAnalysisErrors(NotificationManager.serverId,
             path, server.doAnalysisError_listFromEngine(result));
       }

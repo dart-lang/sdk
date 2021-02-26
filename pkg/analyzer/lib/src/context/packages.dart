@@ -99,11 +99,6 @@ Packages parsePackageConfigJsonFile(ResourceProvider provider, File file) {
         jsonLanguageVersion.minor,
         0,
       );
-      // New features were added in `2.2.2` over `2.2.0`.
-      // But `2.2.2` is not representable, so we special case it.
-      if (languageVersion.major == 2 && languageVersion.minor == 2) {
-        languageVersion = Version(2, 2, 2);
-      }
     }
 
     map[name] = Package(

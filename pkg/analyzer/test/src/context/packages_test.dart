@@ -209,32 +209,6 @@ test:lib/
     );
   }
 
-  /// New features were added in `2.2.2` over `2.2.0`.
-  /// But `2.2.2` is not representable, so we special case it.
-  test_parsePackageConfigJsonFile_version222() {
-    var file = newFile('/test/.dart_tool/package_config.json', content: '''
-{
-  "configVersion": 2,
-  "packages": [
-    {
-      "name": "test",
-      "rootUri": "../",
-      "packageUri": "lib/",
-      "languageVersion": "2.2"
-    }
-  ]
-}
-''');
-    var packages = parsePackageConfigJsonFile(resourceProvider, file);
-
-    _assertPackage(
-      packages,
-      name: 'test',
-      expectedLibPath: '/test/lib',
-      expectedVersion: Version(2, 2, 2),
-    );
-  }
-
   test_parsePackagesFile_dotPackages() {
     var path = convertPath('/test/.packages');
     newFile(path, content: '''

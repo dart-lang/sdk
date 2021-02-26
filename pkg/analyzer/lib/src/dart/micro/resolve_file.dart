@@ -80,6 +80,13 @@ class FileResolver {
   /// to release the cache items and is then cleared.
   final Set<int> removedCacheIds = {};
 
+  /// The cache of file results, cleared on [changeFile].
+  ///
+  /// It is used to allow assists and fixes without resolving the same file
+  /// multiple times, as we compute more than one assist, or fixes when there
+  /// are more than one error on a line.
+  final Map<String, ResolvedUnitResult> _cachedResults = {};
+
   FileResolver(
     PerformanceLog logger,
     ResourceProvider resourceProvider,
@@ -126,6 +133,9 @@ class FileResolver {
     if (fsState == null) {
       return;
     }
+
+    // Forget all results, anything is potentially affected.
+    _cachedResults.clear();
 
     // Remove this file and all files that transitively depend on it.
     var removedFiles = <FileState>[];
@@ -329,6 +339,11 @@ class FileResolver {
 
     performance ??= OperationPerformanceImpl('<default>');
 
+    var cachedResult = _cachedResults[path];
+    if (cachedResult != null) {
+      return cachedResult;
+    }
+
     return logger.run('Resolve $path', () {
       var fileContext = getFileContext(
         path: path,
@@ -403,7 +418,7 @@ class FileResolver {
       });
       UnitAnalysisResult fileResult = results[file]!;
 
-      return ResolvedUnitResultImpl(
+      var result = ResolvedUnitResultImpl(
         contextObjects!.analysisSession,
         path,
         file.uri,
@@ -414,6 +429,8 @@ class FileResolver {
         fileResult.unit,
         fileResult.errors,
       );
+      _cachedResults[path] = result;
+      return result;
     });
   }
 

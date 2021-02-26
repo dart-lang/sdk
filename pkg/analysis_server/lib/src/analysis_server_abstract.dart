@@ -348,6 +348,12 @@ abstract class AbstractAnalysisServer {
     });
   }
 
+  /// Return `true` if the file or directory with the given [path] will be
+  /// analyzed in one of the analysis contexts.
+  bool isAnalyzed(String path) {
+    return contextManager.isAnalyzed(path);
+  }
+
   void logExceptionResult(nd.ExceptionResult result) {
     var message = 'Analysis failed: ${result.filePath}';
     if (result.contextKey != null) {
