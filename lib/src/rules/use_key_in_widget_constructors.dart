@@ -79,13 +79,20 @@ class _Visitor extends SimpleAstVisitor<void> {
         classElement.isPublic &&
         hasWidgetAsAscendant(classElement) &&
         !isExactWidget(classElement) &&
-        !node.initializers.any((initializer) =>
-            initializer is SuperConstructorInvocation &&
-                (!_defineKeyParameter(initializer.staticElement!) ||
-                    _defineKeyArgument(initializer.argumentList)) ||
-            initializer is RedirectingConstructorInvocation &&
-                (!_defineKeyParameter(initializer.staticElement!) ||
-                    _defineKeyArgument(initializer.argumentList)))) {
+        !node.initializers.any((initializer) {
+          if (initializer is SuperConstructorInvocation) {
+            var staticElement = initializer.staticElement;
+            return staticElement != null &&
+                (!_defineKeyParameter(staticElement) ||
+                    _defineKeyArgument(initializer.argumentList));
+          } else if (initializer is RedirectingConstructorInvocation) {
+            var staticElement = initializer.staticElement;
+            return staticElement != null &&
+                (!_defineKeyParameter(staticElement) ||
+                    _defineKeyArgument(initializer.argumentList));
+          }
+          return false;
+        })) {
       rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
     }
     super.visitConstructorDeclaration(node);

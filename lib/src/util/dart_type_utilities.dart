@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/member.dart'; // ignore: implementation_imports
 
+import '../analyzer.dart';
 import '../ast.dart';
 
 typedef AstNodePredicate = bool Function(AstNode node);
@@ -244,6 +245,9 @@ class DartTypeUtilities {
   static bool isInterface(
           InterfaceType type, String interface, String library) =>
       type.element.name == interface && type.element.library.name == library;
+
+  static bool isNonNullable(LinterContext context, DartType? type) =>
+      type != null && context.typeSystem.isNonNullable(type);
 
   static bool isNullLiteral(Expression? expression) =>
       expression?.unParenthesized is NullLiteral;
