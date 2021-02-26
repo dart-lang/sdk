@@ -5981,7 +5981,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           wasHandled: true, context: context);
     }
     String text = libraryBuilder.loader.target.context
-        .format(message.withLocation(uri, charOffset, length), Severity.error);
+        .format(message.withLocation(uri, charOffset, length), Severity.error)
+        .plain;
     InvalidExpression expression = new InvalidExpression(text)
       ..fileOffset = charOffset;
     return expression;
@@ -6456,7 +6457,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     addProblemErrorIfConst(message, charOffset, length,
         wasHandled: wasHandled, context: context);
     String text = libraryBuilder.loader.target.context
-        .format(message.withLocation(uri, charOffset, length), Severity.error);
+        .format(message.withLocation(uri, charOffset, length), Severity.error)
+        .plain;
     InvalidExpression expression = new InvalidExpression(text)
       ..fileOffset = charOffset;
     return expression;

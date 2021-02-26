@@ -131,11 +131,11 @@ class LocatedMessage implements Comparable<LocatedMessage> {
     return message.compareTo(message);
   }
 
-  FormattedMessage withFormatting(String formatted, int line, int column,
-      Severity severity, List<FormattedMessage> relatedInformation,
+  FormattedMessage withFormatting(PlainAndColorizedString formatted, int line,
+      int column, Severity severity, List<FormattedMessage> relatedInformation,
       {List<Uri>? involvedFiles}) {
-    return new FormattedMessage(
-        this, formatted, line, column, severity, relatedInformation,
+    return new FormattedMessage(this, formatted.plain, formatted.colorized,
+        line, column, severity, relatedInformation,
         involvedFiles: involvedFiles);
   }
 
@@ -162,10 +162,20 @@ class LocatedMessage implements Comparable<LocatedMessage> {
       'messageObject=$messageObject)';
 }
 
+class PlainAndColorizedString {
+  final String plain;
+  final String colorized;
+
+  const PlainAndColorizedString(this.plain, this.colorized);
+  const PlainAndColorizedString.plainOnly(this.plain) : this.colorized = plain;
+}
+
 class FormattedMessage implements DiagnosticMessage {
   final LocatedMessage locatedMessage;
 
-  final String formatted;
+  final String formattedPlain;
+
+  final String formattedColorized;
 
   final int line;
 
@@ -178,8 +188,14 @@ class FormattedMessage implements DiagnosticMessage {
 
   final List<Uri>? involvedFiles;
 
-  const FormattedMessage(this.locatedMessage, this.formatted, this.line,
-      this.column, this.severity, this.relatedInformation,
+  const FormattedMessage(
+      this.locatedMessage,
+      this.formattedPlain,
+      this.formattedColorized,
+      this.line,
+      this.column,
+      this.severity,
+      this.relatedInformation,
       {this.involvedFiles});
 
   Code<dynamic> get code => locatedMessage.code;
@@ -200,18 +216,22 @@ class FormattedMessage implements DiagnosticMessage {
 
   @override
   Iterable<String> get ansiFormatted sync* {
-    yield formatted;
+    yield formattedColorized;
     if (relatedInformation != null) {
       for (FormattedMessage m in relatedInformation!) {
-        yield m.formatted;
+        yield m.formattedColorized;
       }
     }
   }
 
   @override
-  Iterable<String> get plainTextFormatted {
-    // TODO(ahe): Implement this correctly.
-    return ansiFormatted;
+  Iterable<String> get plainTextFormatted sync* {
+    yield formattedPlain;
+    if (relatedInformation != null) {
+      for (FormattedMessage m in relatedInformation!) {
+        yield m.formattedPlain;
+      }
+    }
   }
 
   Map<String, Object?> toJson() {

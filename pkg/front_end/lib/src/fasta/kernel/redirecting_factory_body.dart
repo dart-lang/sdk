@@ -6,22 +6,7 @@
 
 library fasta.redirecting_factory_body;
 
-import 'package:kernel/ast.dart'
-    show
-        DartType,
-        Expression,
-        ExpressionStatement,
-        Field,
-        FunctionNode,
-        InvalidExpression,
-        Let,
-        Member,
-        NullLiteral,
-        Procedure,
-        StaticGet,
-        StringLiteral,
-        TypeParameterType,
-        VariableDeclaration;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
@@ -43,6 +28,10 @@ bool isRedirectingFactoryField(Member member) {
 /// Name used for a synthesized let variable used to encode redirecting factory
 /// information in a factory method body.
 const String letName = "#redirecting_factory";
+
+/// Name used for a synthesized let variable used to encode type arguments to
+/// the redirection target in a factory method body.
+const String varNamePrefix = "#typeArg";
 
 class RedirectingFactoryBody extends ExpressionStatement {
   RedirectingFactoryBody.internal(Expression value,
@@ -104,8 +93,38 @@ class RedirectingFactoryBody extends ExpressionStatement {
       ..parent = function;
   }
 
+  static bool hasRedirectingFactoryBodyShape(Procedure factory) {
+    if (factory.function.body is! ExpressionStatement) return false;
+    Expression body = (factory.function.body as ExpressionStatement).expression;
+    if (body is Let &&
+        body.variable.name == letName &&
+        body.variable.type is DynamicType &&
+        body.variable.initializer is StaticGet) {
+      Expression currentArgument = body.body;
+      int argumentCount = 0;
+      while (currentArgument is! InvalidExpression) {
+        Expression argument = currentArgument;
+        if (argument is Let) {
+          String argumentName = "${varNamePrefix}${argumentCount}";
+          if (argument.variable.name != argumentName) {
+            return false;
+          }
+          if (argument.variable.initializer is! NullLiteral) {
+            return false;
+          }
+          currentArgument = argument.body;
+          ++argumentCount;
+        } else {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   static Expression encodeTypeArguments(List<DartType> typeArguments) {
-    String varNamePrefix = "#typeArg";
     Expression result = new InvalidExpression(null);
     if (typeArguments == null) {
       return result;

@@ -575,13 +575,17 @@ def RunGnOnConfiguredConfigurations(args):
 
 def Main(argv):
     starttime = time.time()
+
     args = parse_args(argv)
+    if args is None:
+        return 1
 
     result = RunGnOnConfiguredConfigurations(args)
 
-    endtime = time.time()
     if args.verbose:
+        endtime = time.time()
         print("GN Time: %.3f seconds" % (endtime - starttime))
+
     return result
 
 

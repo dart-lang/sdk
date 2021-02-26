@@ -122,6 +122,15 @@ class Array<T extends NativeType> {
       throw RangeError.range(index, 0, _size);
     }
   }
+
+  @patch
+  const factory Array(int dimension1) = _ArraySize<T>;
+}
+
+class _ArraySize<T extends NativeType> implements Array<T> {
+  final int dimension1;
+
+  const _ArraySize(this.dimension1);
 }
 
 /// Returns an integer encoding the ABI used for size and alignment

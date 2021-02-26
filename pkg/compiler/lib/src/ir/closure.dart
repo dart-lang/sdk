@@ -230,7 +230,7 @@ class VariableUse {
   final VariableUseKind kind;
   final ir.Member member;
   final ir.LocalFunction localFunction;
-  final ir.MethodInvocation invocation;
+  final ir.Expression invocation;
   final ir.Instantiation instantiation;
 
   const VariableUse._simple(this.kind)

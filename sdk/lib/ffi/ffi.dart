@@ -97,14 +97,7 @@ class Array<T extends NativeType> extends NativeType {
   /// ```
   ///
   /// Do not invoke in normal code.
-  const factory Array(int dimension1) = _ArraySize<T>;
-}
-
-// TODO(http://dartbug.com/45101): Move to ffi_patch.dart.
-class _ArraySize<T extends NativeType> implements Array<T> {
-  final int dimension1;
-
-  const _ArraySize(this.dimension1);
+  external const factory Array(int dimension1);
 }
 
 /// Extension on [Pointer] specialized for the type argument [NativeFunction].

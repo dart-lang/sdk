@@ -229,7 +229,8 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
 
     bool has_field_initializers = false;
     for (intptr_t i = 0; i < list_length; ++i) {
-      if (PeekTag() == kRedirectingInitializer) {
+      if (PeekTag() == kRedirectingInitializer ||
+          PeekTag() == kRedirectingFactoryConstructor) {
         is_redirecting_constructor = true;
       } else if (PeekTag() == kFieldInitializer) {
         has_field_initializers = true;

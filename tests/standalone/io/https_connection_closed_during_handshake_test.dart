@@ -50,8 +50,11 @@ void main(List<String> args) async {
 
   asyncStart();
 
-  final serverProcess = await Process.start(
-      Platform.executable, [Platform.script.toFilePath(), 'server']);
+  final serverProcess = await Process.start(Platform.executable, [
+    ...Platform.executableArguments,
+    Platform.script.toFilePath(),
+    'server'
+  ]);
   final serverPortCompleter = Completer<int>();
 
   serverProcess.stdout

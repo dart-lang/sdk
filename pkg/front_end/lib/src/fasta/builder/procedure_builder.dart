@@ -198,6 +198,8 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
     origin.procedure.isExternal = _procedure.isExternal;
     origin.procedure.function = _procedure.function;
     origin.procedure.function.parent = origin.procedure;
+    origin.procedure.isRedirectingFactoryConstructor =
+        _procedure.isRedirectingFactoryConstructor;
     return 1;
   }
 }
@@ -712,6 +714,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
     bodyInternal = new RedirectingFactoryBody(target, typeArguments);
     function.body = bodyInternal;
     bodyInternal?.parent = function;
+    procedure.isRedirectingFactoryConstructor = true;
     if (isPatch) {
       if (function.typeParameters != null) {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
