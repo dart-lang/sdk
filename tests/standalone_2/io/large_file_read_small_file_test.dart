@@ -29,13 +29,13 @@ main() async {
 
     try {
       final buffers = [];
-      for (int i = 0; i < 10 * 1000; ++i) {
-        // We issue a 10 MB read but get only a small typed data back. We hang on
-        // to those buffers. If the implementation actually malloc()ed 10 MB then
+      for (int i = 0; i < 100 * 1000; ++i) {
+        // We issue a 1 MB read but get only a small typed data back. We hang on
+        // to those buffers. If the implementation actually malloc()ed 1 MB then
         // we would hang on to 100 GB and this test would OOM.
         // If the implementation instead correctly shrinks the buffer before
         // giving it to Dart as external typed data, we only consume ~ 100 KB.
-        buffers.add(await randomAccessFile.read(10 * 1024 * 1024));
+        buffers.add(await randomAccessFile.read(1 * 1024 * 1024));
         await randomAccessFile.setPosition(0);
 
         // To avoid machines becoming unusable if the test fails, we'll fail
