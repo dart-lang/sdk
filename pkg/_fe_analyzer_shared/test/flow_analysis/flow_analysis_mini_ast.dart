@@ -9,7 +9,7 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:test/test.dart';
 
-const Expression nullLiteral = const _NullLiteral();
+Expression get nullLiteral => new _NullLiteral();
 
 Statement assert_(Expression condition, [Expression? message]) =>
     new _Assert(condition, message);
@@ -215,7 +215,7 @@ class CatchClause implements _Visitable<void> {
 /// analysis testing.  Methods in this class may be used to create more complex
 /// expressions based on this one.
 abstract class Expression extends Node implements _Visitable<Type> {
-  const Expression() : super._();
+  Expression() : super._();
 
   /// If `this` is an expression `x`, creates the expression `x!`.
   Expression get nonNullAssert => new _NonNullAssert(this);
@@ -570,7 +570,13 @@ class Harness extends TypeOperations<Var, Type> {
 /// Representation of an expression or statement in the pseudo-Dart language
 /// used for flow analysis testing.
 class Node {
-  const Node._();
+  static int _nextId = 0;
+
+  final int id;
+
+  Node._() : id = _nextId++;
+
+  String toString() => 'Node#$id';
 }
 
 /// Helper class allowing tests to examine the values of variables' SSA nodes.
@@ -1410,7 +1416,7 @@ class _NullAwareAccess extends Expression {
 }
 
 class _NullLiteral extends Expression {
-  const _NullLiteral();
+  _NullLiteral();
 
   @override
   String toString() => 'null';
