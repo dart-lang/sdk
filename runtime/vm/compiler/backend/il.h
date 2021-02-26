@@ -5552,7 +5552,9 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
     return field().is_final() && !FLAG_fields_may_be_reset;
   }
 
-  virtual bool ComputeCanDeoptimize() const { return calls_initializer(); }
+  virtual bool ComputeCanDeoptimize() const {
+    return calls_initializer() && !CompilerState::Current().is_aot();
+  }
   virtual bool HasUnknownSideEffects() const { return calls_initializer(); }
   virtual bool CanTriggerGC() const { return calls_initializer(); }
   virtual bool MayThrow() const { return calls_initializer(); }
@@ -6592,7 +6594,9 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(LoadField)
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const { return calls_initializer(); }
+  virtual bool ComputeCanDeoptimize() const {
+    return calls_initializer() && !CompilerState::Current().is_aot();
+  }
 
   virtual bool HasUnknownSideEffects() const {
     return calls_initializer() && !throw_exception_on_initialization();
