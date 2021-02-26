@@ -423,8 +423,6 @@ class Harness extends TypeOperations<Var, Type> {
     'num* - Object': Type('Never'),
   };
 
-  final bool allowLocalBooleanVarsToPromote;
-
   final bool legacy;
 
   final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
@@ -435,7 +433,7 @@ class Harness extends TypeOperations<Var, Type> {
 
   Map<String, Map<String, String>> _promotionExceptions = {};
 
-  Harness({this.allowLocalBooleanVarsToPromote = false, this.legacy = false});
+  Harness({this.legacy = false});
 
   @override
   Type get topType => Type('Object?');
@@ -512,8 +510,7 @@ class Harness extends TypeOperations<Var, Type> {
         ? FlowAnalysis<Node, Statement, Expression, Var, Type>.legacy(
             this, assignedVariables)
         : FlowAnalysis<Node, Statement, Expression, Var, Type>(
-            this, assignedVariables,
-            allowLocalBooleanVarsToPromote: allowLocalBooleanVarsToPromote);
+            this, assignedVariables);
     statements._visit(this, flow);
     flow.finish();
   }
@@ -1658,9 +1655,7 @@ class _TryFinally extends Statement {
     assignedVariables.beginNode();
     body._preVisit(assignedVariables);
     assignedVariables.endNode(_bodyNode);
-    assignedVariables.beginNode();
     finally_._preVisit(assignedVariables);
-    assignedVariables.endNode(_finallyNode);
   }
 
   @override

@@ -2,18 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: tryFinally:declared={a, b}, assigned={a, b}*/
+/*member: tryFinally:declared={a, b, d}, assigned={a, b}*/
 tryFinally(int a, int b) {
   /*assigned={a}*/ try /*declared={c}, assigned={a}*/ {
     a = 0;
     var c;
-  } finally /*declared={d}, assigned={b}*/ {
+  } finally {
     b = 0;
     var d;
   }
 }
 
-/*member: tryCatchFinally:declared={a, b, c}, assigned={a, b, c}*/
+/*member: tryCatchFinally:declared={a, b, c, f}, assigned={a, b, c}*/
 tryCatchFinally(int a, int b, int c) {
   // Note: try/catch/finally is desugared into try/catch nested inside
   // try/finally.  The comment preceding the "try" refers to the outer
@@ -25,7 +25,7 @@ tryCatchFinally(int a, int b, int c) {
   } on String {
     b = 0;
     var e;
-  } finally /*declared={f}, assigned={c}*/ {
+  } finally {
     c = 0;
     var f;
   }
