@@ -438,12 +438,7 @@ class ImportsVerifier {
           continue;
         }
         for (var element in elements) {
-          var elementFromNamespace =
-              namespace.getPrefixed(prefix.name, element.name!);
-          if (elementFromNamespace != null) {
-            if (_isShadowing(element, elementFromNamespace)) {
-              continue;
-            }
+          if (namespace.getPrefixed(prefix.name, element.name!) != null) {
             _unusedImports.remove(importDirective);
             _removeFromUnusedShownNamesMap(element, importDirective);
           }
@@ -459,14 +454,7 @@ class ImportsVerifier {
       // Find import directives using namespaces.
       for (ImportDirective importDirective in _allImports) {
         var namespace = _computeNamespace(importDirective);
-        if (namespace == null) {
-          continue;
-        }
-        var elementFromNamespace = namespace.get(element.name!);
-        if (elementFromNamespace != null) {
-          if (_isShadowing(element, elementFromNamespace)) {
-            continue;
-          }
+        if (namespace?.get(element.name!) != null) {
           _unusedImports.remove(importDirective);
           _removeFromUnusedShownNamesMap(element, importDirective);
         }
@@ -573,22 +561,6 @@ class ImportsVerifier {
       }
     }
     return namespace;
-  }
-
-  /// Returns whether [e1] shadows [e2], assuming each is an imported element,
-  /// and that each is imported with the same prefix.
-  ///
-  /// Returns false if the source of either element is `null`.
-  bool _isShadowing(Element e1, Element e2) {
-    var source1 = e1.source;
-    if (source1 == null) {
-      return false;
-    }
-    var source2 = e2.source;
-    if (source2 == null) {
-      return false;
-    }
-    return !source1.isInSystemLibrary && source2.isInSystemLibrary;
   }
 
   /// Remove [element] from the list of names shown by [importDirective].
