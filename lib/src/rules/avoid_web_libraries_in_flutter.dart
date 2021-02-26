@@ -109,8 +109,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    if (isWebUri(node.uri.stringValue!) && shouldValidateUri) {
-      rule.reportLint(node);
+    if (shouldValidateUri) {
+      var uriString = node.uri.stringValue;
+      if (uriString != null && isWebUri(uriString)) {
+        rule.reportLint(node);
+      }
     }
   }
 }

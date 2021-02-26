@@ -128,20 +128,19 @@ class CascadeInvocations extends LintRule implements NodeLintRule {
 /// A CascadableExpression is an object that is built from an expression and
 /// knows if it is able to join to another CascadableExpression.
 class _CascadableExpression {
-  static final nullCascadableExpression = _CascadableExpression._internal(
-      null, [],
-      canJoin: false, canReceive: false, canBeCascaded: false);
+  static final nullCascadableExpression =
+      _CascadableExpression._internal(null, []);
 
   /// Whether this expression can be joined with a previous expression via a
   /// cascade operation.
-  final bool? canJoin;
+  final bool canJoin;
 
   /// Whether this expression can receive an additional expression with a
   /// cascade operation.
   ///
   /// For example, `a.b = 1` can receive, but `a = 1` cannot receive.
-  final bool? canReceive;
-  final bool? canBeCascaded;
+  final bool canReceive;
+  final bool canBeCascaded;
 
   /// This is necessary when you have a variable declaration so that element
   /// is critical and it can't be used as a parameter of a method invocation or
@@ -177,10 +176,7 @@ class _CascadableExpression {
       VariableDeclarationStatement node) {
     final element = _getElementFromVariableDeclarationStatement(node);
     return _CascadableExpression._internal(element, [],
-        canJoin: false,
-        canReceive: true,
-        canBeCascaded: false,
-        isCritical: true);
+        canReceive: true, isCritical: true);
   }
 
   factory _CascadableExpression._fromAssignmentExpression(
@@ -190,9 +186,7 @@ class _CascadableExpression {
       return _CascadableExpression._internal(
           DartTypeUtilities.getCanonicalElement(leftExpression.staticElement),
           [node.rightHandSide],
-          canJoin: false,
           canReceive: node.operator.type != TokenType.QUESTION_QUESTION_EQ,
-          canBeCascaded: false,
           isCritical: true);
     }
     // setters
@@ -263,18 +257,18 @@ class _CascadableExpression {
   }
 
   _CascadableExpression._internal(this.element, this.criticalNodes,
-      {this.canJoin,
-      this.canReceive,
-      this.canBeCascaded,
+      {this.canJoin = false,
+      this.canReceive = false,
+      this.canBeCascaded = false,
       this.isCritical = false});
 
   /// Whether `this` is compatible to be joined with [expressionBox] with a
   /// cascade operation.
   bool compatibleWith(_CascadableExpression expressionBox) =>
       element != null &&
-      expressionBox.canReceive! &&
-      canJoin! &&
-      (canBeCascaded! || expressionBox.canBeCascaded!) &&
+      expressionBox.canReceive &&
+      canJoin &&
+      (canBeCascaded || expressionBox.canBeCascaded) &&
       element == expressionBox.element &&
       !_hasCriticalDependencies(expressionBox);
 

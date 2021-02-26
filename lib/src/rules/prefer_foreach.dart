@@ -105,13 +105,14 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     final arguments = node.argumentList.arguments;
+    var target = node.target;
     if (arguments.length == 1 &&
         DartTypeUtilities.getCanonicalElementFromIdentifier(arguments.first) ==
             element &&
-        (node.target == null ||
-            (DartTypeUtilities.getCanonicalElementFromIdentifier(node.target) !=
+        (target == null ||
+            (DartTypeUtilities.getCanonicalElementFromIdentifier(target) !=
                     element &&
-                !DartTypeUtilities.traverseNodesInDFS(node.target!)
+                !DartTypeUtilities.traverseNodesInDFS(target)
                     .map(DartTypeUtilities.getCanonicalElementFromIdentifier)
                     .contains(element)))) {
       rule.reportLint(forEachStatement);

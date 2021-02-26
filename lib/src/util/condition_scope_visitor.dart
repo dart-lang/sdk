@@ -164,7 +164,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
     _addScope();
     visitCondition(node.condition);
     node.visitChildren(this);
-    _propagateUndefinedExpressions(_removeLastScope()!);
+    _propagateUndefinedExpressions(_removeLastScope());
     // If a do statement do not have breaks inside, that means the condition
     // after the loop is false.
     if (!breakScope.hasBreak(node)) {
@@ -199,14 +199,14 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
       _addTrueCondition(loopParts.condition);
       loopParts.updaters.accept(this);
       node.body.accept(this);
-      _propagateUndefinedExpressions(_removeLastScope()!);
+      _propagateUndefinedExpressions(_removeLastScope());
       if (_isRelevantOutsideOfForStatement(node)) {
         _addFalseCondition(loopParts.condition);
       }
       breakScope.deleteBreaksWithTarget(node);
     } else if (loopParts is ForEachParts) {
       node.visitChildren(this);
-      _propagateUndefinedExpressions(_removeLastScope()!);
+      _propagateUndefinedExpressions(_removeLastScope());
     } else {
       throw StateError('unsupported loop parts type');
     }
@@ -289,7 +289,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
     node.condition.accept(this);
     _addTrueCondition(node.condition);
     node.body.accept(this);
-    _propagateUndefinedExpressions(_removeLastScope()!);
+    _propagateUndefinedExpressions(_removeLastScope());
     // If a while statement do not have breaks inside, that means the condition
     // after the loop is false.
     if (!breakScope.hasBreak(node)) {
@@ -347,12 +347,12 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
 
     final loopParts = node.forLoopParts;
     if (loopParts is ForParts) {
-      if (loopParts.condition == null) {
+      var condition = loopParts.condition;
+      if (condition == null) {
         return false;
       }
 
-      for (var ref
-          in DartTypeUtilities.traverseNodesInDFS(loopParts.condition!)) {
+      for (var ref in DartTypeUtilities.traverseNodesInDFS(condition)) {
         if (ref is SimpleIdentifier) {
           var element = ref.staticElement;
           if (element == null) {
@@ -369,8 +369,10 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
     return true;
   }
 
-  void _propagateUndefinedExpressions(ConditionScope scope) {
-    outerScope?.addAll(scope.getUndefinedExpressions());
+  void _propagateUndefinedExpressions(ConditionScope? scope) {
+    if (scope != null) {
+      outerScope?.addAll(scope.getUndefinedExpressions());
+    }
   }
 
   ConditionScope? _removeLastScope() {
@@ -393,7 +395,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
     visitCondition(node.condition);
     _addTrueCondition(node.condition);
     node.thenStatement.accept(this);
-    _propagateUndefinedExpressions(_removeLastScope()!);
+    _propagateUndefinedExpressions(_removeLastScope());
   }
 }
 

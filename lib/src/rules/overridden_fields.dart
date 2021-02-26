@@ -125,9 +125,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     node.fields.variables.forEach((VariableDeclaration variable) {
-      final field = _getOverriddenMember(variable.declaredElement!);
-      if (field != null && !field.isAbstract) {
-        rule.reportLint(variable.name);
+      var declaredElement = variable.declaredElement;
+      if (declaredElement != null) {
+        final field = _getOverriddenMember(declaredElement);
+        if (field != null && !field.isAbstract) {
+          rule.reportLint(variable.name);
+        }
       }
     });
   }
@@ -136,9 +139,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     final memberName = member.name;
     final library = member.library;
     bool isOverriddenMember(PropertyAccessorElement a) {
-      if (a.isSynthetic && a.name == memberName) {
+      if (memberName != null && a.isSynthetic && a.name == memberName) {
         // Ensure that private members are overriding a member of the same library.
-        if (Identifier.isPrivateName(memberName!)) {
+        if (Identifier.isPrivateName(memberName)) {
           return library == a.library;
         }
         return true;

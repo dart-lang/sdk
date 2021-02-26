@@ -42,7 +42,7 @@ _PredicateBuilder _hasReturn = (VariableDeclaration v) => (AstNode n) {
 /// from building (predicates) with the provided [predicateBuilders] evaluated
 /// in the variable.
 _VisitVariableDeclaration _buildVariableReporter(
-        AstNode? container,
+        AstNode container,
         Iterable<_PredicateBuilder> predicateBuilders,
         LintRule rule,
         Map<DartTypePredicate, String> predicates) =>
@@ -54,7 +54,7 @@ _VisitVariableDeclaration _buildVariableReporter(
         return;
       }
 
-      final containerNodes = DartTypeUtilities.traverseNodesInDFS(container!);
+      final containerNodes = DartTypeUtilities.traverseNodesInDFS(container);
 
       final validators = <Iterable<AstNode>>[];
       predicateBuilders.forEach((f) {
@@ -213,14 +213,18 @@ abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     final unit = getCompilationUnit(node);
-    node.fields.variables.forEach(_buildVariableReporter(
-        unit, _fieldPredicateBuilders, rule, predicates));
+    if (unit != null) {
+      node.fields.variables.forEach(_buildVariableReporter(
+          unit, _fieldPredicateBuilders, rule, predicates));
+    }
   }
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     final function = node.thisOrAncestorOfType<FunctionBody>();
-    node.variables.variables.forEach(_buildVariableReporter(
-        function, _variablePredicateBuilders, rule, predicates));
+    if (function != null) {
+      node.variables.variables.forEach(_buildVariableReporter(
+          function, _variablePredicateBuilders, rule, predicates));
+    }
   }
 }

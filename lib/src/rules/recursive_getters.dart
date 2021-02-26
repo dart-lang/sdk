@@ -113,7 +113,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         .where((n) =>
             n is SimpleIdentifier &&
             element == n.staticElement &&
-            n.accept(visitor)!)
+            (n.accept(visitor) ?? false))
         .forEach(rule.reportLint);
   }
 }

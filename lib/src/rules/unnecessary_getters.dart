@@ -85,7 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _visitGetter(MethodDeclaration? getter) {
-    if (isSimpleGetter(getter!)) {
+    if (getter != null && isSimpleGetter(getter)) {
       rule.reportLint(getter.name);
     }
   }

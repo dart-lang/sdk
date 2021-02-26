@@ -348,8 +348,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var directive in nodes) {
       if (previousDirective != null) {
         var previousUri = previousDirective.uriContent;
+        var directiveUri = directive.uriContent;
         if (previousUri != null &&
-            previousUri.compareTo(directive.uriContent!) > 0) {
+            directiveUri != null &&
+            previousUri.compareTo(directiveUri) > 0) {
           reportDirective(directive);
         }
       }

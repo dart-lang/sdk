@@ -115,8 +115,8 @@ class DetailedReporter extends SimpleFormatter {
       int? elapsedMs,
       String? fileRoot,
       bool showStatistics = false,
-      bool? machineOutput = false,
-      bool? quiet = false})
+      bool machineOutput = false,
+      bool quiet = false})
       : super(errors, filter, out,
             fileCount: fileCount,
             fileRoot: fileRoot,
@@ -129,7 +129,7 @@ class DetailedReporter extends SimpleFormatter {
   void writeLint(AnalysisError error, {int? offset, int? line, int? column}) {
     super.writeLint(error, offset: offset, column: column, line: line);
 
-    if (!machineOutput!) {
+    if (!machineOutput) {
       var contents = getLineContents(line, error);
       out.writeln(contents);
 
@@ -149,8 +149,8 @@ abstract class ReportFormatter {
           int? elapsedMs,
           String? fileRoot,
           bool showStatistics = false,
-          bool? machineOutput = false,
-          bool? quiet = false}) =>
+          bool machineOutput = false,
+          bool quiet = false}) =>
       DetailedReporter(errors, filter, out,
           fileCount: fileCount,
           fileRoot: fileRoot,
@@ -175,8 +175,8 @@ class SimpleFormatter implements ReportFormatter {
   final int? elapsedMs;
   final String? fileRoot;
   final bool showStatistics;
-  final bool? machineOutput;
-  final bool? quiet;
+  final bool machineOutput;
+  final bool quiet;
 
   /// Cached for the purposes of statistics report formatting.
   int _summaryLength = 0;
@@ -238,7 +238,7 @@ class SimpleFormatter implements ReportFormatter {
   }
 
   void writeLint(AnalysisError error, {int? offset, int? line, int? column}) {
-    if (machineOutput!) {
+    if (machineOutput) {
       //INFO|LINT|constant_identifier_names|test/engine_test.dart|91|22|3|Prefer using lowerCamelCase for constant names.
       out
         ..write(error.errorCode.errorSeverity)
@@ -272,13 +272,13 @@ class SimpleFormatter implements ReportFormatter {
             filteredLintCount++;
           } else {
             ++errorCount;
-            if (!quiet!) {
+            if (!quiet) {
               _writeLint(e, info.lineInfo);
             }
             _recordStats(e);
           }
         }));
-    if (!quiet!) {
+    if (!quiet) {
       out.writeln();
     }
   }

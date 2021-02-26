@@ -75,7 +75,8 @@ class QuoteVisitor extends SimpleAstVisitor<void> {
   /// Strings interpolations can contain other string nodes. Check like this.
   bool containsString(StringInterpolation string) {
     final checkHasString = _IsOrContainsStringVisitor();
-    return string.elements.any((child) => child.accept(checkHasString)!);
+    return string.elements
+        .any((child) => child.accept(checkHasString) ?? false);
   }
 
   /// Strings can be within interpolations (ie, nested). Check like this.

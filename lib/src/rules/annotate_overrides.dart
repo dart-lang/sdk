@@ -74,11 +74,15 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (classElement == null) {
       return null;
     }
+    var name = member.name;
+    if (name == null) {
+      return null;
+    }
 
     final libraryUri = classElement.library.source.uri;
     return context.inheritanceManager.getInherited(
       classElement.thisType,
-      Name(libraryUri, member.name!),
+      Name(libraryUri, name),
     );
   }
 
