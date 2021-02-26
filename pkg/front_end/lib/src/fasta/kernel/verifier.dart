@@ -29,7 +29,10 @@ import '../fasta_codes.dart'
 import '../type_inference/type_schema.dart' show UnknownType;
 
 import 'redirecting_factory_body.dart'
-    show RedirectingFactoryBody, getRedirectingFactoryBody;
+    show
+        RedirectingFactoryBody,
+        getRedirectingFactoryBody,
+        isRedirectingFactory;
 
 List<LocatedMessage> verifyComponent(Component component,
     {bool isOutline, bool afterConst, bool skipPlatform: false}) {
@@ -220,7 +223,11 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   @override
   void visitLibrary(Library node) {
     // Issue(http://dartbug.com/32530)
-    if (skipPlatform && node.importUri.scheme == 'dart') {
+    // 'dart:test' is used in the unit tests and isn't an actual part of the
+    // platform.
+    if (skipPlatform &&
+        node.importUri.scheme == 'dart' &&
+        node.importUri.path != 'test') {
       return;
     }
 
@@ -260,6 +267,22 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   void visitProcedure(Procedure node) {
     enterTreeNode(node);
     fileUri = checkLocation(node, node.name.text, node.fileUri);
+
+    // TODO(dmitryas): Investigate why some redirecting factory bodies retain
+    // the shape, but aren't of the RedirectingFactoryBody type.
+    bool hasBody = isRedirectingFactory(node) ||
+        RedirectingFactoryBody.hasRedirectingFactoryBodyShape(node);
+    bool hasFlag = node.isRedirectingFactoryConstructor;
+    if (hasBody != hasFlag) {
+      String hasBodyString = hasBody ? "has" : "doesn't have";
+      String hasFlagString = hasFlag ? "has" : "doesn't have";
+      problem(
+          node,
+          "Procedure '${node.name}' ${hasBodyString} a body "
+          "of a redirecting factory, but ${hasFlagString} the "
+          "'isRedirectingFactoryConstructor' bit set.");
+    }
+
     super.visitProcedure(node);
     exitTreeNode(node);
   }
@@ -422,7 +445,11 @@ class FastaVerifyGetStaticType extends VerifyGetStaticType {
 
   @override
   visitLibrary(Library node) {
-    if (skipPlatform && node.importUri.scheme == 'dart') {
+    // 'dart:test' is used in the unit tests and isn't an actual part of the
+    // platform.
+    if (skipPlatform &&
+        node.importUri.scheme == 'dart' &&
+        node.importUri.path != "test") {
       return;
     }
 
