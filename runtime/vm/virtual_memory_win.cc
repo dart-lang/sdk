@@ -8,9 +8,9 @@
 #include "vm/virtual_memory.h"
 
 #include "platform/assert.h"
-#include "vm/os.h"
-
 #include "vm/isolate.h"
+#include "vm/os.h"
+#include "vm/virtual_memory_compressed.h"
 
 namespace dart {
 
@@ -27,11 +27,46 @@ intptr_t VirtualMemory::CalculatePageSize() {
   return page_size;
 }
 
-void VirtualMemory::Init() {
-  page_size_ = CalculatePageSize();
+static void* AllocateAlignedImpl(intptr_t size,
+                                 intptr_t alignment,
+                                 intptr_t reserved_size,
+                                 int prot,
+                                 void** out_reserved_address) {
+  void* address = VirtualAlloc(nullptr, reserved_size, MEM_RESERVE, prot);
+  if (address == nullptr) {
+    return nullptr;
+  }
+
+  void* aligned_address = reinterpret_cast<void*>(
+      Utils::RoundUp(reinterpret_cast<uword>(address), alignment));
+  if (VirtualAlloc(aligned_address, size, MEM_COMMIT, prot) !=
+      aligned_address) {
+    VirtualFree(address, reserved_size, MEM_RELEASE);
+    return nullptr;
+  }
+
+  if (out_reserved_address != nullptr) {
+    *out_reserved_address = address;
+  }
+  return aligned_address;
 }
 
-void VirtualMemory::Cleanup() {}
+void VirtualMemory::Init() {
+  page_size_ = CalculatePageSize();
+
+#if defined(DART_COMPRESSED_POINTERS)
+  VirtualMemoryCompressedHeap::Init(AllocateAlignedImpl(
+      kCompressedHeapSize, kCompressedHeapAlignment,
+      kCompressedHeapSize + kCompressedHeapAlignment, PAGE_READWRITE, nullptr));
+#endif  // defined(DART_COMPRESSED_POINTERS)
+}
+
+void VirtualMemory::Cleanup() {
+#if defined(DART_COMPRESSED_POINTERS)
+  VirtualFree(VirtualMemoryCompressedHeap::Cleanup(), kCompressedHeapSize,
+              MEM_RELEASE);
+#endif  // defined(DART_COMPRESSED_POINTERS)
+}
 
 bool VirtualMemory::DualMappingEnabled() {
   return false;
@@ -47,25 +82,32 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   ASSERT(Utils::IsAligned(size, PageSize()));
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, PageSize()));
+
+#if defined(DART_COMPRESSED_POINTERS)
+  if (!is_executable) {
+    MemoryRegion region =
+        VirtualMemoryCompressedHeap::Allocate(size, alignment);
+    if (region.pointer() == nullptr) {
+      return nullptr;
+    }
+    return new VirtualMemory(region, region);
+  }
+#endif  // defined(DART_COMPRESSED_POINTERS)
+
   intptr_t reserved_size = size + alignment - PageSize();
   int prot = (is_executable && !FLAG_write_protect_code)
                  ? PAGE_EXECUTE_READWRITE
                  : PAGE_READWRITE;
-  void* address = VirtualAlloc(NULL, reserved_size, MEM_RESERVE, prot);
-  if (address == NULL) {
-    return NULL;
-  }
 
-  void* aligned_address = reinterpret_cast<void*>(
-      Utils::RoundUp(reinterpret_cast<uword>(address), alignment));
-  if (VirtualAlloc(aligned_address, size, MEM_COMMIT, prot) !=
-      aligned_address) {
-    VirtualFree(address, reserved_size, MEM_RELEASE);
-    return NULL;
+  void* reserved_address;
+  void* aligned_address = AllocateAlignedImpl(size, alignment, reserved_size,
+                                              prot, &reserved_address);
+  if (aligned_address == nullptr) {
+    return nullptr;
   }
 
   MemoryRegion region(aligned_address, size);
-  MemoryRegion reserved(address, reserved_size);
+  MemoryRegion reserved(reserved_address, reserved_size);
   return new VirtualMemory(region, reserved);
 }
 
@@ -74,6 +116,12 @@ VirtualMemory::~VirtualMemory() {
   // Truncate(0, true) but that does not actually release the mapping
   // itself. The only way to release the mapping is to invoke VirtualFree
   // with original base pointer and MEM_RELEASE.
+#if defined(DART_COMPRESSED_POINTERS)
+  if (VirtualMemoryCompressedHeap::Contains(reserved_.pointer())) {
+    VirtualMemoryCompressedHeap::Free(reserved_.pointer(), reserved_.size());
+    return;
+  }
+#endif  // defined(DART_COMPRESSED_POINTERS)
   if (!vm_owns_region()) {
     return;
   }
@@ -83,6 +131,12 @@ VirtualMemory::~VirtualMemory() {
 }
 
 bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
+#if defined(DART_COMPRESSED_POINTERS)
+  // Don't free the sub segment if it's managed by the compressed pointer heap.
+  if (VirtualMemoryCompressedHeap::Contains(address)) {
+    return false;
+  }
+#endif  // defined(DART_COMPRESSED_POINTERS)
   if (VirtualFree(address, size, MEM_DECOMMIT) == 0) {
     FATAL1("VirtualFree failed: Error code %d\n", GetLastError());
   }

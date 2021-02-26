@@ -4569,6 +4569,9 @@ VariableCouldBeNullDueToWrite:
 FieldNotPromoted:
   template: "'#name' refers to a property so it could not be promoted."
 
+ThisNotPromoted:
+  template: "'this' can't be promoted."
+
 NullablePropertyAccessError:
   template: "Property '#name' cannot be accessed on '#type' because it is potentially null."
   tip: "Try accessing using ?. instead."

@@ -29,7 +29,7 @@ class ModuleMetadataVersion {
   ///
   /// TODO(annagrin): create metadata package, make version the same as the
   /// metadata package version, automate updating with the package update
-  static const ModuleMetadataVersion current = ModuleMetadataVersion(1, 0, 1);
+  static const ModuleMetadataVersion current = ModuleMetadataVersion(1, 0, 2);
 
   /// Current metadata version created by the reader
   String get version => '$majorVersion.$minorVersion.$patchVersion';
@@ -124,6 +124,12 @@ class ModuleMetadata {
   /// Module uri
   final String moduleUri;
 
+  /// The uri where DDC wrote a full .dill file for this module.
+  ///
+  /// Can be `null` if the module was compiled without the option to output the
+  /// .dill fle.
+  final String fullDillUri;
+
   final Map<String, LibraryMetadata> libraries = {};
 
   /// True if the module corresponding to this metadata was compiled with sound
@@ -131,7 +137,7 @@ class ModuleMetadata {
   final bool soundNullSafety;
 
   ModuleMetadata(this.name, this.closureName, this.sourceMapUri, this.moduleUri,
-      this.soundNullSafety,
+      this.fullDillUri, this.soundNullSafety,
       {this.version}) {
     version ??= ModuleMetadataVersion.current.version;
   }
@@ -157,6 +163,7 @@ class ModuleMetadata {
         closureName = json['closureName'] as String,
         sourceMapUri = json['sourceMapUri'] as String,
         moduleUri = json['moduleUri'] as String,
+        fullDillUri = json['fullDillUri'] as String,
         soundNullSafety = json['soundNullSafety'] as bool {
     var fileVersion = json['version'] as String;
     if (!ModuleMetadataVersion.current.isCompatibleWith(version)) {
@@ -175,6 +182,7 @@ class ModuleMetadata {
       'closureName': closureName,
       'sourceMapUri': sourceMapUri,
       'moduleUri': moduleUri,
+      'fullDillUri': fullDillUri,
       'libraries': [for (var lib in libraries.values) lib.toJson()],
       'soundNullSafety': soundNullSafety
     };

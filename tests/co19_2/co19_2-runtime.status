@@ -22,7 +22,7 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t04: SkipSlow # Very slow compi
 LibTest/collection/ListMixin/ListMixin_class_A01_t05: SkipSlow # Very slow compilation in debug mode.
 LibTest/collection/ListMixin/ListMixin_class_A01_t06: SkipSlow # Very slow compilation in debug mode.
 
-[ $arch == simarm || $arch == simarm64 ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c ]
 LibTest/collection/ListBase/ListBase_class_A01_t01: SkipSlow # Very slow on sim* architectures.
 LibTest/collection/ListBase/ListBase_class_A01_t04: SkipSlow # Very slow on sim* architectures.
 LibTest/collection/ListBase/ListBase_class_A01_t05: SkipSlow # Very slow on sim* architectures.

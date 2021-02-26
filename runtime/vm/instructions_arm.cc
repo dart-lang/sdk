@@ -221,10 +221,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   Register dst;
   if (IsLoadWithOffset(instr, PP, &offset, &dst)) {
     intptr_t index = ObjectPool::IndexFromOffset(offset);
-    const ObjectPool& pool = ObjectPool::Handle(
-        FLAG_use_bare_instructions
-            ? IsolateGroup::Current()->object_store()->global_object_pool()
-            : code.object_pool());
+    const ObjectPool& pool = ObjectPool::Handle(code.GetObjectPool());
     if (!pool.IsNull() && (index < pool.Length()) &&
         (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject)) {
       *obj = pool.ObjectAt(index);

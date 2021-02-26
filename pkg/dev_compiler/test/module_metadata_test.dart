@@ -114,7 +114,8 @@ void main() {
 }
 
 ModuleMetadata createMetadata(String version) => ModuleMetadata(
-    'module', 'closure', 'module.map', 'module.js', true, version: version)
+    'module', 'closure', 'module.map', 'module.js', 'module.full.dill', true,
+    version: version)
   ..addLibrary(LibraryMetadata('library', 'package:library/test.dart',
       'file:///source/library/lib/test.dart', ['src/test2.dart']));
 
@@ -125,6 +126,7 @@ void testMetadataFields(ModuleMetadata module, String version) {
   expect(module.closureName, 'closure');
   expect(module.sourceMapUri, 'module.map');
   expect(module.moduleUri, 'module.js');
+  expect(module.fullDillUri, 'module.full.dill');
   expect(module.soundNullSafety, true);
 
   var libUri = module.libraries.keys.first;

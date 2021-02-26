@@ -99,8 +99,10 @@ mixin LspPluginRequestHandlerMixin<T extends AbstractAnalysisServer>
     int timeout = 500,
   }) {
     final driver = server.getAnalysisDriver(path);
-    final pluginFutures = server.pluginManager
-        .broadcastRequest(params, contextRoot: driver.contextRoot);
+    final pluginFutures = server.pluginManager.broadcastRequest(
+      params,
+      contextRoot: driver.analysisContext.contextRoot,
+    );
 
     return waitForResponses(pluginFutures,
         requestParameters: params, timeout: timeout);

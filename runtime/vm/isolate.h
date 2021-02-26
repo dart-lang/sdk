@@ -597,8 +597,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
                         bool is_mutator,
                         bool bypass_safepoint = false);
 
-  void IncreaseMutatorCount(Isolate* mutator);
-  void DecreaseMutatorCount(Isolate* mutator);
+  void IncreaseMutatorCount(Isolate* mutator, bool is_nested_reenter);
+  void DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit);
 
   bool HasTagHandler() const { return library_tag_handler() != nullptr; }
   ObjectPtr CallTagHandler(Dart_LibraryTag tag,
@@ -1512,10 +1512,13 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
       const GrowableObjectArray& value);
 #endif  // !defined(PRODUCT)
 
-  Thread* ScheduleThread(bool is_mutator, bool bypass_safepoint = false);
+  Thread* ScheduleThread(bool is_mutator,
+                         bool is_nested_reenter,
+                         bool bypass_safepoint);
   void UnscheduleThread(Thread* thread,
                         bool is_mutator,
-                        bool bypass_safepoint = false);
+                        bool is_nested_exit,
+                        bool bypass_safepoint);
 
   // DEPRECATED: Use Thread's methods instead. During migration, these default
   // to using the mutator thread (which must also be the current thread).

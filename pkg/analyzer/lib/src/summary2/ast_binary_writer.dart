@@ -923,9 +923,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     var resolutionSink = _resolutionSink;
     if (resolutionSink != null) {
-      var element = node.declaredElement as FunctionTypeAliasElementImpl;
+      var element = node.declaredElement as TypeAliasElementImpl;
+      var function = element.aliasedElement as GenericFunctionTypeElement;
       _writeMarker(MarkerTag.FunctionTypeAlias_returnTypeType);
-      _writeActualReturnType(resolutionSink, element.function.returnType);
+      _writeActualReturnType(resolutionSink, function.returnType);
       // TODO(scheglov) pack into one byte
       _writeMarker(MarkerTag.FunctionTypeAlias_flags);
       resolutionSink.writeByte(element.isSimplyBounded ? 1 : 0);

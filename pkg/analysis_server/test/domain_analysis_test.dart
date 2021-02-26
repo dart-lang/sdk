@@ -1225,7 +1225,7 @@ void f(A a) {}
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newOptionsFile(testPackageRootPath, content: '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, content: '''
 analyzer:
   exclude:
     - "**/b.dart"

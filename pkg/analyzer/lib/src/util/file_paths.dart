@@ -13,6 +13,9 @@ const String analysisOptionsYaml = 'analysis_options.yaml';
 /// File name of Android manifest files.
 const String androidManifestXml = 'AndroidManifest.xml';
 
+/// File name of Bazel `BUILD` files.
+const String bazelBuild = 'BUILD';
+
 /// The name of the `.dart_tool` directory.
 const String dotDartTool = '.dart_tool';
 
@@ -36,6 +39,11 @@ bool isAnalysisOptionsYaml(p.Context pathContext, String path) {
 /// Return `true` if [path] is a `AndroidManifest.xml` file.
 bool isAndroidManifestXml(p.Context pathContext, String path) {
   return pathContext.basename(path) == androidManifestXml;
+}
+
+/// Return `true` if [path] is a Bazel `BUILD` file.
+bool isBazelBuild(p.Context pathContext, String path) {
+  return pathContext.basename(path) == bazelBuild;
 }
 
 /// Return `true` if [path] is a Dart file.

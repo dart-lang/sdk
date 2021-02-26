@@ -106,10 +106,13 @@ class ContextRootImpl implements ContextRoot {
   /// of the [excludedPaths].
   bool _isExcluded(String path) {
     Context context = resourceProvider.pathContext;
-    String name = context.basename(path);
-    if (name.startsWith('.')) {
-      return true;
+
+    for (String pathComponent in context.split(path)) {
+      if (pathComponent.startsWith('.')) {
+        return true;
+      }
     }
+
     for (String excludedPath in excludedPaths) {
       if (context.isAbsolute(excludedPath)) {
         if (path == excludedPath || context.isWithin(excludedPath, path)) {

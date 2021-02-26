@@ -116,12 +116,6 @@ class AnalysisEngine {
     // See https://github.com/dart-lang/sdk/issues/30314.
     StringToken.canonicalizer.clear();
   }
-
-  /// A utility method that clients can use to process all of the required
-  /// plugins. This method can only be used by clients that do not need to
-  /// process any other plugins.
-  @deprecated
-  void processRequiredPlugins() {}
 }
 
 /// The analysis errors and line information for the errors.

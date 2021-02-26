@@ -3415,6 +3415,15 @@ class _WhyNotPromotedVisitor
     }
   }
 
+  @override
+  DiagnosticMessage? visitThisNotPromoted(ThisNotPromoted reason) {
+    return DiagnosticMessageImpl(
+        filePath: source.fullName,
+        message: "'this' can't be promoted.",
+        offset: _receiver.offset,
+        length: _receiver.length);
+  }
+
   DiagnosticMessageImpl _contextMessageForProperty(
       PropertyAccessorElement property, String propertyName) {
     return DiagnosticMessageImpl(

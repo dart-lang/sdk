@@ -4316,6 +4316,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
 }
 
+@Deprecated('Use TypeAliasElement instead')
 class FunctionTypeAliasElementImpl extends TypeAliasElementImpl
     implements FunctionTypeAliasElement {
   FunctionTypeAliasElementImpl.forLinkedNode(
@@ -4324,6 +4325,7 @@ class FunctionTypeAliasElementImpl extends TypeAliasElementImpl
     TypeAlias linkedNode,
   ) : super.forLinkedNode(enclosingUnit, reference, linkedNode);
 
+  @Deprecated('Use aliasedElement instead')
   @override
   GenericFunctionTypeElementImpl get function {
     return aliasedElement as GenericFunctionTypeElementImpl;
@@ -4336,6 +4338,7 @@ class FunctionTypeAliasElementImpl extends TypeAliasElementImpl
     return visitor.visitTypeAliasElement(this);
   }
 
+  @Deprecated('Use TypeAliasElement instead')
   @override
   FunctionType instantiate({
     required List<DartType> typeArguments,
@@ -6975,12 +6978,14 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     TypeAlias linkedNode,
   ) {
     if (linkedNode is FunctionTypeAlias) {
+      // ignore: deprecated_member_use_from_same_package
       return FunctionTypeAliasElementImpl.forLinkedNode(
           enclosingUnit, reference, linkedNode);
     } else {
       var aliasedType = (linkedNode as GenericTypeAlias).type;
       if (aliasedType is GenericFunctionType ||
           !enclosingUnit.isNonFunctionTypeAliasesEnabled) {
+        // ignore: deprecated_member_use_from_same_package
         return FunctionTypeAliasElementImpl.forLinkedNode(
             enclosingUnit, reference, linkedNode);
       } else {
@@ -7575,6 +7580,7 @@ class _Sentinel {
   static final List<ExtensionElement> extensionElement = List.unmodifiable([]);
   static final List<FieldElement> fieldElement = List.unmodifiable([]);
   static final List<FunctionElement> functionElement = List.unmodifiable([]);
+  @Deprecated('Use TypeAliasElement instead')
   static final List<FunctionTypeAliasElement> functionTypeAliasElement =
       List.unmodifiable([]);
   static final List<ImportElement> importElement = List.unmodifiable([]);

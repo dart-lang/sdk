@@ -154,8 +154,9 @@ class TypesBuilder {
 
   void _functionTypeAlias(FunctionTypeAlias node) {
     var returnTypeNode = node.returnType;
-    var element = node.declaredElement as FunctionTypeAliasElementImpl;
-    element.function.returnType = returnTypeNode?.type ?? _dynamicType;
+    var element = node.declaredElement as TypeAliasElement;
+    var function = element.aliasedElement as GenericFunctionTypeElementImpl;
+    function.returnType = returnTypeNode?.type ?? _dynamicType;
   }
 
   void _functionTypedFormalParameter(FunctionTypedFormalParameter node) {

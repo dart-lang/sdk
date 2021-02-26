@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-02-24T07:33:35.310314",
+  "generated": "2021-02-25T12:53:17.111860",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -327,7 +327,7 @@
       "name": "http_multi_server",
       "rootUri": "../third_party/pkg/http_multi_server",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.12"
     },
     {
       "name": "http_parser",

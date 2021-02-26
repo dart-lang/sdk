@@ -18,6 +18,7 @@
 #include "platform/utils.h"
 #include "vm/heap/pages.h"
 #include "vm/isolate.h"
+#include "vm/virtual_memory_compressed.h"
 
 // #define VIRTUAL_MEMORY_LOGGING 1
 #if defined(VIRTUAL_MEMORY_LOGGING)
@@ -44,21 +45,6 @@ DECLARE_FLAG(bool, generate_perf_jitdump);
 uword VirtualMemory::page_size_ = 0;
 
 static void unmap(uword start, uword end);
-
-#if defined(DART_COMPRESSED_POINTERS)
-static uword compressed_heap_base_ = 0;
-static uint8_t* compressed_heap_pages_ = nullptr;
-static uword compressed_heap_minimum_free_page_id_ = 0;
-static Mutex* compressed_heap_mutex_ = nullptr;
-
-static constexpr intptr_t kCompressedHeapSize = 2 * GB;
-static constexpr intptr_t kCompressedHeapAlignment = 4 * GB;
-static constexpr intptr_t kCompressedHeapPageSize = kOldPageSize;
-static constexpr intptr_t kCompressedHeapNumPages =
-    kCompressedHeapSize / kOldPageSize;
-static constexpr intptr_t kCompressedHeapBitmapSize =
-    kCompressedHeapNumPages / 8;
-#endif  // defined(DART_COMPRESSED_POINTERS)
 
 static void* GenericMapAligned(int prot,
                                intptr_t size,
@@ -89,16 +75,11 @@ intptr_t VirtualMemory::CalculatePageSize() {
 
 void VirtualMemory::Init() {
 #if defined(DART_COMPRESSED_POINTERS)
-  if (compressed_heap_pages_ == nullptr) {
-    compressed_heap_pages_ = new uint8_t[kCompressedHeapBitmapSize];
-    memset(compressed_heap_pages_, 0, kCompressedHeapBitmapSize);
-    compressed_heap_base_ = reinterpret_cast<uword>(GenericMapAligned(
+  if (VirtualMemoryCompressedHeap::GetRegion() == nullptr) {
+    VirtualMemoryCompressedHeap::Init(GenericMapAligned(
         PROT_READ | PROT_WRITE, kCompressedHeapSize, kCompressedHeapAlignment,
         kCompressedHeapSize + kCompressedHeapAlignment,
         MAP_PRIVATE | MAP_ANONYMOUS));
-    ASSERT(compressed_heap_base_ != 0);
-    ASSERT(Utils::IsAligned(compressed_heap_base_, kCompressedHeapAlignment));
-    compressed_heap_mutex_ = new Mutex(NOT_IN_PRODUCT("compressed_heap_mutex"));
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
 
@@ -168,13 +149,10 @@ void VirtualMemory::Init() {
 
 void VirtualMemory::Cleanup() {
 #if defined(DART_COMPRESSED_POINTERS)
-  unmap(compressed_heap_base_, compressed_heap_base_ + kCompressedHeapSize);
-  delete[] compressed_heap_pages_;
-  delete compressed_heap_mutex_;
-  compressed_heap_base_ = 0;
-  compressed_heap_pages_ = nullptr;
-  compressed_heap_minimum_free_page_id_ = 0;
-  compressed_heap_mutex_ = nullptr;
+  uword heap_base =
+      reinterpret_cast<uword>(VirtualMemoryCompressedHeap::GetRegion());
+  unmap(heap_base, heap_base + kCompressedHeapSize);
+  VirtualMemoryCompressedHeap::Cleanup();
 #endif  // defined(DART_COMPRESSED_POINTERS)
 }
 
@@ -248,93 +226,6 @@ static void* MapAligned(int fd,
 }
 #endif  // defined(DUAL_MAPPING_SUPPORTED)
 
-#if defined(DART_COMPRESSED_POINTERS)
-uint8_t PageMask(uword page_id) {
-  return static_cast<uint8_t>(1 << (page_id % 8));
-}
-bool IsCompressedHeapPageUsed(uword page_id) {
-  if (page_id >= kCompressedHeapNumPages) return false;
-  return compressed_heap_pages_[page_id / 8] & PageMask(page_id);
-}
-void SetCompressedHeapPageUsed(uword page_id) {
-  ASSERT(page_id < kCompressedHeapNumPages);
-  compressed_heap_pages_[page_id / 8] |= PageMask(page_id);
-}
-void ClearCompressedHeapPageUsed(uword page_id) {
-  ASSERT(page_id < kCompressedHeapNumPages);
-  compressed_heap_pages_[page_id / 8] &= ~PageMask(page_id);
-}
-static MemoryRegion MapInCompressedHeap(intptr_t size, intptr_t alignment) {
-  ASSERT(alignment <= kCompressedHeapAlignment);
-  const intptr_t allocated_size = Utils::RoundUp(size, kCompressedHeapPageSize);
-  uword pages = allocated_size / kCompressedHeapPageSize;
-  uword page_alignment = alignment > kCompressedHeapPageSize
-                             ? alignment / kCompressedHeapPageSize
-                             : 1;
-  MutexLocker ml(compressed_heap_mutex_);
-
-  // Find a gap with enough empty pages, using the bitmap. Note that reading
-  // outside the bitmap range always returns 0, so this loop will terminate.
-  uword page_id =
-      Utils::RoundUp(compressed_heap_minimum_free_page_id_, page_alignment);
-  for (uword gap = 0;;) {
-    if (IsCompressedHeapPageUsed(page_id)) {
-      gap = 0;
-      page_id = Utils::RoundUp(page_id + 1, page_alignment);
-    } else {
-      ++gap;
-      if (gap >= pages) {
-        page_id += 1 - gap;
-        break;
-      }
-      ++page_id;
-    }
-  }
-  ASSERT(page_id % page_alignment == 0);
-
-  // Make sure we're not trying to allocate past the end of the heap.
-  uword end = page_id + pages;
-  if (end > kCompressedHeapSize / kCompressedHeapPageSize) {
-    return MemoryRegion();
-  }
-
-  // Mark all the pages in the bitmap as allocated.
-  for (uword i = page_id; i < end; ++i) {
-    ASSERT(!IsCompressedHeapPageUsed(i));
-    SetCompressedHeapPageUsed(i);
-  }
-
-  // Find the next free page, to speed up subsequent allocations.
-  while (IsCompressedHeapPageUsed(compressed_heap_minimum_free_page_id_)) {
-    ++compressed_heap_minimum_free_page_id_;
-  }
-
-  uword address = compressed_heap_base_ + page_id * kCompressedHeapPageSize;
-  ASSERT(Utils::IsAligned(address, kCompressedHeapPageSize));
-  return MemoryRegion(reinterpret_cast<void*>(address), allocated_size);
-}
-
-static void UnmapInCompressedHeap(uword start, uword size) {
-  ASSERT(Utils::IsAligned(start, kCompressedHeapPageSize));
-  ASSERT(Utils::IsAligned(size, kCompressedHeapPageSize));
-  MutexLocker ml(compressed_heap_mutex_);
-  ASSERT(start >= compressed_heap_base_);
-  uword page_id = (start - compressed_heap_base_) / kCompressedHeapPageSize;
-  uword end = page_id + size / kCompressedHeapPageSize;
-  for (uword i = page_id; i < end; ++i) {
-    ClearCompressedHeapPageUsed(i);
-  }
-  if (page_id < compressed_heap_minimum_free_page_id_) {
-    compressed_heap_minimum_free_page_id_ = page_id;
-  }
-}
-
-static bool IsInCompressedHeap(uword address) {
-  return address >= compressed_heap_base_ &&
-         address < compressed_heap_base_ + kCompressedHeapSize;
-}
-#endif  // defined(DART_COMPRESSED_POINTERS)
-
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
@@ -352,7 +243,8 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 
 #if defined(DART_COMPRESSED_POINTERS)
   if (!is_executable) {
-    MemoryRegion region = MapInCompressedHeap(size, alignment);
+    MemoryRegion region =
+        VirtualMemoryCompressedHeap::Allocate(size, alignment);
     if (region.pointer() == nullptr) {
       return nullptr;
     }
@@ -446,8 +338,8 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 
 VirtualMemory::~VirtualMemory() {
 #if defined(DART_COMPRESSED_POINTERS)
-  if (IsInCompressedHeap(reserved_.start())) {
-    UnmapInCompressedHeap(reserved_.start(), reserved_.size());
+  if (VirtualMemoryCompressedHeap::Contains(reserved_.pointer())) {
+    VirtualMemoryCompressedHeap::Free(reserved_.pointer(), reserved_.size());
     return;
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
@@ -461,13 +353,13 @@ VirtualMemory::~VirtualMemory() {
 }
 
 bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
-  const uword start = reinterpret_cast<uword>(address);
 #if defined(DART_COMPRESSED_POINTERS)
   // Don't free the sub segment if it's managed by the compressed pointer heap.
-  if (IsInCompressedHeap(start)) {
+  if (VirtualMemoryCompressedHeap::Contains(address)) {
     return false;
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
+  const uword start = reinterpret_cast<uword>(address);
   unmap(start, start + size);
   return true;
 }

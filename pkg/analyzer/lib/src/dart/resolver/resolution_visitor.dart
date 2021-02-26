@@ -605,7 +605,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    var element = _elementWalker!.getTypedef() as FunctionTypeAliasElementImpl;
+    var element = _elementWalker!.getTypedef();
     node.name.staticElement = element;
 
     node.metadata.accept(this);

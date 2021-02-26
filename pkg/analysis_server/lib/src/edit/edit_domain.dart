@@ -215,8 +215,10 @@ class EditDomainHandler extends AbstractRequestHandler {
     if (driver == null) {
       pluginFutures = <PluginInfo, Future<plugin.Response>>{};
     } else {
-      pluginFutures = server.pluginManager
-          .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
+      pluginFutures = server.pluginManager.broadcastRequest(
+        requestParams,
+        contextRoot: driver.analysisContext.contextRoot,
+      );
     }
 
     //
@@ -273,8 +275,10 @@ class EditDomainHandler extends AbstractRequestHandler {
     if (driver == null) {
       pluginFutures = <PluginInfo, Future<plugin.Response>>{};
     } else {
-      pluginFutures = server.pluginManager
-          .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
+      pluginFutures = server.pluginManager.broadcastRequest(
+        requestParams,
+        contextRoot: driver.analysisContext.contextRoot,
+      );
     }
     //
     // Compute fixes associated with server-generated errors.

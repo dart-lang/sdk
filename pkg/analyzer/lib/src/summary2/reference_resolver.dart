@@ -237,7 +237,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
     var outerReference = reference;
 
-    var element = node.declaredElement as FunctionTypeAliasElementImpl;
+    var element = node.declaredElement as TypeAliasElementImpl;
     reference = element.reference!;
 
     _createTypeParameterElements(element, node.typeParameters);
@@ -246,9 +246,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
 
-    var functionElement = element.function;
-    reference = functionElement.reference!;
-    functionElement.parameters; // create elements
+    var function = element.aliasedElement as GenericFunctionTypeElementImpl;
+    reference = function.reference!;
+    function.parameters; // create elements
     node.parameters.accept(this);
 
     nodesToBuildType.addDeclaration(node);

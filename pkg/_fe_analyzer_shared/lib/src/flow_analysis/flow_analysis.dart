@@ -2388,6 +2388,8 @@ abstract class NonPromotionReasonVisitor<R, Node extends Object,
       DemoteViaForEachVariableWrite<Variable, Node> reason);
 
   R visitPropertyNotPromoted(PropertyNotPromoted reason);
+
+  R visitThisNotPromoted(ThisNotPromoted reason);
 }
 
 /// Non-promotion reason describing the situation where an expression was not
@@ -2620,6 +2622,19 @@ class SsaNode<Variable extends Object, Type extends Object> {
     int id = _debugIds[self] ??= _nextDebugId++;
     return 'ssa$id';
   }
+}
+
+/// Non-promotion reason describing the situation where an expression was not
+/// promoted due to the fact that it's a reference to `this`.
+class ThisNotPromoted extends NonPromotionReason {
+  @override
+  String get shortName => 'thisNotPromoted';
+
+  @override
+  R accept<R, Node extends Object, Expression extends Object,
+              Variable extends Object>(
+          NonPromotionReasonVisitor<R, Node, Expression, Variable> visitor) =>
+      visitor.visitThisNotPromoted(this);
 }
 
 /// Enum representing the different classifications of types that can be
@@ -5099,8 +5114,14 @@ class _ThisReference<Variable extends Object, Type extends Object>
   Map<Type, NonPromotionReason> getNonPromotionReasons(
       Map<Variable?, VariableModel<Variable, Type>> variableInfo,
       TypeOperations<Variable, Type> typeOperations) {
-    // TODO(paulberry): implement.
-    return {};
+    Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
+    List<Type>? promotedTypes = _getInfo(variableInfo)?.promotedTypes;
+    if (promotedTypes != null) {
+      for (Type type in promotedTypes) {
+        result[type] = new ThisNotPromoted();
+      }
+    }
+    return result;
   }
 
   @override

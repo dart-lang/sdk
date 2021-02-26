@@ -8,10 +8,10 @@ import 'dart:convert';
 import 'dart:io' show Platform, Process;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
+import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/context/context_root.dart' as analyzer;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/glob.dart';
@@ -171,7 +171,7 @@ abstract class PluginInfo {
   /// the file with the given [filePath].
   bool isAnalyzing(String filePath) {
     for (var contextRoot in contextRoots) {
-      if (contextRoot.containsFile(filePath)) {
+      if (contextRoot.isAnalyzed(filePath)) {
         return true;
       }
     }
@@ -236,8 +236,8 @@ abstract class PluginInfo {
     if (currentSession != null) {
       var params = AnalysisSetContextRootsParams(contextRoots
           .map((analyzer.ContextRoot contextRoot) => ContextRoot(
-              contextRoot.root, contextRoot.exclude,
-              optionsFile: contextRoot.optionsFilePath))
+              contextRoot.root.path, contextRoot.excludedPaths.toList(),
+              optionsFile: contextRoot.optionsFile?.path))
           .toList());
       currentSession.sendRequest(params);
     }

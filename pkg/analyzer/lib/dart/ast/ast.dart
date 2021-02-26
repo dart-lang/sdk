@@ -2821,6 +2821,7 @@ abstract class FunctionExpressionInvocation
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypeAlias implements TypeAlias {
   @override
+  // ignore: deprecated_member_use_from_same_package
   FunctionTypeAliasElement? get declaredElement;
 
   /// Return the parameters associated with the function type.

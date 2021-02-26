@@ -5083,7 +5083,9 @@ class FunctionTypeAliasImpl extends TypeAliasImpl
     ..add(semicolon);
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   FunctionTypeAliasElement? get declaredElement =>
+      // ignore: deprecated_member_use_from_same_package
       _name.staticElement as FunctionTypeAliasElement?;
 
   @override

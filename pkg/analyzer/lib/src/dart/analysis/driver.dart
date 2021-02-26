@@ -133,6 +133,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   DeclaredVariables declaredVariables = DeclaredVariables();
 
   /// Information about the context root being analyzed by this driver.
+  @Deprecated('Use analysisContext instead')
   final ContextRoot? contextRoot;
 
   /// The analysis context that created this driver / session.
@@ -326,7 +327,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Set<String> get knownFiles => _fsState.knownFilePaths;
 
   /// Return the path of the folder at the root of the context.
-  String get name => contextRoot?.root ?? '';
+  String get name => analysisContext?.contextRoot.root.path ?? '';
 
   /// Return the number of files scheduled for analysis.
   int get numberOfFilesToAnalyze => _fileTracker.numberOfPendingFiles;
@@ -505,6 +506,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }) {
     if (analysisContext != null) {
       this.analysisContext = analysisContext;
+      _scheduler.driverWatcher?.addedDriver(this);
     }
     if (analysisOptions != null) {
       _analysisOptions = analysisOptions;
@@ -1903,8 +1905,8 @@ class AnalysisDriverScheduler {
   void add(AnalysisDriverGeneric driver) {
     _drivers.add(driver);
     _hasWork.notify();
-    if (driver is AnalysisDriver) {
-      driverWatcher?.addedDriver(driver, driver.contextRoot);
+    if (driver is AnalysisDriver && driver.analysisContext != null) {
+      driverWatcher?.addedDriver(driver);
     }
   }
 
@@ -2113,7 +2115,7 @@ class DriverAnalyzedFiles {
 abstract class DriverWatcher {
   /// The context manager has just added the given analysis [driver]. This method
   /// must be called before the driver has been allowed to perform any analysis.
-  void addedDriver(AnalysisDriver driver, ContextRoot? contextRoot);
+  void addedDriver(AnalysisDriver driver);
 
   /// The context manager has just removed the given analysis [driver].
   void removedDriver(AnalysisDriver driver);
