@@ -12,12 +12,23 @@ Future<void> throwAsync() async {
   throw 'Throw from throwAsync!';
 }
 
+Future<void> nestedThrowAsync() async {
+  await Future.delayed(const Duration(milliseconds: 100));
+  await throwAsync();
+}
+
 testeeMain() async {
   await throwAsync().then((v) {
     print('Hello from then()!');
   }).catchError((e, st) {
     print('Caught in catchError: $e!');
   });
+  // Make sure we can chain through off-stack awaiters as well.
+  try {
+    await nestedThrowAsync();
+  } catch (e) {
+    print('Caught in catch: $e!');
+  }
 }
 
 var tests = <IsolateTest>[

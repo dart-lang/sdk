@@ -97,7 +97,7 @@ final tests = <IsolateTest>[
 
     expect(result.frames, hasLength(10));
     expect(result.asyncCausalFrames, hasLength(26));
-    expect(result.awaiterFrames, hasLength(2));
+    expect(result.awaiterFrames, hasLength(13));
 
     expectFrames(result.frames!, [
       [equals('Regular'), endsWith(' func10')],
@@ -140,6 +140,17 @@ final tests = <IsolateTest>[
     expectFrames(result.awaiterFrames, [
       [equals('AsyncActivation'), endsWith(' func10')],
       [equals('AsyncActivation'), endsWith(' func9')],
+      [equals('AsyncActivation'), endsWith(' func8')],
+      [equals('AsyncActivation'), endsWith(' func7')],
+      [equals('AsyncActivation'), endsWith(' func6')],
+      [equals('AsyncActivation'), endsWith(' func5')],
+      [equals('AsyncActivation'), endsWith(' func4')],
+      [equals('AsyncActivation'), endsWith(' func3')],
+      [equals('AsyncActivation'), endsWith(' func2')],
+      [equals('AsyncActivation'), endsWith(' func1')],
+      [equals('AsyncActivation'), endsWith(' testMain')],
+      [equals('AsyncActivation'), endsWith(' _ServiceTesteeRunner.run')],
+      [equals('AsyncActivation'), endsWith(' runIsolateTests')],
     ]);
   },
 ];
