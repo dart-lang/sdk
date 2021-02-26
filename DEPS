@@ -229,6 +229,13 @@ deps = {
       }],
       "dep_type": "cipd",
   },
+  Var("dart_root") + "/third_party/devtools": {
+      "packages": [{
+          "package": "dart/third_party/flutter/devtools",
+          "version": "revision:6729ec62c3548839018c32fa711756202431ccf7",
+      }],
+      "dep_type": "cipd",
+  },
   Var("dart_root") + "/tests/co19/src": {
       "packages": [{
           "package": "dart/third_party/co19",
