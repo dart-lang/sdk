@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -31,6 +32,32 @@ class ExpectedCompletion {
   ExpectedCompletion(this._filePath, this._entity, this._lineNumber,
       this._columnNumber, this._kind, this._elementKind)
       : _completionString = null;
+
+  /// Return an instance extracted from the decoded JSON [map].
+  factory ExpectedCompletion.fromJson(Map<String, dynamic> map) {
+    var jsonDecoder = ResponseDecoder(null);
+    var filePath = map['filePath'] as String;
+    var offset = map['offset'] as int;
+    var lineNumber = map['lineNumber'] as int;
+    var columnNumber = map['columnNumber'] as int;
+    var completionString = map['completionString'] as String;
+    var kind = map['kind'] != null
+        ? protocol.CompletionSuggestionKind.fromJson(
+            jsonDecoder, '', map['kind'] as String)
+        : null;
+    var elementKind = map['elementKind'] != null
+        ? protocol.ElementKind.fromJson(
+            jsonDecoder, '', map['elementKind'] as String)
+        : null;
+    return ExpectedCompletion.specialCompletionString(
+        filePath,
+        _SyntacticEntity(offset),
+        lineNumber,
+        columnNumber,
+        completionString,
+        kind,
+        elementKind);
+  }
 
   ExpectedCompletion.specialCompletionString(
       this._filePath,
@@ -74,6 +101,19 @@ class ExpectedCompletion {
       return true;
     }
     return false;
+  }
+
+  /// Return a map used to represent this expected completion in a JSON structure.
+  Map<String, dynamic> toJson() {
+    return {
+      'filePath': _filePath,
+      'offset': _entity.offset,
+      'lineNumber': _lineNumber,
+      'columnNumber': _columnNumber,
+      'completionString': _completionString,
+      if (_kind != null) 'kind': _kind.toJson(),
+      if (_elementKind != null) 'elementKind': _elementKind.toJson(),
+    };
   }
 
   @override
@@ -756,4 +796,17 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
 
     return true;
   }
+}
+
+class _SyntacticEntity implements SyntacticEntity {
+  @override
+  final int offset;
+
+  _SyntacticEntity(this.offset);
+
+  @override
+  int get end => offset + length;
+
+  @override
+  int get length => 0;
 }
