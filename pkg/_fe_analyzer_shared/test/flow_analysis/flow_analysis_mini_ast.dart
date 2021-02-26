@@ -144,6 +144,10 @@ Statement if_(Expression condition, List<Statement> ifTrue,
         [List<Statement>? ifFalse]) =>
     new _If(condition, ifTrue, ifFalse);
 
+Statement implicitThis_whyNotPromoted(
+        void Function(Map<Type, NonPromotionReason>) callback) =>
+    new _WhyNotPromoted_ImplicitThis(callback);
+
 Statement labeled(Statement body) => new _LabeledStatement(body);
 
 Statement localFunction(List<Statement> body) => _LocalFunction(body);
@@ -1757,6 +1761,30 @@ class _WhyNotPromoted extends Expression {
       Type._allowComparisons = false;
     }
     return type;
+  }
+}
+
+class _WhyNotPromoted_ImplicitThis extends Statement {
+  final void Function(Map<Type, NonPromotionReason>) callback;
+
+  _WhyNotPromoted_ImplicitThis(this.callback) : super._();
+
+  @override
+  String toString() => 'implicit this (whyNotPromoted)';
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+
+  @override
+  void _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    assert(!Type._allowComparisons);
+    Type._allowComparisons = true;
+    try {
+      callback(flow.whyNotPromoted(null));
+    } finally {
+      Type._allowComparisons = false;
+    }
   }
 }
 

@@ -5683,6 +5683,40 @@ main() {
         ]);
       });
     });
+
+    group('because this', () {
+      test('explicit', () {
+        var h = Harness()
+          ..addSubtype('D', 'Object?', true)
+          ..addFactor('Object?', 'D', 'Object?');
+        h.run([
+          if_(this_('C').isNot('D'), [
+            return_(),
+          ]),
+          this_('C').whyNotPromoted((reasons) {
+            expect(reasons.keys, unorderedEquals([Type('D')]));
+            var nonPromotionReason = reasons.values.single;
+            expect(nonPromotionReason, TypeMatcher<ThisNotPromoted>());
+          }).stmt,
+        ]);
+      });
+
+      test('implicit', () {
+        var h = Harness()
+          ..addSubtype('D', 'Object?', true)
+          ..addFactor('Object?', 'D', 'Object?');
+        h.run([
+          if_(this_('C').isNot('D'), [
+            return_(),
+          ]),
+          implicitThis_whyNotPromoted((reasons) {
+            expect(reasons.keys, unorderedEquals([Type('D')]));
+            var nonPromotionReason = reasons.values.single;
+            expect(nonPromotionReason, TypeMatcher<ThisNotPromoted>());
+          }),
+        ]);
+      });
+    });
   });
 }
 

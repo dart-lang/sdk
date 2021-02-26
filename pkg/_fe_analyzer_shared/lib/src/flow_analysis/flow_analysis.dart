@@ -935,6 +935,8 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// promotion, to retrieve information about why [target] was not promoted.
   /// This call must be made right after visiting [target].
   ///
+  /// If [target] is `null` it is assumed to be an implicit reference to `this`.
+  ///
   /// The returned value is a map whose keys are types that the user might have
   /// been expecting the target to be promoted to, and whose values are reasons
   /// why the corresponding promotion did not occur.  The caller is expected to
@@ -943,7 +945,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// occurs due to the target having a nullable type, the caller should report
   /// a non-promotion reason associated with non-promotion to a non-nullable
   /// type).
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target);
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression? target);
 
   /// Register write of the given [variable] in the current state.
   /// [writtenType] should be the type of the value that was written.
@@ -1460,7 +1462,7 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression? target) {
     return _wrap(
         'whyNotPromoted($target)', () => _wrapped.whyNotPromoted(target),
         isQuery: true);
@@ -4257,13 +4259,16 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
-    if (identical(target, _expressionWithReference)) {
-      Reference<Variable, Type>? reference = _expressionReference;
-      if (reference != null) {
-        return reference.getNonPromotionReasons(
-            _current.variableInfo, typeOperations);
-      }
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression? target) {
+    Reference<Variable, Type>? reference;
+    if (target == null) {
+      reference = new _ThisReference<Variable, Type>();
+    } else if (identical(target, _expressionWithReference)) {
+      reference = _expressionReference;
+    }
+    if (reference != null) {
+      return reference.getNonPromotionReasons(
+          _current.variableInfo, typeOperations);
     }
     return {};
   }
@@ -4850,7 +4855,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void whileStatement_end() {}
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression? target) {
     return {};
   }
 
