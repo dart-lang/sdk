@@ -170,6 +170,10 @@ Precompiler::Precompiler(Thread* thread)
       pending_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New())),
       sent_selectors_(),
+      entry_point_functions_(
+          HashTables::New<FunctionSet>(/*initial_capacity=*/128)),
+      functions_called_dynamically_(
+          HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
       seen_functions_(HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
       possibly_retained_functions_(
           HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
@@ -192,6 +196,8 @@ Precompiler::Precompiler(Thread* thread)
 
 Precompiler::~Precompiler() {
   // We have to call Release() in DEBUG mode.
+  entry_point_functions_.Release();
+  functions_called_dynamically_.Release();
   seen_functions_.Release();
   possibly_retained_functions_.Release();
   functions_to_retain_.Release();
@@ -445,6 +451,7 @@ void Precompiler::DoCompileAll() {
              non_visited.ToFullyQualifiedCString());
     }
 #endif
+    DiscardCodeObjects();
     ProgramVisitor::Dedup(T);
 
     zone_ = NULL;
@@ -796,6 +803,11 @@ void Precompiler::AddTypesOf(const Function& function) {
   if (functions_to_retain_.ContainsKey(function)) return;
   functions_to_retain_.Insert(function);
 
+  if (function.NeedsMonomorphicCheckedEntry(Z) ||
+      Function::IsDynamicInvocationForwarderName(function.name())) {
+    functions_called_dynamically_.Insert(function);
+  }
+
   const FunctionType& signature = FunctionType::Handle(Z, function.signature());
   AddType(signature);
 
@@ -1079,6 +1091,7 @@ void Precompiler::AddFunction(const Function& function, bool retain) {
   }
 
   if (possibly_retained_functions_.ContainsKey(function)) return;
+
   if (retain || MustRetainFunction(function)) {
     possibly_retained_functions_.Insert(function);
   }
@@ -1239,6 +1252,7 @@ void Precompiler::AddAnnotatedRoots() {
           if (type == EntryPointPragma::kAlways ||
               type == EntryPointPragma::kCallOnly) {
             AddFunction(function);
+            entry_point_functions_.Insert(function);
           }
 
           if ((type == EntryPointPragma::kAlways ||
@@ -1247,10 +1261,12 @@ void Precompiler::AddAnnotatedRoots() {
               !function.IsSetterFunction()) {
             function2 = function.ImplicitClosureFunction();
             AddFunction(function2);
+            entry_point_functions_.Insert(function2);
           }
 
           if (function.IsGenerativeConstructor()) {
             AddInstantiatedClass(cls);
+            entry_point_functions_.Insert(function);
           }
         }
         if (function.kind() == UntaggedFunction::kImplicitGetter &&
@@ -1259,6 +1275,7 @@ void Precompiler::AddAnnotatedRoots() {
             field ^= implicit_getters.At(i);
             if (function.accessor_field() == field.ptr()) {
               AddFunction(function);
+              entry_point_functions_.Insert(function);
             }
           }
         }
@@ -1268,6 +1285,7 @@ void Precompiler::AddAnnotatedRoots() {
             field ^= implicit_setters.At(i);
             if (function.accessor_field() == field.ptr()) {
               AddFunction(function);
+              entry_point_functions_.Insert(function);
             }
           }
         }
@@ -1277,6 +1295,7 @@ void Precompiler::AddAnnotatedRoots() {
             field ^= implicit_static_getters.At(i);
             if (function.accessor_field() == field.ptr()) {
               AddFunction(function);
+              entry_point_functions_.Insert(function);
             }
           }
         }
@@ -2395,6 +2414,139 @@ void Precompiler::DropLibraries() {
 
   Library::RegisterLibraries(T, retained_libraries);
   libraries_ = retained_libraries.ptr();
+}
+
+// Traverse program structure and mark Code objects
+// which do not have useful information as discarded.
+void Precompiler::DiscardCodeObjects() {
+  class DiscardCodeVisitor : public CodeVisitor {
+   public:
+    DiscardCodeVisitor(Zone* zone,
+                       const FunctionSet& functions_to_retain,
+                       const FunctionSet& entry_point_functions,
+                       const FunctionSet& functions_called_dynamically)
+        : zone_(zone),
+          function_(Function::Handle(zone)),
+          functions_to_retain_(functions_to_retain),
+          entry_point_functions_(entry_point_functions),
+          functions_called_dynamically_(functions_called_dynamically) {}
+
+    void VisitCode(const Code& code) override {
+      ++total_code_objects_;
+
+      // Only discard Code objects corresponding to Dart functions.
+      if (!code.IsFunctionCode()) {
+        ++non_function_codes_;
+        return;
+      }
+
+      // Retain Code object if it has exception handlers or PC descriptors.
+      if (code.exception_handlers() !=
+          Object::empty_exception_handlers().ptr()) {
+        ++codes_with_exception_handlers_;
+        return;
+      }
+      if (code.pc_descriptors() != Object::empty_descriptors().ptr()) {
+        ++codes_with_pc_descriptors_;
+        return;
+      }
+
+      function_ = code.function();
+      if (functions_to_retain_.ContainsKey(function_)) {
+        // Retain Code objects corresponding to:
+        // * invisible functions (to filter them from stack traces);
+        // * async/async* closures (to construct async stacks).
+        // * native functions (to find native implementation).
+        if (!function_.is_visible()) {
+          ++codes_with_invisible_function_;
+          return;
+        }
+        if (function_.is_native()) {
+          ++codes_with_native_function_;
+          return;
+        }
+        if (function_.IsAsyncClosure() || function_.IsAsyncGenClosure()) {
+          ++codes_with_async_closure_function_;
+          return;
+        }
+
+        // Retain Code objects for entry points.
+        if (entry_point_functions_.ContainsKey(function_)) {
+          ++codes_with_entry_point_function_;
+          return;
+        }
+
+        // Retain Code objects corresponding to dynamically
+        // called functions.
+        if (functions_called_dynamically_.ContainsKey(function_)) {
+          ++codes_with_dynamically_called_function_;
+          return;
+        }
+      } else {
+        ASSERT(!entry_point_functions_.ContainsKey(function_));
+        ASSERT(!functions_called_dynamically_.ContainsKey(function_));
+      }
+
+      code.set_is_discarded(true);
+      ++discarded_codes_;
+    }
+
+    void PrintStatistics() const {
+      THR_Print("Discarding Code objects:\n");
+      THR_Print("    %8" Pd " non-function Codes\n", non_function_codes_);
+      THR_Print("    %8" Pd " Codes with exception handlers\n",
+                codes_with_exception_handlers_);
+      THR_Print("    %8" Pd " Codes with pc descriptors\n",
+                codes_with_pc_descriptors_);
+      THR_Print("    %8" Pd " Codes with invisible functions\n",
+                codes_with_invisible_function_);
+      THR_Print("    %8" Pd " Codes with native functions\n",
+                codes_with_native_function_);
+      THR_Print("    %8" Pd " Codes with async closure functions\n",
+                codes_with_async_closure_function_);
+      THR_Print("    %8" Pd " Codes with dynamically called functions\n",
+                codes_with_dynamically_called_function_);
+      THR_Print("    %8" Pd " Codes with entry point functions\n",
+                codes_with_entry_point_function_);
+      THR_Print("    %8" Pd " Codes discarded\n", discarded_codes_);
+      THR_Print("    %8" Pd " Codes total\n", total_code_objects_);
+    }
+
+   private:
+    Zone* zone_;
+    Function& function_;
+    const FunctionSet& functions_to_retain_;
+    const FunctionSet& entry_point_functions_;
+    const FunctionSet& functions_called_dynamically_;
+
+    // Statistics
+    intptr_t total_code_objects_ = 0;
+    intptr_t non_function_codes_ = 0;
+    intptr_t codes_with_exception_handlers_ = 0;
+    intptr_t codes_with_pc_descriptors_ = 0;
+    intptr_t codes_with_invisible_function_ = 0;
+    intptr_t codes_with_native_function_ = 0;
+    intptr_t codes_with_async_closure_function_ = 0;
+    intptr_t codes_with_dynamically_called_function_ = 0;
+    intptr_t codes_with_entry_point_function_ = 0;
+    intptr_t discarded_codes_ = 0;
+  };
+
+  // Code objects are stored in stack frames if not use_bare_instructions.
+  // Code objects are used by stack traces if not dwarf_stack_traces.
+  // Code objects are used by profiler in non-PRODUCT mode.
+  if (!FLAG_use_bare_instructions || !FLAG_dwarf_stack_traces_mode ||
+      FLAG_retain_code_objects) {
+    return;
+  }
+
+  DiscardCodeVisitor visitor(Z, functions_to_retain_, entry_point_functions_,
+                             functions_called_dynamically_);
+  ProgramVisitor::WalkProgram(Z, IG, &visitor);
+
+  if (FLAG_trace_precompiler) {
+    visitor.PrintStatistics();
+  }
 }
 
 // Traits for the HashTable template.

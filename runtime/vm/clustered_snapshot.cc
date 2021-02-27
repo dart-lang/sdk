@@ -1635,35 +1635,74 @@ class CodeSerializationCluster : public SerializationCluster {
                            active_unchecked_offset, code, deferred);
     }
 
-    // No need to write object pool out if we are producing full AOT
-    // snapshot with bare instructions.
-    if (!(kind == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
-      WriteField(code, object_pool_);
-#if defined(DART_PRECOMPILER)
-    } else if (FLAG_write_v8_snapshot_profile_to != nullptr &&
-               code->untag()->object_pool_ != ObjectPool::null()) {
-      // If we are writing V8 snapshot profile then attribute references
-      // going through the object pool to the code object itself.
-      ObjectPoolPtr pool = code->untag()->object_pool_;
-
-      for (intptr_t i = 0; i < pool->untag()->length_; i++) {
-        uint8_t bits = pool->untag()->entry_bits()[i];
-        if (ObjectPool::TypeBits::decode(bits) ==
-            ObjectPool::EntryType::kTaggedObject) {
-          s->AttributeElementRef(pool->untag()->data()[i].raw_obj_, i);
-        }
-      }
-#endif  // defined(DART_PRECOMPILER)
-    }
-    WriteField(code, owner_);
-    WriteField(code, exception_handlers_);
-    WriteField(code, pc_descriptors_);
-    WriteField(code, catch_entry_);
     if (s->InCurrentLoadingUnit(code->untag()->compressed_stackmaps_)) {
       WriteField(code, compressed_stackmaps_);
     } else {
       WriteFieldValue(compressed_stackmaps_, CompressedStackMaps::null());
     }
+
+    s->Write<int32_t>(code->untag()->state_bits_);
+
+#if defined(DART_PRECOMPILER)
+    if (FLAG_write_v8_snapshot_profile_to != nullptr) {
+      // If we are writing V8 snapshot profile then attribute references going
+      // through the object pool and static calls to the code object itself.
+      if (kind == Snapshot::kFullAOT && FLAG_use_bare_instructions &&
+          code->untag()->object_pool_ != ObjectPool::null()) {
+        ObjectPoolPtr pool = code->untag()->object_pool_;
+
+        for (intptr_t i = 0; i < pool->untag()->length_; i++) {
+          uint8_t bits = pool->untag()->entry_bits()[i];
+          if (ObjectPool::TypeBits::decode(bits) ==
+              ObjectPool::EntryType::kTaggedObject) {
+            s->AttributeElementRef(pool->untag()->data()[i].raw_obj_, i);
+          }
+        }
+      }
+      if (code->untag()->static_calls_target_table_ != Array::null()) {
+        array_ = code->untag()->static_calls_target_table_;
+        intptr_t index = code->untag()->object_pool_ != ObjectPool::null()
+                             ? code->untag()->object_pool_->untag()->length_
+                             : 0;
+        for (auto entry : StaticCallsTable(array_)) {
+          auto kind = Code::KindField::decode(
+              Smi::Value(entry.Get<Code::kSCallTableKindAndOffset>()));
+          switch (kind) {
+            case Code::kCallViaCode:
+              // Code object in the pool.
+              continue;
+            case Code::kPcRelativeTTSCall:
+              // TTS will be reachable through type object which itself is
+              // in the pool.
+              continue;
+            case Code::kPcRelativeCall:
+            case Code::kPcRelativeTailCall:
+              auto destination = entry.Get<Code::kSCallTableCodeOrTypeTarget>();
+              ASSERT(destination->IsHeapObject() && destination->IsCode());
+              s->AttributeElementRef(destination, index++);
+          }
+        }
+      }
+    }
+#endif  // defined(DART_PRECOMPILER)
+
+    if (Code::IsDiscarded(code)) {
+      // Only write instructions, compressed stackmaps and state bits
+      // for the discarded Code objects.
+      ASSERT(kind == Snapshot::kFullAOT && FLAG_use_bare_instructions &&
+             FLAG_dwarf_stack_traces_mode && !FLAG_retain_code_objects);
+      return;
+    }
+
+    // No need to write object pool out if we are producing full AOT
+    // snapshot with bare instructions.
+    if (!(kind == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
+      WriteField(code, object_pool_);
+    }
+    WriteField(code, owner_);
+    WriteField(code, exception_handlers_);
+    WriteField(code, pc_descriptors_);
+    WriteField(code, catch_entry_);
     if (FLAG_precompiled_mode && FLAG_dwarf_stack_traces_mode) {
       WriteFieldValue(inlined_id_to_function_, Array::null());
       WriteFieldValue(code_source_map_, CodeSourceMap::null());
@@ -1680,43 +1719,12 @@ class CodeSerializationCluster : public SerializationCluster {
       WriteField(code, static_calls_target_table_);
     }
 
-#if defined(DART_PRECOMPILER)
-    if (FLAG_write_v8_snapshot_profile_to != nullptr &&
-        code->untag()->static_calls_target_table_ != Array::null()) {
-      // If we are writing V8 snapshot profile then attribute references
-      // going through static calls.
-      array_ = code->untag()->static_calls_target_table_;
-      intptr_t index = code->untag()->object_pool_ != ObjectPool::null()
-                           ? code->untag()->object_pool_->untag()->length_
-                           : 0;
-      for (auto entry : StaticCallsTable(array_)) {
-        auto kind = Code::KindField::decode(
-            Smi::Value(entry.Get<Code::kSCallTableKindAndOffset>()));
-        switch (kind) {
-          case Code::kCallViaCode:
-            // Code object in the pool.
-            continue;
-          case Code::kPcRelativeTTSCall:
-            // TTS will be reachable through type object which itself is
-            // in the pool.
-            continue;
-          case Code::kPcRelativeCall:
-          case Code::kPcRelativeTailCall:
-            auto destination = entry.Get<Code::kSCallTableCodeOrTypeTarget>();
-            ASSERT(destination->IsHeapObject() && destination->IsCode());
-            s->AttributeElementRef(destination, index++);
-        }
-      }
-    }
-#endif  // defined(DART_PRECOMPILER)
-
 #if !defined(PRODUCT)
     WriteField(code, return_address_metadata_);
     if (FLAG_code_comments) {
       WriteField(code, comments_);
     }
 #endif
-    s->Write<int32_t>(code->untag()->state_bits_);
   }
 
   GrowableArray<CodePtr>* discovered_objects() { return &objects_; }
@@ -1732,7 +1740,7 @@ class CodeSerializationCluster : public SerializationCluster {
     for (auto code : objects_) {
       ObjectPtr owner =
           WeakSerializationReference::Unwrap(code->untag()->owner_);
-      if (s->CreateArtificalNodeIfNeeded(owner)) {
+      if (s->CreateArtificalNodeIfNeeded(owner) || Code::IsDiscarded(code)) {
         AutoTraceObject(code);
         s->AttributePropertyRef(owner, ":owner_",
                                 /*permit_artificial_ref=*/true);
@@ -1798,6 +1806,19 @@ class CodeDeserializationCluster : public DeserializationCluster {
 
     d->ReadInstructions(code, deferred);
 
+    code->untag()->compressed_stackmaps_ =
+        static_cast<CompressedStackMapsPtr>(d->ReadRef());
+    code->untag()->state_bits_ = d->Read<int32_t>();
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+    if (Code::IsDiscarded(code)) {
+      code->untag()->owner_ = Smi::New(kFunctionCid);
+      return;
+    }
+#else
+    ASSERT(!Code::IsDiscarded(code));
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
     // There would be a single global pool if this is a full AOT snapshot
     // with bare instructions.
     if (!(d->kind() == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
@@ -1811,8 +1832,6 @@ class CodeDeserializationCluster : public DeserializationCluster {
     code->untag()->pc_descriptors_ =
         static_cast<PcDescriptorsPtr>(d->ReadRef());
     code->untag()->catch_entry_ = d->ReadRef();
-    code->untag()->compressed_stackmaps_ =
-        static_cast<CompressedStackMapsPtr>(d->ReadRef());
     code->untag()->inlined_id_to_function_ =
         static_cast<ArrayPtr>(d->ReadRef());
     code->untag()->code_source_map_ =
@@ -1834,8 +1853,6 @@ class CodeDeserializationCluster : public DeserializationCluster {
                                    : Array::null();
     code->untag()->compile_timestamp_ = 0;
 #endif
-
-    code->untag()->state_bits_ = d->Read<int32_t>();
   }
 
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {

@@ -5956,6 +5956,12 @@ class Code : public Object {
   bool is_alive() const { return AliveBit::decode(untag()->state_bits_); }
   void set_is_alive(bool value) const;
 
+  bool is_discarded() const { return IsDiscarded(ptr()); }
+  static bool IsDiscarded(const CodePtr code) {
+    return DiscardedBit::decode(code->untag()->state_bits_);
+  }
+  void set_is_discarded(bool value) const;
+
   bool HasMonomorphicEntry() const { return HasMonomorphicEntry(ptr()); }
   static bool HasMonomorphicEntry(const CodePtr code) {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -6378,11 +6384,6 @@ class Code : public Object {
     untag()->set_object_pool(object_pool);
   }
 
-  // Returns true if given Code object can be omitted from
-  // the AOT snapshot (when corresponding instructions are
-  // included).
-  bool CanBeOmittedFromAOTSnapshot() const;
-
  private:
   void set_state_bits(intptr_t bits) const;
 
@@ -6392,8 +6393,9 @@ class Code : public Object {
     kOptimizedBit = 0,
     kForceOptimizedBit = 1,
     kAliveBit = 2,
-    kPtrOffBit = 3,
-    kPtrOffSize = 29,
+    kDiscardedBit = 3,
+    kPtrOffBit = 4,
+    kPtrOffSize = kBitsPerInt32 - kPtrOffBit,
   };
 
   class OptimizedBit : public BitField<int32_t, bool, kOptimizedBit, 1> {};
@@ -6404,6 +6406,13 @@ class Code : public Object {
       : public BitField<int32_t, bool, kForceOptimizedBit, 1> {};
 
   class AliveBit : public BitField<int32_t, bool, kAliveBit, 1> {};
+
+  // Set by precompiler if this Code object doesn't contain
+  // useful information besides instructions and compressed stack map.
+  // Such object is serialized in a shorter form. (In future such
+  // Code objects will not be re-created during snapshot deserialization.)
+  class DiscardedBit : public BitField<int32_t, bool, kDiscardedBit, 1> {};
+
   class PtrOffBits
       : public BitField<int32_t, intptr_t, kPtrOffBit, kPtrOffSize> {};
 
