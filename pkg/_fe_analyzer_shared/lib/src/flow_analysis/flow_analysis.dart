@@ -4,16 +4,6 @@
 
 import 'package:meta/meta.dart';
 
-/// Set this boolean to `true` to permanently enable the feature of allowing
-/// local boolean variables to influence promotion (see
-/// https://github.com/dart-lang/language/issues/1274).  While this boolean is
-/// `false`, the feature remains experimental and can be activated via an
-/// optional boolean parameter to the [FlowAnalysis] constructor.
-///
-/// Changing this value to `true` will cause some dead code warnings to appear
-/// for code that only exists to support the old behavior.
-const bool allowLocalBooleanVarsToPromoteByDefault = true;
-
 /// [AssignedVariables] is a helper class capable of computing the set of
 /// variables that are potentially written to, and potentially captured by
 /// closures, at various locations inside the code being analyzed.  This class
@@ -242,6 +232,11 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
             '{${_info.keys.map((k) => '$k (${k.hashCode})').join(',')}}'));
   }
 
+  /// Indicates whether information is stored for the given [node].
+  bool _hasInfoForNode(Node node) {
+    return _info[node] != null;
+  }
+
   void _printOn(StringBuffer sb) {
     sb.write('_info=$_info,');
     sb.write('_stack=$_stack,');
@@ -402,10 +397,8 @@ class ExpressionInfo<Variable extends Object, Type extends Object> {
 abstract class FlowAnalysis<Node extends Object, Statement extends Node,
     Expression extends Object, Variable extends Object, Type extends Object> {
   factory FlowAnalysis(TypeOperations<Variable, Type> typeOperations,
-      AssignedVariables<Node, Variable> assignedVariables,
-      {bool allowLocalBooleanVarsToPromote = false}) {
-    return new _FlowAnalysisImpl(typeOperations, assignedVariables,
-        allowLocalBooleanVarsToPromote: allowLocalBooleanVarsToPromote);
+      AssignedVariables<Node, Variable> assignedVariables) {
+    return new _FlowAnalysisImpl(typeOperations, assignedVariables);
   }
 
   factory FlowAnalysis.legacy(TypeOperations<Variable, Type> typeOperations,
@@ -935,6 +928,8 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// promotion, to retrieve information about why [target] was not promoted.
   /// This call must be made right after visiting [target].
   ///
+  /// If [target] is `null` it is assumed to be an implicit reference to `this`.
+  ///
   /// The returned value is a map whose keys are types that the user might have
   /// been expecting the target to be promoted to, and whose values are reasons
   /// why the corresponding promotion did not occur.  The caller is expected to
@@ -943,7 +938,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// occurs due to the target having a nullable type, the caller should report
   /// a non-promotion reason associated with non-promotion to a non-nullable
   /// type).
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target);
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression? target);
 
   /// Register write of the given [variable] in the current state.
   /// [writtenType] should be the type of the value that was written.
@@ -974,12 +969,10 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   bool _exceptionOccurred = false;
 
   factory FlowAnalysisDebug(TypeOperations<Variable, Type> typeOperations,
-      AssignedVariables<Node, Variable> assignedVariables,
-      {bool allowLocalBooleanVarsToPromote = false}) {
+      AssignedVariables<Node, Variable> assignedVariables) {
     print('FlowAnalysisDebug()');
-    return new FlowAnalysisDebug._(new _FlowAnalysisImpl(
-        typeOperations, assignedVariables,
-        allowLocalBooleanVarsToPromote: allowLocalBooleanVarsToPromote));
+    return new FlowAnalysisDebug._(
+        new _FlowAnalysisImpl(typeOperations, assignedVariables));
   }
 
   factory FlowAnalysisDebug.legacy(
@@ -1460,7 +1453,7 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression? target) {
     return _wrap(
         'whyNotPromoted($target)', () => _wrapped.whyNotPromoted(target),
         isQuery: true);
@@ -1877,79 +1870,6 @@ class FlowModel<Variable extends Object, Type extends Object> {
     }
 
     return _identicalOrNew(this, base, newReachable, newVariableInfo);
-  }
-
-  /// Updates the state to reflect a control path that is known to have
-  /// previously passed through some [other] state.
-  ///
-  /// Approximately, this method forms the union of the definite assignments and
-  /// promotions in `this` state and the [other] state.  More precisely:
-  ///
-  /// The control flow path is considered reachable if both this state and the
-  /// other state are reachable.  Variables are considered definitely assigned
-  /// if they were definitely assigned in either this state or the other state.
-  /// Variable type promotions are taken from this state, unless the promotion
-  /// in the other state is more specific, and the variable is "safe".  A
-  /// variable is considered safe if there is no chance that it was assigned
-  /// more recently than the "other" state.
-  ///
-  /// This is used after a `try/finally` statement to combine the promotions and
-  /// definite assignments that occurred in the `try` and `finally` blocks
-  /// (where `this` is the state from the `finally` block and `other` is the
-  /// state from the `try` block).  Variables that are assigned in the `finally`
-  /// block are considered "unsafe" because the assignment might have cancelled
-  /// the effect of any promotion that occurred inside the `try` block.
-  FlowModel<Variable, Type> restrict(
-      TypeOperations<Variable, Type> typeOperations,
-      FlowModel<Variable, Type> other,
-      Set<Variable> unsafe) {
-    if (allowLocalBooleanVarsToPromoteByDefault) {
-      // TODO(paulberry): when we hardcode
-      // allowLocalBooleanVarsToPromoteByDefault to `true`, we should remove
-      // this method entirely.
-      throw new StateError('This method should not be called anymore');
-    }
-    Reachability newReachable =
-        Reachability.restrict(reachable, other.reachable);
-
-    Map<Variable?, VariableModel<Variable, Type>> newVariableInfo =
-        <Variable?, VariableModel<Variable, Type>>{};
-    bool variableInfoMatchesThis = true;
-    bool variableInfoMatchesOther = true;
-    for (MapEntry<Variable?, VariableModel<Variable, Type>> entry
-        in variableInfo.entries) {
-      Variable? variable = entry.key;
-      VariableModel<Variable, Type> thisModel = entry.value;
-      VariableModel<Variable, Type>? otherModel = other.variableInfo[variable];
-      if (otherModel == null) {
-        variableInfoMatchesThis = false;
-        continue;
-      }
-      VariableModel<Variable, Type> restricted = thisModel.restrict(
-          typeOperations, otherModel, unsafe.contains(variable));
-      newVariableInfo[variable] = restricted;
-      if (!identical(restricted, thisModel)) variableInfoMatchesThis = false;
-      if (!identical(restricted, otherModel)) variableInfoMatchesOther = false;
-    }
-    if (variableInfoMatchesOther) {
-      for (Variable? variable in other.variableInfo.keys) {
-        if (!variableInfo.containsKey(variable)) {
-          variableInfoMatchesOther = false;
-          break;
-        }
-      }
-    }
-    assert(variableInfoMatchesThis ==
-        _variableInfosEqual(newVariableInfo, variableInfo));
-    assert(variableInfoMatchesOther ==
-        _variableInfosEqual(newVariableInfo, other.variableInfo));
-    if (variableInfoMatchesThis) {
-      newVariableInfo = variableInfo;
-    } else if (variableInfoMatchesOther) {
-      newVariableInfo = other.variableInfo;
-    }
-
-    return _identicalOrNew(this, other, newReachable, newVariableInfo);
   }
 
   /// Updates the state to indicate that the control flow path is unreachable.
@@ -2797,59 +2717,6 @@ class VariableModel<Variable extends Object, Type extends Object> {
         ssaNode: writeCaptured ? null : new SsaNode<Variable, Type>(null));
   }
 
-  /// Returns an updated model reflect a control path that is known to have
-  /// previously passed through some [other] state.  See [FlowModel.restrict]
-  /// for details.
-  VariableModel<Variable, Type> restrict(
-      TypeOperations<Variable, Type> typeOperations,
-      VariableModel<Variable, Type> otherModel,
-      bool unsafe) {
-    if (allowLocalBooleanVarsToPromoteByDefault) {
-      // TODO(paulberry): when we hardcode
-      // allowLocalBooleanVarsToPromoteByDefault to `true`, we should remove
-      // this method entirely.
-      throw new StateError('This method should not be called anymore');
-    }
-    List<Type>? thisPromotedTypes = promotedTypes;
-    List<Type>? otherPromotedTypes = otherModel.promotedTypes;
-    bool newAssigned = assigned || otherModel.assigned;
-    // The variable can only be unassigned in this state if it was also
-    // unassigned in the other state or if the other state didn't complete
-    // normally. For the latter case the resulting state is unreachable but to
-    // avoid creating a variable model that is both assigned and unassigned we
-    // take the intersection below.
-    //
-    // This situation can occur in try-finally like:
-    //
-    //   method() {
-    //     var local;
-    //     try {
-    //       local = 0;
-    //       return; // assigned
-    //     } finally {
-    //       local; // unassigned
-    //     }
-    //     local; // unreachable state
-    //   }
-    //
-    bool newUnassigned = unassigned && otherModel.unassigned;
-    bool newWriteCaptured = writeCaptured || otherModel.writeCaptured;
-    List<Type>? newPromotedTypes;
-    if (newWriteCaptured) {
-      // Write-captured variables can't be promoted
-      newPromotedTypes = null;
-    } else if (unsafe) {
-      // There was an assignment to the variable in the "this" path, so none of
-      // the promotions from the "other" path can be used.
-      newPromotedTypes = thisPromotedTypes;
-    } else {
-      newPromotedTypes = rebasePromotedTypes(
-          typeOperations, thisPromotedTypes, otherPromotedTypes);
-    }
-    return _identicalOrNew(this, otherModel, newPromotedTypes, tested,
-        newAssigned, newUnassigned, newWriteCaptured ? null : ssaNode);
-  }
-
   /// Updates `this` with a new set of properties.
   VariableModel<Variable, Type> setProperties(
           Map<String, VariableModel<Variable, Type>> newProperties) =>
@@ -3524,18 +3391,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   final AssignedVariables<Node, Variable> _assignedVariables;
 
-  /// Set this boolean to `true` to temporarily enable the feature of allowing
-  /// local boolean variables to influence promotion, for this flow analysis
-  /// session (see https://github.com/dart-lang/language/issues/1274).  Once the
-  /// top level const [allowLocalBooleanVarsToPromoteByDefault] is changed to
-  /// `true`, this field will always be `true`, so it can be safely removed.
-  final bool allowLocalBooleanVarsToPromote;
-
-  _FlowAnalysisImpl(this.typeOperations, this._assignedVariables,
-      {bool allowLocalBooleanVarsToPromote = false})
-      : allowLocalBooleanVarsToPromote =
-            allowLocalBooleanVarsToPromoteByDefault ||
-                allowLocalBooleanVarsToPromote;
+  _FlowAnalysisImpl(this.typeOperations, this._assignedVariables);
 
   @override
   bool get isReachable => _current.reachable.overallReachable;
@@ -4186,17 +4042,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void tryFinallyStatement_end(Node finallyBlock) {
-    AssignedVariablesNodeInfo<Variable> info =
-        _assignedVariables._getInfoForNode(finallyBlock);
+    // We used to need info for `finally` blocks but we don't anymore.
+    assert(!_assignedVariables._hasInfoForNode(finallyBlock),
+        'No assigned variables info should have been stored for $finallyBlock');
     _TryFinallyContext<Variable, Type> context =
         _stack.removeLast() as _TryFinallyContext<Variable, Type>;
-    if (allowLocalBooleanVarsToPromote) {
-      _current = context._afterBodyAndCatches
-          .attachFinally(typeOperations, context._beforeFinally, _current);
-    } else {
-      _current = _current.restrict(
-          typeOperations, context._afterBodyAndCatches, info._written);
-    }
+    _current = context._afterBodyAndCatches
+        .attachFinally(typeOperations, context._beforeFinally, _current);
   }
 
   @override
@@ -4218,13 +4070,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _storeExpressionReference(expression, variableReference);
     VariableModel<Variable, Type> variableModel =
         variableReference.getInfo(_current.variableInfo);
-    if (allowLocalBooleanVarsToPromote) {
-      ExpressionInfo<Variable, Type>? expressionInfo = variableModel
-          .ssaNode?.expressionInfo
-          ?.rebaseForward(typeOperations, _current);
-      if (expressionInfo != null) {
-        _storeExpressionInfo(expression, expressionInfo);
-      }
+    ExpressionInfo<Variable, Type>? expressionInfo = variableModel
+        .ssaNode?.expressionInfo
+        ?.rebaseForward(typeOperations, _current);
+    if (expressionInfo != null) {
+      _storeExpressionInfo(expression, expressionInfo);
     }
     return variableModel.promotedTypes?.last;
   }
@@ -4257,13 +4107,16 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
-    if (identical(target, _expressionWithReference)) {
-      Reference<Variable, Type>? reference = _expressionReference;
-      if (reference != null) {
-        return reference.getNonPromotionReasons(
-            _current.variableInfo, typeOperations);
-      }
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression? target) {
+    Reference<Variable, Type>? reference;
+    if (target == null) {
+      reference = new _ThisReference<Variable, Type>();
+    } else if (identical(target, _expressionWithReference)) {
+      reference = _expressionReference;
+    }
+    if (reference != null) {
+      return reference.getNonPromotionReasons(
+          _current.variableInfo, typeOperations);
     }
     return {};
   }
@@ -4850,7 +4703,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void whileStatement_end() {}
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression? target) {
     return {};
   }
 

@@ -9,7 +9,7 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:test/test.dart';
 
-const Expression nullLiteral = const _NullLiteral();
+Expression get nullLiteral => new _NullLiteral();
 
 Statement assert_(Expression condition, [Expression? message]) =>
     new _Assert(condition, message);
@@ -144,6 +144,10 @@ Statement if_(Expression condition, List<Statement> ifTrue,
         [List<Statement>? ifFalse]) =>
     new _If(condition, ifTrue, ifFalse);
 
+Statement implicitThis_whyNotPromoted(
+        void Function(Map<Type, NonPromotionReason>) callback) =>
+    new _WhyNotPromoted_ImplicitThis(callback);
+
 Statement labeled(Statement body) => new _LabeledStatement(body);
 
 Statement localFunction(List<Statement> body) => _LocalFunction(body);
@@ -215,7 +219,7 @@ class CatchClause implements _Visitable<void> {
 /// analysis testing.  Methods in this class may be used to create more complex
 /// expressions based on this one.
 abstract class Expression extends Node implements _Visitable<Type> {
-  const Expression() : super._();
+  Expression() : super._();
 
   /// If `this` is an expression `x`, creates the expression `x!`.
   Expression get nonNullAssert => new _NonNullAssert(this);
@@ -419,8 +423,6 @@ class Harness extends TypeOperations<Var, Type> {
     'num* - Object': Type('Never'),
   };
 
-  final bool allowLocalBooleanVarsToPromote;
-
   final bool legacy;
 
   final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
@@ -431,7 +433,7 @@ class Harness extends TypeOperations<Var, Type> {
 
   Map<String, Map<String, String>> _promotionExceptions = {};
 
-  Harness({this.allowLocalBooleanVarsToPromote = false, this.legacy = false});
+  Harness({this.legacy = false});
 
   @override
   Type get topType => Type('Object?');
@@ -508,8 +510,7 @@ class Harness extends TypeOperations<Var, Type> {
         ? FlowAnalysis<Node, Statement, Expression, Var, Type>.legacy(
             this, assignedVariables)
         : FlowAnalysis<Node, Statement, Expression, Var, Type>(
-            this, assignedVariables,
-            allowLocalBooleanVarsToPromote: allowLocalBooleanVarsToPromote);
+            this, assignedVariables);
     statements._visit(this, flow);
     flow.finish();
   }
@@ -570,7 +571,13 @@ class Harness extends TypeOperations<Var, Type> {
 /// Representation of an expression or statement in the pseudo-Dart language
 /// used for flow analysis testing.
 class Node {
-  const Node._();
+  static int _nextId = 0;
+
+  final int id;
+
+  Node._() : id = _nextId++;
+
+  String toString() => 'Node#$id';
 }
 
 /// Helper class allowing tests to examine the values of variables' SSA nodes.
@@ -1410,7 +1417,7 @@ class _NullAwareAccess extends Expression {
 }
 
 class _NullLiteral extends Expression {
-  const _NullLiteral();
+  _NullLiteral();
 
   @override
   String toString() => 'null';
@@ -1648,9 +1655,7 @@ class _TryFinally extends Statement {
     assignedVariables.beginNode();
     body._preVisit(assignedVariables);
     assignedVariables.endNode(_bodyNode);
-    assignedVariables.beginNode();
     finally_._preVisit(assignedVariables);
-    assignedVariables.endNode(_finallyNode);
   }
 
   @override
@@ -1751,6 +1756,30 @@ class _WhyNotPromoted extends Expression {
       Type._allowComparisons = false;
     }
     return type;
+  }
+}
+
+class _WhyNotPromoted_ImplicitThis extends Statement {
+  final void Function(Map<Type, NonPromotionReason>) callback;
+
+  _WhyNotPromoted_ImplicitThis(this.callback) : super._();
+
+  @override
+  String toString() => 'implicit this (whyNotPromoted)';
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+
+  @override
+  void _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    assert(!Type._allowComparisons);
+    Type._allowComparisons = true;
+    try {
+      callback(flow.whyNotPromoted(null));
+    } finally {
+      Type._allowComparisons = false;
+    }
   }
 }
 

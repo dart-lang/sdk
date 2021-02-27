@@ -516,29 +516,27 @@ class ResolverVisitor extends ScopedVisitor {
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
       Expression? receiver, SyntacticEntity errorEntity) {
     List<DiagnosticMessage> messages = [];
-    if (receiver != null) {
-      var whyNotPromoted = flowAnalysis?.flow?.whyNotPromoted(receiver);
-      if (whyNotPromoted != null) {
-        for (var entry in whyNotPromoted.entries) {
-          var whyNotPromotedVisitor = _WhyNotPromotedVisitor(
-              source, receiver, flowAnalysis!.dataForTesting);
-          if (typeSystem.isPotentiallyNullable(entry.key)) continue;
-          var message = entry.value.accept(whyNotPromotedVisitor);
-          if (message != null) {
-            if (flowAnalysis!.dataForTesting != null) {
-              var nonPromotionReasonText = entry.value.shortName;
-              if (whyNotPromotedVisitor.propertyReference != null) {
-                var id =
-                    computeMemberId(whyNotPromotedVisitor.propertyReference!);
-                nonPromotionReasonText += '($id)';
-              }
-              flowAnalysis!.dataForTesting!.nonPromotionReasons[errorEntity] =
-                  nonPromotionReasonText;
+    var whyNotPromoted = flowAnalysis?.flow?.whyNotPromoted(receiver);
+    if (whyNotPromoted != null) {
+      for (var entry in whyNotPromoted.entries) {
+        var whyNotPromotedVisitor = _WhyNotPromotedVisitor(
+            source, receiver, errorEntity, flowAnalysis!.dataForTesting);
+        if (typeSystem.isPotentiallyNullable(entry.key)) continue;
+        var message = entry.value.accept(whyNotPromotedVisitor);
+        if (message != null) {
+          if (flowAnalysis!.dataForTesting != null) {
+            var nonPromotionReasonText = entry.value.shortName;
+            if (whyNotPromotedVisitor.propertyReference != null) {
+              var id =
+                  computeMemberId(whyNotPromotedVisitor.propertyReference!);
+              nonPromotionReasonText += '($id)';
             }
-            messages = [message];
+            flowAnalysis!.dataForTesting!.nonPromotionReasons[errorEntity] =
+                nonPromotionReasonText;
           }
-          break;
+          messages = [message];
         }
+        break;
       }
     }
     return messages;
@@ -3343,13 +3341,16 @@ class _WhyNotPromotedVisitor
             PromotableElement> {
   final Source source;
 
-  final Expression _receiver;
+  final Expression? _receiver;
+
+  final SyntacticEntity _errorEntity;
 
   final FlowAnalysisDataForTesting? _dataForTesting;
 
   PropertyAccessorElement? propertyReference;
 
-  _WhyNotPromotedVisitor(this.source, this._receiver, this._dataForTesting);
+  _WhyNotPromotedVisitor(
+      this.source, this._receiver, this._errorEntity, this._dataForTesting);
 
   @override
   DiagnosticMessage? visitDemoteViaExplicitWrite(
@@ -3420,8 +3421,8 @@ class _WhyNotPromotedVisitor
     return DiagnosticMessageImpl(
         filePath: source.fullName,
         message: "'this' can't be promoted.",
-        offset: _receiver.offset,
-        length: _receiver.length);
+        offset: _errorEntity.offset,
+        length: _errorEntity.length);
   }
 
   DiagnosticMessageImpl _contextMessageForProperty(

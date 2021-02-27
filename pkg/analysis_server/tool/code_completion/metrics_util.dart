@@ -17,6 +17,12 @@ class ArithmeticMeanComputer {
 
   num get mean => sum / count;
 
+  /// Add the data from the given [computer] to this computer.
+  void addData(ArithmeticMeanComputer computer) {
+    sum += computer.sum;
+    count += computer.count;
+  }
+
   void addValue(num val) {
     sum += val;
     count++;
@@ -27,12 +33,27 @@ class ArithmeticMeanComputer {
     count = 0;
   }
 
+  /// Set the state of this computer to the state recorded in the decoded JSON
+  /// [map].
+  void fromJson(Map<String, dynamic> map) {
+    sum = map['sum'] as num;
+    count = map['count'] as int;
+  }
+
   void printMean() {
     print('Mean \'$name\' ${mean.toStringAsFixed(6)} (total = $count)');
   }
+
+  /// Return a map used to represent this computer in a JSON structure.
+  Map<String, dynamic> toJson() {
+    return {
+      'sum': sum,
+      'count': count,
+    };
+  }
 }
 
-/// A simple counter class.  A [String] name is passed to name the counter. Each
+/// A simple counter class. A [String] name is passed to name the counter. Each
 /// time something is counted, a non-null, non-empty [String] key is passed to
 /// [count] to increment the amount from zero. [printCounterValues] is provided
 /// to have a [String] summary of the generated counts, example:
@@ -58,6 +79,15 @@ class Counter {
 
   int get totalCount => _totalCount;
 
+  /// Add the data from the given [counter] to this counter.
+  void addData(Counter counter) {
+    for (var entry in counter._buckets.entries) {
+      var bucket = entry.key;
+      _buckets[bucket] = (_buckets[bucket] ?? 0) + entry.value;
+    }
+    _totalCount += counter._totalCount;
+  }
+
   void clear() {
     _buckets.clear();
     _totalCount = 0;
@@ -71,6 +101,15 @@ class Counter {
       _buckets.putIfAbsent(id, () => countNumber);
     }
     _totalCount += countNumber;
+  }
+
+  /// Set the state of this counter to the state recorded in the decoded JSON
+  /// [map].
+  void fromJson(Map<String, dynamic> map) {
+    for (var entry in (map['buckets'] as Map<String, dynamic>).entries) {
+      _buckets[entry.key] = entry.value as int;
+    }
+    _totalCount = map['totalCount'] as int;
   }
 
   int getCountOf(String id) => _buckets[id] ?? 0;
@@ -92,6 +131,14 @@ class Counter {
     } else {
       print('<no counts>');
     }
+  }
+
+  /// Return a map used to represent this counter in a JSON structure.
+  Map<String, dynamic> toJson() {
+    return {
+      'buckets': _buckets,
+      'totalCount': _totalCount,
+    };
   }
 }
 
@@ -125,6 +172,13 @@ class MeanReciprocalRankComputer {
     return _sum_5 / count;
   }
 
+  /// Add the data from the given [computer] to this computer.
+  void addData(MeanReciprocalRankComputer computer) {
+    _sum += computer._sum;
+    _sum_5 += computer._sum_5;
+    _count += computer._count;
+  }
+
   void addRank(int rank) {
     if (rank != 0) {
       _sum += 1 / rank;
@@ -141,6 +195,14 @@ class MeanReciprocalRankComputer {
     _count = 0;
   }
 
+  /// Set the state of this computer to the state recorded in the decoded JSON
+  /// [map].
+  void fromJson(Map<String, dynamic> map) {
+    _sum = map['sum'] as double;
+    _sum_5 = map['sum_5'] as double;
+    _count = map['count'] as int;
+  }
+
   void printMean() {
     print('Mean Reciprocal Rank \'$name\' (total = $count)');
     print('mrr   = ${mrr.toStringAsFixed(6)} '
@@ -148,6 +210,15 @@ class MeanReciprocalRankComputer {
 
     print('mrr_5 = ${mrr_5.toStringAsFixed(6)} '
         '(inverse = ${(1 / mrr_5).toStringAsFixed(3)})');
+  }
+
+  /// Return a map used to represent this computer in a JSON structure.
+  Map<String, dynamic> toJson() {
+    return {
+      'sum': _sum,
+      'sum_5': _sum_5,
+      'count': _count,
+    };
   }
 }
 
@@ -163,6 +234,11 @@ class Place {
   const Place(this._numerator, this._denominator)
       : assert(_numerator > 0),
         assert(_denominator >= _numerator);
+
+  /// Return an instance extracted from the decoded JSON [map].
+  factory Place.fromJson(Map<String, dynamic> map) {
+    return Place(map['numerator'] as int, map['denominator'] as int);
+  }
 
   const Place.none()
       : _numerator = 0,
@@ -182,4 +258,12 @@ class Place {
       other is Place &&
       _numerator == other._numerator &&
       _denominator == other._denominator;
+
+  /// Return a map used to represent this place in a JSON structure.
+  Map<String, dynamic> toJson() {
+    return {
+      'numerator': _numerator,
+      'denominator': _denominator,
+    };
+  }
 }

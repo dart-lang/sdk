@@ -2275,7 +2275,7 @@ main() {
       test(
           'tryFinallyStatement_end() restores SSA nodes from try block when it'
           'is sound to do so', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         var x = Var('x', 'int?');
         var y = Var('y', 'int?');
         late SsaNode<Var, Type> xSsaAtEndOfTry;
@@ -2322,7 +2322,7 @@ main() {
       test(
           'tryFinallyStatement_end() sets unreachable if end of try block '
           'unreachable', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         h.run([
           tryFinally([
             return_(),
@@ -2337,7 +2337,7 @@ main() {
       test(
           'tryFinallyStatement_end() sets unreachable if end of finally block '
           'unreachable', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         h.run([
           tryFinally([
             checkReachable(true),
@@ -2352,7 +2352,7 @@ main() {
       test(
           'tryFinallyStatement_end() handles a variable declared only in the '
           'try block', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         var x = Var('x', 'int?');
         h.run([
           tryFinally([
@@ -2364,7 +2364,7 @@ main() {
       test(
           'tryFinallyStatement_end() handles a variable declared only in the '
           'finally block', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         var x = Var('x', 'int?');
         h.run([
           tryFinally([], [
@@ -2376,7 +2376,7 @@ main() {
       test(
           'tryFinallyStatement_end() handles a variable that was write '
           'captured in the try block', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         var x = Var('x', 'int?');
         h.run([
           declare(x, initialized: true),
@@ -2394,7 +2394,7 @@ main() {
       test(
           'tryFinallyStatement_end() handles a variable that was write '
           'captured in the finally block', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         var x = Var('x', 'int?');
         h.run([
           declare(x, initialized: true),
@@ -2412,7 +2412,7 @@ main() {
       test(
           'tryFinallyStatement_end() handles a variable that was promoted in '
           'the try block and write captured in the finally block', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         var x = Var('x', 'int?');
         h.run([
           declare(x, initialized: true),
@@ -2438,7 +2438,7 @@ main() {
       test(
           'tryFinallyStatement_end() keeps promotions from both try and '
           'finally blocks when there is no write in the finally block', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: true),
@@ -2462,7 +2462,7 @@ main() {
       test(
           'tryFinallyStatement_end() keeps promotions from the finally block '
           'when there is a write in the finally block', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: true),
@@ -2484,7 +2484,7 @@ main() {
       test(
           'tryFinallyStatement_end() keeps tests from both the try and finally '
           'blocks', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: true),
@@ -2509,7 +2509,7 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables not definitely assigned '
           'in either the try or finally block', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: false),
@@ -2532,7 +2532,7 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables definitely assigned in '
           'the try block', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: false),
@@ -2553,7 +2553,7 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables definitely assigned in '
           'the finally block', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: false),
@@ -2574,7 +2574,7 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables definitely unassigned '
           'in both the try and finally blocks', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: false),
@@ -2591,7 +2591,7 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables definitely unassigned '
           'in the try but not the finally block', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: false),
@@ -2611,7 +2611,7 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables definitely unassigned '
           'in the finally but not the try block', () {
-        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: false),
@@ -2630,7 +2630,7 @@ main() {
     });
 
     test('variableRead() restores promotions from previous write()', () {
-      var h = Harness(allowLocalBooleanVarsToPromote: true);
+      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       var z = Var('z', 'bool');
@@ -2664,7 +2664,7 @@ main() {
     });
 
     test('variableRead() restores promotions from previous initialization', () {
-      var h = Harness(allowLocalBooleanVarsToPromote: true);
+      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       var z = Var('z', 'bool');
@@ -2697,7 +2697,7 @@ main() {
     });
 
     test('variableRead() rebases old promotions', () {
-      var h = Harness(allowLocalBooleanVarsToPromote: true);
+      var h = Harness();
       var w = Var('w', 'int?');
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
@@ -2739,7 +2739,7 @@ main() {
       // Note: we have the available infrastructure to do this if we want, but
       // we think it will give an inconsistent feel because comparisons like
       // `if (i == null)` *don't* promote.
-      var h = Harness(allowLocalBooleanVarsToPromote: true);
+      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       h.run([
@@ -2967,7 +2967,7 @@ main() {
       //   if (b) { /* x promoted again */ }
       // But there are a lot of corner cases to test and it's not clear how much
       // the benefit will be, so for now we're not doing it.
-      var h = Harness(allowLocalBooleanVarsToPromote: true);
+      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       late SsaNode<Var, Type> xSsaBeforeWrite;
@@ -5680,6 +5680,40 @@ main() {
             var nonPromotionReason = reasons.values.single;
             expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
           }).stmt,
+        ]);
+      });
+    });
+
+    group('because this', () {
+      test('explicit', () {
+        var h = Harness()
+          ..addSubtype('D', 'Object?', true)
+          ..addFactor('Object?', 'D', 'Object?');
+        h.run([
+          if_(this_('C').isNot('D'), [
+            return_(),
+          ]),
+          this_('C').whyNotPromoted((reasons) {
+            expect(reasons.keys, unorderedEquals([Type('D')]));
+            var nonPromotionReason = reasons.values.single;
+            expect(nonPromotionReason, TypeMatcher<ThisNotPromoted>());
+          }).stmt,
+        ]);
+      });
+
+      test('implicit', () {
+        var h = Harness()
+          ..addSubtype('D', 'Object?', true)
+          ..addFactor('Object?', 'D', 'Object?');
+        h.run([
+          if_(this_('C').isNot('D'), [
+            return_(),
+          ]),
+          implicitThis_whyNotPromoted((reasons) {
+            expect(reasons.keys, unorderedEquals([Type('D')]));
+            var nonPromotionReason = reasons.values.single;
+            expect(nonPromotionReason, TypeMatcher<ThisNotPromoted>());
+          }),
         ]);
       });
     });

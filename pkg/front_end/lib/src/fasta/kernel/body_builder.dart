@@ -2757,9 +2757,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // This is matched by the call to [beginNode] in [beginTryStatement].
       tryStatementInfoStack = tryStatementInfoStack
           .prepend(typeInferrer?.assignedVariables?.deferNode());
-
-      // This is matched by the call to [endNode] in [endTryStatement].
-      typeInferrer?.assignedVariables?.beginNode();
     }
     super.beginBlock(token, blockKind);
   }
@@ -3918,8 +3915,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Statement finallyBlock;
     if (finallyKeyword != null) {
       finallyBlock = pop();
-      // This is matched by the call to [beginNode] in [beginBlock].
-      typeInferrer?.assignedVariables?.endNode(finallyBlock);
     } else {
       // This is matched by the call to [beginNode] in [beginTryStatement].
       tryStatementInfoStack = tryStatementInfoStack

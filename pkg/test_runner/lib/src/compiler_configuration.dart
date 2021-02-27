@@ -558,7 +558,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     args.addAll(options);
     args.addAll(_configuration.sharedOptions);
 
-    bool d8Runtime = _configuration.runtime == Runtime.d8;
+    var d8Runtime = _configuration.runtime == Runtime.d8;
 
     args.addAll([
       "--ignore-unrecognized-flags",

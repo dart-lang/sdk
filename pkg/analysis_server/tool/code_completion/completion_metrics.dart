@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -36,6 +38,7 @@ import 'package:analyzer/dart/element/element.dart'
         VariableElement;
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as err;
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -50,6 +53,7 @@ import 'package:meta/meta.dart';
 
 import 'metrics_util.dart';
 import 'output_utilities.dart';
+import 'relevance_table_generator.dart';
 import 'visitors.dart';
 
 Future<void> main(List<String> args) async {
@@ -61,17 +65,75 @@ Future<void> main(List<String> args) async {
   }
 
   var options = CompletionMetricsOptions(result);
-  var root = result.rest[0];
-  print('Analyzing root: "$root"');
+  var provider = PhysicalResourceProvider.INSTANCE;
+  if (result.wasParsed('reduceDir')) {
+    var targetMetrics = <CompletionMetrics>[];
+    var dir = provider.getFolder(result['reduceDir']);
+    var computer = CompletionMetricsComputer('', options);
+    for (var child in dir.getChildren()) {
+      if (child is File) {
+        var metricsList =
+            (json.decode(child.readAsStringSync()) as List<dynamic>)
+                .map((map) =>
+                    CompletionMetrics.fromJson(map as Map<String, dynamic>))
+                .toList();
+        if (targetMetrics.isEmpty) {
+          targetMetrics.addAll(metricsList);
+        } else if (targetMetrics.length != metricsList.length) {
+          throw StateError('metrics lengths differ');
+        } else {
+          for (var i = 0; i < targetMetrics.length; i++) {
+            targetMetrics[i].addData(metricsList[i]);
+          }
+        }
+      }
+    }
+    computer.targetMetrics.addAll(targetMetrics);
+    computer.printResults();
+    return;
+  }
+
+  var rootPath = result.rest[0];
+  print('Analyzing root: "$rootPath"');
   var stopwatch = Stopwatch()..start();
-  var computer = CompletionMetricsComputer(root, options);
+  var computer = CompletionMetricsComputer(rootPath, options);
   var code = await computer.computeMetrics();
   stopwatch.stop();
 
   var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
   print('');
   print('Metrics computed in $duration');
-  computer.printResults();
+
+  File uniqueDataFile() {
+    var dataDir = result['mapDir'];
+    var baseFileName = provider.pathContext.basename(rootPath);
+    var index = 1;
+    while (index < 10000) {
+      var suffix = (index++).toString();
+      suffix = '0000'.substring(suffix.length) + suffix + '.json';
+      var fileName = baseFileName + suffix;
+      var filePath = provider.pathContext.join(dataDir, fileName);
+      var file = provider.getFile(filePath);
+      if (!file.exists) {
+        return file;
+      }
+    }
+
+    /// If there are more than 10000 directories with the same name, just
+    /// overwrite a previously generated file.
+    var fileName = baseFileName + '9999';
+    var filePath = provider.pathContext.join(dataDir, fileName);
+    return provider.getFile(filePath);
+  }
+
+  if (result.wasParsed('mapDir')) {
+    var dataFile = uniqueDataFile();
+    var map =
+        computer.targetMetrics.map((metrics) => metrics.toJson()).toList();
+    dataFile.writeAsStringSync(json.encode(map));
+  } else {
+    computer.printResults();
+  }
   return io.exit(code);
 }
 
@@ -148,7 +210,18 @@ ArgParser createArgParser() {
         defaultsTo: false,
         help: 'Print information about the completion requests that had the '
             'worst mrr scores.',
-        negatable: false);
+        negatable: false)
+    ..addOption(
+      'mapDir',
+      help: 'The absolute path of the directory to which the completion '
+          'metrics data will be written. Using this option will prevent the '
+          'completion results from being written in a textual form.',
+    )
+    ..addOption(
+      'reduceDir',
+      help: 'The absolute path of the directory from which the completion '
+          'metrics data will be read.',
+    );
 }
 
 /// Print usage information for this tool.
@@ -170,16 +243,16 @@ bool validArguments(ArgParser parser, ArgResults result) {
   if (result.wasParsed('help')) {
     printUsage(parser);
     return false;
+  } else if (result.wasParsed('reduceDir')) {
+    return validateDir(parser, result['reduceDir']);
   } else if (result.rest.length != 1) {
     printUsage(parser, error: 'No package path specified.');
     return false;
   }
-  var rootPath = result.rest[0];
-  if (!io.Directory(rootPath).existsSync()) {
-    printUsage(parser, error: 'The directory "$rootPath" does not exist.');
-    return false;
+  if (result.wasParsed('mapDir')) {
+    return validateDir(parser, result['mapDir']);
   }
-  return true;
+  return validateDir(parser, result.rest[0]);
 }
 
 /// An indication of the group in which the completion falls for the purposes of
@@ -233,55 +306,152 @@ class CompletionMetrics {
   /// The function to be executed when this metrics collector is disabled.
   final void Function() disableFunction;
 
-  Counter completionCounter = Counter('all completions');
+  final Counter completionCounter = Counter('all completions');
 
-  Counter completionMissedTokenCounter =
+  final Counter completionMissedTokenCounter =
       Counter('unsuccessful completion token counter');
 
-  Counter completionKindCounter =
+  final Counter completionKindCounter =
       Counter('unsuccessful completion kind counter');
 
-  Counter completionElementKindCounter =
+  final Counter completionElementKindCounter =
       Counter('unsuccessful completion element kind counter');
 
-  ArithmeticMeanComputer meanCompletionMS =
+  final ArithmeticMeanComputer meanCompletionMS =
       ArithmeticMeanComputer('ms per completion');
 
-  MeanReciprocalRankComputer mrrComputer =
+  final MeanReciprocalRankComputer mrrComputer =
       MeanReciprocalRankComputer('all completions');
 
-  MeanReciprocalRankComputer successfulMrrComputer =
+  final MeanReciprocalRankComputer successfulMrrComputer =
       MeanReciprocalRankComputer('successful completions');
 
   /// A table mapping completion groups to the mrr computer used to track the
   /// quality of suggestions for those groups.
-  Map<CompletionGroup, MeanReciprocalRankComputer> groupMrrComputers = {};
+  final Map<CompletionGroup, MeanReciprocalRankComputer> groupMrrComputers = {};
 
   /// A table mapping locations to the mrr computer used to track the quality of
   /// suggestions for those locations.
-  Map<String, MeanReciprocalRankComputer> locationMrrComputers = {};
+  final Map<String, MeanReciprocalRankComputer> locationMrrComputers = {};
 
-  ArithmeticMeanComputer charsBeforeTop =
+  final ArithmeticMeanComputer charsBeforeTop =
       ArithmeticMeanComputer('chars_before_top');
 
-  ArithmeticMeanComputer charsBeforeTopFive =
+  final ArithmeticMeanComputer charsBeforeTopFive =
       ArithmeticMeanComputer('chars_before_top_five');
 
-  ArithmeticMeanComputer insertionLengthTheoretical =
+  final ArithmeticMeanComputer insertionLengthTheoretical =
       ArithmeticMeanComputer('insertion_length_theoretical');
 
   /// The places in which a completion location was requested when none was
   /// available.
-  Set<String> missingCompletionLocations = {};
+  final Set<String> missingCompletionLocations = {};
 
   /// The completion locations for which no relevance table was available.
-  Set<String> missingCompletionLocationTables = {};
+  final Set<String> missingCompletionLocationTables = {};
 
-  Map<CompletionGroup, List<CompletionResult>> slowestResults = {};
+  final Map<CompletionGroup, List<CompletionResult>> slowestResults = {};
 
-  Map<CompletionGroup, List<CompletionResult>> worstResults = {};
+  final Map<CompletionGroup, List<CompletionResult>> worstResults = {};
 
   CompletionMetrics(this.name, {this.enableFunction, this.disableFunction});
+
+  /// Return an instance extracted from the decoded JSON [map].
+  factory CompletionMetrics.fromJson(Map<String, dynamic> map) {
+    var metrics = CompletionMetrics(map['name'] as String);
+    metrics.completionCounter
+        .fromJson(map['completionCounter'] as Map<String, dynamic>);
+    metrics.completionMissedTokenCounter
+        .fromJson(map['completionMissedTokenCounter'] as Map<String, dynamic>);
+    metrics.completionKindCounter
+        .fromJson(map['completionKindCounter'] as Map<String, dynamic>);
+    metrics.completionElementKindCounter
+        .fromJson(map['completionElementKindCounter'] as Map<String, dynamic>);
+    metrics.meanCompletionMS
+        .fromJson(map['meanCompletionMS'] as Map<String, dynamic>);
+    metrics.mrrComputer.fromJson(map['mrrComputer'] as Map<String, dynamic>);
+    metrics.successfulMrrComputer
+        .fromJson(map['successfulMrrComputer'] as Map<String, dynamic>);
+    for (var entry
+        in (map['groupMrrComputers'] as Map<String, dynamic>).entries) {
+      var group = CompletionGroup.values[int.parse(entry.key)];
+      metrics.groupMrrComputers[group] = MeanReciprocalRankComputer(group.name)
+        ..fromJson(entry.value);
+    }
+    for (var entry
+        in (map['locationMrrComputers'] as Map<String, dynamic>).entries) {
+      var location = entry.key;
+      metrics.locationMrrComputers[location] =
+          MeanReciprocalRankComputer(location)..fromJson(entry.value);
+    }
+    metrics.charsBeforeTop
+        .fromJson(map['charsBeforeTop'] as Map<String, dynamic>);
+    metrics.charsBeforeTopFive
+        .fromJson(map['charsBeforeTopFive'] as Map<String, dynamic>);
+    metrics.insertionLengthTheoretical
+        .fromJson(map['insertionLengthTheoretical'] as Map<String, dynamic>);
+    for (var element in map['missingCompletionLocations'] as List<dynamic>) {
+      metrics.missingCompletionLocations.add(element);
+    }
+    for (var element
+        in map['missingCompletionLocationTables'] as List<dynamic>) {
+      metrics.missingCompletionLocationTables.add(element);
+    }
+    for (var entry in (map['slowestResults'] as Map<String, dynamic>).entries) {
+      var group = CompletionGroup.values[int.parse(entry.key)];
+      var results = (entry.value as List<dynamic>)
+          .map((map) => CompletionResult.fromJson(map as Map<String, dynamic>))
+          .toList();
+      metrics.slowestResults[group] = results;
+    }
+    for (var entry in (map['worstResults'] as Map<String, dynamic>).entries) {
+      var group = CompletionGroup.values[int.parse(entry.key)];
+      var results = (entry.value as List<dynamic>)
+          .map((map) => CompletionResult.fromJson(map as Map<String, dynamic>))
+          .toList();
+      metrics.worstResults[group] = results;
+    }
+    return metrics;
+  }
+
+  /// Add the data from the given [metrics] to this metrics.
+  void addData(CompletionMetrics metrics) {
+    completionCounter.addData(metrics.completionCounter);
+    completionMissedTokenCounter.addData(metrics.completionMissedTokenCounter);
+    completionKindCounter.addData(metrics.completionKindCounter);
+    completionElementKindCounter.addData(metrics.completionElementKindCounter);
+    meanCompletionMS.addData(metrics.meanCompletionMS);
+    mrrComputer.addData(metrics.mrrComputer);
+    successfulMrrComputer.addData(metrics.successfulMrrComputer);
+    for (var entry in metrics.groupMrrComputers.entries) {
+      var group = entry.key;
+      groupMrrComputers
+          .putIfAbsent(group, () => MeanReciprocalRankComputer(group.name))
+          .addData(entry.value);
+    }
+    for (var entry in metrics.locationMrrComputers.entries) {
+      var location = entry.key;
+      locationMrrComputers
+          .putIfAbsent(location, () => MeanReciprocalRankComputer(location))
+          .addData(entry.value);
+    }
+    charsBeforeTop.addData(metrics.charsBeforeTop);
+    charsBeforeTopFive.addData(metrics.charsBeforeTopFive);
+    insertionLengthTheoretical.addData(metrics.insertionLengthTheoretical);
+    missingCompletionLocations.addAll(metrics.missingCompletionLocations);
+    missingCompletionLocationTables
+        .addAll(metrics.missingCompletionLocationTables);
+    for (var resultList in metrics.slowestResults.values) {
+      for (var result in resultList) {
+        _recordSlowestResult(result);
+      }
+    }
+    for (var resultList in metrics.worstResults.values) {
+      for (var result in resultList) {
+        _recordWorstResult(result);
+      }
+    }
+  }
 
   /// Perform any operations required in order to revert computing the kind of
   /// completions represented by this metrics collector.
@@ -308,6 +478,35 @@ class CompletionMetrics {
     _recordWorstResult(result);
     _recordSlowestResult(result);
     _recordMissingInformation(listener);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'completionCounter': completionCounter.toJson(),
+      'completionMissedTokenCounter': completionMissedTokenCounter.toJson(),
+      'completionKindCounter': completionKindCounter.toJson(),
+      'completionElementKindCounter': completionElementKindCounter.toJson(),
+      'meanCompletionMS': meanCompletionMS.toJson(),
+      'mrrComputer': mrrComputer.toJson(),
+      'successfulMrrComputer': successfulMrrComputer.toJson(),
+      'groupMrrComputers': groupMrrComputers
+          .map((key, value) => MapEntry(key.index.toString(), value.toJson())),
+      'locationMrrComputers': locationMrrComputers
+          .map((key, value) => MapEntry(key, value.toJson())),
+      'charsBeforeTop': charsBeforeTop.toJson(),
+      'charsBeforeTopFive': charsBeforeTopFive.toJson(),
+      'insertionLengthTheoretical': insertionLengthTheoretical.toJson(),
+      'missingCompletionLocations': missingCompletionLocations.toList(),
+      'missingCompletionLocationTables':
+          missingCompletionLocationTables.toList(),
+      'slowestResults': slowestResults.map((key, value) => MapEntry(
+          key.index.toString(),
+          value.map((result) => result.toJson()).toList())),
+      'worstResults': worstResults.map((key, value) => MapEntry(
+          key.index.toString(),
+          value.map((result) => result.toJson()).toList())),
+    };
   }
 
   /// If the completion location was requested but missing when computing the
@@ -1325,6 +1524,32 @@ class CompletionResult {
       this.completionLocation,
       this.elapsedMS);
 
+  /// Return an instance extracted from the decoded JSON [map].
+  factory CompletionResult.fromJson(Map<String, dynamic> map) {
+    var place = Place.fromJson(map['place'] as Map<String, dynamic>);
+    var actualSuggestion = SuggestionData.fromJson(
+        map['actualSuggestion'] as Map<String, dynamic>);
+    var topSuggestions = (map['topSuggestions'] as List<dynamic>)
+        ?.map((map) => SuggestionData.fromJson(map as Map<String, dynamic>))
+        ?.toList();
+    var precedingRelevanceCounts =
+        (map['precedingRelevanceCounts'] as Map<String, dynamic>)
+            ?.map((key, value) => MapEntry(int.parse(key), value as int));
+    var expectedCompletion = ExpectedCompletion.fromJson(
+        map['expectedCompletion'] as Map<String, dynamic>);
+    var completionLocation = map['completionLocation'] as String;
+    var elapsedMS = map['elapsedMS'] as int;
+    return CompletionResult(
+        place,
+        null,
+        actualSuggestion,
+        topSuggestions,
+        precedingRelevanceCounts,
+        expectedCompletion,
+        completionLocation,
+        elapsedMS);
+  }
+
   /// Return the completion group for the location at which completion was
   /// requested.
   CompletionGroup get group {
@@ -1379,6 +1604,23 @@ class CompletionResult {
       }
     }
     return CompletionGroup.unknown;
+  }
+
+  /// Return a map used to represent this completion result in a JSON structure.
+  Map<String, dynamic> toJson() {
+    return {
+      'place': place.toJson(),
+      'actualSuggestion': actualSuggestion.toJson(),
+      if (topSuggestions != null)
+        'topSuggestions':
+            topSuggestions.map((suggestion) => suggestion.toJson()).toList(),
+      if (precedingRelevanceCounts != null)
+        'precedingRelevanceCounts': precedingRelevanceCounts
+            .map((key, value) => MapEntry(key.toString(), value)),
+      'expectedCompletion': expectedCompletion.toJson(),
+      'completionLocation': completionLocation,
+      'elapsedMS': elapsedMS,
+    };
   }
 
   /// Return the element associated with the syntactic [entity], or `null` if
@@ -1527,6 +1769,22 @@ class SuggestionData {
   List<double> features;
 
   SuggestionData(this.suggestion, this.features);
+
+  /// Return an instance extracted from the decoded JSON [map].
+  factory SuggestionData.fromJson(Map<String, dynamic> map) {
+    return SuggestionData(
+        protocol.CompletionSuggestion.fromJson(ResponseDecoder(null), '',
+            map['suggestion'] as Map<String, dynamic>),
+        (map['features'] as List<dynamic>).cast<double>());
+  }
+
+  /// Return a map used to represent this suggestion data in a JSON structure.
+  Map<String, dynamic> toJson() {
+    return {
+      'suggestion': suggestion.toJson(),
+      'features': features,
+    };
+  }
 }
 
 extension on CompletionGroup {

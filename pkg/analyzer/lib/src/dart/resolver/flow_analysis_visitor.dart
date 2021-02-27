@@ -592,11 +592,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     node.catchClauses.accept(this);
     assignedVariables.endNode(node);
 
-    if (finallyBlock != null) {
-      assignedVariables.beginNode();
-      finallyBlock.accept(this);
-      assignedVariables.endNode(finallyBlock);
-    }
+    finallyBlock?.accept(this);
   }
 
   @override
