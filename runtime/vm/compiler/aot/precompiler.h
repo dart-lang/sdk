@@ -333,6 +333,7 @@ class Precompiler : public ValueObject {
   void DropLibraryEntries();
   void DropClasses();
   void DropLibraries();
+  void DiscardCodeObjects();
 
   DEBUG_ONLY(FunctionPtr FindUnvisitedRetainedFunction());
 
@@ -376,6 +377,8 @@ class Precompiler : public ValueObject {
   GrowableObjectArray& libraries_;
   const GrowableObjectArray& pending_functions_;
   SymbolSet sent_selectors_;
+  FunctionSet entry_point_functions_;
+  FunctionSet functions_called_dynamically_;
   FunctionSet seen_functions_;
   FunctionSet possibly_retained_functions_;
   FieldSet fields_to_retain_;

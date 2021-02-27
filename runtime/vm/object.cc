@@ -16250,6 +16250,10 @@ void Code::set_is_alive(bool value) const {
   set_state_bits(AliveBit::update(value, untag()->state_bits_));
 }
 
+void Code::set_is_discarded(bool value) const {
+  set_state_bits(DiscardedBit::update(value, untag()->state_bits_));
+}
+
 void Code::set_compressed_stackmaps(const CompressedStackMaps& maps) const {
   ASSERT(maps.IsOld());
   untag()->set_compressed_stackmaps(maps.ptr());
@@ -17077,41 +17081,6 @@ void Code::DumpSourcePositions(bool relative_addresses) const {
   const Function& root = Function::Handle(function());
   CodeSourceMapReader reader(map, id_map, root);
   reader.DumpSourcePositions(relative_addresses ? 0 : PayloadStart());
-}
-
-bool Code::CanBeOmittedFromAOTSnapshot() const {
-  NoSafepointScope no_safepoint;
-
-  // Code objects are stored in stack frames if not use_bare_instructions.
-  // Code objects are used by stack traces if not dwarf_stack_traces.
-  if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions ||
-      !FLAG_dwarf_stack_traces_mode) {
-    return false;
-  }
-  // Only omit Code objects corresponding to Dart functions.
-  if (!IsFunctionCode()) {
-    return false;
-  }
-  // Retain Code object if it has exception handlers or PC descriptors.
-  if ((exception_handlers() != Object::empty_exception_handlers().ptr()) ||
-      (pc_descriptors() != Object::empty_descriptors().ptr())) {
-    return false;
-  }
-  if (!owner()->IsHeapObject()) {
-    // Can drop Code if precompiler dropped the Function and only left Smi
-    // classId.
-    return true;
-  }
-  // Retain Code objects corresponding to:
-  // * invisible functions (to filter them from stack traces);
-  // * async/async* closures (to construct async stacks).
-  // * native functions (to find native implementation).
-  const auto& func = Function::Handle(function());
-  if (!func.is_visible() || func.is_native() || func.IsAsyncClosure() ||
-      func.IsAsyncGenClosure()) {
-    return false;
-  }
-  return true;
 }
 
 intptr_t Context::GetLevel() const {
@@ -25090,6 +25059,7 @@ static void DwarfStackTracesHandler(bool value) {
   // debugging options like the observatory available.
   if (value) {
     FLAG_retain_function_objects = false;
+    FLAG_retain_code_objects = false;
   }
 #endif
 }

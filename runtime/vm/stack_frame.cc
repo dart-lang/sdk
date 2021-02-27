@@ -359,7 +359,7 @@ CodePtr StackFrame::GetCodeObject() const {
       // behavior of ReversePc::Lookup which will return
       // StubCode::UnknownDartCode() if code object is omitted from
       // the snapshot.
-      if (FLAG_dwarf_stack_traces_mode && code.CanBeOmittedFromAOTSnapshot()) {
+      if (code.is_discarded()) {
         ASSERT(StubCode::UnknownDartCode().PayloadStart() == 0);
         ASSERT(StubCode::UnknownDartCode().Size() == kUwordMax);
         ASSERT(StubCode::UnknownDartCode().IsFunctionCode());

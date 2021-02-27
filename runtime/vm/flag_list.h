@@ -194,6 +194,9 @@ constexpr bool FLAG_support_il_printer = false;
   P(retain_function_objects, bool, true,                                       \
     "Serialize function objects for all code objects even if not otherwise "   \
     "needed in the precompiled runtime.")                                      \
+  P(retain_code_objects, bool, true,                                           \
+    "Serialize all code objects even if not otherwise "                        \
+    "needed in the precompiled runtime.")                                      \
   P(enable_isolate_groups, bool, false,                                        \
     "Enable isolate group support in AOT.")                                    \
   P(experimental_enable_isolate_groups_jit, bool, false,                       \
