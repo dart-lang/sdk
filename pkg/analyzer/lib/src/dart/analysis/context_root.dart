@@ -107,7 +107,7 @@ class ContextRootImpl implements ContextRoot {
   bool _isExcluded(String path) {
     Context context = resourceProvider.pathContext;
 
-    for (var current = path; current != root.path;) {
+    for (var current = path; root.contains(current);) {
       if (context.basename(current).startsWith('.')) {
         return true;
       }
