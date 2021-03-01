@@ -98,8 +98,6 @@ void testTypeTest() {
   final pointer = calloc<Coordinate>();
   Coordinate c = pointer.ref;
   Expect.isTrue(c is Struct);
-  // TODO(https://dartbug.com/40667): Remove support for this.
-  Expect.isTrue(c.addressOf is Pointer<Coordinate>);
   calloc.free(pointer);
 }
 
