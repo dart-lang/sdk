@@ -150,13 +150,7 @@ mixin _IntListMixin implements List<int> {
     return -1;
   }
 
-  List<int> operator +(List<int> other) {
-    int totalLength = this.length + other.length;
-    return <int>[]
-      ..length = totalLength
-      ..setRange(0, this.length, this)
-      ..setRange(this.length, totalLength, other);
-  }
+  List<int> operator +(List<int> other) => [...this, ...other];
 
   bool contains(Object? element) {
     var len = this.length;
@@ -506,13 +500,7 @@ mixin _DoubleListMixin implements List<double> {
     return -1;
   }
 
-  List<double> operator +(List<double> other) {
-    int totalLength = this.length + other.length;
-    return <double>[]
-      ..length = totalLength
-      ..setRange(0, this.length, this)
-      ..setRange(this.length, totalLength, other);
-  }
+  List<double> operator +(List<double> other) => [...this, ...other];
 
   bool contains(Object? element) {
     var len = this.length;
@@ -868,13 +856,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     return -1;
   }
 
-  List<Float32x4> operator +(List<Float32x4> other) {
-    int totalLength = this.length + other.length;
-    return <Float32x4>[]
-      ..length = totalLength
-      ..setRange(0, this.length, this)
-      ..setRange(this.length, totalLength, other);
-  }
+  List<Float32x4> operator +(List<Float32x4> other) => [...this, ...other];
 
   bool contains(Object? element) {
     var len = this.length;
@@ -1228,13 +1210,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     return -1;
   }
 
-  List<Int32x4> operator +(List<Int32x4> other) {
-    int totalLength = this.length + other.length;
-    return <Int32x4>[]
-      ..length = totalLength
-      ..setRange(0, this.length, this)
-      ..setRange(this.length, totalLength, other);
-  }
+  List<Int32x4> operator +(List<Int32x4> other) => [...this, ...other];
 
   bool contains(Object? element) {
     var len = this.length;
@@ -1587,13 +1563,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     return -1;
   }
 
-  List<Float64x2> operator +(List<Float64x2> other) {
-    int totalLength = this.length + other.length;
-    return <Float64x2>[]
-      ..length = totalLength
-      ..setRange(0, this.length, this)
-      ..setRange(this.length, totalLength, other);
-  }
+  List<Float64x2> operator +(List<Float64x2> other) => [...this, ...other];
 
   bool contains(Object? element) {
     var len = this.length;
