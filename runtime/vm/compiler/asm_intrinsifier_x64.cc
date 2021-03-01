@@ -90,8 +90,7 @@ static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
   __ j(NOT_ZERO, not_smi);
 }
 
-void AsmIntrinsifier::Integer_addFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_add(Assembler* assembler, Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
   // RAX contains right argument.
 #if !defined(DART_COMPRESSED_POINTERS)
@@ -99,27 +98,6 @@ void AsmIntrinsifier::Integer_addFromInteger(Assembler* assembler,
   __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
 #else
   __ addl(RAX, Address(RSP, +2 * target::kWordSize));
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-  __ movsxd(RAX, RAX);
-#endif
-  // Result is in RAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_add(Assembler* assembler, Label* normal_ir_body) {
-  Integer_addFromInteger(assembler, normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_subFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  // RAX contains right argument, which is the actual minuend of subtraction.
-#if !defined(DART_COMPRESSED_POINTERS)
-  __ subq(RAX, Address(RSP, +2 * target::kWordSize));
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-#else
-  __ subl(RAX, Address(RSP, +2 * target::kWordSize));
   __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
   __ movsxd(RAX, RAX);
 #endif
@@ -146,8 +124,7 @@ void AsmIntrinsifier::Integer_sub(Assembler* assembler, Label* normal_ir_body) {
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Integer_mulFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_mul(Assembler* assembler, Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
   // RAX is the right argument.
   ASSERT(kSmiTag == 0);  // Adjust code below if not the case.
@@ -163,10 +140,6 @@ void AsmIntrinsifier::Integer_mulFromInteger(Assembler* assembler,
   // Result is in RAX.
   __ ret();
   __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_mul(Assembler* assembler, Label* normal_ir_body) {
-  Integer_mulFromInteger(assembler, normal_ir_body);
 }
 
 // Optimizations:
@@ -245,11 +218,15 @@ static void EmitRemainderOperation(Assembler* assembler) {
 //      res = res + right;
 //    }
 //  }
-void AsmIntrinsifier::Integer_moduloFromInteger(Assembler* assembler,
-                                                Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_mod(Assembler* assembler, Label* normal_ir_body) {
   Label negative_result;
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ movq(RCX, Address(RSP, +2 * target::kWordSize));
+
+  __ movq(RAX, Address(RSP, +2 * target::kWordSize));
+  __ movq(RCX, Address(RSP, +1 * target::kWordSize));
+  __ orq(RCX, RAX);
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, normal_ir_body);
+  __ movq(RCX, Address(RSP, +1 * target::kWordSize));
   // RAX: Tagged left (dividend).
   // RCX: Tagged right (divisor).
   __ cmpq(RCX, Immediate(0));
@@ -361,8 +338,8 @@ void AsmIntrinsifier::Integer_negate(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Integer_bitAndFromInteger(Assembler* assembler,
-                                                Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_bitAnd(Assembler* assembler,
+                                     Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
   // RAX is the right argument.
   __ andq(RAX, Address(RSP, +2 * target::kWordSize));
@@ -371,13 +348,8 @@ void AsmIntrinsifier::Integer_bitAndFromInteger(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Integer_bitAnd(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  Integer_bitAndFromInteger(assembler, normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitOrFromInteger(Assembler* assembler,
-                                               Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_bitOr(Assembler* assembler,
+                                    Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
   // RAX is the right argument.
   __ orq(RAX, Address(RSP, +2 * target::kWordSize));
@@ -386,24 +358,14 @@ void AsmIntrinsifier::Integer_bitOrFromInteger(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Integer_bitOr(Assembler* assembler,
-                                    Label* normal_ir_body) {
-  Integer_bitOrFromInteger(assembler, normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitXorFromInteger(Assembler* assembler,
-                                                Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_bitXor(Assembler* assembler,
+                                     Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);
   // RAX is the right argument.
   __ xorq(RAX, Address(RSP, +2 * target::kWordSize));
   // Result is in RAX.
   __ ret();
   __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitXor(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  Integer_bitXorFromInteger(assembler, normal_ir_body);
 }
 
 void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
@@ -461,11 +423,6 @@ static void CompareIntegers(Assembler* assembler,
 
 void AsmIntrinsifier::Integer_lessThan(Assembler* assembler,
                                        Label* normal_ir_body) {
-  CompareIntegers(assembler, normal_ir_body, LESS);
-}
-
-void AsmIntrinsifier::Integer_greaterThanFromInt(Assembler* assembler,
-                                                 Label* normal_ir_body) {
   CompareIntegers(assembler, normal_ir_body, LESS);
 }
 
@@ -591,11 +548,6 @@ void AsmIntrinsifier::Smi_bitLength(Assembler* assembler,
   __ bsrq(RAX, RAX);
   __ SmiTag(RAX);
   __ ret();
-}
-
-void AsmIntrinsifier::Smi_bitAndFromSmi(Assembler* assembler,
-                                        Label* normal_ir_body) {
-  Integer_bitAndFromInteger(assembler, normal_ir_body);
 }
 
 void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {

@@ -32,7 +32,9 @@ abstract class _IntegerImplementation implements int {
     return this.toDouble() / other.toDouble();
   }
 
+  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
+  @pragma("vm:never-inline")
   num operator %(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
@@ -67,14 +69,9 @@ abstract class _IntegerImplementation implements int {
   }
 
   @pragma("vm:non-nullable-result-type")
-  int _bitAndFromSmi(_Smi other) native "Integer_bitAndFromInteger";
-  @pragma("vm:recognized", "asm-intrinsic")
-  @pragma("vm:non-nullable-result-type")
   int _bitAndFromInteger(int other) native "Integer_bitAndFromInteger";
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _bitOrFromInteger(int other) native "Integer_bitOrFromInteger";
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _bitXorFromInteger(int other) native "Integer_bitXorFromInteger";
   @pragma("vm:non-nullable-result-type")
@@ -83,18 +80,14 @@ abstract class _IntegerImplementation implements int {
   int _ushrFromInteger(int other) native "Integer_ushrFromInteger";
   @pragma("vm:non-nullable-result-type")
   int _shlFromInteger(int other) native "Integer_shlFromInteger";
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _addFromInteger(int other) native "Integer_addFromInteger";
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _subFromInteger(int other) native "Integer_subFromInteger";
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _mulFromInteger(int other) native "Integer_mulFromInteger";
   @pragma("vm:non-nullable-result-type")
   int _truncDivFromInteger(int other) native "Integer_truncDivFromInteger";
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _moduloFromInteger(int other) native "Integer_moduloFromInteger";
   int _remainderFromInteger(int other) {
@@ -142,7 +135,6 @@ abstract class _IntegerImplementation implements int {
     return (this == other) || (this < other);
   }
 
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   bool _greaterThanFromInteger(int other)
       native "Integer_greaterThanFromInteger";
@@ -555,12 +547,6 @@ class _Smi extends _IntegerImplementation {
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get bitLength native "Smi_bitLength";
 
-  int operator &(int other) => other._bitAndFromSmi(this);
-
-  @pragma("vm:recognized", "asm-intrinsic")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int _bitAndFromSmi(_Smi other) native "Smi_bitAndFromSmi";
-
   /**
    * The digits of '00', '01', ... '99' as a single array.
    *
@@ -766,6 +752,4 @@ class _Mint extends _IntegerImplementation {
   int operator ~() native "Mint_bitNegate";
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get bitLength native "Mint_bitLength";
-
-  int _bitAndFromSmi(_Smi other) => _bitAndFromInteger(other);
 }
