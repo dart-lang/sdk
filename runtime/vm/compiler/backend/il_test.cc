@@ -7,7 +7,10 @@
 #include <vector>
 
 #include "platform/utils.h"
+#include "vm/compiler/backend/block_builder.h"
+#include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/il_test_helper.h"
+#include "vm/compiler/backend/range_analysis.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -187,6 +190,75 @@ ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
                             expected_stores_jit);
   RunInitializingStoresTest(root_library, "f4", CompilerPass::kAOT,
                             expected_stores_aot);
+}
+
+// Returns |true| if compiler canonicalizes away a chain of IntConverters going
+// from |initial| representation to |intermediate| representation and then
+// back to |initial| given that initial value has range [min_value, max_value].
+bool TestIntConverterCanonicalizationRule(Thread* thread,
+                                          int64_t min_value,
+                                          int64_t max_value,
+                                          Representation initial,
+                                          Representation intermediate) {
+  using compiler::BlockBuilder;
+
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+
+  FlowGraphBuilderHelper H;
+
+  // Add a variable into the scope which would provide static type for the
+  // parameter.
+  LocalVariable* v0_var =
+      new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                        String::Handle(Symbols::New(thread, "v0")),
+                        AbstractType::ZoneHandle(Type::IntType()));
+  v0_var->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
+  H.flow_graph()->parsed_function().scope()->AddVariable(v0_var);
+
+  auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+
+  Definition* v0;
+  ReturnInstr* ret;
+
+  {
+    BlockBuilder builder(H.flow_graph(), normal_entry);
+    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, initial);
+    v0->set_range(Range(RangeBoundary::FromConstant(min_value),
+                        RangeBoundary::FromConstant(max_value)));
+    auto conv1 = builder.AddDefinition(new IntConverterInstr(
+        initial, intermediate, new Value(v0), S.GetNextDeoptId()));
+    auto conv2 = builder.AddDefinition(new IntConverterInstr(
+        intermediate, initial, new Value(conv1), S.GetNextDeoptId()));
+    ret = builder.AddReturn(new Value(conv2));
+  }
+
+  H.FinishGraph();
+
+  H.flow_graph()->Canonicalize();
+  H.flow_graph()->Canonicalize();
+
+  return ret->value()->definition() == v0;
+}
+
+ISOLATE_UNIT_TEST_CASE(IL_IntConverterCanonicalization) {
+  EXPECT(TestIntConverterCanonicalizationRule(thread, kMinInt16, kMaxInt16,
+                                              kUnboxedInt64, kUnboxedInt32));
+  EXPECT(TestIntConverterCanonicalizationRule(thread, kMinInt32, kMaxInt32,
+                                              kUnboxedInt64, kUnboxedInt32));
+  EXPECT(!TestIntConverterCanonicalizationRule(
+      thread, kMinInt32, static_cast<int64_t>(kMaxInt32) + 1, kUnboxedInt64,
+      kUnboxedInt32));
+  EXPECT(TestIntConverterCanonicalizationRule(thread, 0, kMaxInt16,
+                                              kUnboxedInt64, kUnboxedUint32));
+  EXPECT(TestIntConverterCanonicalizationRule(thread, 0, kMaxInt32,
+                                              kUnboxedInt64, kUnboxedUint32));
+  EXPECT(TestIntConverterCanonicalizationRule(thread, 0, kMaxUint32,
+                                              kUnboxedInt64, kUnboxedUint32));
+  EXPECT(!TestIntConverterCanonicalizationRule(
+      thread, 0, static_cast<int64_t>(kMaxUint32) + 1, kUnboxedInt64,
+      kUnboxedUint32));
+  EXPECT(!TestIntConverterCanonicalizationRule(thread, -1, kMaxInt16,
+                                               kUnboxedInt64, kUnboxedUint32));
 }
 
 }  // namespace dart
