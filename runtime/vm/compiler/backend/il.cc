@@ -3389,16 +3389,18 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
 
   IntConverterInstr* box_defn = value()->definition()->AsIntConverter();
   if ((box_defn != NULL) && (box_defn->representation() == from())) {
-    // Do not erase truncating conversions from 64-bit value to 32-bit values
-    // because such conversions erase upper 32 bits.
-    if ((box_defn->from() == kUnboxedInt64) && box_defn->is_truncating()) {
+    // If the first convertion can erase bits (or deoptimize) we can't
+    // canonicalize it away.
+    auto src_defn = box_defn->value()->definition();
+    if ((box_defn->from() == kUnboxedInt64) &&
+        !Range::Fits(src_defn->range(), box_defn->to())) {
       return this;
     }
 
-    // It's safe to discard any other conversions from and then back to the same
-    // integer type.
+    // Otherise it is safe to discard any other conversions from and then back
+    // to the same integer type.
     if (box_defn->from() == to()) {
-      return box_defn->value()->definition();
+      return src_defn;
     }
 
     // Do not merge conversions where the first starts from Untagged or the

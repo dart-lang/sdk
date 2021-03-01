@@ -439,6 +439,27 @@ class Range : public ZoneAllocated {
            !max().UpperBound().Overflowed(size);
   }
 
+  // Returns true if this range fits without truncation into
+  // the given representation.
+  static bool Fits(Range* range, Representation rep) {
+    if (range == nullptr) return false;
+
+    switch (rep) {
+      case kUnboxedInt64:
+        return true;
+
+      case kUnboxedInt32:
+        return range->Fits(RangeBoundary::kRangeBoundaryInt32);
+
+      case kUnboxedUint32:
+        return range->IsWithin(0, kMaxUint32);
+
+      default:
+        break;
+    }
+    return false;
+  }
+
   // Clamp this to be within size.
   void Clamp(RangeBoundary::RangeSize size);
 
