@@ -111,6 +111,12 @@ ${ownType} is not a subtype of ${superType}
   /// Check if [subtype] is subtype of [supertype] after applying
   /// type parameter [substitution].
   bool _isSubtypeOf(DartType subtype, DartType supertype) {
+    // TODO(dmitryas): Remove this when ExtensionType is in ast.dart.
+    if (!_isKnownDartTypeImplementation(subtype) ||
+        !_isKnownDartTypeImplementation(supertype)) {
+      return true;
+    }
+
     if (subtype is InvalidType || supertype is InvalidType) {
       return true;
     }
@@ -298,4 +304,17 @@ super method declares ${superParameter.type}
   void fail(TreeNode where, String message) {
     failures.reportFailure(where, message);
   }
+}
+
+bool _isKnownDartTypeImplementation(DartType type) {
+  return type is DynamicType ||
+      type is FunctionType ||
+      type is FutureOrType ||
+      type is InterfaceType ||
+      type is InvalidType ||
+      type is NeverType ||
+      type is NullType ||
+      type is TypeParameterType ||
+      type is TypedefType ||
+      type is VoidType;
 }

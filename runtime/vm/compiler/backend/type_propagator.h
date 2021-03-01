@@ -77,6 +77,7 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   Zone* zone() const { return flow_graph_->zone(); }
 
   FlowGraph* flow_graph_;
+  const bool is_aot_;
 
   BitVector* visited_blocks_;
 

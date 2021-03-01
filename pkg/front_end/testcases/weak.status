@@ -11,6 +11,7 @@
 # regress/utf_16_le_content.crash: Crash # semi fuzz fails but isn't currently enabled by default.
 
 extension_types/simple: ExpectationFileMismatchSerialized # Expected.
+extension_types/simple_method_resolution: ExpectationFileMismatchSerialized # Expected.
 extensions/call_methods: TypeCheckError
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError

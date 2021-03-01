@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef BAlias = self::B;
+class A extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::A::•, self::A::named]/*isLegacy*/;
+  static factory •() → self::A
+    let Never #redirecting_factory = self::B::• in invalid-expression;
+  static factory named() → self::A
+    let Never #redirecting_factory = self::B::named in invalid-expression;
+}
+class B extends core::Object implements self::A {
+  constructor •() → self::B
+    : super core::Object::•()
+    ;
+  constructor named() → self::B
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

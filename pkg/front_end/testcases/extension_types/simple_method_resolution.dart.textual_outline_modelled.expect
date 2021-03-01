@@ -1,0 +1,10 @@
+class A {
+  void foo() {}
+}
+
+extension E on A {
+  void bar() => foo();
+}
+
+main() {}
+test(A a, E e) {}

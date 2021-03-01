@@ -491,4 +491,53 @@ class C<NoBound,
   }
 }
 
+// Verifies that Propagate does not crash when running in AOT mode on a graph
+// which contains both AssertAssignable and a CheckClass/Smi after
+// EliminateEnvironments was called.
+ISOLATE_UNIT_TEST_CASE(TypePropagator_RegressFlutter76919) {
+  CompilerState S(thread, /*is_aot=*/true, /*is_optimizing=*/true);
+
+  FlowGraphBuilderHelper H;
+
+  // Add a variable into the scope which would provide static type for the
+  // parameter.
+  LocalVariable* v0_var =
+      new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                        String::Handle(Symbols::New(thread, "v0")),
+                        AbstractType::ZoneHandle(Type::DynamicType()));
+  v0_var->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
+  H.flow_graph()->parsed_function().scope()->AddVariable(v0_var);
+
+  auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+
+  // We are going to build the following graph:
+  //
+  // B0[graph_entry]:
+  // B1[function_entry]:
+  //   v0 <- Parameter(0)
+  //   AssertAssignable(v0, 'int')
+  //   CheckSmi(v0)
+  //   Return(v0)
+
+  {
+    BlockBuilder builder(H.flow_graph(), normal_entry);
+    Definition* v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    auto null_value = builder.AddNullDefinition();
+    builder.AddDefinition(new AssertAssignableInstr(
+        InstructionSource(), new Value(v0),
+        new Value(
+            H.flow_graph()->GetConstant(Type::ZoneHandle(Type::IntType()))),
+        new Value(null_value), new Value(null_value), Symbols::Value(),
+        S.GetNextDeoptId()));
+    builder.AddInstruction(new CheckSmiInstr(new Value(v0), S.GetNextDeoptId(),
+                                             InstructionSource()));
+    builder.AddReturn(new Value(v0));
+  }
+
+  H.FinishGraph();
+
+  H.flow_graph()->EliminateEnvironments();
+  FlowGraphTypePropagator::Propagate(H.flow_graph());  // Should not crash.
+}
+
 }  // namespace dart

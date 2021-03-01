@@ -127,6 +127,7 @@ nnbd_mixed/issue41597: FormatterCrash
 nnbd_mixed/null_safety_invalid_language_version: FormatterCrash
 nonfunction_type_aliases/issue41501: FormatterCrash
 nonfunction_type_aliases/issue42446: FormatterCrash
+nonfunction_type_aliases/issue45051: FormatterCrash
 rasta/bad_redirection: FormatterCrash
 rasta/issue_000032: FormatterCrash
 rasta/issue_000034: FormatterCrash

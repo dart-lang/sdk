@@ -3491,6 +3491,10 @@ UndefinedOperator:
       c + 0;
     }
 
+UndefinedExtensionMethod:
+  template: "The method '#name' isn't defined for the extension '#type'."
+  tip: "Try correcting the name to the name of an existing method, or defining a method name '#name'."
+
 AmbiguousExtensionMethod:
   template: "The method '#name' is defined in multiple extensions for '#type' and neither is more specific."
   tip: "Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope."
