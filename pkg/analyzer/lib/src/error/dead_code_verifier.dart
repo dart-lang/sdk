@@ -568,6 +568,11 @@ class NullSafetyDeadCodeVerifier {
     if (flowAnalysis == null) return;
     flowAnalysis.checkUnreachableNode(node);
 
+    // If the first dead node is not `null`, even if this new new node is
+    // unreachable, we can ignore it as it is part of the same dead code
+    // range anyway.
+    if (_firstDeadNode != null) return;
+
     var flow = flowAnalysis.flow;
     if (flow == null) return;
 
@@ -580,7 +585,6 @@ class NullSafetyDeadCodeVerifier {
       }
     }
 
-    if (_firstDeadNode != null) return;
     _firstDeadNode = node;
   }
 
