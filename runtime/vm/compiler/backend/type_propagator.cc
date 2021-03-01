@@ -48,6 +48,7 @@ void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
 FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
     : FlowGraphVisitor(flow_graph->reverse_postorder()),
       flow_graph_(flow_graph),
+      is_aot_(CompilerState::Current().is_aot()),
       visited_blocks_(new (flow_graph->zone())
                           BitVector(flow_graph->zone(),
                                     flow_graph->reverse_postorder().length())),
@@ -119,7 +120,13 @@ void FlowGraphTypePropagator::PropagateRecursive(BlockEntryInstr* block) {
 
   const intptr_t rollback_point = rollback_.length();
 
-  StrengthenAsserts(block);
+  if (!is_aot_) {
+    // Don't try to strengthen asserts with class checks in AOT mode, this is a
+    // speculative optimization which only really makes sense in JIT mode.
+    // It is also written to expect environments to be attached to
+    // AssertAssignable instructions, which is not always a case in AOT mode.
+    StrengthenAsserts(block);
+  }
 
   block->Accept(this);
 
