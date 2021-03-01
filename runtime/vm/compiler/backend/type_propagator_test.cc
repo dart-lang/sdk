@@ -491,6 +491,9 @@ class C<NoBound,
   }
 }
 
+// Verifies that Propagate does not crash when running in AOT mode on a graph
+// which contains both AssertAssignable and a CheckClass/Smi after
+// EliminateEnvironments was called.
 ISOLATE_UNIT_TEST_CASE(TypePropagator_RegressFlutter76919) {
   CompilerState S(thread, /*is_aot=*/true, /*is_optimizing=*/true);
 
@@ -534,7 +537,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RegressFlutter76919) {
   H.FinishGraph();
 
   H.flow_graph()->EliminateEnvironments();
-  FlowGraphTypePropagator::Propagate(H.flow_graph());
+  FlowGraphTypePropagator::Propagate(H.flow_graph());  // Should not crash.
 }
 
 }  // namespace dart
