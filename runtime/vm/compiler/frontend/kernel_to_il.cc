@@ -2087,7 +2087,7 @@ struct FlowGraphBuilder::ClosureCallInfo {
   // Set up by BuildDynamicCallChecks() when needed. These values are
   // read-only, so they don't need real local variables and are created
   // using MakeTemporary().
-  LocalVariable* function = nullptr;
+  LocalVariable* signature = nullptr;
   LocalVariable* num_fixed_params = nullptr;
   LocalVariable* num_opt_params = nullptr;
   LocalVariable* num_max_params = nullptr;
@@ -2657,16 +2657,19 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   Fragment body;
   body += LoadLocal(info.closure);
   body += LoadNativeField(Slot::Closure_function());
-  info.function = MakeTemporary("function");
+  body += LoadNativeField(Slot::Function_signature());
+  info.signature = MakeTemporary("signature");
 
-  body += LoadLocal(info.function);
+  body += LoadLocal(info.signature);
   body += BuildExtractUnboxedSlotBitFieldIntoSmi<
-      Function::PackedNumFixedParameters>(Slot::Function_packed_fields());
+      FunctionType::PackedNumFixedParameters>(
+      Slot::FunctionType_packed_fields());
   info.num_fixed_params = MakeTemporary("num_fixed_params");
 
-  body += LoadLocal(info.function);
+  body += LoadLocal(info.signature);
   body += BuildExtractUnboxedSlotBitFieldIntoSmi<
-      Function::PackedNumOptionalParameters>(Slot::Function_packed_fields());
+      FunctionType::PackedNumOptionalParameters>(
+      Slot::FunctionType_packed_fields());
   info.num_opt_params = MakeTemporary("num_opt_params");
 
   body += LoadLocal(info.num_fixed_params);
@@ -2674,26 +2677,24 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   body += SmiBinaryOp(Token::kADD);
   info.num_max_params = MakeTemporary("num_max_params");
 
-  body += LoadLocal(info.function);
+  body += LoadLocal(info.signature);
   body += BuildExtractUnboxedSlotBitFieldIntoSmi<
-      Function::PackedHasNamedOptionalParameters>(
-      Slot::Function_packed_fields());
+      FunctionType::PackedHasNamedOptionalParameters>(
+      Slot::FunctionType_packed_fields());
 
   body += IntConstant(0);
   body += StrictCompare(Token::kNE_STRICT);
   info.has_named_params = MakeTemporary("has_named_params");
 
-  body += LoadLocal(info.function);
-  body += LoadNativeField(Slot::Function_parameter_names());
+  body += LoadLocal(info.signature);
+  body += LoadNativeField(Slot::FunctionType_parameter_names());
   info.parameter_names = MakeTemporary("parameter_names");
 
-  body += LoadLocal(info.function);
-  body += LoadNativeField(Slot::Function_signature());
+  body += LoadLocal(info.signature);
   body += LoadNativeField(Slot::FunctionType_parameter_types());
   info.parameter_types = MakeTemporary("parameter_types");
 
-  body += LoadLocal(info.function);
-  body += LoadNativeField(Slot::Function_signature());
+  body += LoadLocal(info.signature);
   body += LoadNativeField(Slot::FunctionType_type_parameters());
   info.type_parameters = MakeTemporary("type_parameters");
 
@@ -2722,7 +2723,8 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   // full set of function type arguments, then check the local function type
   // arguments against the closure function's type parameter bounds.
   Fragment generic;
-  generic += LoadLocal(info.function);
+  generic += LoadLocal(info.closure);
+  generic += LoadNativeField(Slot::Closure_function());
   generic += LoadNativeField(Slot::Function_data());
   info.closure_data = MakeTemporary("closure_data");
   generic += LoadLocal(info.closure_data);
@@ -2788,7 +2790,7 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   body += DropTemporary(&info.num_max_params);
   body += DropTemporary(&info.num_opt_params);
   body += DropTemporary(&info.num_fixed_params);
-  body += DropTemporary(&info.function);
+  body += DropTemporary(&info.signature);
 
   return body;
 }

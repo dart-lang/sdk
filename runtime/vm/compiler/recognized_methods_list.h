@@ -204,7 +204,6 @@ namespace dart {
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_Smi, ~, Smi_bitNegate, 0x8254f51b)                                        \
   V(_Smi, get:bitLength, Smi_bitLength, 0x7ab50ceb)                            \
-  V(_Smi, _bitAndFromSmi, Smi_bitAndFromSmi, 0xaf07a450)                       \
   V(_BigIntImpl, _lsh, Bigint_lsh, 0x3f8b105e)                                 \
   V(_BigIntImpl, _rsh, Bigint_rsh, 0x117ed3f3)                                 \
   V(_BigIntImpl, _absAdd, Bigint_absAdd, 0xd55235d1)                           \
@@ -254,30 +253,15 @@ namespace dart {
   V(::, _setHash, Object_setHash, 0x8f2a5b0b)                                  \
 
 #define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \
-  V(_IntegerImplementation, _addFromInteger, Integer_addFromInteger,           \
-    0x2f20e46b)                                                                \
   V(_IntegerImplementation, +, Integer_add, 0xd561008f)                        \
-  V(_IntegerImplementation, _subFromInteger, Integer_subFromInteger,           \
-    0xf571525f)                                                                \
   V(_IntegerImplementation, -, Integer_sub, 0xc96a0f80)                        \
-  V(_IntegerImplementation, _mulFromInteger, Integer_mulFromInteger,           \
-    0xfcd889fe)                                                                \
   V(_IntegerImplementation, *, Integer_mul, 0xacd9641d)                        \
-  V(_IntegerImplementation, _moduloFromInteger, Integer_moduloFromInteger,     \
-    0x23d96e8b)                                                                \
+  V(_IntegerImplementation, %, Integer_mod, 0xfcf7cc13)                        \
   V(_IntegerImplementation, ~/, Integer_truncDivide, 0xdda49e7f)               \
   V(_IntegerImplementation, unary-, Integer_negate, 0xf7a9a696)                \
-  V(_IntegerImplementation, _bitAndFromInteger, Integer_bitAndFromInteger,     \
-    0x1f4a948f)                                                                \
   V(_IntegerImplementation, &, Integer_bitAnd, 0x8b9d7c33)                     \
-  V(_IntegerImplementation, _bitOrFromInteger, Integer_bitOrFromInteger,       \
-    0x10d87167)                                                                \
   V(_IntegerImplementation, |, Integer_bitOr, 0x8f47f5eb)                      \
-  V(_IntegerImplementation, _bitXorFromInteger, Integer_bitXorFromInteger,     \
-    0x0218412b)                                                                \
   V(_IntegerImplementation, ^, Integer_bitXor, 0xd838bef2)                     \
-  V(_IntegerImplementation, _greaterThanFromInteger,                           \
-    Integer_greaterThanFromInt, 0x6aa24b23)                                    \
   V(_IntegerImplementation, >, Integer_greaterThan, 0x402b12df)                \
   V(_IntegerImplementation, ==, Integer_equal, 0x509c9146)                     \
   V(_IntegerImplementation, _equalToInteger, Integer_equalToInteger,           \

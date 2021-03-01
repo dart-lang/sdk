@@ -2764,31 +2764,6 @@ static bool InlineDoubleTestOp(FlowGraph* flow_graph,
   return true;
 }
 
-static bool InlineSmiBitAndFromSmi(FlowGraph* flow_graph,
-                                   Instruction* call,
-                                   Definition* receiver,
-                                   GraphEntryInstr* graph_entry,
-                                   FunctionEntryInstr** entry,
-                                   Instruction** last,
-                                   Definition** result) {
-  Definition* left = receiver;
-  Definition* right = call->ArgumentAt(1);
-
-  *entry =
-      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
-                                 call->GetBlock()->try_index(), DeoptId::kNone);
-  (*entry)->InheritDeoptTarget(Z, call);
-  // Right arguments is known to be smi: other._bitAndFromSmi(this);
-  BinarySmiOpInstr* smi_op =
-      new (Z) BinarySmiOpInstr(Token::kBIT_AND, new (Z) Value(left),
-                               new (Z) Value(right), call->deopt_id());
-  flow_graph->AppendTo(*entry, smi_op, call->env(), FlowGraph::kValue);
-  *last = smi_op;
-  *result = smi_op->AsDefinition();
-
-  return true;
-}
-
 static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
                                       const Slot& field,
                                       StoreBarrierType store_barrier_type,
@@ -3969,9 +3944,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       return InlineGrowableArraySetter(
           flow_graph, Slot::GrowableObjectArray_length(), kNoStoreBarrier, call,
           receiver, graph_entry, entry, last, result);
-    case MethodRecognizer::kSmi_bitAndFromSmi:
-      return InlineSmiBitAndFromSmi(flow_graph, call, receiver, graph_entry,
-                                    entry, last, result);
 
     case MethodRecognizer::kFloat32x4Abs:
     case MethodRecognizer::kFloat32x4Clamp:

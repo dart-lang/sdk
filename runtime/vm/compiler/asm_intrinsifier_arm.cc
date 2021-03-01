@@ -91,24 +91,10 @@ static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
   __ b(not_smi, NE);
 }
 
-void AsmIntrinsifier::Integer_addFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_add(Assembler* assembler, Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);  // Checks two smis.
   __ adds(R0, R0, Operand(R1));                      // Adds.
   READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, VC));       // Return if no overflow.
-  // Otherwise fall through.
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_add(Assembler* assembler, Label* normal_ir_body) {
-  Integer_addFromInteger(assembler, normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_subFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ subs(R0, R0, Operand(R1));  // Subtract.
-  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, VC));  // Return if no overflow.
   // Otherwise fall through.
   __ Bind(normal_ir_body);
 }
@@ -121,18 +107,13 @@ void AsmIntrinsifier::Integer_sub(Assembler* assembler, Label* normal_ir_body) {
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Integer_mulFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_mul(Assembler* assembler, Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);  // checks two smis
   __ SmiUntag(R0);           // Untags R0. We only want result shifted by one.
   __ smull(R0, IP, R0, R1);  // IP:R0 <- R0 * R1.
   __ cmp(IP, Operand(R0, ASR, 31));
   READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, EQ));
   __ Bind(normal_ir_body);  // Fall through on overflow.
-}
-
-void AsmIntrinsifier::Integer_mul(Assembler* assembler, Label* normal_ir_body) {
-  Integer_mulFromInteger(assembler, normal_ir_body);
 }
 
 // Optimizations:
@@ -189,14 +170,13 @@ static void EmitRemainderOperation(Assembler* assembler) {
 //      res = res + right;
 //    }
 //  }
-void AsmIntrinsifier::Integer_moduloFromInteger(Assembler* assembler,
-                                                Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_mod(Assembler* assembler, Label* normal_ir_body) {
   if (!TargetCPUFeatures::can_divide()) {
     return;
   }
   // Check to see if we have integer division
-  __ ldr(R1, Address(SP, +0 * target::kWordSize));
-  __ ldr(R0, Address(SP, +1 * target::kWordSize));
+  __ ldr(R0, Address(SP, +0 * target::kWordSize));
+  __ ldr(R1, Address(SP, +1 * target::kWordSize));
   __ orr(TMP, R0, Operand(R1));
   __ tst(TMP, Operand(kSmiTagMask));
   __ b(normal_ir_body, NE);
@@ -257,8 +237,8 @@ void AsmIntrinsifier::Integer_negate(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Integer_bitAndFromInteger(Assembler* assembler,
-                                                Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_bitAnd(Assembler* assembler,
+                                     Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);  // checks two smis
   __ and_(R0, R0, Operand(R1));
 
@@ -266,13 +246,8 @@ void AsmIntrinsifier::Integer_bitAndFromInteger(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Integer_bitAnd(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  Integer_bitAndFromInteger(assembler, normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitOrFromInteger(Assembler* assembler,
-                                               Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_bitOr(Assembler* assembler,
+                                    Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);  // checks two smis
   __ orr(R0, R0, Operand(R1));
 
@@ -280,23 +255,13 @@ void AsmIntrinsifier::Integer_bitOrFromInteger(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Integer_bitOr(Assembler* assembler,
-                                    Label* normal_ir_body) {
-  Integer_bitOrFromInteger(assembler, normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitXorFromInteger(Assembler* assembler,
-                                                Label* normal_ir_body) {
+void AsmIntrinsifier::Integer_bitXor(Assembler* assembler,
+                                     Label* normal_ir_body) {
   TestBothArgumentsSmis(assembler, normal_ir_body);  // checks two smis
   __ eor(R0, R0, Operand(R1));
 
   __ Ret();
   __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitXor(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  Integer_bitXorFromInteger(assembler, normal_ir_body);
 }
 
 void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
@@ -428,14 +393,9 @@ static void CompareIntegers(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Integer_greaterThanFromInt(Assembler* assembler,
-                                                 Label* normal_ir_body) {
-  CompareIntegers(assembler, normal_ir_body, LT);
-}
-
 void AsmIntrinsifier::Integer_lessThan(Assembler* assembler,
                                        Label* normal_ir_body) {
-  Integer_greaterThanFromInt(assembler, normal_ir_body);
+  CompareIntegers(assembler, normal_ir_body, LT);
 }
 
 void AsmIntrinsifier::Integer_greaterThan(Assembler* assembler,
@@ -548,11 +508,6 @@ void AsmIntrinsifier::Smi_bitLength(Assembler* assembler,
   __ rsb(R0, R0, Operand(32));
   __ SmiTag(R0);
   __ Ret();
-}
-
-void AsmIntrinsifier::Smi_bitAndFromSmi(Assembler* assembler,
-                                        Label* normal_ir_body) {
-  Integer_bitAndFromInteger(assembler, normal_ir_body);
 }
 
 void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
