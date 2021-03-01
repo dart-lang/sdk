@@ -175,6 +175,7 @@ import 'rules/unrelated_type_equality_checks.dart';
 import 'rules/unsafe_html.dart';
 import 'rules/use_full_hex_values_for_flutter_colors.dart';
 import 'rules/use_function_type_syntax_for_parameters.dart';
+import 'rules/use_if_null_to_convert_nulls_to_bools.dart';
 import 'rules/use_is_even_rather_than_modulo.dart';
 import 'rules/use_key_in_widget_constructors.dart';
 import 'rules/use_late_for_private_fields_and_variables.dart';
@@ -364,6 +365,7 @@ void registerLintRules() {
     ..register(UnsafeHtml())
     ..register(UseFullHexValuesForFlutterColors())
     ..register(UseFunctionTypeSyntaxForParameters())
+    ..register(UseIfNullToConvertNullsToBools())
     ..register(UseIsEvenRatherThanModuloCheck())
     ..register(UseKeyInWidgetConstructors())
     ..register(UseLateForPrivateFieldsAndVariables())
