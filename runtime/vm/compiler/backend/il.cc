@@ -2774,9 +2774,9 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kFunction_data:
     case Slot::Kind::kFunction_kind_tag:
     case Slot::Kind::kFunction_packed_fields:
-    case Slot::Kind::kFunction_parameter_names:
     case Slot::Kind::kFunction_signature:
     case Slot::Kind::kFunctionType_packed_fields:
+    case Slot::Kind::kFunctionType_parameter_names:
     case Slot::Kind::kFunctionType_parameter_types:
     case Slot::Kind::kFunctionType_type_parameters:
     case Slot::Kind::kPointerBase_data_field:

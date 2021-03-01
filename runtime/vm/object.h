@@ -2554,9 +2554,6 @@ class Function : public Object {
   StringPtr ParameterNameAt(intptr_t index) const;
   ArrayPtr parameter_names() const { return untag()->parameter_names(); }
   void SetParameterNamesFrom(const FunctionType& signature) const;
-  static intptr_t parameter_names_offset() {
-    return OFFSET_OF(UntaggedFunction, parameter_names_);
-  }
 
   // The required flags are stored at the end of the parameter_names. The flags
   // are packed into SMIs, but omitted if they're 0.
@@ -2931,13 +2928,6 @@ class Function : public Object {
 
   // Returns the size of the source for this function.
   intptr_t SourceSize() const;
-
-  // Reexported so they can be used by the flow graph builders.
-  using PackedHasNamedOptionalParameters =
-      UntaggedFunction::PackedHasNamedOptionalParameters;
-  using PackedNumFixedParameters = UntaggedFunction::PackedNumFixedParameters;
-  using PackedNumOptionalParameters =
-      UntaggedFunction::PackedNumOptionalParameters;
 
   uint32_t packed_fields() const { return untag()->packed_fields_; }
   void set_packed_fields(uint32_t packed_fields) const;
@@ -8121,6 +8111,14 @@ class FunctionType : public AbstractType {
     return OFFSET_OF(UntaggedFunctionType, packed_fields_);
   }
 
+  // Reexported so they can be used by the flow graph builders.
+  using PackedHasNamedOptionalParameters =
+      UntaggedFunctionType::PackedHasNamedOptionalParameters;
+  using PackedNumFixedParameters =
+      UntaggedFunctionType::PackedNumFixedParameters;
+  using PackedNumOptionalParameters =
+      UntaggedFunctionType::PackedNumOptionalParameters;
+
   AbstractTypePtr result_type() const { return untag()->result_type(); }
   void set_result_type(const AbstractType& value) const;
 
@@ -8145,6 +8143,9 @@ class FunctionType : public AbstractType {
   void SetParameterNameAt(intptr_t index, const String& value) const;
   ArrayPtr parameter_names() const { return untag()->parameter_names(); }
   void set_parameter_names(const Array& value) const;
+  static intptr_t parameter_names_offset() {
+    return OFFSET_OF(UntaggedFunctionType, parameter_names_);
+  }
 
   // The required flags are stored at the end of the parameter_names. The flags
   // are packed into SMIs, but omitted if they're 0.

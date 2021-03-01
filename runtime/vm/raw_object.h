@@ -1147,7 +1147,6 @@ class UntaggedFunction : public UntaggedObject {
 
   // TODO(regis): Split packed_fields_ in 2 uint32_t if max values are too low.
 
-  // Keep in sync with corresponding constants in UntaggedFunctionType.
   static constexpr intptr_t kMaxOptimizableBits = 1;
   static constexpr intptr_t kMaxBackgroundOptimizableBits = 1;
   static constexpr intptr_t kMaxTypeParametersBits = 7;
@@ -1184,10 +1183,6 @@ class UntaggedFunction : public UntaggedObject {
   static_assert(PackedNumOptionalParameters::kNextBit <=
                     kBitsPerByte * sizeof(decltype(packed_fields_)),
                 "UntaggedFunction::packed_fields_ bitfields don't fit.");
-  static_assert(PackedNumOptionalParameters::kNextBit <=
-                    compiler::target::kSmiBits,
-                "In-place mask for number of optional parameters cannot fit in "
-                "a Smi on the target architecture");
 
 #define JIT_FUNCTION_COUNTERS(F)                                               \
   F(intptr_t, int32_t, usage_counter)                                          \
@@ -1205,6 +1200,8 @@ class UntaggedFunction : public UntaggedObject {
 #undef DECLARE
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  friend class UntaggedFunctionType;  // To use same constants for packing.
 };
 
 class UntaggedClosureData : public UntaggedObject {
@@ -2340,28 +2337,30 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   uint8_t type_state_;
   uint8_t nullability_;
 
-  // Keep in sync with corresponding constants in UntaggedFunction.
   static constexpr intptr_t kMaxParentTypeArgumentsBits = 8;
-  static constexpr intptr_t kMaxHasNamedOptionalParametersBits = 1;
   static constexpr intptr_t kMaxImplicitParametersBits = 1;
-  static constexpr intptr_t kMaxFixedParametersBits = 10;
-  static constexpr intptr_t kMaxOptionalParametersBits = 10;
+  static constexpr intptr_t kMaxHasNamedOptionalParametersBits =
+      UntaggedFunction::kMaxHasNamedOptionalParametersBits;
+  static constexpr intptr_t kMaxFixedParametersBits =
+      UntaggedFunction::kMaxFixedParametersBits;
+  static constexpr intptr_t kMaxOptionalParametersBits =
+      UntaggedFunction::kMaxOptionalParametersBits;
 
   typedef BitField<uint32_t, uint8_t, 0, kMaxParentTypeArgumentsBits>
       PackedNumParentTypeArguments;
   typedef BitField<uint32_t,
-                   bool,
-                   PackedNumParentTypeArguments::kNextBit,
-                   kMaxHasNamedOptionalParametersBits>
-      PackedHasNamedOptionalParameters;
-  typedef BitField<uint32_t,
                    uint8_t,
-                   PackedHasNamedOptionalParameters::kNextBit,
+                   PackedNumParentTypeArguments::kNextBit,
                    kMaxImplicitParametersBits>
       PackedNumImplicitParameters;
   typedef BitField<uint32_t,
-                   uint16_t,
+                   bool,
                    PackedNumImplicitParameters::kNextBit,
+                   kMaxHasNamedOptionalParametersBits>
+      PackedHasNamedOptionalParameters;
+  typedef BitField<uint32_t,
+                   uint16_t,
+                   PackedHasNamedOptionalParameters::kNextBit,
                    kMaxFixedParametersBits>
       PackedNumFixedParameters;
   typedef BitField<uint32_t,
@@ -2372,6 +2371,10 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   static_assert(PackedNumOptionalParameters::kNextBit <=
                     kBitsPerByte * sizeof(decltype(packed_fields_)),
                 "UntaggedFunctionType::packed_fields_ bitfields don't fit.");
+  static_assert(PackedNumOptionalParameters::kNextBit <=
+                    compiler::target::kSmiBits,
+                "In-place mask for number of optional parameters cannot fit in "
+                "a Smi on the target architecture");
 
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 

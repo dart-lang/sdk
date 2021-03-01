@@ -113,7 +113,6 @@
         CodeEntryKind::kUnchecked, [](CodeEntryKind value) { return true; })   \
   FIELD(Function, kind_tag_offset)                                             \
   FIELD(Function, packed_fields_offset)                                        \
-  FIELD(Function, parameter_names_offset)                                      \
   FIELD(Function, signature_offset)                                            \
   FIELD(FutureOr, type_arguments_offset)                                       \
   FIELD(GrowableObjectArray, data_offset)                                      \
@@ -271,6 +270,7 @@
   FIELD(FunctionType, hash_offset)                                             \
   FIELD(FunctionType, packed_fields_offset)                                    \
   FIELD(FunctionType, parameter_types_offset)                                  \
+  FIELD(FunctionType, parameter_names_offset)                                  \
   FIELD(FunctionType, type_parameters_offset)                                  \
   FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \
