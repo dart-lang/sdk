@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 extension_types/simple: ExpectationFileMismatchSerialized
+extension_types/simple_method_resolution: ExpectationFileMismatchSerialized
 general/abstract_members: TypeCheckError
 general/bug30695: TypeCheckError
 general/covariant_field: TypeCheckError

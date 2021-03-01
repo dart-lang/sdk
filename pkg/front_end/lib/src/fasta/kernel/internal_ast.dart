@@ -54,6 +54,8 @@ import '../type_inference/type_schema_environment.dart'
 
 import 'inference_visitor.dart';
 
+import 'type_labeler.dart';
+
 /// Computes the return type of a (possibly factory) constructor.
 InterfaceType computeConstructorReturnType(
     Member constructor, CoreTypes coreTypes) {
@@ -4303,6 +4305,30 @@ class ExtensionType extends DartType {
       // TODO(dmitryas): Remove the following line and implement
       // BinaryPrinter.visitExtensionType when it's available.
       return onType.accept(v);
+    } else if (v is TypeLabeler) {
+      // TODO(dmitryas): Move this guarded code into
+      // TypeLabeler.visitExtensionType when it's available.
+      TypeLabeler typeLabeler = v as TypeLabeler;
+      typeLabeler.result.add(typeLabeler.nameForEntity(
+          extensionNode,
+          extensionNode.name,
+          extensionNode.enclosingLibrary.importUri,
+          extensionNode.enclosingLibrary.fileUri));
+      if (typeArguments.isNotEmpty) {
+        typeLabeler.result.add("<");
+        bool first = true;
+        for (DartType typeArg in typeArguments) {
+          if (!first) typeLabeler.result.add(", ");
+          typeArg.accept(typeLabeler);
+          first = false;
+        }
+        typeLabeler.result.add(">");
+      }
+      typeLabeler.addNullability(declaredNullability);
+      // The following line is needed to supply the return value and make the
+      // compiler happy. It should go away once ExtensionType is moved to
+      // ast.dart.
+      return null;
     }
     // TODO(dmitryas): Change this to `v.visitExtensionType(this)` when
     // ExtensionType is moved to ast.dart.
@@ -4363,7 +4389,7 @@ class ExtensionType extends DartType {
 
   @override
   String toString() {
-    return "ExtensionType(${toStringInternal})";
+    return "ExtensionType(${toStringInternal()})";
   }
 
   @override

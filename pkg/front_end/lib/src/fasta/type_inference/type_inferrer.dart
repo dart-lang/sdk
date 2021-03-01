@@ -868,6 +868,41 @@ class TypeInferrerImpl implements TypeInferrer {
     return inferredTypes;
   }
 
+  /// Returns extension member declared immediately for [receiverType].
+  ///
+  /// If none is found, [defaultTarget] is returned.
+  ObjectAccessTarget _findDirectExtensionMember(
+      ExtensionType receiverType, Name name, int fileOffset,
+      {ObjectAccessTarget defaultTarget}) {
+    Member targetMethod;
+    Member targetTearoff;
+    for (ExtensionMemberDescriptor descriptor
+        in receiverType.extensionNode.members) {
+      if (descriptor.name == name) {
+        switch (descriptor.kind) {
+          case ExtensionMemberKind.Method:
+            targetMethod = descriptor.member.asMember;
+            break;
+          case ExtensionMemberKind.TearOff:
+            targetTearoff = descriptor.member.asMember;
+            break;
+          default:
+            unhandled("${descriptor.kind}", "findInterfaceMember", fileOffset,
+                library.fileUri);
+        }
+      }
+    }
+    if (targetMethod != null) {
+      return new ObjectAccessTarget.extensionMember(
+          targetMethod,
+          targetTearoff ?? targetMethod,
+          ProcedureKind.Method,
+          receiverType.typeArguments);
+    } else {
+      return defaultTarget;
+    }
+  }
+
   /// Returns the extension member access by the given [name] for a receiver
   /// with the static [receiverType].
   ///
@@ -1104,6 +1139,10 @@ class TypeInferrerImpl implements TypeInferrer {
       target = isReceiverTypePotentiallyNullable
           ? const ObjectAccessTarget.nullableCallFunction()
           : const ObjectAccessTarget.callFunction();
+    } else if (library.enableExtensionTypesInLibrary &&
+        receiverBound is ExtensionType) {
+      target = _findDirectExtensionMember(receiverBound, name, fileOffset,
+          defaultTarget: const ObjectAccessTarget.missing());
     } else {
       target = const ObjectAccessTarget.missing();
     }
@@ -4069,7 +4108,9 @@ class TypeInferrerImpl implements TypeInferrer {
           receiverType,
           name,
           extensionAccessCandidates,
-          templateUndefinedMethod,
+          receiverType is ExtensionType
+              ? templateUndefinedExtensionMethod
+              : templateUndefinedMethod,
           templateAmbiguousExtensionMethod);
     }
   }
