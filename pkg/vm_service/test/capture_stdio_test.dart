@@ -50,7 +50,7 @@ var tests = <IsolateTest>[
       if (eventNumber == 1) {
         expect(decoded, 'print');
       } else if (eventNumber == 2) {
-        expect(decoded, Platform.isWindows ? '\r\n' : '\n');
+        expect(decoded, '\n');
         await service.streamCancel(EventStreams.kStdout);
         await stdoutSub.cancel();
         completer.complete();
