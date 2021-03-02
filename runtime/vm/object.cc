@@ -18062,8 +18062,6 @@ StringPtr LanguageError::FormatMessage() const {
 }
 
 const char* LanguageError::ToErrorCString() const {
-  Thread* thread = Thread::Current();
-  NoReloadScope no_reload_scope(thread);
   const String& msg_str = String::Handle(FormatMessage());
   return msg_str.ToCString();
 }
