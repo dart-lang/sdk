@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.ast_from_binary;
 
 import 'dart:developer';
@@ -15,18 +13,19 @@ import '../transformations/flags.dart';
 import 'tag.dart';
 
 class ParseError {
-  String filename;
-  int byteIndex;
-  String message;
-  String path;
+  final String? filename;
+  final int byteIndex;
+  final String message;
+  final String path;
 
-  ParseError(this.message, {this.filename, this.byteIndex, this.path});
+  ParseError(this.message,
+      {required this.filename, required this.byteIndex, required this.path});
 
   String toString() => '$filename:$byteIndex: $message at $path';
 }
 
 class InvalidKernelVersionError {
-  final String filename;
+  final String? filename;
   final int version;
 
   InvalidKernelVersionError(this.filename, this.version);
@@ -78,17 +77,30 @@ class CanonicalNameSdkError extends CanonicalNameError {
 class _ComponentIndex {
   static const int numberOfFixedFields = 10;
 
-  int binaryOffsetForSourceTable;
-  int binaryOffsetForCanonicalNames;
-  int binaryOffsetForMetadataPayloads;
-  int binaryOffsetForMetadataMappings;
-  int binaryOffsetForStringTable;
-  int binaryOffsetForConstantTable;
-  int mainMethodReference;
-  NonNullableByDefaultCompiledMode compiledMode;
-  List<int> libraryOffsets;
-  int libraryCount;
-  int componentFileSizeInBytes;
+  final int binaryOffsetForSourceTable;
+  final int binaryOffsetForCanonicalNames;
+  final int binaryOffsetForMetadataPayloads;
+  final int binaryOffsetForMetadataMappings;
+  final int binaryOffsetForStringTable;
+  final int binaryOffsetForConstantTable;
+  final int mainMethodReference;
+  final NonNullableByDefaultCompiledMode compiledMode;
+  final List<int> libraryOffsets;
+  final int libraryCount;
+  final int componentFileSizeInBytes;
+
+  _ComponentIndex(
+      {required this.binaryOffsetForSourceTable,
+      required this.binaryOffsetForCanonicalNames,
+      required this.binaryOffsetForMetadataPayloads,
+      required this.binaryOffsetForMetadataMappings,
+      required this.binaryOffsetForStringTable,
+      required this.binaryOffsetForConstantTable,
+      required this.mainMethodReference,
+      required this.compiledMode,
+      required this.libraryOffsets,
+      required this.libraryCount,
+      required this.componentFileSizeInBytes});
 }
 
 class SubComponentView {
@@ -119,17 +131,17 @@ class BinaryBuilder {
   int switchCaseStackBase = 0;
   final List<SwitchCase> switchCaseStack = <SwitchCase>[];
   final List<TypeParameter> typeParameterStack = <TypeParameter>[];
-  final String filename;
+  final String? filename;
   final List<int> _bytes;
   int _byteOffset = 0;
   final List<String> _stringTable = <String>[];
-  final List<Uri> _sourceUriTable = <Uri>[];
+  final List<Uri?> _sourceUriTable = <Uri>[];
   Map<int, Constant> _constantTable = <int, Constant>{};
-  List<CanonicalName> _linkTable;
+  late List<CanonicalName> _linkTable;
   int _transformerFlags = 0;
-  Library _currentLibrary;
+  Library? _currentLibrary;
   int _componentStartOffset = 0;
-  NonNullableByDefaultCompiledMode compilationMode;
+  NonNullableByDefaultCompiledMode? compilationMode;
 
   // If something goes wrong, this list should indicate what library,
   // class, and member was being built.
@@ -149,7 +161,7 @@ class BinaryBuilder {
 
   /// [stringInterner] (optional) may be used to allow components to share
   /// instances of [String] that have the same contents.
-  final StringInterner /*?*/ stringInterner;
+  final StringInterner? stringInterner;
 
   /// When creating lists that *might* be growable, use this boolean as the
   /// setting to pass to `growable` so the dill can be loaded in a more compact
@@ -162,7 +174,7 @@ class BinaryBuilder {
       {this.filename,
       bool disableLazyReading = false,
       bool disableLazyClassReading = false,
-      bool alwaysCreateNewNamedNodes,
+      bool? alwaysCreateNewNamedNodes,
       this.stringInterner,
       this.useGrowableLists = true})
       : _disableLazyReading = disableLazyReading,
@@ -211,18 +223,19 @@ class BinaryBuilder {
   }
 
   final Float64List _doubleBuffer = new Float64List(1);
-  Uint8List _doubleBufferUint8;
+  Uint8List? _doubleBufferUint8;
 
   double readDouble() {
-    _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
-    _doubleBufferUint8[0] = readByte();
-    _doubleBufferUint8[1] = readByte();
-    _doubleBufferUint8[2] = readByte();
-    _doubleBufferUint8[3] = readByte();
-    _doubleBufferUint8[4] = readByte();
-    _doubleBufferUint8[5] = readByte();
-    _doubleBufferUint8[6] = readByte();
-    _doubleBufferUint8[7] = readByte();
+    Uint8List doubleBufferUint8 =
+        _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
+    doubleBufferUint8[0] = readByte();
+    doubleBufferUint8[1] = readByte();
+    doubleBufferUint8[2] = readByte();
+    doubleBufferUint8[3] = readByte();
+    doubleBufferUint8[4] = readByte();
+    doubleBufferUint8[5] = readByte();
+    doubleBufferUint8[6] = readByte();
+    doubleBufferUint8[7] = readByte();
     return _doubleBuffer[0];
   }
 
@@ -244,7 +257,7 @@ class BinaryBuilder {
   String readStringEntry(int numBytes) {
     String string = _readStringEntry(numBytes);
     if (stringInterner == null) return string;
-    return stringInterner.internString(string);
+    return stringInterner!.internString(string);
   }
 
   String _readStringEntry(int numBytes) {
@@ -309,7 +322,7 @@ class BinaryBuilder {
   }
 
   /// Reads metadata for the given [node].
-  Node _associateMetadata(Node node, int nodeOffset) {
+  T _associateMetadata<T extends Node>(T node, int nodeOffset) {
     // Default reader ignores metadata section entirely.
     return node;
   }
@@ -393,7 +406,7 @@ class BinaryBuilder {
   }
 
   Constant _readSymbolConstant() {
-    Reference libraryReference = readLibraryReference(allowNull: true);
+    Reference? libraryReference = readNullableLibraryReference();
     return new SymbolConstant(readStringReference(), libraryReference);
   }
 
@@ -423,12 +436,13 @@ class BinaryBuilder {
   }
 
   Constant _readInstanceConstant() {
-    final Reference classReference = readClassReference();
+    final Reference classReference = readNonNullClassReference();
     final List<DartType> typeArguments = readDartTypeList();
     final int fieldValueCount = readUInt30();
     final Map<Reference, Constant> fieldValues = <Reference, Constant>{};
     for (int i = 0; i < fieldValueCount; i++) {
-      final Reference fieldRef = readCanonicalNameReference().getReference();
+      final Reference fieldRef =
+          readNonNullCanonicalNameReference().getReference();
       final Constant constant = readConstantReference();
       fieldValues[fieldRef] = constant;
     }
@@ -443,7 +457,8 @@ class BinaryBuilder {
   }
 
   Constant _readTearOffConstant() {
-    final Reference reference = readCanonicalNameReference().getReference();
+    final Reference reference =
+        readNonNullCanonicalNameReference().getReference();
     return new TearOffConstant.byReference(reference);
   }
 
@@ -459,9 +474,9 @@ class BinaryBuilder {
 
   Constant readConstantReference() {
     final int offset = readUInt30();
-    Constant constant = _constantTable[offset];
-    assert(constant != null);
-    return constant;
+    Constant? constant = _constantTable[offset];
+    assert(constant != null, "No constant found at offset $offset.");
+    return constant!;
   }
 
   List<Constant> _readConstantReferenceList() {
@@ -470,7 +485,7 @@ class BinaryBuilder {
         growable: useGrowableLists);
   }
 
-  Uri readUriReference() {
+  Uri? readUriReference() {
     return _sourceUriTable[readUInt30()];
   }
 
@@ -484,7 +499,7 @@ class BinaryBuilder {
         growable: useGrowableLists);
   }
 
-  String readStringOrNullIfEmpty() {
+  String? readStringOrNullIfEmpty() {
     String string = readStringReference();
     return string.isEmpty ? null : string;
   }
@@ -500,7 +515,7 @@ class BinaryBuilder {
     }
   }
 
-  List<Expression> readAnnotationList(TreeNode parent) {
+  List<Expression> readAnnotationList(TreeNode? parent) {
     int length = readUInt30();
     if (length == 0) return const <Expression>[];
     return new List<Expression>.generate(
@@ -599,9 +614,9 @@ class BinaryBuilder {
   /// If [createView] is true, returns a list of [SubComponentView] - one for
   /// each concatenated dill - each of which knowing where in the combined dill
   /// it came from. If [createView] is false null will be returned.
-  List<SubComponentView> readComponent(Component component,
+  List<SubComponentView>? readComponent(Component component,
       {bool checkCanonicalNames: false, bool createView: false}) {
-    return Timeline.timeSync<List<SubComponentView>>(
+    return Timeline.timeSync<List<SubComponentView>?>(
         "BinaryBuilder.readComponent", () {
       _checkEmptyInput();
 
@@ -626,16 +641,16 @@ class BinaryBuilder {
         _disableLazyClassReading = true;
       }
       int componentFileIndex = 0;
-      List<SubComponentView> views;
+      List<SubComponentView>? views;
       if (createView) {
         views = <SubComponentView>[];
       }
       while (_byteOffset < _bytes.length) {
-        SubComponentView view = _readOneComponent(
+        SubComponentView? view = _readOneComponent(
             component, componentFileSizes[componentFileIndex],
             createView: createView);
         if (createView) {
-          views.add(view);
+          views!.add(view!);
         }
         ++componentFileIndex;
       }
@@ -696,7 +711,7 @@ class BinaryBuilder {
   }
 
   void _checkCanonicalNameChildren(CanonicalName parent) {
-    Iterable<CanonicalName> parentChildren = parent.childrenOrNull;
+    Iterable<CanonicalName>? parentChildren = parent.childrenOrNull;
     if (parentChildren != null) {
       for (CanonicalName child in parentChildren) {
         if (child.name != '@methods' &&
@@ -722,11 +737,11 @@ class BinaryBuilder {
             }
           }
           if (checkReferenceNode) {
-            if (child.reference.canonicalName != child) {
+            if (child.reference!.canonicalName != child) {
               throw new CanonicalNameError(
                   "Canonical name and reference doesn't agree.");
             }
-            if (child.reference.node == null) {
+            if (child.reference!.node == null) {
               throw buildCanonicalNameError(
                   "Reference is null (${child.name}) ($child).", child);
             }
@@ -741,7 +756,7 @@ class BinaryBuilder {
       String message, CanonicalName problemNode) {
     // Special-case missing sdk entries as that is probably a change to the
     // platform - that's something we might want to react differently to.
-    String libraryUri = problemNode?.nonRootTop?.name ?? "";
+    String libraryUri = problemNode.nonRootTop?.name ?? "";
     if (libraryUri.startsWith("dart:")) {
       return new CanonicalNameSdkError(message);
     }
@@ -751,48 +766,56 @@ class BinaryBuilder {
   _ComponentIndex _readComponentIndex(int componentFileSize) {
     int savedByteIndex = _byteOffset;
 
-    _ComponentIndex result = new _ComponentIndex();
-
     // There are two fields: file size and library count.
     _byteOffset = _componentStartOffset + componentFileSize - (2) * 4;
-    result.libraryCount = readUint32();
+    int libraryCount = readUint32();
     // Library offsets are used for start and end offsets, so there is one extra
     // element that this the end offset of the last library
-    result.libraryOffsets = new List<int>.filled(
-        result.libraryCount + 1,
+    List<int> libraryOffsets = new List<int>.filled(
+        libraryCount + 1,
         // Use `-1` as a dummy default value.
         -1,
         growable: false);
-    result.componentFileSizeInBytes = readUint32();
-    if (result.componentFileSizeInBytes != componentFileSize) {
+    int componentFileSizeInBytes = readUint32();
+    if (componentFileSizeInBytes != componentFileSize) {
       throw "Malformed binary: This component file's component index indicates "
           "that the file size should be $componentFileSize but other component "
           "indexes has indicated that the size should be "
-          "${result.componentFileSizeInBytes}.";
+          "${componentFileSizeInBytes}.";
     }
 
     // Skip to the start of the index.
     _byteOffset -=
-        ((result.libraryCount + 1) + _ComponentIndex.numberOfFixedFields) * 4;
+        ((libraryCount + 1) + _ComponentIndex.numberOfFixedFields) * 4;
 
     // Now read the component index.
-    result.binaryOffsetForSourceTable = _componentStartOffset + readUint32();
-    result.binaryOffsetForCanonicalNames = _componentStartOffset + readUint32();
-    result.binaryOffsetForMetadataPayloads =
-        _componentStartOffset + readUint32();
-    result.binaryOffsetForMetadataMappings =
-        _componentStartOffset + readUint32();
-    result.binaryOffsetForStringTable = _componentStartOffset + readUint32();
-    result.binaryOffsetForConstantTable = _componentStartOffset + readUint32();
-    result.mainMethodReference = readUint32();
-    result.compiledMode = NonNullableByDefaultCompiledMode.values[readUint32()];
-    for (int i = 0; i < result.libraryCount + 1; ++i) {
-      result.libraryOffsets[i] = _componentStartOffset + readUint32();
+    int binaryOffsetForSourceTable = _componentStartOffset + readUint32();
+    int binaryOffsetForCanonicalNames = _componentStartOffset + readUint32();
+    int binaryOffsetForMetadataPayloads = _componentStartOffset + readUint32();
+    int binaryOffsetForMetadataMappings = _componentStartOffset + readUint32();
+    int binaryOffsetForStringTable = _componentStartOffset + readUint32();
+    int binaryOffsetForConstantTable = _componentStartOffset + readUint32();
+    int mainMethodReference = readUint32();
+    NonNullableByDefaultCompiledMode compiledMode =
+        NonNullableByDefaultCompiledMode.values[readUint32()];
+    for (int i = 0; i < libraryCount + 1; ++i) {
+      libraryOffsets[i] = _componentStartOffset + readUint32();
     }
 
     _byteOffset = savedByteIndex;
 
-    return result;
+    return new _ComponentIndex(
+        libraryCount: libraryCount,
+        libraryOffsets: libraryOffsets,
+        componentFileSizeInBytes: componentFileSizeInBytes,
+        binaryOffsetForSourceTable: binaryOffsetForSourceTable,
+        binaryOffsetForCanonicalNames: binaryOffsetForCanonicalNames,
+        binaryOffsetForMetadataPayloads: binaryOffsetForMetadataPayloads,
+        binaryOffsetForMetadataMappings: binaryOffsetForMetadataMappings,
+        binaryOffsetForStringTable: binaryOffsetForStringTable,
+        binaryOffsetForConstantTable: binaryOffsetForConstantTable,
+        mainMethodReference: mainMethodReference,
+        compiledMode: compiledMode);
   }
 
   void _readOneComponentSource(Component component, int componentFileSize) {
@@ -814,13 +837,14 @@ class BinaryBuilder {
     _ComponentIndex index = _readComponentIndex(componentFileSize);
 
     _byteOffset = index.binaryOffsetForSourceTable;
-    Map<Uri, Source> uriToSource = readUriToSource(/* readCoverage = */ false);
+    Map<Uri?, Source> uriToSource = readUriToSource(readCoverage: false);
     _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = _componentStartOffset + componentFileSize;
   }
 
-  SubComponentView _readOneComponent(Component component, int componentFileSize,
+  SubComponentView? _readOneComponent(
+      Component component, int componentFileSize,
       {bool createView: false}) {
     _componentStartOffset = _byteOffset;
 
@@ -836,10 +860,10 @@ class BinaryBuilder {
 
     _readAndVerifySdkHash();
 
-    List<String> problemsAsJson = readListOfStrings();
+    List<String>? problemsAsJson = readListOfStrings();
     if (problemsAsJson != null) {
       component.problemsAsJson ??= <String>[];
-      component.problemsAsJson.addAll(problemsAsJson);
+      component.problemsAsJson!.addAll(problemsAsJson);
     }
 
     // Read component index from the end of this ComponentFiles serialized data.
@@ -863,7 +887,7 @@ class BinaryBuilder {
     _associateMetadata(component, _componentStartOffset);
 
     _byteOffset = index.binaryOffsetForSourceTable;
-    Map<Uri, Source> uriToSource = readUriToSource(/* readCoverage = */ true);
+    Map<Uri?, Source> uriToSource = readUriToSource(readCoverage: true);
     _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = index.binaryOffsetForConstantTable;
@@ -871,7 +895,7 @@ class BinaryBuilder {
 
     int numberOfLibraries = index.libraryCount;
 
-    SubComponentView result;
+    SubComponentView? result;
     if (createView) {
       result = new SubComponentView(
           new List<Library>.generate(numberOfLibraries, (int i) {
@@ -887,9 +911,9 @@ class BinaryBuilder {
       }
     }
 
-    Reference mainMethod =
-        getMemberReferenceFromInt(index.mainMethodReference, allowNull: true);
-    component.setMainMethodAndMode(mainMethod, false, compilationMode);
+    Reference? mainMethod =
+        getNullableMemberReferenceFromInt(index.mainMethodReference);
+    component.setMainMethodAndMode(mainMethod, false, compilationMode!);
 
     _byteOffset = _componentStartOffset + componentFileSize;
 
@@ -899,7 +923,7 @@ class BinaryBuilder {
   }
 
   /// Read a list of strings. If the list is empty, [null] is returned.
-  List<String> readListOfStrings() {
+  List<String>? readListOfStrings() {
     int length = readUInt30();
     if (length == 0) return null;
     return new List<String>.generate(length, (_) => readString(),
@@ -911,17 +935,18 @@ class BinaryBuilder {
   /// [readCoverage] is true, otherwise coverage will be skipped. Note also that
   /// if [readCoverage] is true, references are read and that the link table
   /// thus has to be read first.
-  Map<Uri, Source> readUriToSource(bool readCoverage) {
+  Map<Uri?, Source> readUriToSource({required bool readCoverage}) {
+    // ignore: unnecessary_null_comparison
     assert(!readCoverage || (readCoverage && _linkTable != null));
 
     int length = readUint32();
 
     // Read data.
     _sourceUriTable.length = length;
-    Map<Uri, Source> uriToSource = <Uri, Source>{};
+    Map<Uri?, Source> uriToSource = <Uri, Source>{};
     for (int i = 0; i < length; ++i) {
       String uriString = readString();
-      Uri uri = uriString.isEmpty ? null : Uri.parse(uriString);
+      Uri? uri = uriString.isEmpty ? null : Uri.parse(uriString);
       _sourceUriTable[i] = uri;
       Uint8List sourceCode = readByteList();
       int lineCount = readUInt30();
@@ -937,21 +962,22 @@ class BinaryBuilder {
         previousLineStart = lineStart;
       }
       String importUriString = readString();
-      Uri importUri =
+      Uri? importUri =
           importUriString.isEmpty ? null : Uri.parse(importUriString);
 
-      Set<Reference> coverageConstructors;
+      Set<Reference>? coverageConstructors;
       {
         int constructorCoverageCount = readUInt30();
-        if (readCoverage) {
-          coverageConstructors =
-              constructorCoverageCount == 0 ? null : new Set<Reference>();
-          for (int j = 0; j < constructorCoverageCount; ++j) {
-            coverageConstructors.add(readMemberReference());
-          }
-        } else {
-          for (int j = 0; j < constructorCoverageCount; ++j) {
-            skipMemberReference();
+        if (constructorCoverageCount > 0) {
+          if (readCoverage) {
+            coverageConstructors = new Set<Reference>();
+            for (int j = 0; j < constructorCoverageCount; ++j) {
+              coverageConstructors.add(readNonNullMemberReference());
+            }
+          } else {
+            for (int j = 0; j < constructorCoverageCount; ++j) {
+              skipMemberReference();
+            }
           }
         }
       }
@@ -971,14 +997,14 @@ class BinaryBuilder {
   // source with an empty source. Empty sources may be introduced by
   // synthetic, copy-down implementations such as mixin applications or
   // noSuchMethod forwarders.
-  void _mergeUriToSource(Map<Uri, Source> dst, Map<Uri, Source> src) {
+  void _mergeUriToSource(Map<Uri?, Source> dst, Map<Uri?, Source> src) {
     if (dst.isEmpty) {
       // Fast path for the common case of one component per binary.
       dst.addAll(src);
     } else {
-      src.forEach((Uri key, Source value) {
-        Source originalDestinationSource = dst[key];
-        Source mergeFrom;
+      src.forEach((Uri? key, Source value) {
+        Source? originalDestinationSource = dst[key];
+        Source? mergeFrom;
         Source mergeTo;
         if (value.source.isNotEmpty || originalDestinationSource == null) {
           dst[key] = value;
@@ -1000,9 +1026,9 @@ class BinaryBuilder {
         } else if (mergeFrom?.constantCoverageConstructors == null) {
           // Nothing to do.
         } else {
-          // Bot are non-null: Merge.
-          mergeTo.constantCoverageConstructors
-              .addAll(mergeFrom.constantCoverageConstructors);
+          // Both are non-null: Merge.
+          mergeTo.constantCoverageConstructors!
+              .addAll(mergeFrom!.constantCoverageConstructors!);
         }
       });
     }
@@ -1012,71 +1038,99 @@ class BinaryBuilder {
     readUInt30();
   }
 
-  CanonicalName readCanonicalNameReference() {
+  CanonicalName? readNullableCanonicalNameReference() {
     int index = readUInt30();
     if (index == 0) return null;
     return _linkTable[index - 1];
   }
 
-  CanonicalName getCanonicalNameReferenceFromInt(int index) {
+  CanonicalName readNonNullCanonicalNameReference() {
+    CanonicalName? canonicalName = readNullableCanonicalNameReference();
+    if (canonicalName == null) {
+      throw new StateError('No canonical name found.');
+    }
+    return canonicalName;
+  }
+
+  CanonicalName? getNullableCanonicalNameReferenceFromInt(int index) {
     if (index == 0) return null;
     return _linkTable[index - 1];
   }
 
-  Reference readLibraryReference({bool allowNull: false}) {
-    CanonicalName canonicalName = readCanonicalNameReference();
+  Reference? readNullableLibraryReference() {
+    CanonicalName? canonicalName = readNullableCanonicalNameReference();
+    return canonicalName?.getReference();
+  }
+
+  Reference readNonNullLibraryReference() {
+    CanonicalName? canonicalName = readNullableCanonicalNameReference();
     if (canonicalName != null) return canonicalName.getReference();
-    if (allowNull) return null;
     throw 'Expected a library reference to be valid but was `null`.';
   }
 
   LibraryDependency readLibraryDependencyReference() {
     int index = readUInt30();
-    return _currentLibrary.dependencies[index];
+    return _currentLibrary!.dependencies[index];
   }
 
-  Reference readClassReference({bool allowNull: false}) {
-    CanonicalName name = readCanonicalNameReference();
-    if (name == null && !allowNull) {
+  Reference? readNullableClassReference() {
+    CanonicalName? name = readNullableCanonicalNameReference();
+    return name?.getReference();
+  }
+
+  Reference readNonNullClassReference() {
+    CanonicalName? name = readNullableCanonicalNameReference();
+    if (name == null) {
       throw 'Expected a class reference to be valid but was `null`.';
     }
-    return name?.getReference();
+    return name.getReference();
   }
 
   void skipMemberReference() {
     skipCanonicalNameReference();
   }
 
-  Reference readMemberReference({bool allowNull: false}) {
-    CanonicalName name = readCanonicalNameReference();
-    if (name == null && !allowNull) {
-      throw 'Expected a member reference to be valid but was `null`.';
-    }
+  Reference? readNullableMemberReference() {
+    CanonicalName? name = readNullableCanonicalNameReference();
     return name?.getReference();
   }
 
-  Reference readInstanceMemberReference({bool allowNull: false}) {
-    Reference reference = readMemberReference(allowNull: allowNull);
-    readMemberReference(allowNull: true); // Skip origin
+  Reference readNonNullMemberReference() {
+    CanonicalName? name = readNullableCanonicalNameReference();
+    if (name == null) {
+      throw 'Expected a member reference to be valid but was `null`.';
+    }
+    return name.getReference();
+  }
+
+  Reference? readNullableInstanceMemberReference() {
+    Reference? reference = readNullableMemberReference();
+    readNullableMemberReference(); // Skip origin
     return reference;
   }
 
-  Reference getMemberReferenceFromInt(int index, {bool allowNull: false}) {
-    CanonicalName name = getCanonicalNameReferenceFromInt(index);
-    if (name == null && !allowNull) {
-      throw 'Expected a member reference to be valid but was `null`.';
-    }
-    return name?.getReference();
+  Reference readNonNullInstanceMemberReference() {
+    Reference reference = readNonNullMemberReference();
+    readNullableMemberReference(); // Skip origin
+    return reference;
   }
 
-  Reference readTypedefReference() {
-    return readCanonicalNameReference()?.getReference();
+  Reference? getNullableMemberReferenceFromInt(int index) {
+    return getNullableCanonicalNameReferenceFromInt(index)?.getReference();
+  }
+
+  Reference? readNullableTypedefReference() {
+    return readNullableCanonicalNameReference()?.getReference();
+  }
+
+  Reference readNonNullTypedefReference() {
+    return readNonNullCanonicalNameReference().getReference();
   }
 
   Name readName() {
     String text = readStringReference();
     if (text.isNotEmpty && text[0] == '_') {
-      return new Name.byReference(text, readLibraryReference());
+      return new Name.byReference(text, readNonNullLibraryReference());
     } else {
       return new Name(text);
     }
@@ -1122,9 +1176,9 @@ class BinaryBuilder {
     int languageVersionMajor = readUInt30();
     int languageVersionMinor = readUInt30();
 
-    CanonicalName canonicalName = readCanonicalNameReference();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.getReference();
-    Library library = reference.node;
+    Library? library = reference.node as Library?;
     if (alwaysCreateNewNamedNodes) {
       library = null;
     }
@@ -1134,12 +1188,12 @@ class BinaryBuilder {
       component.libraries.add(library..parent = component);
     }
     _currentLibrary = library;
-    String name = readStringOrNullIfEmpty();
+    String? name = readStringOrNullIfEmpty();
 
     // TODO(jensj): We currently save (almost the same) uri twice.
-    Uri fileUri = readUriReference();
+    Uri? fileUri = readUriReference();
 
-    List<String> problemsAsJson = readListOfStrings();
+    List<String>? problemsAsJson = readListOfStrings();
 
     library.flags = flags;
     library.setLanguageVersion(
@@ -1156,7 +1210,7 @@ class BinaryBuilder {
         "into component with mode $compilationMode");
 
     assert(() {
-      debugPath.add(library.name ?? library.importUri?.toString() ?? 'library');
+      debugPath.add(library!.name ?? library.importUri.toString());
       return true;
     }());
 
@@ -1201,8 +1255,8 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     int flags = readByte();
     List<Expression> annotations = readExpressionList();
-    Reference targetLibrary = readLibraryReference(allowNull: true);
-    String prefixName = readStringOrNullIfEmpty();
+    Reference targetLibrary = readNonNullLibraryReference();
+    String? prefixName = readStringOrNullIfEmpty();
     List<Combinator> names = readCombinatorList();
     return new LibraryDependency.byReference(
         flags, annotations, targetLibrary, prefixName, names)
@@ -1215,7 +1269,7 @@ class BinaryBuilder {
     if (numExportedReference != 0) {
       library.additionalExports.clear();
       for (int i = 0; i < numExportedReference; i++) {
-        CanonicalName exportedName = readCanonicalNameReference();
+        CanonicalName exportedName = readNonNullCanonicalNameReference();
         Reference reference = exportedName.getReference();
         library.additionalExports.add(reference);
       }
@@ -1254,18 +1308,18 @@ class BinaryBuilder {
   }
 
   Typedef readTypedef() {
-    CanonicalName canonicalName = readCanonicalNameReference();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.getReference();
-    Typedef node = reference.node;
+    Typedef? node = reference.node as Typedef?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    if (node == null) {
-      node = new Typedef(null, null, reference: reference);
-    }
-    Uri fileUri = readUriReference();
+    Uri? fileUri = readUriReference();
     int fileOffset = readOffset();
     String name = readStringReference();
+    if (node == null) {
+      node = new Typedef(name, null, reference: reference);
+    }
     node.annotations = readAnnotationList(node);
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType type = readDartType();
@@ -1302,13 +1356,13 @@ class BinaryBuilder {
         growable: false);
     _byteOffset = savedByteOffset;
 
-    CanonicalName canonicalName = readCanonicalNameReference();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.getReference();
-    Class node = reference.node;
+    Class? node = reference.node as Class?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    Uri fileUri = readUriReference();
+    Uri? fileUri = readUriReference();
     int startFileOffset = readOffset();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
@@ -1324,15 +1378,15 @@ class BinaryBuilder {
     node.flags = flags;
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name ?? 'normal-class');
+      debugPath.add(name);
       return true;
     }());
 
     assert(typeParameterStack.length == 0);
 
     readAndPushTypeParameterList(node.typeParameters, node);
-    Supertype supertype = readSupertypeOption();
-    Supertype mixedInType = readSupertypeOption();
+    Supertype? supertype = readSupertypeOption();
+    Supertype? mixedInType = readSupertypeOption();
     _fillNonTreeNodeList(node.implementedTypes, readSupertype);
     if (_disableLazyClassReading) {
       readClassPartialContent(node, procedureOffsets);
@@ -1341,6 +1395,7 @@ class BinaryBuilder {
     }
 
     typeParameterStack.length = 0;
+    // ignore: unnecessary_null_comparison
     assert(debugPath.removeLast() != null);
     node.name = name;
     node.fileUri = fileUri;
@@ -1357,9 +1412,9 @@ class BinaryBuilder {
     int tag = readByte();
     assert(tag == Tag.Extension);
 
-    CanonicalName canonicalName = readCanonicalNameReference();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.getReference();
-    Extension node = reference.node;
+    Extension? node = reference.node as Extension?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
@@ -1373,7 +1428,7 @@ class BinaryBuilder {
       return true;
     }());
 
-    Uri fileUri = readUriReference();
+    Uri? fileUri = readUriReference();
     node.fileOffset = readOffset();
 
     readAndPushTypeParameterList(node.typeParameters, node);
@@ -1390,7 +1445,7 @@ class BinaryBuilder {
       Name name = readName();
       int kind = readByte();
       int flags = readByte();
-      CanonicalName canonicalName = readCanonicalNameReference();
+      CanonicalName canonicalName = readNonNullCanonicalNameReference();
       node.members[i] = new ExtensionMemberDescriptor(
           name: name,
           kind: ExtensionMemberKind.values[kind],
@@ -1420,7 +1475,7 @@ class BinaryBuilder {
   void _setLazyLoadClass(Class node, List<int> procedureOffsets) {
     final int savedByteOffset = _byteOffset;
     final int componentStartOffset = _componentStartOffset;
-    final Library currentLibrary = _currentLibrary;
+    final Library? currentLibrary = _currentLibrary;
     node.lazyBuilder = () {
       _byteOffset = savedByteOffset;
       _currentLibrary = currentLibrary;
@@ -1447,11 +1502,11 @@ class BinaryBuilder {
   Field readField() {
     int tag = readByte();
     assert(tag == Tag.Field);
-    CanonicalName getterCanonicalName = readCanonicalNameReference();
+    CanonicalName getterCanonicalName = readNonNullCanonicalNameReference();
     Reference getterReference = getterCanonicalName.getReference();
-    CanonicalName setterCanonicalName = readCanonicalNameReference();
-    Reference setterReference = setterCanonicalName?.getReference();
-    Field node = getterReference.node;
+    CanonicalName? setterCanonicalName = readNullableCanonicalNameReference();
+    Reference? setterReference = setterCanonicalName?.getReference();
+    Field? node = getterReference.node as Field?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
@@ -1463,18 +1518,18 @@ class BinaryBuilder {
         node = new Field.immutable(null, getterReference: getterReference);
       }
     }
-    Uri fileUri = readUriReference();
+    Uri? fileUri = readUriReference();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readUInt30();
     Name name = readName();
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.text ?? 'field');
+      debugPath.add(name.text);
       return true;
     }());
     DartType type = readDartType();
-    Expression initializer = readExpressionOption();
+    Expression? initializer = readExpressionOption();
     int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
     node.fileOffset = fileOffset;
@@ -1493,16 +1548,16 @@ class BinaryBuilder {
   Constructor readConstructor() {
     int tag = readByte();
     assert(tag == Tag.Constructor);
-    CanonicalName canonicalName = readCanonicalNameReference();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.getReference();
-    Constructor node = reference.node;
+    Constructor? node = reference.node as Constructor?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
     if (node == null) {
       node = new Constructor(null, reference: reference);
     }
-    Uri fileUri = readUriReference();
+    Uri? fileUri = readUriReference();
     int startFileOffset = readOffset();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
@@ -1510,7 +1565,7 @@ class BinaryBuilder {
     Name name = readName();
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.text ?? 'constructor');
+      debugPath.add(name.text);
       return true;
     }());
     FunctionNode function = readFunctionNode();
@@ -1535,13 +1590,13 @@ class BinaryBuilder {
   Procedure readProcedure(int endOffset) {
     int tag = readByte();
     assert(tag == Tag.Procedure);
-    CanonicalName canonicalName = readCanonicalNameReference();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.getReference();
-    Procedure node = reference.node;
+    Procedure? node = reference.node as Procedure?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    Uri fileUri = readUriReference();
+    Uri? fileUri = readUriReference();
     int startFileOffset = readOffset();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
@@ -1557,7 +1612,7 @@ class BinaryBuilder {
     Name name = readName();
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.text ?? 'procedure');
+      debugPath.add(name.text);
       return true;
     }());
     int functionNodeSize = endOffset - _byteOffset;
@@ -1565,8 +1620,8 @@ class BinaryBuilder {
     bool readFunctionNodeNow =
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
             _disableLazyReading;
-    Reference stubTargetReference = readMemberReference(allowNull: true);
-    FunctionNode function =
+    Reference? stubTargetReference = readNullableMemberReference();
+    FunctionNode? function =
         readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
@@ -1585,7 +1640,7 @@ class BinaryBuilder {
 
     assert((node.stubKind == ProcedureStubKind.ConcreteForwardingStub &&
             node.stubTargetReference != null) ||
-        !(node.isForwardingStub && node.function.body != null));
+        !(node.isForwardingStub && node.function!.body != null));
     assert(!(node.isMemberSignature && node.stubTargetReference == null),
         "No member signature origin for member signature $node.");
     return node;
@@ -1594,26 +1649,27 @@ class BinaryBuilder {
   RedirectingFactoryConstructor readRedirectingFactoryConstructor() {
     int tag = readByte();
     assert(tag == Tag.RedirectingFactoryConstructor);
-    CanonicalName canonicalName = readCanonicalNameReference();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.getReference();
-    RedirectingFactoryConstructor node = reference.node;
+    RedirectingFactoryConstructor? node =
+        reference.node as RedirectingFactoryConstructor?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
     if (node == null) {
       node = new RedirectingFactoryConstructor(null, reference: reference);
     }
-    Uri fileUri = readUriReference();
+    Uri? fileUri = readUriReference();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readByte();
     Name name = readName();
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.text ?? 'redirecting-factory-constructor');
+      debugPath.add(name.text);
       return true;
     }());
-    Reference targetReference = readMemberReference();
+    Reference targetReference = readNonNullMemberReference();
     List<DartType> typeArguments = readDartTypeList();
     int typeParameterStackHeight = typeParameterStack.length;
     List<TypeParameter> typeParameters = readAndPushTypeParameterList();
@@ -1666,7 +1722,7 @@ class BinaryBuilder {
   }
 
   Initializer _readFieldInitializer(bool isSynthetic) {
-    Reference reference = readMemberReference();
+    Reference reference = readNonNullMemberReference();
     Expression value = readExpression();
     return new FieldInitializer.byReference(reference, value)
       ..isSynthetic = isSynthetic;
@@ -1674,7 +1730,7 @@ class BinaryBuilder {
 
   Initializer _readSuperInitializer(bool isSynthetic) {
     int offset = readOffset();
-    Reference reference = readMemberReference();
+    Reference reference = readNonNullMemberReference();
     Arguments arguments = readArguments();
     return new SuperInitializer.byReference(reference, arguments)
       ..isSynthetic = isSynthetic
@@ -1684,7 +1740,7 @@ class BinaryBuilder {
   Initializer _readRedirectingInitializer() {
     int offset = readOffset();
     return new RedirectingInitializer.byReference(
-        readMemberReference(), readArguments())
+        readNonNullMemberReference(), readArguments())
       ..fileOffset = offset;
   }
 
@@ -1693,10 +1749,10 @@ class BinaryBuilder {
   }
 
   Initializer _readAssertInitializer() {
-    return new AssertInitializer(readStatement());
+    return new AssertInitializer(readStatement() as AssertStatement);
   }
 
-  FunctionNode readFunctionNodeOption(bool lazyLoadBody, int outerEndOffset) {
+  FunctionNode? readFunctionNodeOption(bool lazyLoadBody, int outerEndOffset) {
     return readAndCheckOptionTag()
         ? readFunctionNode(
             lazyLoadBody: lazyLoadBody, outerEndOffset: outerEndOffset)
@@ -1719,7 +1775,7 @@ class BinaryBuilder {
     List<VariableDeclaration> positional = readAndPushVariableDeclarationList();
     List<VariableDeclaration> named = readAndPushVariableDeclarationList();
     DartType returnType = readDartType();
-    DartType futureValueType = readDartTypeOption();
+    DartType? futureValueType = readDartTypeOption();
     int oldLabelStackBase = labelStackBase;
     int oldSwitchCaseStackBase = switchCaseStackBase;
 
@@ -1728,7 +1784,7 @@ class BinaryBuilder {
           2; // e.g. outline has Tag.Something and Tag.EmptyStatement
     }
 
-    Statement body;
+    Statement? body;
     if (!lazyLoadBody) {
       labelStackBase = labelStack.length;
       switchCaseStackBase = switchCaseStack.length;
@@ -1766,7 +1822,7 @@ class BinaryBuilder {
     final int componentStartOffset = _componentStartOffset;
     final List<TypeParameter> typeParameters = typeParameterStack.toList();
     final List<VariableDeclaration> variables = variableStack.toList();
-    final Library currentLibrary = _currentLibrary;
+    final Library currentLibrary = _currentLibrary!;
     result.lazyBuilder = () {
       _byteOffset = savedByteOffset;
       _currentLibrary = currentLibrary;
@@ -1782,8 +1838,8 @@ class BinaryBuilder {
       switchCaseStackBase = oldSwitchCaseStackBase;
       variableStack.length = variableStackHeight;
       typeParameterStack.clear();
-      if (result.parent is Procedure) {
-        Procedure parent = result.parent;
+      TreeNode? parent = result.parent;
+      if (parent is Procedure) {
         parent.transformerFlags |= getAndResetTransformerFlags();
       }
     };
@@ -1828,7 +1884,7 @@ class BinaryBuilder {
         growable: useGrowableLists);
   }
 
-  Expression readExpressionOption() {
+  Expression? readExpressionOption() {
     return readAndCheckOptionTag() ? readExpression() : null;
   }
 
@@ -2028,8 +2084,8 @@ class BinaryBuilder {
 
   Expression _readPropertyGet() {
     int offset = readOffset();
-    return new PropertyGet.byReference(readExpression(), readName(),
-        readInstanceMemberReference(allowNull: true))
+    return new PropertyGet.byReference(
+        readExpression(), readName(), readNullableInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2038,7 +2094,7 @@ class BinaryBuilder {
     int offset = readOffset();
     return new InstanceGet.byReference(kind, readExpression(), readName(),
         resultType: readDartType(),
-        interfaceTargetReference: readInstanceMemberReference())
+        interfaceTargetReference: readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2047,7 +2103,7 @@ class BinaryBuilder {
     int offset = readOffset();
     return new InstanceTearOff.byReference(kind, readExpression(), readName(),
         resultType: readDartType(),
-        interfaceTargetReference: readInstanceMemberReference())
+        interfaceTargetReference: readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2061,7 +2117,7 @@ class BinaryBuilder {
   Expression _readPropertySet() {
     int offset = readOffset();
     return new PropertySet.byReference(readExpression(), readName(),
-        readExpression(), readInstanceMemberReference(allowNull: true))
+        readExpression(), readNullableInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2070,7 +2126,7 @@ class BinaryBuilder {
     int offset = readOffset();
     return new InstanceSet.byReference(
         kind, readExpression(), readName(), readExpression(),
-        interfaceTargetReference: readInstanceMemberReference())
+        interfaceTargetReference: readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2085,33 +2141,34 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new SuperPropertyGet.byReference(
-        readName(), readInstanceMemberReference(allowNull: true))
+        readName(), readNullableInstanceMemberReference())
       ..fileOffset = offset;
   }
 
   Expression _readSuperPropertySet() {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
-    return new SuperPropertySet.byReference(readName(), readExpression(),
-        readInstanceMemberReference(allowNull: true))
+    return new SuperPropertySet.byReference(
+        readName(), readExpression(), readNullableInstanceMemberReference())
       ..fileOffset = offset;
   }
 
   Expression _readStaticGet() {
     int offset = readOffset();
-    return new StaticGet.byReference(readMemberReference())
+    return new StaticGet.byReference(readNonNullMemberReference())
       ..fileOffset = offset;
   }
 
   Expression _readStaticTearOff() {
     int offset = readOffset();
-    return new StaticTearOff.byReference(readMemberReference())
+    return new StaticTearOff.byReference(readNonNullMemberReference())
       ..fileOffset = offset;
   }
 
   Expression _readStaticSet() {
     int offset = readOffset();
-    return new StaticSet.byReference(readMemberReference(), readExpression())
+    return new StaticSet.byReference(
+        readNonNullMemberReference(), readExpression())
       ..fileOffset = offset;
   }
 
@@ -2119,7 +2176,7 @@ class BinaryBuilder {
     int flags = readByte();
     int offset = readOffset();
     return new MethodInvocation.byReference(readExpression(), readName(),
-        readArguments(), readInstanceMemberReference(allowNull: true))
+        readArguments(), readNullableInstanceMemberReference())
       ..fileOffset = offset
       ..flags = flags;
   }
@@ -2130,8 +2187,8 @@ class BinaryBuilder {
     int offset = readOffset();
     return new InstanceInvocation.byReference(
         kind, readExpression(), readName(), readArguments(),
-        functionType: readDartType(),
-        interfaceTargetReference: readInstanceMemberReference())
+        functionType: readDartType() as FunctionType,
+        interfaceTargetReference: readNonNullInstanceMemberReference())
       ..fileOffset = offset
       ..flags = flags;
   }
@@ -2167,7 +2224,7 @@ class BinaryBuilder {
     int offset = readOffset();
     readUInt30(); // offset of the variable declaration in the binary.
     return new LocalFunctionInvocation(readVariableReference(), readArguments(),
-        functionType: readDartType())
+        functionType: readDartType() as FunctionType)
       ..fileOffset = offset;
   }
 
@@ -2181,23 +2238,23 @@ class BinaryBuilder {
     int offset = readOffset();
     return new EqualsCall.byReference(readExpression(), readExpression(),
         isNot: readByte() == 1,
-        functionType: readDartType(),
-        interfaceTargetReference: readInstanceMemberReference())
+        functionType: readDartType() as FunctionType,
+        interfaceTargetReference: readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
   Expression _readSuperMethodInvocation() {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
-    return new SuperMethodInvocation.byReference(readName(), readArguments(),
-        readInstanceMemberReference(allowNull: true))
+    return new SuperMethodInvocation.byReference(
+        readName(), readArguments(), readNullableInstanceMemberReference())
       ..fileOffset = offset;
   }
 
   Expression _readStaticInvocation() {
     int offset = readOffset();
     return new StaticInvocation.byReference(
-        readMemberReference(), readArguments(),
+        readNonNullMemberReference(), readArguments(),
         isConst: false)
       ..fileOffset = offset;
   }
@@ -2205,7 +2262,7 @@ class BinaryBuilder {
   Expression _readConstStaticInvocation() {
     int offset = readOffset();
     return new StaticInvocation.byReference(
-        readMemberReference(), readArguments(),
+        readNonNullMemberReference(), readArguments(),
         isConst: true)
       ..fileOffset = offset;
   }
@@ -2213,7 +2270,7 @@ class BinaryBuilder {
   Expression _readConstructorInvocation() {
     int offset = readOffset();
     return new ConstructorInvocation.byReference(
-        readMemberReference(), readArguments(),
+        readNonNullMemberReference(), readArguments(),
         isConst: false)
       ..fileOffset = offset;
   }
@@ -2221,7 +2278,7 @@ class BinaryBuilder {
   Expression _readConstConstructorInvocation() {
     int offset = readOffset();
     return new ConstructorInvocation.byReference(
-        readMemberReference(), readArguments(),
+        readNonNullMemberReference(), readArguments(),
         isConst: true)
       ..fileOffset = offset;
   }
@@ -2241,8 +2298,12 @@ class BinaryBuilder {
   }
 
   Expression _readConditionalExpression() {
-    return new ConditionalExpression(readExpression(), readExpression(),
-        readExpression(), readDartTypeOption());
+    return new ConditionalExpression(
+        readExpression(),
+        readExpression(),
+        readExpression(),
+        // TODO(johnniwinther): Change this to use `readDartType`.
+        readDartTypeOption()!);
   }
 
   Expression _readStringConcatenation() {
@@ -2277,12 +2338,13 @@ class BinaryBuilder {
 
   Expression _readInstanceCreation() {
     int offset = readOffset();
-    Reference classReference = readClassReference();
+    Reference classReference = readNonNullClassReference();
     List<DartType> typeArguments = readDartTypeList();
     int fieldValueCount = readUInt30();
     Map<Reference, Expression> fieldValues = <Reference, Expression>{};
     for (int i = 0; i < fieldValueCount; i++) {
-      final Reference fieldRef = readCanonicalNameReference().getReference();
+      final Reference fieldRef =
+          readNonNullCanonicalNameReference().getReference();
       final Expression value = readExpression();
       fieldValues[fieldRef] = value;
     }
@@ -2295,7 +2357,7 @@ class BinaryBuilder {
       asserts = emptyListOfAssertStatement;
     } else {
       asserts = new List<AssertStatement>.generate(
-          assertCount, (_) => readStatement(),
+          assertCount, (_) => readStatement() as AssertStatement,
           growable: false);
     }
     List<Expression> unusedArguments = readExpressionList();
@@ -2305,7 +2367,7 @@ class BinaryBuilder {
   }
 
   Expression _readFileUriExpression() {
-    Uri fileUri = readUriReference();
+    Uri fileUri = readUriReference()!;
     int offset = readOffset();
     return new FileUriExpression(readExpression(), fileUri)
       ..fileOffset = offset;
@@ -2503,7 +2565,7 @@ class BinaryBuilder {
         growable: true);
   }
 
-  Statement readStatementOrNullIfEmpty() {
+  Statement? readStatementOrNullIfEmpty() {
     Statement node = readStatement();
     if (node is EmptyStatement) {
       return null;
@@ -2512,7 +2574,7 @@ class BinaryBuilder {
     }
   }
 
-  Statement readStatementOption() {
+  Statement? readStatementOption() {
     return readAndCheckOptionTag() ? readStatement() : null;
   }
 
@@ -2611,7 +2673,7 @@ class BinaryBuilder {
     int variableStackHeight = variableStack.length;
     int offset = readOffset();
     List<VariableDeclaration> variables = readAndPushVariableDeclarationList();
-    Expression condition = readExpressionOption();
+    Expression? condition = readExpressionOption();
     List<Expression> updates = readExpressionList();
     Statement body = readStatement();
     variableStack.length = variableStackHeight;
@@ -2737,8 +2799,8 @@ class BinaryBuilder {
     int variableStackHeight = variableStack.length;
     int offset = readOffset();
     DartType guard = readDartType();
-    VariableDeclaration exception = readAndPushVariableDeclarationOption();
-    VariableDeclaration stackTrace = readAndPushVariableDeclarationOption();
+    VariableDeclaration? exception = readAndPushVariableDeclarationOption();
+    VariableDeclaration? stackTrace = readAndPushVariableDeclarationOption();
     Statement body = readStatement();
     variableStack.length = variableStackHeight;
     return new Catch(exception, body, guard: guard, stackTrace: stackTrace)
@@ -2764,16 +2826,16 @@ class BinaryBuilder {
   }
 
   Supertype readSupertype() {
-    InterfaceType type = readDartType(forSupertype: true);
+    InterfaceType type = readDartType(forSupertype: true) as InterfaceType;
     assert(
-        type.nullability == _currentLibrary.nonNullable,
+        type.nullability == _currentLibrary!.nonNullable,
         "In serialized form supertypes should have Nullability.legacy if they "
         "are in a library that is opted out of the NNBD feature.  If they are "
         "in an opted-in library, they should have Nullability.nonNullable.");
     return new Supertype.byReference(type.className, type.typeArguments);
   }
 
-  Supertype readSupertypeOption() {
+  Supertype? readSupertypeOption() {
     return readAndCheckOptionTag() ? readSupertype() : null;
   }
 
@@ -2818,7 +2880,7 @@ class BinaryBuilder {
         isRequired: (flags & NamedType.FlagRequiredNamedType) != 0);
   }
 
-  DartType readDartTypeOption() {
+  DartType? readDartTypeOption() {
     return readAndCheckOptionTag() ? readDartType() : null;
   }
 
@@ -2852,7 +2914,7 @@ class BinaryBuilder {
 
   DartType _readTypedefType() {
     int nullabilityIndex = readByte();
-    return new TypedefType.byReference(readTypedefReference(),
+    return new TypedefType.byReference(readNonNullTypedefReference(),
         Nullability.values[nullabilityIndex], readDartTypeList());
   }
 
@@ -2875,14 +2937,14 @@ class BinaryBuilder {
 
   DartType _readInterfaceType() {
     int nullabilityIndex = readByte();
-    Reference reference = readClassReference();
+    Reference reference = readNonNullClassReference();
     List<DartType> typeArguments = readDartTypeList();
-    CanonicalName canonicalName = reference.canonicalName;
-    if (canonicalName.name == "FutureOr" &&
-        canonicalName.parent != null &&
-        canonicalName.parent.name == "dart:async" &&
-        canonicalName.parent.parent != null &&
-        canonicalName.parent.parent.isRoot) {
+    CanonicalName? canonicalName = reference.canonicalName;
+    if (canonicalName != null &&
+        canonicalName.name == "FutureOr" &&
+        canonicalName.parent!.name == "dart:async" &&
+        canonicalName.parent!.parent != null &&
+        canonicalName.parent!.parent!.isRoot) {
       return new FutureOrType(
           typeArguments.single, Nullability.values[nullabilityIndex]);
     }
@@ -2892,13 +2954,13 @@ class BinaryBuilder {
 
   DartType _readSimpleInterfaceType(bool forSupertype) {
     int nullabilityIndex = readByte();
-    Reference classReference = readClassReference();
-    CanonicalName canonicalName = classReference.canonicalName;
+    Reference classReference = readNonNullClassReference();
+    CanonicalName? canonicalName = classReference.canonicalName;
     if (canonicalName != null &&
         !forSupertype &&
         canonicalName.name == "Null" &&
-        canonicalName.parent?.name == "dart:core" &&
-        (canonicalName.parent?.parent?.isRoot ?? false)) {
+        canonicalName.parent!.name == "dart:core" &&
+        canonicalName.parent!.parent!.isRoot) {
       return const NullType();
     }
     return new InterfaceType.byReference(classReference,
@@ -2913,7 +2975,7 @@ class BinaryBuilder {
     int totalParameterCount = readUInt30();
     List<DartType> positional = readDartTypeList();
     List<NamedType> named = readNamedTypeList();
-    DartType typedefType = readDartTypeOption();
+    TypedefType? typedefType = readDartTypeOption() as TypedefType?;
     assert(positional.length + named.length == totalParameterCount);
     DartType returnType = readDartType();
     typeParameterStack.length = typeParameterStackHeight;
@@ -2936,13 +2998,13 @@ class BinaryBuilder {
   DartType _readTypeParameterType() {
     int declaredNullabilityIndex = readByte();
     int index = readUInt30();
-    DartType bound = readDartTypeOption();
+    DartType? bound = readDartTypeOption();
     return new TypeParameterType(typeParameterStack[index],
         Nullability.values[declaredNullabilityIndex], bound);
   }
 
   List<TypeParameter> readAndPushTypeParameterList(
-      [List<TypeParameter> list, TreeNode parent]) {
+      [List<TypeParameter>? list, TreeNode? parent]) {
     int length = readUInt30();
     if (length == 0) {
       if (list != null) return list;
@@ -3020,7 +3082,7 @@ class BinaryBuilder {
         growable: useGrowableLists);
   }
 
-  VariableDeclaration readAndPushVariableDeclarationOption() {
+  VariableDeclaration? readAndPushVariableDeclarationOption() {
     return readAndCheckOptionTag() ? readAndPushVariableDeclaration() : null;
   }
 
@@ -3064,13 +3126,13 @@ class BinaryBuilder {
 class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   /// List of metadata subsections that have corresponding [MetadataRepository]
   /// and are awaiting to be parsed and attached to nodes.
-  List<_MetadataSubsection> _subsections;
+  List<_MetadataSubsection>? _subsections;
 
   BinaryBuilderWithMetadata(List<int> bytes,
-      {String filename,
+      {String? filename,
       bool disableLazyReading = false,
       bool disableLazyClassReading = false,
-      bool alwaysCreateNewNamedNodes})
+      bool? alwaysCreateNewNamedNodes})
       : super(bytes,
             filename: filename,
             disableLazyReading: disableLazyReading,
@@ -3098,7 +3160,7 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
       // UInt32 tag (fixed size StringReference)
       final String tag = _stringTable[readUint32()];
 
-      final MetadataRepository repository = component.metadata[tag];
+      final MetadataRepository<dynamic>? repository = component.metadata[tag];
       if (repository != null) {
         // Read nodeOffsetToMetadataOffset mapping.
         final Map<int, int> mapping = <int, int>{};
@@ -3110,8 +3172,8 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
           mapping[nodeOffset] = metadataOffset;
         }
 
-        _subsections ??= <_MetadataSubsection>[];
-        _subsections.add(new _MetadataSubsection(repository, mapping));
+        (_subsections ??= <_MetadataSubsection>[])
+            .add(new _MetadataSubsection(repository, mapping));
       }
 
       // Start of the subsection and the end of the previous one.
@@ -3130,28 +3192,28 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  void enterScope({List<TypeParameter> typeParameters}) {
+  void enterScope({List<TypeParameter>? typeParameters}) {
     if (typeParameters != null) {
       typeParameterStack.addAll(typeParameters);
     }
   }
 
   @override
-  void leaveScope({List<TypeParameter> typeParameters}) {
+  void leaveScope({List<TypeParameter>? typeParameters}) {
     if (typeParameters != null) {
       typeParameterStack.length -= typeParameters.length;
     }
   }
 
   @override
-  Node _associateMetadata(Node node, int nodeOffset) {
+  T _associateMetadata<T extends Node>(T node, int nodeOffset) {
     if (_subsections == null) {
       return node;
     }
 
-    for (_MetadataSubsection subsection in _subsections) {
+    for (_MetadataSubsection subsection in _subsections!) {
       // First check if there is any metadata associated with this node.
-      final int metadataOffset = subsection.mapping[nodeOffset];
+      final int? metadataOffset = subsection.mapping[nodeOffset];
       if (metadataOffset != null) {
         subsection.repository.mapping[node] =
             _readMetadata(node, subsection.repository, metadataOffset);
@@ -3312,7 +3374,8 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   @override
   Supertype readSupertype() {
     final int nodeOffset = _byteOffset;
-    InterfaceType type = super.readDartType(forSupertype: true);
+    InterfaceType type =
+        super.readDartType(forSupertype: true) as InterfaceType;
     return _associateMetadata(
         new Supertype.byReference(type.className, type.typeArguments),
         nodeOffset);
@@ -3345,7 +3408,7 @@ class _MetadataSubsection {
 
 /// Merges two compilation modes or throws if they are not compatible.
 NonNullableByDefaultCompiledMode mergeCompilationModeOrThrow(
-    NonNullableByDefaultCompiledMode a, NonNullableByDefaultCompiledMode b) {
+    NonNullableByDefaultCompiledMode? a, NonNullableByDefaultCompiledMode b) {
   if (a == null || a == b) {
     return b;
   }

@@ -2243,6 +2243,7 @@ class RedirectingFactoryConstructor extends Member {
 
   /// Reference to the constructor or the factory that this
   /// [RedirectingFactoryConstructor] redirects to.
+  // TODO(johnniwinther): Make this non-nullable.
   Reference? targetReference;
 
   /// [typeParameters] are duplicates of the type parameters of the enclosing
@@ -2630,7 +2631,7 @@ class Procedure extends Member {
   ProcedureStubKind stubKind;
   Reference? stubTargetReference;
 
-  Procedure(Name? name, ProcedureKind kind, FunctionNode function,
+  Procedure(Name? name, ProcedureKind kind, FunctionNode? function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
@@ -3694,7 +3695,8 @@ abstract class Expression extends TreeNode {
 /// The [fileOffset] of an [InvalidExpression] indicates the location in the
 /// tree where the expression occurs, rather than the location of the error.
 class InvalidExpression extends Expression {
-  String message;
+  // TODO(johnniwinther): Avoid using `null` as the empty string.
+  String? message;
 
   InvalidExpression(this.message);
 
@@ -3730,7 +3732,7 @@ class InvalidExpression extends Expression {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('<invalid:');
-    printer.write(message);
+    printer.write(message ?? '');
     printer.write('>');
   }
 }
@@ -12090,7 +12092,7 @@ class StringConstant extends PrimitiveConstant<String> {
 
 class SymbolConstant extends Constant {
   final String name;
-  final Reference libraryReference;
+  final Reference? libraryReference;
 
   SymbolConstant(this.name, this.libraryReference);
 
@@ -12116,9 +12118,8 @@ class SymbolConstant extends Constant {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('#');
-    // ignore: unnecessary_null_comparison
     if (printer.includeAuxiliaryProperties && libraryReference != null) {
-      printer.write(libraryNameToString(libraryReference.asLibrary));
+      printer.write(libraryNameToString(libraryReference!.asLibrary));
       printer.write('::');
     }
     printer.write(name);
@@ -12636,7 +12637,7 @@ class Component extends TreeNode {
 
   Procedure? get mainMethod => mainMethodName?.asProcedure;
 
-  void setMainMethodAndMode(Reference main, bool overwriteMainIfSet,
+  void setMainMethodAndMode(Reference? main, bool overwriteMainIfSet,
       NonNullableByDefaultCompiledMode mode) {
     if (_mainMethodName == null || overwriteMainIfSet) {
       _mainMethodName = main;
@@ -12718,7 +12719,7 @@ abstract class MetadataRepository<T> {
   String get tag;
 
   /// Mutable mapping between nodes and their metadata.
-  Map<TreeNode, T> get mapping;
+  Map<Node, T> get mapping;
 
   /// Write [metadata] object corresponding to the given [Node] into
   /// the given [BinarySink].
@@ -12749,7 +12750,7 @@ abstract class MetadataRepository<T> {
   /// Currently due to binary format specifics Catch and MapEntry nodes
   /// can't have metadata attached to them. Also, metadata is not saved on
   /// Block nodes inside BlockExpressions.
-  static bool isSupported(TreeNode node) {
+  static bool isSupported(Node node) {
     return !(node is MapEntry ||
         node is Catch ||
         (node is Block && node.parent is BlockExpression));
@@ -12796,7 +12797,7 @@ abstract class BinarySource {
   /// Read List<Byte> from the source.
   List<int> readByteList();
 
-  CanonicalName readCanonicalNameReference();
+  CanonicalName? readNullableCanonicalNameReference();
   String readStringReference();
   Name readName();
   DartType readDartType();
@@ -12849,11 +12850,11 @@ class Source {
   final List<int>? lineStarts;
 
   /// A UTF8 encoding of the original source file.
-  final List<int>? source;
+  final List<int> source;
 
-  final Uri importUri;
+  final Uri? importUri;
 
-  final Uri fileUri;
+  final Uri? fileUri;
 
   Set<Reference>? constantCoverageConstructors;
 
@@ -12865,16 +12866,13 @@ class Source {
   /// number. The returned line contains no line separators.
   String? getTextLine(int line) {
     List<int>? lineStarts = this.lineStarts;
-    if (source == null ||
-        source!.isEmpty ||
-        lineStarts == null ||
-        lineStarts.isEmpty) {
+    if (source.isEmpty || lineStarts == null || lineStarts.isEmpty) {
       return null;
     }
     RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
 
     String cachedText =
-        this.cachedText ??= utf8.decode(source!, allowMalformed: true);
+        this.cachedText ??= utf8.decode(source, allowMalformed: true);
     // -1 as line numbers start at 1.
     int index = line - 1;
     if (index + 1 == lineStarts.length) {
@@ -13113,7 +13111,7 @@ class _Hash {
     return finish(combine2(value1, value2, hash));
   }
 
-  static int hash2(Object object1, Object object2) {
+  static int hash2(Object object1, Object? object2) {
     return combine2Finish(object2.hashCode, object2.hashCode, 0);
   }
 
