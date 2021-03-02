@@ -1011,9 +1011,13 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
   // Make sure to route this request to the isolate library OOB mesage handler.
   msg.SetAt(0, Smi::Handle(Smi::New(Message::kIsolateLibOOBMsg)));
 
-  MessageWriter writer(false);
-  PortMap::PostMessage(
-      writer.WriteMessage(msg, port.Id(), Message::kOOBPriority));
+  // Ensure message writer (and it's resources, e.g. forwarding tables) are
+  // cleaned up before handling interrupts.
+  {
+    MessageWriter writer(false);
+    PortMap::PostMessage(
+        writer.WriteMessage(msg, port.Id(), Message::kOOBPriority));
+  }
 
   // Drain interrupts before running so any IMMEDIATE operations on the current
   // isolate happen synchronously.

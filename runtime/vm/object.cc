@@ -6871,7 +6871,7 @@ void Function::EnsureHasCompiledUnoptimizedCode() const {
   ASSERT(!ForceOptimize());
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
-  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
+  // TODO(35224): DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
 
   const Error& error =

@@ -58,6 +58,7 @@ class ICData;
 class IsolateObjectStore;
 class IsolateProfilerData;
 class ProgramReloadContext;
+class ReloadHandler;
 class Log;
 class Message;
 class MessageHandler;
@@ -359,7 +360,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   // Returns true if this is the first isolate registered.
   void RegisterIsolate(Isolate* isolate);
-  void RegisterIsolateLocked(Isolate* isolate);
   void UnregisterIsolate(Isolate* isolate);
   // Returns `true` if this was the last isolate and the caller is responsible
   // for deleting the isolate group.
@@ -372,6 +372,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Monitor* threads_lock() const;
   ThreadRegistry* thread_registry() const { return thread_registry_.get(); }
   SafepointHandler* safepoint_handler() { return safepoint_handler_.get(); }
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  ReloadHandler* reload_handler() { return reload_handler_.get(); }
+#endif
 
   void CreateHeap(bool is_vm_isolate, bool is_service_or_kernel_isolate);
   void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
@@ -894,6 +897,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::unique_ptr<ThreadRegistry> thread_registry_;
   std::unique_ptr<SafepointHandler> safepoint_handler_;
 
+  NOT_IN_PRODUCT(
+      NOT_IN_PRECOMPILED(std::unique_ptr<ReloadHandler> reload_handler_));
+
   static RwLock* isolate_groups_rwlock_;
   static IntrusiveDList<IsolateGroup>* isolate_groups_;
   static Random* isolate_group_random_;
@@ -984,6 +990,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     kInternalKillMsg = 11,  // Like kill, but does not run exit listeners, etc.
     kLowMemoryMsg = 12,     // Run compactor, etc.
     kDrainServiceExtensionsMsg = 13,  // Invoke pending service extensions
+    kCheckForReload = 14,  // Participate in other isolate group reload.
   };
   // The different Isolate API message priorities for ping and kill messages.
   enum LibMsgPriority {
@@ -1766,8 +1773,29 @@ class NoActiveIsolateScope : public StackResource {
   }
 
  private:
+  friend class DisabledNoActiveIsolateScope;
   Thread* thread_;
   Isolate* saved_isolate_;
+};
+
+// Can be used inside a [NoActiveIsolateScope] to set the current isolate.
+class DisabledNoActiveIsolateScope : public StackResource {
+ public:
+  explicit DisabledNoActiveIsolateScope(NoActiveIsolateScope* scope)
+      : StackResource(Thread::Current()),
+        thread_(static_cast<Thread*>(thread())),
+        scope_(scope) {
+    ASSERT(thread_->isolate() == nullptr);
+    thread_->isolate_ = scope_->saved_isolate_;
+  }
+  ~DisabledNoActiveIsolateScope() {
+    ASSERT(thread_->isolate_ == scope_->saved_isolate_);
+    thread_->isolate_ = nullptr;
+  }
+
+ private:
+  Thread* thread_;
+  NoActiveIsolateScope* scope_;
 };
 
 }  // namespace dart

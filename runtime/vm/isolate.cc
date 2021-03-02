@@ -351,6 +351,9 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       api_state_(new ApiState()),
       thread_registry_(new ThreadRegistry()),
       safepoint_handler_(new SafepointHandler(this)),
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+      reload_handler_(new ReloadHandler()),
+#endif
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
@@ -425,14 +428,13 @@ IsolateGroup::~IsolateGroup() {
 }
 
 void IsolateGroup::RegisterIsolate(Isolate* isolate) {
-  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
-  RegisterIsolateLocked(isolate);
-}
-
-void IsolateGroup::RegisterIsolateLocked(Isolate* isolate) {
-  ASSERT(isolates_lock_->IsCurrentThreadWriter());
-  isolates_.Append(isolate);
-  isolate_count_++;
+  {
+    SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+    ASSERT(isolates_lock_->IsCurrentThreadWriter());
+    isolates_.Append(isolate);
+    isolate_count_++;
+  }
+  NOT_IN_PRODUCT(NOT_IN_PRECOMPILED(reload_handler()->RegisterIsolate()));
 }
 
 bool IsolateGroup::ContainsOnlyOneIsolate() {
@@ -449,8 +451,11 @@ void IsolateGroup::RunWithLockedGroup(std::function<void()> fun) {
 }
 
 void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
-  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
-  isolates_.Remove(isolate);
+  NOT_IN_PRODUCT(NOT_IN_PRECOMPILED(reload_handler()->UnregisterIsolate()));
+  {
+    SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+    isolates_.Remove(isolate);
+  }
 }
 
 bool IsolateGroup::UnregisterIsolateDecrementCount(Isolate* isolate) {
@@ -935,8 +940,15 @@ void IsolateGroup::FreeStaticField(const Field& field) {
 
   const intptr_t field_id = field.field_id();
   initial_field_table()->Free(field_id);
-  ForEachIsolate(
-      [&](Isolate* isolate) { isolate->field_table()->Free(field_id); });
+  ForEachIsolate([&](Isolate* isolate) {
+    auto field_table = isolate->field_table();
+    // The isolate might've just been created and is now participating in
+    // the reload request inside `IsolateGroup::RegisterIsolate()`.
+    // At that point it doesn't have the field table setup yet.
+    if (field_table->IsReadyToUse()) {
+      field_table->Free(field_id);
+    }
+  });
 }
 
 void IsolateGroup::RehashConstants() {
@@ -1245,6 +1257,15 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
       obj = message.At(3);
       if (!obj.IsBool()) return Error::null();
       I->SetErrorsFatal(Bool::Cast(obj).value());
+      break;
+    }
+    case Isolate::kCheckForReload: {
+      // [ OOB, kCheckForReload, ignored ]
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+      IG->reload_handler()->CheckForReload();
+#else
+      UNREACHABLE();
+#endif
       break;
     }
 #if defined(DEBUG)
@@ -2021,12 +2042,11 @@ bool IsolateGroup::ReloadSources(JSONStream* js,
                                  const char* root_script_url,
                                  const char* packages_url,
                                  bool dont_delete_reload_context) {
-  ASSERT(!IsReloading());
+  // Ensure all isolates inside the isolate group are paused at a place where we
+  // can safely do a reload.
+  ReloadOperationScope reload_operation(Thread::Current());
 
-  // TODO(dartbug.com/36097): Support multiple isolates within an isolate group.
-  RELEASE_ASSERT(!IsolateGroup::AreIsolateGroupsEnabled());
-  RELEASE_ASSERT(isolates_.First() == isolates_.Last());
-  RELEASE_ASSERT(isolates_.First() == Isolate::Current());
+  ASSERT(!IsReloading());
 
   auto shared_class_table = IsolateGroup::Current()->shared_class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(
@@ -2051,12 +2071,11 @@ bool IsolateGroup::ReloadKernel(JSONStream* js,
                                 const uint8_t* kernel_buffer,
                                 intptr_t kernel_buffer_size,
                                 bool dont_delete_reload_context) {
-  ASSERT(!IsReloading());
+  // Ensure all isolates inside the isolate group are paused at a place where we
+  // can safely do a reload.
+  ReloadOperationScope reload_operation(Thread::Current());
 
-  // TODO(dartbug.com/36097): Support multiple isolates within an isolate group.
-  RELEASE_ASSERT(!IsolateGroup::AreIsolateGroupsEnabled());
-  RELEASE_ASSERT(isolates_.First() == isolates_.Last());
-  RELEASE_ASSERT(isolates_.First() == Isolate::Current());
+  ASSERT(!IsReloading());
 
   auto shared_class_table = IsolateGroup::Current()->shared_class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(

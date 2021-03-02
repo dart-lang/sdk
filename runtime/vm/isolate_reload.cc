@@ -634,6 +634,8 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     }
   }
 
+  NoActiveIsolateScope no_active_isolate_scope;
+
   if (skip_reload) {
     ASSERT(modified_libs_->IsEmpty());
     reload_skipped_ = true;
@@ -708,9 +710,18 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   //
   // If loading the hot-reload diff succeeded we'll finalize the loading, which
   // will either commit or reject the reload request.
-  const auto& result =
-      Object::Handle(Z, IG->program_reload_context()->ReloadPhase2LoadKernel(
-                            kernel_program.get(), root_lib_url_));
+  auto& result = Object::Handle(Z);
+  {
+    // We need to set an active isolate while loading kernel. The kernel loader
+    // itself is independent of the current isolate, but if the application
+    // needs native extensions, the kernel loader calls out to the embedder to
+    // load those, which requires currently an active isolate (since embedder
+    // will callback into VM using Dart API).
+    DisabledNoActiveIsolateScope active_isolate_scope(&no_active_isolate_scope);
+
+    result = IG->program_reload_context()->ReloadPhase2LoadKernel(
+        kernel_program.get(), root_lib_url_);
+  }
 
   if (result.IsError()) {
     TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");
@@ -1169,8 +1180,8 @@ void ProgramReloadContext::EnsuredUnoptimizedCodeForStack() {
   TIMELINE_SCOPE(EnsuredUnoptimizedCodeForStack);
 
   IG->ForEachIsolate([](Isolate* isolate) {
-    StackFrameIterator it(ValidationPolicy::kDontValidateFrames,
-                          isolate->mutator_thread(),
+    auto thread = isolate->mutator_thread();
+    StackFrameIterator it(ValidationPolicy::kDontValidateFrames, thread,
                           StackFrameIterator::kAllowCrossThreadIteration);
 
     Function& func = Function::Handle();
@@ -1901,30 +1912,32 @@ void ProgramReloadContext::ResetUnoptimizedICsOnStack() {
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
-
   Code& code = Code::Handle(zone);
   Function& function = Function::Handle(zone);
   CallSiteResetter resetter(zone);
-  DartFrameIterator iterator(thread,
-                             StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = iterator.NextFrame();
-  while (frame != NULL) {
-    code = frame->LookupDartCode();
-    if (code.is_optimized() && !code.is_force_optimized()) {
-      // If this code is optimized, we need to reset the ICs in the
-      // corresponding unoptimized code, which will be executed when the stack
-      // unwinds to the optimized code.
-      function = code.function();
-      code = function.unoptimized_code();
-      ASSERT(!code.IsNull());
-      resetter.ResetSwitchableCalls(code);
-      resetter.ResetCaches(code);
-    } else {
-      resetter.ResetSwitchableCalls(code);
-      resetter.ResetCaches(code);
+
+  IG->ForEachIsolate([&](Isolate* isolate) {
+    DartFrameIterator iterator(isolate->mutator_thread(),
+                               StackFrameIterator::kAllowCrossThreadIteration);
+    StackFrame* frame = iterator.NextFrame();
+    while (frame != nullptr) {
+      code = frame->LookupDartCode();
+      if (code.is_optimized() && !code.is_force_optimized()) {
+        // If this code is optimized, we need to reset the ICs in the
+        // corresponding unoptimized code, which will be executed when the stack
+        // unwinds to the optimized code.
+        function = code.function();
+        code = function.unoptimized_code();
+        ASSERT(!code.IsNull());
+        resetter.ResetSwitchableCalls(code);
+        resetter.ResetCaches(code);
+      } else {
+        resetter.ResetSwitchableCalls(code);
+        resetter.ResetCaches(code);
+      }
+      frame = iterator.NextFrame();
     }
-    frame = iterator.NextFrame();
-  }
+  });
 }
 
 void ProgramReloadContext::ResetMegamorphicCaches() {
@@ -2123,9 +2136,15 @@ class FieldInvalidator {
       }
       const intptr_t field_id = field.field_id();
       thread->isolate_group()->ForEachIsolate([&](Isolate* isolate) {
-        value_ = isolate->field_table()->At(field_id);
-        if (value_.ptr() != Object::sentinel().ptr()) {
-          CheckValueType(null_safety, value_, field);
+        auto field_table = isolate->field_table();
+        // The isolate might've just been created and is now participating in
+        // the reload request inside `IsolateGroup::RegisterIsolate()`.
+        // At that point it doesn't have the field table setup yet.
+        if (field_table->IsReadyToUse()) {
+          value_ = field_table->At(field_id);
+          if (value_.ptr() != Object::sentinel().ptr()) {
+            CheckValueType(null_safety, value_, field);
+          }
         }
       });
     }
@@ -2594,6 +2613,115 @@ void ProgramReloadContext::RebuildDirectSubclasses() {
         }
       }
     }
+  }
+}
+
+void ReloadHandler::RegisterIsolate() {
+  SafepointMonitorLocker ml(&monitor_);
+  ParticipateIfReloadRequested(&ml, /*is_registered=*/false,
+                               /*allow_later_retry=*/false);
+  ASSERT(reloading_thread_ == nullptr);
+  ++registered_isolate_count_;
+}
+
+void ReloadHandler::UnregisterIsolate() {
+  SafepointMonitorLocker ml(&monitor_);
+  ParticipateIfReloadRequested(&ml, /*is_registered=*/true,
+                               /*allow_later_retry=*/false);
+  ASSERT(reloading_thread_ == nullptr);
+  --registered_isolate_count_;
+}
+
+void ReloadHandler::CheckForReload() {
+  SafepointMonitorLocker ml(&monitor_);
+  ParticipateIfReloadRequested(&ml, /*is_registered=*/true,
+                               /*allow_later_retry=*/true);
+}
+
+void ReloadHandler::ParticipateIfReloadRequested(SafepointMonitorLocker* ml,
+                                                 bool is_registered,
+                                                 bool allow_later_retry) {
+  if (reloading_thread_ != nullptr) {
+    auto thread = Thread::Current();
+    auto isolate = thread->isolate();
+
+    // If the current thread is in a no reload scope, we'll not participate here
+    // and instead delay to a point (further up the stack, namely in the main
+    // message handling loop) where this isolate can participate.
+    if (thread->IsInNoReloadScope()) {
+      RELEASE_ASSERT(allow_later_retry);
+      isolate->SendInternalLibMessage(Isolate::kCheckForReload, /*ignored=*/-1);
+      return;
+    }
+
+    if (is_registered) {
+      SafepointMonitorLocker ml(&checkin_monitor_);
+      ++isolates_checked_in_;
+      ml.NotifyAll();
+    }
+    // While we're waiting for the reload to be performed, we'll exit the
+    // isolate. That will transition into a safepoint - which a blocking `Wait`
+    // would also do - but it does something in addition: It will release it's
+    // current TLAB and decrease the mutator count. We want this in order to let
+    // all isolates in the group participate in the reload, despite our parallel
+    // mutator limit.
+    while (reloading_thread_ != nullptr) {
+      SafepointMonitorUnlockScope ml_unlocker(ml);
+      Thread::ExitIsolate(/*nested=*/true);
+      {
+        MonitorLocker ml(&monitor_);
+        while (reloading_thread_ != nullptr) {
+          ml.Wait();
+        }
+      }
+      Thread::EnterIsolate(isolate, /*nested=*/true);
+    }
+    if (is_registered) {
+      SafepointMonitorLocker ml(&checkin_monitor_);
+      --isolates_checked_in_;
+    }
+  }
+}
+
+void ReloadHandler::PauseIsolatesForReloadLocked() {
+  intptr_t registered = -1;
+  {
+    SafepointMonitorLocker ml(&monitor_);
+
+    // Maybe participate in existing reload requested by another isolate.
+    ParticipateIfReloadRequested(&ml, /*registered=*/true,
+                                 /*allow_later_retry=*/false);
+
+    // Now it's our turn to request reload.
+    ASSERT(reloading_thread_ == nullptr);
+    ASSERT(isolates_checked_in_ == 0);
+    reloading_thread_ = Thread::Current();
+
+    // At this point no isolate register/unregister, so we save the current
+    // number of registered isolates.
+    registered = registered_isolate_count_;
+  }
+
+  // Send OOB to a superset of all registered isolates and make them participate
+  // in this reload.
+  reloading_thread_->isolate_group()->ForEachIsolate([](Isolate* isolate) {
+    isolate->SendInternalLibMessage(Isolate::kCheckForReload, /*ignored=*/-1);
+  });
+
+  {
+    SafepointMonitorLocker ml(&checkin_monitor_);
+    while (isolates_checked_in_ < (registered - /*reload_requester=*/1)) {
+      ml.Wait();
+    }
+  }
+}
+
+void ReloadHandler::ResumeIsolatesLocked() {
+  {
+    SafepointMonitorLocker ml(&monitor_);
+    ASSERT(reloading_thread_ == Thread::Current());
+    reloading_thread_ = nullptr;
+    ml.NotifyAll();
   }
 }
 
