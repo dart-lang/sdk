@@ -2986,10 +2986,13 @@ class Function : public Object {
   static intptr_t name##_offset() {                                            \
     return OFFSET_OF(UntaggedFunction, name##_);                               \
   }                                                                            \
-  return_type name() const { return untag()->name##_; }                        \
+  return_type name() const {                                                   \
+    return LoadNonPointer<type, std::memory_order_relaxed>(&untag()->name##_); \
+  }                                                                            \
                                                                                \
   void set_##name(type value) const {                                          \
-    StoreNonPointer(&untag()->name##_, value);                                 \
+    StoreNonPointer<type, type, std::memory_order_relaxed>(&untag()->name##_,  \
+                                                           value);             \
   }
 #endif
 
