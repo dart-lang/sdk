@@ -1986,24 +1986,33 @@ void Isolate::BuildName(const char* name_prefix) {
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 bool IsolateGroup::CanReload() {
+  // We only call this method on the mutator thread. Normally the caller is
+  // inside of the "reloadSources" service OOB message handler. Though
+  // we also use it in the slow path of StackOverflowCheck in the artificial
+  // --hot-reload-test-mode like flags.
+  //
+  // During reload itself we don't process OOB messages and don't execute Dart
+  // code, so the caller should implicitly have a guarantee we're not reloading
+  // already.
+  RELEASE_ASSERT(!IsReloading());
+
+  // We only allow reload to take place from the point on where the first
+  // isolate within an isolate group has setup it's root library. From that
+  // point on it's safe to perform hot-reload.
   auto thread = Thread::Current();
-  // TODO(dartbug.com/36097): As part of implementing hot-reload support for
-  // --enable-isolate-groups, we should make the reload implementation wait for
-  // any outstanding isolates to "check-in" (which should only be done after
-  // making them runnable) instead of refusing the reload.
-  bool all_runnable = true;
-  {
-    SafepointReadRwLocker ml(thread, isolates_lock_.get());
-    for (Isolate* isolate : isolates_) {
-      if (!isolate->is_runnable()) {
-        all_runnable = false;
-        break;
-      }
-    }
+  if (object_store()->root_library() == Library::null()) {
+    return false;
   }
-  return !IsolateGroup::IsSystemIsolateGroup(this) && all_runnable &&
-         !IsReloading() && (thread->no_reload_scope_depth_ == 0) &&
-         Isolate::IsolateCreationEnabled() &&
+
+  // We only care about the current thread's [NoReloadScope]. If we're inside
+  // one we cannot reload right now. Though if another isolate's mutator
+  // thread is inside such a scope, the multi-isolate reload will simply wait
+  // until it's out of that scope again.
+  if (thread->no_reload_scope_depth_ != 0) {
+    return false;
+  }
+
+  return !IsolateGroup::IsSystemIsolateGroup(this) &&
          OSThread::Current()->HasStackHeadroom(64 * KB);
 }
 
