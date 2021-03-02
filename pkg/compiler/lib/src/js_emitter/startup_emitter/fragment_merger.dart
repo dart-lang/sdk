@@ -68,11 +68,8 @@ class PreFragment {
     }
   }
 
-  void mergeAfter(PreFragment that) {
+  PreFragment mergeAfter(PreFragment that) {
     assert(this != that);
-    assert(
-        (that.predecessors.length == 1 && that.predecessors.single == this) ||
-            (this.successors.length == 1 && this.successors.single == that));
     this.fragments.addAll(that.fragments);
     this.classPrototypes.addAll(that.classPrototypes);
     this.closurePrototypes.addAll(that.closurePrototypes);
@@ -98,6 +95,7 @@ class PreFragment {
     });
     this.predecessors.addAll(that.predecessors);
     this.size += that.size;
+    return this;
   }
 
   FinalizedFragment finalize(
@@ -173,12 +171,17 @@ class PreFragment {
 
   String debugName() {
     List<String> names = [];
-    this.fragments.forEach((fragment) => names.add(fragment.name));
-    return names.join(',');
-  }
-
-  static int compare(PreFragment l, PreFragment r) {
-    return l.size.compareTo(r.size);
+    this.fragments.forEach(
+        (fragment) => names.add(fragment.outputUnit.imports.toString()));
+    var outputUnitStrings = [];
+    for (var fragment in fragments) {
+      var importString = [];
+      for (var import in fragment.outputUnit.imports) {
+        importString.add(import.name);
+      }
+      outputUnitStrings.add('{${importString.join(', ')}}');
+    }
+    return "${outputUnitStrings.join('+')}";
   }
 }
 
@@ -246,6 +249,16 @@ class FinalizedFragment {
   }
 }
 
+class _Partition {
+  int size = 0;
+  List<PreFragment> fragments = [];
+
+  void add(PreFragment that) {
+    size += that.size;
+    fragments.add(that);
+  }
+}
+
 class FragmentMerger {
   final CompilerOptions _options;
 
@@ -285,88 +298,50 @@ class FragmentMerger {
     });
   }
 
-  // Iterates through preDeferredFragments making as many merges as possible
-  // until either there are no more valid merges to make, or until there are
-  // only mergeFragmentsThreshold remaining.
+  /// A trivial greedy merge that uses the sorted order of the output units to
+  /// merge contiguous runs of fragments without creating cycles.
+  /// ie, if our sorted output units look like:
+  ///   {a}, {b}, {c}, {a, b}, {b, c}, {a, b, c},
+  /// Assuming singletons have size 3, doubles have size 2, and triples have
+  /// size 1, total size would be 14. If we want 3 fragments, we have an ideal
+  /// fragment size of 5. Our final partitions would look like:
+  ///   {a}, {b}, {c}+{a, b}, {b, c}+{a, b, c}.
   List<PreFragment> mergeFragments(List<PreFragment> preDeferredFragments) {
-    Set<PreFragment> fragmentsBySize = {};
+    // Sort PreFragments by their initial OutputUnit so they are in canonical
+    // order.
+    preDeferredFragments.sort((a, b) {
+      return a.fragments.single.outputUnit
+          .compareTo(b.fragments.single.outputUnit);
+    });
+    int desiredNumberOfFragment = _options.mergeFragmentsThreshold;
 
-    // We greedily look for a valid merge which results in the smallest
-    // possible increase in size. Currently, we only merge fragments in two
-    // cases:
-    // 1) We will merge two fragments A and B if B is A's single dependent.
-    // 2) We will merge two fragments C and D if C is D's single dependency.
-    bool mergeTwo() {
-      PreFragment aFragment = null;
-      PreFragment bFragment = null;
-      PreFragment cFragment = null;
-      PreFragment dFragment = null;
-      for (var fragment in fragmentsBySize) {
-        if (fragment.successors.length == 1 &&
-            (aFragment == null && bFragment == null ||
-                (fragment.size + fragment.successors.single.size <
-                    aFragment.size + bFragment.size))) {
-          aFragment = fragment;
-          bFragment = fragment.successors.single;
-        }
-        if (fragment.predecessors.length == 1 &&
-            (cFragment == null && dFragment == null ||
-                (fragment.size + fragment.predecessors.single.size <
-                    cFragment.size + dFragment.size))) {
-          cFragment = fragment.predecessors.single;
-          dFragment = fragment;
-        }
-      }
-      assert((aFragment != null &&
-              bFragment != null &&
-              aFragment != bFragment &&
-              aFragment.successors.single == bFragment) ||
-          (cFragment != null &&
-              dFragment != null &&
-              cFragment != dFragment &&
-              dFragment.predecessors.single == cFragment) ||
-          (aFragment == null &&
-              bFragment == null &&
-              cFragment == null &&
-              dFragment == null));
-      int mergeSentinel = 0x10000000000;
-      bool abCanMerge = aFragment != null && bFragment != null;
-      bool cdCanMerge = cFragment != null && dFragment != null;
-      int abMergeSize =
-          abCanMerge ? aFragment.size + bFragment.size : mergeSentinel;
-      int cdMergeSize =
-          cdCanMerge ? cFragment.size + dFragment.size : mergeSentinel;
-      bool abShouldMerge() => abCanMerge && abMergeSize <= cdMergeSize;
-      bool cdShouldMerge() => cdCanMerge && cdMergeSize <= abMergeSize;
-      void innerMerge(PreFragment a, PreFragment b) {
-        fragmentsBySize.remove(a);
-        fragmentsBySize.remove(b);
-        a.mergeAfter(b);
-        fragmentsBySize.add(a);
-      }
-
-      bool merged = abShouldMerge() || cdShouldMerge();
-      if (abShouldMerge()) {
-        innerMerge(aFragment, bFragment);
-      } else if (cdShouldMerge()) {
-        innerMerge(cFragment, dFragment);
-      } else {
-        assert(aFragment == null &&
-            bFragment == null &&
-            cFragment == null &&
-            dFragment == null);
-      }
-      return merged;
+    // TODO(joshualitt): Precalculate totalSize when computing dependencies.
+    int totalSize = 0;
+    for (var preFragment in preDeferredFragments) {
+      totalSize += preFragment.size;
     }
 
-    fragmentsBySize.addAll(preDeferredFragments);
-    var numFragments = preDeferredFragments.length;
-    while (numFragments-- > _options.mergeFragmentsThreshold) {
-      if (!mergeTwo()) {
-        // No further valid merges can be made.
-        break;
+    int idealFragmentSize = (totalSize / desiredNumberOfFragment).ceil();
+    List<_Partition> partitions = [];
+    void add(PreFragment next) {
+      // Create a new partition if the current one grows too large, otherwise
+      // just add to the most recent partition.
+      if (partitions.isEmpty ||
+          partitions.last.size + next.size > idealFragmentSize) {
+        partitions.add(_Partition());
       }
+      partitions.last.add(next);
     }
-    return fragmentsBySize.toList();
+
+    // Greedily group fragments into partitions.
+    preDeferredFragments.forEach(add);
+
+    // Reduce fragments by merging fragments with fewer imports into fragments
+    // with more imports.
+    List<PreFragment> merged = [];
+    for (var partition in partitions) {
+      merged.add(partition.fragments.reduce((a, b) => b.mergeAfter(a)));
+    }
+    return merged;
   }
 }

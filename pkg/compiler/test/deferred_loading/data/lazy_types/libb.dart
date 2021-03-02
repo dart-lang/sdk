@@ -6,14 +6,18 @@
 
 import 'lib.dart' as lib;
 
-/*member: callFooMethod:member_unit=1{libB}*/
+/*spec|three-frag.member: callFooMethod:member_unit=1{libB}*/
+/*two-frag.member: callFooMethod:member_unit=1{libB, libA}*/
 int callFooMethod() => lib.callFooMethod();
 
-/*member: isFoo:member_unit=1{libB}*/
+/*spec|three-frag.member: isFoo:member_unit=1{libB}*/
+/*two-frag.member: isFoo:member_unit=1{libB, libA}*/
 bool isFoo(o) => lib.isFoo(o);
 
-/*member: isFunFunFoo:member_unit=1{libB}*/
+/*spec|three-frag.member: isFunFunFoo:member_unit=1{libB}*/
+/*two-frag.member: isFunFunFoo:member_unit=1{libB, libA}*/
 bool isFunFunFoo(o) => lib.isFunFunFoo(o);
 
-/*member: isDooFunFunFoo:member_unit=1{libB}*/
+/*spec|three-frag.member: isDooFunFunFoo:member_unit=1{libB}*/
+/*two-frag.member: isDooFunFunFoo:member_unit=1{libB, libA}*/
 bool isDooFunFunFoo(o) => o is lib.Doo<lib.FunFunFoo>;
