@@ -55,7 +55,7 @@ Map<String, Uri> importPrefixes = {};
 String importPrefixString(OutputUnit unit) {
   StringBuffer sb = StringBuffer();
   bool first = true;
-  for (ImportEntity import in unit.importsForTesting) {
+  for (ImportEntity import in unit.imports) {
     if (!first) sb.write(', ');
     sb.write('${import.name}');
     first = false;
