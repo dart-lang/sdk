@@ -180,8 +180,9 @@ class DartFixContributor implements FixContributor {
     try {
       var processor = FixProcessor(context);
       var fixes = await processor.compute();
-      // todo (pq): add fixes from FixInFileProcessor
-      // https://github.com/dart-lang/sdk/issues/45026
+      var fixInFileProcessor = FixInFileProcessor(context);
+      var fixInFileFixes = await fixInFileProcessor.compute();
+      fixes.addAll(fixInFileFixes);
       return fixes;
     } on CancelCorrectionException {
       return const <Fix>[];
@@ -286,13 +287,13 @@ class FixInFileProcessor {
         }
       }
     } else {
-      // todo (pq): update to a new nonLintProducerMap2
-      var generators = FixProcessor.nonLintProducerMap[errorCode];
-      if (generators != null) {
-        if (generators != null) {
-          producers.addAll(generators);
-        }
-      }
+      // todo (pq): add support for non-lint producers and update to a new nonLintProducerMap2
+      // var generators = FixProcessor.nonLintProducerMap[errorCode];
+      // if (generators != null) {
+      //   if (generators != null) {
+      //     producers.addAll(generators);
+      //   }
+      // }
       // todo (pq): consider support for multiGenerators
     }
     return producers;
