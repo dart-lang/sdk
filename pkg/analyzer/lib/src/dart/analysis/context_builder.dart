@@ -104,6 +104,8 @@ class ContextBuilderImpl implements ContextBuilder {
 
     DriverBasedAnalysisContext context =
         DriverBasedAnalysisContext(resourceProvider, contextRoot, driver);
+    driver.configure(analysisContext: context);
+
     return context;
   }
 

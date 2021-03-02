@@ -13,11 +13,8 @@ import 'package:analyzer/src/command_line/arguments.dart'
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'
-    as api;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -137,22 +134,6 @@ class ContextBuilder {
       enableIndex: enableIndex,
       externalSummaries: summaryData,
       retainDataForTesting: retainDataForTesting,
-    );
-
-    // Set API AnalysisContext for the driver.
-    var apiContextRoots = ContextLocatorImpl(
-      resourceProvider: resourceProvider,
-    ).locateRoots(
-      includedPaths: [contextRoot.root],
-      excludedPaths: contextRoot.exclude,
-      overrideWorkspace: workspace,
-    );
-    driver.configure(
-      analysisContext: api.DriverBasedAnalysisContext(
-        resourceProvider,
-        apiContextRoots.first,
-        driver,
-      ),
     );
 
     declareVariablesInDriver(driver);
