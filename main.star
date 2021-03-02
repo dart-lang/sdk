@@ -865,6 +865,7 @@ dart_ci_sandbox_builder(
         "bisection_enabled": True,
         "flutter_test_suites": [
             "add_to_app_life_cycle_tests",
+            "flutter_plugins",
             "framework_coverage",
             "framework_tests",
             "tool_tests",
