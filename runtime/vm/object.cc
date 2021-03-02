@@ -9567,7 +9567,8 @@ void Function::RestoreICDataMap(
   Zone* zone = Thread::Current()->zone();
   const Array& saved_ic_data = Array::Handle(zone, ic_data_array());
   if (saved_ic_data.IsNull()) {
-    // Could happen with deferred loading.
+    // Could happen with not-yet compiled unoptimized code or force-optimized
+    // functions.
     return;
   }
   const intptr_t saved_length = saved_ic_data.Length();

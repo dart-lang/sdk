@@ -1000,12 +1000,9 @@ class CallSiteInliner : public ValueObject {
         ZoneGrowableArray<const ICData*>* ic_data_array =
             new (Z) ZoneGrowableArray<const ICData*>();
         const bool clone_ic_data = Compiler::IsBackgroundCompilation();
+        ASSERT(CompilerState::Current().is_aot() ||
+               function.ic_data_array() != Array::null());
         function.RestoreICDataMap(ic_data_array, clone_ic_data);
-        if (Compiler::IsBackgroundCompilation() &&
-            (function.ic_data_array() == Array::null())) {
-          Compiler::AbortBackgroundCompilation(DeoptId::kNone,
-                                               "ICData cleared while inlining");
-        }
 
         // Parse the callee function.
         bool in_cache;
