@@ -18,58 +18,38 @@ import 'dlopen_helper.dart';
 // Number of benchmark iterations per function.
 const N = 1000;
 
-//
-// Trampoline functions.
-//
-
+// The native library that holds all the native functions being called.
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific('native_functions',
     path: Platform.script.resolve('../native/out/').path);
 
+//
+// Native types and their Dart counterparts.
+//
+
 typedef NativeFunction1Uint8 = Uint8 Function(Uint8);
-typedef Function1int = int Function(int);
-final function1Uint8 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Uint8, Function1int>('Function1Uint8');
-
 typedef NativeFunction1Uint16 = Uint16 Function(Uint16);
-final function1Uint16 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Uint16, Function1int>('Function1Uint16');
-
 typedef NativeFunction1Uint32 = Uint32 Function(Uint32);
-final function1Uint32 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Uint32, Function1int>('Function1Uint32');
-
 typedef NativeFunction1Uint64 = Uint64 Function(Uint64);
-final function1Uint64 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Uint64, Function1int>('Function1Uint64');
-
 typedef NativeFunction1Int8 = Int8 Function(Int8);
-final function1Int8 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Int8, Function1int>('Function1Int8');
-
 typedef NativeFunction1Int16 = Int16 Function(Int16);
-final function1Int16 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Int16, Function1int>('Function1Int16');
-
 typedef NativeFunction1Int32 = Int32 Function(Int32);
-final function1Int32 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Int32, Function1int>('Function1Int32');
+typedef NativeFunction1Int64 = Int64 Function(Int64);
+typedef Function1int = int Function(int);
 
 typedef NativeFunction2Int32 = Int32 Function(Int32, Int32);
+typedef NativeFunction2Int64 = Int64 Function(Int64, Int64);
 typedef Function2int = int Function(int, int);
-final function2Int32 = ffiTestFunctions
-    .lookupFunction<NativeFunction2Int32, Function2int>('Function2Int32');
 
 typedef NativeFunction4Int32 = Int32 Function(Int32, Int32, Int32, Int32);
+typedef NativeFunction4Int64 = Int64 Function(Int64, Int64, Int64, Int64);
 typedef Function4int = int Function(int, int, int, int);
-final function4Int32 = ffiTestFunctions
-    .lookupFunction<NativeFunction4Int32, Function4int>('Function4Int32');
 
 typedef NativeFunction10Int32 = Int32 Function(
     Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32);
+typedef NativeFunction10Int64 = Int64 Function(
+    Int64, Int64, Int64, Int64, Int64, Int64, Int64, Int64, Int64, Int64);
 typedef Function10int = int Function(
     int, int, int, int, int, int, int, int, int, int);
-final function10Int32 = ffiTestFunctions
-    .lookupFunction<NativeFunction10Int32, Function10int>('Function10Int32');
 
 typedef NativeFunction20Int32 = Int32 Function(
     Int32,
@@ -92,28 +72,6 @@ typedef NativeFunction20Int32 = Int32 Function(
     Int32,
     Int32,
     Int32);
-typedef Function20int = int Function(int, int, int, int, int, int, int, int,
-    int, int, int, int, int, int, int, int, int, int, int, int);
-final function20Int32 = ffiTestFunctions
-    .lookupFunction<NativeFunction20Int32, Function20int>('Function20Int32');
-
-typedef NativeFunction1Int64 = Int64 Function(Int64);
-final function1Int64 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Int64, Function1int>('Function1Int64');
-
-typedef NativeFunction2Int64 = Int64 Function(Int64, Int64);
-final function2Int64 = ffiTestFunctions
-    .lookupFunction<NativeFunction2Int64, Function2int>('Function2Int64');
-
-typedef NativeFunction4Int64 = Int64 Function(Int64, Int64, Int64, Int64);
-final function4Int64 = ffiTestFunctions
-    .lookupFunction<NativeFunction4Int64, Function4int>('Function4Int64');
-
-typedef NativeFunction10Int64 = Int64 Function(
-    Int64, Int64, Int64, Int64, Int64, Int64, Int64, Int64, Int64, Int64);
-final function10Int64 = ffiTestFunctions
-    .lookupFunction<NativeFunction10Int64, Function10int>('Function10Int64');
-
 typedef NativeFunction20Int64 = Int64 Function(
     Int64,
     Int64,
@@ -135,30 +93,27 @@ typedef NativeFunction20Int64 = Int64 Function(
     Int64,
     Int64,
     Int64);
-final function20Int64 = ffiTestFunctions
-    .lookupFunction<NativeFunction20Int64, Function20int>('Function20Int64');
+typedef Function20int = int Function(int, int, int, int, int, int, int, int,
+    int, int, int, int, int, int, int, int, int, int, int, int);
 
 typedef NativeFunction1Float = Float Function(Float);
+typedef NativeFunction1Double = Double Function(Double);
 typedef Function1double = double Function(double);
-final function1Float = ffiTestFunctions
-    .lookupFunction<NativeFunction1Float, Function1double>('Function1Float');
 
 typedef NativeFunction2Float = Float Function(Float, Float);
+typedef NativeFunction2Double = Double Function(Double, Double);
 typedef Function2double = double Function(double, double);
-final function2Float = ffiTestFunctions
-    .lookupFunction<NativeFunction2Float, Function2double>('Function2Float');
 
 typedef NativeFunction4Float = Float Function(Float, Float, Float, Float);
+typedef NativeFunction4Double = Double Function(Double, Double, Double, Double);
 typedef Function4double = double Function(double, double, double, double);
-final function4Float = ffiTestFunctions
-    .lookupFunction<NativeFunction4Float, Function4double>('Function4Float');
 
 typedef NativeFunction10Float = Float Function(
     Float, Float, Float, Float, Float, Float, Float, Float, Float, Float);
+typedef NativeFunction10Double = Double Function(Double, Double, Double, Double,
+    Double, Double, Double, Double, Double, Double);
 typedef Function10double = double Function(double, double, double, double,
     double, double, double, double, double, double);
-final function10Float = ffiTestFunctions
-    .lookupFunction<NativeFunction10Float, Function10double>('Function10Float');
 
 typedef NativeFunction20Float = Float Function(
     Float,
@@ -181,48 +136,6 @@ typedef NativeFunction20Float = Float Function(
     Float,
     Float,
     Float);
-typedef Function20double = double Function(
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double);
-final function20Float = ffiTestFunctions
-    .lookupFunction<NativeFunction20Float, Function20double>('Function20Float');
-
-typedef NativeFunction1Double = Double Function(Double);
-final function1Double = ffiTestFunctions
-    .lookupFunction<NativeFunction1Double, Function1double>('Function1Double');
-
-typedef NativeFunction2Double = Double Function(Double, Double);
-final function2Double = ffiTestFunctions
-    .lookupFunction<NativeFunction2Double, Function2double>('Function2Double');
-
-typedef NativeFunction4Double = Double Function(Double, Double, Double, Double);
-final function4Double = ffiTestFunctions
-    .lookupFunction<NativeFunction4Double, Function4double>('Function4Double');
-
-typedef NativeFunction10Double = Double Function(Double, Double, Double, Double,
-    Double, Double, Double, Double, Double, Double);
-Function10double function10Double =
-    ffiTestFunctions.lookupFunction<NativeFunction10Double, Function10double>(
-        'Function10Double');
-
 typedef NativeFunction20Double = Double Function(
     Double,
     Double,
@@ -244,23 +157,35 @@ typedef NativeFunction20Double = Double Function(
     Double,
     Double,
     Double);
-Function20double function20Double =
-    ffiTestFunctions.lookupFunction<NativeFunction20Double, Function20double>(
-        'Function20Double');
+typedef Function20double = double Function(
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double,
+    double);
 
 typedef Function1PointerUint8 = Pointer<Uint8> Function(Pointer<Uint8>);
-final function1PointerUint8 = ffiTestFunctions.lookupFunction<
-    Function1PointerUint8, Function1PointerUint8>('Function1PointerUint8');
 
 typedef Function2PointerUint8 = Pointer<Uint8> Function(
     Pointer<Uint8>, Pointer<Uint8>);
-final function2PointerUint8 = ffiTestFunctions.lookupFunction<
-    Function2PointerUint8, Function2PointerUint8>('Function2PointerUint8');
 
 typedef Function4PointerUint8 = Pointer<Uint8> Function(
     Pointer<Uint8>, Pointer<Uint8>, Pointer<Uint8>, Pointer<Uint8>);
-final function4PointerUint8 = ffiTestFunctions.lookupFunction<
-    Function4PointerUint8, Function4PointerUint8>('Function4PointerUint8');
 
 typedef Function10PointerUint8 = Pointer<Uint8> Function(
     Pointer<Uint8>,
@@ -273,8 +198,6 @@ typedef Function10PointerUint8 = Pointer<Uint8> Function(
     Pointer<Uint8>,
     Pointer<Uint8>,
     Pointer<Uint8>);
-final function10PointerUint8 = ffiTestFunctions.lookupFunction<
-    Function10PointerUint8, Function10PointerUint8>('Function10PointerUint8');
 
 typedef Function20PointerUint8 = Pointer<Uint8> Function(
     Pointer<Uint8>,
@@ -297,432 +220,63 @@ typedef Function20PointerUint8 = Pointer<Uint8> Function(
     Pointer<Uint8>,
     Pointer<Uint8>,
     Pointer<Uint8>);
-final function20PointerUint8 = ffiTestFunctions.lookupFunction<
-    Function20PointerUint8, Function20PointerUint8>('Function20PointerUint8');
 
-final function1handle = ffiTestFunctions.lookupFunction<Handle Function(Handle),
-    Object Function(Object)>('Function1Handle');
+typedef NativeFunction1Handle = Handle Function(Handle);
+typedef Function1Object = Object Function(Object);
 
-final function2handle = ffiTestFunctions.lookupFunction<
-    Handle Function(Handle, Handle),
-    Object Function(Object, Object)>('Function2Handle');
+typedef NativeFunction2Handle = Handle Function(Handle, Handle);
+typedef Function2Object = Object Function(Object, Object);
 
-final function4handle = ffiTestFunctions.lookupFunction<
-    Handle Function(Handle, Handle, Handle, Handle),
-    Object Function(Object, Object, Object, Object)>('Function4Handle');
+typedef NativeFunction4Handle = Handle Function(Handle, Handle, Handle, Handle);
+typedef Function4Object = Object Function(Object, Object, Object, Object);
 
-final function10handle = ffiTestFunctions.lookupFunction<
-    Handle Function(Handle, Handle, Handle, Handle, Handle, Handle, Handle,
-        Handle, Handle, Handle),
-    Object Function(Object, Object, Object, Object, Object, Object, Object,
-        Object, Object, Object)>('Function10Handle');
+typedef NativeFunction10Handle = Handle Function(Handle, Handle, Handle, Handle,
+    Handle, Handle, Handle, Handle, Handle, Handle);
+typedef Function10Object = Object Function(Object, Object, Object, Object,
+    Object, Object, Object, Object, Object, Object);
 
-final function20handle = ffiTestFunctions.lookupFunction<
-    Handle Function(
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle,
-        Handle),
-    Object Function(
-        Object,
-        Object,
-        Object,
-        Object,
-        Object,
-        Object,
-        Object,
-        Object,
-        Object,
-        Object,
-        Object,
-        Object,
-        Object,
-        Object,
-        Object,
-        Object,
-        Object,
-        Object,
-        Object,
-        Object)>('Function20Handle');
-
-//
-// Trampoline call.
-//
-
-int doCall1Uint8(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function1Uint8(17);
-  }
-  return x;
-}
-
-int doCall1Uint16(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function1Uint16(17);
-  }
-  return x;
-}
-
-int doCall1Uint32(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function1Uint32(i);
-  }
-  return x;
-}
-
-int doCall1Uint64(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function1Uint64(i);
-  }
-  return x;
-}
-
-int doCall1Int8(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function1Int8(17);
-  }
-  return x;
-}
-
-int doCall1Int16(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function1Int16(17);
-  }
-  return x;
-}
-
-int doCall1Int32(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function1Int32(i);
-  }
-  return x;
-}
-
-int doCall2Int32(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function2Int32(i, i);
-  }
-  return x;
-}
-
-int doCall4Int32(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function4Int32(i, i, i, i);
-  }
-  return x;
-}
-
-int doCall10Int32(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function10Int32(i, i, i, i, i, i, i, i, i, i);
-  }
-  return x;
-}
-
-int doCall20Int32(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function20Int32(
-        i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i);
-  }
-  return x;
-}
-
-int doCall1Int64(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function1Int64(i);
-  }
-  return x;
-}
-
-int doCall2Int64(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function2Int64(i, i);
-  }
-  return x;
-}
-
-int doCall4Int64(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function4Int64(i, i, i, i);
-  }
-  return x;
-}
-
-int doCall10Int64(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function10Int64(i, i, i, i, i, i, i, i, i, i);
-  }
-  return x;
-}
-
-int doCall20Int64(int length) {
-  int x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function20Int64(
-        i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i);
-  }
-  return x;
-}
-
-int doCall1Int64Mint(int length) {
-  int x = 0x7FFFFFFF00000000;
-
-  for (int i = 0; i < length; i++) {
-    x = function1Int64(x);
-  }
-  return x;
-}
-
-double doCall1Float(int length) {
-  double x = 0.0;
-  for (int i = 0; i < length; i++) {
-    x += function1Float(17.0);
-  }
-  return x;
-}
-
-double doCall2Float(int length) {
-  double x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function2Float(1.0, 2.0);
-  }
-  return x;
-}
-
-double doCall4Float(int length) {
-  double x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function4Float(1.0, 2.0, 3.0, 4.0);
-  }
-  return x;
-}
-
-double doCall10Float(int length) {
-  double x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function10Float(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0);
-  }
-  return x;
-}
-
-double doCall20Float(int length) {
-  double x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function20Float(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0,
-        11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0);
-  }
-  return x;
-}
-
-double doCall1Double(int length) {
-  double x = 0.0;
-  for (int i = 0; i < length; i++) {
-    x += function1Double(17.0);
-  }
-  return x;
-}
-
-double doCall2Double(int length) {
-  double x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function2Double(1.0, 2.0);
-  }
-  return x;
-}
-
-double doCall4Double(int length) {
-  double x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function4Double(1.0, 2.0, 3.0, 4.0);
-  }
-  return x;
-}
-
-double doCall10Double(int length) {
-  double x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function10Double(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0);
-  }
-  return x;
-}
-
-double doCall20Double(int length) {
-  double x = 0;
-  for (int i = 0; i < length; i++) {
-    x += function20Double(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0,
-        11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0);
-  }
-  return x;
-}
-
-Pointer<Uint8> doCall1PointerUint8(int length, Pointer<Uint8> p1) {
-  Pointer<Uint8> x = p1;
-  for (int i = 0; i < length; i++) {
-    x = function1PointerUint8(x);
-  }
-  return x;
-}
-
-Pointer<Uint8> doCall2PointerUint8(
-    int length, Pointer<Uint8> p1, Pointer<Uint8> p2) {
-  Pointer<Uint8> x = p1;
-  for (int i = 0; i < length; i++) {
-    x = function2PointerUint8(x, p2);
-  }
-  return x;
-}
-
-Pointer<Uint8> doCall4PointerUint8(int length, Pointer<Uint8> p1,
-    Pointer<Uint8> p2, Pointer<Uint8> p3, Pointer<Uint8> p4) {
-  Pointer<Uint8> x = p1;
-  for (int i = 0; i < length; i++) {
-    x = function4PointerUint8(x, p2, p3, p4);
-  }
-  return x;
-}
-
-Pointer<Uint8> doCall10PointerUint8(
-    int length,
-    Pointer<Uint8> p1,
-    Pointer<Uint8> p2,
-    Pointer<Uint8> p3,
-    Pointer<Uint8> p4,
-    Pointer<Uint8> p5,
-    Pointer<Uint8> p6,
-    Pointer<Uint8> p7,
-    Pointer<Uint8> p8,
-    Pointer<Uint8> p9,
-    Pointer<Uint8> p10) {
-  Pointer<Uint8> x = p1;
-  for (int i = 0; i < length; i++) {
-    x = function10PointerUint8(x, p2, p3, p4, p5, p6, p7, p8, p9, p10);
-  }
-  return x;
-}
-
-Pointer<Uint8> doCall20PointerUint8(
-    int length,
-    Pointer<Uint8> p1,
-    Pointer<Uint8> p2,
-    Pointer<Uint8> p3,
-    Pointer<Uint8> p4,
-    Pointer<Uint8> p5,
-    Pointer<Uint8> p6,
-    Pointer<Uint8> p7,
-    Pointer<Uint8> p8,
-    Pointer<Uint8> p9,
-    Pointer<Uint8> p10,
-    Pointer<Uint8> p11,
-    Pointer<Uint8> p12,
-    Pointer<Uint8> p13,
-    Pointer<Uint8> p14,
-    Pointer<Uint8> p15,
-    Pointer<Uint8> p16,
-    Pointer<Uint8> p17,
-    Pointer<Uint8> p18,
-    Pointer<Uint8> p19,
-    Pointer<Uint8> p20) {
-  Pointer<Uint8> x = p1;
-  for (int i = 0; i < length; i++) {
-    x = function20PointerUint8(x, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12,
-        p13, p14, p15, p16, p17, p18, p19, p20);
-  }
-  return x;
-}
-
-Object doCall1Handle(int length, Object p1) {
-  Object x = p1;
-  for (int i = 0; i < length; i++) {
-    x = function1handle(x);
-  }
-  return x;
-}
-
-Object doCall2Handle(int length, Object p1, Object p2) {
-  Object x = p1;
-  for (int i = 0; i < length; i++) {
-    x = function2handle(x, p2);
-  }
-  return x;
-}
-
-Object doCall4Handle(int length, Object p1, Object p2, Object p3, Object p4) {
-  Object x = p1;
-  for (int i = 0; i < length; i++) {
-    x = function4handle(x, p2, p3, p4);
-  }
-  return x;
-}
-
-Object doCall10Handle(int length, Object p1, Object p2, Object p3, Object p4,
-    Object p5, Object p6, Object p7, Object p8, Object p9, Object p10) {
-  Object x = p1;
-  for (int i = 0; i < length; i++) {
-    x = function10handle(x, p2, p3, p4, p5, p6, p7, p8, p9, p10);
-  }
-  return x;
-}
-
-Object doCall20Handle(
-    int length,
-    Object p1,
-    Object p2,
-    Object p3,
-    Object p4,
-    Object p5,
-    Object p6,
-    Object p7,
-    Object p8,
-    Object p9,
-    Object p10,
-    Object p11,
-    Object p12,
-    Object p13,
-    Object p14,
-    Object p15,
-    Object p16,
-    Object p17,
-    Object p18,
-    Object p19,
-    Object p20) {
-  Object x = p1;
-  for (int i = 0; i < length; i++) {
-    x = function20handle(x, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13,
-        p14, p15, p16, p17, p18, p19, p20);
-  }
-  return x;
-}
+typedef NativeFunction20Handle = Handle Function(
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle,
+    Handle);
+typedef Function20Object = Object Function(
+    Object,
+    Object,
+    Object,
+    Object,
+    Object,
+    Object,
+    Object,
+    Object,
+    Object,
+    Object,
+    Object,
+    Object,
+    Object,
+    Object,
+    Object,
+    Object,
+    Object,
+    Object,
+    Object,
+    Object);
 
 //
 // Benchmark fixtures.
@@ -751,212 +305,380 @@ abstract class FfiBenchmarkBase extends BenchmarkBase {
 }
 
 class Uint8x01 extends FfiBenchmarkBase {
-  Uint8x01() : super('FfiCall.Uint8x01');
+  final Function1int f;
+
+  Uint8x01()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction1Uint8, Function1int>(
+            'Function1Uint8'),
+        super('FfiCall.Uint8x01');
 
   @override
   void run() {
-    final int x = doCall1Uint8(N);
-    expectEquals(x, N * (17 + 42));
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(17);
+    }
+    expectEquals(x, N * 17 + N * 42);
   }
 }
 
 class Uint16x01 extends FfiBenchmarkBase {
-  Uint16x01() : super('FfiCall.Uint16x01');
+  final Function1int f;
+
+  Uint16x01()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction1Uint16,
+            Function1int>('Function1Uint16'),
+        super('FfiCall.Uint16x01');
 
   @override
   void run() {
-    final int x = doCall1Uint16(N);
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(17);
+    }
     expectEquals(x, N * (17 + 42));
   }
 }
 
 class Uint32x01 extends FfiBenchmarkBase {
-  Uint32x01() : super('FfiCall.Uint32x01');
+  final Function1int f;
+
+  Uint32x01()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction1Uint32,
+            Function1int>('Function1Uint32'),
+        super('FfiCall.Uint32x01');
 
   @override
   void run() {
-    final int x = doCall1Uint32(N);
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(i);
+    }
     expectEquals(x, N * (N - 1) / 2 + N * 42);
   }
 }
 
 class Uint64x01 extends FfiBenchmarkBase {
-  Uint64x01() : super('FfiCall.Uint64x01');
+  final Function1int f;
+
+  Uint64x01()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction1Uint64,
+            Function1int>('Function1Uint64'),
+        super('FfiCall.Uint64x01');
 
   @override
   void run() {
-    final int x = doCall1Uint64(N);
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(i);
+    }
     expectEquals(x, N * (N - 1) / 2 + N * 42);
   }
 }
 
 class Int8x01 extends FfiBenchmarkBase {
-  Int8x01() : super('FfiCall.Int8x01');
+  final Function1int f;
+
+  Int8x01()
+      : f = ffiTestFunctions
+            .lookupFunction<NativeFunction1Int8, Function1int>('Function1Int8'),
+        super('FfiCall.Int8x01');
 
   @override
   void run() {
-    final int x = doCall1Int8(N);
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(17);
+    }
     expectEquals(x, N * (17 + 42));
   }
 }
 
 class Int16x01 extends FfiBenchmarkBase {
-  Int16x01() : super('FfiCall.Int16x01');
+  final Function1int f;
+
+  Int16x01()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction1Int16, Function1int>(
+            'Function1Int16'),
+        super('FfiCall.Int16x01');
 
   @override
   void run() {
-    final int x = doCall1Int16(N);
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(17);
+    }
     expectEquals(x, N * (17 + 42));
   }
 }
 
 class Int32x01 extends FfiBenchmarkBase {
-  Int32x01() : super('FfiCall.Int32x01');
+  final Function1int f;
+
+  Int32x01()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction1Int32, Function1int>(
+            'Function1Int32'),
+        super('FfiCall.Int32x01');
 
   @override
   void run() {
-    final int x = doCall1Int32(N);
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(i);
+    }
     expectEquals(x, N * (N - 1) / 2 + N * 42);
   }
 }
 
 class Int32x02 extends FfiBenchmarkBase {
-  Int32x02() : super('FfiCall.Int32x02');
+  final Function2int f;
+
+  Int32x02()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction2Int32, Function2int>(
+            'Function2Int32'),
+        super('FfiCall.Int32x02');
 
   @override
   void run() {
-    final int x = doCall2Int32(N);
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(i, i);
+    }
     expectEquals(x, N * (N - 1) * 2 / 2);
   }
 }
 
 class Int32x04 extends FfiBenchmarkBase {
-  Int32x04() : super('FfiCall.Int32x04');
+  final Function4int f;
+
+  Int32x04()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction4Int32, Function4int>(
+            'Function4Int32'),
+        super('FfiCall.Int32x04');
 
   @override
   void run() {
-    final int x = doCall4Int32(N);
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(i, i, i, i);
+    }
     expectEquals(x, N * (N - 1) * 4 / 2);
   }
 }
 
 class Int32x10 extends FfiBenchmarkBase {
-  Int32x10() : super('FfiCall.Int32x10');
+  final Function10int f;
+
+  Int32x10()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction10Int32,
+            Function10int>('Function10Int32'),
+        super('FfiCall.Int32x10');
 
   @override
   void run() {
-    final int x = doCall10Int32(N);
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(i, i, i, i, i, i, i, i, i, i);
+    }
     expectEquals(x, N * (N - 1) * 10 / 2);
   }
 }
 
 class Int32x20 extends FfiBenchmarkBase {
-  Int32x20() : super('FfiCall.Int32x20');
+  final Function20int f;
+
+  Int32x20()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction20Int32,
+            Function20int>('Function20Int32'),
+        super('FfiCall.Int32x20');
 
   @override
   void run() {
-    final int x = doCall20Int32(N);
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i);
+    }
     expectEquals(x, N * (N - 1) * 20 / 2);
   }
 }
 
 class Int64x01 extends FfiBenchmarkBase {
-  Int64x01() : super('FfiCall.Int64x01');
+  final Function1int f;
+
+  Int64x01()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction1Int64, Function1int>(
+            'Function1Int64'),
+        super('FfiCall.Int64x01');
 
   @override
   void run() {
-    final int x = doCall1Int64(N);
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(i);
+    }
     expectEquals(x, N * (N - 1) / 2 + N * 42);
   }
 }
 
 class Int64x02 extends FfiBenchmarkBase {
-  Int64x02() : super('FfiCall.Int64x02');
+  final Function2int f;
+
+  Int64x02()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction2Int64, Function2int>(
+            'Function2Int64'),
+        super('FfiCall.Int64x02');
 
   @override
   void run() {
-    final int x = doCall2Int64(N);
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(i, i);
+    }
     expectEquals(x, N * (N - 1) * 2 / 2);
   }
 }
 
 class Int64x04 extends FfiBenchmarkBase {
-  Int64x04() : super('FfiCall.Int64x04');
+  final Function4int f;
+
+  Int64x04()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction4Int64, Function4int>(
+            'Function4Int64'),
+        super('FfiCall.Int64x04');
 
   @override
   void run() {
-    final int x = doCall4Int64(N);
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(i, i, i, i);
+    }
     expectEquals(x, N * (N - 1) * 4 / 2);
   }
 }
 
 class Int64x10 extends FfiBenchmarkBase {
-  Int64x10() : super('FfiCall.Int64x10');
+  final Function10int f;
+
+  Int64x10()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction10Int64,
+            Function10int>('Function10Int64'),
+        super('FfiCall.Int64x10');
 
   @override
   void run() {
-    final int x = doCall10Int64(N);
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(i, i, i, i, i, i, i, i, i, i);
+    }
     expectEquals(x, N * (N - 1) * 10 / 2);
   }
 }
 
 class Int64x20 extends FfiBenchmarkBase {
-  Int64x20() : super('FfiCall.Int64x20');
+  final Function20int f;
+
+  Int64x20()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction20Int64,
+            Function20int>('Function20Int64'),
+        super('FfiCall.Int64x20');
 
   @override
   void run() {
-    final int x = doCall20Int64(N);
+    int x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i);
+    }
     expectEquals(x, N * (N - 1) * 20 / 2);
   }
 }
 
 class Int64Mintx01 extends FfiBenchmarkBase {
-  Int64Mintx01() : super('FfiCall.Int64Mintx01');
+  final Function1int f;
+
+  Int64Mintx01()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction1Int64, Function1int>(
+            'Function1Int64'),
+        super('FfiCall.Int64Mintx01');
 
   @override
   void run() {
-    final int x = doCall1Int64Mint(N);
+    int x = 0x7FFFFFFF00000000;
+    for (int i = 0; i < N; i++) {
+      x = f(x);
+    }
     expectEquals(x, 0x7FFFFFFF00000000 + N * 42);
   }
 }
 
 class Floatx01 extends FfiBenchmarkBase {
-  Floatx01() : super('FfiCall.Floatx01');
+  final Function1double f;
+
+  Floatx01()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction1Float,
+            Function1double>('Function1Float'),
+        super('FfiCall.Floatx01');
 
   @override
   void run() {
-    final double x = doCall1Float(N);
+    double x = 0.0;
+    for (int i = 0; i < N; i++) {
+      x += f(17.0);
+    }
     expectApprox(x, N * (17.0 + 42.0));
   }
 }
 
 class Floatx02 extends FfiBenchmarkBase {
-  Floatx02() : super('FfiCall.Floatx02');
+  final Function2double f;
+
+  Floatx02()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction2Float,
+            Function2double>('Function2Float'),
+        super('FfiCall.Floatx02');
 
   @override
   void run() {
-    final double x = doCall2Float(N);
+    double x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(1.0, 2.0);
+    }
     expectApprox(x, N * (1.0 + 2.0));
   }
 }
 
 class Floatx04 extends FfiBenchmarkBase {
-  Floatx04() : super('FfiCall.Floatx04');
+  final Function4double f;
+
+  Floatx04()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction4Float,
+            Function4double>('Function4Float'),
+        super('FfiCall.Floatx04');
 
   @override
   void run() {
-    final double x = doCall4Float(N);
+    double x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(1.0, 2.0, 3.0, 4.0);
+    }
     final double expected = N * (1.0 + 2.0 + 3.0 + 4.0);
     expectApprox(x, expected);
   }
 }
 
 class Floatx10 extends FfiBenchmarkBase {
-  Floatx10() : super('FfiCall.Floatx10');
+  final Function10double f;
+
+  Floatx10()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction10Float,
+            Function10double>('Function10Float'),
+        super('FfiCall.Floatx10');
 
   @override
   void run() {
-    final double x = doCall10Float(N);
+    double x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0);
+    }
     final double expected =
         N * (1.0 + 2.0 + 3.0 + 4.0 + 5.0 + 6.0 + 7.0 + 8.0 + 9.0 + 10.0);
     expectApprox(x, expected);
@@ -964,11 +686,20 @@ class Floatx10 extends FfiBenchmarkBase {
 }
 
 class Floatx20 extends FfiBenchmarkBase {
-  Floatx20() : super('FfiCall.Floatx20');
+  final Function20double f;
+
+  Floatx20()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction20Float,
+            Function20double>('Function20Float'),
+        super('FfiCall.Floatx20');
 
   @override
   void run() {
-    final double x = doCall20Float(N);
+    double x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
+          13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0);
+    }
     final double expected = N *
         (1.0 +
             2.0 +
@@ -995,44 +726,76 @@ class Floatx20 extends FfiBenchmarkBase {
 }
 
 class Doublex01 extends FfiBenchmarkBase {
-  Doublex01() : super('FfiCall.Doublex01');
+  final Function1double f;
+
+  Doublex01()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction1Double,
+            Function1double>('Function1Double'),
+        super('FfiCall.Doublex01');
 
   @override
   void run() {
-    final double x = doCall1Double(N);
+    double x = 0.0;
+    for (int i = 0; i < N; i++) {
+      x += f(17.0);
+    }
     final double expected = N * (17.0 + 42.0);
     expectApprox(x, expected);
   }
 }
 
 class Doublex02 extends FfiBenchmarkBase {
-  Doublex02() : super('FfiCall.Doublex02');
+  final Function2double f;
+
+  Doublex02()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction2Double,
+            Function2double>('Function2Double'),
+        super('FfiCall.Doublex02');
 
   @override
   void run() {
-    final double x = doCall2Double(N);
+    double x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(1.0, 2.0);
+    }
     final double expected = N * (1.0 + 2.0);
     expectApprox(x, expected);
   }
 }
 
 class Doublex04 extends FfiBenchmarkBase {
-  Doublex04() : super('FfiCall.Doublex04');
+  final Function4double f;
+
+  Doublex04()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction4Double,
+            Function4double>('Function4Double'),
+        super('FfiCall.Doublex04');
 
   @override
   void run() {
-    final double x = doCall4Double(N);
+    double x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(1.0, 2.0, 3.0, 4.0);
+    }
     final double expected = N * (1.0 + 2.0 + 3.0 + 4.0);
     expectApprox(x, expected);
   }
 }
 
 class Doublex10 extends FfiBenchmarkBase {
-  Doublex10() : super('FfiCall.Doublex10');
+  final Function10double f;
+
+  Doublex10()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction10Double,
+            Function10double>('Function10Double'),
+        super('FfiCall.Doublex10');
 
   @override
   void run() {
-    final double x = doCall10Double(N);
+    double x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0);
+    }
     final double expected =
         N * (1.0 + 2.0 + 3.0 + 4.0 + 5.0 + 6.0 + 7.0 + 8.0 + 9.0 + 10.0);
     expectApprox(x, expected);
@@ -1040,11 +803,20 @@ class Doublex10 extends FfiBenchmarkBase {
 }
 
 class Doublex20 extends FfiBenchmarkBase {
-  Doublex20() : super('FfiCall.Doublex20');
+  final Function20double f;
+
+  Doublex20()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction20Double,
+            Function20double>('Function20Double'),
+        super('FfiCall.Doublex20');
 
   @override
   void run() {
-    final double x = doCall20Double(N);
+    double x = 0;
+    for (int i = 0; i < N; i++) {
+      x += f(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
+          13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0);
+    }
     final double expected = N *
         (1.0 +
             2.0 +
@@ -1071,203 +843,211 @@ class Doublex20 extends FfiBenchmarkBase {
 }
 
 class PointerUint8x01 extends FfiBenchmarkBase {
-  PointerUint8x01() : super('FfiCall.PointerUint8x01');
+  final Function1PointerUint8 f;
 
-  Pointer<Uint8> pointer = nullptr;
+  PointerUint8x01()
+      : f = ffiTestFunctions.lookupFunction<Function1PointerUint8,
+            Function1PointerUint8>('Function1PointerUint8'),
+        super('FfiCall.PointerUint8x01');
+
+  Pointer<Uint8> p1 = nullptr;
   @override
-  void setup() => pointer = calloc(N + 1);
+  void setup() => p1 = calloc(N + 1);
   @override
-  void teardown() => calloc.free(pointer);
+  void teardown() => calloc.free(p1);
 
   @override
   void run() {
-    final Pointer<Uint8> x = doCall1PointerUint8(N, pointer);
-    expectApprox(x.address, pointer.address + N);
+    Pointer<Uint8> x = p1;
+    for (int i = 0; i < N; i++) {
+      x = f(x);
+    }
+    expectApprox(x.address, p1.address + N);
   }
 }
 
 class PointerUint8x02 extends FfiBenchmarkBase {
-  PointerUint8x02() : super('FfiCall.PointerUint8x02');
+  final Function2PointerUint8 f;
 
-  Pointer<Uint8> pointer = nullptr;
-  Pointer<Uint8> pointer2 = nullptr;
+  PointerUint8x02()
+      : f = ffiTestFunctions.lookupFunction<Function2PointerUint8,
+            Function2PointerUint8>('Function2PointerUint8'),
+        super('FfiCall.PointerUint8x02');
+
+  Pointer<Uint8> p1 = nullptr;
+  Pointer<Uint8> p2 = nullptr;
 
   @override
   void setup() {
-    pointer = calloc(N + 1);
-    pointer2 = pointer.elementAt(1);
+    p1 = calloc(N + 1);
+    p2 = p1.elementAt(1);
   }
 
   @override
   void teardown() {
-    calloc.free(pointer);
+    calloc.free(p1);
   }
 
   @override
   void run() {
-    final Pointer<Uint8> x = doCall2PointerUint8(N, pointer, pointer2);
-    expectEquals(x.address, pointer.address + N * sizeOf<Uint8>());
+    Pointer<Uint8> x = p1;
+    for (int i = 0; i < N; i++) {
+      x = f(x, p2);
+    }
+    expectEquals(x.address, p1.address + N * sizeOf<Uint8>());
   }
 }
 
 class PointerUint8x04 extends FfiBenchmarkBase {
-  PointerUint8x04() : super('FfiCall.PointerUint8x04');
+  final Function4PointerUint8 f;
 
-  Pointer<Uint8> pointer = nullptr;
-  Pointer<Uint8> pointer2 = nullptr;
-  Pointer<Uint8> pointer3 = nullptr;
-  Pointer<Uint8> pointer4 = nullptr;
+  PointerUint8x04()
+      : f = ffiTestFunctions.lookupFunction<Function4PointerUint8,
+            Function4PointerUint8>('Function4PointerUint8'),
+        super('FfiCall.PointerUint8x04');
+
+  Pointer<Uint8> p1 = nullptr;
+  Pointer<Uint8> p2 = nullptr;
+  Pointer<Uint8> p3 = nullptr;
+  Pointer<Uint8> p4 = nullptr;
 
   @override
   void setup() {
-    pointer = calloc(N + 1);
-    pointer2 = pointer.elementAt(1);
-    pointer3 = pointer.elementAt(2);
-    pointer4 = pointer.elementAt(3);
+    p1 = calloc(N + 1);
+    p2 = p1.elementAt(1);
+    p3 = p1.elementAt(2);
+    p4 = p1.elementAt(3);
   }
 
   @override
   void teardown() {
-    calloc.free(pointer);
+    calloc.free(p1);
   }
 
   @override
   void run() {
-    final Pointer<Uint8> x =
-        doCall4PointerUint8(N, pointer, pointer2, pointer3, pointer4);
-    expectEquals(x.address, pointer.address + N * sizeOf<Uint8>());
+    Pointer<Uint8> x = p1;
+    for (int i = 0; i < N; i++) {
+      x = f(x, p2, p3, p4);
+    }
+    expectEquals(x.address, p1.address + N * sizeOf<Uint8>());
   }
 }
 
 class PointerUint8x10 extends FfiBenchmarkBase {
-  PointerUint8x10() : super('FfiCall.PointerUint8x10');
+  final Function10PointerUint8 f;
 
-  Pointer<Uint8> pointer = nullptr;
-  Pointer<Uint8> pointer2 = nullptr;
-  Pointer<Uint8> pointer3 = nullptr;
-  Pointer<Uint8> pointer4 = nullptr;
-  Pointer<Uint8> pointer5 = nullptr;
-  Pointer<Uint8> pointer6 = nullptr;
-  Pointer<Uint8> pointer7 = nullptr;
-  Pointer<Uint8> pointer8 = nullptr;
-  Pointer<Uint8> pointer9 = nullptr;
-  Pointer<Uint8> pointer10 = nullptr;
+  PointerUint8x10()
+      : f = ffiTestFunctions.lookupFunction<Function10PointerUint8,
+            Function10PointerUint8>('Function10PointerUint8'),
+        super('FfiCall.PointerUint8x10');
+
+  Pointer<Uint8> p1 = nullptr;
+  Pointer<Uint8> p2 = nullptr;
+  Pointer<Uint8> p3 = nullptr;
+  Pointer<Uint8> p4 = nullptr;
+  Pointer<Uint8> p5 = nullptr;
+  Pointer<Uint8> p6 = nullptr;
+  Pointer<Uint8> p7 = nullptr;
+  Pointer<Uint8> p8 = nullptr;
+  Pointer<Uint8> p9 = nullptr;
+  Pointer<Uint8> p10 = nullptr;
 
   @override
   void setup() {
-    pointer = calloc(N + 1);
-    pointer2 = pointer.elementAt(1);
-    pointer3 = pointer.elementAt(2);
-    pointer4 = pointer.elementAt(3);
-    pointer5 = pointer.elementAt(4);
-    pointer6 = pointer.elementAt(5);
-    pointer7 = pointer.elementAt(6);
-    pointer8 = pointer.elementAt(7);
-    pointer9 = pointer.elementAt(8);
-    pointer10 = pointer.elementAt(9);
+    p1 = calloc(N + 1);
+    p2 = p1.elementAt(1);
+    p3 = p1.elementAt(2);
+    p4 = p1.elementAt(3);
+    p5 = p1.elementAt(4);
+    p6 = p1.elementAt(5);
+    p7 = p1.elementAt(6);
+    p8 = p1.elementAt(7);
+    p9 = p1.elementAt(8);
+    p10 = p1.elementAt(9);
   }
 
   @override
   void teardown() {
-    calloc.free(pointer);
+    calloc.free(p1);
   }
 
   @override
   void run() {
-    final Pointer<Uint8> x = doCall10PointerUint8(
-        N,
-        pointer,
-        pointer2,
-        pointer3,
-        pointer4,
-        pointer5,
-        pointer6,
-        pointer7,
-        pointer8,
-        pointer9,
-        pointer10);
-    expectEquals(x.address, pointer.address + N * sizeOf<Uint8>());
+    Pointer<Uint8> x = p1;
+    for (int i = 0; i < N; i++) {
+      x = f(x, p2, p3, p4, p5, p6, p7, p8, p9, p10);
+    }
+    expectEquals(x.address, p1.address + N * sizeOf<Uint8>());
   }
 }
 
 class PointerUint8x20 extends FfiBenchmarkBase {
-  PointerUint8x20() : super('FfiCall.PointerUint8x20');
+  final Function20PointerUint8 f;
 
-  Pointer<Uint8> pointer = nullptr;
-  Pointer<Uint8> pointer2 = nullptr;
-  Pointer<Uint8> pointer3 = nullptr;
-  Pointer<Uint8> pointer4 = nullptr;
-  Pointer<Uint8> pointer5 = nullptr;
-  Pointer<Uint8> pointer6 = nullptr;
-  Pointer<Uint8> pointer7 = nullptr;
-  Pointer<Uint8> pointer8 = nullptr;
-  Pointer<Uint8> pointer9 = nullptr;
-  Pointer<Uint8> pointer10 = nullptr;
-  Pointer<Uint8> pointer11 = nullptr;
-  Pointer<Uint8> pointer12 = nullptr;
-  Pointer<Uint8> pointer13 = nullptr;
-  Pointer<Uint8> pointer14 = nullptr;
-  Pointer<Uint8> pointer15 = nullptr;
-  Pointer<Uint8> pointer16 = nullptr;
-  Pointer<Uint8> pointer17 = nullptr;
-  Pointer<Uint8> pointer18 = nullptr;
-  Pointer<Uint8> pointer19 = nullptr;
-  Pointer<Uint8> pointer20 = nullptr;
+  PointerUint8x20()
+      : f = ffiTestFunctions.lookupFunction<Function20PointerUint8,
+            Function20PointerUint8>('Function20PointerUint8'),
+        super('FfiCall.PointerUint8x20');
+
+  Pointer<Uint8> p1 = nullptr;
+  Pointer<Uint8> p2 = nullptr;
+  Pointer<Uint8> p3 = nullptr;
+  Pointer<Uint8> p4 = nullptr;
+  Pointer<Uint8> p5 = nullptr;
+  Pointer<Uint8> p6 = nullptr;
+  Pointer<Uint8> p7 = nullptr;
+  Pointer<Uint8> p8 = nullptr;
+  Pointer<Uint8> p9 = nullptr;
+  Pointer<Uint8> p10 = nullptr;
+  Pointer<Uint8> p11 = nullptr;
+  Pointer<Uint8> p12 = nullptr;
+  Pointer<Uint8> p13 = nullptr;
+  Pointer<Uint8> p14 = nullptr;
+  Pointer<Uint8> p15 = nullptr;
+  Pointer<Uint8> p16 = nullptr;
+  Pointer<Uint8> p17 = nullptr;
+  Pointer<Uint8> p18 = nullptr;
+  Pointer<Uint8> p19 = nullptr;
+  Pointer<Uint8> p20 = nullptr;
 
   @override
   void setup() {
-    pointer = calloc(N + 1);
-    pointer2 = pointer.elementAt(1);
-    pointer3 = pointer.elementAt(2);
-    pointer4 = pointer.elementAt(3);
-    pointer5 = pointer.elementAt(4);
-    pointer6 = pointer.elementAt(5);
-    pointer7 = pointer.elementAt(6);
-    pointer8 = pointer.elementAt(7);
-    pointer9 = pointer.elementAt(8);
-    pointer10 = pointer.elementAt(9);
-    pointer11 = pointer.elementAt(10);
-    pointer12 = pointer.elementAt(11);
-    pointer13 = pointer.elementAt(12);
-    pointer14 = pointer.elementAt(13);
-    pointer15 = pointer.elementAt(14);
-    pointer16 = pointer.elementAt(15);
-    pointer17 = pointer.elementAt(16);
-    pointer18 = pointer.elementAt(17);
-    pointer19 = pointer.elementAt(18);
-    pointer20 = pointer.elementAt(19);
+    p1 = calloc(N + 1);
+    p2 = p1.elementAt(1);
+    p3 = p1.elementAt(2);
+    p4 = p1.elementAt(3);
+    p5 = p1.elementAt(4);
+    p6 = p1.elementAt(5);
+    p7 = p1.elementAt(6);
+    p8 = p1.elementAt(7);
+    p9 = p1.elementAt(8);
+    p10 = p1.elementAt(9);
+    p11 = p1.elementAt(10);
+    p12 = p1.elementAt(11);
+    p13 = p1.elementAt(12);
+    p14 = p1.elementAt(13);
+    p15 = p1.elementAt(14);
+    p16 = p1.elementAt(15);
+    p17 = p1.elementAt(16);
+    p18 = p1.elementAt(17);
+    p19 = p1.elementAt(18);
+    p20 = p1.elementAt(19);
   }
 
   @override
   void teardown() {
-    calloc.free(pointer);
+    calloc.free(p1);
   }
 
   @override
   void run() {
-    final Pointer<Uint8> x = doCall20PointerUint8(
-        N,
-        pointer,
-        pointer2,
-        pointer3,
-        pointer4,
-        pointer5,
-        pointer6,
-        pointer7,
-        pointer8,
-        pointer9,
-        pointer10,
-        pointer11,
-        pointer12,
-        pointer13,
-        pointer14,
-        pointer15,
-        pointer16,
-        pointer17,
-        pointer18,
-        pointer19,
-        pointer20);
-    expectEquals(x.address, pointer.address + N * sizeOf<Uint8>());
+    Pointer<Uint8> x = p1;
+    for (int i = 0; i < N; i++) {
+      x = f(x, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15,
+          p16, p17, p18, p19, p20);
+    }
+    expectEquals(x.address, p1.address + N * sizeOf<Uint8>());
   }
 }
 
@@ -1277,32 +1057,51 @@ class MyClass {
 }
 
 class Handlex01 extends FfiBenchmarkBase {
-  Handlex01() : super('FfiCall.Handlex01');
+  final Function1Object f;
+
+  Handlex01()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction1Handle,
+            Function1Object>('Function1Handle'),
+        super('FfiCall.Handlex01');
 
   @override
   void run() {
     final p1 = MyClass(123);
-    final x = doCall1Handle(N, p1);
-
+    Object x = p1;
+    for (int i = 0; i < N; i++) {
+      x = f(x);
+    }
     expectIdentical(x, p1);
   }
 }
 
 class Handlex02 extends FfiBenchmarkBase {
-  Handlex02() : super('FfiCall.Handlex02');
+  final Function2Object f;
+
+  Handlex02()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction2Handle,
+            Function2Object>('Function2Handle'),
+        super('FfiCall.Handlex02');
 
   @override
   void run() {
     final p1 = MyClass(123);
     final p2 = MyClass(2);
-    final x = doCall2Handle(N, p1, p2);
-
+    Object x = p1;
+    for (int i = 0; i < N; i++) {
+      x = f(x, p2);
+    }
     expectIdentical(x, p1);
   }
 }
 
 class Handlex04 extends FfiBenchmarkBase {
-  Handlex04() : super('FfiCall.Handlex04');
+  final Function4Object f;
+
+  Handlex04()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction4Handle,
+            Function4Object>('Function4Handle'),
+        super('FfiCall.Handlex04');
 
   @override
   void run() {
@@ -1310,14 +1109,21 @@ class Handlex04 extends FfiBenchmarkBase {
     final p2 = MyClass(2);
     final p3 = MyClass(3);
     final p4 = MyClass(4);
-    final x = doCall4Handle(N, p1, p2, p3, p4);
-
+    Object x = p1;
+    for (int i = 0; i < N; i++) {
+      x = f(x, p2, p3, p4);
+    }
     expectIdentical(x, p1);
   }
 }
 
 class Handlex10 extends FfiBenchmarkBase {
-  Handlex10() : super('FfiCall.Handlex10');
+  final Function10Object f;
+
+  Handlex10()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction10Handle,
+            Function10Object>('Function10Handle'),
+        super('FfiCall.Handlex10');
 
   @override
   void run() {
@@ -1331,14 +1137,21 @@ class Handlex10 extends FfiBenchmarkBase {
     final p8 = MyClass(8);
     final p9 = MyClass(9);
     final p10 = MyClass(10);
-    final x = doCall10Handle(N, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10);
-
+    Object x = p1;
+    for (int i = 0; i < N; i++) {
+      x = f(x, p2, p3, p4, p5, p6, p7, p8, p9, p10);
+    }
     expectIdentical(x, p1);
   }
 }
 
 class Handlex20 extends FfiBenchmarkBase {
-  Handlex20() : super('FfiCall.Handlex20');
+  final Function20Object f;
+
+  Handlex20()
+      : f = ffiTestFunctions.lookupFunction<NativeFunction20Handle,
+            Function20Object>('Function20Handle'),
+        super('FfiCall.Handlex20');
 
   @override
   void run() {
@@ -1362,10 +1175,12 @@ class Handlex20 extends FfiBenchmarkBase {
     final p18 = MyClass(18);
     final p19 = MyClass(19);
     final p20 = MyClass(20);
-    final x = doCall20Handle(N, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11,
-        p12, p13, p14, p15, p16, p17, p18, p19, p20);
-
-    expectIdentical(p1, x);
+    Object x = p1;
+    for (int i = 0; i < N; i++) {
+      x = f(x, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15,
+          p16, p17, p18, p19, p20);
+    }
+    expectIdentical(x, p1);
   }
 }
 
