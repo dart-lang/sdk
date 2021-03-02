@@ -565,6 +565,8 @@ class Thread : public ThreadState {
 #endif
   }
 
+  bool IsInNoReloadScope() const { return no_reload_scope_depth_ > 0; }
+
 #define DEFINE_OFFSET_METHOD(type_name, member_name, expr, default_init_value) \
   static intptr_t member_name##offset() {                                      \
     return OFFSET_OF(Thread, member_name);                                     \
@@ -1000,6 +1002,7 @@ class Thread : public ThreadState {
   mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;
   int32_t no_callback_scope_depth_;
+  intptr_t no_reload_scope_depth_ = 0;
 #if defined(DEBUG)
   int32_t no_safepoint_scope_depth_;
 #endif
@@ -1088,6 +1091,7 @@ class Thread : public ThreadState {
   friend class IsolateGroup;
   friend class IsolateTestHelper;
   friend class NoOOBMessageScope;
+  friend class NoReloadScope;
   friend class Simulator;
   friend class StackZone;
   friend class ThreadRegistry;
@@ -1136,6 +1140,28 @@ class NoSafepointScope : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
 };
 #endif  // defined(DEBUG)
+
+class NoReloadScope : public ThreadStackResource {
+ public:
+  explicit NoReloadScope(Thread* thread)
+      : ThreadStackResource(thread), thread_(thread) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    thread->no_reload_scope_depth_++;
+    ASSERT(thread->no_reload_scope_depth_ >= 0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  ~NoReloadScope() {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    thread_->no_reload_scope_depth_ -= 1;
+    ASSERT(thread_->no_reload_scope_depth_ >= 0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+ private:
+  Thread* thread_;
+  DISALLOW_COPY_AND_ASSIGN(NoReloadScope);
+};
 
 // Within a EnterCompilerScope, the thread must operate on cloned fields.
 #if defined(DEBUG)

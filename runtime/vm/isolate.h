@@ -154,17 +154,6 @@ class NoOOBMessageScope : public ThreadStackResource {
   DISALLOW_COPY_AND_ASSIGN(NoOOBMessageScope);
 };
 
-// Disallow isolate reload.
-class NoReloadScope : public ThreadStackResource {
- public:
-  NoReloadScope(IsolateGroup* isolate_group, Thread* thread);
-  ~NoReloadScope();
-
- private:
-  IsolateGroup* isolate_group_;
-  DISALLOW_COPY_AND_ASSIGN(NoReloadScope);
-};
-
 // Fixed cache for exception handler lookup.
 typedef FixedCache<intptr_t, ExceptionHandlerInfo, 16> HandlerInfoCache;
 // Fixed cache for catch entry state lookup.
@@ -826,7 +815,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   friend class StackFrame;  // For `[isolates_].First()`.
   // For `object_store_shared_untag()`, `class_table_shared_untag()`
   friend class Isolate;
-  friend class NoReloadScope;  // no_reload_scope_depth_
 
 #define ISOLATE_GROUP_FLAG_BITS(V)                                             \
   V(AllClassesFinalized)                                                       \
@@ -882,8 +870,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   int64_t last_reload_timestamp_;
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context_;
-  RelaxedAtomic<intptr_t> no_reload_scope_depth_ =
-      0;  // we can only reload when this is 0.
   // Per-isolate-group copy of FLAG_reload_every.
   RelaxedAtomic<intptr_t> reload_every_n_stack_overflow_checks_;
   ProgramReloadContext* program_reload_context_ = nullptr;

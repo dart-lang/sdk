@@ -2552,7 +2552,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
 
     const char* script_uri;
     {
-      NoReloadScope no_reload(isolate_group, thread);
+      NoReloadScope no_reload(thread);
       const Library& lib =
           Library::Handle(isolate_group->object_store()->_internal_library());
       const Class& cls = Class::Handle(

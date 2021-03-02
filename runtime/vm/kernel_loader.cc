@@ -500,7 +500,7 @@ void KernelLoader::EvaluateDelayedPragmas() {
 
   Thread* thread = Thread::Current();
   NoOOBMessageScope no_msg_scope(thread);
-  NoReloadScope no_reload_scope(thread->isolate_group(), thread);
+  NoReloadScope no_reload_scope(thread);
 
   Function& function = Function::Handle();
   Library& library = Library::Handle();
@@ -2096,7 +2096,7 @@ void KernelLoader::LoadProcedure(const Library& library,
     } else {
       Thread* thread = Thread::Current();
       NoOOBMessageScope no_msg_scope(thread);
-      NoReloadScope no_reload_scope(thread->isolate_group(), thread);
+      NoReloadScope no_reload_scope(thread);
       library.GetMetadata(function);
     }
   }
