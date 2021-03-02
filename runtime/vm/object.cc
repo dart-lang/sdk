@@ -8719,7 +8719,6 @@ FunctionPtr Function::New(const FunctionType& signature,
   NOT_IN_PRECOMPILED(result.set_inlining_depth(0));
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
   result.set_is_optimizable(is_native ? false : true);
-  result.set_is_background_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.reset_unboxed_parameters_and_return();
   result.SetInstructionsSafe(StubCode::LazyCompile());

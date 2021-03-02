@@ -2775,8 +2775,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   if (Compiler::CanOptimizeFunction(thread, function)) {
     auto isolate_group = thread->isolate_group();
     if (FLAG_background_compilation) {
-      if (function.is_background_optimizable() &&
-          isolate_group->background_compiler()->EnqueueCompilation(function)) {
+      if (isolate_group->background_compiler()->EnqueueCompilation(function)) {
         // Reduce the chance of triggering a compilation while the function is
         // being compiled in the background. INT32_MIN should ensure that it
         // takes long time to trigger a compilation.

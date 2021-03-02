@@ -3655,18 +3655,6 @@ class Function : public Object {
         value, untag()->packed_fields_));
   }
 
-  // Indicates whether this function can be optimized on the background compiler
-  // thread.
-  bool is_background_optimizable() const {
-    return UntaggedFunction::PackedBackgroundOptimizable::decode(
-        untag()->packed_fields_);
-  }
-
-  void set_is_background_optimizable(bool value) const {
-    set_packed_fields(UntaggedFunction::PackedBackgroundOptimizable::update(
-        value, untag()->packed_fields_));
-  }
-
   enum KindTagBits {
     kKindTagPos = 0,
     kKindTagSize = 5,

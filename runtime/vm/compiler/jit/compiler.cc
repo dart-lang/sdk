@@ -694,8 +694,6 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
                                        intptr_t osr_id) {
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());
-  ASSERT(function.is_background_optimizable() ||
-         !Compiler::IsBackgroundCompilation());
   if (function.ForceOptimize()) optimized = true;
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -744,18 +742,13 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
         if (error.ptr() == Object::background_compilation_error().ptr()) {
           if (FLAG_trace_compiler) {
             THR_Print(
-                "--> disabling background optimizations for '%s' (will "
-                "try to re-compile on isolate thread again)\n",
+                "--> discarding background compilation for '%s' (will "
+                "try to re-compile again later)\n",
                 function.ToFullyQualifiedCString());
           }
 
-          // Ensure we don't attempt to re-compile the function on the
-          // background compiler.
-          function.set_is_background_optimizable(false);
-
-          // Trigger another optimization soon on the main thread.
-          function.SetUsageCounter(
-              optimized ? FLAG_optimization_counter_threshold : 0);
+          // Trigger another optimization pass soon.
+          function.SetUsageCounter(FLAG_optimization_counter_threshold - 100);
           return Error::null();
         } else if (error.IsLanguageError() &&
                    LanguageError::Cast(error).kind() == Report::kBailout) {
@@ -1171,8 +1164,7 @@ void BackgroundCompiler::Run() {
             // the background queue (unless it was passed to foreground).
             if ((!old.HasOptimizedCode() && old.IsOptimizable()) ||
                 FLAG_stress_test_background_compilation) {
-              if (old.is_background_optimizable() &&
-                  Compiler::CanOptimizeFunction(thread, old)) {
+              if (Compiler::CanOptimizeFunction(thread, old)) {
                 QueueElement* repeat_qelem = new QueueElement(old);
                 function_queue()->Add(repeat_qelem);
               }
