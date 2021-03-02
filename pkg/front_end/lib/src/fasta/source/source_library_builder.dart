@@ -2141,8 +2141,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Reference fieldSetterReference;
     Reference lateIsSetGetterReference;
     Reference lateIsSetSetterReference;
-    Reference getterReference;
-    Reference setterReference;
+    Reference lateGetterReference;
+    Reference lateSetterReference;
     if (referencesFrom != null) {
       String nameToLookup = SourceFieldBuilder.createFieldName(
           FieldNameType.Field, name,
@@ -2172,7 +2172,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             indexedContainer.lookupGetterReference(lateIsSetNameName);
         lateIsSetSetterReference =
             indexedContainer.lookupSetterReference(lateIsSetNameName);
-        getterReference = indexedContainer.lookupGetterReference(new Name(
+        lateGetterReference = indexedContainer.lookupGetterReference(new Name(
             SourceFieldBuilder.createFieldName(FieldNameType.Getter, name,
                 isInstanceMember: isInstanceMember,
                 className: className,
@@ -2180,7 +2180,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 extensionName: extensionName,
                 isSynthesized: fieldIsLateWithLowering),
             indexedContainer.library));
-        setterReference = indexedContainer.lookupSetterReference(new Name(
+        lateSetterReference = indexedContainer.lookupSetterReference(new Name(
             SourceFieldBuilder.createFieldName(FieldNameType.Setter, name,
                 isInstanceMember: isInstanceMember,
                 className: className,
@@ -2197,8 +2197,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         fieldSetterReference: fieldSetterReference,
         lateIsSetGetterReference: lateIsSetGetterReference,
         lateIsSetSetterReference: lateIsSetSetterReference,
-        getterReference: getterReference,
-        setterReference: setterReference);
+        lateGetterReference: lateGetterReference,
+        lateSetterReference: lateSetterReference);
     fieldBuilder.constInitializerToken = constInitializerToken;
     addBuilder(name, fieldBuilder, charOffset,
         getterReference: fieldGetterReference,

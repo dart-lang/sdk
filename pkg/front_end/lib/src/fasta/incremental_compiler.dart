@@ -1047,8 +1047,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               .isNonNullableByDefault /* depends on language version etc */,
           enableTripleShift:
               /* should this be on the library? */
-              /* this is what the constant evaluator does */
-              userCode
+              /* this is effectively what the constant evaluator does */
+              context.options
                   .isExperimentEnabledGlobally(ExperimentalFlag.tripleShift));
       String before = textualOutline(previousSource, scannerConfiguration,
           performModelling: true);
