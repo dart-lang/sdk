@@ -13,6 +13,7 @@ import "package:kernel/ast.dart"
         FunctionType,
         FutureOrType,
         InterfaceType,
+        InvalidType,
         Library,
         NamedType,
         NeverType,
@@ -277,6 +278,10 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       // Don't return a const object to ensure we test implementations that use
       // identical.
       return new NullType();
+    } else if (name == "invalid") {
+      // Don't return a const object to ensure we test implementations that use
+      // identical.
+      return new InvalidType();
     } else if (additionalTypes != null && additionalTypes.containsKey(name)) {
       return additionalTypes[name].call();
     }

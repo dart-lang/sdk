@@ -335,7 +335,8 @@ abstract class CombinedMemberSignatureBase<T> {
               assert(
                   _combinedMemberSignatureType != null,
                   "No combined member signature found for "
-                  "${_mutualSubtypes.values.map((int i) => getMemberType(i))}");
+                  "${_mutualSubtypes.values.map((int i) => getMemberType(i))} "
+                  "for members ${members}");
             }
           }
           _neededNnbdTopMerge =

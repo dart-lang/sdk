@@ -90,7 +90,7 @@ class NnbdTopMergeVisitor extends MergeVisitor {
       // NNBD_TOP_MERGE(void, Object*) = Object?
       return coreTypes.objectNullableRawType;
     }
-    return null;
+    return super.visitVoidType(a, b);
   }
 
   @override
@@ -108,7 +108,7 @@ class NnbdTopMergeVisitor extends MergeVisitor {
       // NNBD_TOP_MERGE(dynamic, Object*) = Object?
       return coreTypes.objectNullableRawType;
     }
-    return null;
+    return super.visitDynamicType(a, b);
   }
 
   @override
