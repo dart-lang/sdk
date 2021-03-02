@@ -259,17 +259,36 @@ class SafepointMutexLocker : public StackResource {
  */
 class SafepointMonitorLocker : public ValueObject {
  public:
-  explicit SafepointMonitorLocker(Monitor* monitor);
-  virtual ~SafepointMonitorLocker() { monitor_->Exit(); }
+  explicit SafepointMonitorLocker(Monitor* monitor) : monitor_(monitor) {
+    AcquireLock();
+  }
+  virtual ~SafepointMonitorLocker() { ReleaseLock(); }
 
   Monitor::WaitResult Wait(int64_t millis = Monitor::kNoTimeout);
 
   void NotifyAll() { monitor_->NotifyAll(); }
 
  private:
+  friend class SafepointMonitorUnlockScope;
+
+  void AcquireLock();
+  void ReleaseLock();
+
   Monitor* const monitor_;
 
   DISALLOW_COPY_AND_ASSIGN(SafepointMonitorLocker);
+};
+
+class SafepointMonitorUnlockScope : public ValueObject {
+ public:
+  explicit SafepointMonitorUnlockScope(SafepointMonitorLocker* locker)
+      : locker_(locker) {
+    locker_->ReleaseLock();
+  }
+  ~SafepointMonitorUnlockScope() { locker_->AcquireLock(); }
+
+ private:
+  SafepointMonitorLocker* locker_;
 };
 
 class RwLock {
