@@ -1407,9 +1407,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   visitInvalidExpression(InvalidExpression node) {
     writeWord('invalid-expression');
-    // ignore: unnecessary_null_comparison
     if (node.message != null) {
-      writeWord('"${escapeString(node.message)}"');
+      writeWord('"${escapeString(node.message!)}"');
     }
   }
 
@@ -2550,9 +2549,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
-    // ignore: unnecessary_null_comparison
-    String text = node.libraryReference != null
-        ? '#${node.libraryReference.asLibrary.importUri}::${node.name}'
+    Reference? libraryReference = node.libraryReference;
+    String text = libraryReference != null
+        ? '#${libraryReference.asLibrary.importUri}::${node.name}'
         : '#${node.name}';
     endLine('${text}');
   }

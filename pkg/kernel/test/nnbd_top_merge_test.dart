@@ -110,6 +110,17 @@ const Map<String, dynamic> data = {
     '<E extends List<E>>(E) -> void',
     '<F extends List<F>>(F) -> void'
   ],
+  'invalid vs invalid': 'invalid',
+  'invalid vs Object': 'invalid',
+  'invalid vs Object?': 'invalid',
+  'Object vs invalid': 'invalid',
+  'Object? vs invalid': 'invalid',
+  'void vs invalid': 'invalid',
+  'dynamic vs invalid': 'invalid',
+  'Null vs invalid': 'invalid',
+  'Never vs invalid': 'invalid',
+  '() -> void vs invalid': 'invalid',
+  '<T>(T) -> void vs <T>(invalid) -> void': '<T>(invalid) -> void',
 };
 
 main() {

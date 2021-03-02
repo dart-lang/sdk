@@ -24,6 +24,9 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
         return mergeFunctionTypes(a, b, nullability);
       }
     }
+    if (b is InvalidType) {
+      return b;
+    }
     return null;
   }
 
@@ -146,6 +149,9 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
         return mergeInterfaceTypes(a, b, nullability);
       }
     }
+    if (b is InvalidType) {
+      return b;
+    }
     return null;
   }
 
@@ -176,6 +182,9 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
         return mergeFutureOrTypes(a, b, nullability);
       }
     }
+    if (b is InvalidType) {
+      return b;
+    }
     return null;
   }
 
@@ -193,6 +202,9 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     if (b is DynamicType) {
       return a;
     }
+    if (b is InvalidType) {
+      return b;
+    }
     return null;
   }
 
@@ -204,6 +216,9 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
         return NeverType.fromNullability(nullability);
       }
     }
+    if (b is InvalidType) {
+      return b;
+    }
     return null;
   }
 
@@ -212,16 +227,22 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     if (b is NullType) {
       return a;
     }
+    if (b is InvalidType) {
+      return b;
+    }
     return null;
   }
 
   @override
-  DartType? visitInvalidType(InvalidType a, DartType b) => null;
+  DartType? visitInvalidType(InvalidType a, DartType b) => a;
 
   @override
   DartType? visitVoidType(VoidType a, DartType b) {
     if (b is VoidType) {
       return a;
+    }
+    if (b is InvalidType) {
+      return b;
     }
     return null;
   }
@@ -239,6 +260,9 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       } else if (a.promotedBound == null && b.promotedBound == null) {
         return mergeTypeParameterTypes(a, b, nullability);
       }
+    }
+    if (b is InvalidType) {
+      return b;
     }
     return null;
   }
@@ -273,6 +297,9 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       if (nullability != null) {
         return mergeTypedefTypes(a, b, nullability);
       }
+    }
+    if (b is InvalidType) {
+      return b;
     }
     return null;
   }

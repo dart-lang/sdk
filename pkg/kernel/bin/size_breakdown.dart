@@ -64,9 +64,9 @@ class WrappedBinaryBuilder extends BinaryBuilder {
     linkTableSize += byteOffset;
   }
 
-  Map<Uri, Source> readUriToSource(bool readCoverage) {
+  Map<Uri, Source> readUriToSource({bool readCoverage}) {
     uriToSourceSize -= byteOffset;
-    var result = super.readUriToSource(readCoverage);
+    var result = super.readUriToSource(readCoverage: readCoverage);
     uriToSourceSize += byteOffset;
     return result;
   }

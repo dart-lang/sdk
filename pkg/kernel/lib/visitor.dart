@@ -980,10 +980,11 @@ class RecursiveResultVisitor<R> extends Visitor<R?> with VisitorNullMixin<R> {
 ///       @override
 ///       Node visitNot(Not node) {
 ///         var operand = node.operand.accept(this); // Remember to visit.
-///         if (operand is LogicalExpression && operand.operator == '&&') {
+///         if (operand is LogicalExpression &&
+///             operand.operator == LogicalExpressionOperator.AND) {
 ///           return new LogicalExpression(
 ///             new Not(operand.left),
-///             '||',
+///             LogicalExpressionOperator.OR,
 ///             new Not(operand.right));
 ///         }
 ///         return node;
@@ -1109,10 +1110,11 @@ class Transformer extends TreeVisitor<TreeNode> {
 ///       @override
 ///       Node visitNot(Not node) {
 ///         var operand = node.operand.accept(this); // Remember to visit.
-///         if (operand is LogicalExpression && operand.operator == '&&') {
+///         if (operand is LogicalExpression &&
+///             operand.operator == LogicalExpressionOperator.AND) {
 ///           return new LogicalExpression(
 ///             new Not(operand.left),
-///             '||',
+///             LogicalExpressionOperator.OR,
 ///             new Not(operand.right));
 ///         }
 ///         return node;

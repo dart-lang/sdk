@@ -56,8 +56,7 @@ SafepointMutexLocker::SafepointMutexLocker(ThreadState* thread, Mutex* mutex)
   }
 }
 
-SafepointMonitorLocker::SafepointMonitorLocker(Monitor* monitor)
-    : monitor_(monitor) {
+void SafepointMonitorLocker::AcquireLock() {
   ASSERT(monitor_ != NULL);
   if (!monitor_->TryEnter()) {
     // We did not get the lock and could potentially block, so transition
@@ -70,6 +69,10 @@ SafepointMonitorLocker::SafepointMonitorLocker(Monitor* monitor)
       monitor_->Enter();
     }
   }
+}
+
+void SafepointMonitorLocker::ReleaseLock() {
+  monitor_->Exit();
 }
 
 Monitor::WaitResult SafepointMonitorLocker::Wait(int64_t millis) {
