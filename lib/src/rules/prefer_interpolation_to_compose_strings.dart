@@ -60,20 +60,23 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (node.operator.type == TokenType.PLUS) {
+      var leftOperand = node.leftOperand;
+      var rightOperand = node.rightOperand;
       //OK(#735): str1 + str2
-      if (node.leftOperand is! StringLiteral &&
-          node.rightOperand is! StringLiteral) {
+      if (leftOperand is! StringLiteral && rightOperand is! StringLiteral) {
+        return;
+      }
+      //OK(#2490): str1 + r''
+      if (leftOperand is SimpleStringLiteral && leftOperand.isRaw ||
+          rightOperand is SimpleStringLiteral && rightOperand.isRaw) {
         return;
       }
       //OK: 'foo' + 'bar'
-      if (node.leftOperand is StringLiteral &&
-          node.rightOperand is StringLiteral) {
+      if (leftOperand is StringLiteral && rightOperand is StringLiteral) {
         return;
       }
-      if (DartTypeUtilities.isClass(
-              node.leftOperand.staticType, 'String', 'dart.core') ||
-          DartTypeUtilities.isClass(
-              node.rightOperand.staticType, 'String', 'dart.core')) {
+      if ((leftOperand.staticType?.isDartCoreString ?? false) ||
+          (rightOperand.staticType?.isDartCoreString ?? false)) {
         DartTypeUtilities.traverseNodesInDFS(node).forEach(skippedNodes.add);
         rule.reportLint(node);
       }

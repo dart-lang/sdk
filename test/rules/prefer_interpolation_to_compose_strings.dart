@@ -26,3 +26,8 @@ void main() {
   var str2 = 'World';
   var str3 = str1 + str2; // OK (#735)
 }
+
+issue2490() {
+  final String foo = 'Hello';
+  final String bar = foo + r' /world\'; // OK
+}
