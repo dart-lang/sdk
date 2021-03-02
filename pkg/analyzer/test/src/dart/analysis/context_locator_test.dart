@@ -189,6 +189,32 @@ class ContextLocatorImplTest with ResourceProviderMixin {
     expect(outerRoot.packagesFile, outerPackagesFile);
   }
 
+  void test_locateRoots_multiple_dirAndNestedDir_excludedByOptions() {
+    var rootPath = convertPath('/home/test');
+    var rootFolder = newFolder(rootPath);
+    var optionsFile = newAnalysisOptionsYamlFile(rootPath, content: r'''
+analyzer:
+  exclude:
+    - examples/**
+''');
+    var packagesFile = newPackageConfigJsonFile(rootPath);
+    var includedFolder = newFolder('$rootPath/examples/included');
+    newFolder('$rootPath/examples/not_included'); // not used
+
+    List<ContextRoot> roots = contextLocator
+        .locateRoots(includedPaths: [rootFolder.path, includedFolder.path]);
+    expect(roots, hasLength(1));
+
+    var outerRoot = findRoot(roots, rootFolder);
+    expect(
+      outerRoot.includedPaths,
+      unorderedEquals([rootFolder.path, includedFolder.path]),
+    );
+    expect(outerRoot.excludedPaths, isEmpty);
+    expect(outerRoot.optionsFile, optionsFile);
+    expect(outerRoot.packagesFile, packagesFile);
+  }
+
   void test_locateRoots_multiple_dirAndNestedFile() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer');
@@ -204,6 +230,36 @@ class ContextLocatorImplTest with ResourceProviderMixin {
     expect(outerRoot.excludedPaths, isEmpty);
     expect(outerRoot.optionsFile, outerOptionsFile);
     expect(outerRoot.packagesFile, outerPackagesFile);
+  }
+
+  void test_locateRoots_multiple_dirAndNestedFile_excludedByOptions() {
+    var rootPath = convertPath('/home/test');
+    var rootFolder = newFolder(rootPath);
+    var optionsFile = newAnalysisOptionsYamlFile(rootPath, content: r'''
+analyzer:
+  exclude:
+    - lib/f*.dart
+''');
+    var packagesFile = newPackageConfigJsonFile(rootPath);
+    var fooFile = newFile('$rootPath/lib/foo.dart');
+    newFile('$rootPath/lib/far.dart'); // not used
+    var barFile = newFile('$rootPath/lib/bar.dart');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [rootFolder.path, fooFile.path],
+    );
+    expect(roots, hasLength(1));
+
+    var root = findRoot(roots, rootFolder);
+    expect(
+      root.includedPaths,
+      unorderedEquals([rootFolder.path, fooFile.path]),
+    );
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, optionsFile);
+    expect(root.packagesFile, packagesFile);
+
+    _assertAnalyzedFiles2(root, [optionsFile, fooFile, barFile]);
   }
 
   void test_locateRoots_multiple_dirAndSiblingDir() {
@@ -258,57 +314,230 @@ class ContextLocatorImplTest with ResourceProviderMixin {
     expect(outer2Root.packagesFile, outer2PackagesFile);
   }
 
-  void test_locateRoots_multiple_fileAndSiblingFile() {
-    ContextRoot findRootFromIncluded(
-        List<ContextRoot> roots, String includedPath) {
-      for (ContextRoot root in roots) {
-        if (root.includedPaths.contains(includedPath)) {
-          return root;
-        }
-      }
-      StringBuffer buffer = StringBuffer();
-      buffer.write('Could not find "');
-      buffer.write(includedPath);
-      buffer.write('" in');
-      for (ContextRoot root in roots) {
-        buffer.writeln();
-        buffer.write('  ');
-        buffer.write(root.root);
-      }
-      fail(buffer.toString());
-    }
-
-    File optionsFile = newAnalysisOptionsYamlFile('/test/root');
-    File packagesFile = newDotPackagesFile('/test/root');
-    File testFile1 = newFile('/test/root/test1.dart');
-    File testFile2 = newFile('/test/root/test2.dart');
+  /// Even if a file is excluded by the options, when it is explicitly included
+  /// into analysis, it should be analyzed.
+  void test_locateRoots_multiple_fileAndSiblingFile_excludedByOptions() {
+    File optionsFile = newAnalysisOptionsYamlFile('/home/test', content: r'''
+analyzer:
+  exclude:
+    - lib/test2.dart
+''');
+    File packagesFile = newDotPackagesFile('/home/test');
+    File testFile1 = newFile('/home/test/lib/test1.dart');
+    File testFile2 = newFile('/home/test/lib/test2.dart');
 
     List<ContextRoot> roots = contextLocator
         .locateRoots(includedPaths: [testFile1.path, testFile2.path]);
     expect(roots, hasLength(1));
 
-    ContextRoot root = findRootFromIncluded(roots, testFile1.path);
+    ContextRoot root = findRoot(roots, getFolder('/home/test'));
     expect(
         root.includedPaths, unorderedEquals([testFile1.path, testFile2.path]));
     expect(root.excludedPaths, isEmpty);
     expect(root.optionsFile, optionsFile);
     expect(root.packagesFile, packagesFile);
+
+    _assertAnalyzedFiles2(root, [testFile1, testFile2]);
+  }
+
+  void test_locateRoots_multiple_fileAndSiblingFile_hasOptions() {
+    File optionsFile = newAnalysisOptionsYamlFile('/home/test');
+    File testFile1 = newFile('/home/test/lib/test1.dart');
+    File testFile2 = newFile('/home/test/lib/test2.dart');
+
+    List<ContextRoot> roots = contextLocator
+        .locateRoots(includedPaths: [testFile1.path, testFile2.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, getFolder('/home/test'));
+    expect(
+        root.includedPaths, unorderedEquals([testFile1.path, testFile2.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, optionsFile);
+    expect(root.packagesFile, isNull);
+
+    _assertAnalyzedFiles2(root, [testFile1, testFile2]);
+  }
+
+  void
+      test_locateRoots_multiple_fileAndSiblingFile_hasOptions_overrideOptions() {
+    newAnalysisOptionsYamlFile('/home/test'); // not used
+    File overrideOptionsFile = newAnalysisOptionsYamlFile('/home');
+    File testFile1 = newFile('/home/test/lib/test1.dart');
+    File testFile2 = newFile('/home/test/lib/test2.dart');
+
+    List<ContextRoot> roots = contextLocator.locateRoots(
+      includedPaths: [testFile1.path, testFile2.path],
+      optionsFile: overrideOptionsFile.path,
+    );
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, getFolder('/'));
+    expect(
+        root.includedPaths, unorderedEquals([testFile1.path, testFile2.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, overrideOptionsFile);
+    expect(root.packagesFile, isNull);
+
+    _assertAnalyzedFiles2(root, [testFile1, testFile2]);
+  }
+
+  void test_locateRoots_multiple_fileAndSiblingFile_hasOptionsPackages() {
+    File optionsFile = newAnalysisOptionsYamlFile('/home/test');
+    File packagesFile = newDotPackagesFile('/home/test');
+    File testFile1 = newFile('/home/test/lib/test1.dart');
+    File testFile2 = newFile('/home/test/lib/test2.dart');
+
+    List<ContextRoot> roots = contextLocator
+        .locateRoots(includedPaths: [testFile1.path, testFile2.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, getFolder('/home/test'));
+    expect(
+        root.includedPaths, unorderedEquals([testFile1.path, testFile2.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, optionsFile);
+    expect(root.packagesFile, packagesFile);
+
+    _assertAnalyzedFiles2(root, [testFile1, testFile2]);
+  }
+
+  void test_locateRoots_multiple_fileAndSiblingFile_hasPackages() {
+    File packagesFile = newDotPackagesFile('/home/test');
+    File testFile1 = newFile('/home/test/lib/test1.dart');
+    File testFile2 = newFile('/home/test/lib/test2.dart');
+
+    List<ContextRoot> roots = contextLocator
+        .locateRoots(includedPaths: [testFile1.path, testFile2.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, getFolder('/home/test'));
+    expect(
+        root.includedPaths, unorderedEquals([testFile1.path, testFile2.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, isNull);
+    expect(root.packagesFile, packagesFile);
+
+    _assertAnalyzedFiles2(root, [testFile1, testFile2]);
+  }
+
+  /// When there is a packages file in a containing directory, that would
+  /// control analysis of the files, but we provide an override, we ignore
+  /// the don't look into containing directories, so the context root can be
+  /// just the file system root.
+  void
+      test_locateRoots_multiple_fileAndSiblingFile_hasPackages_overridePackages() {
+    newDotPackagesFile('/home/test'); // not used
+    File overridePackagesFile = newDotPackagesFile('/home');
+    File testFile1 = newFile('/home/test/lib/test1.dart');
+    File testFile2 = newFile('/home/test/lib/test2.dart');
+
+    List<ContextRoot> roots = contextLocator.locateRoots(
+      includedPaths: [testFile1.path, testFile2.path],
+      packagesFile: overridePackagesFile.path,
+    );
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, getFolder('/'));
+    expect(
+        root.includedPaths, unorderedEquals([testFile1.path, testFile2.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, isNull);
+    expect(root.packagesFile, overridePackagesFile);
+
+    _assertAnalyzedFiles2(root, [testFile1, testFile2]);
+  }
+
+  /// When there are no configuration files, we can use the root of the file
+  /// system, because it contains all the files.
+  void test_locateRoots_multiple_fileAndSiblingFile_noConfigurationFiles() {
+    File testFile1 = newFile('/home/test/lib/test1.dart');
+    File testFile2 = newFile('/home/test/lib/test2.dart');
+
+    List<ContextRoot> roots = contextLocator
+        .locateRoots(includedPaths: [testFile1.path, testFile2.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, getFolder('/'));
+    expect(
+        root.includedPaths, unorderedEquals([testFile1.path, testFile2.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, isNull);
+    expect(root.packagesFile, isNull);
+
+    _assertAnalyzedFiles2(root, [testFile1, testFile2]);
+  }
+
+  void test_locateRoots_multiple_files_sameOptions_differentPackages() {
+    var fooPackagesFile = newPackageConfigJsonFile('/home/foo');
+    var barPackagesFile = newPackageConfigJsonFile('/home/bar');
+    var optionsFile = newAnalysisOptionsYamlFile('/home');
+    var fooFile = newFile('/home/foo/lib/foo.dart');
+    var barFile = newFile('/home/bar/lib/bar.dart');
+
+    List<ContextRoot> roots = contextLocator.locateRoots(
+      includedPaths: [fooFile.path, barFile.path],
+    );
+    expect(roots, hasLength(2));
+
+    ContextRoot fooRoot = findRoot(roots, getFolder('/home/foo'));
+    expect(fooRoot.includedPaths, unorderedEquals([fooFile.path]));
+    expect(fooRoot.excludedPaths, isEmpty);
+    expect(fooRoot.optionsFile, optionsFile);
+    expect(fooRoot.packagesFile, fooPackagesFile);
+    _assertAnalyzedFiles2(fooRoot, [fooFile]);
+
+    ContextRoot barRoot = findRoot(roots, getFolder('/home/bar'));
+    expect(barRoot.includedPaths, unorderedEquals([barFile.path]));
+    expect(barRoot.excludedPaths, isEmpty);
+    expect(barRoot.optionsFile, optionsFile);
+    expect(barRoot.packagesFile, barPackagesFile);
+    _assertAnalyzedFiles2(barRoot, [barFile]);
+  }
+
+  void test_locateRoots_multiple_files_samePackages_differentOptions() {
+    var packagesFile = newPackageConfigJsonFile('/home');
+    var fooOptionsFile = newAnalysisOptionsYamlFile('/home/foo');
+    var barOptionsFile = newAnalysisOptionsYamlFile('/home/bar');
+    var fooFile = newFile('/home/foo/lib/foo.dart');
+    var barFile = newFile('/home/bar/lib/bar.dart');
+
+    List<ContextRoot> roots = contextLocator.locateRoots(
+      includedPaths: [fooFile.path, barFile.path],
+    );
+    expect(roots, hasLength(2));
+
+    ContextRoot fooRoot = findRoot(roots, getFolder('/home/foo'));
+    expect(fooRoot.includedPaths, unorderedEquals([fooFile.path]));
+    expect(fooRoot.excludedPaths, isEmpty);
+    expect(fooRoot.optionsFile, fooOptionsFile);
+    expect(fooRoot.packagesFile, packagesFile);
+    _assertAnalyzedFiles2(fooRoot, [fooFile]);
+
+    ContextRoot barRoot = findRoot(roots, getFolder('/home/bar'));
+    expect(barRoot.includedPaths, unorderedEquals([barFile.path]));
+    expect(barRoot.excludedPaths, isEmpty);
+    expect(barRoot.optionsFile, barOptionsFile);
+    expect(barRoot.packagesFile, packagesFile);
+    _assertAnalyzedFiles2(barRoot, [barFile]);
   }
 
   void test_locateRoots_nested_excluded_dot() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer');
     File outerPackagesFile = newDotPackagesFile('/test/outer');
-    Folder excludedFolder = newFolder('/test/outer/.examples');
+
+    newFolder('/test/outer/.examples');
     newAnalysisOptionsYamlFile('/test/outer/.examples/inner');
 
+    // Only one analysis root, we skipped `.examples` for context roots.
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
     expect(roots, hasLength(1));
 
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
     expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
-    expect(outerRoot.excludedPaths, unorderedEquals([excludedFolder.path]));
+    expect(outerRoot.excludedPaths, isEmpty);
     expect(outerRoot.optionsFile, outerOptionsFile);
     expect(outerRoot.packagesFile, outerPackagesFile);
   }
@@ -501,24 +730,13 @@ class ContextLocatorImplTest with ResourceProviderMixin {
 
     var outerRoot = findRoot(roots, outerRootFolder);
     expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
-    expect(
-      outerRoot.excludedPaths,
-      unorderedEquals([
-        outerPackagesFile.parent2.path,
-        innerRootFolder.path,
-      ]),
-    );
+    expect(outerRoot.excludedPaths, unorderedEquals([innerRootFolder.path]));
     expect(outerRoot.optionsFile, outerOptionsFile);
     expect(outerRoot.packagesFile, outerPackagesFile);
 
     var innerRoot = findRoot(roots, innerRootFolder);
     expect(innerRoot.includedPaths, unorderedEquals([innerRootFolder.path]));
-    expect(
-      innerRoot.excludedPaths,
-      unorderedEquals([
-        innerPackagesFile.parent2.path,
-      ]),
-    );
+    expect(innerRoot.excludedPaths, isEmpty);
     expect(innerRoot.optionsFile, outerOptionsFile);
     expect(innerRoot.packagesFile, innerPackagesFile);
   }
@@ -685,7 +903,7 @@ analyzer:
     - data/**
 ''');
     File packagesFile = newDotPackagesFile('/test/root');
-    Folder dataFolder = newFolder('/test/root/data');
+    newFolder('/test/root/data');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [rootFolder.path]);
@@ -693,7 +911,7 @@ analyzer:
 
     ContextRoot root = findRoot(roots, rootFolder);
     expect(root.includedPaths, unorderedEquals([rootFolder.path]));
-    expect(root.excludedPaths, unorderedEquals([dataFolder.path]));
+    expect(root.excludedPaths, isEmpty);
     expect(root.optionsFile, optionsFile);
     expect(root.packagesFile, packagesFile);
 
@@ -719,7 +937,7 @@ analyzer:
 ''');
 
     File packagesFile = newDotPackagesFile('/test/root');
-    Folder dataFolder = newFolder('/test/root/data');
+    newFolder('/test/root/data');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [rootFolder.path]);
@@ -727,7 +945,7 @@ analyzer:
 
     ContextRoot root = findRoot(roots, rootFolder);
     expect(root.includedPaths, unorderedEquals([rootFolder.path]));
-    expect(root.excludedPaths, unorderedEquals([dataFolder.path]));
+    expect(root.excludedPaths, isEmpty);
     expect(root.optionsFile, optionsFile);
     expect(root.packagesFile, packagesFile);
 
@@ -756,8 +974,8 @@ analyzer:
 ''');
 
     File packagesFile = newDotPackagesFile('/test/root');
-    Folder fooFolder = newFolder('/test/root/foo');
-    Folder barFolder = newFolder('/test/root/bar');
+    newFolder('/test/root/foo');
+    newFolder('/test/root/bar');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [rootFolder.path]);
@@ -765,10 +983,7 @@ analyzer:
 
     ContextRoot root = findRoot(roots, rootFolder);
     expect(root.includedPaths, unorderedEquals([rootFolder.path]));
-    expect(
-      root.excludedPaths,
-      unorderedEquals([fooFolder.path, barFolder.path]),
-    );
+    expect(root.excludedPaths, isEmpty);
     expect(root.optionsFile, optionsFile);
     expect(root.packagesFile, packagesFile);
 
@@ -793,7 +1008,7 @@ analyzer:
     - data/**
 ''');
     File packagesFile = newDotPackagesFile('/test/root');
-    Folder dataFolder = newFolder('/test/root/data');
+    newFolder('/test/root/data');
     newAnalysisOptionsYamlFile('/test/root/data', content: '');
 
     List<ContextRoot> roots =
@@ -802,7 +1017,7 @@ analyzer:
 
     ContextRoot root = findRoot(roots, rootFolder);
     expect(root.includedPaths, unorderedEquals([rootFolder.path]));
-    expect(root.excludedPaths, unorderedEquals([dataFolder.path]));
+    expect(root.excludedPaths, isEmpty);
     expect(root.optionsFile, optionsFile);
     expect(root.packagesFile, packagesFile);
 
@@ -891,12 +1106,7 @@ analyzer:
 
     var contentRoot = findRoot(roots, rootFolder);
     expect(contentRoot.includedPaths, unorderedEquals([rootFolder.path]));
-    expect(
-      contentRoot.excludedPaths,
-      unorderedEquals(
-        [packageConfigJsonFile.parent2.path],
-      ),
-    );
+    expect(contentRoot.excludedPaths, isEmpty);
     expect(contentRoot.optionsFile, optionsFile);
     expect(contentRoot.packagesFile, packageConfigJsonFile);
   }
@@ -925,9 +1135,19 @@ analyzer:
   }
 
   void _assertAnalyzedFiles(ContextRoot root, List<String> posixPathList) {
-    var analyzedFiles = root.analyzedFiles().toList();
     var pathList = posixPathList.map(convertPath).toList();
+
+    var analyzedFiles = root.analyzedFiles().toList();
     expect(analyzedFiles, unorderedEquals(pathList));
+
+    for (var path in pathList) {
+      expect(root.isAnalyzed(path), isTrue, reason: path);
+    }
+  }
+
+  void _assertAnalyzedFiles2(ContextRoot root, List<File> files) {
+    var pathList = files.map((file) => file.path).toList();
+    _assertAnalyzedFiles(root, pathList);
   }
 
   void _assertNotAnalyzed(ContextRoot root, List<String> posixPathList) {

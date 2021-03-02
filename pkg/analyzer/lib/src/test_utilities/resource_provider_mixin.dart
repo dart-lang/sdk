@@ -70,6 +70,15 @@ mixin ResourceProviderMixin {
     return resourceProvider.newFolder(convertedPath);
   }
 
+  File newPackageConfigJsonFile(String directoryPath, {String content = ''}) {
+    String path = join(
+      directoryPath,
+      file_paths.dotDartTool,
+      file_paths.packageConfigJson,
+    );
+    return newFile(path, content: content);
+  }
+
   File newPubspecYamlFile(String directoryPath, String content) {
     String path = join(directoryPath, file_paths.pubspecYaml);
     return newFile(path, content: content);

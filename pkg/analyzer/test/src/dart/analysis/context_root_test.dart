@@ -8,6 +8,7 @@ import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:glob/glob.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -52,7 +53,67 @@ class ContextRootTest with ResourceProviderMixin {
         unorderedEquals([optionsPath, readmePath, aPath, bPath]));
   }
 
-  test_isAnalyzed_explicitlyExcluded() {
+  test_isAnalyzed_excludedByGlob_includedFile() {
+    var rootPath = '/home/test';
+    var includedFile = newFile('$rootPath/lib/a1.dart');
+    var excludedFile = newFile('$rootPath/lib/a2.dart');
+    var implicitFile = newFile('$rootPath/lib/b.dart');
+
+    var root = _createContextRoot(rootPath);
+    root.included.add(includedFile);
+    _addGlob(root, '$rootPath/lib/a*.dart');
+
+    // Explicitly included, so analyzed even if excluded by a glob.
+    expect(root.isAnalyzed(includedFile.path), isTrue);
+
+    // Not explicitly included, excluded by a glob.
+    expect(root.isAnalyzed(excludedFile.path), isFalse);
+
+    // Implicitly included by a folder, not excluded.
+    expect(root.isAnalyzed(implicitFile.path), isTrue);
+
+    _assertAnalyzedFiles2(root, [includedFile, implicitFile]);
+  }
+
+  test_isAnalyzed_excludedByGlob_includedFolder() {
+    var rootPath = '/home/test';
+
+    var includedFolderPath = convertPath('$rootPath/lib/src/included');
+    var includedFolder = getFolder(includedFolderPath);
+    var includedFile1 = newFile('$includedFolderPath/a1.dart');
+    var includedFile2 = newFile('$includedFolderPath/inner/a2.dart');
+    var excludedFile1 = newFile('$includedFolderPath/a1.g.dart');
+
+    var excludedFolderPath = convertPath('$rootPath/lib/src/not_included');
+    var excludedFile2 = newFile('$excludedFolderPath/b.dart');
+
+    var implicitFile = newFile('$rootPath/lib/c.dart');
+
+    var root = _createContextRoot(rootPath);
+    root.included.add(includedFolder);
+    _addGlob(root, '$rootPath/lib/src/**');
+    _addGlob(root, '$rootPath/lib/**.g.dart');
+
+    // Explicitly included, so analyzed even if excluded by a glob.
+    expect(root.isAnalyzed(includedFolder.path), isTrue);
+    expect(root.isAnalyzed(includedFile1.path), isTrue);
+    expect(root.isAnalyzed(includedFile2.path), isTrue);
+
+    // Not explicitly included, excluded by a glob.
+    expect(root.isAnalyzed(excludedFolderPath), isFalse);
+    expect(root.isAnalyzed(excludedFile1.path), isFalse);
+    expect(root.isAnalyzed(excludedFile2.path), isFalse);
+
+    // Implicitly included by a folder, not excluded.
+    expect(root.isAnalyzed(implicitFile.path), isTrue);
+
+    _assertAnalyzedFiles2(
+      root,
+      [includedFile1, includedFile2, implicitFile],
+    );
+  }
+
+  test_isAnalyzed_explicitlyExcluded_byFolder() {
     String excludePath = convertPath('/test/root/exclude');
     String filePath = convertPath('/test/root/exclude/root.dart');
     contextRoot.excluded.add(newFolder(excludePath));
@@ -72,11 +133,6 @@ class ContextRootTest with ResourceProviderMixin {
 
   test_isAnalyzed_implicitlyExcluded_dotFile() {
     String filePath = convertPath('/test/root/lib/.aaa');
-    expect(contextRoot.isAnalyzed(filePath), isFalse);
-  }
-
-  test_isAnalyzed_implicitlyExcluded_dotFile_dotPackages() {
-    String filePath = convertPath('/test/root/lib/.packages');
     expect(contextRoot.isAnalyzed(filePath), isFalse);
   }
 
@@ -140,6 +196,27 @@ class ContextRootTest with ResourceProviderMixin {
     String folderPath = convertPath('/test/root/lib/packages');
     newFolder(folderPath);
     expect(contextRoot.isAnalyzed(folderPath), isTrue);
+  }
+
+  void _addGlob(ContextRootImpl root, String pattern) {
+    var glob = Glob(pattern, context: resourceProvider.pathContext);
+    root.excludedGlobs.add(glob);
+  }
+
+  void _assertAnalyzedFiles(ContextRoot root, List<String> posixPathList) {
+    var pathList = posixPathList.map(convertPath).toList();
+
+    var analyzedFiles = root.analyzedFiles().toList();
+    expect(analyzedFiles, unorderedEquals(pathList));
+
+    for (var path in pathList) {
+      expect(root.isAnalyzed(path), isTrue, reason: path);
+    }
+  }
+
+  void _assertAnalyzedFiles2(ContextRoot root, List<File> files) {
+    var pathList = files.map((file) => file.path).toList();
+    _assertAnalyzedFiles(root, pathList);
   }
 
   ContextRootImpl _createContextRoot(String posixPath) {
