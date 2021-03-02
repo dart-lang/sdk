@@ -357,6 +357,34 @@ class _MyWidgetState extends State<MyWidget> {
         request, throwsA(isResponseError(ErrorCodes.InvalidParams)));
   }
 
+  Future<void> test_filterTextNotIncludeAdditionalText() async {
+    // Some completions (eg. overrides) have additional text that is not part
+    // of the label. That text should _not_ appear in filterText as it will
+    // affect the editors relevance ranking as the user types.
+    // https://github.com/dart-lang/sdk/issues/45157
+    final content = '''
+    abstract class Person {
+      String get name;
+    }
+
+    class Student extends Person {
+      nam^
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label.startsWith('name =>'),
+        orElse: () => null);
+    expect(item, isNotNull);
+    expect(item.label, equals('name => …'));
+    expect(item.filterText, isNull); // Falls back to label
+    expect(item.insertText, equals('''@override
+  // TODO: implement name
+  String get name => throw UnimplementedError();'''));
+  }
+
   Future<void> test_fromPlugin_dartFile() async {
     final content = '''
     void main() {
