@@ -838,7 +838,7 @@ class FlutterOutline implements ToJsonable {
       __result['variableName'] = variableName;
     }
     if (attributes != null) {
-      __result['attributes'] = attributes;
+      __result['attributes'] = attributes.map((item) => item.toJson()).toList();
     }
     if (dartElement != null) {
       __result['dartElement'] = dartElement.toJson();
@@ -848,7 +848,7 @@ class FlutterOutline implements ToJsonable {
     __result['codeRange'] =
         codeRange?.toJson() ?? (throw 'codeRange is required but was not set');
     if (children != null) {
-      __result['children'] = children;
+      __result['children'] = children.map((item) => item.toJson()).toList();
     }
     return __result;
   }
@@ -1178,7 +1178,7 @@ class Outline implements ToJsonable {
     __result['codeRange'] =
         codeRange?.toJson() ?? (throw 'codeRange is required but was not set');
     if (children != null) {
-      __result['children'] = children;
+      __result['children'] = children.map((item) => item.toJson()).toList();
     }
     return __result;
   }
@@ -1309,7 +1309,8 @@ class PublishClosingLabelsParams implements ToJsonable {
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
-    __result['labels'] = labels ?? (throw 'labels is required but was not set');
+    __result['labels'] = labels?.map((item) => item.toJson())?.toList() ??
+        (throw 'labels is required but was not set');
     return __result;
   }
 
