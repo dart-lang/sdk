@@ -1130,6 +1130,11 @@ nightly_builder(
     channels = [],
     properties = {"shard_timeout": (90 * time.minute) // time.second},
 )
+nightly_builder(
+    "vm-kernel-precomp-dwarf-linux-product-x64",
+    category = "vm|kernel-precomp|dw",
+    channels = ["try"],
+)
 
 # vm|kernel-precomp|android
 dart_vm_extra_builder(
