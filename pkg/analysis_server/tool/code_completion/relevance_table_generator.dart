@@ -1542,14 +1542,13 @@ class RelevanceTableWriter {
     writeFileHeader();
     writeElementKindTable(data);
     writeKeywordTable(data);
+    writeFileFooter();
   }
 
   void writeElementKindTable(RelevanceData data) {
     sink.writeln();
     sink.write('''
-/// A table keyed by completion location and element kind whose values are the
-/// ranges of the relevance of those element kinds in those locations.
-const elementKindRelevance = {
+const defaultElementKindRelevance = {
 ''');
 
     var byKind = data.byKind;
@@ -1589,6 +1588,20 @@ const elementKindRelevance = {
     sink.writeln('};');
   }
 
+  void writeFileFooter() {
+    sink.write('''
+/// A table keyed by completion location and element kind whose values are the
+/// ranges of the relevance of those element kinds in those locations.
+Map<String, Map<ElementKind, ProbabilityRange>> elementKindRelevance =
+    defaultElementKindRelevance;
+
+/// A table keyed by completion location and keyword whose values are the
+/// ranges of the relevance of those keywords in those locations.
+Map<String, Map<String, ProbabilityRange>> keywordRelevance =
+    defaultKeywordRelevance;
+''');
+  }
+
   void writeFileHeader() {
     sink.write('''
 // Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
@@ -1609,9 +1622,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
   void writeKeywordTable(RelevanceData data) {
     sink.writeln();
     sink.write('''
-/// A table keyed by completion location and keyword whose values are the
-/// ranges of the relevance of those keywords in those locations.
-const keywordRelevance = {
+const defaultKeywordRelevance = {
 ''');
 
     var byKind = data.byKind;
