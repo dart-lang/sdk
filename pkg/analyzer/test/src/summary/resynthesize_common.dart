@@ -69,7 +69,7 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
     return testSource;
   }
 
-  Future<LibraryElementImpl /*!*/ > checkLibrary(String text,
+  Future<LibraryElementImpl> checkLibrary(String text,
       {bool allowErrors = false});
 }
 

@@ -44,6 +44,16 @@ uint8_t* IOBuffer::Reallocate(uint8_t* buffer, intptr_t new_size) {
     }
     return buffer;
   }
+#if defined(TARGET_OS_WINDOWS)
+  // It seems windows realloc() doesn't free memory when shrinking, so we'll
+  // manually allocate a new buffer, copy the data and free the old buffer.
+  auto new_buffer = IOBuffer::Allocate(new_size);
+  if (new_buffer != nullptr) {
+    memmove(new_buffer, buffer, new_size);
+    free(buffer);
+    return static_cast<uint8_t*>(new_buffer);
+  }
+#endif
   return static_cast<uint8_t*>(realloc(buffer, new_size));
 }
 

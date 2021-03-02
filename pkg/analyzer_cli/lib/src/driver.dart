@@ -131,8 +131,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
     } else if (options.batchMode) {
       var batchRunner = BatchRunner(outSink, errorSink);
       batchRunner.runAsBatch(args, (List<String> args) async {
-        // TODO(brianwilkerson) Determine whether this await is necessary.
-        await null;
         var options = CommandLineOptions.parse(resourceProvider, args);
         return await _analyzeAll(options);
       });
@@ -175,16 +173,11 @@ class Driver with HasContextMixin implements CommandLineStarter {
   }
 
   Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
     return await _analyzeAllImpl(options);
   }
 
   /// Perform analysis according to the given [options].
   Future<ErrorSeverity> _analyzeAllImpl(CommandLineOptions options) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (!options.machineFormat) {
       var fileNames = options.sourceFiles.map((String file) {
         file = path.normalize(file);
@@ -409,9 +402,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
   /// instead of stdin/stdout.
   Future<ErrorSeverity> _buildModeAnalyze(
       CommandLineOptions options, SendPort sendPort) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
     if (options.buildModePersistentWorker) {
       var workerLoop = sendPort == null
           ? AnalyzerWorkerLoop.std(resourceProvider,

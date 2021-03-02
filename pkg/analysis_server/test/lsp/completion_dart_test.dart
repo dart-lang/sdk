@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
+import 'completion.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -20,7 +21,8 @@ void main() {
 }
 
 @reflectiveTest
-class CompletionTest extends AbstractLspAnalysisServerTest {
+class CompletionTest extends AbstractLspAnalysisServerTest
+    with CompletionTestMixin {
   void expectAutoImportCompletion(List<CompletionItem> items, String file) {
     expect(
       items.singleWhere(
@@ -355,6 +357,34 @@ class _MyWidgetState extends State<MyWidget> {
         request, throwsA(isResponseError(ErrorCodes.InvalidParams)));
   }
 
+  Future<void> test_filterTextNotIncludeAdditionalText() async {
+    // Some completions (eg. overrides) have additional text that is not part
+    // of the label. That text should _not_ appear in filterText as it will
+    // affect the editors relevance ranking as the user types.
+    // https://github.com/dart-lang/sdk/issues/45157
+    final content = '''
+    abstract class Person {
+      String get name;
+    }
+
+    class Student extends Person {
+      nam^
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label.startsWith('name =>'),
+        orElse: () => null);
+    expect(item, isNotNull);
+    expect(item.label, equals('name => …'));
+    expect(item.filterText, isNull); // Falls back to label
+    expect(item.insertText, equals('''@override
+  // TODO: implement name
+  String get name => throw UnimplementedError();'''));
+  }
+
   Future<void> test_fromPlugin_dartFile() async {
     final content = '''
     void main() {
@@ -622,6 +652,69 @@ class _MyWidgetState extends State<MyWidget> {
     // If the client says it supports the deprecated tag, we should not show
     // deprecated in the details.
     expect(item.detail, isNot(contains('deprecated')));
+  }
+
+  Future<void> test_namedArg_insertReplaceRanges() async {
+    /// Helper to check multiple completions in the same template file.
+    Future<void> check(
+      String code,
+      String expectedLabel, {
+      String expectedReplace,
+      String expectedInsert,
+    }) async {
+      final content = '''
+class A { const A({int argOne, int argTwo}); }
+$code
+main() { }
+''';
+      final expectedReplaced = '''
+class A { const A({int argOne, int argTwo}); }
+$expectedReplace
+main() { }
+''';
+      final expectedInserted = '''
+class A { const A({int argOne, int argTwo}); }
+$expectedInsert
+main() { }
+''';
+
+      await verifyCompletions(
+        mainFileUri,
+        content,
+        expectCompletions: [expectedLabel],
+        verifyEditsFor: expectedLabel,
+        verifyInsertReplaceRanges: true,
+        expectedContent: expectedReplaced,
+        expectedContentIfInserting: expectedInserted,
+      );
+    }
+
+    // When at the start of the identifier, it will be set as the replacement
+    // range so we don't expect the ': ,'
+    await check(
+      '@A(^argOne: 1)',
+      'argTwo',
+      expectedReplace: '@A(argTwo: 1)',
+      expectedInsert: '@A(argTwoargOne: 1)',
+    );
+
+    // Inside the identifier also should be expected to replace.
+    await check(
+      '@A(arg^One: 1)',
+      'argTwo',
+      expectedReplace: '@A(argTwo: 1)',
+      expectedInsert: '@A(argTwoOne: 1)',
+    );
+
+    // If there's a space, there's no replacement range so we should still get
+    // the colon/comma since this is always an insert (and both operations will
+    // produce the same text).
+    await check(
+      '@A(^ argOne: 1)',
+      'argTwo: ',
+      expectedReplace: '@A(argTwo: ^, argOne: 1)',
+      expectedInsert: '@A(argTwo: ^, argOne: 1)',
+    );
   }
 
   Future<void> test_namedArg_offsetBeforeCompletionTarget() async {

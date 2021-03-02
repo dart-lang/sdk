@@ -459,6 +459,48 @@ class CallSiteResetter : public ValueObject {
   ICData& ic_data_;
 };
 
+class ReloadHandler {
+ public:
+  ReloadHandler() {}
+  ~ReloadHandler() {}
+
+  void RegisterIsolate();
+  void UnregisterIsolate();
+  void CheckForReload();
+
+ private:
+  friend class ReloadOperationScope;
+
+  void PauseIsolatesForReloadLocked();
+  void ResumeIsolatesLocked();
+  void ParticipateIfReloadRequested(SafepointMonitorLocker* ml,
+                                    bool is_registered,
+                                    bool allow_later_retry);
+
+  intptr_t registered_isolate_count_ = 0;
+
+  Monitor monitor_;
+  Thread* reloading_thread_ = nullptr;
+
+  Monitor checkin_monitor_;
+  intptr_t isolates_checked_in_ = 0;
+};
+
+class ReloadOperationScope : public ThreadStackResource {
+ public:
+  explicit ReloadOperationScope(Thread* thread)
+      : ThreadStackResource(thread), isolate_group_(thread->isolate_group()) {
+    isolate_group_->reload_handler()->PauseIsolatesForReloadLocked();
+  }
+
+  ~ReloadOperationScope() {
+    isolate_group_->reload_handler()->ResumeIsolatesLocked();
+  }
+
+ private:
+  IsolateGroup* isolate_group_;
+};
+
 }  // namespace dart
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

@@ -415,6 +415,14 @@ class A {
     expect(suggestions, isEmpty);
   }
 
+  Future<void> test_inComment_endOfFile() async {
+    addTestFile('''
+    // text ^
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
   Future<void> test_inComment_endOfLine_beforeNode() async {
     addTestFile('''
   main(aaa, bbb) {

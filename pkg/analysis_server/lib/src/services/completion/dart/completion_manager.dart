@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show AbortCompletion, CompletionRequest;
+import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -94,6 +95,7 @@ class DartCompletionManager {
     CompletionRequest request, {
     bool enableOverrideContributor = true,
     bool enableUriContributor = true,
+    CompletionPreference completionPreference,
   }) async {
     request.checkAborted();
     var pathContext = request.resourceProvider.pathContext;
@@ -105,6 +107,7 @@ class DartCompletionManager {
       performance,
       request,
       dartdocDirectiveInfo,
+      completionPreference: completionPreference,
     );
 
     // Don't suggest in comments.
@@ -114,7 +117,7 @@ class DartCompletionManager {
 
     request.checkAborted();
 
-    var range = dartRequest.target.computeReplacementRange(dartRequest.offset);
+    var range = dartRequest.replacementRange;
     (request as CompletionRequestImpl)
       ..replacementOffset = range.offset
       ..replacementLength = range.length;
@@ -290,6 +293,11 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
   final CompletionPerformance performance;
 
+  SourceRange _replacementRange;
+
+  @override
+  final CompletionPreference completionPreference;
+
   DartCompletionRequestImpl._(
       this.result,
       this.resourceProvider,
@@ -300,9 +308,12 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       CompilationUnit unit,
       this.dartdocDirectiveInfo,
       this._originalRequest,
-      this.performance)
+      this.performance,
+      {CompletionPreference completionPreference})
       : featureComputer =
-            FeatureComputer(result.typeSystem, result.typeProvider) {
+            FeatureComputer(result.typeSystem, result.typeProvider),
+        completionPreference =
+            completionPreference ?? CompletionPreference.insert {
     _updateTargets(unit);
   }
 
@@ -337,6 +348,14 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   OpType get opType {
     _opType ??= OpType.forCompletion(target, offset);
     return _opType;
+  }
+
+  /// The source range that represents the region of text that should be
+  /// replaced when a suggestion is selected.
+  @override
+  SourceRange get replacementRange {
+    _replacementRange ??= target.computeReplacementRange(offset);
+    return _replacementRange;
   }
 
   @override
@@ -413,7 +432,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   static Future<DartCompletionRequest> from(
       OperationPerformanceImpl performance,
       CompletionRequest request,
-      DartdocDirectiveInfo dartdocDirectiveInfo) async {
+      DartdocDirectiveInfo dartdocDirectiveInfo,
+      {CompletionPreference completionPreference}) async {
     request.checkAborted();
 
     return performance.run(
@@ -434,6 +454,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
           dartdocDirectiveInfo,
           request,
           (request as CompletionRequestImpl).performance,
+          completionPreference: completionPreference,
         );
       },
     );

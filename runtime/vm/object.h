@@ -1336,6 +1336,7 @@ class Class : public Object {
 
   bool is_implemented() const { return ImplementedBit::decode(state_bits()); }
   void set_is_implemented() const;
+  void set_is_implemented_unsafe() const;
 
   bool is_abstract() const { return AbstractBit::decode(state_bits()); }
   void set_is_abstract() const;
@@ -1348,6 +1349,7 @@ class Class : public Object {
     return class_loading_state() >= UntaggedClass::kDeclarationLoaded;
   }
   void set_is_declaration_loaded() const;
+  void set_is_declaration_loaded_unsafe() const;
 
   bool is_type_finalized() const {
     return class_loading_state() >= UntaggedClass::kTypeFinalized;
@@ -1358,6 +1360,7 @@ class Class : public Object {
     return SynthesizedClassBit::decode(state_bits());
   }
   void set_is_synthesized_class() const;
+  void set_is_synthesized_class_unsafe() const;
 
   bool is_enum_class() const { return EnumBit::decode(state_bits()); }
   void set_is_enum_class() const;
@@ -1369,6 +1372,7 @@ class Class : public Object {
                UntaggedClass::kAllocateFinalized;
   }
   void set_is_finalized() const;
+  void set_is_finalized_unsafe() const;
 
   bool is_allocate_finalized() const {
     return ClassFinalizedBits::decode(state_bits()) ==
@@ -1404,6 +1408,7 @@ class Class : public Object {
 
   bool is_allocated() const { return IsAllocatedBit::decode(state_bits()); }
   void set_is_allocated(bool value) const;
+  void set_is_allocated_unsafe(bool value) const;
 
   bool is_loaded() const { return IsLoadedBit::decode(state_bits()); }
   void set_is_loaded(bool value) const;
@@ -2986,10 +2991,13 @@ class Function : public Object {
   static intptr_t name##_offset() {                                            \
     return OFFSET_OF(UntaggedFunction, name##_);                               \
   }                                                                            \
-  return_type name() const { return untag()->name##_; }                        \
+  return_type name() const {                                                   \
+    return LoadNonPointer<type, std::memory_order_relaxed>(&untag()->name##_); \
+  }                                                                            \
                                                                                \
   void set_##name(type value) const {                                          \
-    StoreNonPointer(&untag()->name##_, value);                                 \
+    StoreNonPointer<type, type, std::memory_order_relaxed>(&untag()->name##_,  \
+                                                           value);             \
   }
 #endif
 

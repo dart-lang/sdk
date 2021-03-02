@@ -18,17 +18,17 @@ abstract class FileSystemTestSupport {
   String get defaultFileContent;
 
   /// A path to a file within the [defaultFolderPath] that can be used by tests.
-  String /*!*/ get defaultFilePath;
+  String get defaultFilePath;
 
   /// A path to a folder within the [tempPath] that can be used by tests.
-  String /*!*/ get defaultFolderPath;
+  String get defaultFolderPath;
 
   /// Return the resource provider to be used by the tests.
   ResourceProvider get provider;
 
   /// The absolute path to the temporary directory in which all of the tests are
   /// to work.
-  String /*!*/ get tempPath;
+  String get tempPath;
 
   /// Create a link from [path] to [target].
   /// The [target] does not have to exist, can be create later, or not at all.

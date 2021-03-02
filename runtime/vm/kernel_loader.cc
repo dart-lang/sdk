@@ -498,10 +498,6 @@ void KernelLoader::EvaluateDelayedPragmas() {
       kernel_program_info_.potential_pragma_functions();
   if (potential_pragma_functions_.IsNull()) return;
 
-  Thread* thread = Thread::Current();
-  NoOOBMessageScope no_msg_scope(thread);
-  NoReloadScope no_reload_scope(thread);
-
   Function& function = Function::Handle();
   Library& library = Library::Handle();
   Class& klass = Class::Handle();
@@ -2094,9 +2090,6 @@ void KernelLoader::LoadProcedure(const Library& library,
       EnsurePotentialPragmaFunctions();
       potential_pragma_functions_.Add(function);
     } else {
-      Thread* thread = Thread::Current();
-      NoOOBMessageScope no_msg_scope(thread);
-      NoReloadScope no_reload_scope(thread);
       library.GetMetadata(function);
     }
   }

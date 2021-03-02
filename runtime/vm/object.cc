@@ -661,6 +661,10 @@ void Object::Init(IsolateGroup* isolate_group) {
   // Should only be run by the vm isolate.
   ASSERT(isolate_group == Dart::vm_isolate_group());
   Heap* heap = isolate_group->heap();
+  Thread* thread = Thread::Current();
+  ASSERT(thread != nullptr);
+  // Ensure lock checks in setters are happy.
+  SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
 
   InitVtables();
 
@@ -1084,12 +1088,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   // in the vm isolate. See special handling in Class::SuperClass().
   cls = type_arguments_class_;
   cls.set_interfaces(Object::empty_array());
-  {
-    Thread* thread = Thread::Current();
-    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-    cls.SetFields(Object::empty_array());
-    cls.SetFunctions(Object::empty_array());
-  }
+  cls.SetFields(Object::empty_array());
+  cls.SetFunctions(Object::empty_array());
 
   cls = Class::New<Bool, RTN::Bool>(isolate_group);
   isolate_group->object_store()->set_bool_class(cls);
@@ -1130,10 +1130,8 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
-  Thread* thr = Thread::Current();
-  ASSERT(thr != NULL);
-  thr->ClearStickyError();
-  thr->clear_pending_functions();
+  thread->ClearStickyError();
+  thread->clear_pending_functions();
 
   ASSERT(!null_object_->IsSmi());
   ASSERT(!null_class_->IsSmi());
@@ -2335,6 +2333,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     // full snapshot linked in and an isolate is initialized using the full
     // snapshot.
     ObjectStore* object_store = isolate_group->object_store();
+    SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
 
     Class& cls = Class::Handle(zone);
 
@@ -4920,20 +4919,32 @@ int32_t Class::SourceFingerprint() const {
 }
 
 void Class::set_is_implemented() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_is_implemented_unsafe();
+}
+
+void Class::set_is_implemented_unsafe() const {
   set_state_bits(ImplementedBit::update(true, state_bits()));
 }
 
 void Class::set_is_abstract() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(AbstractBit::update(true, state_bits()));
 }
 
 void Class::set_is_declaration_loaded() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_is_declaration_loaded_unsafe();
+}
+
+void Class::set_is_declaration_loaded_unsafe() const {
   ASSERT(!is_declaration_loaded());
   set_state_bits(ClassLoadingBits::update(UntaggedClass::kDeclarationLoaded,
                                           state_bits()));
 }
 
 void Class::set_is_type_finalized() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(is_declaration_loaded());
   ASSERT(!is_type_finalized());
   set_state_bits(
@@ -4941,46 +4952,64 @@ void Class::set_is_type_finalized() const {
 }
 
 void Class::set_is_synthesized_class() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_is_synthesized_class_unsafe();
+}
+
+void Class::set_is_synthesized_class_unsafe() const {
   set_state_bits(SynthesizedClassBit::update(true, state_bits()));
 }
 
 void Class::set_is_enum_class() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(EnumBit::update(true, state_bits()));
 }
 
 void Class::set_is_const() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(ConstBit::update(true, state_bits()));
 }
 
 void Class::set_is_transformed_mixin_application() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(TransformedMixinApplicationBit::update(true, state_bits()));
 }
 
 void Class::set_is_fields_marked_nullable() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(FieldsMarkedNullableBit::update(true, state_bits()));
 }
 
 void Class::set_is_allocated(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_is_allocated_unsafe(value);
+}
+
+void Class::set_is_allocated_unsafe(bool value) const {
   set_state_bits(IsAllocatedBit::update(value, state_bits()));
 }
 
 void Class::set_is_loaded(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(IsLoadedBit::update(value, state_bits()));
 }
 
 void Class::set_is_finalized() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!is_finalized());
   set_state_bits(
       ClassFinalizedBits::update(UntaggedClass::kFinalized, state_bits()));
 }
 
 void Class::set_is_allocate_finalized() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!is_allocate_finalized());
   set_state_bits(ClassFinalizedBits::update(UntaggedClass::kAllocateFinalized,
                                             state_bits()));
 }
 
 void Class::set_is_prefinalized() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!is_finalized());
   set_state_bits(
       ClassFinalizedBits::update(UntaggedClass::kPreFinalized, state_bits()));
@@ -6842,7 +6871,7 @@ void Function::EnsureHasCompiledUnoptimizedCode() const {
   ASSERT(!ForceOptimize());
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
-  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
+  // TODO(35224): DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
 
   const Error& error =
@@ -9567,7 +9596,8 @@ void Function::RestoreICDataMap(
   Zone* zone = Thread::Current()->zone();
   const Array& saved_ic_data = Array::Handle(zone, ic_data_array());
   if (saved_ic_data.IsNull()) {
-    // Could happen with deferred loading.
+    // Could happen with not-yet compiled unoptimized code or force-optimized
+    // functions.
     return;
   }
   const intptr_t saved_length = saved_ic_data.Length();
@@ -18061,8 +18091,6 @@ StringPtr LanguageError::FormatMessage() const {
 }
 
 const char* LanguageError::ToErrorCString() const {
-  Thread* thread = Thread::Current();
-  NoReloadScope no_reload_scope(thread);
   const String& msg_str = String::Handle(FormatMessage());
   return msg_str.ToCString();
 }

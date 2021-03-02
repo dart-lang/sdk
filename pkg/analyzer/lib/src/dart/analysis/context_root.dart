@@ -56,42 +56,55 @@ class ContextRootImpl implements ContextRoot {
 
   @override
   Iterable<String> analyzedFiles() sync* {
-    var visitedCanonicalPaths = <String>{};
-    for (String path in includedPaths) {
-      if (!_isExcluded(path)) {
-        Resource resource = resourceProvider.getResource(path);
-        if (resource is File) {
-          yield path;
-        } else if (resource is Folder) {
-          yield* _includedFilesInFolder(visitedCanonicalPaths, resource);
-        } else {
-          Type type = resource.runtimeType;
-          throw StateError('Unknown resource at path "$path" ($type)');
-        }
+    var visited = <String>{};
+    for (var includedPath in includedPaths) {
+      var included = resourceProvider.getResource(includedPath);
+      if (included is File) {
+        yield includedPath;
+      } else if (included is Folder) {
+        yield* _includedFilesInFolder(visited, included, includedPath);
+      } else {
+        Type type = included.runtimeType;
+        throw StateError('Unknown resource at path "$includedPath" ($type)');
       }
     }
   }
 
   @override
   bool isAnalyzed(String path) {
-    return _isIncluded(path) && !_isExcluded(path);
+    for (var includedPath in includedPaths) {
+      var included = resourceProvider.getResource(includedPath);
+      if (included is File) {
+        if (included.path == path) {
+          return true;
+        }
+      } else if (included is Folder) {
+        if (included.isOrContains(path)) {
+          if (!_isExcluded(path, included.path)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   /// Return the absolute paths of all of the files that are included in the
-  /// given [folder].
+  /// given [folder]. Ignore globs that match the explicit [includedPath].
   Iterable<String> _includedFilesInFolder(
     Set<String> visited,
     Folder folder,
+    String includedPath,
   ) sync* {
     for (Resource resource in folder.getChildren()) {
       String path = resource.path;
-      if (!_isExcluded(path)) {
+      if (!_isExcluded(path, includedPath)) {
         if (resource is File) {
           yield path;
         } else if (resource is Folder) {
           var canonicalPath = resource.resolveSymbolicLinksSync().path;
           if (visited.add(canonicalPath)) {
-            yield* _includedFilesInFolder(visited, resource);
+            yield* _includedFilesInFolder(visited, resource, includedPath);
             visited.remove(canonicalPath);
           }
         } else {
@@ -102,9 +115,12 @@ class ContextRootImpl implements ContextRoot {
     }
   }
 
-  /// Return `true` if the given [path] is either the same as or inside of one
-  /// of the [excludedPaths].
-  bool _isExcluded(String path) {
+  /// Return `true` if the given [path] is not excluded by one of the
+  /// [excludedPaths], or an applicable [excludedGlobs].
+  ///
+  /// This method is invoked while processing an explicitly [includedPath],
+  /// and so we should ignore globs that would have excluded it.
+  bool _isExcluded(String path, String includedPath) {
     Context context = resourceProvider.pathContext;
 
     for (var current = path; root.contains(current);) {
@@ -130,23 +146,13 @@ class ContextRootImpl implements ContextRoot {
         }
       }
     }
-    for (Glob pattern in excludedGlobs) {
-      if (pattern.matches(path)) {
-        return true;
-      }
-    }
-    return false;
-  }
 
-  /// Return `true` if the given [path] is either the same as or inside of one
-  /// of the [includedPaths].
-  bool _isIncluded(String path) {
-    Context context = resourceProvider.pathContext;
-    for (String includedPath in includedPaths) {
-      if (path == includedPath || context.isWithin(includedPath, path)) {
+    for (Glob pattern in excludedGlobs) {
+      if (!pattern.matches(includedPath) && pattern.matches(path)) {
         return true;
       }
     }
+
     return false;
   }
 }

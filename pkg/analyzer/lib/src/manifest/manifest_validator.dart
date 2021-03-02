@@ -135,7 +135,7 @@ class ManifestParser {
   /// Parses an attribute.
   ParseAttributeResult _parseAttribute(bool isRelevant) {
     var attributes = <String, _XmlAttribute>{};
-    /*late*/ bool isEmptyElement;
+    bool isEmptyElement;
 
     while (true) {
       if (_pos >= content.length) {

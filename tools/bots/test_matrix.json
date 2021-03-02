@@ -752,6 +752,15 @@
         "use-elf": true
       }
     },
+    "dartkp-dwarf-(linux|win|mac)-product-(arm64|arm64c|simarm|simarm64|simarm64c|x64|x64c)": {
+      "options": {
+        "builder-tag": "dwarf",
+        "vm-options": [
+          "--dwarf_stack_traces"
+        ],
+        "use-elf": true
+      }
+    },
     "dartkp-linux-(debug|product|release)-simarm-crossword": {
       "options": {
         "builder-tag": "crossword"
@@ -1430,6 +1439,33 @@
           ],
           "fileset": "vm-kernel",
           "shards": 15
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-dwarf-linux-product-x64",
+        "vm-kernel-precomp-dwarf-linux-product-simarm64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm kernel precomp builders with dwarf stack traces."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime_kernel",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-dwarf-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
         }
       ]
     },

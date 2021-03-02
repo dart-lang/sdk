@@ -115,22 +115,18 @@ void WeakCodeReferences::DisableCode() {
         continue;
       }
 
+      // Only optimized code can make dependencies (assumptions) about CHA /
+      // field guards and might need to be deoptimized if those assumptions no
+      // longer hold.
+      // See similar assertions when code gets registered in
+      // `Field::RegisterDependentCode` and `Class::RegisterCHACode`.
+      ASSERT(code.is_optimized());
+      ASSERT(function.unoptimized_code() != code.ptr());
+
       // If function uses dependent code switch it to unoptimized.
-      if (code.is_optimized() && (function.CurrentCode() == code.ptr())) {
+      if (function.CurrentCode() == code.ptr()) {
         ReportSwitchingCode(code);
         function.SwitchToUnoptimizedCode();
-      } else if (function.unoptimized_code() == code.ptr()) {
-        ReportSwitchingCode(code);
-        function.SetWasCompiled(false);
-        function.ClearICDataArray();
-        // Remove the code object from the function. The next time the
-        // function is invoked, it will be compiled again.
-        function.ClearCode();
-        // Invalidate the old code object so existing references to it
-        // (from optimized code) will be patched when invoked.
-        if (!code.IsDisabled()) {
-          code.DisableDartCode();
-        }
       } else {
         // Make non-OSR code non-entrant.
         if (!code.IsDisabled()) {

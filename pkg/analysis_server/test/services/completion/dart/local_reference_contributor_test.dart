@@ -1821,8 +1821,6 @@ class Foo {  }
     assertNotSuggested('Abcd');
   }
 
-  /// see: https://github.com/dart-lang/sdk/issues/36037
-  @failingTest
   Future<void> test_classReference_in_comment_eof() async {
     addTestSource(r'''
 class Abc { }

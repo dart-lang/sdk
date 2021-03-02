@@ -1086,16 +1086,17 @@ class Thread : public ThreadState {
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class ApiZone;
+  friend class DisabledNoActiveIsolateScope;
   friend class InterruptChecker;
   friend class Isolate;
   friend class IsolateGroup;
   friend class IsolateTestHelper;
+  friend class NoActiveIsolateScope;
   friend class NoOOBMessageScope;
   friend class NoReloadScope;
   friend class Simulator;
   friend class StackZone;
   friend class ThreadRegistry;
-  friend class NoActiveIsolateScope;
   friend class CompilerState;
   friend class compiler::target::Thread;
   friend class FieldTable;

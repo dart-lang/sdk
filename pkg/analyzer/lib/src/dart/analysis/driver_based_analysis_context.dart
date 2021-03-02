@@ -14,7 +14,7 @@ import 'package:analyzer/src/workspace/workspace.dart';
 /// An analysis context whose implementation is based on an analysis driver.
 class DriverBasedAnalysisContext implements AnalysisContext {
   /// The resource provider used to access the file system.
-  final ResourceProvider /*!*/ resourceProvider;
+  final ResourceProvider resourceProvider;
 
   @override
   final ContextRoot contextRoot;

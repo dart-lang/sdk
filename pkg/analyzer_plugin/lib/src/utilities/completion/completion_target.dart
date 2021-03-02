@@ -227,6 +227,14 @@ class CompletionTarget {
       // containingNode is still the entryPoint.
       assert(identical(containingNode, entryPoint));
 
+      // Check for comments on the EOF token (trailing comments in a file).
+      var commentToken =
+          _getContainingCommentToken(compilationUnit.endToken, offset);
+      if (commentToken != null) {
+        return CompletionTarget._(
+            compilationUnit, offset, compilationUnit, commentToken, true);
+      }
+
       // Since no completion target was found, we set the completion target
       // entity to null and use the entryPoint as the parent.
       return CompletionTarget._(

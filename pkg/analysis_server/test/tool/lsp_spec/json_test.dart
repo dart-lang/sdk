@@ -80,6 +80,19 @@ void main() {
       expect(output, equals(expected));
     });
 
+    test('toJson() converts lists of enums to their underlying values', () {
+      final kind = CompletionClientCapabilitiesCompletionItemKind(
+        valueSet: [CompletionItemKind.Color],
+      );
+      final json = kind.toJson();
+      expect(
+        json['valueSet'],
+        // The list should contain the toJson (string/int) representation of
+        // the color, and not the CompletionItemKind itself.
+        equals([CompletionItemKind.Color.toJson()]),
+      );
+    });
+
     test('serialises enums to their underlying values', () {
       final foldingRange = FoldingRange(
           startLine: 1,

@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:linter/src/rules.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'completion.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -96,68 +96,6 @@ linter: ''';
       verifyEditsFor: 'linter: ',
       expectedContent: expected,
     );
-  }
-}
-
-mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
-  Future<void> verifyCompletions(
-    Uri fileUri,
-    String content, {
-    List<String> expectCompletions,
-    String verifyEditsFor,
-    String expectedContent,
-    String expectedContentIfInserting,
-    bool verifyInsertReplaceRanges = false,
-  }) async {
-    // If verifyInsertReplaceRanges is true, we need both expected contents.
-    assert(verifyInsertReplaceRanges == false ||
-        (expectedContent != null && expectedContentIfInserting != null));
-
-    final textDocCapabilities = verifyInsertReplaceRanges
-        ? withCompletionItemInsertReplaceSupport(
-            emptyTextDocumentClientCapabilities)
-        : emptyTextDocumentClientCapabilities;
-
-    await initialize(textDocumentCapabilities: textDocCapabilities);
-    await openFile(fileUri, withoutMarkers(content));
-    final res = await getCompletion(fileUri, positionFromMarker(content));
-
-    for (final expectedCompletion in expectCompletions) {
-      expect(
-        res.any((c) => c.label == expectedCompletion),
-        isTrue,
-        reason:
-            '"$expectedCompletion" was not in ${res.map((c) => '"${c.label}"')}',
-      );
-    }
-
-    // Check the edits apply correctly.
-    if (verifyEditsFor != null) {
-      final item = res.singleWhere((c) => c.label == verifyEditsFor);
-      expect(item.insertTextFormat, isNull);
-      expect(item.insertText, isNull);
-
-      if (verifyInsertReplaceRanges) {
-        // Replacing.
-        final replaced = applyTextEdits(
-          withoutMarkers(content),
-          [textEditForReplace(item.textEdit)],
-        );
-        expect(replaced, equals(expectedContent));
-        // Inserting.
-        final inserted = applyTextEdits(
-          withoutMarkers(content),
-          [textEditForInsert(item.textEdit)],
-        );
-        expect(inserted, equals(expectedContentIfInserting));
-      } else {
-        final updated = applyTextEdits(
-          withoutMarkers(content),
-          [toTextEdit(item.textEdit)],
-        );
-        expect(updated, equals(expectedContent));
-      }
-    }
   }
 }
 

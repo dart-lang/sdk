@@ -24,6 +24,7 @@ FieldTable::~FieldTable() {
 
 bool FieldTable::IsReadyToUse() const {
   DEBUG_ASSERT(
+      IsolateGroup::Current()->IsReloading() ||
       IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
   return is_ready_to_use_;
 }
@@ -140,6 +141,7 @@ FieldTable* FieldTable::Clone(Isolate* for_isolate) {
   clone->table_ = new_table;
   clone->capacity_ = capacity_;
   clone->top_ = top_;
+  clone->free_head_ = free_head_;
   return clone;
 }
 

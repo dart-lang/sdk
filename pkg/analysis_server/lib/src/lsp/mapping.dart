@@ -824,10 +824,11 @@ lsp.CompletionItem toCompletionItem(
   @required bool completeFunctionCalls,
   Object resolutionData,
 }) {
-  // Build display labels and text to insert. insertText and filterText may
-  // differ from label (for ex. if the label includes things like (…)). If
-  // either are missing then label will be used by the client.
+  // Build separate display and filter labels. Displayed labels may have additional
+  // info appended (for example '(...)' on callables) that should not be included
+  // in filterText.
   var label = suggestion.displayText ?? suggestion.completion;
+  final filterText = label;
 
   // Trim any trailing comma from the (displayed) label.
   if (label.endsWith(',')) {
@@ -913,8 +914,8 @@ lsp.CompletionItem toCompletionItem(
     //  10 -> 999990
     //   1 -> 999999
     sortText: (1000000 - suggestion.relevance).toString(),
-    filterText: suggestion.completion != label
-        ? suggestion.completion
+    filterText: filterText != label
+        ? filterText
         : null, // filterText uses label if not set
     insertText: insertText != label
         ? insertText
@@ -922,7 +923,7 @@ lsp.CompletionItem toCompletionItem(
     insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
         ? insertTextFormat
         : null, // Defaults to PlainText if not supplied
-    textEdit: supportsInsertReplace
+    textEdit: supportsInsertReplace && insertLength != replacementLength
         ? Either2<TextEdit, InsertReplaceEdit>.t2(
             InsertReplaceEdit(
               insert: toRange(lineInfo, replacementOffset, insertLength),

@@ -532,11 +532,8 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         function.RestoreICDataMap(ic_data_array, clone_ic_data);
 
         if (optimized()) {
-          if (Compiler::IsBackgroundCompilation() &&
-              (function.ic_data_array() == Array::null())) {
-            Compiler::AbortBackgroundCompilation(
-                DeoptId::kNone, "RestoreICDataMap: ICData array cleared.");
-          }
+          ASSERT(function.ic_data_array() != Array::null() ||
+                 function.ForceOptimize());
         }
 
         if (FLAG_print_ic_data_map) {
