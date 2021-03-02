@@ -1148,7 +1148,6 @@ class UntaggedFunction : public UntaggedObject {
   // TODO(regis): Split packed_fields_ in 2 uint32_t if max values are too low.
 
   static constexpr intptr_t kMaxOptimizableBits = 1;
-  static constexpr intptr_t kMaxBackgroundOptimizableBits = 1;
   static constexpr intptr_t kMaxTypeParametersBits = 7;
   static constexpr intptr_t kMaxHasNamedOptionalParametersBits = 1;
   static constexpr intptr_t kMaxFixedParametersBits = 10;
@@ -1156,13 +1155,8 @@ class UntaggedFunction : public UntaggedObject {
 
   typedef BitField<uint32_t, bool, 0, kMaxOptimizableBits> PackedOptimizable;
   typedef BitField<uint32_t,
-                   bool,
-                   PackedOptimizable::kNextBit,
-                   kMaxBackgroundOptimizableBits>
-      PackedBackgroundOptimizable;
-  typedef BitField<uint32_t,
                    uint8_t,
-                   PackedBackgroundOptimizable::kNextBit,
+                   PackedOptimizable::kNextBit,
                    kMaxTypeParametersBits>
       PackedNumTypeParameters;
   typedef BitField<uint32_t,

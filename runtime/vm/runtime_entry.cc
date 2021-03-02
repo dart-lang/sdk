@@ -2552,7 +2552,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
 
     const char* script_uri;
     {
-      NoReloadScope no_reload(isolate_group, thread);
+      NoReloadScope no_reload(thread);
       const Library& lib =
           Library::Handle(isolate_group->object_store()->_internal_library());
       const Class& cls = Class::Handle(
@@ -2775,8 +2775,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   if (Compiler::CanOptimizeFunction(thread, function)) {
     auto isolate_group = thread->isolate_group();
     if (FLAG_background_compilation) {
-      if (function.is_background_optimizable() &&
-          isolate_group->background_compiler()->EnqueueCompilation(function)) {
+      if (isolate_group->background_compiler()->EnqueueCompilation(function)) {
         // Reduce the chance of triggering a compilation while the function is
         // being compiled in the background. INT32_MIN should ensure that it
         // takes long time to trigger a compilation.

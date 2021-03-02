@@ -866,22 +866,6 @@ NoOOBMessageScope::~NoOOBMessageScope() {
   }
 }
 
-NoReloadScope::NoReloadScope(IsolateGroup* isolate_group, Thread* thread)
-    : ThreadStackResource(thread), isolate_group_(isolate_group) {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(isolate_group_ != NULL);
-  isolate_group_->no_reload_scope_depth_.fetch_add(1);
-  ASSERT(isolate_group_->no_reload_scope_depth_ >= 0);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-}
-
-NoReloadScope::~NoReloadScope() {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  isolate_group_->no_reload_scope_depth_.fetch_sub(1);
-  ASSERT(isolate_group_->no_reload_scope_depth_ >= 0);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-}
-
 Bequest::~Bequest() {
   IsolateGroup* isolate_group = IsolateGroup::Current();
   CHECK_ISOLATE_GROUP(isolate_group);
@@ -1500,7 +1484,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
         T->isolate()->name(), result.ToErrorCString());
   }
 
-  NoReloadScope no_reload_scope(T->isolate_group(), T);
+  NoReloadScope no_reload(T);
   // Generate the error and stacktrace strings for the error message.
   const char* exception_cstr = nullptr;
   const char* stacktrace_cstr = nullptr;
@@ -2002,13 +1986,14 @@ void Isolate::BuildName(const char* name_prefix) {
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 bool IsolateGroup::CanReload() {
+  auto thread = Thread::Current();
   // TODO(dartbug.com/36097): As part of implementing hot-reload support for
   // --enable-isolate-groups, we should make the reload implementation wait for
   // any outstanding isolates to "check-in" (which should only be done after
   // making them runnable) instead of refusing the reload.
   bool all_runnable = true;
   {
-    SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
+    SafepointReadRwLocker ml(thread, isolates_lock_.get());
     for (Isolate* isolate : isolates_) {
       if (!isolate->is_runnable()) {
         all_runnable = false;
@@ -2017,7 +2002,7 @@ bool IsolateGroup::CanReload() {
     }
   }
   return !IsolateGroup::IsSystemIsolateGroup(this) && all_runnable &&
-         !IsReloading() && (no_reload_scope_depth_ == 0) &&
+         !IsReloading() && (thread->no_reload_scope_depth_ == 0) &&
          Isolate::IsolateCreationEnabled() &&
          OSThread::Current()->HasStackHeadroom(64 * KB);
 }
