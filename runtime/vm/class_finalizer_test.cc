@@ -16,8 +16,8 @@ static ClassPtr CreateTestClass(const char* name) {
   const Class& cls = Class::Handle(Class::New(
       Library::Handle(), class_name, script, TokenPosition::kNoSource));
   cls.set_interfaces(Object::empty_array());
-  cls.set_is_declaration_loaded();
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  cls.set_is_declaration_loaded();
   cls.SetFunctions(Object::empty_array());
   cls.SetFields(Object::empty_array());
   return cls.ptr();

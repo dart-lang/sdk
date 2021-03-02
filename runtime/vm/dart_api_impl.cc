@@ -4433,17 +4433,20 @@ static InstancePtr AllocateObject(Thread* thread, const Class& cls) {
     Class& iterate_cls = Class::Handle(zone, cls.ptr());
     Field& field = Field::Handle(zone);
     Array& fields = Array::Handle(zone);
-    while (!iterate_cls.IsNull()) {
-      ASSERT(iterate_cls.is_finalized());
-      iterate_cls.set_is_fields_marked_nullable();
-      fields = iterate_cls.fields();
-      iterate_cls = iterate_cls.SuperClass();
-      for (int field_num = 0; field_num < fields.Length(); field_num++) {
-        field ^= fields.At(field_num);
-        if (field.is_static()) {
-          continue;
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    if (!cls.is_fields_marked_nullable()) {
+      while (!iterate_cls.IsNull()) {
+        ASSERT(iterate_cls.is_finalized());
+        iterate_cls.set_is_fields_marked_nullable();
+        fields = iterate_cls.fields();
+        iterate_cls = iterate_cls.SuperClass();
+        for (int field_num = 0; field_num < fields.Length(); field_num++) {
+          field ^= fields.At(field_num);
+          if (field.is_static()) {
+            continue;
+          }
+          field.RecordStore(Object::null_object());
         }
-        field.RecordStore(Object::null_object());
       }
     }
   }
