@@ -6322,8 +6322,10 @@ void Serializer::PrintSnapshotSizes() {
         " HeapSize\n");
     GrowableArray<SerializationCluster*> clusters_by_size;
     for (intptr_t cid = 1; cid < num_cids_; cid++) {
-      SerializationCluster* cluster = clusters_by_cid_[cid];
-      if (cluster != NULL) {
+      if (auto const cluster = canonical_clusters_by_cid_[cid]) {
+        clusters_by_size.Add(cluster);
+      }
+      if (auto const cluster = clusters_by_cid_[cid]) {
         clusters_by_size.Add(cluster);
       }
     }
