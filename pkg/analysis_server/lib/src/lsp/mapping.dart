@@ -922,7 +922,7 @@ lsp.CompletionItem toCompletionItem(
     insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
         ? insertTextFormat
         : null, // Defaults to PlainText if not supplied
-    textEdit: supportsInsertReplace
+    textEdit: supportsInsertReplace && insertLength != replacementLength
         ? Either2<TextEdit, InsertReplaceEdit>.t2(
             InsertReplaceEdit(
               insert: toRange(lineInfo, replacementOffset, insertLength),

@@ -178,7 +178,7 @@ class CompletionResolveHandler
           filterText: item.filterText,
           insertText: newInsertText,
           insertTextFormat: item.insertTextFormat,
-          textEdit: supportsInsertReplace
+          textEdit: supportsInsertReplace && data.iLength != data.rLength
               ? Either2<TextEdit, InsertReplaceEdit>.t2(
                   InsertReplaceEdit(
                     insert: toRange(lineInfo, data.rOffset, data.iLength),

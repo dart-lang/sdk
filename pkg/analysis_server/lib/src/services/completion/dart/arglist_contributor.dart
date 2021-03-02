@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
@@ -58,9 +59,17 @@ class ArgListContributor extends DartCompletionContributor {
   void _addNamedParameterSuggestion(List<String> namedArgs,
       ParameterElement parameter, bool appendColon, bool appendComma) {
     var name = parameter.name;
+
+    var willReplace =
+        request.completionPreference == CompletionPreference.replace &&
+            request.replacementRange.length > 0;
+
     if (name != null && name.isNotEmpty && !namedArgs.contains(name)) {
       builder.suggestNamedArgument(parameter,
-          appendColon: appendColon, appendComma: appendComma);
+          // If there's a replacement length and the preference is to replace,
+          // we should not include colons/commas.
+          appendColon: appendColon && !willReplace,
+          appendComma: appendComma && !willReplace);
     }
   }
 

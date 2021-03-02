@@ -258,6 +258,7 @@ class CompletionHandler
         final serverSuggestions = await contributor.computeSuggestions(
           perf,
           completionRequest,
+          completionPreference: CompletionPreference.replace,
         );
 
         final insertLength = _computeInsertLength(

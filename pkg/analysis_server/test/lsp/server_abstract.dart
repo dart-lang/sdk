@@ -166,11 +166,7 @@ mixin ClientCapabilitiesHelperMixin {
     Map<String, dynamic> textDocumentCapabilities,
   ) {
     final json = source.toJson();
-    if (textDocumentCapabilities != null) {
-      textDocumentCapabilities.keys.forEach((key) {
-        json[key] = textDocumentCapabilities[key];
-      });
-    }
+    mergeJson(textDocumentCapabilities, json);
     return TextDocumentClientCapabilities.fromJson(json);
   }
 
@@ -179,11 +175,7 @@ mixin ClientCapabilitiesHelperMixin {
     Map<String, dynamic> windowCapabilities,
   ) {
     final json = source.toJson();
-    if (windowCapabilities != null) {
-      windowCapabilities.keys.forEach((key) {
-        json[key] = windowCapabilities[key];
-      });
-    }
+    mergeJson(windowCapabilities, json);
     return ClientCapabilitiesWindow.fromJson(json);
   }
 
@@ -192,12 +184,19 @@ mixin ClientCapabilitiesHelperMixin {
     Map<String, dynamic> workspaceCapabilities,
   ) {
     final json = source.toJson();
-    if (workspaceCapabilities != null) {
-      workspaceCapabilities.keys.forEach((key) {
-        json[key] = workspaceCapabilities[key];
-      });
-    }
+    mergeJson(workspaceCapabilities, json);
     return ClientCapabilitiesWorkspace.fromJson(json);
+  }
+
+  void mergeJson(Map<String, dynamic> source, Map<String, dynamic> dest) {
+    source.keys.forEach((key) {
+      if (source[key] is Map<String, dynamic> &&
+          dest[key] is Map<String, dynamic>) {
+        mergeJson(source[key], dest[key]);
+      } else {
+        dest[key] = source[key];
+      }
+    });
   }
 
   TextDocumentClientCapabilities
@@ -546,6 +545,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
   }
+
+  bool get initialized => _clientCapabilities != null;
 
   /// A stream of [NotificationMessage]s from the server.
   Stream<NotificationMessage> get notificationsFromServer {
