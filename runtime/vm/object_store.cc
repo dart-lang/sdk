@@ -281,6 +281,10 @@ void ObjectStore::InitKnownObjects() {
       cls.LookupFactoryAllowPrivate(Symbols::_GrowableListFactory());
   ASSERT(growable_list_factory_ != Function::null());
 
+  cls = core_lib.LookupClassAllowPrivate(Symbols::Error());
+  ASSERT(!cls.IsNull());
+  set_error_class(cls);
+
   // Cache the core private functions used for fast instance of checks.
   simple_instance_of_function_ =
       PrivateObjectLookup(Symbols::_simpleInstanceOf());
