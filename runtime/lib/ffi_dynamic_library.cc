@@ -28,8 +28,8 @@ static void* LoadExtensionLibrary(const char* library_file) {
   void* handle = dlopen(library_file, RTLD_LAZY);
   if (handle == nullptr) {
     char* error = dlerror();
-    const String& msg = String::Handle(
-        String::NewFormatted("Failed to load dynamic library (%s)", error));
+    const String& msg = String::Handle(String::NewFormatted(
+        "Failed to load dynamic library '%s': %s", library_file, error));
     Exceptions::ThrowArgumentError(msg);
   }
 
@@ -54,8 +54,8 @@ static void* LoadExtensionLibrary(const char* library_file) {
 
   if (ext == nullptr) {
     const int error = GetLastError();
-    const String& msg = String::Handle(
-        String::NewFormatted("Failed to load dynamic library (%i)", error));
+    const String& msg = String::Handle(String::NewFormatted(
+        "Failed to load dynamic library '%s': %i", library_file, error));
     Exceptions::ThrowArgumentError(msg);
   }
 
