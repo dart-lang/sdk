@@ -314,6 +314,15 @@ class FixInfo {
 class FixProcessor extends BaseProcessor {
   /// todo (pq): to replace nonLintProducerMap.
   static const Map<ErrorCode, List<FixInfo>> nonLintProducerMap2 = {
+    CompileTimeErrorCode.NON_BOOL_CONDITION: [
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: false,
+        generators: [
+          AddNeNull.newInstance,
+        ],
+      ),
+    ],
     HintCode.UNUSED_IMPORT: [
       FixInfo(
         canBeAppliedToFile: true,
