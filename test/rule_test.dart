@@ -87,20 +87,20 @@ void defineRuleUnitTests() {
       [
         Uri.parse('package:foo/src/bar.dart'),
         Uri.parse('package:foo/src/baz/bar.dart')
-      ]..forEach((uri) {
-          test(uri.toString(), () {
-            expect(isPackage(uri), isTrue);
-          });
+      ].forEach((uri) {
+        test(uri.toString(), () {
+          expect(isPackage(uri), isTrue);
         });
+      });
       [
         Uri.parse('foo/bar.dart'),
         Uri.parse('src/bar.dart'),
         Uri.parse('dart:async')
-      ]..forEach((uri) {
-          test(uri.toString(), () {
-            expect(isPackage(uri), isFalse);
-          });
+      ].forEach((uri) {
+        test(uri.toString(), () {
+          expect(isPackage(uri), isFalse);
         });
+      });
     });
 
     group('samePackage', () {
@@ -122,17 +122,17 @@ void defineRuleUnitTests() {
       [
         Uri.parse('package:foo/src/bar.dart'),
         Uri.parse('package:foo/src/baz/bar.dart')
-      ]..forEach((uri) {
-          test(uri.toString(), () {
-            expect(isImplementation(uri), isTrue);
-          });
+      ].forEach((uri) {
+        test(uri.toString(), () {
+          expect(isImplementation(uri), isTrue);
         });
+      });
       [Uri.parse('package:foo/bar.dart'), Uri.parse('src/bar.dart')]
-        ..forEach((uri) {
-          test(uri.toString(), () {
-            expect(isImplementation(uri), isFalse);
-          });
+          .forEach((uri) {
+        test(uri.toString(), () {
+          expect(isImplementation(uri), isFalse);
         });
+      });
     });
   });
 
@@ -267,7 +267,7 @@ void testRule(String ruleName, File file,
         Spelunker(file.absolute.path, featureSet: featureSet).spelunk();
         print('');
         // Lints.
-        ResultReporter(lints)..write();
+        ResultReporter(lints).write();
       }
 
       // Rethrow and fail.

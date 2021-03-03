@@ -59,8 +59,8 @@ void defineTests() {
       test('stats', () {
         out.buffer.clear();
         SimpleFormatter([info], null, out,
-            fileCount: 1, showStatistics: true, elapsedMs: 13)
-          ..write();
+                fileCount: 1, showStatistics: true, elapsedMs: 13)
+            .write();
         expect(out.buffer.toString(),
             startsWith('''/foo/bar/baz.dart 3:2 [test] MSG
 
@@ -115,8 +115,8 @@ mock_code                               1
         test('write', () {
           out.buffer.clear();
           SimpleFormatter([info], null, out,
-              fileCount: 1, machineOutput: true, elapsedMs: 13)
-            ..write();
+                  fileCount: 1, machineOutput: true, elapsedMs: 13)
+              .write();
 
           expect(out.buffer.toString().trim(),
               '''MockErrorSeverity|MockErrorType|MockError|/foo/bar/baz.dart|3|4|13|MSG

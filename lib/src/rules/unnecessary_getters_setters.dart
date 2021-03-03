@@ -89,8 +89,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // Only select getters with setter pairs
-    getters.keys.where((id) => setters.keys.contains(id))
-      ..forEach((id) => _visitGetterSetter(getters[id], setters[id]));
+    getters.keys
+        .where((id) => setters.keys.contains(id))
+        .forEach((id) => _visitGetterSetter(getters[id], setters[id]));
   }
 
   void _visitGetterSetter(

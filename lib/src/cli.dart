@@ -151,13 +151,13 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     var machine = options['machine'] ?? false;
     var quiet = options['quiet'] ?? false;
     ReportFormatter(errors, lintOptions.filter, outSink,
-        elapsedMs: timer.elapsedMilliseconds,
-        fileCount: linter.numSourcesAnalyzed,
-        fileRoot: commonRoot,
-        showStatistics: stats,
-        machineOutput: machine as bool,
-        quiet: quiet as bool)
-      ..write();
+            elapsedMs: timer.elapsedMilliseconds,
+            fileCount: linter.numSourcesAnalyzed,
+            fileRoot: commonRoot,
+            showStatistics: stats,
+            machineOutput: machine as bool,
+            quiet: quiet as bool)
+        .write();
     // ignore: avoid_catches_without_on_clauses
   } catch (err, stack) {
     errorSink.writeln('''An error occurred while linting
