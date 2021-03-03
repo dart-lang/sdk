@@ -1,3 +1,11 @@
+# 1.0.0
+
+- full library migration to null-safety
+- new lint: `use_if_null_to_convert_nulls_to_bools`
+- new lint: `deprecated_consistency`
+- new lint: `use_named_constants`
+- deprecation of `avoid_as`
+
 # 0.1.129
 
 - fixed a bug where `avoid_dynamic_calls` produced false-positives for `.call()`
