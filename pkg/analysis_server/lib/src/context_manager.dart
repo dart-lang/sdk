@@ -362,17 +362,19 @@ class ContextManagerImpl implements ContextManager {
 
   void _checkForAndroidManifestXmlUpdate(String path) {
     if (file_paths.isAndroidManifestXml(pathContext, path)) {
-      var context = getContextFor(path);
-      var driver = context.driver;
-      _analyzeAndroidManifestXml(driver, path);
+      var driver = getDriverFor(path);
+      if (driver != null) {
+        _analyzeAndroidManifestXml(driver, path);
+      }
     }
   }
 
   void _checkForFixDataYamlUpdate(String path) {
     if (file_paths.isFixDataYaml(pathContext, path)) {
-      var context = getContextFor(path);
-      var driver = context.driver;
-      _analyzeFixDataYaml(driver, path);
+      var driver = getDriverFor(path);
+      if (driver != null) {
+        _analyzeFixDataYaml(driver, path);
+      }
     }
   }
 
