@@ -4003,7 +4003,7 @@ class InstanceGet extends Expression {
   Member get interfaceTarget => interfaceTargetReference.asMember;
 
   void set interfaceTarget(Member member) {
-    interfaceTargetReference = getNonNullableMemberReferenceSetter(member);
+    interfaceTargetReference = getNonNullableMemberReferenceGetter(member);
   }
 
   @override
@@ -4150,7 +4150,7 @@ class InstanceTearOff extends Expression {
   Procedure get interfaceTarget => interfaceTargetReference.asProcedure;
 
   void set interfaceTarget(Procedure procedure) {
-    interfaceTargetReference = getNonNullableMemberReferenceSetter(procedure);
+    interfaceTargetReference = getNonNullableMemberReferenceGetter(procedure);
   }
 
   @override
