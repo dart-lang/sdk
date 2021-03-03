@@ -25,7 +25,7 @@ Future<List<String>> generateDills(String tempDir, String testDartFile) async {
     await File(testFile).writeAsString(version);
     final dillFile = path.join(tempDir, 'test.dart.${i++}.dill');
     await compile(testFile, dillFile);
-    dills.add(dillFile);
+    dills.add(Uri.file(dillFile).toString());
   }
   return dills;
 }
