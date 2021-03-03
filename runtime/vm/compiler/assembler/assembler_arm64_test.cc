@@ -4773,6 +4773,91 @@ ASSEMBLER_TEST_RUN(Drop, test) {
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
+ASSEMBLER_TEST_GENERATE(AndImmediate32Negative, assembler) {
+  __ AndImmediate(R0, R0, -512, kFourBytes);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(AndImmediate32Negative, test) {
+  typedef intptr_t (*IntPtrReturn)(intptr_t) DART_UNUSED;
+  EXPECT_EQ(0xfffffe00,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -42));
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 0));
+  EXPECT_EQ(0,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 42));
+}
+
+ASSEMBLER_TEST_GENERATE(OrImmediate32Negative, assembler) {
+  __ OrImmediate(R0, R0, -512, kFourBytes);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(OrImmediate32Negative, test) {
+  typedef intptr_t (*IntPtrReturn)(intptr_t) DART_UNUSED;
+  EXPECT_EQ(0xffffffd6,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -42));
+  EXPECT_EQ(0xfffffe00,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 0));
+  EXPECT_EQ(0xfffffe2a,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 42));
+}
+
+ASSEMBLER_TEST_GENERATE(XorImmediate32Negative, assembler) {
+  __ XorImmediate(R0, R0, -512, kFourBytes);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(XorImmediate32Negative, test) {
+  typedef intptr_t (*IntPtrReturn)(intptr_t) DART_UNUSED;
+  EXPECT_EQ(0x1d6,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -42));
+  EXPECT_EQ(0xfffffe00,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 0));
+  EXPECT_EQ(0xfffffe2a,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 42));
+}
+
+ASSEMBLER_TEST_GENERATE(TestImmediate32Negative, assembler) {
+  Label on_zero;
+  __ TestImmediate(R0, -512, kFourBytes);
+  __ b(&on_zero, EQ);
+  __ LoadImmediate(R0, 1);
+  __ ret();
+  __ Bind(&on_zero);
+  __ LoadImmediate(R0, 0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TestImmediate32Negative, test) {
+  typedef intptr_t (*IntPtrReturn)(intptr_t) DART_UNUSED;
+  EXPECT_EQ(1,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -42));
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 0));
+  EXPECT_EQ(0,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 42));
+}
+
+ASSEMBLER_TEST_GENERATE(CompareImmediate32Negative, assembler) {
+  Label on_zero;
+  __ CompareImmediate(R0, -512, kFourBytes);
+  __ b(&on_zero, LT);
+  __ LoadImmediate(R0, 0);
+  __ ret();
+  __ Bind(&on_zero);
+  __ LoadImmediate(R0, 1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(CompareImmediate32Negative, test) {
+  typedef intptr_t (*IntPtrReturn)(intptr_t) DART_UNUSED;
+  EXPECT_EQ(1,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -513));
+  EXPECT_EQ(0,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -512));
+  EXPECT_EQ(0,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -511));
+}
+
 }  // namespace compiler
 }  // namespace dart
 

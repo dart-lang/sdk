@@ -628,29 +628,25 @@ class Assembler : public AssemblerBase {
   // Addition and subtraction.
   // For add and sub, to use CSP for rn, o must be of type Operand::Extend.
   // For an unmodified rm in this case, use Operand(rm, UXTX, 0);
-  void add(Register rd, Register rn, Operand o) {
-    AddSubHelper(kEightBytes, false, false, rd, rn, o);
+  void add(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    AddSubHelper(sz, false, false, rd, rn, o);
   }
-  void adds(Register rd, Register rn, Operand o) {
-    AddSubHelper(kEightBytes, true, false, rd, rn, o);
+  void adds(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    AddSubHelper(sz, true, false, rd, rn, o);
   }
-  void addw(Register rd, Register rn, Operand o) {
-    AddSubHelper(kFourBytes, false, false, rd, rn, o);
+  void sub(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    AddSubHelper(sz, false, true, rd, rn, o);
   }
+  void subs(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    AddSubHelper(sz, true, true, rd, rn, o);
+  }
+  void addw(Register rd, Register rn, Operand o) { add(rd, rn, o, kFourBytes); }
   void addsw(Register rd, Register rn, Operand o) {
-    AddSubHelper(kFourBytes, true, false, rd, rn, o);
+    adds(rd, rn, o, kFourBytes);
   }
-  void sub(Register rd, Register rn, Operand o) {
-    AddSubHelper(kEightBytes, false, true, rd, rn, o);
-  }
-  void subs(Register rd, Register rn, Operand o) {
-    AddSubHelper(kEightBytes, true, true, rd, rn, o);
-  }
-  void subw(Register rd, Register rn, Operand o) {
-    AddSubHelper(kFourBytes, false, true, rd, rn, o);
-  }
+  void subw(Register rd, Register rn, Operand o) { sub(rd, rn, o, kFourBytes); }
   void subsw(Register rd, Register rn, Operand o) {
-    AddSubHelper(kFourBytes, true, true, rd, rn, o);
+    subs(rd, rn, o, kFourBytes);
   }
 
   // Addition and subtraction with carry.
@@ -810,72 +806,82 @@ class Assembler : public AssemblerBase {
   }
 
   // Logical immediate operations.
-  void andi(Register rd, Register rn, const Immediate& imm) {
+  void andi(Register rd,
+            Register rn,
+            const Immediate& imm,
+            OperandSize sz = kEightBytes) {
+    ASSERT(sz == kEightBytes || sz == kFourBytes);
+    int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
     Operand imm_op;
-    const bool immok =
-        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
+    const bool immok = Operand::IsImmLogical(imm.value(), width, &imm_op);
     ASSERT(immok);
-    EmitLogicalImmOp(ANDI, rd, rn, imm_op, kEightBytes);
+    EmitLogicalImmOp(ANDI, rd, rn, imm_op, sz);
   }
-  void orri(Register rd, Register rn, const Immediate& imm) {
+  void orri(Register rd,
+            Register rn,
+            const Immediate& imm,
+            OperandSize sz = kEightBytes) {
+    ASSERT(sz == kEightBytes || sz == kFourBytes);
+    int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
     Operand imm_op;
-    const bool immok =
-        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
+    const bool immok = Operand::IsImmLogical(imm.value(), width, &imm_op);
     ASSERT(immok);
-    EmitLogicalImmOp(ORRI, rd, rn, imm_op, kEightBytes);
+    EmitLogicalImmOp(ORRI, rd, rn, imm_op, sz);
   }
-  void eori(Register rd, Register rn, const Immediate& imm) {
+  void eori(Register rd,
+            Register rn,
+            const Immediate& imm,
+            OperandSize sz = kEightBytes) {
+    ASSERT(sz == kEightBytes || sz == kFourBytes);
+    int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
     Operand imm_op;
-    const bool immok =
-        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
+    const bool immok = Operand::IsImmLogical(imm.value(), width, &imm_op);
     ASSERT(immok);
-    EmitLogicalImmOp(EORI, rd, rn, imm_op, kEightBytes);
+    EmitLogicalImmOp(EORI, rd, rn, imm_op, sz);
   }
-  void andis(Register rd, Register rn, const Immediate& imm) {
+  void andis(Register rd,
+             Register rn,
+             const Immediate& imm,
+             OperandSize sz = kEightBytes) {
+    ASSERT(sz == kEightBytes || sz == kFourBytes);
+    int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
     Operand imm_op;
-    const bool immok =
-        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
+    const bool immok = Operand::IsImmLogical(imm.value(), width, &imm_op);
     ASSERT(immok);
-    EmitLogicalImmOp(ANDIS, rd, rn, imm_op, kEightBytes);
+    EmitLogicalImmOp(ANDIS, rd, rn, imm_op, sz);
   }
 
   // Logical (shifted) register operations.
-  void and_(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(AND, rd, rn, o, kEightBytes);
+  void and_(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(AND, rd, rn, o, sz);
+  }
+  void bic(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(BIC, rd, rn, o, sz);
+  }
+  void orr(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(ORR, rd, rn, o, sz);
+  }
+  void orn(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(ORN, rd, rn, o, sz);
+  }
+  void eor(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(EOR, rd, rn, o, sz);
+  }
+  void eon(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(EON, rd, rn, o, sz);
+  }
+  void ands(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(ANDS, rd, rn, o, sz);
+  }
+  void bics(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(BICS, rd, rn, o, sz);
   }
   void andw_(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(AND, rd, rn, o, kFourBytes);
+    and_(rd, rn, o, kFourBytes);
   }
-  void bic(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(BIC, rd, rn, o, kEightBytes);
-  }
-  void orr(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(ORR, rd, rn, o, kEightBytes);
-  }
-  void orrw(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(ORR, rd, rn, o, kFourBytes);
-  }
-  void orn(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(ORN, rd, rn, o, kEightBytes);
-  }
-  void ornw(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(ORN, rd, rn, o, kFourBytes);
-  }
-  void eor(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(EOR, rd, rn, o, kEightBytes);
-  }
-  void eorw(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(EOR, rd, rn, o, kFourBytes);
-  }
-  void eon(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(EON, rd, rn, o, kEightBytes);
-  }
-  void ands(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(ANDS, rd, rn, o, kEightBytes);
-  }
-  void bics(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(BICS, rd, rn, o, kEightBytes);
-  }
+  void orrw(Register rd, Register rn, Operand o) { orr(rd, rn, o, kFourBytes); }
+  void ornw(Register rd, Register rn, Operand o) { orn(rd, rn, o, kFourBytes); }
+  void eorw(Register rd, Register rn, Operand o) { eor(rd, rn, o, kFourBytes); }
 
   // Count leading zero bits.
   void clz(Register rd, Register rn) {
@@ -1090,10 +1096,14 @@ class Assembler : public AssemblerBase {
   // rn cmp o.
   // For add and sub, to use CSP for rn, o must be of type Operand::Extend.
   // For an unmodified rm in this case, use Operand(rm, UXTX, 0);
-  void cmp(Register rn, Operand o) { subs(ZR, rn, o); }
-  void cmpw(Register rn, Operand o) { subsw(ZR, rn, o); }
+  void cmp(Register rn, Operand o, OperandSize sz = kEightBytes) {
+    subs(ZR, rn, o, sz);
+  }
+  void cmpw(Register rn, Operand o) { cmp(rn, o, kFourBytes); }
   // rn cmp -o.
-  void cmn(Register rn, Operand o) { adds(ZR, rn, o); }
+  void cmn(Register rn, Operand o, OperandSize sz = kEightBytes) {
+    adds(ZR, rn, o, sz);
+  }
 
   void CompareRegisters(Register rn, Register rm) {
     if (rn == CSP) {
@@ -1490,8 +1500,12 @@ class Assembler : public AssemblerBase {
     // The caller of PopAndUntagPP() must explicitly allow use of popped PP.
     set_constant_pool_allowed(false);
   }
-  void tst(Register rn, Operand o) { ands(ZR, rn, o); }
-  void tsti(Register rn, const Immediate& imm) { andis(ZR, rn, imm); }
+  void tst(Register rn, Operand o, OperandSize sz = kEightBytes) {
+    ands(ZR, rn, o, sz);
+  }
+  void tsti(Register rn, const Immediate& imm, OperandSize sz = kEightBytes) {
+    andis(ZR, rn, imm, sz);
+  }
 
   void LslImmediate(Register rd,
                     Register rn,
@@ -1612,11 +1626,20 @@ class Assembler : public AssemblerBase {
                             Register rn,
                             int64_t imm,
                             OperandSize sz = kEightBytes);
-  void AndImmediate(Register rd, Register rn, int64_t imm);
-  void OrImmediate(Register rd, Register rn, int64_t imm);
-  void XorImmediate(Register rd, Register rn, int64_t imm);
-  void TestImmediate(Register rn, int64_t imm);
-  void CompareImmediate(Register rn, int64_t imm);
+  void AndImmediate(Register rd,
+                    Register rn,
+                    int64_t imm,
+                    OperandSize sz = kEightBytes);
+  void OrImmediate(Register rd,
+                   Register rn,
+                   int64_t imm,
+                   OperandSize sz = kEightBytes);
+  void XorImmediate(Register rd,
+                    Register rn,
+                    int64_t imm,
+                    OperandSize sz = kEightBytes);
+  void TestImmediate(Register rn, int64_t imm, OperandSize sz = kEightBytes);
+  void CompareImmediate(Register rn, int64_t imm, OperandSize sz = kEightBytes);
 
   void LoadFromOffset(Register dest,
                       const Address& address,
