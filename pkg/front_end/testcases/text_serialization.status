@@ -18,7 +18,6 @@ extensions/static_access_of_instance: RuntimeError
 general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
 general/ambiguous_exports: RuntimeError
-general/async_method_with_invalid_type: Crash
 general/await_in_non_async: RuntimeError
 general/bug21938: TypeCheckError
 general/bug30695: TypeCheckError

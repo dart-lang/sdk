@@ -175,28 +175,17 @@ class RecursiveContinuationRewriter extends Transformer {
     //  }
     final CoreTypes coreTypes = staticTypeContext.typeEnvironment.coreTypes;
 
-    DartType iterableType = stmt.iterable.getStaticType(staticTypeContext);
-    while (iterableType is TypeParameterType) {
-      TypeParameterType typeParameterType = iterableType;
-      iterableType =
-          typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
-    }
-
     // The CFE might invoke this transformation despite the program having
     // compile-time errors. So we will not transform this [stmt] if the
-    // `stmt.iterable` is not a subtype of non-nullable/legacy Iterable.
-    if (iterableType is! InterfaceType ||
-        !staticTypeContext.typeEnvironment.isSubtypeOf(
-            iterableType,
-            coreTypes.iterableRawType(staticTypeContext.nonNullable),
-            staticTypeContext.isNonNullableByDefault
-                ? SubtypeCheckMode.withNullabilities
-                : SubtypeCheckMode.ignoringNullabilities)) {
-      return super.visitForInStatement(stmt);
+    // `stmt.iterable` is an invalid expression or has an invalid type and
+    // instead eliminate the entire for-in and replace it with a invalid
+    // expression statement.
+    final iterable = stmt.iterable;
+    final iterableType = iterable.getStaticType(staticTypeContext);
+    if (iterableType is InvalidType) {
+      return ExpressionStatement(
+          InvalidExpression('Invalid iterable type in for-in'));
     }
-
-    final DartType iterationType = staticTypeContext.typeEnvironment
-        .forInElementType(stmt, (iterableType as InterfaceType));
 
     // The NNBD sdk declares that Iterable.get:iterator returns a non-nullable
     // `Iterator<E>`.
@@ -205,20 +194,21 @@ class RecursiveContinuationRewriter extends Transformer {
       Nullability.legacy
     ].contains(coreTypes.iterableGetIterator.function.returnType.nullability));
 
-    final iteratorType = InterfaceType(coreTypes.iteratorClass,
-        staticTypeContext.nonNullable, [iterationType]);
+    final DartType elementType = stmt.getElementType(staticTypeContext);
+    final iteratorType = InterfaceType(
+        coreTypes.iteratorClass, staticTypeContext.nonNullable, [elementType]);
 
     final syncForIterator = VariableDeclaration(
         ContinuationVariables.syncForIterator,
         initializer: PropertyGet(
-            stmt.iterable, Name('iterator'), coreTypes.iterableGetIterator)
-          ..fileOffset = stmt.iterable.fileOffset,
+            iterable, Name('iterator'), coreTypes.iterableGetIterator)
+          ..fileOffset = iterable.fileOffset,
         type: iteratorType)
-      ..fileOffset = stmt.iterable.fileOffset;
+      ..fileOffset = iterable.fileOffset;
 
     final condition = MethodInvocation(VariableGet(syncForIterator),
         Name('moveNext'), Arguments([]), coreTypes.iteratorMoveNext)
-      ..fileOffset = stmt.iterable.fileOffset;
+      ..fileOffset = iterable.fileOffset;
 
     final variable = stmt.variable
       ..initializer = (PropertyGet(VariableGet(syncForIterator),
