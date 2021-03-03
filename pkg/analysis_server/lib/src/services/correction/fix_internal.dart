@@ -287,13 +287,12 @@ class FixInFileProcessor {
         }
       }
     } else {
-      // todo (pq): add support for non-lint producers and update to a new nonLintProducerMap2
-      // var generators = FixProcessor.nonLintProducerMap[errorCode];
-      // if (generators != null) {
-      //   if (generators != null) {
-      //     producers.addAll(generators);
-      //   }
-      // }
+      var fixInfos = FixProcessor.nonLintProducerMap2[errorCode] ?? [];
+      for (var fixInfo in fixInfos) {
+        if (fixInfo.canBeAppliedToFile) {
+          producers.addAll(fixInfo.generators);
+        }
+      }
       // todo (pq): consider support for multiGenerators
     }
     return producers;
@@ -313,6 +312,19 @@ class FixInfo {
 
 /// The computer for Dart fixes.
 class FixProcessor extends BaseProcessor {
+  /// todo (pq): to replace nonLintProducerMap.
+  static const Map<ErrorCode, List<FixInfo>> nonLintProducerMap2 = {
+    HintCode.UNUSED_IMPORT: [
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: false,
+        generators: [
+          RemoveUnusedImport.newInstance,
+        ],
+      ),
+    ],
+  };
+
   /// todo (pq): to replace lintProducerMap.
   static const Map<String, List<FixInfo>> lintProducerMap2 = {
     LintNames.always_declare_return_types: [

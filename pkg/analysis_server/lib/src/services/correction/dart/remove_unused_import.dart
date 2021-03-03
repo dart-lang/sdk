@@ -14,6 +14,9 @@ class RemoveUnusedImport extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_IMPORT;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_UNUSED_IMPORT_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     // prepare ImportDirective
     var importDirective = node.thisOrAncestorOfType<ImportDirective>();
