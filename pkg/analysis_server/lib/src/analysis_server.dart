@@ -54,6 +54,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
+import 'package:http/http.dart' as http;
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
@@ -127,6 +128,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     DartSdkManager sdkManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService, {
+    http.Client httpClient,
     RequestStatisticsHelper requestStatistics,
     DiagnosticServer diagnosticServer,
     this.detachableFileSystemManager,
@@ -137,6 +139,7 @@ class AnalysisServer extends AbstractAnalysisServer {
           crashReportingAttachmentsBuilder,
           baseResourceProvider,
           instrumentationService,
+          httpClient,
           NotificationManager(channel, baseResourceProvider.pathContext),
           requestStatistics: requestStatistics,
         ) {
@@ -421,6 +424,14 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// Set the priority files to the given [files].
   void setPriorityFiles(String requestId, List<String> files) {
+    bool isPubspec(String filePath) =>
+        file_paths.isPubspecYaml(resourceProvider.pathContext, filePath);
+
+    // When a pubspec is opened, trigger package name caching for completion.
+    if (!pubPackageService.isRunning && files.any(isPubspec)) {
+      pubPackageService.beginPackageNamePreload();
+    }
+
     priorityFiles.clear();
     priorityFiles.addAll(files);
     // Set priority files in drivers.
@@ -429,7 +440,12 @@ class AnalysisServer extends AbstractAnalysisServer {
     });
   }
 
+  @override
   Future<void> shutdown() {
+    super.shutdown();
+
+    pubApi.close();
+
     if (options.analytics != null) {
       options.analytics
           .waitForLastPing(timeout: Duration(milliseconds: 200))

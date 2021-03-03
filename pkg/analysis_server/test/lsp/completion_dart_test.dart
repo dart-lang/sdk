@@ -682,7 +682,7 @@ main() { }
         mainFileUri,
         content,
         expectCompletions: [expectedLabel],
-        verifyEditsFor: expectedLabel,
+        applyEditsFor: expectedLabel,
         verifyInsertReplaceRanges: true,
         expectedContent: expectedReplaced,
         expectedContentIfInserting: expectedInserted,

@@ -13,6 +13,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/timestamped_data.dart';
+import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
 const _jsonEncoder = JsonEncoder.withIndent('    ');
@@ -25,6 +26,34 @@ Matcher isResponseFailure(String id, [RequestErrorCode code]) =>
 /// A [Matcher] that check that the given [Response] has an expected identifier
 /// and no error.
 Matcher isResponseSuccess(String id) => _IsResponseSuccess(id);
+
+class MockHttpClient extends http.BaseClient {
+  Future<http.Response> Function(http.BaseRequest request) sendHandler;
+  int sendHandlerCalls = 0;
+  bool wasClosed = false;
+
+  @override
+  void close() {
+    wasClosed = true;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    if (wasClosed) {
+      throw Exception('get() called after close()');
+    }
+
+    return sendHandler(request)
+        .then((resp) => http.StreamedResponse(
+            Stream.value(resp.body.codeUnits), resp.statusCode))
+        .whenComplete(() => sendHandlerCalls++);
+  }
+}
 
 /// A mock [LspServerCommunicationChannel] for testing [LspAnalysisServer].
 class MockLspServerChannel implements LspServerCommunicationChannel {

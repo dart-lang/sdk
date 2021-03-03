@@ -4,6 +4,7 @@
 
 import 'dart:core';
 import 'dart:io' as io;
+import 'dart:io';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
@@ -15,6 +16,8 @@ import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
+import 'package:analysis_server/src/services/pub/pub_api.dart';
+import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
@@ -42,6 +45,8 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 
 /// Implementations of [AbstractAnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.
@@ -93,6 +98,12 @@ abstract class AbstractAnalysisServer {
   /// or `null` if the initial analysis is not yet complete
   ServerPerformance performanceAfterStartup;
 
+  /// A client for making requests to the pub.dev API.
+  final PubApi pubApi;
+
+  /// A service for fetching pub.dev package details.
+  PubPackageService pubPackageService;
+
   /// The class into which performance information is currently being recorded.
   /// During startup, this will be the same as [performanceDuringStartup]
   /// and after startup is complete, this switches to [performanceAfterStartup].
@@ -126,9 +137,14 @@ abstract class AbstractAnalysisServer {
     this.crashReportingAttachmentsBuilder,
     ResourceProvider baseResourceProvider,
     this.instrumentationService,
+    http.Client httpClient,
     this.notificationManager, {
     this.requestStatistics,
-  }) : resourceProvider = OverlayResourceProvider(baseResourceProvider) {
+  })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
+        pubApi = PubApi(instrumentationService, httpClient,
+            Platform.environment['PUB_HOSTED_URL']) {
+    pubPackageService =
+        PubPackageService(instrumentationService, baseResourceProvider, pubApi);
     performance = performanceDuringStartup;
 
     pluginManager = PluginManager(
@@ -397,6 +413,11 @@ abstract class AbstractAnalysisServer {
     /*StackTrace*/ stackTrace, {
     bool fatal = false,
   });
+
+  @mustCallSuper
+  void shutdown() {
+    pubPackageService.shutdown();
+  }
 
   /// Return the path to the location of the byte store on disk, or `null` if
   /// there is no on-disk byte store.

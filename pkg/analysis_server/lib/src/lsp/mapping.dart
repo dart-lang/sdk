@@ -308,12 +308,10 @@ lsp.CompletionItem declarationToCompletionItem(
   return lsp.CompletionItem(
     label: label,
     kind: completionKind,
-    tags: supportedTags.isNotEmpty
-        ? [
-            if (supportsDeprecatedTag && declaration.isDeprecated)
-              lsp.CompletionItemTag.Deprecated
-          ]
-        : null,
+    tags: nullIfEmpty([
+      if (supportsDeprecatedTag && declaration.isDeprecated)
+        lsp.CompletionItemTag.Deprecated
+    ]),
     commitCharacters:
         includeCommitCharacters ? lsp.dartCompletionCommitCharacters : null,
     detail: getDeclarationCompletionDetail(declaration, completionKind,
@@ -631,6 +629,8 @@ lsp.LocationLink navigationTargetToLocationLink(
   );
 }
 
+List<T> nullIfEmpty<T>(List<T> items) => items.isEmpty ? null : items;
+
 /// Returns the file system path for a TextDocumentIdentifier.
 ErrorOr<String> pathOfDoc(lsp.TextDocumentIdentifier doc) =>
     pathOfUri(Uri.tryParse(doc?.uri));
@@ -782,6 +782,8 @@ lsp.CompletionItemKind suggestionKindToCompletionItemKind(
         return const [lsp.CompletionItemKind.Variable];
       case server.CompletionSuggestionKind.PARAMETER:
         return const [lsp.CompletionItemKind.Value];
+      case server.CompletionSuggestionKind.PACKAGE_NAME:
+        return const [lsp.CompletionItemKind.Module];
       default:
         return const [];
     }
@@ -894,12 +896,10 @@ lsp.CompletionItem toCompletionItem(
   return lsp.CompletionItem(
     label: label,
     kind: completionKind,
-    tags: supportedTags.isNotEmpty
-        ? [
-            if (supportsDeprecatedTag && suggestion.isDeprecated)
-              lsp.CompletionItemTag.Deprecated
-          ]
-        : null,
+    tags: nullIfEmpty([
+      if (supportsDeprecatedTag && suggestion.isDeprecated)
+        lsp.CompletionItemTag.Deprecated
+    ]),
     commitCharacters:
         includeCommitCharacters ? dartCompletionCommitCharacters : null,
     data: resolutionData,
