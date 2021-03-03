@@ -11,6 +11,7 @@ import 'bulk_fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ChangeMapTest);
+    defineReflectiveTests(NoFixTest);
   });
 }
 
@@ -34,5 +35,27 @@ var aa = new A();
     var errors = changeMap.libraryMap[testFile];
     expect(errors, hasLength(1));
     expect(errors[LintNames.unnecessary_new], 2);
+  }
+}
+
+@reflectiveTest
+class NoFixTest extends BulkFixProcessorTest {
+  /// See: https://github.com/dart-lang/sdk/issues/45177
+  Future<void> test_noFix() async {
+    createAnalysisOptionsFile(experiments: experiments, lints: [
+      'avoid_catching_errors', // NOTE: not in lintProducerMap
+    ]);
+
+    await resolveTestCode('''
+void bad() {
+  try {
+  } on Error catch (e) {
+    print(e);
+  }
+}
+''');
+
+    var processor = await computeFixes();
+    expect(processor.fixDetails, isEmpty);
   }
 }

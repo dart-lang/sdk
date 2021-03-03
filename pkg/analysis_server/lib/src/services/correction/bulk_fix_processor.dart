@@ -237,7 +237,7 @@ class BulkFixProcessor {
   ) sync* {
     final errorCode = diagnostic.errorCode;
     if (errorCode is LintCode) {
-      var fixes = FixProcessor.lintProducerMap2[errorCode.name];
+      var fixes = FixProcessor.lintProducerMap2[errorCode.name] ?? [];
       for (var fix in fixes) {
         if (fix.canBeBulkApplied) {
           final generators = fix.generators;
@@ -366,7 +366,7 @@ class BulkFixProcessor {
     try {
       var codeName = errorCode.name;
       if (errorCode is LintCode) {
-        var fixes = FixProcessor.lintProducerMap2[errorCode.name];
+        var fixes = FixProcessor.lintProducerMap2[errorCode.name] ?? [];
         for (var fix in fixes) {
           if (fix.canBeBulkApplied) {
             final generators = fix.generators;
