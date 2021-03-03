@@ -1677,7 +1677,10 @@ class Class : public Object {
   // Initial value for the cached number of type arguments.
   static const intptr_t kUnknownNumTypeArguments = -1;
 
-  int16_t num_type_arguments() const { return untag()->num_type_arguments_; }
+  int16_t num_type_arguments() const {
+    return LoadNonPointer<int16_t, std::memory_order_relaxed>(
+        &untag()->num_type_arguments_);
+  }
 
   uint32_t state_bits() const {
     // Ensure any following load instructions do not get performed before this
@@ -1688,6 +1691,7 @@ class Class : public Object {
 
  public:
   void set_num_type_arguments(intptr_t value) const;
+  void set_num_type_arguments_unsafe(intptr_t value) const;
 
   bool has_pragma() const { return HasPragmaBit::decode(state_bits()); }
   void set_has_pragma(bool has_pragma) const;
