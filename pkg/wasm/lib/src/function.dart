@@ -13,17 +13,16 @@ class WasmFunction {
   Pointer<WasmerFunc> _func;
   List<int> _argTypes;
   int _returnType;
-  Pointer<WasmerValVec> _args = allocate<WasmerValVec>();
-  Pointer<WasmerValVec> _results = allocate<WasmerValVec>();
+  Pointer<WasmerValVec> _args = calloc<WasmerValVec>();
+  Pointer<WasmerValVec> _results = calloc<WasmerValVec>();
 
   WasmFunction(this._name, this._func, this._argTypes, this._returnType) {
     _args.ref.length = _argTypes.length;
-    _args.ref.data = _argTypes.length == 0
-        ? nullptr
-        : allocate<WasmerVal>(count: _argTypes.length);
+    _args.ref.data =
+        _argTypes.length == 0 ? nullptr : calloc<WasmerVal>(_argTypes.length);
     _results.ref.length = _returnType == WasmerValKindVoid ? 0 : 1;
     _results.ref.data =
-        _returnType == WasmerValKindVoid ? nullptr : allocate<WasmerVal>();
+        _returnType == WasmerValKindVoid ? nullptr : calloc<WasmerVal>();
     for (var i = 0; i < _argTypes.length; ++i) {
       _args.ref.data[i].kind = _argTypes[i];
     }

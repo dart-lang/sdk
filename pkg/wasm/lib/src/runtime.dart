@@ -435,18 +435,18 @@ class WasmRuntime {
 
   Pointer<WasmerModule> compile(
       Object owner, Pointer<WasmerStore> store, Uint8List data) {
-    var dataPtr = allocate<Uint8>(count: data.length);
+    var dataPtr = calloc<Uint8>(data.length);
     for (int i = 0; i < data.length; ++i) {
       dataPtr[i] = data[i];
     }
-    var dataVec = allocate<WasmerByteVec>();
+    var dataVec = calloc<WasmerByteVec>();
     dataVec.ref.data = dataPtr;
     dataVec.ref.length = data.length;
 
     var modulePtr = _module_new(store, dataVec);
 
-    free(dataPtr);
-    free(dataVec);
+    calloc.free(dataPtr);
+    calloc.free(dataVec);
 
     _checkNotEqual(modulePtr, nullptr, "Wasm module compile failed.");
     _set_finalizer_for_module(owner, modulePtr);
@@ -454,7 +454,7 @@ class WasmRuntime {
   }
 
   List<WasmExportDescriptor> exportDescriptors(Pointer<WasmerModule> module) {
-    var exportsVec = allocate<WasmerExporttypeVec>();
+    var exportsVec = calloc<WasmerExporttypeVec>();
     _module_exports(module, exportsVec);
     var exps = <WasmExportDescriptor>[];
     for (var i = 0; i < exportsVec.ref.length; ++i) {
@@ -467,12 +467,12 @@ class WasmRuntime {
       exps.add(WasmExportDescriptor(
           kind, _exporttype_name(exp).ref.toString(), fnType));
     }
-    free(exportsVec);
+    calloc.free(exportsVec);
     return exps;
   }
 
   List<WasmImportDescriptor> importDescriptors(Pointer<WasmerModule> module) {
-    var importsVec = allocate<WasmerImporttypeVec>();
+    var importsVec = calloc<WasmerImporttypeVec>();
     _module_imports(module, importsVec);
     var imps = <WasmImportDescriptor>[];
     for (var i = 0; i < importsVec.ref.length; ++i) {
@@ -488,7 +488,7 @@ class WasmRuntime {
           _importtype_name(imp).ref.toString(),
           fnType));
     }
-    free(importsVec);
+    calloc.free(importsVec);
     return imps;
   }
 
@@ -504,11 +504,11 @@ class WasmRuntime {
         traps.remove(entry);
         throw entry.exception;
       } else {
-        var trapMessage = allocate<WasmerByteVec>();
+        var trapMessage = calloc<WasmerByteVec>();
         _trap_message(trap, trapMessage);
         var message = "Wasm trap when calling $source: ${trapMessage.ref}";
         _byte_vec_delete(trapMessage);
-        free(trapMessage);
+        calloc.free(trapMessage);
         _trap_delete(trap);
         throw Exception(message);
       }
@@ -517,11 +517,11 @@ class WasmRuntime {
 
   Pointer<WasmerInstance> instantiate(Object owner, Pointer<WasmerStore> store,
       Pointer<WasmerModule> module, Pointer<WasmerExternVec> imports) {
-    var trap = allocate<Pointer<WasmerTrap>>();
+    var trap = calloc<Pointer<WasmerTrap>>();
     trap.value = nullptr;
     var inst = _instance_new(store, module, imports, trap);
     maybeThrowTrap(trap.value, "module initialization function");
-    free(trap);
+    calloc.free(trap);
     _checkNotEqual(inst, nullptr, "Wasm module instantiation failed.");
     _set_finalizer_for_instance(owner, inst);
     return inst;
@@ -529,14 +529,14 @@ class WasmRuntime {
 
   // Clean up the exports after use, with deleteExports.
   Pointer<WasmerExternVec> exports(Pointer<WasmerInstance> instancePtr) {
-    var exports = allocate<WasmerExternVec>();
+    var exports = calloc<WasmerExternVec>();
     _instance_exports(instancePtr, exports);
     return exports;
   }
 
   void deleteExports(Pointer<WasmerExternVec> exports) {
     _extern_vec_delete(exports);
-    free(exports);
+    calloc.free(exports);
   }
 
   int externKind(Pointer<WasmerExtern> extern) {
@@ -585,11 +585,11 @@ class WasmRuntime {
 
   Pointer<WasmerMemory> newMemory(
       Object owner, Pointer<WasmerStore> store, int pages, int? maxPages) {
-    var limPtr = allocate<WasmerLimits>();
+    var limPtr = calloc<WasmerLimits>();
     limPtr.ref.min = pages;
     limPtr.ref.max = maxPages ?? wasm_limits_max_default;
     var memType = _memorytype_new(limPtr);
-    free(limPtr);
+    calloc.free(limPtr);
     _checkNotEqual(memType, nullptr, "Failed to create memory type.");
     _set_finalizer_for_memorytype(owner, memType);
     var memory = _checkNotEqual(
@@ -626,13 +626,13 @@ class WasmRuntime {
   }
 
   Pointer<WasmerTrap> newTrap(Pointer<WasmerStore> store, dynamic exception) {
-    var msg = allocate<WasmerByteVec>();
-    msg.ref.data = allocate<Uint8>();
+    var msg = calloc<WasmerByteVec>();
+    msg.ref.data = calloc<Uint8>();
     msg.ref.data[0] = 0;
     msg.ref.length = 0;
     var trap = _trap_new(store, msg);
-    free(msg.ref.data);
-    free(msg);
+    calloc.free(msg.ref.data);
+    calloc.free(msg);
     _checkNotEqual(trap, nullptr, "Failed to create trap.");
     var entry = _WasmTrapsEntry(exception);
     _set_finalizer_for_trap(entry, trap);
@@ -641,10 +641,10 @@ class WasmRuntime {
   }
 
   Pointer<WasmerWasiConfig> newWasiConfig() {
-    var name = allocate<Uint8>();
+    var name = calloc<Uint8>();
     name[0] = 0;
     var config = _wasi_config_new(name);
-    free(name);
+    calloc.free(name);
     return _checkNotEqual(config, nullptr, "Failed to create WASI config.");
   }
 
@@ -682,10 +682,10 @@ class WasmRuntime {
 
   String _getLastError() {
     var length = _wasmer_last_error_length();
-    var buf = allocate<Uint8>(count: length);
+    var buf = calloc<Uint8>(length);
     _wasmer_last_error_message(buf, length);
     String message = utf8.decode(buf.asTypedList(length));
-    free(buf);
+    calloc.free(buf);
     return message;
   }
 
@@ -707,7 +707,7 @@ class _WasiStreamIterator implements Iterator<List<int>> {
   static final int _bufferLength = 1024;
   Pointer<WasmerWasiEnv> _env;
   Function _reader;
-  Pointer<Uint8> _buf = allocate<Uint8>(count: _bufferLength);
+  Pointer<Uint8> _buf = calloc<Uint8>(_bufferLength);
   int _length = 0;
   _WasiStreamIterator(this._env, this._reader) {}
 

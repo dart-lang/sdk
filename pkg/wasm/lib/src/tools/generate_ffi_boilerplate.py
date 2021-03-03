@@ -88,7 +88,7 @@ def getFns():
 
 
 opaqueTypeTemplate = '''// %s_t
-class Wasmer%s extends Struct {}'''
+class Wasmer%s extends Opaque {}'''
 
 vecTypeTemplate = '''// %s_vec_t
 class Wasmer%sVec extends Struct {
