@@ -537,44 +537,8 @@ static void FindErrorHandler(uword* handler_pc,
   *handler_fp = frame->fp();
 }
 
-static uword RemapExceptionPCForDeopt(Thread* thread,
-                                      uword program_counter,
-                                      uword frame_pointer) {
-  MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
-      thread->isolate()->pending_deopts();
-  if (pending_deopts->length() > 0) {
-    // Check if the target frame is scheduled for lazy deopt.
-    for (intptr_t i = 0; i < pending_deopts->length(); i++) {
-      if ((*pending_deopts)[i].fp() == frame_pointer) {
-        // Deopt should now resume in the catch handler instead of after the
-        // call.
-        (*pending_deopts)[i].set_pc(program_counter);
-
-        // Jump to the deopt stub instead of the catch handler.
-        program_counter = StubCode::DeoptimizeLazyFromThrow().EntryPoint();
-        if (FLAG_trace_deoptimization) {
-          THR_Print("Throwing to frame scheduled for lazy deopt fp=%" Pp "\n",
-                    frame_pointer);
-
-#if defined(DEBUG)
-          // Ensure the frame references optimized code.
-          ObjectPtr pc_marker = *(reinterpret_cast<ObjectPtr*>(
-              frame_pointer + runtime_frame_layout.code_from_fp * kWordSize));
-          Code& code = Code::Handle(Code::RawCast(pc_marker));
-          ASSERT(code.is_optimized() && !code.is_force_optimized());
-#endif
-        }
-        break;
-      }
-    }
-  }
-  return program_counter;
-}
-
 static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
-  MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
-      thread->isolate()->pending_deopts();
-  if (pending_deopts->length() > 0) {
+  if (thread->pending_deopts().HasPendingDeopts()) {
     // We may be jumping over frames scheduled for lazy deopt. Remove these
     // frames from the pending deopt table, but only after unmarking them so
     // any stack walk that happens before the stack is unwound will still work.
@@ -596,17 +560,8 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
     ValidateFrames();
 #endif
 
-    for (intptr_t i = 0; i < pending_deopts->length(); i++) {
-      if ((*pending_deopts)[i].fp() < frame_pointer) {
-        if (FLAG_trace_deoptimization) {
-          THR_Print(
-              "Lazy deopt skipped due to throw for "
-              "fp=%" Pp ", pc=%" Pp "\n",
-              (*pending_deopts)[i].fp(), (*pending_deopts)[i].pc());
-        }
-        pending_deopts->RemoveAt(i--);
-      }
-    }
+    thread->pending_deopts().ClearPendingDeoptsBelow(
+        frame_pointer, PendingDeopts::kClearDueToThrow);
 
 #if defined(DEBUG)
     ValidateFrames();
@@ -620,8 +575,8 @@ static void JumpToExceptionHandler(Thread* thread,
                                    uword frame_pointer,
                                    const Object& exception_object,
                                    const Object& stacktrace_object) {
-  uword remapped_pc =
-      RemapExceptionPCForDeopt(thread, program_counter, frame_pointer);
+  uword remapped_pc = thread->pending_deopts().RemapExceptionPCForDeopt(
+      program_counter, frame_pointer);
   thread->set_active_exception(exception_object);
   thread->set_active_stacktrace(stacktrace_object);
   thread->set_resume_pc(remapped_pc);

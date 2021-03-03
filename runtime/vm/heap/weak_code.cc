@@ -77,15 +77,15 @@ void WeakCodeReferences::DisableCode() {
   isolate_group->RunWithStoppedMutators([&]() {
     Code& code = Code::Handle();
     isolate_group->ForEachIsolate([&](Isolate* isolate) {
+      auto mutator_thread = isolate->mutator_thread();
       DartFrameIterator iterator(
-          isolate->mutator_thread(),
-          StackFrameIterator::kAllowCrossThreadIteration);
+          mutator_thread, StackFrameIterator::kAllowCrossThreadIteration);
       StackFrame* frame = iterator.NextFrame();
       while (frame != nullptr) {
         code = frame->LookupDartCode();
         if (IsOptimizedCode(code_objects, code)) {
           ReportDeoptimization(code);
-          DeoptimizeAt(isolate, code, frame);
+          DeoptimizeAt(mutator_thread, code, frame);
         }
         frame = iterator.NextFrame();
       }

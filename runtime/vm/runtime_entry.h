@@ -160,7 +160,7 @@ extern "C" LocalHandle* DLRT_AllocateHandle(ApiLocalScope* scope);
 
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 
-void DeoptimizeAt(Isolate* isolate,
+void DeoptimizeAt(Thread* mutator_thread,
                   const Code& optimized_code,
                   StackFrame* frame);
 void DeoptimizeFunctionsOnStack();

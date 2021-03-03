@@ -12,6 +12,12 @@ import '../../../../../pkg/front_end/test/tool/reload.dart';
 
 export '../snapshot_test_helper.dart' show withTempDir;
 
+bool get currentVmSupportsReload {
+  final executable = Platform.executable;
+  return !executable.contains('Product') &&
+      !executable.contains('dart_precompiled_runtime');
+}
+
 final includeIn = RegExp(r'//\s+@include-in-reload-([0-9]+)([+]?)\s*$');
 
 Future<List<String>> generateDills(String tempDir, String testDartFile) async {
