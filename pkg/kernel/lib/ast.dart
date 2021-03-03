@@ -9119,15 +9119,26 @@ class ForInStatement extends Statement {
       TypeParameterType typeParameterType = iterableType;
       iterableType = typeParameterType.bound;
     }
+    if (iterableType is NeverType) {
+      return iterableType;
+    }
+    if (iterableType is InvalidType) {
+      return iterableType;
+    }
+    if (iterableType is! InterfaceType) {
+      // TODO(johnniwinther): Change this to an assert once the CFE correctly
+      // inserts casts for all invalid iterable types.
+      return const InvalidType();
+    }
     if (isAsync) {
       List<DartType> typeArguments = context.typeEnvironment
-          .getTypeArgumentsAsInstanceOf(iterableType as InterfaceType,
-              context.typeEnvironment.coreTypes.streamClass)!;
+          .getTypeArgumentsAsInstanceOf(
+              iterableType, context.typeEnvironment.coreTypes.streamClass)!;
       return typeArguments.single;
     } else {
       List<DartType> typeArguments = context.typeEnvironment
-          .getTypeArgumentsAsInstanceOf(iterableType as InterfaceType,
-              context.typeEnvironment.coreTypes.iterableClass)!;
+          .getTypeArgumentsAsInstanceOf(
+              iterableType, context.typeEnvironment.coreTypes.iterableClass)!;
       return typeArguments.single;
     }
   }

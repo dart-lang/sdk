@@ -3,3 +3,5 @@ import self as self;
 
 static method foo() → dynamic async 
   ;
+static method main() → dynamic
+  ;

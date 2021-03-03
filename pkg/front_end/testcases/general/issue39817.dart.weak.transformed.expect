@@ -1,9 +1,15 @@
 library;
 import self as self;
+import "dart:core" as core;
 
 static method foo() → dynamic {
   Null _null;
-  for (dynamic i in _null) {
+  {
+    core::Iterator<invalid-type>* :sync-for-iterator = _null.{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      dynamic i = :sync-for-iterator.{core::Iterator::current};
+      {}
+    }
   }
   ;
 }
