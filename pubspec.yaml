@@ -29,7 +29,7 @@ dev_dependencies:
   cli_util: ^0.3.0
   fixnum:
     path: test/mock_packages/fixnum
-  github: ^7.1.0-nullsafe.0
+  github: ^8.0.0-nullsafe.1
   grinder: ^0.9.0-nullsafety
   markdown: ^4.0.0
   matcher: ^0.12.10

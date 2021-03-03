@@ -284,7 +284,7 @@ class ScoreCard {
       var bugReferences = <String>[];
       for (var bug in bugs) {
         var title = bug.title;
-        if (title != null && title.contains(lint.name)) {
+        if (title.contains(lint.name)) {
           bugReferences.add('#${bug.number.toString()}');
         }
       }

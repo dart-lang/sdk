@@ -273,7 +273,7 @@ class ScoreCard {
       var bugReferences = <String>[];
       for (var bug in bugs) {
         var title = bug.title;
-        if (title != null && title.contains(lint.name)) {
+        if (title.contains(lint.name)) {
           bugReferences.add('#${bug.number.toString()}');
         }
       }
@@ -296,10 +296,7 @@ class ScoreCard {
   }
 }
 
-bool _isBug(Issue issue) {
-  var labels = issue.labels;
-  return labels != null && labels.map((l) => l.name).contains('bug');
-}
+bool _isBug(Issue issue) => issue.labels.map((l) => l.name).contains('bug');
 
 class LintScore {
   String? name;
