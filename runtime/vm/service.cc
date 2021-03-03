@@ -4314,9 +4314,6 @@ void Service::SendEmbedderEvent(Isolate* isolate,
                                 const char* event_kind,
                                 const uint8_t* bytes,
                                 intptr_t bytes_len) {
-  if (!Service::debug_stream.enabled()) {
-    return;
-  }
   ServiceEvent event(isolate, ServiceEvent::kEmbedder);
   event.set_embedder_kind(event_kind);
   event.set_embedder_stream_id(stream_id);

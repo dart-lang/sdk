@@ -13,6 +13,8 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/probability_range.dart';
+import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/status/pages.dart';
@@ -598,12 +600,31 @@ class CompletionMetricsComputer {
 
   CompletionMetricsComputer(this.rootPath, this.options);
 
+  /// Compare the relevance [tables] to the default relevance tables.
+  void compareRelevanceTables(List<RelevanceTables> tables) {
+    assert(tables.isNotEmpty);
+    for (var tablePair in tables) {
+      targetMetrics.add(CompletionMetrics(tablePair.name, enableFunction: () {
+        elementKindRelevance = tablePair.elementKindRelevance;
+        keywordRelevance = tablePair.keywordRelevance;
+      }, disableFunction: () {
+        elementKindRelevance = defaultElementKindRelevance;
+        keywordRelevance = defaultKeywordRelevance;
+      }));
+    }
+  }
+
   Future<int> computeMetrics() async {
     resultCode = 0;
     // To compare two or more changes to completions, add a `CompletionMetrics`
     // object with enable and disable functions to the list of `targetMetrics`.
     targetMetrics.add(CompletionMetrics('shipping',
         enableFunction: null, disableFunction: null));
+
+    // To compare two or more relevance tables, uncomment the line below and
+    // add the `RelevanceTable`s to the list. The default relevance tables
+    // should not be included in the list.
+//     compareRelevanceTables([]);
 
     final collection = AnalysisContextCollection(
       includedPaths: [rootPath],
@@ -1758,6 +1779,22 @@ class MetricsSuggestionListener implements SuggestionListener {
   void missingElementKindTableFor(String completionLocation) {
     missingCompletionLocationTable = completionLocation;
   }
+}
+
+/// A description of a pair of relevance tables to be used in an experiment.
+class RelevanceTables {
+  /// The name of the experiment using the tables.
+  final String name;
+
+  /// The relevance table used for element kinds.
+  final Map<String, Map<protocol.ElementKind, ProbabilityRange>>
+      elementKindRelevance;
+
+  /// The relevance table used for keywords.
+  final Map<String, Map<String, ProbabilityRange>> keywordRelevance;
+
+  /// Initialize a newly created description of a pair of relevance tables.
+  RelevanceTables(this.name, this.elementKindRelevance, this.keywordRelevance);
 }
 
 /// The information being remembered about an individual suggestion.
