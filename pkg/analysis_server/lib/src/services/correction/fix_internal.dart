@@ -965,10 +965,8 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_parenthesis: [
       FixInfo(
-        // todo (pq): enable when tested
-        canBeAppliedToFile: false,
-        // not currently supported; TODO(pq): consider adding
-        canBeBulkApplied: false,
+        canBeAppliedToFile: true,
+        canBeBulkApplied: true,
         generators: [
           RemoveUnnecessaryParentheses.newInstance,
         ],
