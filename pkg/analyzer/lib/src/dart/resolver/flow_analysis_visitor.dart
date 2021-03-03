@@ -355,9 +355,6 @@ class TypeSystemTypeOperations
   TypeSystemTypeOperations(this.typeSystem);
 
   @override
-  DartType get topType => typeSystem.objectQuestion;
-
-  @override
   TypeClassification classifyType(DartType type) {
     if (isSubtypeOf(type, typeSystem.typeProvider.objectType)) {
       return TypeClassification.nonNullable;

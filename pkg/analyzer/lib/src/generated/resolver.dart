@@ -514,9 +514,10 @@ class ResolverVisitor extends ScopedVisitor {
   /// Computes the appropriate set of context messages to report along with an
   /// error that may have occurred because [receiver] was not type promoted.
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
-      Expression? receiver, SyntacticEntity errorEntity) {
+      Expression? receiver,
+      SyntacticEntity errorEntity,
+      Map<DartType, NonPromotionReason>? whyNotPromoted) {
     List<DiagnosticMessage> messages = [];
-    var whyNotPromoted = flowAnalysis?.flow?.whyNotPromoted(receiver);
     if (whyNotPromoted != null) {
       for (var entry in whyNotPromoted.entries) {
         var whyNotPromotedVisitor = _WhyNotPromotedVisitor(
@@ -526,10 +527,17 @@ class ResolverVisitor extends ScopedVisitor {
         if (message != null) {
           if (flowAnalysis!.dataForTesting != null) {
             var nonPromotionReasonText = entry.value.shortName;
+            var args = <String>[];
             if (whyNotPromotedVisitor.propertyReference != null) {
               var id =
                   computeMemberId(whyNotPromotedVisitor.propertyReference!);
-              nonPromotionReasonText += '($id)';
+              args.add('target: $id');
+            }
+            if (whyNotPromotedVisitor.propertyType != null) {
+              args.add('type: ${whyNotPromotedVisitor.propertyType}');
+            }
+            if (args.isNotEmpty) {
+              nonPromotionReasonText += '(${args.join(', ')})';
             }
             flowAnalysis!.dataForTesting!.nonPromotionReasons[errorEntity] =
                 nonPromotionReasonText;
@@ -3338,7 +3346,7 @@ class _SwitchExhaustiveness {
 class _WhyNotPromotedVisitor
     implements
         NonPromotionReasonVisitor<DiagnosticMessage?, AstNode, Expression,
-            PromotableElement> {
+            PromotableElement, DartType> {
   final Source source;
 
   final Expression? _receiver;
@@ -3348,6 +3356,8 @@ class _WhyNotPromotedVisitor
   final FlowAnalysisDataForTesting? _dataForTesting;
 
   PropertyAccessorElement? propertyReference;
+
+  DartType? propertyType;
 
   _WhyNotPromotedVisitor(
       this.source, this._receiver, this._errorEntity, this._dataForTesting);
@@ -3394,7 +3404,8 @@ class _WhyNotPromotedVisitor
   }
 
   @override
-  DiagnosticMessage? visitPropertyNotPromoted(PropertyNotPromoted reason) {
+  DiagnosticMessage? visitPropertyNotPromoted(
+      PropertyNotPromoted<DartType> reason) {
     var receiver = _receiver;
     Element? receiverElement;
     if (receiver is SimpleIdentifier) {
@@ -3408,6 +3419,7 @@ class _WhyNotPromotedVisitor
     }
     if (receiverElement is PropertyAccessorElement) {
       propertyReference = receiverElement;
+      propertyType = reason.staticType;
       return _contextMessageForProperty(receiverElement, reason.propertyName);
     } else {
       assert(receiverElement == null,

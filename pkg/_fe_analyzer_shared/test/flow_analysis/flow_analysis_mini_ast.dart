@@ -144,9 +144,9 @@ Statement if_(Expression condition, List<Statement> ifTrue,
         [List<Statement>? ifFalse]) =>
     new _If(condition, ifTrue, ifFalse);
 
-Statement implicitThis_whyNotPromoted(
+Statement implicitThis_whyNotPromoted(String staticType,
         void Function(Map<Type, NonPromotionReason>) callback) =>
-    new _WhyNotPromoted_ImplicitThis(callback);
+    new _WhyNotPromoted_ImplicitThis(Type(staticType), callback);
 
 Statement labeled(Statement body) => new _LabeledStatement(body);
 
@@ -161,7 +161,7 @@ Statement switch_(Expression expression, List<SwitchCase> cases,
 Expression this_(String type) => new _This(Type(type));
 
 Expression thisOrSuperPropertyGet(String name, {String type = 'Object?'}) =>
-    new _ThisOrSuperPropertyGet(name, type);
+    new _ThisOrSuperPropertyGet(name, Type(type));
 
 Expression throw_(Expression operand) => new _Throw(operand);
 
@@ -284,7 +284,7 @@ abstract class Expression extends Node implements _Visitable<Type> {
 
   /// If `this` is an expression `x`, creates the expression `x.name`.
   Expression propertyGet(String name, {String type = 'Object?'}) =>
-      new _PropertyGet(this, name, type);
+      new _PropertyGet(this, name, Type(type));
 
   /// If `this` is an expression `x`, creates a pseudo-expression that models
   /// evaluation of `x` followed by execution of [stmt].  This can be used to
@@ -434,9 +434,6 @@ class Harness extends TypeOperations<Var, Type> {
   Map<String, Map<String, String>> _promotionExceptions = {};
 
   Harness({this.legacy = false});
-
-  @override
-  Type get topType => Type('Object?');
 
   /// Updates the harness so that when a [factor] query is invoked on types
   /// [from] and [what], [result] will be returned.
@@ -1477,7 +1474,7 @@ class _PropertyGet extends Expression {
 
   final String propertyName;
 
-  final String type;
+  final Type type;
 
   _PropertyGet(this.target, this.propertyName, this.type);
 
@@ -1490,8 +1487,8 @@ class _PropertyGet extends Expression {
   Type _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     target._visit(h, flow);
-    flow.propertyGet(this, target, propertyName);
-    return Type(type);
+    flow.propertyGet(this, target, propertyName, type);
+    return type;
   }
 }
 
@@ -1566,7 +1563,7 @@ class _This extends Expression {
   @override
   Type _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    flow.thisOrSuper(this);
+    flow.thisOrSuper(this, type);
     return type;
   }
 }
@@ -1574,7 +1571,7 @@ class _This extends Expression {
 class _ThisOrSuperPropertyGet extends Expression {
   final String propertyName;
 
-  final String type;
+  final Type type;
 
   _ThisOrSuperPropertyGet(this.propertyName, this.type);
 
@@ -1584,8 +1581,8 @@ class _ThisOrSuperPropertyGet extends Expression {
   @override
   Type _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    flow.thisOrSuperPropertyGet(this, propertyName);
-    return Type(type);
+    flow.thisOrSuperPropertyGet(this, propertyName, type);
+    return type;
   }
 }
 
@@ -1760,9 +1757,11 @@ class _WhyNotPromoted extends Expression {
 }
 
 class _WhyNotPromoted_ImplicitThis extends Statement {
+  final Type staticType;
+
   final void Function(Map<Type, NonPromotionReason>) callback;
 
-  _WhyNotPromoted_ImplicitThis(this.callback) : super._();
+  _WhyNotPromoted_ImplicitThis(this.staticType, this.callback) : super._();
 
   @override
   String toString() => 'implicit this (whyNotPromoted)';
@@ -1776,7 +1775,7 @@ class _WhyNotPromoted_ImplicitThis extends Statement {
     assert(!Type._allowComparisons);
     Type._allowComparisons = true;
     try {
-      callback(flow.whyNotPromoted(null));
+      callback(flow.whyNotPromotedImplicitThis(staticType));
     } finally {
       Type._allowComparisons = false;
     }
