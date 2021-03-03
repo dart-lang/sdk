@@ -5,18 +5,13 @@
 #ifndef RUNTIME_VM_VIRTUAL_MEMORY_COMPRESSED_H_
 #define RUNTIME_VM_VIRTUAL_MEMORY_COMPRESSED_H_
 
-#if defined(DART_COMPRESSED_POINTERS) && !defined(HOST_OS_FUCHSIA)
-#define DART_COMPRESSED_HEAP
-#endif  // defined(DART_COMPRESSED_POINTERS) && !defined(HOST_OS_FUCHSIA)
-
-#if defined(DART_COMPRESSED_HEAP)
-
 #include "vm/globals.h"
 #include "vm/heap/pages.h"
 #include "vm/memory_region.h"
 
 namespace dart {
 
+#if defined(DART_COMPRESSED_POINTERS)
 static constexpr intptr_t kCompressedHeapSize = 2 * GB;
 static constexpr intptr_t kCompressedHeapAlignment = 4 * GB;
 static constexpr intptr_t kCompressedHeapPageSize = kOldPageSize;
@@ -24,6 +19,13 @@ static constexpr intptr_t kCompressedHeapNumPages =
     kCompressedHeapSize / kOldPageSize;
 static constexpr intptr_t kCompressedHeapBitmapSize =
     kCompressedHeapNumPages / 8;
+
+#if !defined(HOST_OS_FUCHSIA)
+#define DART_COMPRESSED_HEAP
+#endif  // !defined(HOST_OS_FUCHSIA)
+#endif  // defined(DART_COMPRESSED_POINTERS)
+
+#if defined(DART_COMPRESSED_HEAP)
 
 // Utilities for allocating memory within a contiguous region of memory, for use
 // with compressed pointers.
@@ -61,8 +63,8 @@ class VirtualMemoryCompressedHeap : public AllStatic {
   static Mutex* mutex_;
 };
 
-}  // namespace dart
-
 #endif  // defined(DART_COMPRESSED_HEAP)
+
+}  // namespace dart
 
 #endif  // RUNTIME_VM_VIRTUAL_MEMORY_COMPRESSED_H_

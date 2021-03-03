@@ -331,7 +331,10 @@ def ProcessOptions(args):
                     "Cross-compilation to %s is not supported on host os %s." %
                     (os_name, HOST_OS))
                 return False
-            if not arch in ['ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64']:
+            if not arch in [
+                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64', 'x64c',
+                    'arm64c'
+            ]:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))
@@ -342,7 +345,7 @@ def ProcessOptions(args):
                     "Cross-compilation to %s is not supported on host os %s." %
                     (os_name, HOST_OS))
                 return False
-            if arch != 'x64' and arch != 'arm64':
+            if not arch in ['x64', 'arm64', 'x64c', 'arm64c']:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))
