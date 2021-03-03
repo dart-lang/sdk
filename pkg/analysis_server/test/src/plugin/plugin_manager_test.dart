@@ -32,17 +32,8 @@ void main() {
   });
 }
 
-ContextRootImpl _newContextRoot(String root) {
-  var resourceProvider = PhysicalResourceProvider.INSTANCE;
-  return ContextRootImpl(
-    resourceProvider,
-    resourceProvider.getFolder(root),
-    BasicWorkspace.find(resourceProvider, {}, root),
-  );
-}
-
 @reflectiveTest
-class BuiltInPluginInfoTest {
+class BuiltInPluginInfoTest with ResourceProviderMixin, _ContextRoot {
   TestNotificationManager notificationManager;
   BuiltInPluginInfo plugin;
 
@@ -111,7 +102,7 @@ class BuiltInPluginInfoTest {
 }
 
 @reflectiveTest
-class DiscoveredPluginInfoTest {
+class DiscoveredPluginInfoTest with ResourceProviderMixin, _ContextRoot {
   TestNotificationManager notificationManager;
   String pluginPath = '/pluginDir';
   String executionPath = '/pluginDir/bin/plugin.dart';
@@ -125,10 +116,9 @@ class DiscoveredPluginInfoTest {
   }
 
   void test_addContextRoot() {
-    var optionsFilePath = '/pkg1/analysis_options.yaml';
     var contextRoot1 = _newContextRoot('/pkg1');
-    contextRoot1.optionsFile =
-        contextRoot1.resourceProvider.getFile(optionsFilePath);
+    var optionsFile = getFile('/pkg1/analysis_options.yaml');
+    contextRoot1.optionsFile = optionsFile;
     var session = PluginSession(plugin);
     var channel = TestServerCommunicationChannel(session);
     plugin.currentSession = session;
@@ -139,7 +129,7 @@ class DiscoveredPluginInfoTest {
     var sentRequests = channel.sentRequests;
     expect(sentRequests, hasLength(1));
     List<Map> roots = sentRequests[0].params['roots'];
-    expect(roots[0]['optionsFile'], optionsFilePath);
+    expect(roots[0]['optionsFile'], optionsFile.path);
   }
 
   void test_creation() {
@@ -447,10 +437,14 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
         });
     pkg1Dir.deleteSync(recursive: true);
   }
+
+  ContextRootImpl _newContextRoot(String root) {
+    throw UnimplementedError();
+  }
 }
 
 @reflectiveTest
-class PluginManagerTest with ResourceProviderMixin {
+class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
   String byteStorePath;
   String sdkPath;
   TestNotificationManager notificationManager;
@@ -942,5 +936,16 @@ class TestServerCommunicationChannel implements ServerCommunicationChannel {
     if (request.method == 'plugin.shutdown') {
       session.handleOnDone();
     }
+  }
+}
+
+mixin _ContextRoot on ResourceProviderMixin {
+  ContextRootImpl _newContextRoot(String root) {
+    root = convertPath(root);
+    return ContextRootImpl(
+      resourceProvider,
+      resourceProvider.getFolder(root),
+      BasicWorkspace.find(resourceProvider, {}, root),
+    );
   }
 }
