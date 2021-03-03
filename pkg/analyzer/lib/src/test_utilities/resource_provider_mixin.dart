@@ -55,6 +55,11 @@ mixin ResourceProviderMixin {
     return newFile(path, content: content);
   }
 
+  File newBazelBuildFile(String directoryPath, String content) {
+    String path = join(directoryPath, file_paths.bazelBuild);
+    return newFile(path, content: content);
+  }
+
   File newDotPackagesFile(String directoryPath, {String content = ''}) {
     String path = join(directoryPath, file_paths.dotPackages);
     return newFile(path, content: content);

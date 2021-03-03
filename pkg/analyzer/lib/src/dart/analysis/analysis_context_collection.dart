@@ -32,6 +32,8 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     bool enableIndex = false,
     required List<String> includedPaths,
     List<String>? excludedPaths,
+    String? optionsFile,
+    String? packagesFile,
     PerformanceLog? performanceLog,
     ResourceProvider? resourceProvider,
     bool retainDataForTesting = false,
@@ -50,6 +52,8 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     var roots = contextLocator.locateRoots(
       includedPaths: includedPaths,
       excludedPaths: excludedPaths,
+      optionsFile: optionsFile,
+      packagesFile: packagesFile,
     );
     var fileContentOverlay = FileContentOverlay();
     for (var root in roots) {

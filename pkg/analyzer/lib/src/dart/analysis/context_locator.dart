@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart';
@@ -95,6 +96,7 @@ class ContextLocatorImpl implements ContextLocator {
         folder,
         defaultOptionsFile: defaultOptionsFile,
         defaultPackagesFile: defaultPackagesFile,
+        defaultRootFolder: () => folder,
       );
 
       ContextRootImpl? root;
@@ -105,15 +107,14 @@ class ContextLocatorImpl implements ContextLocator {
         }
       }
 
-      if (root == null) {
-        var rootFolder = _lowest2(location.rootFolder, folder)!;
-        root = _createContextRoot(
-          roots,
-          rootFolder: rootFolder,
-          optionsFile: location.optionsFile,
-          packagesFile: location.packagesFile,
-        );
-      }
+      root ??= _createContextRoot(
+        roots,
+        rootFolder: folder,
+        workspace: location.workspace,
+        optionsFile: location.optionsFile,
+        packagesFile: location.packagesFile,
+      );
+
       if (!root.isAnalyzed(folder.path)) {
         root.included.add(folder);
       }
@@ -134,13 +135,15 @@ class ContextLocatorImpl implements ContextLocator {
         parent,
         defaultOptionsFile: defaultOptionsFile,
         defaultPackagesFile: defaultPackagesFile,
+        defaultRootFolder: () => _fileSystemRoot(parent),
       );
 
-      var rootFolder = location.rootFolder ?? _fileSystemRoot(parent);
+      var rootFolder = location.rootFolder;
       var root = rootMap.putIfAbsent(rootFolder, () {
         return _createContextRoot(
           roots,
           rootFolder: rootFolder,
+          workspace: location.workspace,
           optionsFile: location.optionsFile,
           packagesFile: location.packagesFile,
         );
@@ -173,6 +176,7 @@ class ContextLocatorImpl implements ContextLocator {
     Folder parent, {
     required File? defaultOptionsFile,
     required File? defaultPackagesFile,
+    required Folder Function() defaultRootFolder,
   }) {
     File? optionsFile;
     Folder? optionsFolderToChooseRoot;
@@ -198,8 +202,24 @@ class ContextLocatorImpl implements ContextLocator {
       packagesFolderToChooseRoot,
     );
 
+    var workspace = _createWorkspace(parent, packagesFile);
+    if (workspace is! BasicWorkspace) {
+      rootFolder = _lowest2(
+        rootFolder,
+        resourceProvider.getFolder(workspace.root),
+      );
+    }
+
+    if (rootFolder == null) {
+      rootFolder = defaultRootFolder();
+      if (workspace is BasicWorkspace) {
+        workspace = _createWorkspace(rootFolder, packagesFile);
+      }
+    }
+
     return _RootLocation(
       rootFolder: rootFolder,
+      workspace: workspace,
       optionsFile: optionsFile,
       packagesFile: packagesFile,
     );
@@ -208,10 +228,10 @@ class ContextLocatorImpl implements ContextLocator {
   ContextRootImpl _createContextRoot(
     List<ContextRootImpl> roots, {
     required Folder rootFolder,
+    required Workspace workspace,
     required File? optionsFile,
     required File? packagesFile,
   }) {
-    var workspace = _createWorkspace(rootFolder, packagesFile);
     var root = ContextRootImpl(resourceProvider, rootFolder, workspace);
     root.packagesFile = packagesFile;
     root.optionsFile = optionsFile;
@@ -462,14 +482,12 @@ class ContextLocatorImpl implements ContextLocator {
       List<String> paths, List<Folder> folders, List<File> files) {
     for (String path in _uniqueSortedPaths(paths)) {
       Resource resource = resourceProvider.getResource(path);
-      if (resource.exists) {
-        if (resource is Folder) {
-          folders.add(resource);
-        } else if (resource is File) {
-          files.add(resource);
-        } else {
-          // Internal error: unhandled kind of resource.
-        }
+      if (resource is Folder) {
+        folders.add(resource);
+      } else if (resource is File) {
+        files.add(resource);
+      } else {
+        // Internal error: unhandled kind of resource.
       }
     }
   }
@@ -520,12 +538,14 @@ class _PackagesFile {
 }
 
 class _RootLocation {
-  final Folder? rootFolder;
+  final Folder rootFolder;
+  final Workspace workspace;
   final File? optionsFile;
   final File? packagesFile;
 
   _RootLocation({
     required this.rootFolder,
+    required this.workspace,
     required this.optionsFile,
     required this.packagesFile,
   });
