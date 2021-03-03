@@ -51,6 +51,7 @@ abstract class AbstractLspAnalysisServerTest
   MockLspServerChannel channel;
   TestPluginManager pluginManager;
   LspAnalysisServer server;
+  MockHttpClient httpClient;
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
@@ -119,6 +120,7 @@ abstract class AbstractLspAnalysisServerTest
   }
 
   void setUp() {
+    httpClient = MockHttpClient();
     channel = MockLspServerChannel(debugPrintCommunication);
     // Create an SDK in the mock file system.
     MockSdk(resourceProvider: resourceProvider);
@@ -129,7 +131,8 @@ abstract class AbstractLspAnalysisServerTest
         serverOptions,
         DartSdkManager(convertPath('/sdk')),
         CrashReportingAttachmentsBuilder.empty,
-        InstrumentationService.NULL_SERVICE);
+        InstrumentationService.NULL_SERVICE,
+        httpClient: httpClient);
     server.pluginManager = pluginManager;
 
     projectFolderPath = convertPath('/home/test');
@@ -1062,6 +1065,20 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
     return expectSuccessfulResponseTo(
         request, _fromJsonList(Location.fromJson));
+  }
+
+  Future<CompletionItem> getResolvedCompletion(
+    Uri uri,
+    Position pos,
+    String label, {
+    CompletionContext context,
+  }) async {
+    final completions = await getCompletion(uri, pos, context: context);
+
+    final completion = completions.singleWhere((c) => c.label == label);
+    expect(completion, isNotNull);
+
+    return resolveCompletion(completion);
   }
 
   Future<SemanticTokens> getSemanticTokens(Uri uri) {

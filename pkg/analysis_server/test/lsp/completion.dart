@@ -8,11 +8,15 @@ import 'package:test/test.dart';
 import 'server_abstract.dart';
 
 mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
+  int sortTextSorter(CompletionItem item1, CompletionItem item2) =>
+      (item1.sortText ?? item1.label).compareTo(item2.sortText ?? item2.label);
+
   Future<void> verifyCompletions(
     Uri fileUri,
     String content, {
     List<String> expectCompletions,
-    String verifyEditsFor,
+    String applyEditsFor,
+    bool resolve = false,
     String expectedContent,
     String expectedContentIfInserting,
     bool verifyInsertReplaceRanges = false,
@@ -36,19 +40,23 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
     final res = await getCompletion(fileUri, positionFromMarker(content));
     await closeFile(fileUri);
 
-    for (final expectedCompletion in expectCompletions) {
-      expect(
-        res.any((c) => c.label == expectedCompletion),
-        isTrue,
-        reason:
-            '"$expectedCompletion" was not in ${res.map((c) => '"${c.label}"')}',
-      );
-    }
+    // Sort the completions by sortText and filter to those we expect, so the ordering
+    // can be compared.
+    final sortedResults = res
+        .where((r) => expectCompletions.contains(r.label))
+        .toList()
+          ..sort(sortTextSorter);
+
+    expect(sortedResults.map((item) => item.label), equals(expectCompletions));
 
     // Check the edits apply correctly.
-    if (verifyEditsFor != null) {
-      final item = res.singleWhere((c) => c.label == verifyEditsFor);
+    if (applyEditsFor != null) {
+      var item = res.singleWhere((c) => c.label == applyEditsFor);
       final insertFormat = item.insertTextFormat;
+
+      if (resolve) {
+        item = await resolveCompletion(item);
+      }
 
       if (verifyInsertReplaceRanges &&
           expectedContent != expectedContentIfInserting) {

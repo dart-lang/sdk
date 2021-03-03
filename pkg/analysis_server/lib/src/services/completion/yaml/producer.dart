@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
@@ -179,6 +180,12 @@ abstract class Producer {
       CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER, relevance,
           identifier, identifier.length, 0, false, false);
 
+  /// A utility method used to create a suggestion for the package [packageName].
+  CompletionSuggestion packageName(String packageName,
+          {int relevance = 1000}) =>
+      CompletionSuggestion(CompletionSuggestionKind.PACKAGE_NAME, relevance,
+          packageName, packageName.length, 0, false, false);
+
   /// Return the completion suggestions appropriate to this location.
   Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request);
 }
@@ -187,6 +194,9 @@ abstract class Producer {
 class YamlCompletionRequest {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
+
+  /// The Pub package service used for looking up package names/versions.
+  final PubPackageService pubPackageService;
 
   /// The absolute path of the file in which completions are being requested.
   final String filePath;
@@ -198,5 +208,6 @@ class YamlCompletionRequest {
   YamlCompletionRequest(
       {@required this.filePath,
       @required this.precedingText,
-      @required this.resourceProvider});
+      @required this.resourceProvider,
+      @required this.pubPackageService});
 }

@@ -43,10 +43,11 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
-import 'package:path/path.dart';
+import 'package:http/http.dart' as http;
 import 'package:watcher/watcher.dart';
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
@@ -134,6 +135,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     DartSdkManager sdkManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService, {
+    http.Client httpClient,
     DiagnosticServer diagnosticServer,
   }) : super(
           options,
@@ -142,6 +144,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           crashReportingAttachmentsBuilder,
           baseResourceProvider,
           instrumentationService,
+          httpClient,
           LspNotificationManager(channel, baseResourceProvider.pathContext),
         ) {
     notificationManager.server = this;
@@ -185,8 +188,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
       RefactoringWorkspace(driverMap.values, searchEngine);
 
-  void addPriorityFile(String path) {
-    final didAdd = priorityFiles.add(path);
+  void addPriorityFile(String filePath) {
+    // When a pubspec is opened, trigger package name caching for completion.
+    if (!pubPackageService.isRunning &&
+        file_paths.isPubspecYaml(resourceProvider.pathContext, filePath)) {
+      pubPackageService.beginPackageNamePreload();
+    }
+
+    final didAdd = priorityFiles.add(filePath);
     assert(didAdd);
     if (didAdd) {
       _updateDriversAndPluginsPriorityFiles();
@@ -616,7 +625,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     return MessageActionItem.fromJson(response.result);
   }
 
+  @override
   Future<void> shutdown() {
+    super.shutdown();
+
     // Defer closing the channel so that the shutdown response can be sent and
     // logged.
     Future(() {
@@ -664,13 +676,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       ..addAll(_temporaryAnalysisRoots.values);
 
     final excludedPaths = clientConfiguration.analysisExcludedFolders
-        .expand((excludePath) => isAbsolute(excludePath)
+        .expand((excludePath) => resourceProvider.pathContext
+                .isAbsolute(excludePath)
             ? [excludePath]
             // Apply the relative path to each open workspace folder.
             // TODO(dantup): Consider supporting per-workspace config by
             // calling workspace/configuration whenever workspace folders change
             // and caching the config for each one.
-            : _explicitAnalysisRoots.map((root) => join(root, excludePath)))
+            : _explicitAnalysisRoots.map(
+                (root) => resourceProvider.pathContext.join(root, excludePath)))
         .toSet();
 
     // If the roots didn't actually change from the last time they were set

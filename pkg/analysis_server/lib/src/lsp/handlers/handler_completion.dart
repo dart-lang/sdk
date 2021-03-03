@@ -115,7 +115,8 @@ class CompletionHandler
         } else if (file_paths.isFixDataYaml(pathContext, path.result)) {
           generator = FixDataGenerator(server.resourceProvider);
         } else if (file_paths.isPubspecYaml(pathContext, path.result)) {
-          generator = PubspecGenerator(server.resourceProvider);
+          generator = PubspecGenerator(
+              server.resourceProvider, server.pubPackageService);
         }
         if (generator != null) {
           serverResultsFuture = _getServerYamlItems(

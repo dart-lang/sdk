@@ -18,6 +18,7 @@ dependencies:
   convert: any
   crypto: any
   dart_style: any
+  http: any
   html: any
   intl: any
   linter: any
@@ -34,7 +35,6 @@ dependencies:
 dev_dependencies:
   analyzer_utilities:
     path: ../analyzer_utilities
-  http: any
   logging: any
   matcher: any
   mockito: any

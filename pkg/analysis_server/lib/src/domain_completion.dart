@@ -163,7 +163,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       var generator = FixDataGenerator(provider);
       return generator.getSuggestions(file, offset);
     } else if (file_paths.isPubspecYaml(pathContext, file)) {
-      var generator = PubspecGenerator(provider);
+      var generator = PubspecGenerator(provider, server.pubPackageService);
       return generator.getSuggestions(file, offset);
     }
     return const YamlCompletionResults.empty();
