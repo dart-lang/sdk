@@ -143,7 +143,7 @@ class StackFrame : public ValueObject {
         fp() + (kSavedCallerPcSlotFromFp * kWordSize)));
     ASSERT(raw_pc != StubCode::DeoptimizeLazyFromThrow().EntryPoint());
     if (raw_pc == StubCode::DeoptimizeLazyFromReturn().EntryPoint()) {
-      return isolate_group()->FindPendingDeoptAtSafepoint(GetCallerFp());
+      return thread_->pending_deopts().FindPendingDeopt(GetCallerFp());
     }
     return raw_pc;
   }

@@ -215,6 +215,8 @@ vm_sources = [
   "os_win.cc",
   "parser.cc",
   "parser.h",
+  "pending_deopts.cc",
+  "pending_deopts.h",
   "pointer_tagging.h",
   "port.cc",
   "port.h",

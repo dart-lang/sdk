@@ -20,6 +20,7 @@
 #include "vm/handles.h"
 #include "vm/heap/pointer_block.h"
 #include "vm/os_thread.h"
+#include "vm/pending_deopts.h"
 #include "vm/random.h"
 #include "vm/runtime_entry_list.h"
 #include "vm/thread_stack_resource.h"
@@ -908,6 +909,8 @@ class Thread : public ThreadState {
   void PrintJSON(JSONStream* stream) const;
 #endif
 
+  PendingDeopts& pending_deopts() { return pending_deopts_; }
+
  private:
   template <class T>
   T* AllocateReusableHandle();
@@ -1011,6 +1014,9 @@ class Thread : public ThreadState {
   uint16_t deferred_interrupts_mask_;
   uint16_t deferred_interrupts_;
   int32_t stack_overflow_count_;
+
+  // Deoptimization of stack frames.
+  PendingDeopts pending_deopts_;
 
   // Compiler state:
   CompilerState* compiler_state_ = nullptr;

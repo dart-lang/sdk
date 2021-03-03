@@ -96,18 +96,6 @@ constexpr int kNullSafetyOptionWeak = 1;
 constexpr int kNullSafetyOptionStrong = 2;
 extern int FLAG_sound_null_safety;
 
-class PendingLazyDeopt {
- public:
-  PendingLazyDeopt(uword fp, uword pc) : fp_(fp), pc_(pc) {}
-  uword fp() { return fp_; }
-  uword pc() { return pc_; }
-  void set_pc(uword pc) { pc_ = pc; }
-
- private:
-  uword fp_;
-  uword pc_;
-};
-
 class IsolateVisitor {
  public:
   IsolateVisitor() {}
@@ -776,8 +764,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
         RemappingCidsBit::update(value, isolate_group_flags_);
   }
 
-  uword FindPendingDeoptAtSafepoint(uword fp);
-
   void RememberLiveTemporaries();
   void DeferredMarkLiveTemporaries();
 
@@ -1230,12 +1216,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   ObjectIdRing* EnsureObjectIdRing();
 #endif  // !defined(PRODUCT)
 
-  void AddPendingDeopt(uword fp, uword pc);
-  uword FindPendingDeopt(uword fp) const;
-  void ClearPendingDeoptsAtOrBelow(uword fp) const;
-  MallocGrowableArray<PendingLazyDeopt>* pending_deopts() const {
-    return pending_deopts_;
-  }
   bool IsDeoptimizing() const { return deopt_context_ != nullptr; }
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
@@ -1618,7 +1598,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Mutex mutex_;                            // Protects compiler stats.
   MessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
-  MallocGrowableArray<PendingLazyDeopt>* pending_deopts_;
   DeoptContext* deopt_context_ = nullptr;
 
   GrowableObjectArrayPtr tag_table_;

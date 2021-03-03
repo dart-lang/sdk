@@ -1731,7 +1731,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       on_cleanup_callback_(Isolate::CleanupCallback()),
       random_(),
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
-      pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>()),
       tag_table_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
       spawn_count_monitor_(),
@@ -1776,8 +1775,6 @@ Isolate::~Isolate() {
 #if defined(USING_SIMULATOR)
   delete simulator_;
 #endif
-  delete pending_deopts_;
-  pending_deopts_ = nullptr;
   delete message_handler_;
   message_handler_ =
       nullptr;  // Fail fast if we send messages to a dead isolate.
@@ -2857,18 +2854,6 @@ void IsolateGroup::VisitWeakPersistentHandles(HandleVisitor* visitor) {
   api_state()->VisitWeakHandlesUnlocked(visitor);
 }
 
-uword IsolateGroup::FindPendingDeoptAtSafepoint(uword fp) {
-  for (Isolate* isolate : isolates_) {
-    for (intptr_t i = 0; i < isolate->pending_deopts_->length(); i++) {
-      if ((*isolate->pending_deopts_)[i].fp() == fp) {
-        return (*isolate->pending_deopts_)[i].pc();
-      }
-    }
-  }
-  FATAL("Missing pending deopt entry");
-  return 0;
-}
-
 void IsolateGroup::DeferredMarkLiveTemporaries() {
   ForEachIsolate(
       [&](Isolate* isolate) { isolate->DeferredMarkLiveTemporaries(); },
@@ -2916,42 +2901,6 @@ ObjectIdRing* Isolate::EnsureObjectIdRing() {
   return object_id_ring_;
 }
 #endif  // !defined(PRODUCT)
-
-void Isolate::AddPendingDeopt(uword fp, uword pc) {
-  // GrowableArray::Add is not atomic and may be interrupt by a profiler
-  // stack walk.
-  MallocGrowableArray<PendingLazyDeopt>* old_pending_deopts = pending_deopts_;
-  MallocGrowableArray<PendingLazyDeopt>* new_pending_deopts =
-      new MallocGrowableArray<PendingLazyDeopt>(old_pending_deopts->length() +
-                                                1);
-  for (intptr_t i = 0; i < old_pending_deopts->length(); i++) {
-    ASSERT((*old_pending_deopts)[i].fp() != fp);
-    new_pending_deopts->Add((*old_pending_deopts)[i]);
-  }
-  PendingLazyDeopt deopt(fp, pc);
-  new_pending_deopts->Add(deopt);
-
-  pending_deopts_ = new_pending_deopts;
-  delete old_pending_deopts;
-}
-
-uword Isolate::FindPendingDeopt(uword fp) const {
-  for (intptr_t i = 0; i < pending_deopts_->length(); i++) {
-    if ((*pending_deopts_)[i].fp() == fp) {
-      return (*pending_deopts_)[i].pc();
-    }
-  }
-  FATAL("Missing pending deopt entry");
-  return 0;
-}
-
-void Isolate::ClearPendingDeoptsAtOrBelow(uword fp) const {
-  for (intptr_t i = pending_deopts_->length() - 1; i >= 0; i--) {
-    if ((*pending_deopts_)[i].fp() <= fp) {
-      pending_deopts_->RemoveAt(i);
-    }
-  }
-}
 
 #ifndef PRODUCT
 static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {

@@ -2931,7 +2931,7 @@ const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason) {
   }
 }
 
-void DeoptimizeAt(Isolate* isolate,
+void DeoptimizeAt(Thread* mutator_thread,
                   const Code& optimized_code,
                   StackFrame* frame) {
   ASSERT(optimized_code.is_optimized());
@@ -2974,7 +2974,7 @@ void DeoptimizeAt(Isolate* isolate,
 
     // N.B.: Update the pending deopt table before updating the frame. The
     // profiler may attempt a stack walk in between.
-    isolate->AddPendingDeopt(frame->fp(), deopt_pc);
+    mutator_thread->pending_deopts().AddPendingDeopt(frame->fp(), deopt_pc);
     frame->MarkForLazyDeopt();
 
     if (FLAG_trace_deoptimization) {
@@ -2994,15 +2994,15 @@ void DeoptimizeFunctionsOnStack() {
   isolate_group->RunWithStoppedMutators([&]() {
     Code& optimized_code = Code::Handle();
     isolate_group->ForEachIsolate([&](Isolate* isolate) {
+      auto mutator_thread = isolate->mutator_thread();
       DartFrameIterator iterator(
-          isolate->mutator_thread(),
-          StackFrameIterator::kAllowCrossThreadIteration);
+          mutator_thread, StackFrameIterator::kAllowCrossThreadIteration);
       StackFrame* frame = iterator.NextFrame();
       while (frame != nullptr) {
         optimized_code = frame->LookupDartCode();
         if (optimized_code.is_optimized() &&
             !optimized_code.is_force_optimized()) {
-          DeoptimizeAt(isolate, optimized_code, frame);
+          DeoptimizeAt(mutator_thread, optimized_code, frame);
         }
         frame = iterator.NextFrame();
       }
@@ -3090,18 +3090,16 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
   }
 
   if (is_lazy_deopt != 0u) {
-    uword deopt_pc = isolate->FindPendingDeopt(caller_frame->fp());
-    if (FLAG_trace_deoptimization) {
-      THR_Print("Lazy deopt fp=%" Pp " pc=%" Pp "\n", caller_frame->fp(),
-                deopt_pc);
-    }
+    const uword deopt_pc =
+        thread->pending_deopts().FindPendingDeopt(caller_frame->fp());
 
     // N.B.: Update frame before updating pending deopt table. The profiler
     // may attempt a stack walk in between.
     caller_frame->set_pc(deopt_pc);
     ASSERT(caller_frame->pc() == deopt_pc);
     ASSERT(optimized_code.ContainsInstructionAt(caller_frame->pc()));
-    isolate->ClearPendingDeoptsAtOrBelow(caller_frame->fp());
+    thread->pending_deopts().ClearPendingDeoptsAtOrBelow(
+        caller_frame->fp(), PendingDeopts::kClearDueToDeopt);
   } else {
     if (FLAG_trace_deoptimization) {
       THR_Print("Eager deopt fp=%" Pp " pc=%" Pp "\n", caller_frame->fp(),
