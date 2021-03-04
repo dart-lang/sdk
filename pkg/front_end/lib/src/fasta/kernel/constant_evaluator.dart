@@ -544,7 +544,7 @@ class ConstantsTransformer extends RemovingTransformer {
     if (node.initializer != null) {
       if (node.isConst) {
         final Constant constant = evaluateWithContext(node, node.initializer);
-        constantEvaluator.env.addVariableValue(node, constant);
+        constantEvaluator.env.updateVariableValue(node, constant);
         node.initializer = makeConstantExpression(constant, node.initializer)
           ..parent = node;
 
@@ -1644,14 +1644,14 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             : _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;
-        env.addVariableValue(parameter, value);
+        env.updateVariableValue(parameter, value);
       }
       for (final VariableDeclaration parameter in function.namedParameters) {
         final Constant value = namedArguments[parameter.name] ??
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;
-        env.addVariableValue(parameter, value);
+        env.updateVariableValue(parameter, value);
       }
 
       // Step 2) Run all initializers (including super calls) with environment
@@ -1672,7 +1672,7 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
           final VariableDeclaration variable = init.variable;
           Constant constant = _evaluateSubexpression(variable.initializer);
           if (constant is AbortConstant) return constant;
-          env.addVariableValue(variable, constant);
+          env.updateVariableValue(variable, constant);
         } else if (init is SuperInitializer) {
           AbortConstant error = checkConstructorConst(init, constructor);
           if (error != null) return error;
@@ -2374,7 +2374,7 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
   Constant visitLet(Let node) {
     Constant value = _evaluateSubexpression(node.variable.initializer);
     if (value is AbortConstant) return value;
-    env.addVariableValue(node.variable, value);
+    env.updateVariableValue(node.variable, value);
     return _evaluateSubexpression(node.body);
   }
 
@@ -2729,14 +2729,14 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             : _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;
-        env.addVariableValue(parameter, value);
+        env.updateVariableValue(parameter, value);
       }
       for (final VariableDeclaration parameter in function.namedParameters) {
         final Constant value = namedArguments[parameter.name] ??
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;
-        env.addVariableValue(parameter, value);
+        env.updateVariableValue(parameter, value);
       }
       Statement body = function.body;
       if (body is ReturnStatement) {
@@ -3269,9 +3269,9 @@ class EvaluationEnvironment {
   final Map<TypeParameter, DartType> _typeVariables =
       <TypeParameter, DartType>{};
 
-  /// The values of the parameters/variables in scope.
-  final Map<VariableDeclaration, Constant> _variables =
-      <VariableDeclaration, Constant>{};
+  /// The references to values of the parameters/variables in scope.
+  final Map<VariableDeclaration, EvaluationReference> _variables =
+      <VariableDeclaration, EvaluationReference>{};
 
   /// The variables that hold unevaluated constants.
   ///
@@ -3288,15 +3288,19 @@ class EvaluationEnvironment {
     _typeVariables[parameter] = value;
   }
 
-  void addVariableValue(VariableDeclaration variable, Constant value) {
-    _variables[variable] = value;
+  void updateVariableValue(VariableDeclaration variable, Constant value) {
+    if (!_variables.containsKey(variable)) {
+      _variables[variable] = new EvaluationReference(value);
+    } else {
+      _variables[variable].value = value;
+    }
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.add(variable);
     }
   }
 
   Constant lookupVariable(VariableDeclaration variable) {
-    Constant value = _variables[variable];
+    Constant value = _variables[variable]?.value;
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.remove(variable);
     }
@@ -3307,7 +3311,7 @@ class EvaluationEnvironment {
   Iterable<UnevaluatedConstant> get unevaluatedUnreadConstants {
     if (_unreadUnevaluatedVariables.isEmpty) return const [];
     return _unreadUnevaluatedVariables.map<UnevaluatedConstant>(
-        (VariableDeclaration variable) => _variables[variable]);
+        (VariableDeclaration variable) => _variables[variable].value);
   }
 
   DartType substituteType(DartType type) {
@@ -3330,6 +3334,70 @@ class RedundantFileUriExpressionRemover extends Transformer {
       currentFileUri = oldFileUri;
       return node;
     }
+  }
+}
+
+/// Location that stores a value in the [ConstantEvaluator].
+class EvaluationReference {
+  Constant value;
+
+  EvaluationReference(this.value);
+}
+
+/// An intermediate result that is used within the [ConstantEvaluator].
+class IntermediateValue implements Constant {
+  dynamic value;
+
+  IntermediateValue(this.value);
+
+  @override
+  R accept<R>(ConstantVisitor<R> v) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  R acceptReference<R>(Visitor<R> v) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Expression asExpression() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  DartType getType(StaticTypeContext context) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String leakingDebugToString() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toString() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toStringInternal() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toText(AstTextStrategy strategy) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    throw new UnimplementedError();
   }
 }
 
