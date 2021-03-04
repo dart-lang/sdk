@@ -284,6 +284,7 @@ lsp.CompletionItem declarationToCompletionItem(
   );
   final insertText = insertTextInfo.first;
   final insertTextFormat = insertTextInfo.last;
+  final isMultilineCompletion = insertText.contains('\n');
 
   final supportsDeprecatedFlag =
       completionCapabilities?.completionItem?.deprecatedSupport == true;
@@ -291,6 +292,10 @@ lsp.CompletionItem declarationToCompletionItem(
       completionCapabilities?.completionItem?.tagSupport?.valueSet ?? const [];
   final supportsDeprecatedTag =
       supportedTags.contains(lsp.CompletionItemTag.Deprecated);
+  final supportsAsIsInsertMode = completionCapabilities
+          ?.completionItem?.insertTextModeSupport?.valueSet
+          ?.contains(InsertTextMode.asIs) ==
+      true;
 
   final completionKind = declarationKindToCompletionItemKind(
       supportedCompletionItemKinds, declaration.kind);
@@ -333,6 +338,9 @@ lsp.CompletionItem declarationToCompletionItem(
     insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
         ? insertTextFormat
         : null, // Defaults to PlainText if not supplied
+    insertTextMode: supportsAsIsInsertMode && isMultilineCompletion
+        ? InsertTextMode.asIs
+        : null,
     // data, used for completionItem/resolve.
     data: lsp.DartCompletionItemResolutionInfo(
         file: file,
@@ -868,6 +876,10 @@ lsp.CompletionItem toCompletionItem(
       completionCapabilities?.completionItem?.snippetSupport == true;
   final supportsInsertReplace =
       completionCapabilities?.completionItem?.insertReplaceSupport == true;
+  final supportsAsIsInsertMode = completionCapabilities
+          ?.completionItem?.insertTextModeSupport?.valueSet
+          ?.contains(InsertTextMode.asIs) ==
+      true;
 
   final completionKind = suggestion.element != null
       ? elementKindToCompletionItemKind(
@@ -889,6 +901,7 @@ lsp.CompletionItem toCompletionItem(
   );
   final insertText = insertTextInfo.first;
   final insertTextFormat = insertTextInfo.last;
+  final isMultilineCompletion = insertText.contains('\n');
 
   // Because we potentially send thousands of these items, we should minimise
   // the generated JSON as much as possible - for example using nulls in place
@@ -923,6 +936,9 @@ lsp.CompletionItem toCompletionItem(
     insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
         ? insertTextFormat
         : null, // Defaults to PlainText if not supplied
+    insertTextMode: supportsAsIsInsertMode && isMultilineCompletion
+        ? InsertTextMode.asIs
+        : null,
     textEdit: supportsInsertReplace && insertLength != replacementLength
         ? Either2<TextEdit, InsertReplaceEdit>.t2(
             InsertReplaceEdit(

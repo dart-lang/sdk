@@ -569,6 +569,51 @@ class _MyWidgetState extends State<MyWidget> {
     expect(inserted, contains('a.abcdefghijdef\n'));
   }
 
+  Future<void> test_insertTextMode_multiline() async {
+    final content = '''
+    import 'package:flutter/material.dart';
+
+    class _MyWidgetState extends State<MyWidget> {
+      @override
+      Widget build(BuildContext context) {
+        [[setSt^]]
+        return Container();
+      }
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withCompletionItemInsertTextModeSupport(
+            emptyTextDocumentClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label.startsWith('setState'));
+
+    // Multiline completions should always set insertTextMode.asIs.
+    expect(item.insertText, contains('\n'));
+    expect(item.insertTextMode, equals(InsertTextMode.asIs));
+  }
+
+  Future<void> test_insertTextMode_singleLine() async {
+    final content = '''
+    main() {
+      ^
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withCompletionItemInsertTextModeSupport(
+            emptyTextDocumentClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label.startsWith('main'));
+
+    // Single line completions should never set insertTextMode.asIs to
+    // avoid bloating payload size where it wouldn't matter.
+    expect(item.insertText, isNot(contains('\n')));
+    expect(item.insertTextMode, isNull);
+  }
+
   Future<void> test_insideString() async {
     final content = '''
     var a = "This is ^a test"

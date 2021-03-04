@@ -283,6 +283,22 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  TextDocumentClientCapabilities withCompletionItemInsertTextModeSupport(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'completion': {
+        'completionItem': {
+          'insertTextModeSupport': {
+            'valueSet': [InsertTextMode.adjustIndentation, InsertTextMode.asIs]
+                .map((k) => k.toJson())
+                .toList()
+          }
+        }
+      }
+    });
+  }
+
   TextDocumentClientCapabilities withCompletionItemKinds(
     TextDocumentClientCapabilities source,
     List<CompletionItemKind> kinds,
