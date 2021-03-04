@@ -237,9 +237,11 @@ class TypeArgumentIssue {
   /// helpful to show the same type to the user.
   DartType? invertedType;
 
+  final bool isGenericTypeAsArgumentIssue;
+
   TypeArgumentIssue(
       this.index, this.argument, this.typeParameter, this.enclosingType,
-      {this.invertedType});
+      {this.invertedType, this.isGenericTypeAsArgumentIssue = false});
 
   int get hashCode {
     int hash = 0x3fffffff & index;
@@ -271,9 +273,16 @@ class TypeArgumentIssue {
 // checks for super-boundness for construction of the auxiliary type.  For
 // details see Dart Language Specification, Section 14.3.2 The Instantiation to
 // Bound Algorithm.
-List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
+List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
     TypeEnvironment typeEnvironment, SubtypeCheckMode subtypeCheckMode,
-    {bool allowSuperBounded = false}) {
+    {bool allowSuperBounded = false,
+    required bool isNonNullableByDefault,
+    required bool areGenericArgumentsAllowed}) {
+  // ignore: unnecessary_null_comparison
+  assert(isNonNullableByDefault != null);
+  // ignore: unnecessary_null_comparison
+  assert(areGenericArgumentsAllowed != null);
+
   List<TypeParameter> variables = const <TypeParameter>[];
   List<DartType> arguments = const <DartType>[];
   List<TypeArgumentIssue> typedefRhsResult = const <TypeArgumentIssue>[];
@@ -291,8 +300,10 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
         requiredParameterCount: functionType.requiredParameterCount,
         typedefType: null);
     typedefRhsResult = findTypeArgumentIssues(
-        library, cloned, typeEnvironment, subtypeCheckMode,
-        allowSuperBounded: true);
+        cloned, typeEnvironment, subtypeCheckMode,
+        allowSuperBounded: true,
+        isNonNullableByDefault: isNonNullableByDefault,
+        areGenericArgumentsAllowed: areGenericArgumentsAllowed);
     type = functionType.typedefType!;
   }
 
@@ -307,25 +318,33 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
 
     for (TypeParameter parameter in type.typeParameters) {
       result.addAll(findTypeArgumentIssues(
-          library, parameter.bound!, typeEnvironment, subtypeCheckMode,
-          allowSuperBounded: true));
+          parameter.bound!, typeEnvironment, subtypeCheckMode,
+          allowSuperBounded: true,
+          isNonNullableByDefault: isNonNullableByDefault,
+          areGenericArgumentsAllowed: areGenericArgumentsAllowed));
     }
 
     for (DartType formal in type.positionalParameters) {
       result.addAll(findTypeArgumentIssues(
-          library, formal, typeEnvironment, subtypeCheckMode,
-          allowSuperBounded: true));
+          formal, typeEnvironment, subtypeCheckMode,
+          allowSuperBounded: true,
+          isNonNullableByDefault: isNonNullableByDefault,
+          areGenericArgumentsAllowed: areGenericArgumentsAllowed));
     }
 
     for (NamedType named in type.namedParameters) {
       result.addAll(findTypeArgumentIssues(
-          library, named.type, typeEnvironment, subtypeCheckMode,
-          allowSuperBounded: true));
+          named.type, typeEnvironment, subtypeCheckMode,
+          allowSuperBounded: true,
+          isNonNullableByDefault: isNonNullableByDefault,
+          areGenericArgumentsAllowed: areGenericArgumentsAllowed));
     }
 
     result.addAll(findTypeArgumentIssues(
-        library, type.returnType, typeEnvironment, subtypeCheckMode,
-        allowSuperBounded: true));
+        type.returnType, typeEnvironment, subtypeCheckMode,
+        allowSuperBounded: true,
+        isNonNullableByDefault: isNonNullableByDefault,
+        areGenericArgumentsAllowed: areGenericArgumentsAllowed));
 
     return result;
   } else if (type is FutureOrType) {
@@ -348,12 +367,13 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
       new Map<TypeParameter, DartType>.fromIterables(variables, arguments);
   for (int i = 0; i < arguments.length; ++i) {
     DartType argument = arguments[i];
-    if (isGenericFunctionTypeOrAlias(argument)) {
+    if (!areGenericArgumentsAllowed && isGenericFunctionTypeOrAlias(argument)) {
       // Generic function types aren't allowed as type arguments either.
-      result.add(new TypeArgumentIssue(i, argument, variables[i], type));
+      result.add(new TypeArgumentIssue(i, argument, variables[i], type,
+          isGenericTypeAsArgumentIssue: true));
     } else if (variables[i].bound is! InvalidType) {
       DartType bound = substitute(variables[i].bound!, substitutionMap);
-      if (!library.isNonNullableByDefault) {
+      if (!isNonNullableByDefault) {
         bound = legacyErasure(bound);
       }
       if (!typeEnvironment.isSubtypeOf(argument, bound, subtypeCheckMode)) {
@@ -365,8 +385,10 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
     }
 
     argumentsResult.addAll(findTypeArgumentIssues(
-        library, argument, typeEnvironment, subtypeCheckMode,
-        allowSuperBounded: true));
+        argument, typeEnvironment, subtypeCheckMode,
+        allowSuperBounded: true,
+        isNonNullableByDefault: isNonNullableByDefault,
+        areGenericArgumentsAllowed: areGenericArgumentsAllowed));
   }
   result.addAll(argumentsResult);
   result.addAll(typedefRhsResult);
@@ -376,8 +398,9 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
   if (!allowSuperBounded) return result;
 
   bool isCorrectSuperBounded = true;
-  DartType? invertedType =
-      convertSuperBoundedToRegularBounded(library, typeEnvironment, type);
+  DartType? invertedType = convertSuperBoundedToRegularBounded(
+      typeEnvironment, type,
+      isNonNullableByDefault: isNonNullableByDefault);
 
   // The auxiliary type is the same as [type].  At this point we know that
   // [type] is not regular-bounded, which means that the inverted type is also
@@ -436,14 +459,21 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
 // details see Dart Language Specification, Section 14.3.2 The Instantiation to
 // Bound Algorithm.
 List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
-    Library library,
     List<TypeParameter> parameters,
     List<DartType> arguments,
     TypeEnvironment typeEnvironment,
     SubtypeCheckMode subtypeCheckMode,
-    DartType bottomType) {
+    DartType bottomType,
+    {required bool isNonNullableByDefault,
+    required bool areGenericArgumentsAllowed}) {
+  // ignore: unnecessary_null_comparison
+  assert(isNonNullableByDefault != null);
+  // ignore: unnecessary_null_comparison
+  assert(areGenericArgumentsAllowed != null);
+
   assert(arguments.length == parameters.length);
   assert(bottomType == const NeverType.nonNullable() || bottomType is NullType);
+
   List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
   Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
   for (int i = 0; i < arguments.length; ++i) {
@@ -452,13 +482,17 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
   for (int i = 0; i < arguments.length; ++i) {
     DartType argument = arguments[i];
     if (argument is TypeParameterType && argument.promotedBound != null) {
+      // TODO(dmitryas): Consider recognizing this case with a flag on the issue
+      // object.
       result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
-    } else if (isGenericFunctionTypeOrAlias(argument)) {
+    } else if (!areGenericArgumentsAllowed &&
+        isGenericFunctionTypeOrAlias(argument)) {
       // Generic function types aren't allowed as type arguments either.
-      result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
+      result.add(new TypeArgumentIssue(i, argument, parameters[i], null,
+          isGenericTypeAsArgumentIssue: true));
     } else if (parameters[i].bound is! InvalidType) {
       DartType bound = substitute(parameters[i].bound!, substitutionMap);
-      if (!library.isNonNullableByDefault) {
+      if (!isNonNullableByDefault) {
         bound = legacyErasure(bound);
       }
       if (!typeEnvironment.isSubtypeOf(argument, bound, subtypeCheckMode)) {
@@ -467,8 +501,10 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
     }
 
     result.addAll(findTypeArgumentIssues(
-        library, argument, typeEnvironment, subtypeCheckMode,
-        allowSuperBounded: true));
+        argument, typeEnvironment, subtypeCheckMode,
+        allowSuperBounded: true,
+        isNonNullableByDefault: isNonNullableByDefault,
+        areGenericArgumentsAllowed: areGenericArgumentsAllowed));
   }
   return result;
 }
@@ -486,11 +522,14 @@ String getGenericTypeName(DartType type) {
 /// [BottomType] and all contravariant occurrences of `Null` and [BottomType]
 /// with `Object`.  Returns null if the converted type is the same as [type].
 DartType? convertSuperBoundedToRegularBounded(
-    Library clientLibrary, TypeEnvironment typeEnvironment, DartType type,
-    {int variance = Variance.covariant}) {
+    TypeEnvironment typeEnvironment, DartType type,
+    {int variance = Variance.covariant, required bool isNonNullableByDefault}) {
+  // ignore: unnecessary_null_comparison
+  assert(isNonNullableByDefault != null);
+
   return type.accept1(
       new _SuperBoundedTypeInverter(typeEnvironment,
-          isNonNullableByDefault: clientLibrary.isNonNullableByDefault),
+          isNonNullableByDefault: isNonNullableByDefault),
       variance);
 }
 
