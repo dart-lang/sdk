@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/none/new_method_invocation_encodings.dart:7:8: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   int? getter => null;
+//        ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int? field;
+  synthetic constructor •() → self::Class
+    ;
+  method getter() → core::int?
+    ;
+  method setter(core::int? value) → void
+    ;
+  method method() → void
+    ;
+}
+static method test(self::Class c, dynamic d, core::Function f1, () → void f2) → dynamic
+  ;
+static method main() → dynamic
+  ;

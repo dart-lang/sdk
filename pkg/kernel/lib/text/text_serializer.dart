@@ -76,15 +76,29 @@ class ExpressionTagger extends ExpressionVisitor<String>
 
   String visitPropertyGet(PropertyGet _) => "get-prop";
   String visitPropertySet(PropertySet _) => "set-prop";
+  String visitInstanceGet(InstanceGet _) => "get-instance";
+  String visitInstanceSet(InstanceSet _) => "set-instance";
+  String visitDynamicGet(DynamicGet _) => "get-dynamic";
+  String visitDynamicSet(DynamicSet _) => "set-dynamic";
+  String visitInstanceTearOff(InstanceTearOff _) => "tearoff-instance";
+  String visitFunctionTearOff(FunctionTearOff _) => "tearoff-function";
   String visitSuperPropertyGet(SuperPropertyGet _) => "get-super";
   String visitSuperPropertySet(SuperPropertySet _) => "set-super";
   String visitMethodInvocation(MethodInvocation _) => "invoke-method";
+  String visitInstanceInvocation(InstanceInvocation _) => "invoke-instance";
+  String visitDynamicInvocation(DynamicInvocation _) => "invoke-dynamic";
+  String visitFunctionInvocation(FunctionInvocation _) => "invoke-function";
+  String visitLocalFunctionInvocation(LocalFunctionInvocation _) =>
+      "invoke-local-function";
+  String visitEqualsNull(EqualsNull _) => "equals-null";
+  String visitEqualsCall(EqualsCall _) => "equals-call";
   String visitSuperMethodInvocation(SuperMethodInvocation _) => "invoke-super";
 
   String visitVariableGet(VariableGet _) => "get-var";
   String visitVariableSet(VariableSet _) => "set-var";
   String visitStaticGet(StaticGet _) => "get-static";
   String visitStaticSet(StaticSet _) => "set-static";
+  String visitStaticTearOff(StaticTearOff _) => "tearoff-static";
   String visitStaticInvocation(StaticInvocation expression) {
     return expression.isConst ? "invoke-const-static" : "invoke-static";
   }
@@ -428,6 +442,118 @@ PropertySet wrapPropertySet(Tuple3<Expression, Name, Expression> tuple) {
   return new PropertySet(tuple.first, tuple.second, tuple.third);
 }
 
+TextSerializer<InstanceGet> instanceGetSerializer = new Wrapped<
+        Tuple5<InstanceAccessKind, Expression, Name, CanonicalName, DartType>,
+        InstanceGet>(
+    unwrapInstanceGet,
+    wrapInstanceGet,
+    new Tuple5Serializer(instanceAccessKindSerializer, expressionSerializer,
+        nameSerializer, const CanonicalNameSerializer(), dartTypeSerializer));
+
+Tuple5<InstanceAccessKind, Expression, Name, CanonicalName, DartType>
+    unwrapInstanceGet(InstanceGet expression) {
+  return new Tuple5(expression.kind, expression.receiver, expression.name,
+      expression.interfaceTargetReference.canonicalName, expression.resultType);
+}
+
+InstanceGet wrapInstanceGet(
+    Tuple5<InstanceAccessKind, Expression, Name, CanonicalName, DartType>
+        tuple) {
+  return new InstanceGet.byReference(tuple.first, tuple.second, tuple.third,
+      interfaceTargetReference: tuple.fourth.getReference(),
+      resultType: tuple.fifth);
+}
+
+TextSerializer<InstanceSet> instanceSetSerializer = new Wrapped<
+        Tuple5<InstanceAccessKind, Expression, Name, Expression, CanonicalName>,
+        InstanceSet>(
+    unwrapInstanceSet,
+    wrapInstanceSet,
+    new Tuple5Serializer(instanceAccessKindSerializer, expressionSerializer,
+        nameSerializer, expressionSerializer, const CanonicalNameSerializer()));
+
+Tuple5<InstanceAccessKind, Expression, Name, Expression, CanonicalName>
+    unwrapInstanceSet(InstanceSet expression) {
+  return new Tuple5(expression.kind, expression.receiver, expression.name,
+      expression.value, expression.interfaceTargetReference.canonicalName);
+}
+
+InstanceSet wrapInstanceSet(
+    Tuple5<InstanceAccessKind, Expression, Name, Expression, CanonicalName>
+        tuple) {
+  return new InstanceSet.byReference(
+      tuple.first, tuple.second, tuple.third, tuple.fourth,
+      interfaceTargetReference: tuple.fifth.getReference());
+}
+
+TextSerializer<DynamicGet> dynamicGetSerializer =
+    new Wrapped<Tuple3<DynamicAccessKind, Expression, Name>, DynamicGet>(
+        unwrapDynamicGet,
+        wrapDynamicGet,
+        new Tuple3Serializer(
+            dynamicAccessKindSerializer, expressionSerializer, nameSerializer));
+
+Tuple3<DynamicAccessKind, Expression, Name> unwrapDynamicGet(
+    DynamicGet expression) {
+  return new Tuple3(expression.kind, expression.receiver, expression.name);
+}
+
+DynamicGet wrapDynamicGet(Tuple3<DynamicAccessKind, Expression, Name> tuple) {
+  return new DynamicGet(tuple.first, tuple.second, tuple.third);
+}
+
+TextSerializer<DynamicSet> dynamicSetSerializer = new Wrapped<
+        Tuple4<DynamicAccessKind, Expression, Name, Expression>, DynamicSet>(
+    unwrapDynamicSet,
+    wrapDynamicSet,
+    new Tuple4Serializer(dynamicAccessKindSerializer, expressionSerializer,
+        nameSerializer, expressionSerializer));
+
+Tuple4<DynamicAccessKind, Expression, Name, Expression> unwrapDynamicSet(
+    DynamicSet expression) {
+  return new Tuple4(
+      expression.kind, expression.receiver, expression.name, expression.value);
+}
+
+DynamicSet wrapDynamicSet(
+    Tuple4<DynamicAccessKind, Expression, Name, Expression> tuple) {
+  return new DynamicSet(tuple.first, tuple.second, tuple.third, tuple.fourth);
+}
+
+TextSerializer<InstanceTearOff> instanceTearOffSerializer = new Wrapped<
+        Tuple5<InstanceAccessKind, Expression, Name, CanonicalName, DartType>,
+        InstanceTearOff>(
+    unwrapInstanceTearOff,
+    wrapInstanceTearOff,
+    new Tuple5Serializer(instanceAccessKindSerializer, expressionSerializer,
+        nameSerializer, const CanonicalNameSerializer(), dartTypeSerializer));
+
+Tuple5<InstanceAccessKind, Expression, Name, CanonicalName, DartType>
+    unwrapInstanceTearOff(InstanceTearOff expression) {
+  return new Tuple5(expression.kind, expression.receiver, expression.name,
+      expression.interfaceTargetReference.canonicalName, expression.resultType);
+}
+
+InstanceTearOff wrapInstanceTearOff(
+    Tuple5<InstanceAccessKind, Expression, Name, CanonicalName, DartType>
+        tuple) {
+  return new InstanceTearOff.byReference(tuple.first, tuple.second, tuple.third,
+      interfaceTargetReference: tuple.fourth.getReference(),
+      resultType: tuple.fifth);
+}
+
+TextSerializer<FunctionTearOff> functionTearOffSerializer =
+    new Wrapped<Expression, FunctionTearOff>(
+        unwrapFunctionTearOff, wrapFunctionTearOff, expressionSerializer);
+
+Expression unwrapFunctionTearOff(FunctionTearOff expression) {
+  return expression.receiver;
+}
+
+FunctionTearOff wrapFunctionTearOff(Expression expression) {
+  return new FunctionTearOff(expression);
+}
+
 TextSerializer<SuperPropertyGet> superPropertyGetSerializer =
     new Wrapped(unwrapSuperPropertyGet, wrapSuperPropertyGet, nameSerializer);
 
@@ -466,6 +592,198 @@ Tuple3<Expression, Name, Arguments> unwrapMethodInvocation(
 MethodInvocation wrapMethodInvocation(
     Tuple3<Expression, Name, Arguments> tuple) {
   return new MethodInvocation(tuple.first, tuple.second, tuple.third);
+}
+
+const Map<InstanceAccessKind, String> instanceAccessKindToName = const {
+  InstanceAccessKind.Instance: "instance",
+  InstanceAccessKind.Object: "object",
+  InstanceAccessKind.Nullable: "nullable",
+  InstanceAccessKind.Inapplicable: "inapplicable",
+};
+
+class InstanceAccessKindTagger implements Tagger<InstanceAccessKind> {
+  const InstanceAccessKindTagger();
+
+  String tag(InstanceAccessKind kind) {
+    return instanceAccessKindToName[kind] ??
+        (throw StateError("Unknown InstanceAccessKind flag value: ${kind}."));
+  }
+}
+
+TextSerializer<InstanceAccessKind> instanceAccessKindSerializer =
+    Case(InstanceAccessKindTagger(), convertFlagsMap(instanceAccessKindToName));
+
+TextSerializer<InstanceInvocation> instanceInvocationSerializer = new Wrapped<
+        Tuple6<InstanceAccessKind, Expression, Name, Arguments, CanonicalName,
+            DartType>,
+        InstanceInvocation>(
+    unwrapInstanceInvocation,
+    wrapInstanceInvocation,
+    new Tuple6Serializer(
+        instanceAccessKindSerializer,
+        expressionSerializer,
+        nameSerializer,
+        argumentsSerializer,
+        const CanonicalNameSerializer(),
+        dartTypeSerializer));
+
+Tuple6<InstanceAccessKind, Expression, Name, Arguments, CanonicalName, DartType>
+    unwrapInstanceInvocation(InstanceInvocation expression) {
+  return new Tuple6(
+      expression.kind,
+      expression.receiver,
+      expression.name,
+      expression.arguments,
+      expression.interfaceTargetReference.canonicalName,
+      expression.functionType);
+}
+
+InstanceInvocation wrapInstanceInvocation(
+    Tuple6<InstanceAccessKind, Expression, Name, Arguments, CanonicalName,
+            DartType>
+        tuple) {
+  return new InstanceInvocation.byReference(
+      tuple.first, tuple.second, tuple.third, tuple.fourth,
+      interfaceTargetReference: tuple.fifth.getReference(),
+      functionType: tuple.sixth);
+}
+
+const Map<DynamicAccessKind, String> dynamicAccessKindToName = const {
+  DynamicAccessKind.Dynamic: "dynamic",
+  DynamicAccessKind.Never: "never",
+  DynamicAccessKind.Invalid: "invalid",
+  DynamicAccessKind.Unresolved: "unresolved",
+};
+
+class DynamicAccessKindTagger implements Tagger<DynamicAccessKind> {
+  const DynamicAccessKindTagger();
+
+  String tag(DynamicAccessKind kind) {
+    return dynamicAccessKindToName[kind] ??
+        (throw StateError("Unknown DynamicAccessKind flag value: ${kind}."));
+  }
+}
+
+TextSerializer<DynamicAccessKind> dynamicAccessKindSerializer =
+    Case(DynamicAccessKindTagger(), convertFlagsMap(dynamicAccessKindToName));
+
+TextSerializer<DynamicInvocation> dynamicInvocationSerializer = new Wrapped<
+        Tuple4<DynamicAccessKind, Expression, Name, Arguments>,
+        DynamicInvocation>(
+    unwrapDynamicInvocation,
+    wrapDynamicInvocation,
+    new Tuple4Serializer(dynamicAccessKindSerializer, expressionSerializer,
+        nameSerializer, argumentsSerializer));
+
+Tuple4<DynamicAccessKind, Expression, Name, Arguments> unwrapDynamicInvocation(
+    DynamicInvocation expression) {
+  return new Tuple4(expression.kind, expression.receiver, expression.name,
+      expression.arguments);
+}
+
+DynamicInvocation wrapDynamicInvocation(
+    Tuple4<DynamicAccessKind, Expression, Name, Arguments> tuple) {
+  return new DynamicInvocation(
+      tuple.first, tuple.second, tuple.third, tuple.fourth);
+}
+
+const Map<FunctionAccessKind, String> functionAccessKindToName = const {
+  FunctionAccessKind.Function: "function",
+  FunctionAccessKind.FunctionType: "function-type",
+  FunctionAccessKind.Inapplicable: "inapplicable",
+  FunctionAccessKind.Nullable: "nullable",
+};
+
+class FunctionAccessKindTagger implements Tagger<FunctionAccessKind> {
+  const FunctionAccessKindTagger();
+
+  String tag(FunctionAccessKind kind) {
+    return functionAccessKindToName[kind] ??
+        (throw StateError("Unknown FunctionAccessKind flag value: ${kind}."));
+  }
+}
+
+TextSerializer<FunctionAccessKind> functionAccessKindSerializer =
+    Case(FunctionAccessKindTagger(), convertFlagsMap(functionAccessKindToName));
+
+TextSerializer<FunctionInvocation> functionInvocationSerializer = new Wrapped<
+        Tuple4<FunctionAccessKind, Expression, Arguments, DartType>,
+        FunctionInvocation>(
+    unwrapFunctionInvocation,
+    wrapFunctionInvocation,
+    new Tuple4Serializer(functionAccessKindSerializer, expressionSerializer,
+        argumentsSerializer, new Optional(dartTypeSerializer)));
+
+Tuple4<FunctionAccessKind, Expression, Arguments, DartType>
+    unwrapFunctionInvocation(FunctionInvocation expression) {
+  return new Tuple4(expression.kind, expression.receiver, expression.arguments,
+      expression.functionType);
+}
+
+FunctionInvocation wrapFunctionInvocation(
+    Tuple4<FunctionAccessKind, Expression, Arguments, DartType> tuple) {
+  return new FunctionInvocation(tuple.first, tuple.second, tuple.third,
+      functionType: tuple.fourth);
+}
+
+TextSerializer<LocalFunctionInvocation> localFunctionInvocationSerializer =
+    new Wrapped<Tuple3<VariableDeclaration, Arguments, DartType>,
+            LocalFunctionInvocation>(
+        unwrapLocalFunctionInvocation,
+        wrapLocalFunctionInvocation,
+        new Tuple3Serializer(const ScopedUse<VariableDeclaration>(),
+            argumentsSerializer, dartTypeSerializer));
+
+Tuple3<VariableDeclaration, Arguments, DartType> unwrapLocalFunctionInvocation(
+    LocalFunctionInvocation expression) {
+  return new Tuple3(
+      expression.variable, expression.arguments, expression.functionType);
+}
+
+LocalFunctionInvocation wrapLocalFunctionInvocation(
+    Tuple3<VariableDeclaration, Arguments, DartType> tuple) {
+  return new LocalFunctionInvocation(tuple.first, tuple.second,
+      functionType: tuple.third);
+}
+
+TextSerializer<EqualsNull> equalsNullSerializer =
+    new Wrapped<Tuple2<Expression, bool>, EqualsNull>(
+        unwrapEqualsNull,
+        wrapEqualsNull,
+        new Tuple2Serializer(expressionSerializer, const DartBool()));
+
+Tuple2<Expression, bool> unwrapEqualsNull(EqualsNull expression) {
+  return new Tuple2(expression.expression, expression.isNot);
+}
+
+EqualsNull wrapEqualsNull(Tuple2<Expression, bool> tuple) {
+  return new EqualsNull(tuple.first, isNot: tuple.second);
+}
+
+TextSerializer<EqualsCall> equalsCallSerializer = new Wrapped<
+        Tuple5<Expression, Expression, bool, CanonicalName, DartType>,
+        EqualsCall>(
+    unwrapEqualsCall,
+    wrapEqualsCall,
+    new Tuple5Serializer(expressionSerializer, expressionSerializer,
+        const DartBool(), const CanonicalNameSerializer(), dartTypeSerializer));
+
+Tuple5<Expression, Expression, bool, CanonicalName, DartType> unwrapEqualsCall(
+    EqualsCall expression) {
+  return new Tuple5(
+      expression.left,
+      expression.right,
+      expression.isNot,
+      expression.interfaceTargetReference.canonicalName,
+      expression.functionType);
+}
+
+EqualsCall wrapEqualsCall(
+    Tuple5<Expression, Expression, bool, CanonicalName, DartType> tuple) {
+  return new EqualsCall.byReference(tuple.first, tuple.second,
+      isNot: tuple.third,
+      interfaceTargetReference: tuple.fourth.getReference(),
+      functionType: tuple.fifth);
 }
 
 TextSerializer<SuperMethodInvocation> superMethodInvocationSerializer =
@@ -551,6 +869,17 @@ CanonicalName unwrapStaticGet(StaticGet expression) {
 
 StaticGet wrapStaticGet(CanonicalName name) {
   return new StaticGet.byReference(name.getReference());
+}
+
+const TextSerializer<StaticTearOff> staticTearOffSerializer = const Wrapped(
+    unwrapStaticTearOff, wrapStaticTearOff, const CanonicalNameSerializer());
+
+CanonicalName unwrapStaticTearOff(StaticTearOff expression) {
+  return expression.targetReference.canonicalName;
+}
+
+StaticTearOff wrapStaticTearOff(CanonicalName name) {
+  return new StaticTearOff.byReference(name.getReference());
 }
 
 TextSerializer<StaticSet> staticSetSerializer = new Wrapped(
@@ -2153,14 +2482,27 @@ void initializeSerializers() {
     "let": letSerializer,
     "get-prop": propertyGetSerializer,
     "set-prop": propertySetSerializer,
+    "get-instance": instanceGetSerializer,
+    "set-instance": instanceSetSerializer,
+    "get-dynamic": dynamicGetSerializer,
+    "set-dynamic": dynamicSetSerializer,
+    "tearoff-instance": instanceTearOffSerializer,
+    "tearoff-function": functionTearOffSerializer,
     "get-super": superPropertyGetSerializer,
     "set-super": superPropertySetSerializer,
     "invoke-method": methodInvocationSerializer,
+    "invoke-instance": instanceInvocationSerializer,
+    "invoke-dynamic": dynamicInvocationSerializer,
+    "invoke-function": functionInvocationSerializer,
+    "invoke-local-function": localFunctionInvocationSerializer,
+    "equals-null": equalsNullSerializer,
+    "equals-call": equalsCallSerializer,
     "invoke-super": superMethodInvocationSerializer,
     "get-var": variableGetSerializer,
     "set-var": variableSetSerializer,
     "get-static": staticGetSerializer,
     "set-static": staticSetSerializer,
+    "tearoff-static": staticGetSerializer,
     "invoke-static": staticInvocationSerializer,
     "invoke-const-static": constStaticInvocationSerializer,
     "invoke-constructor": constructorInvocationSerializer,

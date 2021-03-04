@@ -284,16 +284,13 @@ super method declares ${superParameter.type}
       return;
     }
 
-    // Permit any invocation on Function type.
-    if (receiver == environment.coreTypes.functionLegacyRawType &&
-        where is InvocationExpression &&
-        where.name.text == 'call') {
-      return;
-    }
-
-    if (receiver is FunctionType &&
-        where is InvocationExpression &&
-        where.name.text == 'call') {
+    // Permit any invocation or tear-off of `call` on Function type.
+    if ((receiver == environment.coreTypes.functionLegacyRawType ||
+                receiver == environment.coreTypes.functionNonNullableRawType ||
+                receiver is FunctionType) &&
+            (where is InvocationExpression && where.name.text == 'call') ||
+        (where is PropertyGet && where.name.text == 'call') ||
+        where is FunctionTearOff) {
       return;
     }
 

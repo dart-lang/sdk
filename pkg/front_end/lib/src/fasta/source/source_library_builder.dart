@@ -32,8 +32,7 @@ import 'package:kernel/src/bounds_checks.dart'
         TypeArgumentIssue,
         findTypeArgumentIssues,
         findTypeArgumentIssuesForInvocation,
-        getGenericTypeName,
-        isGenericFunctionTypeOrAlias;
+        getGenericTypeName;
 
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 
@@ -2923,15 +2922,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
       bool haveErroneousBounds = false;
       if (!inErrorRecovery) {
-        for (int i = 0; i < variables.length; ++i) {
-          TypeVariableBuilder variable = variables[i];
-          List<TypeBuilder> genericFunctionTypes = <TypeBuilder>[];
-          findGenericFunctionTypes(variable.bound,
-              result: genericFunctionTypes);
-          if (genericFunctionTypes.length > 0) {
-            haveErroneousBounds = true;
-            addProblem(messageGenericFunctionTypeInBound, variable.charOffset,
-                variable.name.length, variable.fileUri);
+        if (!enableGenericMetadataInLibrary) {
+          for (int i = 0; i < variables.length; ++i) {
+            TypeVariableBuilder variable = variables[i];
+            List<TypeBuilder> genericFunctionTypes = <TypeBuilder>[];
+            findGenericFunctionTypes(variable.bound,
+                result: genericFunctionTypes);
+            if (genericFunctionTypes.length > 0) {
+              haveErroneousBounds = true;
+              addProblem(messageGenericFunctionTypeInBound, variable.charOffset,
+                  variable.name.length, variable.fileUri);
+            }
           }
         }
 
@@ -3170,7 +3171,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           inferredTypes.contains(argument);
       offset =
           typeArgumentsInfo?.getOffsetForIndex(issue.index, offset) ?? offset;
-      if (isGenericFunctionTypeOrAlias(argument)) {
+      if (issue.isGenericTypeAsArgumentIssue) {
         if (issueInferred) {
           message = templateGenericFunctionTypeInferredAsActualTypeArgument
               .withArguments(argument, isNonNullableByDefault);
@@ -3221,10 +3222,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
 
+      // Don't show the hint about an attempted super-bounded type if the issue
+      // with the argument is that it's generic.
       reportTypeArgumentIssue(message, fileUri, offset,
           typeParameter: typeParameter,
-          superBoundedAttempt: issue.enclosingType,
-          superBoundedAttemptInverted: issue.invertedType);
+          superBoundedAttempt:
+              issue.isGenericTypeAsArgumentIssue ? null : issue.enclosingType,
+          superBoundedAttemptInverted:
+              issue.isGenericTypeAsArgumentIssue ? null : issue.invertedType);
     }
   }
 
@@ -3306,13 +3311,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // Check in bounds of own type variables.
     for (TypeParameter parameter in typeParameters) {
       List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-          library,
           parameter.bound,
           typeEnvironment,
           isNonNullableByDefault
               ? SubtypeCheckMode.withNullabilities
               : SubtypeCheckMode.ignoringNullabilities,
-          allowSuperBounded: true);
+          allowSuperBounded: true,
+          isNonNullableByDefault: library.isNonNullableByDefault,
+          areGenericArgumentsAllowed: enableGenericMetadataInLibrary);
       for (TypeArgumentIssue issue in issues) {
         DartType argument = issue.argument;
         TypeParameter typeParameter = issue.typeParameter;
@@ -3325,7 +3331,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           continue;
         }
 
-        if (isGenericFunctionTypeOrAlias(argument)) {
+        if (issue.isGenericTypeAsArgumentIssue) {
           reportTypeArgumentIssue(
               messageGenericFunctionTypeUsedAsActualTypeArgument,
               fileUri,
@@ -3382,13 +3388,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     if (!skipReturnType && returnType != null) {
       List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-          library,
           returnType,
           typeEnvironment,
           isNonNullableByDefault
               ? SubtypeCheckMode.withNullabilities
               : SubtypeCheckMode.ignoringNullabilities,
-          allowSuperBounded: true);
+          allowSuperBounded: true,
+          isNonNullableByDefault: library.isNonNullableByDefault,
+          areGenericArgumentsAllowed: enableGenericMetadataInLibrary);
       for (TypeArgumentIssue issue in issues) {
         DartType argument = issue.argument;
         TypeParameter typeParameter = issue.typeParameter;
@@ -3396,7 +3403,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // We don't need to check if [argument] was inferred or specified
         // here, because inference in return types boils down to instantiate-
         // -to-bound, and it can't provide a type that violates the bound.
-        if (isGenericFunctionTypeOrAlias(argument)) {
+        if (issue.isGenericTypeAsArgumentIssue) {
           reportTypeArgumentIssue(
               messageGenericFunctionTypeUsedAsActualTypeArgument,
               fileUri,
@@ -3490,13 +3497,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       DartType type, TypeEnvironment typeEnvironment, Uri fileUri, int offset,
       {bool inferred, bool allowSuperBounded = true}) {
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        library,
         type,
         typeEnvironment,
         isNonNullableByDefault
             ? SubtypeCheckMode.withNullabilities
             : SubtypeCheckMode.ignoringNullabilities,
-        allowSuperBounded: allowSuperBounded);
+        allowSuperBounded: allowSuperBounded,
+        isNonNullableByDefault: library.isNonNullableByDefault,
+        areGenericArgumentsAllowed: enableGenericMetadataInLibrary);
     reportTypeArgumentIssues(issues, fileUri, offset, inferred: inferred);
   }
 
@@ -3554,14 +3562,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         ? const NeverType.nonNullable()
         : const NullType();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
-        library,
         parameters,
         arguments,
         typeEnvironment,
         isNonNullableByDefault
             ? SubtypeCheckMode.withNullabilities
             : SubtypeCheckMode.ignoringNullabilities,
-        bottomType);
+        bottomType,
+        isNonNullableByDefault: library.isNonNullableByDefault,
+        areGenericArgumentsAllowed: enableGenericMetadataInLibrary);
     if (issues.isNotEmpty) {
       DartType targetReceiver;
       if (klass != null) {
@@ -3631,14 +3640,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         ? const NeverType.nonNullable()
         : const NullType();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
-        library,
         instantiatedMethodParameters,
         arguments.types,
         typeEnvironment,
         isNonNullableByDefault
             ? SubtypeCheckMode.withNullabilities
             : SubtypeCheckMode.ignoringNullabilities,
-        bottomType);
+        bottomType,
+        isNonNullableByDefault: library.isNonNullableByDefault,
+        areGenericArgumentsAllowed: enableGenericMetadataInLibrary);
     reportTypeArgumentIssues(issues, fileUri, offset,
         typeArgumentsInfo: getTypeArgumentsInfo(arguments),
         targetReceiver: receiverType,

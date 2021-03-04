@@ -811,7 +811,7 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 }
 
-class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
+class ConstantEvaluator extends ExpressionVisitor<Constant> {
   final ConstantsBackend backend;
   final NumberSemantics numberSemantics;
   ConstantIntFolder intFolder;
@@ -1157,7 +1157,7 @@ class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
   }
 
   @override
-  Constant defaultTreeNode(Node node) {
+  Constant defaultExpression(Expression node) {
     // Only a subset of the expression language is valid for constant
     // evaluation.
     return createInvalidExpressionConstant(
@@ -2738,17 +2738,18 @@ class ConstantEvaluator extends RecursiveResultVisitor<Constant> {
         if (value is AbortConstant) return value;
         env.addVariableValue(parameter, value);
       }
-      return function.body.accept(this);
+      Statement body = function.body;
+      if (body is ReturnStatement) {
+        if (!enableConstFunctions) {
+          return createInvalidExpressionConstant(
+              node, "Return statements are not supported.");
+        }
+        return body.expression.accept(this);
+      } else {
+        return createInvalidExpressionConstant(
+            node, "Unsupported statement: ${body.runtimeType}.");
+      }
     });
-  }
-
-  @override
-  Constant visitReturnStatement(ReturnStatement node) {
-    if (!enableConstFunctions) {
-      return createInvalidExpressionConstant(
-          node, "Return statements are not supported.");
-    }
-    return node.expression.accept(this);
   }
 
   @override

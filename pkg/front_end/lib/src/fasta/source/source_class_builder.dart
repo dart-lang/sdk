@@ -425,19 +425,21 @@ class SourceClassBuilder extends ClassBuilderImpl
     Library library = libraryBuilder.library;
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        library,
         new InterfaceType(
             supertype.classNode, library.nonNullable, supertype.typeArguments),
         typeEnvironment,
         libraryBuilder.isNonNullableByDefault
             ? SubtypeCheckMode.withNullabilities
             : SubtypeCheckMode.ignoringNullabilities,
-        allowSuperBounded: false);
+        allowSuperBounded: false,
+        isNonNullableByDefault: library.isNonNullableByDefault,
+        areGenericArgumentsAllowed:
+            libraryBuilder.enableGenericMetadataInLibrary);
     for (TypeArgumentIssue issue in issues) {
       DartType argument = issue.argument;
       TypeParameter typeParameter = issue.typeParameter;
       bool inferred = libraryBuilder.inferredTypes.contains(argument);
-      if (isGenericFunctionTypeOrAlias(argument)) {
+      if (issue.isGenericTypeAsArgumentIssue) {
         if (inferred) {
           // Supertype can't be or contain super-bounded types, so null is
           // passed for super-bounded hint here.

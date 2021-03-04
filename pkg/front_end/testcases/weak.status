@@ -22,11 +22,9 @@ general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
 general/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 general/await_in_non_async: RuntimeError # Expected.
-general/bug21938: TypeCheckError
 general/bug30695: TypeCheckError
 general/bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
 general/call: TypeCheckError
-general/callable_type_variable: TypeCheckError
 general/candidate_found: TypeCheckError
 general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
@@ -113,7 +111,6 @@ inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
 inference/infer_types_on_generic_instantiations_4: RuntimeError
 inference/infer_types_on_generic_instantiations_infer: TypeCheckError
-inference/instantiate_tearoff_of_call: TypeCheckError # Issue #31746
 inference/instantiate_to_bounds_generic_has_bound_defined_after transform: RuntimeError
 inference/mixin_inference_outwards_3: TypeCheckError
 inference/mixin_inference_outwards_4: TypeCheckError
