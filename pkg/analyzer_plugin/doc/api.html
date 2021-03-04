@@ -1015,6 +1015,30 @@ a:focus, a:hover {
           is only defined if the displayed text should be different than the
           completion.  Otherwise it is omitted.
         </p>
+      </dd><dt class="field"><b>replacementOffset: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The offset of the start of the text to be
+          replaced. If supplied, this should be used in
+          preference to the offset provided on the
+          containing completion results.
+
+          This value may be provided independently of
+          replacementLength (for example if only one
+          differs from the completion result value).
+        </p>
+      </dd><dt class="field"><b>replacementLength: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The length of the text to be replaced.
+          If supplied, this should be used in preference
+          to the offset provided on the
+          containing completion results.
+
+          This value may be provided independently of
+          replacementOffset (for example if only one
+          differs from the completion result value).
+        </p>
       </dd><dt class="field"><b>selectionOffset: int</b></dt><dd>
         
         <p>

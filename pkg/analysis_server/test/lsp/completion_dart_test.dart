@@ -709,16 +709,19 @@ class _MyWidgetState extends State<MyWidget> {
     }) async {
       final content = '''
 class A { const A({int argOne, int argTwo}); }
+final varOne = '';
 $code
 main() { }
 ''';
       final expectedReplaced = '''
 class A { const A({int argOne, int argTwo}); }
+final varOne = '';
 $expectedReplace
 main() { }
 ''';
       final expectedInserted = '''
 class A { const A({int argOne, int argTwo}); }
+final varOne = '';
 $expectedInsert
 main() { }
 ''';
@@ -743,7 +746,23 @@ main() { }
       expectedInsert: '@A(argTwoargOne: 1)',
     );
 
-    // Inside the identifier also should be expected to replace.
+    // When adding a name to an existing value, it should always insert.
+    await check(
+      '@A(^1)',
+      'argOne: ',
+      expectedReplace: '@A(argOne: 1)',
+      expectedInsert: '@A(argOne: 1)',
+    );
+
+    // When adding a name to an existing variable, it should always insert.
+    await check(
+      '@A(argOne: 1, ^varOne)',
+      'argTwo: ',
+      expectedReplace: '@A(argOne: 1, argTwo: varOne)',
+      expectedInsert: '@A(argOne: 1, argTwo: varOne)',
+    );
+
+    // // Inside the identifier also should be expected to replace.
     await check(
       '@A(arg^One: 1)',
       'argTwo',

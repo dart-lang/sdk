@@ -6,7 +6,7 @@
 </head>
 <body>
 <h1>Common Types</h1>
-<version>1.4.2</version>
+<version>1.4.3</version>
 <p>
   This document contains a specification of the types that are common between
   the analysis server wire protocol and the analysis server plugin wire
@@ -219,6 +219,32 @@
           Text to be displayed in, for example, a completion pop-up. This field
           is only defined if the displayed text should be different than the
           completion.  Otherwise it is omitted.
+        </p>
+      </field>
+      <field name="replacementOffset" optional="true">
+        <ref>int</ref>
+        <p>
+          The offset of the start of the text to be
+          replaced. If supplied, this should be used in
+          preference to the offset provided on the
+          containing completion results.
+
+          This value may be provided independently of
+          replacementLength (for example if only one
+          differs from the completion result value).
+        </p>
+      </field>
+      <field name="replacementLength" optional="true">
+        <ref>int</ref>
+        <p>
+          The length of the text to be replaced.
+          If supplied, this should be used in preference
+          to the offset provided on the
+          containing completion results.
+
+          This value may be provided independently of
+          replacementOffset (for example if only one
+          differs from the completion result value).
         </p>
       </field>
       <field name="selectionOffset">

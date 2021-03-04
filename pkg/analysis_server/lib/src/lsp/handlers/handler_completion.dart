@@ -272,29 +272,42 @@ class CompletionHandler
           return cancelled();
         }
 
-        final results = serverSuggestions
-            .map(
-              (item) => toCompletionItem(
-                completionCapabilities,
-                clientSupportedCompletionKinds,
-                unit.lineInfo,
-                item,
-                completionRequest.replacementOffset,
-                insertLength,
-                completionRequest.replacementLength,
-                // TODO(dantup): Including commit characters in every completion
-                // increases the payload size. The LSP spec is ambigious
-                // about how this should be handled (and VS Code requires it) but
-                // this should be removed (or made conditional based on a capability)
-                // depending on how the spec is updated.
-                // https://github.com/microsoft/vscode-languageserver-node/issues/673
-                includeCommitCharacters:
-                    server.clientConfiguration.previewCommitCharacters,
-                completeFunctionCalls:
-                    server.clientConfiguration.completeFunctionCalls,
-              ),
-            )
-            .toList();
+        final results = serverSuggestions.map(
+          (item) {
+            var itemReplacementOffset =
+                item.replacementOffset ?? completionRequest.replacementOffset;
+            var itemReplacementLength =
+                item.replacementLength ?? completionRequest.replacementLength;
+            var itemInsertLength = insertLength;
+
+            // Recompute the insert length if it may be affected by the above.
+            if (item.replacementOffset != null ||
+                item.replacementLength != null) {
+              itemInsertLength = _computeInsertLength(
+                  offset, itemReplacementOffset, itemInsertLength);
+            }
+
+            return toCompletionItem(
+              completionCapabilities,
+              clientSupportedCompletionKinds,
+              unit.lineInfo,
+              item,
+              itemReplacementOffset,
+              itemInsertLength,
+              itemReplacementLength,
+              // TODO(dantup): Including commit characters in every completion
+              // increases the payload size. The LSP spec is ambigious
+              // about how this should be handled (and VS Code requires it) but
+              // this should be removed (or made conditional based on a capability)
+              // depending on how the spec is updated.
+              // https://github.com/microsoft/vscode-languageserver-node/issues/673
+              includeCommitCharacters:
+                  server.clientConfiguration.previewCommitCharacters,
+              completeFunctionCalls:
+                  server.clientConfiguration.completeFunctionCalls,
+            );
+          },
+        ).toList();
 
         // Now compute items in suggestion sets.
         var includedSuggestionSets = <IncludedSuggestionSet>[];

@@ -43,6 +43,8 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
       {bool isDeprecated = false,
       bool isPotential = false,
       int selectionOffset,
+      int replacementOffset,
+      int replacementLength,
       ElementKind elementKind}) {
     CompletionSuggestion cs;
     suggestions.forEach((s) {
@@ -70,6 +72,8 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
     expect(cs.kind, equals(kind));
     expect(cs.selectionOffset, selectionOffset ?? completion.length);
     expect(cs.selectionLength, equals(0));
+    expect(cs.replacementOffset, equals(replacementOffset));
+    expect(cs.replacementLength, equals(replacementLength));
     expect(cs.isDeprecated, equals(isDeprecated));
     expect(cs.isPotential, equals(isPotential));
   }
