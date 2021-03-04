@@ -61,7 +61,7 @@ class ContextRootTest with ResourceProviderMixin {
 
     var root = _createContextRoot(rootPath);
     root.included.add(includedFile);
-    _addGlob(root, '$rootPath/lib/a*.dart');
+    _addGlob(root, 'lib/a*.dart');
 
     // Explicitly included, so analyzed even if excluded by a glob.
     expect(root.isAnalyzed(includedFile.path), isTrue);
@@ -91,8 +91,8 @@ class ContextRootTest with ResourceProviderMixin {
 
     var root = _createContextRoot(rootPath);
     root.included.add(includedFolder);
-    _addGlob(root, '$rootPath/lib/src/**');
-    _addGlob(root, '$rootPath/lib/**.g.dart');
+    _addGlob(root, 'lib/src/**');
+    _addGlob(root, 'lib/**.g.dart');
 
     // Explicitly included, so analyzed even if excluded by a glob.
     expect(root.isAnalyzed(includedFolder.path), isTrue);
@@ -198,8 +198,13 @@ class ContextRootTest with ResourceProviderMixin {
     expect(contextRoot.isAnalyzed(folderPath), isTrue);
   }
 
-  void _addGlob(ContextRootImpl root, String pattern) {
-    var glob = Glob(pattern, context: resourceProvider.pathContext);
+  void _addGlob(ContextRootImpl root, String posixPattern) {
+    var pathContext = root.resourceProvider.pathContext;
+    var pattern = posix.joinAll([
+      ...pathContext.split(root.root.path),
+      ...posix.split(posixPattern),
+    ]);
+    var glob = Glob(pattern, context: pathContext);
     root.excludedGlobs.add(glob);
   }
 
