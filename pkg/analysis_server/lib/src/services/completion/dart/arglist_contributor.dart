@@ -62,9 +62,15 @@ class ArgListContributor extends DartCompletionContributor {
       {int replacementLength}) {
     var name = parameter.name;
 
+    // Check whether anything after the caret is being replaced. If so, we will
+    // suppress inserting colons/commas. We check only replacing _after_ the
+    // caret as some replacements (before) will still want colons, for example:
+    //     foo(mySt^'bar');
+    var replacementEnd = request.replacementRange.offset +
+        (replacementLength ?? request.replacementRange.length);
     var willReplace =
         request.completionPreference == CompletionPreference.replace &&
-            (replacementLength ?? request.replacementRange.length) > 0;
+            replacementEnd > request.offset;
 
     if (name != null && name.isNotEmpty && !namedArgs.contains(name)) {
       builder.suggestNamedArgument(parameter,
@@ -154,8 +160,27 @@ class ArgListContributor extends DartCompletionContributor {
   bool _isAddingLabelToPositional() {
     if (argumentList != null) {
       var entity = request.target.entity;
-      if (entity is! NamedExpression && request.offset <= entity.offset) {
-        return true;
+      if (entity is! NamedExpression) {
+        // Caret is in front of a value
+        //     f(one: 1, ^2);
+        if (request.offset <= entity.offset) {
+          return true;
+        }
+
+        // Caret is in the between two values that are not seperated by a comma.
+        //     f(one: 1, tw^'foo');
+        // must be at least two and the target not last.
+        var args = argumentList.arguments;
+        if (args.length >= 2 && entity != args.last) {
+          var index = args.indexOf(entity);
+          if (index != -1) {
+            var next = args[index + 1];
+            // Check the two tokens are adjacent without any comma.
+            if (entity.end == next.offset) {
+              return true;
+            }
+          }
+        }
       }
     }
     return false;

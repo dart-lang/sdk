@@ -102,6 +102,24 @@ class A {
     expect(replacementLength, equals(0));
   }
 
+  Future<void> test_ArgumentList_function_named_partiallyTyped() async {
+    addTestFile('''
+    class C {
+      void m(String firstString, {String secondString}) {}
+
+      void n() {
+        m('a', se^'b');
+      }
+    }
+    ''');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'secondString: ');
+    expect(suggestions, hasLength(1));
+    // Ensure we replace the correct section.
+    expect(replacementOffset, equals(completionOffset - 2));
+    expect(replacementLength, equals(2));
+  }
+
   Future<void> test_ArgumentList_imported_function_named_param() async {
     addTestFile('main() { int.parse("16", ^);}');
     await getSuggestions();

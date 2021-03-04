@@ -708,19 +708,19 @@ class _MyWidgetState extends State<MyWidget> {
       String expectedInsert,
     }) async {
       final content = '''
-class A { const A({int argOne, int argTwo}); }
+class A { const A({int argOne, int argTwo, String argThree}); }
 final varOne = '';
 $code
 main() { }
 ''';
       final expectedReplaced = '''
-class A { const A({int argOne, int argTwo}); }
+class A { const A({int argOne, int argTwo, String argThree}); }
 final varOne = '';
 $expectedReplace
 main() { }
 ''';
       final expectedInserted = '''
-class A { const A({int argOne, int argTwo}); }
+class A { const A({int argOne, int argTwo, String argThree}); }
 final varOne = '';
 $expectedInsert
 main() { }
@@ -778,6 +778,15 @@ main() { }
       'argTwo: ',
       expectedReplace: '@A(argTwo: ^, argOne: 1)',
       expectedInsert: '@A(argTwo: ^, argOne: 1)',
+    );
+
+    // Partially typed names in front of values (that aren't considered part of
+    // the same identifier) should also suggest name labels.
+    await check(
+      '''@A(argOne: 1, argTh^'Foo')''',
+      'argThree: ',
+      expectedReplace: '''@A(argOne: 1, argThree: 'Foo')''',
+      expectedInsert: '''@A(argOne: 1, argThree: 'Foo')''',
     );
   }
 
