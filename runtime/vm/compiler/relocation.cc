@@ -71,8 +71,15 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
   // We're guaranteed to have all calls resolved, since
   //   * backwards calls are resolved eagerly
   //   * forward calls are resolved once the target is written
-  ASSERT(all_unresolved_calls_.IsEmpty());
-  ASSERT(unresolved_calls_by_destination_.IsEmpty());
+  if (!all_unresolved_calls_.IsEmpty()) {
+    for (auto call : all_unresolved_calls_) {
+      OS::PrintErr("Unresolved call to %s from %s\n",
+                   Object::Handle(call->callee).ToCString(),
+                   Object::Handle(call->caller).ToCString());
+    }
+  }
+  RELEASE_ASSERT(all_unresolved_calls_.IsEmpty());
+  RELEASE_ASSERT(unresolved_calls_by_destination_.IsEmpty());
 
   // Any trampolines we created must be patched with the right offsets.
   auto it = trampolines_by_destination_.GetIterator();

@@ -1371,9 +1371,15 @@ class AssignLoadingUnitsCodeVisitor : public CodeVisitor {
     MergeAssignment(obj_, id);
     obj_ = code.compressed_stackmaps();
     MergeAssignment(obj_, id);
+    if (!FLAG_use_bare_instructions) {
+      obj_ = code.object_pool();
+      MergeAssignment(obj_, id);
+    }
   }
 
   void MergeAssignment(const Object& obj, intptr_t id) {
+    if (obj.IsNull()) return;
+
     intptr_t old_id = heap_->GetLoadingUnit(obj_.ptr());
     if (old_id == WeakTable::kNoValue) {
       heap_->SetLoadingUnit(obj_.ptr(), id);

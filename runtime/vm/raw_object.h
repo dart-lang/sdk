@@ -1663,6 +1663,8 @@ class UntaggedObjectPool : public UntaggedObject {
 
   friend class Object;
   friend class CodeSerializationCluster;
+  friend class UnitSerializationRoots;
+  friend class UnitDeserializationRoots;
 };
 
 class UntaggedInstructions : public UntaggedObject {
