@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-03-03T09:46:04.757962",
+  "generated": "2021-03-04T11:31:12.464706",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -300,6 +300,12 @@
       "languageVersion": "2.7"
     },
     {
+      "name": "func",
+      "rootUri": "../third_party/pkg/func",
+      "packageUri": "lib/",
+      "languageVersion": "1.9"
+    },
+    {
       "name": "glob",
       "rootUri": "../third_party/pkg/glob",
       "packageUri": "lib/",
@@ -443,6 +449,12 @@
       "languageVersion": "2.0"
     },
     {
+      "name": "mustache4dart",
+      "rootUri": "../third_party/pkg/mustache4dart",
+      "packageUri": "lib/",
+      "languageVersion": "0.8"
+    },
+    {
       "name": "native_stack_traces",
       "rootUri": "../pkg/native_stack_traces",
       "packageUri": "lib/",
@@ -510,6 +522,12 @@
       "rootUri": "../third_party/pkg/platform",
       "packageUri": "lib/",
       "languageVersion": "2.12"
+    },
+    {
+      "name": "plugin",
+      "rootUri": "../third_party/pkg/plugin",
+      "packageUri": "lib/",
+      "languageVersion": "1.0"
     },
     {
       "name": "pool",
@@ -732,6 +750,12 @@
       "rootUri": "../third_party/pkg/usage",
       "packageUri": "lib/",
       "languageVersion": "2.12"
+    },
+    {
+      "name": "utf",
+      "rootUri": "../third_party/pkg/utf",
+      "packageUri": "lib/",
+      "languageVersion": "2.0"
     },
     {
       "name": "vector_math",
