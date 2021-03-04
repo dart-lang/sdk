@@ -308,11 +308,6 @@ class CommandLineOptions {
           help: 'Print the analyzer version.',
           defaultsTo: false,
           negatable: false)
-      ..addMultiOption('enable-experiment',
-          help:
-              'Enable one or more experimental features. If multiple features '
-              'are being added, they should be comma separated.',
-          splitCommas: true)
       ..addFlag('no-hints',
           help: 'Do not show hint results.',
           defaultsTo: false,

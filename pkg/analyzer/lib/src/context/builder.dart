@@ -102,10 +102,15 @@ class ContextBuilder {
 
   /// Return an analysis driver that is configured correctly to analyze code in
   /// the directory with the given [path].
-  AnalysisDriver buildDriver(ContextRoot contextRoot, Workspace workspace) {
+  AnalysisDriver buildDriver(ContextRoot contextRoot, Workspace workspace,
+      {void Function(AnalysisOptionsImpl)? updateAnalysisOptions}) {
     String path = contextRoot.root;
 
     var options = getAnalysisOptions(path, workspace, contextRoot: contextRoot);
+
+    if (updateAnalysisOptions != null) {
+      updateAnalysisOptions(options);
+    }
     //_processAnalysisOptions(context, optionMap);
 
     SummaryDataStore? summaryData;

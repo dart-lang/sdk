@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart'
     show FileContentOverlay;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
 import 'package:analyzer/src/generated/source.dart' show ContentCache;
 import 'package:cli_util/cli_util.dart';
@@ -37,19 +38,21 @@ class ContextBuilderImpl implements ContextBuilder {
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
   @override
-  AnalysisContext createContext(
-      {ByteStore? byteStore,
-      required ContextRoot contextRoot,
-      DeclaredVariables? declaredVariables,
-      bool drainStreams = true,
-      bool enableIndex = false,
-      FileContentOverlay? fileContentOverlay,
-      List<String>? librarySummaryPaths,
-      PerformanceLog? performanceLog,
-      bool retainDataForTesting = false,
-      AnalysisDriverScheduler? scheduler,
-      String? sdkPath,
-      String? sdkSummaryPath}) {
+  AnalysisContext createContext({
+    ByteStore? byteStore,
+    required ContextRoot contextRoot,
+    DeclaredVariables? declaredVariables,
+    bool drainStreams = true,
+    bool enableIndex = false,
+    FileContentOverlay? fileContentOverlay,
+    List<String>? librarySummaryPaths,
+    PerformanceLog? performanceLog,
+    bool retainDataForTesting = false,
+    AnalysisDriverScheduler? scheduler,
+    String? sdkPath,
+    String? sdkSummaryPath,
+    void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
+  }) {
     // TODO(scheglov) Remove this, and make `sdkPath` required.
     sdkPath ??= getSdkPath();
     ArgumentError.checkNotNull(sdkPath, 'sdkPath');
@@ -93,8 +96,11 @@ class ContextBuilderImpl implements ContextBuilder {
     old.ContextRoot oldContextRoot = old.ContextRoot(
         contextRoot.root.path, contextRoot.excludedPaths.toList(),
         pathContext: resourceProvider.pathContext);
-    AnalysisDriver driver =
-        builder.buildDriver(oldContextRoot, contextRoot.workspace);
+    AnalysisDriver driver = builder.buildDriver(
+      oldContextRoot,
+      contextRoot.workspace,
+      updateAnalysisOptions: updateAnalysisOptions,
+    );
 
     // AnalysisDriver reports results into streams.
     // We need to drain these streams to avoid memory leak.

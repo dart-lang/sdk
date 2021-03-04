@@ -83,7 +83,7 @@ class ArgumentsTest with ResourceProviderMixin {
   void test_defineAnalysisArguments() {
     ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
-    expect(parser.options, hasLength(11));
+    expect(parser.options, hasLength(12));
   }
 
   void test_extractDefinedVariables() {
