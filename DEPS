@@ -126,7 +126,7 @@ vars = {
   "mime_rev": "c931f4bed87221beaece356494b43731445ce7b8",
   "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "mustache_rev": "664737ecad027e6b96d0d1e627257efa0e46fcb1",
-  "oauth2_rev": "9b8ee16d0dd4538173422a01532f33fc8be2548f",
+  "oauth2_rev": "7cd3284049fe5badbec9f2bea2afc41d14c01057",
   "package_config_rev": "249af482de9ebabfc781bf10d6152c938e5ce45e",
   "path_rev": "407ab76187fade41c31e39c745b39661b710106c",
   "pedantic_rev": "df177f6ae531426aaf7bbf0121c90dc89d9c57bf",
