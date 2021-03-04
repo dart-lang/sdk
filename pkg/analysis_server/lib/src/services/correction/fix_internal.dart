@@ -323,6 +323,15 @@ class FixProcessor extends BaseProcessor {
         ],
       ),
     ],
+    CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN: [
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: false,
+        generators: [
+          ReplaceBooleanWithBool.newInstance,
+        ],
+      ),
+    ],
     HintCode.UNNECESSARY_CAST: [
       FixInfo(
         canBeAppliedToFile: true,
