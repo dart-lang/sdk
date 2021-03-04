@@ -15,10 +15,6 @@ library;
 // const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
 //                                                  ^
 //
-// pkg/front_end/testcases/general/constants/const_collections.dart:41:50: Error: Expected ',' before this.
-// const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
-//                                                  ^
-//
 // pkg/front_end/testcases/general/constants/const_collections.dart:42:38: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
 // const Set<String> quxWithMapSpread = {...baz, ...quux};
 //                                      ^
@@ -427,7 +423,7 @@ static const field core::Set<core::String*>* nullSet = #C3;
 static const field core::Set<core::String*>* baz = #C14;
 static const field core::Set<core::String*>* qux = #C17;
 static const field core::Set<core::String*>* quxWithNullSpread = invalid-expression "Null value during constant evaluation.";
-static const field core::Set<core::String*>* quxWithIntSpread = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:41:50: Error: Expected ',' before this.
+static const field core::Set<core::String*>* quxWithIntSpread = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:41:50: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
 const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
                                                  ^";
 static const field core::Set<core::String*>* quxWithMapSpread = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:42:38: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
