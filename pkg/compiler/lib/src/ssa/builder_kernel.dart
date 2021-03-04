@@ -3386,6 +3386,19 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   @override
+  void visitStaticTearOff(ir.StaticTearOff node) {
+    // TODO(johnniwinther): This is a constant tear off, so we should have
+    // created a constant value instead. Remove this case when we use CFE
+    // constants.
+    ir.Member staticTarget = node.target;
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildGet(node);
+    FunctionEntity member = _elementMap.getMember(staticTarget);
+    push(new HStatic(member, _typeInferenceMap.getInferredTypeOf(member),
+        sourceInformation));
+  }
+
+  @override
   void visitStaticSet(ir.StaticSet node) {
     node.value.accept(this);
     HInstruction value = pop();
@@ -3411,19 +3424,43 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     stack.add(value);
   }
 
-  @override
-  void visitPropertyGet(ir.PropertyGet node) {
-    node.receiver.accept(this);
-    HInstruction receiver = pop();
-
+  void _handlePropertyGet(
+      ir.Expression node, ir.Expression receiver, ir.Name name) {
+    receiver.accept(this);
+    HInstruction receiverInstruction = pop();
     _pushDynamicInvocation(
         node,
-        _getStaticType(node.receiver),
+        _getStaticType(receiver),
         _typeInferenceMap.receiverTypeOfGet(node),
-        new Selector.getter(_elementMap.getName(node.name)),
-        <HInstruction>[receiver],
+        new Selector.getter(_elementMap.getName(name)),
+        <HInstruction>[receiverInstruction],
         const <DartType>[],
         _sourceInformationBuilder.buildGet(node));
+  }
+
+  @override
+  void visitInstanceGet(ir.InstanceGet node) {
+    _handlePropertyGet(node, node.receiver, node.name);
+  }
+
+  @override
+  void visitInstanceTearOff(ir.InstanceTearOff node) {
+    _handlePropertyGet(node, node.receiver, node.name);
+  }
+
+  @override
+  void visitDynamicGet(ir.DynamicGet node) {
+    _handlePropertyGet(node, node.receiver, node.name);
+  }
+
+  @override
+  void visitFunctionTearOff(ir.FunctionTearOff node) {
+    _handlePropertyGet(node, node.receiver, ir.Name.callName);
+  }
+
+  @override
+  void visitPropertyGet(ir.PropertyGet node) {
+    _handlePropertyGet(node, node.receiver, node.name);
   }
 
   @override
@@ -3440,24 +3477,39 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         sourceInformation: _sourceInformationBuilder.buildGet(node)));
   }
 
-  @override
-  void visitPropertySet(ir.PropertySet node) {
-    node.receiver.accept(this);
-    HInstruction receiver = pop();
-    node.value.accept(this);
-    HInstruction value = pop();
+  void _handlePropertySet(ir.Expression node, ir.Expression receiver,
+      ir.Name name, ir.Expression value) {
+    receiver.accept(this);
+    HInstruction receiverInstruction = pop();
+    value.accept(this);
+    HInstruction valueInstruction = pop();
 
     _pushDynamicInvocation(
         node,
-        _getStaticType(node.receiver),
+        _getStaticType(receiver),
         _typeInferenceMap.receiverTypeOfSet(node, _abstractValueDomain),
-        new Selector.setter(_elementMap.getName(node.name)),
-        <HInstruction>[receiver, value],
+        new Selector.setter(_elementMap.getName(name)),
+        <HInstruction>[receiverInstruction, valueInstruction],
         const <DartType>[],
         _sourceInformationBuilder.buildAssignment(node));
 
     pop();
-    stack.add(value);
+    stack.add(valueInstruction);
+  }
+
+  @override
+  void visitInstanceSet(ir.InstanceSet node) {
+    _handlePropertySet(node, node.receiver, node.name, node.value);
+  }
+
+  @override
+  void visitDynamicSet(ir.DynamicSet node) {
+    _handlePropertySet(node, node.receiver, node.name, node.value);
+  }
+
+  @override
+  void visitPropertySet(ir.PropertySet node) {
+    _handlePropertySet(node, node.receiver, node.name, node.value);
   }
 
   @override
@@ -5180,23 +5232,86 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     push(instruction);
   }
 
-  @override
-  void visitMethodInvocation(ir.MethodInvocation node) {
-    node.receiver.accept(this);
-    HInstruction receiver = pop();
+  void _handleMethodInvocation(
+      ir.Expression node, ir.Expression receiver, ir.Arguments arguments) {
+    receiver.accept(this);
+    HInstruction receiverInstruction = pop();
     Selector selector = _elementMap.getSelector(node);
     List<DartType> typeArguments = <DartType>[];
-    selector =
-        _fillDynamicTypeArguments(selector, node.arguments, typeArguments);
+    selector = _fillDynamicTypeArguments(selector, arguments, typeArguments);
     _pushDynamicInvocation(
         node,
-        _getStaticType(node.receiver),
+        _getStaticType(receiver),
         _typeInferenceMap.receiverTypeOfInvocation(node, _abstractValueDomain),
         selector,
-        <HInstruction>[receiver]..addAll(_visitArgumentsForDynamicTarget(
-            selector, node.arguments, typeArguments)),
+        <HInstruction>[receiverInstruction]..addAll(
+            _visitArgumentsForDynamicTarget(
+                selector, arguments, typeArguments)),
         typeArguments,
-        _sourceInformationBuilder.buildCall(node.receiver, node));
+        _sourceInformationBuilder.buildCall(receiver, node));
+  }
+
+  @override
+  void visitInstanceInvocation(ir.InstanceInvocation node) {
+    _handleMethodInvocation(node, node.receiver, node.arguments);
+  }
+
+  @override
+  void visitDynamicInvocation(ir.DynamicInvocation node) {
+    _handleMethodInvocation(node, node.receiver, node.arguments);
+  }
+
+  @override
+  void visitFunctionInvocation(ir.FunctionInvocation node) {
+    _handleMethodInvocation(node, node.receiver, node.arguments);
+  }
+
+  @override
+  void visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) {
+    _handleMethodInvocation(
+        node, ir.VariableGet(node.variable), node.arguments);
+  }
+
+  @override
+  void visitMethodInvocation(ir.MethodInvocation node) {
+    _handleMethodInvocation(node, node.receiver, node.arguments);
+  }
+
+  void _handleEquals(ir.Expression node, ir.Expression left,
+      HInstruction leftInstruction, HInstruction rightInstruction,
+      {bool isNot}) {
+    assert(isNot != null);
+    _pushDynamicInvocation(
+        node,
+        _getStaticType(left),
+        _typeInferenceMap.receiverTypeOfInvocation(node, _abstractValueDomain),
+        Selectors.equals,
+        <HInstruction>[leftInstruction, rightInstruction],
+        const <DartType>[],
+        _sourceInformationBuilder.buildCall(left, node));
+    if (isNot) {
+      push(new HNot(popBoolified(), _abstractValueDomain.boolType)
+        ..sourceInformation = _sourceInformationBuilder.buildUnary(node));
+    }
+  }
+
+  @override
+  void visitEqualsNull(ir.EqualsNull node) {
+    node.expression.accept(this);
+    HInstruction receiverInstruction = pop();
+    return _handleEquals(node, node.expression, receiverInstruction,
+        graph.addConstantNull(closedWorld),
+        isNot: node.isNot);
+  }
+
+  @override
+  void visitEqualsCall(ir.EqualsCall node) {
+    node.left.accept(this);
+    HInstruction leftInstruction = pop();
+    node.right.accept(this);
+    HInstruction rightInstruction = pop();
+    return _handleEquals(node, node.left, leftInstruction, rightInstruction,
+        isNot: node.isNot);
   }
 
   HInterceptor _interceptorFor(

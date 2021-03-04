@@ -163,15 +163,21 @@ abstract class KernelToTypeInferenceMap {
   AbstractValue getReturnTypeOf(FunctionEntity function);
 
   /// Returns the inferred receiver type of the dynamic [invocation].
+  // TODO(johnniwinther): Improve the type of the [invocation] once the new
+  // method invocation encoding is fully utilized.
   AbstractValue receiverTypeOfInvocation(
-      ir.MethodInvocation invocation, AbstractValueDomain abstractValueDomain);
+      ir.Expression invocation, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred receiver type of the dynamic [read].
-  AbstractValue receiverTypeOfGet(ir.PropertyGet read);
+  // TODO(johnniwinther): Improve the type of the [invocation] once the new
+  // method invocation encoding is fully utilized.
+  AbstractValue receiverTypeOfGet(ir.Expression read);
 
   /// Returns the inferred receiver type of the dynamic [write].
+  // TODO(johnniwinther): Improve the type of the [invocation] once the new
+  // method invocation encoding is fully utilized.
   AbstractValue receiverTypeOfSet(
-      ir.PropertySet write, AbstractValueDomain abstractValueDomain);
+      ir.Expression write, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred type of [listLiteral].
   AbstractValue typeOfListLiteral(
