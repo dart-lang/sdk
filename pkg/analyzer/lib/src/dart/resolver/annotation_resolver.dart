@@ -32,6 +32,7 @@ class AnnotationResolver {
     if (element is ExecutableElement) {
       InferenceContext.setType(node.arguments, element.type);
     }
+    node.typeArguments?.accept(_resolver);
     node.arguments?.accept(_resolver);
 
     var elementAnnotationImpl =
