@@ -964,7 +964,7 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
     if (server.clientCapabilities == null) {
       p('Client capabilities have not yet been received.');
     } else {
-      prettyJson(server.clientCapabilities.toJson());
+      prettyJson(server.clientCapabilities.raw.toJson());
     }
     buf.writeln('</div>');
 

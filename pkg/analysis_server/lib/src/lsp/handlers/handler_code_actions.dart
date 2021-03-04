@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
@@ -50,21 +48,14 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       return success(const []);
     }
 
-    final capabilities = server?.clientCapabilities?.textDocument;
+    final supportsApplyEdit = server.clientCapabilities.applyEdit;
 
-    final clientSupportsWorkspaceApplyEdit =
-        server?.clientCapabilities?.workspace?.applyEdit == true;
+    final supportsLiteralCodeActions =
+        server.clientCapabilities.literalCodeActions;
 
-    final clientSupportsLiteralCodeActions =
-        capabilities?.codeAction?.codeActionLiteralSupport != null;
+    final supportedKinds = server.clientCapabilities.codeActionKinds;
 
-    final clientSupportedCodeActionKinds = HashSet<CodeActionKind>.of(
-        capabilities?.codeAction?.codeActionLiteralSupport?.codeActionKind
-                ?.valueSet ??
-            []);
-
-    final clientSupportedDiagnosticTags = HashSet<DiagnosticTag>.of(
-        capabilities?.publishDiagnostics?.tagSupport?.valueSet ?? []);
+    final supportedDiagnosticTags = server.clientCapabilities.diagnosticTags;
 
     final unit = await path.mapResult(requireResolvedUnit);
 
@@ -85,8 +76,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
       // Otherwise, filter out anything not supported by the client (if they
       // advertised that they provided the kinds).
-      if (clientSupportsLiteralCodeActions &&
-          !clientSupportedCodeActionKinds.any(isMatch)) {
+      if (supportsLiteralCodeActions && !supportedKinds.any(isMatch)) {
         return false;
       }
 
@@ -102,9 +92,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           final length = endOffset - startOffset;
           return _getCodeActions(
               shouldIncludeKind,
-              clientSupportsLiteralCodeActions,
-              clientSupportsWorkspaceApplyEdit,
-              clientSupportedDiagnosticTags,
+              supportsLiteralCodeActions,
+              supportsApplyEdit,
+              supportedDiagnosticTags,
               path.result,
               params.range,
               offset,
@@ -133,11 +123,11 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   /// Wraps a command in a CodeAction if the client supports it so that a
   /// CodeActionKind can be supplied.
   Either2<Command, CodeAction> _commandOrCodeAction(
-    bool clientSupportsLiteralCodeActions,
+    bool supportsLiteralCodeActions,
     CodeActionKind kind,
     Command command,
   ) {
-    return clientSupportsLiteralCodeActions
+    return supportsLiteralCodeActions
         ? Either2<Command, CodeAction>.t2(
             CodeAction(title: command.title, kind: kind, command: command),
           )
@@ -222,7 +212,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
   Future<List<Either2<Command, CodeAction>>> _getAssistActions(
     bool Function(CodeActionKind) shouldIncludeKind,
-    bool clientSupportsLiteralCodeActions,
+    bool supportsLiteralCodeActions,
     Range range,
     int offset,
     int length,
@@ -259,7 +249,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     bool Function(CodeActionKind) shouldIncludeKind,
     bool supportsLiterals,
     bool supportsWorkspaceApplyEdit,
-    HashSet<DiagnosticTag> supportedDiagnosticTags,
+    Set<DiagnosticTag> supportedDiagnosticTags,
     String path,
     Range range,
     int offset,
@@ -283,8 +273,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
   Future<List<Either2<Command, CodeAction>>> _getFixActions(
     bool Function(CodeActionKind) shouldIncludeKind,
-    bool clientSupportsLiteralCodeActions,
-    HashSet<DiagnosticTag> supportedDiagnosticTags,
+    bool supportsLiteralCodeActions,
+    Set<DiagnosticTag> supportedDiagnosticTags,
     Range range,
     ResolvedUnitResult unit,
   ) async {
@@ -347,7 +337,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
   Future<List<Either2<Command, CodeAction>>> _getRefactorActions(
     bool Function(CodeActionKind) shouldIncludeKind,
-    bool clientSupportsLiteralCodeActions,
+    bool supportsLiteralCodeActions,
     String path,
     int offset,
     int length,
@@ -368,7 +358,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       Map<String, dynamic> options,
     ]) {
       return _commandOrCodeAction(
-          clientSupportsLiteralCodeActions,
+          supportsLiteralCodeActions,
           actionKind,
           Command(
             title: name,
@@ -425,8 +415,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   /// source such as Sort Members and Organise Imports.
   Future<List<Either2<Command, CodeAction>>> _getSourceActions(
     bool Function(CodeActionKind) shouldIncludeKind,
-    bool clientSupportsLiteralCodeActions,
-    bool clientSupportsWorkspaceApplyEdit,
+    bool supportsLiteralCodeActions,
+    bool supportsApplyEdit,
     String path,
   ) async {
     // The source actions supported are only valid for Dart files.
@@ -437,14 +427,14 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
     // If the client does not support workspace/applyEdit, we won't be able to
     // run any of these.
-    if (!clientSupportsWorkspaceApplyEdit) {
+    if (!supportsApplyEdit) {
       return const [];
     }
 
     return [
       if (shouldIncludeKind(DartCodeActionKind.SortMembers))
         _commandOrCodeAction(
-          clientSupportsLiteralCodeActions,
+          supportsLiteralCodeActions,
           DartCodeActionKind.SortMembers,
           Command(
               title: 'Sort Members',
@@ -453,7 +443,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         ),
       if (shouldIncludeKind(CodeActionKind.SourceOrganizeImports))
         _commandOrCodeAction(
-          clientSupportsLiteralCodeActions,
+          supportsLiteralCodeActions,
           CodeActionKind.SourceOrganizeImports,
           Command(
               title: 'Organize Imports',

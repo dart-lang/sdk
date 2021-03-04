@@ -67,8 +67,8 @@ class SignatureHelpHandler
         return success();
       }
 
-      final formats = server?.clientCapabilities?.textDocument?.signatureHelp
-          ?.signatureInformation?.documentationFormat;
+      final formats =
+          server.clientCapabilities.signatureHelpDocumentationFormats;
       return success(toSignatureHelp(formats, signature));
     });
   }

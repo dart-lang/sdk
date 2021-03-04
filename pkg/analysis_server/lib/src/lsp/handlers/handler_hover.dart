@@ -73,8 +73,7 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
       content.writeln(cleanDartdoc(hover.dartdoc));
     }
 
-    final formats =
-        server?.clientCapabilities?.textDocument?.hover?.contentFormat;
+    final formats = server.clientCapabilities.hoverContentFormats;
     return Hover(
       contents:
           asStringOrMarkupContent(formats, content.toString().trimRight()),
