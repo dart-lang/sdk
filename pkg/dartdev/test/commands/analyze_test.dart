@@ -195,13 +195,11 @@ int f() {
     expect(result.exitCode, 3);
     expect(result.stderr, isEmpty);
     var stdout = result.stdout;
-    expect(stdout, contains("The declaration of 'one' is on line 3 at "));
+    expect(stdout, contains("The declaration of 'one' is on line 3"));
     expect(
         stdout, contains('Try moving the declaration to before the first use'));
-    expect(
-        stdout,
-        contains(
-            'https://dart.dev/tools/diagnostic-messages#referenced_before_declaration'));
+    expect(stdout, contains('https://dart.dev'));
+    expect(stdout, contains('referenced_before_declaration'));
   });
 
   group('display mode', () {
@@ -227,10 +225,11 @@ int f() {
       AnalyzeCommand.emitDefaultFormat(logger, errors);
 
       expect(logger.stderrBuffer, isEmpty);
-      expect(
-        logger.stdoutBuffer.toString().trim(),
-        contains('info - Foo bar baz at lib/test.dart:15:4 - (dead_code)'),
-      );
+      final stdout = logger.stdoutBuffer.toString().trim();
+      expect(stdout, contains('info'));
+      expect(stdout, contains('lib/test.dart:15:4'));
+      expect(stdout, contains('Foo bar baz.'));
+      expect(stdout, contains('dead_code'));
     });
 
     test('machine', () {
