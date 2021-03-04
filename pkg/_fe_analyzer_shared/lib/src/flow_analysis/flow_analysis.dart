@@ -321,8 +321,9 @@ class DemoteViaExplicitWrite<Variable extends Object, Expression extends Object>
 
   @override
   R accept<R, Node extends Object, Expression extends Object,
-              Variable extends Object>(
-          NonPromotionReasonVisitor<R, Node, Expression, Variable> visitor) =>
+              Variable extends Object, Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
+              visitor) =>
       visitor.visitDemoteViaExplicitWrite(
           this as DemoteViaExplicitWrite<Variable, Expression>);
 
@@ -348,8 +349,9 @@ class DemoteViaForEachVariableWrite<Variable extends Object,
 
   @override
   R accept<R, Node extends Object, Expression extends Object,
-              Variable extends Object>(
-          NonPromotionReasonVisitor<R, Node, Expression, Variable> visitor) =>
+              Variable extends Object, Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
+              visitor) =>
       visitor.visitDemoteViaForEachVariableWrite(
           this as DemoteViaForEachVariableWrite<Variable, Node>);
 
@@ -766,9 +768,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method just after visiting a property get expression.
   /// [wholeExpression] should be the whole property get, [target] should be the
   /// expression to the left hand side of the `.`, and [propertyName] should be
-  /// the identifier to the right hand side of the `.`.
-  void propertyGet(
-      Expression wholeExpression, Expression target, String propertyName);
+  /// the identifier to the right hand side of the `.`.  [staticType] should be
+  /// the static type of the value returned by the property get.
+  void propertyGet(Expression wholeExpression, Expression target,
+      String propertyName, Type staticType);
 
   /// Retrieves the SSA node associated with [variable], or `null` if [variable]
   /// is not associated with an SSA node because it is write captured.  For
@@ -808,16 +811,19 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method just after visiting the expression `this` (or the
   /// pseudo-expression `super`, in the case of the analyzer, which represents
   /// `super.x` as a property get whose target is `super`).  [expression] should
-  /// be the `this` or `super` expression.
-  void thisOrSuper(Expression expression);
+  /// be the `this` or `super` expression.  [staticType] should be the static
+  /// type of `this`.
+  void thisOrSuper(Expression expression, Type staticType);
 
   /// Call this method just after visiting an expression that represents a
   /// property get on `this` or `super`.  This handles situations where there is
   /// an implicit reference to `this`, or the case of the front end, where
   /// `super.x` is represented by a single expression.  [expression] should be
   /// the whole property get, and [propertyName] should be the name of the
-  /// property being read.
-  void thisOrSuperPropertyGet(Expression expression, String propertyName);
+  /// property being read.  [staticType] should be the static type of the value
+  /// returned by the property get.
+  void thisOrSuperPropertyGet(
+      Expression expression, String propertyName, Type staticType);
 
   /// Call this method just before visiting the body of a "try/catch" statement.
   ///
@@ -928,7 +934,19 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// promotion, to retrieve information about why [target] was not promoted.
   /// This call must be made right after visiting [target].
   ///
-  /// If [target] is `null` it is assumed to be an implicit reference to `this`.
+  /// The returned value is a map whose keys are types that the user might have
+  /// been expecting the target to be promoted to, and whose values are reasons
+  /// why the corresponding promotion did not occur.  The caller is expected to
+  /// select which non-promotion reason to report to the user by seeing which
+  /// promotion would have prevented the error.  (For example, if an error
+  /// occurs due to the target having a nullable type, the caller should report
+  /// a non-promotion reason associated with non-promotion to a non-nullable
+  /// type).
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression target);
+
+  /// Call this method when an error occurs that may be due to a lack of type
+  /// promotion, to retrieve information about why an implicit reference to
+  /// `this` was not promoted.  [staticType] is the (unpromoted) type of `this`.
   ///
   /// The returned value is a map whose keys are types that the user might have
   /// been expecting the target to be promoted to, and whose values are reasons
@@ -938,7 +956,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// occurs due to the target having a nullable type, the caller should report
   /// a non-promotion reason associated with non-promotion to a non-nullable
   /// type).
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression? target);
+  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType);
 
   /// Register write of the given [variable] in the current state.
   /// [writtenType] should be the type of the value that was written.
@@ -1333,10 +1351,12 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void propertyGet(
-      Expression wholeExpression, Expression target, String propertyName) {
-    _wrap('propertyGet($wholeExpression, $target, $propertyName)',
-        () => _wrapped.propertyGet(wholeExpression, target, propertyName));
+  void propertyGet(Expression wholeExpression, Expression target,
+      String propertyName, Type staticType) {
+    _wrap(
+        'propertyGet($wholeExpression, $target, $propertyName, $staticType)',
+        () => _wrapped.propertyGet(
+            wholeExpression, target, propertyName, staticType));
   }
 
   @override
@@ -1365,15 +1385,18 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void thisOrSuper(Expression expression) {
-    return _wrap(
-        'thisOrSuper($expression)', () => _wrapped.thisOrSuper(expression));
+  void thisOrSuper(Expression expression, Type staticType) {
+    return _wrap('thisOrSuper($expression, $staticType)',
+        () => _wrapped.thisOrSuper(expression, staticType));
   }
 
   @override
-  void thisOrSuperPropertyGet(Expression expression, String propertyName) {
-    _wrap('thisOrSuperPropertyGet($expression, $propertyName)',
-        () => _wrapped.thisOrSuperPropertyGet(expression, propertyName));
+  void thisOrSuperPropertyGet(
+      Expression expression, String propertyName, Type staticType) {
+    _wrap(
+        'thisOrSuperPropertyGet($expression, $propertyName, $staticType)',
+        () => _wrapped.thisOrSuperPropertyGet(
+            expression, propertyName, staticType));
   }
 
   @override
@@ -1453,9 +1476,16 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression? target) {
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
     return _wrap(
         'whyNotPromoted($target)', () => _wrapped.whyNotPromoted(target),
+        isQuery: true);
+  }
+
+  @override
+  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType) {
+    return _wrap('whyNotPromotedImplicitThis($staticType)',
+        () => _wrapped.whyNotPromotedImplicitThis(staticType),
         isQuery: true);
   }
 
@@ -1895,23 +1925,22 @@ class FlowModel<Variable extends Object, Type extends Object> {
   /// potentially nullable.
   ExpressionInfo<Variable, Type> tryMarkNonNullable(
       TypeOperations<Variable, Type> typeOperations,
-      Reference<Variable, Type> reference) {
-    VariableModel<Variable, Type> info = reference.getInfo(variableInfo);
+      ReferenceWithType<Variable, Type> referenceWithType) {
+    VariableModel<Variable, Type> info =
+        referenceWithType.reference.getInfo(variableInfo);
     if (info.writeCaptured) {
       return new _TrivialExpressionInfo<Variable, Type>(this);
     }
 
-    Type? previousType = info.promotedTypes?.last;
-    previousType ??= reference.getDeclaredType(typeOperations);
-
+    Type previousType = referenceWithType.type;
     Type newType = typeOperations.promoteToNonNull(previousType);
     if (typeOperations.isSameType(newType, previousType)) {
       return new _TrivialExpressionInfo<Variable, Type>(this);
     }
     assert(typeOperations.isSubtypeOf(newType, previousType));
 
-    FlowModel<Variable, Type> modelIfSuccessful =
-        _finishTypeTest(typeOperations, reference, info, null, newType);
+    FlowModel<Variable, Type> modelIfSuccessful = _finishTypeTest(
+        typeOperations, referenceWithType.reference, info, null, newType);
 
     FlowModel<Variable, Type> modelIfFailed = this;
 
@@ -1920,7 +1949,8 @@ class FlowModel<Variable extends Object, Type extends Object> {
   }
 
   /// Returns an [ExpressionInfo] indicating the result of casting the given
-  /// [reference] to the given [type], as a consequence of an `as` expression.
+  /// [referenceWithType] to the given [type], as a consequence of an `as`
+  /// expression.
   ///
   /// Note that the state is only changed if [type] is a subtype of the
   /// variable's previous (possibly promoted) type.
@@ -1929,16 +1959,15 @@ class FlowModel<Variable extends Object, Type extends Object> {
   /// variable as definitely assigned?  Does it matter?
   FlowModel<Variable, Type> tryPromoteForTypeCast(
       TypeOperations<Variable, Type> typeOperations,
-      Reference<Variable, Type> reference,
+      ReferenceWithType<Variable, Type> referenceWithType,
       Type type) {
-    VariableModel<Variable, Type> info = reference.getInfo(variableInfo);
+    VariableModel<Variable, Type> info =
+        referenceWithType.reference.getInfo(variableInfo);
     if (info.writeCaptured) {
       return this;
     }
 
-    Type? previousType = info.promotedTypes?.last;
-    previousType ??= reference.getDeclaredType(typeOperations);
-
+    Type previousType = referenceWithType.type;
     Type? newType = typeOperations.tryPromoteToType(type, previousType);
     if (newType == null || typeOperations.isSameType(newType, previousType)) {
       return this;
@@ -1946,7 +1975,8 @@ class FlowModel<Variable extends Object, Type extends Object> {
 
     assert(typeOperations.isSubtypeOf(newType, previousType),
         "Expected $newType to be a subtype of $previousType.");
-    return _finishTypeTest(typeOperations, reference, info, type, newType);
+    return _finishTypeTest(
+        typeOperations, referenceWithType.reference, info, type, newType);
   }
 
   /// Returns an [ExpressionInfo] indicating the result of checking whether the
@@ -1960,24 +1990,23 @@ class FlowModel<Variable extends Object, Type extends Object> {
   /// variable as definitely assigned?  Does it matter?
   ExpressionInfo<Variable, Type> tryPromoteForTypeCheck(
       TypeOperations<Variable, Type> typeOperations,
-      Reference<Variable, Type> reference,
+      ReferenceWithType<Variable, Type> referenceWithType,
       Type type) {
-    VariableModel<Variable, Type> info = reference.getInfo(variableInfo);
+    VariableModel<Variable, Type> info =
+        referenceWithType.reference.getInfo(variableInfo);
     if (info.writeCaptured) {
       return new _TrivialExpressionInfo<Variable, Type>(this);
     }
 
-    Type? previousType = info.promotedTypes?.last;
-    previousType ??= reference.getDeclaredType(typeOperations);
-
+    Type previousType = referenceWithType.type;
     FlowModel<Variable, Type> modelIfSuccessful = this;
     Type? typeIfSuccess = typeOperations.tryPromoteToType(type, previousType);
     if (typeIfSuccess != null &&
         !typeOperations.isSameType(typeIfSuccess, previousType)) {
       assert(typeOperations.isSubtypeOf(typeIfSuccess, previousType),
           "Expected $typeIfSuccess to be a subtype of $previousType.");
-      modelIfSuccessful =
-          _finishTypeTest(typeOperations, reference, info, type, typeIfSuccess);
+      modelIfSuccessful = _finishTypeTest(typeOperations,
+          referenceWithType.reference, info, type, typeIfSuccess);
     }
 
     Type factoredType = typeOperations.factor(previousType, type);
@@ -1992,8 +2021,8 @@ class FlowModel<Variable extends Object, Type extends Object> {
     } else {
       typeIfFailed = factoredType;
     }
-    FlowModel<Variable, Type> modelIfFailed =
-        _finishTypeTest(typeOperations, reference, info, type, typeIfFailed);
+    FlowModel<Variable, Type> modelIfFailed = _finishTypeTest(
+        typeOperations, referenceWithType.reference, info, type, typeIfFailed);
 
     return new ExpressionInfo<Variable, Type>(
         this, modelIfSuccessful, modelIfFailed);
@@ -2292,13 +2321,13 @@ abstract class NonPromotionReason {
 
   /// Implementation of the visitor pattern for non-promotion reasons.
   R accept<R, Node extends Object, Expression extends Object,
-          Variable extends Object>(
-      NonPromotionReasonVisitor<R, Node, Expression, Variable> visitor);
+          Variable extends Object, Type extends Object>(
+      NonPromotionReasonVisitor<R, Node, Expression, Variable, Type> visitor);
 }
 
 /// Implementation of the visitor pattern for non-promotion reasons.
 abstract class NonPromotionReasonVisitor<R, Node extends Object,
-    Expression extends Object, Variable extends Object> {
+    Expression extends Object, Variable extends Object, Type extends Object> {
   NonPromotionReasonVisitor._() : assert(false, 'Do not extend this class');
 
   R visitDemoteViaExplicitWrite(
@@ -2307,27 +2336,33 @@ abstract class NonPromotionReasonVisitor<R, Node extends Object,
   R visitDemoteViaForEachVariableWrite(
       DemoteViaForEachVariableWrite<Variable, Node> reason);
 
-  R visitPropertyNotPromoted(PropertyNotPromoted reason);
+  R visitPropertyNotPromoted(PropertyNotPromoted<Type> reason);
 
   R visitThisNotPromoted(ThisNotPromoted reason);
 }
 
 /// Non-promotion reason describing the situation where an expression was not
 /// promoted due to the fact that it's a property get.
-class PropertyNotPromoted extends NonPromotionReason {
+class PropertyNotPromoted<Type extends Object> extends NonPromotionReason {
   /// The name of the property.
   final String propertyName;
 
-  PropertyNotPromoted(this.propertyName);
+  /// The static type of the property at the time of the access.  This is the
+  /// type that was passed to [FlowAnalysis.whyNotPromoted]; it is provided to
+  /// the client as a convenience for ID testing.
+  final Type staticType;
+
+  PropertyNotPromoted(this.propertyName, this.staticType);
 
   @override
   String get shortName => 'propertyNotPromoted';
 
   @override
   R accept<R, Node extends Object, Expression extends Object,
-              Variable extends Object>(
-          NonPromotionReasonVisitor<R, Node, Expression, Variable> visitor) =>
-      visitor.visitPropertyNotPromoted(this);
+              Variable extends Object, Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
+              visitor) =>
+      visitor.visitPropertyNotPromoted(this as PropertyNotPromoted<Type>);
 }
 
 /// Immutable data structure modeling the reachability of the given point in the
@@ -2479,10 +2514,6 @@ class Reachability {
 /// why promotion did not occur.
 @visibleForTesting
 abstract class Reference<Variable extends Object, Type extends Object> {
-  /// Retrieves the declared type of this reference.  This is used as the
-  /// starting point for promotions.
-  Type getDeclaredType(TypeOperations<Variable, Type> typeOperations);
-
   /// Gets the info for this reference, creating it if it doesn't exist.
   VariableModel<Variable, Type> getInfo(
           Map<Variable?, VariableModel<Variable, Type>> variableInfo) =>
@@ -2492,6 +2523,7 @@ abstract class Reference<Variable extends Object, Type extends Object> {
   /// is the map that will be returned from [FlowAnalysis.whyNotPromoted].
   Map<Type, NonPromotionReason> getNonPromotionReasons(
       Map<Variable?, VariableModel<Variable, Type>> variableInfo,
+      Type staticType,
       TypeOperations<Variable, Type> typeOperations);
 
   /// Creates a reference representing a get of a property called [propertyName]
@@ -2506,6 +2538,16 @@ abstract class Reference<Variable extends Object, Type extends Object> {
   /// Gets the info for this reference, or `null` if it doesn't exist.
   VariableModel<Variable, Type>? _getInfo(
       Map<Variable?, VariableModel<Variable, Type>> variableInfo);
+}
+
+/// Container object combining a [Reference] object with its static type.
+@visibleForTesting
+class ReferenceWithType<Variable extends Object, Type extends Object> {
+  final Reference<Variable, Type> reference;
+
+  final Type type;
+
+  ReferenceWithType(this.reference, this.type);
 }
 
 /// Data structure representing a unique value that a variable might take on
@@ -2552,8 +2594,9 @@ class ThisNotPromoted extends NonPromotionReason {
 
   @override
   R accept<R, Node extends Object, Expression extends Object,
-              Variable extends Object>(
-          NonPromotionReasonVisitor<R, Node, Expression, Variable> visitor) =>
+              Variable extends Object, Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
+              visitor) =>
       visitor.visitThisNotPromoted(this);
 }
 
@@ -2573,9 +2616,6 @@ enum TypeClassification {
 
 /// Operations on types, abstracted from concrete type interfaces.
 abstract class TypeOperations<Variable extends Object, Type extends Object> {
-  /// Gets the representation of the top type (`Object?`) in the type system.
-  Type get topType;
-
   /// Classifies the given type into one of the three categories defined by
   /// the [TypeClassification] enum.
   TypeClassification classifyType(Type type);
@@ -3214,12 +3254,9 @@ class VariableReference<Variable extends Object, Type extends Object>
   VariableReference(this.variable);
 
   @override
-  Type getDeclaredType(TypeOperations<Variable, Type> typeOperations) =>
-      typeOperations.variableType(variable);
-
-  @override
   Map<Type, NonPromotionReason> getNonPromotionReasons(
       Map<Variable?, VariableModel<Variable, Type>> variableInfo,
+      Type staticType,
       TypeOperations<Variable, Type> typeOperations) {
     Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
     VariableModel<Variable, Type>? currentVariableInfo = variableInfo[variable];
@@ -3339,7 +3376,7 @@ class _EqualityOpContext<Variable extends Object, Type extends Object>
 
   /// If the LHS of `==` or `!=` is a reference, the thing being referred to.
   /// Otherwise `null`.
-  final Reference<Variable, Type>? _leftOperandReference;
+  final ReferenceWithType<Variable, Type>? _leftOperandReference;
 
   _EqualityOpContext(ExpressionInfo<Variable, Type>? conditionInfo,
       this._leftOperandType, this._leftOperandReference)
@@ -3385,7 +3422,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   /// If [_expressionVariable] is not `null`, the reference corresponding to it.
   /// Otherwise `null`.
-  Reference<Variable, Type>? _expressionReference;
+  ReferenceWithType<Variable, Type>? _expressionReference;
 
   int _functionNestingLevel = 0;
 
@@ -3398,10 +3435,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void asExpression_end(Expression subExpression, Type type) {
-    Reference<Variable, Type>? reference =
+    ReferenceWithType<Variable, Type>? referenceWithType =
         _getExpressionReference(subExpression);
-    if (reference == null) return;
-    _current = _current.tryPromoteForTypeCast(typeOperations, reference, type);
+    if (referenceWithType == null) return;
+    _current =
+        _current.tryPromoteForTypeCast(typeOperations, referenceWithType, type);
   }
 
   @override
@@ -3508,10 +3546,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _EqualityOpContext<Variable, Type> context =
         _stack.removeLast() as _EqualityOpContext<Variable, Type>;
     ExpressionInfo<Variable, Type>? lhsInfo = context._conditionInfo;
-    Reference<Variable, Type>? lhsReference = context._leftOperandReference;
+    ReferenceWithType<Variable, Type>? lhsReference =
+        context._leftOperandReference;
     Type leftOperandType = context._leftOperandType;
     ExpressionInfo<Variable, Type>? rhsInfo = _getExpressionInfo(rightOperand);
-    Reference<Variable, Type>? rhsReference =
+    ReferenceWithType<Variable, Type>? rhsReference =
         _getExpressionReference(rightOperand);
     TypeClassification leftOperandTypeClassification =
         typeOperations.classifyType(leftOperandType);
@@ -3692,7 +3731,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void ifNullExpression_rightBegin(
       Expression leftHandSide, Type leftHandSideType) {
-    Reference<Variable, Type>? lhsReference =
+    ReferenceWithType<Variable, Type>? lhsReference =
         _getExpressionReference(leftHandSide);
     FlowModel<Variable, Type> promoted;
     _current = _current.split();
@@ -3771,7 +3810,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void isExpression_end(Expression isExpression, Expression subExpression,
       bool isNot, Type type) {
-    Reference<Variable, Type>? subExpressionReference =
+    ReferenceWithType<Variable, Type>? subExpressionReference =
         _getExpressionReference(subExpression);
     if (subExpressionReference != null) {
       ExpressionInfo<Variable, Type> expressionInfo = _current
@@ -3865,7 +3904,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void nonNullAssert_end(Expression operand) {
-    Reference<Variable, Type>? operandReference =
+    ReferenceWithType<Variable, Type>? operandReference =
         _getExpressionReference(operand);
     if (operandReference != null) {
       _current =
@@ -3886,7 +3925,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     assert(targetType != null);
     _current = _current.split();
     _stack.add(new _NullAwareAccessContext<Variable, Type>(_current));
-    Reference<Variable, Type>? targetReference =
+    ReferenceWithType<Variable, Type>? targetReference =
         _getExpressionReference(target);
     if (targetReference != null) {
       _current =
@@ -3908,8 +3947,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void promote(Variable variable, Type type) {
     _current = _current
-        .tryPromoteForTypeCheck(typeOperations,
-            new VariableReference<Variable, Type>(variable), type)
+        .tryPromoteForTypeCheck(
+            typeOperations,
+            new ReferenceWithType<Variable, Type>(
+                new VariableReference<Variable, Type>(variable),
+                promotedType(variable) ??
+                    typeOperations.variableType(variable)),
+            type)
         .ifTrue;
   }
 
@@ -3919,12 +3963,15 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void propertyGet(
-      Expression wholeExpression, Expression target, String propertyName) {
-    Reference<Variable, Type>? reference = _getExpressionReference(target);
+  void propertyGet(Expression wholeExpression, Expression target,
+      String propertyName, Type staticType) {
+    Reference<Variable, Type>? reference =
+        _getExpressionReference(target)?.reference;
     if (reference != null) {
       _storeExpressionReference(
-          wholeExpression, reference.propertyGet(propertyName));
+          wholeExpression,
+          new ReferenceWithType<Variable, Type>(
+              reference.propertyGet(propertyName), staticType));
     }
   }
 
@@ -3973,14 +4020,21 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void thisOrSuper(Expression expression) {
-    _storeExpressionReference(expression, new _ThisReference<Variable, Type>());
+  void thisOrSuper(Expression expression, Type staticType) {
+    _storeExpressionReference(
+        expression,
+        new ReferenceWithType<Variable, Type>(
+            new _ThisReference<Variable, Type>(), staticType));
   }
 
   @override
-  void thisOrSuperPropertyGet(Expression expression, String propertyName) {
-    _storeExpressionReference(expression,
-        new _ThisReference<Variable, Type>().propertyGet(propertyName));
+  void thisOrSuperPropertyGet(
+      Expression expression, String propertyName, Type staticType) {
+    _storeExpressionReference(
+        expression,
+        new ReferenceWithType<Variable, Type>(
+            new _ThisReference<Variable, Type>().propertyGet(propertyName),
+            staticType));
   }
 
   @override
@@ -4067,16 +4121,19 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   Type? variableRead(Expression expression, Variable variable) {
     VariableReference<Variable, Type> variableReference =
         new VariableReference<Variable, Type>(variable);
-    _storeExpressionReference(expression, variableReference);
     VariableModel<Variable, Type> variableModel =
         variableReference.getInfo(_current.variableInfo);
+    Type? promotedType = variableModel.promotedTypes?.last;
+    Type currentType = promotedType ?? typeOperations.variableType(variable);
+    _storeExpressionReference(expression,
+        new ReferenceWithType<Variable, Type>(variableReference, currentType));
     ExpressionInfo<Variable, Type>? expressionInfo = variableModel
         .ssaNode?.expressionInfo
         ?.rebaseForward(typeOperations, _current);
     if (expressionInfo != null) {
       _storeExpressionInfo(expression, expressionInfo);
     }
-    return variableModel.promotedTypes?.last;
+    return promotedType;
   }
 
   @override
@@ -4107,18 +4164,19 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression? target) {
-    Reference<Variable, Type>? reference;
-    if (target == null) {
-      reference = new _ThisReference<Variable, Type>();
-    } else if (identical(target, _expressionWithReference)) {
-      reference = _expressionReference;
-    }
-    if (reference != null) {
-      return reference.getNonPromotionReasons(
-          _current.variableInfo, typeOperations);
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
+    ReferenceWithType<Variable, Type>? referenceWithType = _expressionReference;
+    if (referenceWithType != null) {
+      return referenceWithType.reference.getNonPromotionReasons(
+          _current.variableInfo, referenceWithType.type, typeOperations);
     }
     return {};
+  }
+
+  @override
+  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType) {
+    return new _ThisReference<Variable, Type>().getNonPromotionReasons(
+        _current.variableInfo, staticType, typeOperations);
   }
 
   @override
@@ -4174,9 +4232,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// Gets the [Reference] associated with the [expression] (which should be the
   /// last expression that was traversed).  If there is no [Reference]
   /// associated with the [expression], then `null` is returned.
-  Reference<Variable, Type>? _getExpressionReference(Expression? expression) {
+  ReferenceWithType<Variable, Type>? _getExpressionReference(
+      Expression? expression) {
     if (identical(expression, _expressionWithReference)) {
-      Reference<Variable, Type>? expressionReference = _expressionReference;
+      ReferenceWithType<Variable, Type>? expressionReference =
+          _expressionReference;
       _expressionReference = null;
       return expressionReference;
     } else {
@@ -4205,8 +4265,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   /// Associates [expression], which should be the most recently visited
   /// expression, with the given [Reference] object.
-  void _storeExpressionReference(
-      Expression expression, Reference<Variable, Type> expressionReference) {
+  void _storeExpressionReference(Expression expression,
+      ReferenceWithType<Variable, Type> expressionReference) {
     _expressionWithReference = expression;
     _expressionReference = expressionReference;
   }
@@ -4637,8 +4697,8 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
-  void propertyGet(
-      Expression wholeExpression, Expression target, String propertyName) {}
+  void propertyGet(Expression wholeExpression, Expression target,
+      String propertyName, Type staticType) {}
 
   @override
   SsaNode<Variable, Type>? ssaNodeForTesting(Variable variable) {
@@ -4655,10 +4715,11 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void switchStatement_expressionEnd(Statement switchStatement) {}
 
   @override
-  void thisOrSuper(Expression expression) {}
+  void thisOrSuper(Expression expression, Type staticType) {}
 
   @override
-  void thisOrSuperPropertyGet(Expression expression, String propertyName) {}
+  void thisOrSuperPropertyGet(
+      Expression expression, String propertyName, Type staticType) {}
 
   @override
   void tryCatchStatement_bodyBegin() {}
@@ -4703,7 +4764,12 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void whileStatement_end() {}
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression? target) {
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
+    return {};
+  }
+
+  @override
+  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType) {
     return {};
   }
 
@@ -4856,44 +4922,15 @@ class _PropertyGetReference<Variable extends Object, Type extends Object>
   _PropertyGetReference(this.target, this.propertyName);
 
   @override
-  Type getDeclaredType(TypeOperations<Variable, Type> typeOperations) {
-    // Since we don't actually support property promotion, we just compute what
-    // promotions would have occurred if we *did* support it (for the purpose of
-    // issuing more useful error messages), we have some leeway in how we define
-    // the "declared type" of a property.  It's tempting to define it as the
-    // return type of the referenced getter, but this is problematic for two
-    // reasons: (1) we don't have the necessary hooks to ask the client what
-    // this type is, and (2) the referenced getter can become more specific due
-    // to the presence of other promotions, breaking the invariant that promoted
-    // types are expected to be subtypes of the declared type, e.g.:
-    //
-    //   abstract class C { num? get x; }
-    //   abstract class D extends C { int? get x; }
-    //   f(C c) {
-    //     if (c.x != null) { // "promotes" c.x to `num`
-    //       if (c is D) { // promotes c to D, so c.x now refers to an `int?`
-    //         // Invariant broken: `num` is not a subtype of `int?`
-    //       }
-    //     }
-    //   }
-    //
-    // Rather than break the invariant (which could lead to unexpected behaviors
-    // of flow analysis, including possibly crashes), it seems wiser to simply
-    // define the "declared type" for properties to be the top type; in practice
-    // this still produces useful results, and it doesn't violate soundness
-    // because we don't actually promote property references.
-    return typeOperations.topType;
-  }
-
-  @override
   Map<Type, NonPromotionReason> getNonPromotionReasons(
       Map<Variable?, VariableModel<Variable, Type>> variableInfo,
+      Type staticType,
       TypeOperations<Variable, Type> typeOperations) {
     Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
     List<Type>? promotedTypes = _getInfo(variableInfo)?.promotedTypes;
     if (promotedTypes != null) {
       for (Type type in promotedTypes) {
-        result[type] = new PropertyNotPromoted(propertyName);
+        result[type] = new PropertyNotPromoted(propertyName, staticType);
       }
     }
     return result;
@@ -4957,15 +4994,9 @@ class _SimpleStatementContext<Variable extends Object, Type extends Object>
 class _ThisReference<Variable extends Object, Type extends Object>
     extends Reference<Variable, Type> {
   @override
-  Type getDeclaredType(TypeOperations<Variable, Type> typeOperations) {
-    // TODO(paulberry): can we return the actual type?  Would that have a
-    // user-visible effect?
-    return typeOperations.topType;
-  }
-
-  @override
   Map<Type, NonPromotionReason> getNonPromotionReasons(
       Map<Variable?, VariableModel<Variable, Type>> variableInfo,
+      Type staticType,
       TypeOperations<Variable, Type> typeOperations) {
     Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
     List<Type>? promotedTypes = _getInfo(variableInfo)?.promotedTypes;

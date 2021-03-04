@@ -648,14 +648,8 @@ static FieldPtr LookupStackTraceField(const Instance& instance) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   auto isolate_group = thread->isolate_group();
-  Class& error_class =
+  const auto& error_class =
       Class::Handle(zone, isolate_group->object_store()->error_class());
-  if (error_class.IsNull()) {
-    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
-    error_class = core_lib.LookupClass(Symbols::Error());
-    ASSERT(!error_class.IsNull());
-    isolate_group->object_store()->set_error_class(error_class);
-  }
   // If instance class extends 'class Error' return '_stackTrace' field.
   Class& test_class = Class::Handle(zone, instance.clazz());
   AbstractType& type = AbstractType::Handle(zone, AbstractType::null());

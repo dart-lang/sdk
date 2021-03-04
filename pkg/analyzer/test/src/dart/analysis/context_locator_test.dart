@@ -7,6 +7,10 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/workspace/basic.dart';
+import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/pub.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -464,8 +468,104 @@ analyzer:
     expect(root.excludedPaths, isEmpty);
     expect(root.optionsFile, isNull);
     expect(root.packagesFile, isNull);
+    _assertBasicWorkspace(root.workspace, root.root.path);
 
     _assertAnalyzedFiles2(root, [testFile1, testFile2]);
+  }
+
+  void test_locateRoots_multiple_files_bazel_differentWorkspaces() {
+    var workspacePath1 = '/home/workspace1';
+    var workspacePath2 = '/home/workspace2';
+    var pkgPath1 = '$workspacePath1/pkg1';
+    var pkgPath2 = '$workspacePath2/pkg2';
+
+    newFile('$workspacePath1/WORKSPACE');
+    newFile('$workspacePath2/WORKSPACE');
+    newBazelBuildFile(pkgPath1, '');
+    newBazelBuildFile(pkgPath2, '');
+
+    var file1 = newFile('$pkgPath1/lib/file1.dart');
+    var file2 = newFile('$pkgPath2/lib/file2.dart');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [file1.path, file2.path],
+    );
+    expect(roots, hasLength(2));
+
+    var root1 = findRoot(roots, getFolder(workspacePath1));
+    expect(root1.includedPaths, unorderedEquals([file1.path]));
+    expect(root1.excludedPaths, isEmpty);
+    expect(root1.optionsFile, isNull);
+    expect(root1.packagesFile, isNull);
+    _assertBazelWorkspace(root1.workspace, workspacePath1);
+    _assertAnalyzedFiles2(root1, [file1]);
+
+    var root2 = findRoot(roots, getFolder(workspacePath2));
+    expect(root2.includedPaths, unorderedEquals([file2.path]));
+    expect(root2.excludedPaths, isEmpty);
+    expect(root2.optionsFile, isNull);
+    expect(root2.packagesFile, isNull);
+    _assertBazelWorkspace(root2.workspace, workspacePath2);
+    _assertAnalyzedFiles2(root2, [file2]);
+  }
+
+  void test_locateRoots_multiple_files_bazel_sameWorkspace_differentPackages() {
+    var workspacePath = '/home/workspace';
+    var fooPath = '$workspacePath/foo';
+    var barPath = '$workspacePath/bar';
+
+    newFile('$workspacePath/WORKSPACE');
+    newBazelBuildFile(fooPath, '');
+    newBazelBuildFile(barPath, '');
+
+    var fooFile = newFile('$fooPath/lib/foo.dart');
+    var barFile = newFile('$barPath/lib/bar.dart');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [fooFile.path, barFile.path],
+    );
+    expect(roots, hasLength(1));
+
+    var root = findRoot(roots, getFolder(workspacePath));
+    expect(root.includedPaths, unorderedEquals([fooFile.path, barFile.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, isNull);
+    expect(root.packagesFile, isNull);
+    _assertBazelWorkspace(root.workspace, workspacePath);
+    _assertAnalyzedFiles2(root, [fooFile, barFile]);
+  }
+
+  void test_locateRoots_multiple_files_differentWorkspaces_pub() {
+    var rootPath = '/home';
+    var fooPath = '$rootPath/foo';
+    var barPath = '$rootPath/bar';
+
+    newPubspecYamlFile(fooPath, '');
+    newPubspecYamlFile(barPath, '');
+
+    var fooFile = newFile('$fooPath/lib/foo.dart');
+    var barFile = newFile('$barPath/lib/bar.dart');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [fooFile.path, barFile.path],
+    );
+    expect(roots, hasLength(2));
+
+    var fooRoot = findRoot(roots, getFolder(fooPath));
+    expect(fooRoot.includedPaths, unorderedEquals([fooFile.path]));
+    expect(fooRoot.excludedPaths, isEmpty);
+    expect(fooRoot.optionsFile, isNull);
+    expect(fooRoot.packagesFile, isNull);
+    _assertPubWorkspace(fooRoot.workspace, fooPath);
+    _assertAnalyzedFiles2(fooRoot, [fooFile]);
+
+    var barRoot = findRoot(roots, getFolder(barPath));
+    expect(barRoot.includedPaths, unorderedEquals([barFile.path]));
+    expect(barRoot.excludedPaths, isEmpty);
+    expect(barRoot.optionsFile, isNull);
+    expect(barRoot.packagesFile, isNull);
+    _assertPubWorkspace(barRoot.workspace, barPath);
+    _assertAnalyzedFiles2(barRoot, [barFile]);
   }
 
   void test_locateRoots_multiple_files_sameOptions_differentPackages() {
@@ -830,6 +930,33 @@ analyzer:
     expect(outerRoot.packagesFile, outerPackagesFile);
   }
 
+  void test_locateRoots_options_hasError() {
+    Folder rootFolder = newFolder('/test/root');
+    File optionsFile = newAnalysisOptionsYamlFile('/test/root', content: '''
+analyzer:
+  exclude:
+    - **.g.dart
+analyzer:
+''');
+    File packagesFile = newDotPackagesFile('/test/root');
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, optionsFile);
+    expect(root.packagesFile, packagesFile);
+
+    // There is an error in the analysis_options.yaml, so it is ignored.
+    _assertAnalyzed(root, [
+      '/test/root//lib/a.dart',
+      '/test/root//lib/a.g.dart',
+    ]);
+  }
+
   void test_locateRoots_options_withExclude_someFiles() {
     Folder rootFolder = newFolder('/test/root');
     File optionsFile = newAnalysisOptionsYamlFile('/test/root', content: '''
@@ -1127,6 +1254,22 @@ analyzer:
     expect(package1Root.packagesFile, packagesFile);
   }
 
+  void test_locateRoots_single_file_notExisting() {
+    File optionsFile = newAnalysisOptionsYamlFile('/test');
+    File packagesFile = newDotPackagesFile('/test/root');
+    File testFile = getFile('/test/root/test.dart');
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [testFile.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot package1Root = findRoot(roots, testFile.parent2);
+    expect(package1Root.includedPaths, unorderedEquals([testFile.path]));
+    expect(package1Root.excludedPaths, isEmpty);
+    expect(package1Root.optionsFile, optionsFile);
+    expect(package1Root.packagesFile, packagesFile);
+  }
+
   void _assertAnalyzed(ContextRoot root, List<String> posixPathList) {
     for (var posixPath in posixPathList) {
       var path = convertPath(posixPath);
@@ -1150,11 +1293,26 @@ analyzer:
     _assertAnalyzedFiles(root, pathList);
   }
 
+  void _assertBasicWorkspace(Workspace _workspace, String root) {
+    var workspace = _workspace as BasicWorkspace;
+    expect(workspace.root, root);
+  }
+
+  void _assertBazelWorkspace(Workspace _workspace, String root) {
+    var workspace = _workspace as BazelWorkspace;
+    expect(workspace.root, root);
+  }
+
   void _assertNotAnalyzed(ContextRoot root, List<String> posixPathList) {
     for (var posixPath in posixPathList) {
       var path = convertPath(posixPath);
       expect(root.isAnalyzed(path), isFalse, reason: path);
     }
+  }
+
+  void _assertPubWorkspace(Workspace _workspace, String root) {
+    var workspace = _workspace as PubWorkspace;
+    expect(workspace.root, root);
   }
 
   File _newPackageConfigFile(String directoryPath) {

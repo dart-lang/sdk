@@ -11,36 +11,21 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AddNeNullMultiTest);
     defineReflectiveTests(AddNeNullTest);
   });
 }
 
 @reflectiveTest
-class AddNeNullTest extends FixProcessorTest {
+class AddNeNullMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_NE_NULL;
+  FixKind get kind => DartFixKind.ADD_NE_NULL_MULTI;
 
-  Future<void> test_nonBoolCondition() async {
-    await resolveTestCode('''
-main(String p) {
-  if (p) {
-    print(p);
-  }
-}
-''');
-    await assertHasFix('''
-main(String p) {
-  if (p != null) {
-    print(p);
-  }
-}
-''');
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
+  // todo (pq): add null-safe aware tests
+  // see: https://dart-review.googlesource.com/c/sdk/+/188681
   Future<void> test_nonBoolCondition_all() async {
     await resolveTestCode('''
-main(String p, String q) {
+f(String p, String q) {
   if (p) {
     print(p);
   }
@@ -50,12 +35,35 @@ main(String p, String q) {
 }
 ''');
     await assertHasFixAllFix(CompileTimeErrorCode.NON_BOOL_CONDITION, '''
-main(String p, String q) {
+f(String p, String q) {
   if (p != null) {
     print(p);
   }
   if (q != null) {
     print(q);
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddNeNullTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_NE_NULL;
+
+  Future<void> test_nonBoolCondition() async {
+    await resolveTestCode('''
+f(String p) {
+  if (p) {
+    print(p);
+  }
+}
+''');
+    await assertHasFix('''
+f(String p) {
+  if (p != null) {
+    print(p);
   }
 }
 ''');

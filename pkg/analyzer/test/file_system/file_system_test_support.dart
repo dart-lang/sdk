@@ -23,6 +23,10 @@ abstract class FileSystemTestSupport {
   /// A path to a folder within the [tempPath] that can be used by tests.
   String get defaultFolderPath;
 
+  /// Return `true` if the file system has support for symbolic links.
+  /// Windows until recently (Windows 10, 2016) did not have it.
+  bool get hasSymbolicLinkSupport;
+
   /// Return the resource provider to be used by the tests.
   ResourceProvider get provider;
 
@@ -139,6 +143,8 @@ mixin FileTestMixin implements FileSystemTestSupport {
   }
 
   test_exists_links_existing() {
+    if (!hasSymbolicLinkSupport) return;
+
     var a_path = join(tempPath, 'a.dart');
     var b_path = join(tempPath, 'b.dart');
 
@@ -153,6 +159,8 @@ mixin FileTestMixin implements FileSystemTestSupport {
   }
 
   test_exists_links_notExisting() {
+    if (!hasSymbolicLinkSupport) return;
+
     var a_path = join(tempPath, 'a.dart');
     var b_path = join(tempPath, 'b.dart');
 
@@ -306,6 +314,8 @@ mixin FileTestMixin implements FileSystemTestSupport {
   test_renameSync_notExisting();
 
   test_resolveSymbolicLinksSync_links_existing() {
+    if (!hasSymbolicLinkSupport) return;
+
     var a_path = join(tempPath, 'aaa', 'a.dart');
     var b_path = join(tempPath, 'bbb', 'b.dart');
 
@@ -317,6 +327,8 @@ mixin FileTestMixin implements FileSystemTestSupport {
   }
 
   test_resolveSymbolicLinksSync_links_existing2() {
+    if (!hasSymbolicLinkSupport) return;
+
     var a = join(tempPath, 'aaa', 'a.dart');
     var b = join(tempPath, 'bbb', 'b.dart');
     var c = join(tempPath, 'ccc', 'c.dart');
@@ -330,6 +342,8 @@ mixin FileTestMixin implements FileSystemTestSupport {
   }
 
   test_resolveSymbolicLinksSync_links_notExisting() {
+    if (!hasSymbolicLinkSupport) return;
+
     var a = join(tempPath, 'a.dart');
     var b = join(tempPath, 'b.dart');
 
@@ -527,6 +541,8 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   }
 
   test_exists_links_existing() {
+    if (!hasSymbolicLinkSupport) return;
+
     var foo_path = join(tempPath, 'foo');
     var bar_path = join(tempPath, 'bar');
 
@@ -541,6 +557,8 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   }
 
   test_exists_links_notExisting() {
+    if (!hasSymbolicLinkSupport) return;
+
     var foo_path = join(tempPath, 'foo');
     var bar_path = join(tempPath, 'bar');
 
@@ -664,6 +682,8 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   }
 
   test_getChildren_hasLink_file() {
+    if (!hasSymbolicLinkSupport) return;
+
     var a_path = join(tempPath, 'a.dart');
     var b_path = join(tempPath, 'b.dart');
 
@@ -682,6 +702,8 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   }
 
   test_getChildren_hasLink_folder() {
+    if (!hasSymbolicLinkSupport) return;
+
     var foo_path = join(tempPath, 'foo');
     var bar_path = join(tempPath, 'bar');
 
@@ -700,6 +722,8 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   }
 
   test_getChildren_isLink() {
+    if (!hasSymbolicLinkSupport) return;
+
     var foo_path = join(tempPath, 'foo');
     var bar_path = join(tempPath, 'bar');
     var foo_a_path = join(foo_path, 'a.dart');
@@ -778,6 +802,8 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   }
 
   test_resolveSymbolicLinksSync_links_existing() {
+    if (!hasSymbolicLinkSupport) return;
+
     var foo = join(tempPath, 'foo');
     var bar = join(tempPath, 'bar');
 
@@ -789,6 +815,8 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   }
 
   test_resolveSymbolicLinksSync_links_notExisting() {
+    if (!hasSymbolicLinkSupport) return;
+
     var foo = join(tempPath, 'foo');
     var bar = join(tempPath, 'bar');
 

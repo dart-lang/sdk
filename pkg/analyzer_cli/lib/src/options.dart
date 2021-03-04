@@ -9,6 +9,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
@@ -223,21 +224,21 @@ class CommandLineOptions {
 
     // Check SDK.
     if (!options.buildModePersistentWorker) {
-      // Infer if unspecified.
-      options.dartSdkPath ??= getSdkPath(args);
-
       var sdkPath = options.dartSdkPath;
 
-      // Check that SDK is specified.
-      if (sdkPath == null) {
-        printAndFail('No Dart SDK found.');
-        return null; // Only reachable in testing.
-      }
       // Check that SDK is existing directory.
-      if (!(io.Directory(sdkPath)).existsSync()) {
-        printAndFail('Invalid Dart SDK path: $sdkPath');
-        return null; // Only reachable in testing.
+      if (sdkPath != null) {
+        if (!(io.Directory(sdkPath)).existsSync()) {
+          printAndFail('Invalid Dart SDK path: $sdkPath');
+          return null; // Only reachable in testing.
+        }
       }
+
+      // Infer if unspecified.
+      sdkPath ??= getSdkPath(args);
+
+      var pathContext = resourceProvider.pathContext;
+      options.dartSdkPath = file_paths.absoluteNormalized(pathContext, sdkPath);
     }
 
     // Build mode.

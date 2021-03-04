@@ -48,6 +48,9 @@ abstract class BaseTest extends FileSystemTestSupport {
   @override
   String get defaultFileContent => 'a';
 
+  @override
+  bool get hasSymbolicLinkSupport => !io.Platform.isWindows;
+
   /// Return the resource provider to be used by the tests.
   @override
   PhysicalResourceProvider get provider => _provider ??= createProvider();

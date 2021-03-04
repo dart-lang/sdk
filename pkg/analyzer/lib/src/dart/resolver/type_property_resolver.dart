@@ -115,8 +115,20 @@ class TypePropertyResolver {
         }
       }
 
-      List<DiagnosticMessage> messages =
-          _resolver.computeWhyNotPromotedMessages(receiver, nameErrorEntity);
+      List<DiagnosticMessage> messages = [];
+      var flow = _resolver.flowAnalysis?.flow;
+      if (flow != null) {
+        if (receiver != null) {
+          messages = _resolver.computeWhyNotPromotedMessages(
+              receiver, nameErrorEntity, flow.whyNotPromoted(receiver));
+        } else {
+          var thisType = _resolver.thisType;
+          if (thisType != null) {
+            messages = _resolver.computeWhyNotPromotedMessages(receiver,
+                nameErrorEntity, flow.whyNotPromotedImplicitThis(thisType));
+          }
+        }
+      }
       _resolver.nullableDereferenceVerifier.report(
           receiverErrorNode, receiverType,
           errorCode: errorCode, arguments: [name], messages: messages);

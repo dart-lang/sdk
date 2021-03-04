@@ -68,7 +68,11 @@ class AddNullCheck extends CorrectionProducer {
         toType = enclosingExecutable.declaredElement.returnType;
       }
     } else if ((parent is PrefixedIdentifier && target == parent.prefix) ||
+        parent is PostfixExpression ||
+        parent is PrefixExpression ||
+        parent is BinaryExpression ||
         (parent is PropertyAccess && target == parent.target) ||
+        (parent is CascadeExpression && target == parent.target) ||
         (parent is MethodInvocation && target == parent.target) ||
         (parent is FunctionExpressionInvocation && target == parent.function)) {
       // No need to set the `toType` because there isn't any need for a type

@@ -31,6 +31,14 @@ const String packageConfigJson = 'package_config.json';
 /// File name of pubspec files.
 const String pubspecYaml = 'pubspec.yaml';
 
+/// Converts the given [path] into absolute and normalized.
+String absoluteNormalized(p.Context pathContext, String path) {
+  path = path.trim();
+  path = pathContext.absolute(path);
+  path = pathContext.normalize(path);
+  return path;
+}
+
 /// Return `true` if [path] is an analysis options file.
 bool isAnalysisOptionsYaml(p.Context pathContext, String path) {
   return pathContext.basename(path) == analysisOptionsYaml;

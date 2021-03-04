@@ -8,35 +8,41 @@ class C {
 
   get_property_via_explicit_this() {
     if (this.i == null) return;
-    this.i. /*notPromoted(propertyNotPromoted(member:C.i))*/ isEven;
+    this
+        .i
+        . /*notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/ isEven;
   }
 
   get_property_via_explicit_this_parenthesized() {
     if ((this).i == null) return;
-    (this).i. /*notPromoted(propertyNotPromoted(member:C.i))*/ isEven;
+    (this)
+        .i
+        . /*notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/ isEven;
   }
 
   get_property_by_implicit_this() {
     if (i == null) return;
-    i. /*notPromoted(propertyNotPromoted(member:C.i))*/ isEven;
+    i. /*notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/ isEven;
   }
 }
 
 class D extends C {
   get_property_via_explicit_super() {
     if (super.i == null) return;
-    super.i. /*notPromoted(propertyNotPromoted(member:C.i))*/ isEven;
+    super
+        .i
+        . /*notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/ isEven;
   }
 
   get_property_by_implicit_super() {
     if (i == null) return;
-    i. /*notPromoted(propertyNotPromoted(member:C.i))*/ isEven;
+    i. /*notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/ isEven;
   }
 }
 
 get_property_via_prefixed_identifier(C c) {
   if (c.i == null) return;
-  c.i. /*notPromoted(propertyNotPromoted(member:C.i))*/ isEven;
+  c.i. /*notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/ isEven;
 }
 
 get_property_via_prefixed_identifier_mismatched_target(C c1, C c2) {

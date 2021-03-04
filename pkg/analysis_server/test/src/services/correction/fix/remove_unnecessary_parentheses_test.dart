@@ -7,12 +7,37 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'bulk/bulk_fix_processor.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveUnnecessaryParenthesesBulkTest);
     defineReflectiveTests(RemoveUnnecessaryParenthesesTest);
   });
+}
+
+@reflectiveTest
+class RemoveUnnecessaryParenthesesBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.unnecessary_parenthesis;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void f() {
+  (1);
+  (22);
+  (333);
+}
+''');
+    await assertHasFix('''
+void f() {
+  1;
+  22;
+  333;
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -22,25 +47,6 @@ class RemoveUnnecessaryParenthesesTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.unnecessary_parenthesis;
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
-  Future<void> test_all() async {
-    await resolveTestCode('''
-void f() {
-  (1);
-  (22);
-  (333);
-}
-''');
-    var lintCode = await lintCodeByName(this.lintCode);
-    await assertHasFixAllFix(lintCode, '''
-void f() {
-  1;
-  22;
-  333;
-}
-''');
-  }
 
   Future<void> test_double_atInner() async {
     await resolveTestCode('''
@@ -63,7 +69,9 @@ void f() {
 void f() {
   (42);
 }
-''', errorFilter: (e) => e.offset == testCode.indexOf('((42'));
+''',
+        errorFilter: (e) => e.offset == testCode.indexOf('((42'),
+        allowFixAllFixes: true);
   }
 
   Future<void> test_single() async {

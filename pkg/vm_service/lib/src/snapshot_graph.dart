@@ -194,7 +194,7 @@ class HeapSnapshotObject {
   /// Data associated with this object.
   dynamic get data => _data;
 
-  /// A list of indicies into [HeapSnapshotGraph.objects].
+  /// A list of indices into [HeapSnapshotGraph.objects].
   List<int> get references => _references;
 
   /// The identity hash code of this object.

@@ -15,6 +15,7 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:front_end/src/fasta/kernel/internal_ast.dart';
 import 'package:front_end/src/fasta/type_inference/type_demotion.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
+import 'package:front_end/src/testing/id_testing_utils.dart';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -317,9 +318,18 @@ class TypeInferrerImpl implements TypeInferrer {
         LocatedMessage message = entry.value.accept(whyNotPromotedVisitor);
         if (dataForTesting != null) {
           String nonPromotionReasonText = entry.value.shortName;
+          List<String> args = <String>[];
           if (whyNotPromotedVisitor.propertyReference != null) {
             Id id = computeMemberId(whyNotPromotedVisitor.propertyReference);
-            nonPromotionReasonText += '($id)';
+            args.add('target: $id');
+          }
+          if (whyNotPromotedVisitor.propertyType != null) {
+            String typeText = typeToText(whyNotPromotedVisitor.propertyType,
+                TypeRepresentation.analyzerNonNullableByDefault);
+            args.add('type: $typeText');
+          }
+          if (args.isNotEmpty) {
+            nonPromotionReasonText += '(${args.join(', ')})';
           }
           dataForTesting.flowAnalysisResult.nonPromotionReasons[expression] =
               nonPromotionReasonText;
@@ -3393,7 +3403,7 @@ class TypeInferrerImpl implements TypeInferrer {
           resultType: calleeType, interfaceTarget: originalTarget)
         ..fileOffset = fileOffset;
       flowAnalysis.propertyGet(
-          originalPropertyGet, originalReceiver, originalName.name);
+          originalPropertyGet, originalReceiver, originalName.name, calleeType);
     } else {
       originalPropertyGet =
           new PropertyGet(originalReceiver, originalName, originalTarget)
@@ -3766,6 +3776,8 @@ class TypeInferrerImpl implements TypeInferrer {
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       return instantiateTearOff(inferredType, typeContext, expression);
     }
+    flowAnalysis.thisOrSuperPropertyGet(
+        expression, expression.name.name, inferredType);
     return new ExpressionInferenceResult(inferredType, expression);
   }
 
@@ -5007,12 +5019,14 @@ class InferredFunctionBody {
 class _WhyNotPromotedVisitor
     implements
         NonPromotionReasonVisitor<LocatedMessage, Node, Expression,
-            VariableDeclaration> {
+            VariableDeclaration, DartType> {
   final TypeInferrerImpl inferrer;
 
   final Expression receiver;
 
   Member propertyReference;
+
+  DartType propertyType;
 
   _WhyNotPromotedVisitor(this.inferrer, this.receiver);
 
@@ -5055,6 +5069,7 @@ class _WhyNotPromotedVisitor
     }
     if (member != null) {
       propertyReference = member;
+      propertyType = reason.staticType;
       return templateFieldNotPromoted
           .withArguments(reason.propertyName)
           .withLocation(member.fileUri, member.fileOffset, noLength);

@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-03-01T09:26:17.118461",
+  "generated": "2021-03-03T09:46:04.757962",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -232,7 +232,7 @@
       "name": "dartdoc",
       "rootUri": "../third_party/pkg/dartdoc",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.11"
     },
     {
       "name": "dds",
@@ -392,7 +392,7 @@
       "name": "linter",
       "rootUri": "../third_party/pkg/linter",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.12"
     },
     {
       "name": "logging",

@@ -205,15 +205,10 @@ void Assembler::Bind(Label* label) {
 }
 
 static int CountLeadingZeros(uint64_t value, int width) {
-  ASSERT((width == 32) || (width == 64));
-  if (value == 0) {
-    return width;
-  }
-  int count = 0;
-  do {
-    count++;
-  } while (value >>= 1);
-  return width - count;
+  if (width == 64) return Utils::CountLeadingZeros64(value);
+  if (width == 32) return Utils::CountLeadingZeros32(value);
+  UNREACHABLE();
+  return 0;
 }
 
 static int CountOneBits(uint64_t value, int width) {
@@ -240,7 +235,9 @@ static int CountOneBits(uint64_t value, int width) {
 bool Operand::IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op) {
   ASSERT(imm_op != NULL);
   ASSERT((width == kWRegSizeInBits) || (width == kXRegSizeInBits));
-  ASSERT((width == kXRegSizeInBits) || (value <= 0xffffffffUL));
+  if (width == kWRegSizeInBits) {
+    value &= 0xffffffffUL;
+  }
   uint8_t n = 0;
   uint8_t imm_s = 0;
   uint8_t imm_r = 0;
@@ -696,31 +693,19 @@ void Assembler::AddImmediateSetFlags(Register dest,
                                      int64_t imm,
                                      OperandSize sz) {
   ASSERT(sz == kEightBytes || sz == kFourBytes);
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
   Operand op;
-  if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
+  if (Operand::CanHold(imm, width, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
-    if (sz == kEightBytes) {
-      adds(dest, rn, op);
-    } else {
-      addsw(dest, rn, op);
-    }
-  } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
-             Operand::Immediate) {
+    adds(dest, rn, op, sz);
+  } else if (Operand::CanHold(-imm, width, &op) == Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
-    if (sz == kEightBytes) {
-      subs(dest, rn, op);
-    } else {
-      subsw(dest, rn, op);
-    }
+    subs(dest, rn, op, sz);
   } else {
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    if (sz == kEightBytes) {
-      adds(dest, rn, Operand(TMP2));
-    } else {
-      addsw(dest, rn, Operand(TMP2));
-    }
+    adds(dest, rn, Operand(TMP2), sz);
   }
 }
 
@@ -728,86 +713,93 @@ void Assembler::SubImmediateSetFlags(Register dest,
                                      Register rn,
                                      int64_t imm,
                                      OperandSize sz) {
-  Operand op;
   ASSERT(sz == kEightBytes || sz == kFourBytes);
-  if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
+  Operand op;
+  if (Operand::CanHold(imm, width, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
-    if (sz == kEightBytes) {
-      subs(dest, rn, op);
-    } else {
-      subsw(dest, rn, op);
-    }
-  } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
-             Operand::Immediate) {
+    subs(dest, rn, op, sz);
+  } else if (Operand::CanHold(-imm, width, &op) == Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
-    if (sz == kEightBytes) {
-      adds(dest, rn, op);
-    } else {
-      addsw(dest, rn, op);
-    }
+    adds(dest, rn, op, sz);
   } else {
     // TODO(zra): Try subtracting top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    if (sz == kEightBytes) {
-      subs(dest, rn, Operand(TMP2));
-    } else {
-      subsw(dest, rn, Operand(TMP2));
-    }
+    subs(dest, rn, Operand(TMP2), sz);
   }
 }
 
-void Assembler::AndImmediate(Register rd, Register rn, int64_t imm) {
+void Assembler::AndImmediate(Register rd,
+                             Register rn,
+                             int64_t imm,
+                             OperandSize sz) {
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
   Operand imm_op;
-  if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
-    andi(rd, rn, Immediate(imm));
+  if (Operand::IsImmLogical(imm, width, &imm_op)) {
+    andi(rd, rn, Immediate(imm), sz);
   } else {
     LoadImmediate(TMP, imm);
-    and_(rd, rn, Operand(TMP));
+    and_(rd, rn, Operand(TMP), sz);
   }
 }
 
-void Assembler::OrImmediate(Register rd, Register rn, int64_t imm) {
+void Assembler::OrImmediate(Register rd,
+                            Register rn,
+                            int64_t imm,
+                            OperandSize sz) {
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
   Operand imm_op;
-  if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
-    orri(rd, rn, Immediate(imm));
+  if (Operand::IsImmLogical(imm, width, &imm_op)) {
+    orri(rd, rn, Immediate(imm), sz);
   } else {
     LoadImmediate(TMP, imm);
-    orr(rd, rn, Operand(TMP));
+    orr(rd, rn, Operand(TMP), sz);
   }
 }
 
-void Assembler::XorImmediate(Register rd, Register rn, int64_t imm) {
+void Assembler::XorImmediate(Register rd,
+                             Register rn,
+                             int64_t imm,
+                             OperandSize sz) {
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
   Operand imm_op;
-  if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
-    eori(rd, rn, Immediate(imm));
+  if (Operand::IsImmLogical(imm, width, &imm_op)) {
+    eori(rd, rn, Immediate(imm), sz);
   } else {
     LoadImmediate(TMP, imm);
-    eor(rd, rn, Operand(TMP));
+    eor(rd, rn, Operand(TMP), sz);
   }
 }
 
-void Assembler::TestImmediate(Register rn, int64_t imm) {
+void Assembler::TestImmediate(Register rn, int64_t imm, OperandSize sz) {
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
   Operand imm_op;
-  if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
-    tsti(rn, Immediate(imm));
+  if (Operand::IsImmLogical(imm, width, &imm_op)) {
+    tsti(rn, Immediate(imm), sz);
   } else {
     LoadImmediate(TMP, imm);
     tst(rn, Operand(TMP));
   }
 }
 
-void Assembler::CompareImmediate(Register rn, int64_t imm) {
+void Assembler::CompareImmediate(Register rn, int64_t imm, OperandSize sz) {
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
   Operand op;
-  if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
-    cmp(rn, op);
-  } else if (Operand::CanHold(-static_cast<uint64_t>(imm), kXRegSizeInBits,
-                              &op) == Operand::Immediate) {
-    cmn(rn, op);
+  if (Operand::CanHold(imm, width, &op) == Operand::Immediate) {
+    cmp(rn, op, sz);
+  } else if (Operand::CanHold(-static_cast<uint64_t>(imm), width, &op) ==
+             Operand::Immediate) {
+    cmn(rn, op, sz);
   } else {
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    cmp(rn, Operand(TMP2));
+    cmp(rn, Operand(TMP2), sz);
   }
 }
 

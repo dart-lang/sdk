@@ -77,6 +77,7 @@ class ContextBuilderImpl implements ContextBuilder {
     if (librarySummaryPaths != null) {
       options.librarySummaryPaths = librarySummaryPaths;
     }
+    options.defaultAnalysisOptionsFilePath = contextRoot.optionsFile?.path;
     options.defaultPackageFilePath = contextRoot.packagesFile?.path;
 
     old.ContextBuilder builder = old.ContextBuilder(

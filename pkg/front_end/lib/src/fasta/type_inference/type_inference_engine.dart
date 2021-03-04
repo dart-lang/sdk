@@ -274,9 +274,6 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
   TypeOperationsCfe(this.typeEnvironment);
 
   @override
-  DartType get topType => typeEnvironment.objectNullableRawType;
-
-  @override
   TypeClassification classifyType(DartType type) {
     if (type == null) {
       // Note: this can happen during top-level inference.

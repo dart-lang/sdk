@@ -17,5 +17,6 @@ class C1 {
 test(C1 c) {
   if (c.bad == null) return;
   for (var x
-      in /*analyzer.notPromoted(propertyNotPromoted(member:C1.bad))*/ c.bad) {}
+      in /*analyzer.notPromoted(propertyNotPromoted(target: member:C1.bad, type: List<int>?))*/ c
+          .bad) {}
 }

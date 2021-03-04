@@ -202,8 +202,10 @@ class PropertyElementResolver {
     if (hasRead) {
       var readLookup = _resolver.lexicalLookup(node: node, setter: false);
       readElementRequested = readLookup.requested;
-      if (readElementRequested is PropertyAccessorElement) {
-        _resolver.flowAnalysis?.flow?.thisOrSuperPropertyGet(node, node.name);
+      if (readElementRequested is PropertyAccessorElement &&
+          !readElementRequested.isStatic) {
+        _resolver.flowAnalysis?.flow?.thisOrSuperPropertyGet(
+            node, node.name, readElementRequested.returnType);
       }
       _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
     }
@@ -372,7 +374,8 @@ class PropertyElementResolver {
       nameErrorEntity: propertyName,
     );
 
-    _resolver.flowAnalysis?.flow?.propertyGet(node, target, propertyName.name);
+    _resolver.flowAnalysis?.flow?.propertyGet(node, target, propertyName.name,
+        result.getter?.returnType ?? _typeSystem.typeProvider.dynamicType);
 
     if (hasRead && result.needsGetterError) {
       _errorReporter.reportErrorForNode(
@@ -621,8 +624,6 @@ class PropertyElementResolver {
 
     if (targetType is InterfaceTypeImpl) {
       if (hasRead) {
-        _resolver.flowAnalysis?.flow
-            ?.propertyGet(node, target, propertyName.name);
         var name = Name(_definingLibrary.source.uri, propertyName.name);
         readElement = _resolver.inheritance
             .getMember2(targetType.element, name, forSuper: true);
@@ -649,6 +650,11 @@ class PropertyElementResolver {
             );
           }
         }
+        _resolver.flowAnalysis?.flow?.propertyGet(
+            node,
+            target,
+            propertyName.name,
+            readElement?.returnType ?? _typeSystem.typeProvider.dynamicType);
       }
 
       if (hasWrite) {

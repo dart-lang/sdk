@@ -5707,7 +5707,8 @@ class InferenceVisitor
     ExpressionInferenceResult readResult = _computePropertyGet(
         node.fileOffset, receiver, receiverType, node.name, typeContext,
         isThisReceiver: node.receiver is ThisExpression);
-    inferrer.flowAnalysis.propertyGet(node, node.receiver, node.name.name);
+    inferrer.flowAnalysis.propertyGet(
+        node, node.receiver, node.name.name, readResult.inferredType);
     ExpressionInferenceResult expressionInferenceResult =
         inferrer.createNullAwareExpressionInferenceResult(
             readResult.inferredType, readResult.expression, nullAwareGuards);
@@ -5976,7 +5977,6 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitSuperPropertyGet(
       SuperPropertyGet node, DartType typeContext) {
-    inferrer.flowAnalysis.thisOrSuperPropertyGet(node, node.name.name);
     if (node.interfaceTarget != null) {
       inferrer.instrumentation?.record(
           inferrer.uriForInstrumentation,
@@ -6164,7 +6164,7 @@ class InferenceVisitor
 
   ExpressionInferenceResult visitThisExpression(
       ThisExpression node, DartType typeContext) {
-    inferrer.flowAnalysis.thisOrSuper(node);
+    inferrer.flowAnalysis.thisOrSuper(node, inferrer.thisType);
     return new ExpressionInferenceResult(inferrer.thisType, node);
   }
 
@@ -6568,7 +6568,7 @@ class InferenceVisitor
     DartType promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     if (isExtensionThis(variable)) {
-      inferrer.flowAnalysis.thisOrSuper(node);
+      inferrer.flowAnalysis.thisOrSuper(node, variable.type);
     } else if (inferrer.isNonNullableByDefault) {
       if (node.forNullGuardedAccess) {
         DartType nonNullableType = inferrer.computeNonNullable(variable.type);

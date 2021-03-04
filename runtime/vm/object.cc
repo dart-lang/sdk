@@ -722,7 +722,7 @@ void Object::Init(IsolateGroup* isolate_group) {
     cls.set_is_type_finalized();
     cls.set_type_arguments_field_offset_in_words(Class::kNoTypeArguments,
                                                  RTN::Class::kNoTypeArguments);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_num_native_fields(0);
     cls.InitEmptyFields();
     isolate_group->class_table()->Register(cls);
@@ -730,12 +730,12 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize the null class.
   cls = Class::New<Instance, RTN::Instance>(kNullCid, isolate_group);
-  cls.set_num_type_arguments(0);
+  cls.set_num_type_arguments_unsafe(0);
   isolate_group->object_store()->set_null_class(cls);
 
   // Allocate and initialize Never class.
   cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate_group);
-  cls.set_num_type_arguments(0);
+  cls.set_num_type_arguments_unsafe(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
@@ -745,7 +745,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls = Class::New<FreeListElement::FakeInstance,
                    RTN::FreeListElement::FakeInstance>(kFreeListElement,
                                                        isolate_group);
-  cls.set_num_type_arguments(0);
+  cls.set_num_type_arguments_unsafe(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
@@ -754,7 +754,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls = Class::New<ForwardingCorpse::FakeInstance,
                    RTN::ForwardingCorpse::FakeInstance>(kForwardingCorpse,
                                                         isolate_group);
-  cls.set_num_type_arguments(0);
+  cls.set_num_type_arguments_unsafe(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
@@ -889,19 +889,19 @@ void Object::Init(IsolateGroup* isolate_group) {
   isolate_group->object_store()->set_array_class(cls);
   cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
                                       RTN::Array::type_arguments_offset());
-  cls.set_num_type_arguments(1);
+  cls.set_num_type_arguments_unsafe(1);
   cls = Class::New<Array, RTN::Array>(kImmutableArrayCid, isolate_group);
   isolate_group->object_store()->set_immutable_array_class(cls);
   cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
                                       RTN::Array::type_arguments_offset());
-  cls.set_num_type_arguments(1);
+  cls.set_num_type_arguments_unsafe(1);
   cls =
       Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(isolate_group);
   isolate_group->object_store()->set_growable_object_array_class(cls);
   cls.set_type_arguments_field_offset(
       GrowableObjectArray::type_arguments_offset(),
       RTN::GrowableObjectArray::type_arguments_offset());
-  cls.set_num_type_arguments(1);
+  cls.set_num_type_arguments_unsafe(1);
   cls = Class::NewStringClass(kOneByteStringCid, isolate_group);
   isolate_group->object_store()->set_one_byte_string_class(cls);
   cls = Class::NewStringClass(kTwoByteStringCid, isolate_group);
@@ -1045,14 +1045,14 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   cls = Class::New<Instance, RTN::Instance>(kDynamicCid, isolate_group);
   cls.set_is_abstract();
-  cls.set_num_type_arguments(0);
+  cls.set_num_type_arguments_unsafe(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
   dynamic_class_ = cls.ptr();
 
   cls = Class::New<Instance, RTN::Instance>(kVoidCid, isolate_group);
-  cls.set_num_type_arguments(0);
+  cls.set_num_type_arguments_unsafe(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
@@ -1599,7 +1599,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     // respective Raw* classes.
     cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
                                         RTN::Array::type_arguments_offset());
-    cls.set_num_type_arguments(1);
+    cls.set_num_type_arguments_unsafe(1);
 
     // Set up the growable object array class (Has to be done after the array
     // class is setup as one of its field is an array object).
@@ -1609,7 +1609,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls.set_type_arguments_field_offset(
         GrowableObjectArray::type_arguments_offset(),
         RTN::GrowableObjectArray::type_arguments_offset());
-    cls.set_num_type_arguments(1);
+    cls.set_num_type_arguments_unsafe(1);
 
     // Initialize hash set for canonical types.
     const intptr_t kInitialCanonicalTypeSize = 16;
@@ -1704,7 +1704,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     object_store->set_immutable_array_class(cls);
     cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
                                         RTN::Array::type_arguments_offset());
-    cls.set_num_type_arguments(1);
+    cls.set_num_type_arguments_unsafe(1);
     ASSERT(object_store->immutable_array_class() !=
            object_store->array_class());
     cls.set_is_prefinalized();
@@ -1778,7 +1778,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<Instance, RTN::Instance>(kInstanceCid, isolate_group);
     object_store->set_object_class(cls);
     cls.set_name(Symbols::Object());
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     cls.set_is_const();
     core_lib.AddClass(cls);
@@ -1803,13 +1803,13 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
     cls = Class::New<Instance, RTN::Instance>(kNullCid, isolate_group);
     object_store->set_null_class(cls);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     RegisterClass(cls, Symbols::Null(), core_lib);
     pending_classes.Add(cls);
 
     cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate_group);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_allocate_finalized();
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
@@ -1896,7 +1896,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls.set_type_arguments_field_offset(
         LinkedHashMap::type_arguments_offset(),
         RTN::LinkedHashMap::type_arguments_offset());
-    cls.set_num_type_arguments(2);
+    cls.set_num_type_arguments_unsafe(2);
     RegisterPrivateClass(cls, Symbols::_LinkedHashMap(), lib);
     pending_classes.Add(cls);
 
@@ -1914,7 +1914,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<FutureOr, RTN::FutureOr>(isolate_group);
     cls.set_type_arguments_field_offset(FutureOr::type_arguments_offset(),
                                         RTN::FutureOr::type_arguments_offset());
-    cls.set_num_type_arguments(1);
+    cls.set_num_type_arguments_unsafe(1);
     RegisterClass(cls, Symbols::FutureOr(), lib);
     pending_classes.Add(cls);
 
@@ -1993,7 +1993,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Float32x4(), lib);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_float32x4_type(type);
@@ -2007,7 +2007,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Int32x4(), lib);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_int32x4_type(type);
@@ -2021,7 +2021,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Float64x2(), lib);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_float64x2_type(type);
@@ -2036,7 +2036,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     RegisterClass(cls, Symbols::Type(), core_lib);
     pending_classes.Add(cls);
@@ -2047,7 +2047,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     RegisterClass(cls, Symbols::Function(), core_lib);
     pending_classes.Add(cls);
@@ -2072,7 +2072,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Int(), core_lib);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
@@ -2088,7 +2088,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Double(), core_lib);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
@@ -2105,7 +2105,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, name, core_lib);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
@@ -2262,7 +2262,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     object_store->set_bootstrap_library(ObjectStore::kFfi, lib);
 
     cls = Class::New<Instance, RTN::Instance>(kFfiNativeTypeCid, isolate_group);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     object_store->set_ffi_native_type_class(cls);
@@ -2270,7 +2270,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
 #define REGISTER_FFI_TYPE_MARKER(clazz)                                        \
   cls = Class::New<Instance, RTN::Instance>(kFfi##clazz##Cid, isolate_group);  \
-  cls.set_num_type_arguments(0);                                               \
+  cls.set_num_type_arguments_unsafe(0);                                        \
   cls.set_is_prefinalized();                                                   \
   pending_classes.Add(cls);                                                    \
   RegisterClass(cls, Symbols::Ffi##clazz(), lib);
@@ -2281,7 +2281,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                               isolate_group);
     cls.set_type_arguments_field_offset(Pointer::type_arguments_offset(),
                                         RTN::Pointer::type_arguments_offset());
-    cls.set_num_type_arguments(1);
+    cls.set_num_type_arguments_unsafe(1);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiNativeFunction(), lib);
@@ -2811,7 +2811,7 @@ ClassPtr Class::New(IsolateGroup* isolate_group, bool register_class) {
                                target_next_field_offset);
   COMPILE_ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
-  result.set_num_type_arguments(0);
+  result.set_num_type_arguments_unsafe(0);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
   if ((FakeObject::kClassId < kInstanceCid) ||
@@ -2847,6 +2847,15 @@ void Class::set_num_type_arguments(intptr_t value) const {
   if (!Utils::IsInt(16, value)) {
     ReportTooManyTypeArguments(*this);
   }
+  // We allow concurrent calculation of the number of type arguments. If two
+  // threads perform this operation it doesn't matter which one wins.
+  DEBUG_ONLY(intptr_t old_value = num_type_arguments());
+  DEBUG_ASSERT(old_value == kUnknownNumTypeArguments || old_value == value);
+  StoreNonPointer<int16_t, int16_t, std::memory_order_relaxed>(
+      &untag()->num_type_arguments_, value);
+}
+
+void Class::set_num_type_arguments_unsafe(intptr_t value) const {
   StoreNonPointer(&untag()->num_type_arguments_, value);
 }
 
@@ -4509,7 +4518,7 @@ ClassPtr Class::NewCommon(intptr_t index) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_id(index);
-  result.set_num_type_arguments(kUnknownNumTypeArguments);
+  result.set_num_type_arguments_unsafe(kUnknownNumTypeArguments);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));

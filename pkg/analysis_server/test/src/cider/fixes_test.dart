@@ -48,7 +48,7 @@ var a = 0; var b = 1
 ''');
 
     // The file was resolved only once, even though we have 2 errors.
-    expect(fileResolver.testView.resolvedFiles, [testPath]);
+    expect(fileResolver.testView.resolvedFiles, [convertPath(testPath)]);
   }
 
   Future<void> test_createMethod() async {

@@ -67,7 +67,8 @@ class NullableDereferenceVerifier {
 
     List<DiagnosticMessage>? messages;
     if (errorNode is Expression) {
-      messages = _resolver.computeWhyNotPromotedMessages(errorNode, errorNode);
+      messages = _resolver.computeWhyNotPromotedMessages(errorNode, errorNode,
+          _resolver.flowAnalysis?.flow?.whyNotPromoted(errorNode));
     }
     report(errorNode, receiverType, errorCode: errorCode, messages: messages);
     return true;

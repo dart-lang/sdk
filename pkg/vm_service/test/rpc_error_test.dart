@@ -9,7 +9,7 @@ import 'common/test_helper.dart';
 
 var tests = <VMTest>[
   (VmService vm) async {
-    // Invoke a non-existant RPC.
+    // Invoke a non-existent RPC.
     try {
       final res = await vm.callMethod('foo');
       fail('Expected RPCError, got $res');

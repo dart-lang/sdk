@@ -47,7 +47,7 @@ abstract class ErrorCode {
     required String message,
     required this.name,
     required this.uniqueName,
-  })  : _correction = correction,
+  })   : _correction = correction,
         _message = message,
         // ignore: unnecessary_null_comparison
         assert(hasPublishedDocs != null),

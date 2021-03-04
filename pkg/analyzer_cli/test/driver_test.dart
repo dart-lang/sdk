@@ -992,15 +992,6 @@ class OptionsTest extends BaseTest {
     _expectUndefinedClassErrorsWithoutExclusions();
   }
 
-  Future<void>
-      test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() async {
-    // By passing no options, and the path `lib`, it should discover the
-    // analysis_options above lib. The exclude is relative to the project, not
-    // the analyzed path, and it has to then understand that.
-    await drive('data/exclude_test_project/lib', options: null);
-    _expectUndefinedClassErrorsWithoutExclusions();
-  }
-
   Future<void> test_analyzeFilesInDifferentContexts() async {
     await driveMany([
       'data/linter_project/test_file.dart',
