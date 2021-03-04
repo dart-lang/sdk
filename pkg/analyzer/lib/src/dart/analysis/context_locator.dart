@@ -405,11 +405,11 @@ class ContextLocatorImpl implements ContextLocator {
     List<Glob> patterns = [];
     File? optionsFile = root.optionsFile;
     if (optionsFile != null) {
-      var doc = AnalysisOptionsProvider(
-              root.workspace.createSourceFactory(null, null))
-          .getOptionsFromFile(optionsFile);
-
       try {
+        var doc = AnalysisOptionsProvider(
+                root.workspace.createSourceFactory(null, null))
+            .getOptionsFromFile(optionsFile);
+
         if (doc is YamlMap) {
           var analyzerOptions = getValue(doc, AnalyzerOptions.analyzer);
           if (analyzerOptions is YamlMap) {

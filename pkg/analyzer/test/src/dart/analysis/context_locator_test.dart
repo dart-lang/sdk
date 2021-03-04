@@ -930,6 +930,33 @@ analyzer:
     expect(outerRoot.packagesFile, outerPackagesFile);
   }
 
+  void test_locateRoots_options_hasError() {
+    Folder rootFolder = newFolder('/test/root');
+    File optionsFile = newAnalysisOptionsYamlFile('/test/root', content: '''
+analyzer:
+  exclude:
+    - **.g.dart
+analyzer:
+''');
+    File packagesFile = newDotPackagesFile('/test/root');
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, optionsFile);
+    expect(root.packagesFile, packagesFile);
+
+    // There is an error in the analysis_options.yaml, so it is ignored.
+    _assertAnalyzed(root, [
+      '/test/root//lib/a.dart',
+      '/test/root//lib/a.g.dart',
+    ]);
+  }
+
   void test_locateRoots_options_withExclude_someFiles() {
     Folder rootFolder = newFolder('/test/root');
     File optionsFile = newAnalysisOptionsYamlFile('/test/root', content: '''
