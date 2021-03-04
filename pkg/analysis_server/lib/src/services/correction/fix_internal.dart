@@ -323,6 +323,15 @@ class FixProcessor extends BaseProcessor {
         ],
       ),
     ],
+    HintCode.UNNECESSARY_CAST: [
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: false,
+        generators: [
+          RemoveUnnecessaryCast.newInstance,
+        ],
+      ),
+    ],
     HintCode.UNUSED_IMPORT: [
       FixInfo(
         canBeAppliedToFile: true,
