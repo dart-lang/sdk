@@ -755,6 +755,14 @@ Expression convertToElement(MapEntry entry, InferenceHelper helper,
     onConvertForMapEntry(entry, result);
     return result;
   }
+  Expression key = entry.key;
+  if (key is InvalidExpression) {
+    Expression value = entry.value;
+    if (value is NullLiteral && value.fileOffset == TreeNode.noOffset) {
+      // entry arose from an error.  Don't build another error.
+      return key;
+    }
+  }
   return helper.buildProblem(
     templateExpectedButGot.withArguments(','),
     entry.fileOffset,

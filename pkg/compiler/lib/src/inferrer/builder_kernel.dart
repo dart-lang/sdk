@@ -878,54 +878,68 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     return null;
   }
 
+  TypeInformation _handleLocalFunctionInvocation(
+      ir.Expression node,
+      ir.FunctionDeclaration function,
+      ir.Arguments arguments,
+      Selector selector) {
+    ArgumentsTypes argumentsTypes = analyzeArguments(arguments);
+    ClosureRepresentationInfo info =
+        _closureDataLookup.getClosureInfo(function);
+    if (isIncompatibleInvoke(info.callMethod, argumentsTypes)) {
+      return _types.dynamicType;
+    }
+
+    TypeInformation type =
+        handleStaticInvoke(node, selector, info.callMethod, argumentsTypes);
+    FunctionType functionType =
+        _elementMap.elementEnvironment.getFunctionType(info.callMethod);
+    if (functionType.returnType.containsFreeTypeVariables) {
+      // The return type varies with the call site so we narrow the static
+      // return type.
+      type = _types.narrowType(type, _getStaticType(node));
+    }
+    return type;
+  }
+
   @override
-  TypeInformation visitMethodInvocation(ir.MethodInvocation node) {
+  TypeInformation visitLocalFunctionInvocation(
+      ir.LocalFunctionInvocation node) {
     Selector selector = _elementMap.getSelector(node);
-    AbstractValue mask = _typeOfReceiver(node, node.receiver);
+    return _handleLocalFunctionInvocation(
+        node, node.variable.parent, node.arguments, selector);
+  }
 
-    ir.TreeNode receiver = node.receiver;
-    if (receiver is ir.VariableGet &&
-        receiver.variable.parent is ir.FunctionDeclaration) {
-      // This is an invocation of a named local function.
-      ArgumentsTypes arguments = analyzeArguments(node.arguments);
-      ClosureRepresentationInfo info =
-          _closureDataLookup.getClosureInfo(receiver.variable.parent);
-      if (isIncompatibleInvoke(info.callMethod, arguments)) {
-        return _types.dynamicType;
-      }
+  TypeInformation _handleEqualsNull(ir.Expression node, ir.Expression operand,
+      {bool isNot}) {
+    assert(isNot != null);
+    _potentiallyAddNullCheck(node, operand, isNot: isNot);
+    return _types.boolType;
+  }
 
-      TypeInformation type =
-          handleStaticInvoke(node, selector, info.callMethod, arguments);
-      FunctionType functionType =
-          _elementMap.elementEnvironment.getFunctionType(info.callMethod);
-      if (functionType.returnType.containsFreeTypeVariables) {
-        // The return type varies with the call site so we narrow the static
-        // return type.
-        type = _types.narrowType(type, _getStaticType(node));
-      }
-      return type;
-    }
+  @override
+  TypeInformation visitEqualsNull(ir.EqualsNull node) {
+    // TODO(johnniwinther). This triggers the computation of the mask for the
+    // receiver of the call to `==`, which doesn't happen in this case. Remove
+    // this when the ssa builder recognized `== null` directly.
+    _typeOfReceiver(node, node.expression);
+    return _handleEqualsNull(node, node.expression, isNot: node.isNot);
+  }
 
-    TypeInformation receiverType = visit(receiver);
-    ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    if (selector.name == '==') {
-      if (_types.isNull(receiverType)) {
-        // null == o
-        _potentiallyAddNullCheck(node, node.arguments.positional.first);
-        return _types.boolType;
-      } else if (_types.isNull(arguments.positional[0])) {
-        // o == null
-        _potentiallyAddNullCheck(node, node.receiver);
-        return _types.boolType;
-      }
-    }
-    if (node.receiver is ir.ThisExpression) {
+  TypeInformation _handleMethodInvocation(
+      ir.Expression node,
+      ir.Expression receiver,
+      TypeInformation receiverType,
+      Selector selector,
+      ArgumentsTypes arguments,
+      ir.Member interfaceTarget) {
+    AbstractValue mask = _typeOfReceiver(node, receiver);
+    if (receiver is ir.ThisExpression) {
       _checkIfExposesThis(
           selector, _types.newTypedSelector(receiverType, mask));
     }
     TypeInformation type = handleDynamicInvoke(
         CallType.access, node, selector, mask, receiverType, arguments);
-    ir.Member interfaceTarget = node.interfaceTarget;
     if (interfaceTarget != null) {
       if (interfaceTarget is ir.Procedure &&
           (interfaceTarget.kind == ir.ProcedureKind.Method ||
@@ -950,6 +964,92 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       type = _types.narrowType(type, _getStaticType(node));
     }
     return type;
+  }
+
+  TypeInformation _handleEqualsCall(ir.Expression node, ir.Expression left,
+      TypeInformation leftType, ir.Expression right, TypeInformation rightType,
+      {bool isNot}) {
+    assert(isNot != null);
+    // TODO(johnniwinther). This triggers the computation of the mask for the
+    // receiver of the call to `==`, which might not happen in this case. Remove
+    // this when the ssa builder recognized `== null` directly.
+    _typeOfReceiver(node, left);
+    if (_types.isNull(leftType)) {
+      // null == o
+      return _handleEqualsNull(node, right, isNot: isNot);
+    } else if (_types.isNull(rightType)) {
+      // o == null
+      return _handleEqualsNull(node, left, isNot: isNot);
+    }
+    Selector selector = Selector.binaryOperator('==');
+    ArgumentsTypes arguments = ArgumentsTypes([rightType], null);
+    return _handleMethodInvocation(
+        node, left, leftType, selector, arguments, null);
+  }
+
+  @override
+  TypeInformation visitEqualsCall(ir.EqualsCall node) {
+    TypeInformation leftType = visit(node.left);
+    TypeInformation rightType = visit(node.right);
+    return _handleEqualsCall(node, node.left, leftType, node.right, rightType,
+        isNot: node.isNot);
+  }
+
+  @override
+  TypeInformation visitInstanceInvocation(ir.InstanceInvocation node) {
+    Selector selector = _elementMap.getSelector(node);
+    ir.Expression receiver = node.receiver;
+    TypeInformation receiverType = visit(receiver);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    return _handleMethodInvocation(node, node.receiver, receiverType, selector,
+        arguments, node.interfaceTarget);
+  }
+
+  @override
+  TypeInformation visitDynamicInvocation(ir.DynamicInvocation node) {
+    Selector selector = _elementMap.getSelector(node);
+    ir.Expression receiver = node.receiver;
+    TypeInformation receiverType = visit(receiver);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    return _handleMethodInvocation(
+        node, node.receiver, receiverType, selector, arguments, null);
+  }
+
+  @override
+  TypeInformation visitFunctionInvocation(ir.FunctionInvocation node) {
+    Selector selector = _elementMap.getSelector(node);
+    ir.Expression receiver = node.receiver;
+    TypeInformation receiverType = visit(receiver);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    return _handleMethodInvocation(
+        node, node.receiver, receiverType, selector, arguments, null);
+  }
+
+  @override
+  TypeInformation visitMethodInvocation(ir.MethodInvocation node) {
+    Selector selector = _elementMap.getSelector(node);
+    ir.Expression receiver = node.receiver;
+    if (receiver is ir.VariableGet &&
+        receiver.variable.parent is ir.FunctionDeclaration) {
+      // TODO(johnniwinther). This triggers the computation of the mask for the
+      // receiver of the call to `call`. Remove this when the ssa builder
+      // recognized local function invocation directly.
+      _typeOfReceiver(node, node.receiver);
+      // This is an invocation of a named local function.
+      return _handleLocalFunctionInvocation(
+          node, receiver.variable.parent, node.arguments, selector);
+    }
+
+    TypeInformation receiverType = visit(receiver);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    if (selector.name == '==') {
+      return _handleEqualsCall(node, node.receiver, receiverType,
+          node.arguments.positional.first, arguments.positional[0],
+          isNot: false);
+    }
+
+    return _handleMethodInvocation(node, node.receiver, receiverType, selector,
+        arguments, node.interfaceTarget);
   }
 
   TypeInformation _handleDynamic(
@@ -1454,6 +1554,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     return createStaticGetTypeInformation(node, node.target);
   }
 
+  @override
+  TypeInformation visitStaticTearOff(ir.StaticTearOff node) {
+    return createStaticGetTypeInformation(node, node.target);
+  }
+
   TypeInformation createStaticGetTypeInformation(
       ir.Node node, ir.Member target) {
     MemberEntity member = _elementMap.getMember(target);
@@ -1473,12 +1578,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     return rhsType;
   }
 
-  TypeInformation handlePropertyGet(ir.TreeNode node, ir.TreeNode receiver,
-      TypeInformation receiverType, ir.Member interfaceTarget,
-      {bool isThis}) {
+  TypeInformation _handlePropertyGet(ir.Expression node, ir.Expression receiver,
+      {ir.Member interfaceTarget}) {
+    TypeInformation receiverType = visit(receiver);
     Selector selector = _elementMap.getSelector(node);
     AbstractValue mask = _typeOfReceiver(node, receiver);
-    if (isThis) {
+    if (receiver is ir.ThisExpression) {
       _checkIfExposesThis(
           selector, _types.newTypedSelector(receiverType, mask));
     }
@@ -1498,25 +1603,46 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
   }
 
   @override
-  TypeInformation visitPropertyGet(ir.PropertyGet node) {
-    TypeInformation receiverType = visit(node.receiver);
-    return handlePropertyGet(
-        node, node.receiver, receiverType, node.interfaceTarget,
-        isThis: node.receiver is ir.ThisExpression);
+  TypeInformation visitInstanceGet(ir.InstanceGet node) {
+    return _handlePropertyGet(node, node.receiver,
+        interfaceTarget: node.interfaceTarget);
   }
 
   @override
-  TypeInformation visitPropertySet(ir.PropertySet node) {
-    TypeInformation receiverType = visit(node.receiver);
-    Selector selector = _elementMap.getSelector(node);
-    AbstractValue mask = _typeOfReceiver(node, node.receiver);
+  TypeInformation visitInstanceTearOff(ir.InstanceTearOff node) {
+    return _handlePropertyGet(node, node.receiver,
+        interfaceTarget: node.interfaceTarget);
+  }
 
-    TypeInformation rhsType = visit(node.value);
-    if (node.value is ir.ThisExpression) {
+  @override
+  TypeInformation visitDynamicGet(ir.DynamicGet node) {
+    return _handlePropertyGet(node, node.receiver);
+  }
+
+  @override
+  TypeInformation visitFunctionTearOff(ir.FunctionTearOff node) {
+    return _handlePropertyGet(node, node.receiver);
+  }
+
+  @override
+  TypeInformation visitPropertyGet(ir.PropertyGet node) {
+    return _handlePropertyGet(node, node.receiver,
+        interfaceTarget: node.interfaceTarget);
+  }
+
+  TypeInformation _handlePropertySet(
+      ir.Expression node, ir.Expression receiver, ir.Expression value,
+      {ir.Member interfaceTarget}) {
+    TypeInformation receiverType = visit(receiver);
+    Selector selector = _elementMap.getSelector(node);
+    AbstractValue mask = _typeOfReceiver(node, receiver);
+
+    TypeInformation rhsType = visit(value);
+    if (value is ir.ThisExpression) {
       _state.markThisAsExposed();
     }
 
-    if (_inGenerativeConstructor && node.receiver is ir.ThisExpression) {
+    if (_inGenerativeConstructor && receiver is ir.ThisExpression) {
       AbstractValue typedMask = _types.newTypedSelector(receiverType, mask);
       if (!_closedWorld.includesClosureCall(selector, typedMask)) {
         Iterable<MemberEntity> targets =
@@ -1533,12 +1659,29 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
         }
       }
     }
-    if (node.receiver is ir.ThisExpression) {
+    if (receiver is ir.ThisExpression) {
       _checkIfExposesThis(
           selector, _types.newTypedSelector(receiverType, mask));
     }
     handleDynamicSet(node, selector, mask, receiverType, rhsType);
     return rhsType;
+  }
+
+  @override
+  TypeInformation visitPropertySet(ir.PropertySet node) {
+    return _handlePropertySet(node, node.receiver, node.value,
+        interfaceTarget: node.interfaceTarget);
+  }
+
+  @override
+  TypeInformation visitInstanceSet(ir.InstanceSet node) {
+    return _handlePropertySet(node, node.receiver, node.value,
+        interfaceTarget: node.interfaceTarget);
+  }
+
+  @override
+  TypeInformation visitDynamicSet(ir.DynamicSet node) {
+    return _handlePropertySet(node, node.receiver, node.value);
   }
 
   @override
@@ -1573,27 +1716,39 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     }
   }
 
-  void _potentiallyAddNullCheck(
-      ir.MethodInvocation node, ir.Expression receiver) {
+  void _potentiallyAddNullCheck(ir.Expression node, ir.Expression receiver,
+      {bool isNot}) {
+    assert(isNot != null);
     if (!_accumulateIsChecks) return;
     if (receiver is ir.VariableGet) {
       Local local = _localsMap.getLocalVariable(receiver.variable);
       DartType localType = _localsMap.getLocalType(_elementMap, local);
-      LocalState stateAfterCheckWhenTrue = new LocalState.childPath(_state);
-      LocalState stateAfterCheckWhenFalse = new LocalState.childPath(_state);
+      LocalState stateAfterCheckWhenNull = new LocalState.childPath(_state);
+      LocalState stateAfterCheckWhenNotNull = new LocalState.childPath(_state);
 
       // Narrow tested variable to 'Null' on true branch.
-      stateAfterCheckWhenTrue.updateLocal(_inferrer, _capturedAndBoxed, local,
+      stateAfterCheckWhenNull.updateLocal(_inferrer, _capturedAndBoxed, local,
           _types.nullType, node, localType);
 
       // Narrow tested variable to 'not null' on false branch.
-      TypeInformation currentTypeInformation = stateAfterCheckWhenFalse
+      TypeInformation currentTypeInformation = stateAfterCheckWhenNotNull
           .readLocal(_inferrer, _capturedAndBoxed, local);
-      stateAfterCheckWhenFalse.updateLocal(_inferrer, _capturedAndBoxed, local,
-          currentTypeInformation, node, _closedWorld.commonElements.objectType,
+      stateAfterCheckWhenNotNull.updateLocal(
+          _inferrer,
+          _capturedAndBoxed,
+          local,
+          currentTypeInformation,
+          node,
+          _closedWorld.commonElements.objectType,
           excludeNull: true);
 
-      _setStateAfter(_state, stateAfterCheckWhenTrue, stateAfterCheckWhenFalse);
+      if (isNot) {
+        _setStateAfter(
+            _state, stateAfterCheckWhenNotNull, stateAfterCheckWhenNull);
+      } else {
+        _setStateAfter(
+            _state, stateAfterCheckWhenNull, stateAfterCheckWhenNotNull);
+      }
     }
   }
 

@@ -244,7 +244,8 @@ class FieldInitializationScope {
 class ArgumentsTypes extends IterableMixin<TypeInformation> {
   final List<TypeInformation> positional;
   final Map<String, TypeInformation> named;
-  ArgumentsTypes(this.positional, named)
+
+  ArgumentsTypes(this.positional, Map<String, TypeInformation> named)
       : this.named = (named == null || named.isEmpty) ? const {} : named {
     assert(this.positional.every((TypeInformation type) => type != null));
     assert(this.named.values.every((TypeInformation type) => type != null));

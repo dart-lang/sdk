@@ -88,10 +88,6 @@ library;
 //     ...null,
 //        ^
 //
-// pkg/front_end/testcases/general/spread_collection_inference.dart:137:8: Error: Expected ',' before this.
-//     ...null,
-//        ^
-//
 // pkg/front_end/testcases/general/spread_collection_inference.dart:142:45: Error: Can't spread a value with static type 'Null'.
 //   Map<String, int> map70 = <String, int>{...null};
 //                                             ^
@@ -298,7 +294,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   } =>#t51;
   core::Set<dynamic>* set71ambiguous = block {
     final core::Set<dynamic>* #t52 = col::LinkedHashSet::•<dynamic>();
-    #t52.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:137:8: Error: Expected ',' before this.
+    #t52.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:137:8: Error: Can't spread a value with static type 'Null'.
     ...null,
        ^");
     for (final dynamic #t53 in <dynamic>[]) {

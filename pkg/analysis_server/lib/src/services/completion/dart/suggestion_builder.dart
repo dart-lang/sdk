@@ -654,7 +654,9 @@ class SuggestionBuilder {
   /// [appendComma] is `true` then a comma will be included at the end of the
   /// completion text.
   void suggestNamedArgument(ParameterElement parameter,
-      {@required bool appendColon, @required bool appendComma}) {
+      {@required bool appendColon,
+      @required bool appendComma,
+      int replacementLength}) {
     var name = parameter.name;
     var type = parameter.type?.getDisplayString(
         withNullability: request.libraryElement.isNonNullableByDefault);
@@ -705,7 +707,8 @@ class SuggestionBuilder {
         false,
         false,
         parameterName: name,
-        parameterType: type);
+        parameterType: type,
+        replacementLength: replacementLength);
     if (parameter is FieldFormalParameterElement) {
       _setDocumentation(suggestion, parameter);
       suggestion.element = convertElement(parameter);

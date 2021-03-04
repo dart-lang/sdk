@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.32.4
+  1.32.5
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -236,6 +236,13 @@ a:focus, a:hover {
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.32.5</h4>
+<ul>
+  <li>Added optional <tt>replacementOffset</tt> and <tt>replacementLength</tt> on
+  <tt>CompletionSuggestion</tt> to support different per-completion text replacement
+  ranges (for example when inserting names for arguments, a different range may be
+  supplied than for completions that are not name labels).</li>
+</ul>
 <h4>1.32.4</h4>
 <ul>
   <li>Added <tt>ElementKind.TYPE_ALIAS</tt> and <tt>HighlightRegionType.TYPE_ALIAS</tt>
@@ -3482,6 +3489,30 @@ a:focus, a:hover {
           Text to be displayed in, for example, a completion pop-up. This field
           is only defined if the displayed text should be different than the
           completion.  Otherwise it is omitted.
+        </p>
+      </dd><dt class="field"><b>replacementOffset: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The offset of the start of the text to be
+          replaced. If supplied, this should be used in
+          preference to the offset provided on the
+          containing completion results.
+
+          This value may be provided independently of
+          replacementLength (for example if only one
+          differs from the completion result value).
+        </p>
+      </dd><dt class="field"><b>replacementLength: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The length of the text to be replaced.
+          If supplied, this should be used in preference
+          to the offset provided on the
+          containing completion results.
+
+          This value may be provided independently of
+          replacementOffset (for example if only one
+          differs from the completion result value).
         </p>
       </dd><dt class="field"><b>selectionOffset: int</b></dt><dd>
         

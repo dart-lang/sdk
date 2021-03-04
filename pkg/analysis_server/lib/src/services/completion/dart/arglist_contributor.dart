@@ -45,31 +45,40 @@ class ArgListContributor extends DartCompletionContributor {
   }
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,
-      [bool appendComma = false]) {
+      {bool appendComma = false, int replacementLength}) {
     var appendColon = !_isInNamedExpression();
     var namedArgs = _namedArgs();
     for (var parameter in parameters) {
       if (parameter.isNamed) {
         _addNamedParameterSuggestion(
-            namedArgs, parameter, appendColon, appendComma);
+            namedArgs, parameter, appendColon, appendComma,
+            replacementLength: replacementLength);
       }
     }
   }
 
   void _addNamedParameterSuggestion(List<String> namedArgs,
-      ParameterElement parameter, bool appendColon, bool appendComma) {
+      ParameterElement parameter, bool appendColon, bool appendComma,
+      {int replacementLength}) {
     var name = parameter.name;
 
+    // Check whether anything after the caret is being replaced. If so, we will
+    // suppress inserting colons/commas. We check only replacing _after_ the
+    // caret as some replacements (before) will still want colons, for example:
+    //     foo(mySt^'bar');
+    var replacementEnd = request.replacementRange.offset +
+        (replacementLength ?? request.replacementRange.length);
     var willReplace =
         request.completionPreference == CompletionPreference.replace &&
-            request.replacementRange.length > 0;
+            replacementEnd > request.offset;
 
     if (name != null && name.isNotEmpty && !namedArgs.contains(name)) {
       builder.suggestNamedArgument(parameter,
           // If there's a replacement length and the preference is to replace,
           // we should not include colons/commas.
           appendColon: appendColon && !willReplace,
-          appendComma: appendComma && !willReplace);
+          appendComma: appendComma && !willReplace,
+          replacementLength: replacementLength);
     }
   }
 
@@ -80,20 +89,40 @@ class ArgListContributor extends DartCompletionContributor {
     var requiredParam =
         parameters.where((ParameterElement p) => p.isRequiredPositional);
     var requiredCount = requiredParam.length;
+
+    // When inserted named args, if there is a replacement starting at the caret
+    // it will be an identifier that should not be replaced if the completion
+    // preference is to insert. In this case, override the replacement length
+    // to 0.
+
     // TODO(jwren): _isAppendingToArgList can be split into two cases (with and
     // without preceded), then _isAppendingToArgList,
     // _isInsertingToArgListWithNoSynthetic and
     // _isInsertingToArgListWithSynthetic could be formatted into a single
     // method which returns some enum with 5+ cases.
-    if (_isEditingNamedArgLabel() || _isAppendingToArgList()) {
+    if (_isEditingNamedArgLabel() ||
+        _isAppendingToArgList() ||
+        _isAddingLabelToPositional()) {
       if (requiredCount == 0 || requiredCount < _argCount()) {
+        // If there's a replacement range that starts at the caret, it will be
+        // for an identifier that is not the named label and therefore it should
+        // not be replaced.
+        var replacementLength =
+            request.offset == request.target.entity.offset &&
+                    request.replacementRange.length != 0
+                ? 0
+                : null;
+
         var addTrailingComma = !_isFollowedByAComma() && _isInFlutterCreation();
-        _addDefaultParamSuggestions(parameters, addTrailingComma);
+        _addDefaultParamSuggestions(parameters,
+            appendComma: addTrailingComma,
+            replacementLength: replacementLength);
       }
     } else if (_isInsertingToArgListWithNoSynthetic()) {
-      _addDefaultParamSuggestions(parameters, true);
+      _addDefaultParamSuggestions(parameters, appendComma: true);
     } else if (_isInsertingToArgListWithSynthetic()) {
-      _addDefaultParamSuggestions(parameters, !_isFollowedByAComma());
+      _addDefaultParamSuggestions(parameters,
+          appendComma: !_isFollowedByAComma());
     } else {
       var argument = request.target.containingNode;
       if (argument is NamedExpression) {
@@ -124,6 +153,37 @@ class ArgListContributor extends DartCompletionContributor {
           includeTrailingComma:
               argument.endToken.next?.type != TokenType.COMMA);
     }
+  }
+
+  /// Return `true` if the caret is preceeding an arg where a name could be added
+  /// (turning a positional arg into a named arg).
+  bool _isAddingLabelToPositional() {
+    if (argumentList != null) {
+      var entity = request.target.entity;
+      if (entity is! NamedExpression) {
+        // Caret is in front of a value
+        //     f(one: 1, ^2);
+        if (request.offset <= entity.offset) {
+          return true;
+        }
+
+        // Caret is in the between two values that are not seperated by a comma.
+        //     f(one: 1, tw^'foo');
+        // must be at least two and the target not last.
+        var args = argumentList.arguments;
+        if (args.length >= 2 && entity != args.last) {
+          var index = args.indexOf(entity);
+          if (index != -1) {
+            var next = args[index + 1];
+            // Check the two tokens are adjacent without any comma.
+            if (entity.end == next.offset) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
   }
 
   /// Return `true` if the completion target is at the end of the list of

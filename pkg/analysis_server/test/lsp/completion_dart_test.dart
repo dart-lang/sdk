@@ -569,6 +569,51 @@ class _MyWidgetState extends State<MyWidget> {
     expect(inserted, contains('a.abcdefghijdef\n'));
   }
 
+  Future<void> test_insertTextMode_multiline() async {
+    final content = '''
+    import 'package:flutter/material.dart';
+
+    class _MyWidgetState extends State<MyWidget> {
+      @override
+      Widget build(BuildContext context) {
+        [[setSt^]]
+        return Container();
+      }
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withCompletionItemInsertTextModeSupport(
+            emptyTextDocumentClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label.startsWith('setState'));
+
+    // Multiline completions should always set insertTextMode.asIs.
+    expect(item.insertText, contains('\n'));
+    expect(item.insertTextMode, equals(InsertTextMode.asIs));
+  }
+
+  Future<void> test_insertTextMode_singleLine() async {
+    final content = '''
+    main() {
+      ^
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withCompletionItemInsertTextModeSupport(
+            emptyTextDocumentClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label.startsWith('main'));
+
+    // Single line completions should never set insertTextMode.asIs to
+    // avoid bloating payload size where it wouldn't matter.
+    expect(item.insertText, isNot(contains('\n')));
+    expect(item.insertTextMode, isNull);
+  }
+
   Future<void> test_insideString() async {
     final content = '''
     var a = "This is ^a test"
@@ -663,17 +708,20 @@ class _MyWidgetState extends State<MyWidget> {
       String expectedInsert,
     }) async {
       final content = '''
-class A { const A({int argOne, int argTwo}); }
+class A { const A({int argOne, int argTwo, String argThree}); }
+final varOne = '';
 $code
 main() { }
 ''';
       final expectedReplaced = '''
-class A { const A({int argOne, int argTwo}); }
+class A { const A({int argOne, int argTwo, String argThree}); }
+final varOne = '';
 $expectedReplace
 main() { }
 ''';
       final expectedInserted = '''
-class A { const A({int argOne, int argTwo}); }
+class A { const A({int argOne, int argTwo, String argThree}); }
+final varOne = '';
 $expectedInsert
 main() { }
 ''';
@@ -698,7 +746,23 @@ main() { }
       expectedInsert: '@A(argTwoargOne: 1)',
     );
 
-    // Inside the identifier also should be expected to replace.
+    // When adding a name to an existing value, it should always insert.
+    await check(
+      '@A(^1)',
+      'argOne: ',
+      expectedReplace: '@A(argOne: 1)',
+      expectedInsert: '@A(argOne: 1)',
+    );
+
+    // When adding a name to an existing variable, it should always insert.
+    await check(
+      '@A(argOne: 1, ^varOne)',
+      'argTwo: ',
+      expectedReplace: '@A(argOne: 1, argTwo: varOne)',
+      expectedInsert: '@A(argOne: 1, argTwo: varOne)',
+    );
+
+    // // Inside the identifier also should be expected to replace.
     await check(
       '@A(arg^One: 1)',
       'argTwo',
@@ -714,6 +778,15 @@ main() { }
       'argTwo: ',
       expectedReplace: '@A(argTwo: ^, argOne: 1)',
       expectedInsert: '@A(argTwo: ^, argOne: 1)',
+    );
+
+    // Partially typed names in front of values (that aren't considered part of
+    // the same identifier) should also suggest name labels.
+    await check(
+      '''@A(argOne: 1, argTh^'Foo')''',
+      'argThree: ',
+      expectedReplace: '''@A(argOne: 1, argThree: 'Foo')''',
+      expectedInsert: '''@A(argOne: 1, argThree: 'Foo')''',
     );
   }
 

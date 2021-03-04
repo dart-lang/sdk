@@ -52,6 +52,74 @@ class A {
     expect(suggestions, hasLength(2));
   }
 
+  Future<void>
+      test_ArgumentList_function_named_fromPositionalNumeric_withoutSpace() async {
+    addTestFile('void f(int a, {int b = 0}) {}'
+        'void g() { f(2, ^3); }');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'b: ');
+    expect(suggestions, hasLength(1));
+    // Ensure we don't try to replace the following arg.
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+  }
+
+  Future<void>
+      test_ArgumentList_function_named_fromPositionalNumeric_withSpace() async {
+    addTestFile('void f(int a, {int b = 0}) {}'
+        'void g() { f(2, ^ 3); }');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'b: ');
+    expect(suggestions, hasLength(1));
+    // Ensure we don't try to replace the following arg.
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+  }
+
+  Future<void>
+      test_ArgumentList_function_named_fromPositionalVariable_withoutSpace() async {
+    addTestFile('void f(int a, {int b = 0}) {}'
+        'var foo = 1;'
+        'void g() { f(2, ^foo); }');
+    await getSuggestions();
+    expect(suggestions, hasLength(1));
+
+    // The named arg "b: " should not replace anything.
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'b: ',
+        replacementOffset: null, replacementLength: 0);
+  }
+
+  Future<void>
+      test_ArgumentList_function_named_fromPositionalVariable_withSpace() async {
+    addTestFile('void f(int a, {int b = 0}) {}'
+        'var foo = 1;'
+        'void g() { f(2, ^ foo); }');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'b: ');
+    expect(suggestions, hasLength(1));
+    // Ensure we don't try to replace the following arg.
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+  }
+
+  Future<void> test_ArgumentList_function_named_partiallyTyped() async {
+    addTestFile('''
+    class C {
+      void m(String firstString, {String secondString}) {}
+
+      void n() {
+        m('a', se^'b');
+      }
+    }
+    ''');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'secondString: ');
+    expect(suggestions, hasLength(1));
+    // Ensure we replace the correct section.
+    expect(replacementOffset, equals(completionOffset - 2));
+    expect(replacementLength, equals(2));
+  }
+
   Future<void> test_ArgumentList_imported_function_named_param() async {
     addTestFile('main() { int.parse("16", ^);}');
     await getSuggestions();
