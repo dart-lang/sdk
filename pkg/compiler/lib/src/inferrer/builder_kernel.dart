@@ -492,8 +492,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     return null;
   }
 
-  @override
-  visitAssertStatement(ir.AssertStatement node) {
+  TypeInformation _handleAssertStatement(ir.AssertStatement node) {
     // Avoid pollution from assert statement unless enabled.
     if (!_options.enableUserAssertions) {
       return null;
@@ -511,6 +510,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     _state = stateBefore.mergeDiamondFlow(
         _inferrer, afterConditionWhenTrue, stateAfterMessage);
     return null;
+  }
+
+  @override
+  visitAssertInitializer(ir.AssertInitializer node) {
+    return _handleAssertStatement(node.statement);
+  }
+
+  @override
+  visitAssertStatement(ir.AssertStatement node) {
+    return _handleAssertStatement(node);
   }
 
   @override

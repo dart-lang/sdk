@@ -1047,8 +1047,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         // TODO(sra): Apply inferred type information.
         _letBindings[variable] = value;
       } else if (initializer is ir.AssertInitializer) {
-        // Assert in initializer is currently not supported in dart2js.
-        // TODO(johnniwinther): Support assert in initializer.
+        initializer.statement.accept(this);
       } else if (initializer is ir.InvalidInitializer) {
         assert(false, 'ir.InvalidInitializer not handled');
       } else {

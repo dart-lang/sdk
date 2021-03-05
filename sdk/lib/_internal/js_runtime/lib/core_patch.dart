@@ -679,9 +679,10 @@ class NoSuchMethodError {
   final List? _existingArgumentNames;
 
   @patch
-  NoSuchMethodError.withInvocation(Object? receiver, Invocation invocation)
-      : this(receiver, invocation.memberName, invocation.positionalArguments,
-            invocation.namedArguments);
+  factory NoSuchMethodError.withInvocation(
+          Object? receiver, Invocation invocation) =>
+      NoSuchMethodError(receiver, invocation.memberName,
+          invocation.positionalArguments, invocation.namedArguments);
 
   @patch
   NoSuchMethodError(Object? receiver, Symbol memberName,

@@ -448,13 +448,14 @@ class AbstractClassInstantiationError extends Error {
 
 /// Error thrown by the default implementation of `noSuchMethod` on [Object].
 class NoSuchMethodError extends Error {
-  /// Create a [NoSuchMethodError] corresponding to a failed method call.
+  /// Creates a [NoSuchMethodError] corresponding to a failed method call.
   ///
   /// The [receiver] is the receiver of the method call.
   /// That is, the object on which the method was attempted called.
   ///
-  /// The [invocation] represents the method call that failed.
-  external NoSuchMethodError.withInvocation(
+  /// The [invocation] represents the method call that failed. It
+  /// should not be `null`.
+  external factory NoSuchMethodError.withInvocation(
       Object? receiver, Invocation invocation);
 
   // Deprecated constructor to be removed after dart2js updates to the above.

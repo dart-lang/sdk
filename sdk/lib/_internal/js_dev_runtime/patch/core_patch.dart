@@ -795,9 +795,12 @@ class NoSuchMethodError {
         _invocation = null;
 
   @patch
-  NoSuchMethodError.withInvocation(Object? receiver, Invocation invocation)
-      : _receiver = receiver,
-        _memberName = invocation.memberName,
+  factory NoSuchMethodError.withInvocation(
+          Object? receiver, Invocation invocation) =
+      NoSuchMethodError._withInvocation;
+
+  NoSuchMethodError._withInvocation(this._receiver, Invocation invocation)
+      : _memberName = invocation.memberName,
         _arguments = invocation.positionalArguments,
         _namedArguments = invocation.namedArguments,
         _invocation = invocation;
