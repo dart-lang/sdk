@@ -9,7 +9,7 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/command_line/arguments.dart'
-    show applyAnalysisOptionFlags, flutterAnalysisOptionsPath;
+    show applyAnalysisOptionFlags;
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -280,27 +280,6 @@ class ContextBuilder {
       } catch (e) {
         // Ignore exceptions thrown while trying to load the options file.
         verbose('Exception: $e\n  when loading ${optionsFile.path}');
-      }
-    } else {
-      // Search for the default analysis options.
-      Source? source;
-      if (workspace is WorkspaceWithDefaultAnalysisOptions) {
-        source = sourceFactory.forUri(WorkspaceWithDefaultAnalysisOptions.uri);
-      } else {
-        source = sourceFactory.forUri(flutterAnalysisOptionsPath);
-      }
-
-      if (source != null && source.exists()) {
-        try {
-          optionMap = optionsProvider.getOptionsFromSource(source);
-          if (contextRoot != null) {
-            contextRoot.optionsFilePath = source.fullName;
-          }
-          verbose('Loaded analysis options from ${source.fullName}');
-        } catch (e) {
-          // Ignore exceptions thrown while trying to load the options file.
-          verbose('Exception: $e\n  when loading ${source.fullName}');
-        }
       }
     }
 

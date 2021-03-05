@@ -5,8 +5,8 @@
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -819,9 +819,10 @@ analyzer:
   void test_locateRoots_nested_packageConfigJson() {
     var outerRootFolder = newFolder('/test/outer');
     var outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer');
-    var outerPackagesFile = _newPackageConfigFile('/test/outer');
+    var outerPackagesFile = newPackageConfigJsonFile('/test/outer');
     var innerRootFolder = newFolder('/test/outer/examples/inner');
-    var innerPackagesFile = _newPackageConfigFile('/test/outer/examples/inner');
+    var innerPackagesFile =
+        newPackageConfigJsonFile('/test/outer/examples/inner');
 
     var roots = contextLocator.locateRoots(
       includedPaths: [outerRootFolder.path],
@@ -928,6 +929,55 @@ analyzer:
         unorderedEquals([innerOptionsFile.parent2.path]));
     expect(outerRoot.optionsFile, outerOptionsFile);
     expect(outerRoot.packagesFile, outerPackagesFile);
+  }
+
+  void test_locateRoots_options_default_bazel() {
+    var workspacePath = '/home/workspace';
+    var workspaceFolder = getFolder(workspacePath);
+    newFile('$workspacePath/WORKSPACE');
+    var bazelOptionsFile = newFile(
+      '$workspacePath/dart/analysis_options/lib/default.yaml',
+    );
+
+    var rootFolder = getFolder('$workspacePath/test');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [rootFolder.path],
+    );
+    expect(roots, hasLength(1));
+
+    var root = findRoot(roots, workspaceFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, bazelOptionsFile);
+    expect(root.packagesFile, isNull);
+  }
+
+  void test_locateRoots_options_default_flutter() {
+    var rootFolder = newFolder('/home/test');
+
+    var flutterPath = '/home/packages/flutter';
+    var flutterAnalysisOptionsFile = newFile(
+      '$flutterPath/lib/analysis_options_user.yaml',
+    );
+
+    var packageConfigFileBuilder = PackageConfigFileBuilder()
+      ..add(name: 'flutter', rootPath: flutterPath);
+    var packagesFile = newPackageConfigJsonFile(
+      rootFolder.path,
+      content: packageConfigFileBuilder.toContent(toUriStr: toUriStr),
+    );
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [rootFolder.path],
+    );
+    expect(roots, hasLength(1));
+
+    var root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, flutterAnalysisOptionsFile);
+    expect(root.packagesFile, packagesFile);
   }
 
   void test_locateRoots_options_hasError() {
@@ -1226,7 +1276,7 @@ analyzer:
     var rootFolder = newFolder('/test');
     var optionsFile = newAnalysisOptionsYamlFile('/test');
     newDotPackagesFile('/test'); // the file is not used
-    var packageConfigJsonFile = _newPackageConfigFile('/test');
+    var packageConfigJsonFile = newPackageConfigJsonFile('/test');
 
     var roots = contextLocator.locateRoots(includedPaths: [rootFolder.path]);
     expect(roots, hasLength(1));
@@ -1316,14 +1366,5 @@ analyzer:
     var workspace = _workspace as PubWorkspace;
     var root = convertPath(posixRoot);
     expect(workspace.root, root);
-  }
-
-  File _newPackageConfigFile(String directoryPath) {
-    String path = join(
-      directoryPath,
-      file_paths.dotDartTool,
-      file_paths.packageConfigJson,
-    );
-    return newFile(path);
   }
 }
