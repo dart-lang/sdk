@@ -323,6 +323,15 @@ class FixProcessor extends BaseProcessor {
         ],
       ),
     ],
+    HintCode.TYPE_CHECK_IS_NOT_NULL: [
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: false,
+        generators: [
+          UseNotEqNull.newInstance,
+        ],
+      ),
+    ],
     HintCode.TYPE_CHECK_IS_NULL: [
       FixInfo(
         canBeAppliedToFile: true,

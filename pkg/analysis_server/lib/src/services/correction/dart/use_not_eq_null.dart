@@ -14,6 +14,9 @@ class UseNotEqNull extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.USE_NOT_EQ_NULL;
 
   @override
+  FixKind get multiFixKind => DartFixKind.USE_NOT_EQ_NULL_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     if (coveredNode is IsExpression) {
       var isExpression = coveredNode as IsExpression;

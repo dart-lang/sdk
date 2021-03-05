@@ -20401,9 +20401,10 @@ AbstractTypePtr Type::Canonicalize(Thread* thread, TrailPtr trail) const {
       }
     }
     ASSERT(this->Equals(type));
-    ASSERT(type.IsCanonical());
     ASSERT(type.IsOld());
-    return type.ptr();
+    if (type.IsCanonical()) {
+      return type.ptr();
+    }
   }
 
   Type& type = Type::Handle(zone);

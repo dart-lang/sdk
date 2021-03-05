@@ -11,8 +11,30 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(UseNotEqNullMultiTest);
     defineReflectiveTests(UseNotEqNullTest);
   });
+}
+
+@reflectiveTest
+class UseNotEqNullMultiTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.USE_NOT_EQ_NULL_MULTI;
+
+  Future<void> test_isNotNull_all() async {
+    await resolveTestCode('''
+main(p, q) {
+  p is! Null;
+  q is! Null;
+}
+''');
+    await assertHasFixAllFix(HintCode.TYPE_CHECK_IS_NOT_NULL, '''
+main(p, q) {
+  p != null;
+  q != null;
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -29,22 +51,6 @@ main(p) {
     await assertHasFix('''
 main(p) {
   p != null;
-}
-''');
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
-  Future<void> test_isNotNull_all() async {
-    await resolveTestCode('''
-main(p, q) {
-  p is! Null;
-  q is! Null;
-}
-''');
-    await assertHasFixAllFix(HintCode.TYPE_CHECK_IS_NOT_NULL, '''
-main(p, q) {
-  p != null;
-  q != null;
 }
 ''');
   }
