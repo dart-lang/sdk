@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/context_builder.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:cli_util/cli_util.dart';
 
 /// An implementation of [AnalysisContextCollection].
@@ -39,6 +40,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     bool retainDataForTesting = false,
     String? sdkPath,
     AnalysisDriverScheduler? scheduler,
+    void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
@@ -71,6 +73,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         retainDataForTesting: retainDataForTesting,
         sdkPath: sdkPath,
         scheduler: scheduler,
+        updateAnalysisOptions: updateAnalysisOptions,
       );
       contexts.add(context);
     }

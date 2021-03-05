@@ -7,8 +7,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'arglist_contributor_test.dart' as arglist_test;
 import 'combinator_contributor_test.dart' as combinator_test;
 import 'completion_manager_test.dart' as completion_manager;
-import 'completion_ranking_internal_test.dart'
-    as completion_ranking_internal_test;
 import 'extension_member_contributor_test.dart' as extension_member_contributor;
 import 'field_formal_contributor_test.dart' as field_formal_contributor_test;
 import 'imported_reference_contributor_test.dart' as imported_ref_test;
@@ -31,7 +29,6 @@ void main() {
     arglist_test.main();
     combinator_test.main();
     completion_manager.main();
-    completion_ranking_internal_test.main();
     extension_member_contributor.main();
     field_formal_contributor_test.main();
     imported_ref_test.main();

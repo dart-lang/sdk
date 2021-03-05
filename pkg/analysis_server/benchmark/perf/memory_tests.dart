@@ -7,7 +7,7 @@ import 'dart:convert' show jsonDecode, jsonEncode;
 import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:test/test.dart';
@@ -188,7 +188,7 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
       textDocumentCapabilities: withCompletionItemSnippetSupport(
         withCompletionItemKinds(
           emptyTextDocumentClientCapabilities,
-          defaultSupportedCompletionKinds.toList(),
+          LspClientCapabilities.defaultSupportedCompletionKinds.toList(),
         ),
       ),
       workspaceCapabilities: withDocumentChangesSupport(

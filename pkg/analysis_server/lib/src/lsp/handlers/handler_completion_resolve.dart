@@ -154,11 +154,10 @@ class CompletionResolveHandler
         }
 
         // Documentation is added on during resolve for LSP.
-        final formats = server.clientCapabilities?.textDocument?.completion
-            ?.completionItem?.documentationFormat;
-        final supportsInsertReplace = server.clientCapabilities?.textDocument
-                ?.completion?.completionItem?.insertReplaceSupport ==
-            true;
+        final formats =
+            server.clientCapabilities.completionDocumentationFormats;
+        final supportsInsertReplace =
+            server.clientCapabilities.insertReplaceCompletionRanges;
         final dartDoc =
             analyzer.getDartDocPlainText(requestedElement.documentationComment);
         final documentation = asStringOrMarkupContent(formats, dartDoc);

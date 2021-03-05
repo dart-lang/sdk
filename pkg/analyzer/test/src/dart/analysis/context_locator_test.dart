@@ -1293,13 +1293,15 @@ analyzer:
     _assertAnalyzedFiles(root, pathList);
   }
 
-  void _assertBasicWorkspace(Workspace _workspace, String root) {
+  void _assertBasicWorkspace(Workspace _workspace, String posixRoot) {
     var workspace = _workspace as BasicWorkspace;
+    var root = convertPath(posixRoot);
     expect(workspace.root, root);
   }
 
-  void _assertBazelWorkspace(Workspace _workspace, String root) {
+  void _assertBazelWorkspace(Workspace _workspace, String posixRoot) {
     var workspace = _workspace as BazelWorkspace;
+    var root = convertPath(posixRoot);
     expect(workspace.root, root);
   }
 
@@ -1310,8 +1312,9 @@ analyzer:
     }
   }
 
-  void _assertPubWorkspace(Workspace _workspace, String root) {
+  void _assertPubWorkspace(Workspace _workspace, String posixRoot) {
     var workspace = _workspace as PubWorkspace;
+    var root = convertPath(posixRoot);
     expect(workspace.root, root);
   }
 

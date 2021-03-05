@@ -88,7 +88,6 @@ class B extends A {
 ''');
   }
 
-  @FailingTest(reason: 'enable once nonLintProducers are supported')
   Future<void> test_fix_nonLint_isNull() async {
     await resolveTestCode('''
 bool f(p, q) {

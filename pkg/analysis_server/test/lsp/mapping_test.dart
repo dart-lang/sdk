@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
 import 'package:analysis_server/src/lsp/mapping.dart' as lsp;
 import 'package:analysis_server/src/protocol_server.dart' as server;
@@ -24,10 +22,10 @@ class MappingTest extends AbstractLspAnalysisServerTest {
     // TYPE_PARAMETER maps to TypeParameter first, but since originally LSP
     // did not support it, it'll map to Variable if the client doesn't support
     // that.
-    var supportedKinds = HashSet.of([
+    var supportedKinds = {
       lsp.CompletionItemKind.TypeParameter,
       lsp.CompletionItemKind.Variable,
-    ]);
+    };
     var result = lsp.elementKindToCompletionItemKind(
       supportedKinds,
       server.ElementKind.TYPE_PARAMETER,
@@ -39,7 +37,7 @@ class MappingTest extends AbstractLspAnalysisServerTest {
     // TYPE_PARAMETER maps to TypeParameter first, but since originally LSP
     // did not support it, it'll map to Variable if the client doesn't support
     // that.
-    var supportedKinds = HashSet.of([lsp.CompletionItemKind.Variable]);
+    var supportedKinds = {lsp.CompletionItemKind.Variable};
     var result = lsp.elementKindToCompletionItemKind(
       supportedKinds,
       server.ElementKind.TYPE_PARAMETER,
@@ -48,7 +46,7 @@ class MappingTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_completionItemKind_knownMapping() async {
-    final supportedKinds = HashSet.of([lsp.CompletionItemKind.Class]);
+    final supportedKinds = {lsp.CompletionItemKind.Class};
     final result = lsp.elementKindToCompletionItemKind(
       supportedKinds,
       server.ElementKind.CLASS,
@@ -57,7 +55,7 @@ class MappingTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_completionItemKind_notMapped() async {
-    var supportedKinds = HashSet<lsp.CompletionItemKind>();
+    var supportedKinds = <lsp.CompletionItemKind>{};
     var result = lsp.elementKindToCompletionItemKind(
       supportedKinds,
       server.ElementKind.UNKNOWN, // Unknown is not mapped.
@@ -66,7 +64,7 @@ class MappingTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_completionItemKind_notSupported() async {
-    var supportedKinds = HashSet<lsp.CompletionItemKind>();
+    var supportedKinds = <lsp.CompletionItemKind>{};
     var result = lsp.elementKindToCompletionItemKind(
       supportedKinds,
       server.ElementKind.CLASS,

@@ -45,7 +45,7 @@ class ExecuteCommandHandler
 
     final progress = params.workDoneToken != null
         ? ProgressReporter.clientProvided(server, params.workDoneToken)
-        : server.clientCapabilities.window?.workDoneProgress == true
+        : server.clientCapabilities.workDoneProgress
             ? ProgressReporter.serverCreated(server)
             : ProgressReporter.noop;
     return handler.handle(params.arguments, progress, cancellationToken);

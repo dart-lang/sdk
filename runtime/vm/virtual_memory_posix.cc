@@ -76,10 +76,18 @@ intptr_t VirtualMemory::CalculatePageSize() {
 void VirtualMemory::Init() {
 #if defined(DART_COMPRESSED_POINTERS)
   if (VirtualMemoryCompressedHeap::GetRegion() == nullptr) {
-    VirtualMemoryCompressedHeap::Init(GenericMapAligned(
+    void* address = GenericMapAligned(
         PROT_READ | PROT_WRITE, kCompressedHeapSize, kCompressedHeapAlignment,
         kCompressedHeapSize + kCompressedHeapAlignment,
-        MAP_PRIVATE | MAP_ANONYMOUS));
+        MAP_PRIVATE | MAP_ANONYMOUS);
+    if (address == nullptr) {
+      int error = errno;
+      const int kBufferSize = 1024;
+      char error_buf[kBufferSize];
+      FATAL2("Failed to reserve region for compressed heap: %d (%s)", error,
+             Utils::StrError(error, error_buf, kBufferSize));
+    }
+    VirtualMemoryCompressedHeap::Init(address);
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
 
@@ -328,7 +336,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 #endif  // defined(HOST_OS_MACOS)
   void* address =
       GenericMapAligned(prot, size, alignment, allocated_size, map_flags);
-  if (address == MAP_FAILED) {
+  if (address == nullptr) {
     return nullptr;
   }
 

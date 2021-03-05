@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -18,6 +17,7 @@ import 'package:analysis_server/src/domain_completion.dart'
     show CompletionDomainHandler;
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
@@ -55,7 +55,7 @@ import 'package:watcher/watcher.dart';
 /// them.
 class LspAnalysisServer extends AbstractAnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
-  ClientCapabilities _clientCapabilities;
+  LspClientCapabilities _clientCapabilities;
 
   /// Initialization options provided by the LSP client. Allows opting in/out of
   /// specific server functionality. Will be null prior to initialization.
@@ -115,7 +115,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   final _temporaryAnalysisRoots = <String, String>{};
 
   /// The set of analysis roots explicitly added to the workspace.
-  final _explicitAnalysisRoots = HashSet<String>();
+  final _explicitAnalysisRoots = <String>{};
 
   /// A progress reporter for analysis status.
   ProgressReporter analyzingProgressReporter;
@@ -164,7 +164,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
-  ClientCapabilities get clientCapabilities => _clientCapabilities;
+  LspClientCapabilities get clientCapabilities => _clientCapabilities;
 
   Future<void> get exited => channel.closed;
 
@@ -214,7 +214,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Fetches configuration from the client (if supported) and then sends
   /// register/unregister requests for any supported/enabled dynamic registrations.
   Future<void> fetchClientConfigurationAndPerformDynamicRegistration() async {
-    if (clientCapabilities.workspace?.configuration ?? false) {
+    if (clientCapabilities.configuration) {
       // Fetch all configuration we care about from the client. This is just
       // "dart" for now, but in future this may be extended to include
       // others (for example "flutter").
@@ -271,7 +271,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void handleClientConnection(
       ClientCapabilities capabilities, dynamic initializationOptions) {
-    _clientCapabilities = capabilities;
+    _clientCapabilities = LspClientCapabilities(capabilities);
     _initializationOptions = LspInitializationOptions(initializationOptions);
 
     performanceAfterStartup = ServerPerformance();
@@ -555,7 +555,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     // Send old custom notifications to clients that do not support $/progress.
     // TODO(dantup): Remove this custom notification (and related classes) when
     // it's unlikely to be in use by any clients.
-    if (clientCapabilities.window?.workDoneProgress != true) {
+    if (clientCapabilities.workDoneProgress != true) {
       channel.sendNotification(NotificationMessage(
         method: CustomMethods.analyzerStatus,
         params: AnalyzerStatusParams(isAnalyzing: status.isAnalyzing),
@@ -809,11 +809,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisServer.declarationsTracker
         ?.addContext(analysisDriver.analysisContext);
 
-    final textDocumentCapabilities =
-        analysisServer.clientCapabilities?.textDocument;
-    final supportedDiagnosticTags = HashSet<DiagnosticTag>.of(
-        textDocumentCapabilities?.publishDiagnostics?.tagSupport?.valueSet ??
-            []);
+    final supportedDiagnosticTags =
+        analysisServer.clientCapabilities.diagnosticTags;
     analysisDriver.results.listen((result) {
       var path = result.path;
       filesToFlush.add(path);

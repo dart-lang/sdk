@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
 import 'dart:math';
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
@@ -11,6 +10,8 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
+import 'package:analysis_server/src/collections.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
@@ -47,7 +48,7 @@ const diagnosticTagsForErrorCode = <server.ErrorCode, List<lsp.DiagnosticTag>>{
 const languageSourceName = 'dart';
 
 lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
-    List<lsp.MarkupKind> preferredFormats, String content) {
+    Set<lsp.MarkupKind> preferredFormats, String content) {
   if (content == null) {
     return null;
   }
@@ -113,7 +114,7 @@ String buildSnippetStringWithTabStops(
 lsp.WorkspaceEdit createWorkspaceEdit(
     lsp.LspAnalysisServer server, List<server.SourceFileEdit> edits) {
   return toWorkspaceEdit(
-      server.clientCapabilities?.workspace,
+      server.clientCapabilities,
       edits
           .map((e) => FileEditInformation(
                 server.getVersionedDocumentIdentifier(e.file),
@@ -126,11 +127,11 @@ lsp.WorkspaceEdit createWorkspaceEdit(
 }
 
 lsp.CompletionItemKind declarationKindToCompletionItemKind(
-  HashSet<lsp.CompletionItemKind> clientSupportedCompletionKinds,
+  Set<lsp.CompletionItemKind> supportedCompletionKinds,
   dec.DeclarationKind kind,
 ) {
   bool isSupported(lsp.CompletionItemKind kind) =>
-      clientSupportedCompletionKinds.contains(kind);
+      supportedCompletionKinds.contains(kind);
 
   List<lsp.CompletionItemKind> getKindPreferences() {
     switch (kind) {
@@ -162,11 +163,10 @@ lsp.CompletionItemKind declarationKindToCompletionItemKind(
 }
 
 lsp.SymbolKind declarationKindToSymbolKind(
-  HashSet<lsp.SymbolKind> clientSupportedSymbolKinds,
+  Set<lsp.SymbolKind> supportedSymbolKinds,
   server.DeclarationKind kind,
 ) {
-  bool isSupported(lsp.SymbolKind kind) =>
-      clientSupportedSymbolKinds.contains(kind);
+  bool isSupported(lsp.SymbolKind kind) => supportedSymbolKinds.contains(kind);
 
   List<lsp.SymbolKind> getKindPreferences() {
     switch (kind) {
@@ -210,8 +210,7 @@ lsp.SymbolKind declarationKindToSymbolKind(
 }
 
 lsp.CompletionItem declarationToCompletionItem(
-  lsp.CompletionClientCapabilities completionCapabilities,
-  HashSet<lsp.CompletionItemKind> supportedCompletionItemKinds,
+  LspClientCapabilities capabilities,
   String file,
   int offset,
   server.IncludedSuggestionSet includedSuggestionSet,
@@ -225,8 +224,7 @@ lsp.CompletionItem declarationToCompletionItem(
   @required bool includeCommitCharacters,
   @required bool completeFunctionCalls,
 }) {
-  final supportsSnippets =
-      completionCapabilities?.completionItem?.snippetSupport == true;
+  final supportsSnippets = capabilities.completionSnippets;
 
   String completion;
   switch (declaration.kind) {
@@ -286,19 +284,14 @@ lsp.CompletionItem declarationToCompletionItem(
   final insertTextFormat = insertTextInfo.last;
   final isMultilineCompletion = insertText.contains('\n');
 
-  final supportsDeprecatedFlag =
-      completionCapabilities?.completionItem?.deprecatedSupport == true;
-  final supportedTags =
-      completionCapabilities?.completionItem?.tagSupport?.valueSet ?? const [];
-  final supportsDeprecatedTag =
-      supportedTags.contains(lsp.CompletionItemTag.Deprecated);
-  final supportsAsIsInsertMode = completionCapabilities
-          ?.completionItem?.insertTextModeSupport?.valueSet
-          ?.contains(InsertTextMode.asIs) ==
-      true;
+  final supportsDeprecatedFlag = capabilities.completionDeprecatedFlag;
+  final supportsDeprecatedTag = capabilities.completionItemTags
+      .contains(lsp.CompletionItemTag.Deprecated);
+  final supportsAsIsInsertMode =
+      capabilities.completionInsertTextModes.contains(InsertTextMode.asIs);
 
   final completionKind = declarationKindToCompletionItemKind(
-      supportedCompletionItemKinds, declaration.kind);
+      capabilities.completionItemKinds, declaration.kind);
 
   var relevanceBoost = 0;
   if (declaration.relevanceTags != null) {
@@ -354,11 +347,11 @@ lsp.CompletionItem declarationToCompletionItem(
 }
 
 lsp.CompletionItemKind elementKindToCompletionItemKind(
-  HashSet<lsp.CompletionItemKind> clientSupportedCompletionKinds,
+  Set<lsp.CompletionItemKind> supportedCompletionKinds,
   server.ElementKind kind,
 ) {
   bool isSupported(lsp.CompletionItemKind kind) =>
-      clientSupportedCompletionKinds.contains(kind);
+      supportedCompletionKinds.contains(kind);
 
   List<lsp.CompletionItemKind> getKindPreferences() {
     switch (kind) {
@@ -419,11 +412,10 @@ lsp.CompletionItemKind elementKindToCompletionItemKind(
 }
 
 lsp.SymbolKind elementKindToSymbolKind(
-  HashSet<lsp.SymbolKind> clientSupportedSymbolKinds,
+  Set<lsp.SymbolKind> supportedSymbolKinds,
   server.ElementKind kind,
 ) {
-  bool isSupported(lsp.SymbolKind kind) =>
-      clientSupportedSymbolKinds.contains(kind);
+  bool isSupported(lsp.SymbolKind kind) => supportedSymbolKinds.contains(kind);
 
   List<lsp.SymbolKind> getKindPreferences() {
     switch (kind) {
@@ -496,7 +488,7 @@ lsp.SymbolKind elementKindToSymbolKind(
 String getCompletionDetail(
   server.CompletionSuggestion suggestion,
   lsp.CompletionItemKind completionKind,
-  bool clientSupportsDeprecated,
+  bool supportsDeprecated,
 ) {
   final hasElement = suggestion.element != null;
   final hasParameters = hasElement &&
@@ -508,9 +500,8 @@ String getCompletionDetail(
   final hasParameterType =
       suggestion.parameterType != null && suggestion.parameterType.isNotEmpty;
 
-  final prefix = clientSupportsDeprecated || !suggestion.isDeprecated
-      ? ''
-      : '(Deprecated) ';
+  final prefix =
+      supportsDeprecated || !suggestion.isDeprecated ? '' : '(Deprecated) ';
 
   if (completionKind == lsp.CompletionItemKind.Property) {
     // Setters appear as methods with one arg but they also cause getters to not
@@ -542,16 +533,15 @@ String getCompletionDetail(
 String getDeclarationCompletionDetail(
   dec.Declaration declaration,
   lsp.CompletionItemKind completionKind,
-  bool clientSupportsDeprecated,
+  bool supportsDeprecated,
 ) {
   final hasParameters =
       declaration.parameters != null && declaration.parameters.isNotEmpty;
   final hasReturnType =
       declaration.returnType != null && declaration.returnType.isNotEmpty;
 
-  final prefix = clientSupportsDeprecated || !declaration.isDeprecated
-      ? ''
-      : '(Deprecated) ';
+  final prefix =
+      supportsDeprecated || !declaration.isDeprecated ? '' : '(Deprecated) ';
 
   if (completionKind == lsp.CompletionItemKind.Property) {
     // Setters appear as methods with one arg but they also cause getters to not
@@ -583,7 +573,7 @@ String getDeclarationCompletionDetail(
 }
 
 List<lsp.DiagnosticTag> getDiagnosticTags(
-    HashSet<lsp.DiagnosticTag> supportedTags, server.AnalysisError error) {
+    Set<lsp.DiagnosticTag> supportedTags, server.AnalysisError error) {
   if (supportedTags == null) {
     return null;
   }
@@ -636,8 +626,6 @@ lsp.LocationLink navigationTargetToLocationLink(
     targetSelectionRange: nameRange,
   );
 }
-
-List<T> nullIfEmpty<T>(List<T> items) => items.isEmpty ? null : items;
 
 /// Returns the file system path for a TextDocumentIdentifier.
 ErrorOr<String> pathOfDoc(lsp.TextDocumentIdentifier doc) =>
@@ -753,12 +741,12 @@ lsp.Location searchResultToLocation(
 }
 
 lsp.CompletionItemKind suggestionKindToCompletionItemKind(
-  HashSet<lsp.CompletionItemKind> clientSupportedCompletionKinds,
+  Set<lsp.CompletionItemKind> supportedCompletionKinds,
   server.CompletionSuggestionKind kind,
   String label,
 ) {
   bool isSupported(lsp.CompletionItemKind kind) =>
-      clientSupportedCompletionKinds.contains(kind);
+      supportedCompletionKinds.contains(kind);
 
   List<lsp.CompletionItemKind> getKindPreferences() {
     switch (kind) {
@@ -823,8 +811,7 @@ lsp.CodeActionKind toCodeActionKind(String id, lsp.CodeActionKind fallback) {
 }
 
 lsp.CompletionItem toCompletionItem(
-  lsp.CompletionClientCapabilities completionCapabilities,
-  HashSet<lsp.CompletionItemKind> supportedCompletionItemKinds,
+  LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
   server.CompletionSuggestion suggestion,
   int replacementOffset,
@@ -865,27 +852,21 @@ lsp.CompletionItem toCompletionItem(
     label += suggestion.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
   }
 
-  final supportsDeprecatedFlag =
-      completionCapabilities?.completionItem?.deprecatedSupport == true;
-  final supportedTags =
-      completionCapabilities?.completionItem?.tagSupport?.valueSet ?? const [];
-  final supportsDeprecatedTag =
-      supportedTags.contains(lsp.CompletionItemTag.Deprecated);
-  final formats = completionCapabilities?.completionItem?.documentationFormat;
-  final supportsSnippets =
-      completionCapabilities?.completionItem?.snippetSupport == true;
-  final supportsInsertReplace =
-      completionCapabilities?.completionItem?.insertReplaceSupport == true;
-  final supportsAsIsInsertMode = completionCapabilities
-          ?.completionItem?.insertTextModeSupport?.valueSet
-          ?.contains(InsertTextMode.asIs) ==
-      true;
+  final supportsCompletionDeprecatedFlag =
+      capabilities.completionDeprecatedFlag;
+  final supportsDeprecatedTag = capabilities.completionItemTags
+      .contains(lsp.CompletionItemTag.Deprecated);
+  final formats = capabilities.completionDocumentationFormats;
+  final supportsSnippets = capabilities.completionSnippets;
+  final supportsInsertReplace = capabilities.insertReplaceCompletionRanges;
+  final supportsAsIsInsertMode =
+      capabilities.completionInsertTextModes.contains(InsertTextMode.asIs);
 
   final completionKind = suggestion.element != null
       ? elementKindToCompletionItemKind(
-          supportedCompletionItemKinds, suggestion.element.kind)
+          capabilities.completionItemKinds, suggestion.element.kind)
       : suggestionKindToCompletionItemKind(
-          supportedCompletionItemKinds, suggestion.kind, label);
+          capabilities.completionItemKinds, suggestion.kind, label);
 
   final insertTextInfo = _buildInsertText(
     supportsSnippets: supportsSnippets,
@@ -917,10 +898,12 @@ lsp.CompletionItem toCompletionItem(
         includeCommitCharacters ? dartCompletionCommitCharacters : null,
     data: resolutionData,
     detail: getCompletionDetail(suggestion, completionKind,
-        supportsDeprecatedFlag || supportsDeprecatedTag),
+        supportsCompletionDeprecatedFlag || supportsDeprecatedTag),
     documentation:
         asStringOrMarkupContent(formats, cleanDartdoc(suggestion.docComplete)),
-    deprecated: supportsDeprecatedFlag && suggestion.isDeprecated ? true : null,
+    deprecated: supportsCompletionDeprecatedFlag && suggestion.isDeprecated
+        ? true
+        : null,
     // Relevance is a number, highest being best. LSP does text sort so subtract
     // from a large number so that a text sort will result in the correct order.
     // 555 -> 999455
@@ -959,7 +942,7 @@ lsp.CompletionItem toCompletionItem(
 lsp.Diagnostic toDiagnostic(
   server.ResolvedUnitResult result,
   server.AnalysisError error, {
-  @required HashSet<lsp.DiagnosticTag> supportedTags,
+  @required Set<lsp.DiagnosticTag> supportedTags,
   server.ErrorSeverity errorSeverity,
 }) {
   var errorCode = error.errorCode;
@@ -1168,7 +1151,7 @@ lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
   );
 }
 
-lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
+lsp.SignatureHelp toSignatureHelp(Set<lsp.MarkupKind> preferredFormats,
     server.AnalysisGetSignatureResult signature) {
   // For now, we only support returning one (though we may wish to use named
   // args. etc. to provide one for each possible "next" option when the cursor
@@ -1282,15 +1265,12 @@ lsp.TextEdit toTextEdit(server.LineInfo lineInfo, server.SourceEdit edit) {
 }
 
 lsp.WorkspaceEdit toWorkspaceEdit(
-  lsp.ClientCapabilitiesWorkspace capabilities,
+  LspClientCapabilities capabilities,
   List<FileEditInformation> edits,
 ) {
-  final clientSupportsTextDocumentEdits =
-      capabilities?.workspaceEdit?.documentChanges == true;
-  if (clientSupportsTextDocumentEdits) {
-    final clientSupportsCreate = capabilities?.workspaceEdit?.resourceOperations
-            ?.contains(ResourceOperationKind.Create) ??
-        false;
+  final supportsDocumentChanges = capabilities.documentChanges;
+  if (supportsDocumentChanges) {
+    final supportsCreate = capabilities.createResourceOperations;
     final changes = <
         Either4<lsp.TextDocumentEdit, lsp.CreateFile, lsp.RenameFile,
             lsp.DeleteFile>>[];
@@ -1299,7 +1279,7 @@ lsp.WorkspaceEdit toWorkspaceEdit(
     // CreateFile + a TextDocumentEdit depending on whether it's a new
     // file.
     for (final edit in edits) {
-      if (clientSupportsCreate && edit.newFile) {
+      if (supportsCreate && edit.newFile) {
         final create = lsp.CreateFile(uri: edit.doc.uri);
         final createUnion = Either4<lsp.TextDocumentEdit, lsp.CreateFile,
             lsp.RenameFile, lsp.DeleteFile>.t2(create);
@@ -1335,7 +1315,7 @@ Map<String, List<lsp.TextEdit>> toWorkspaceEditChanges(
 }
 
 lsp.MarkupContent _asMarkup(
-    List<lsp.MarkupKind> preferredFormats, String content) {
+    Set<lsp.MarkupKind> preferredFormats, String content) {
   // It's not valid to call this function with a null format, as null formats
   // do not support MarkupContent. [asStringOrMarkupContent] is probably the
   // better choice.

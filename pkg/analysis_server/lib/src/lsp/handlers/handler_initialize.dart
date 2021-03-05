@@ -60,7 +60,7 @@ class InitializeMessageHandler
     );
 
     server.capabilities = server.capabilitiesComputer
-        .computeServerCapabilities(params.capabilities);
+        .computeServerCapabilities(server.clientCapabilities);
 
     var sdkVersion = Platform.version;
     if (sdkVersion.contains(' ')) {

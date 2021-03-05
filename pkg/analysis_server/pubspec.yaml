@@ -37,6 +37,5 @@ dev_dependencies:
     path: ../analyzer_utilities
   logging: any
   matcher: any
-  mockito: any
   pedantic: ^1.9.0
   test_reflective_loader: any

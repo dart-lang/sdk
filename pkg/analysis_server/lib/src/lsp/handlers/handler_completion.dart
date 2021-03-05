@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -28,29 +28,6 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
-/// If the client does not provide capabilities.completion.completionItemKind.valueSet
-/// then we must never send a kind that's not in this list.
-final defaultSupportedCompletionKinds = HashSet<CompletionItemKind>.of([
-  CompletionItemKind.Text,
-  CompletionItemKind.Method,
-  CompletionItemKind.Function,
-  CompletionItemKind.Constructor,
-  CompletionItemKind.Field,
-  CompletionItemKind.Variable,
-  CompletionItemKind.Class,
-  CompletionItemKind.Interface,
-  CompletionItemKind.Module,
-  CompletionItemKind.Property,
-  CompletionItemKind.Unit,
-  CompletionItemKind.Value,
-  CompletionItemKind.Enum,
-  CompletionItemKind.Keyword,
-  CompletionItemKind.Snippet,
-  CompletionItemKind.Color,
-  CompletionItemKind.File,
-  CompletionItemKind.Reference,
-]);
-
 class CompletionHandler
     extends MessageHandler<CompletionParams, List<CompletionItem>>
     with LspPluginRequestHandlerMixin {
@@ -69,17 +46,8 @@ class CompletionHandler
   @override
   Future<ErrorOr<List<CompletionItem>>> handle(
       CompletionParams params, CancellationToken token) async {
-    final completionCapabilities =
-        server?.clientCapabilities?.textDocument?.completion;
-
-    final clientSupportedCompletionKinds =
-        completionCapabilities?.completionItemKind?.valueSet != null
-            ? HashSet<CompletionItemKind>.of(
-                completionCapabilities.completionItemKind.valueSet)
-            : defaultSupportedCompletionKinds;
-
-    final includeSuggestionSets = suggestFromUnimportedLibraries &&
-        server?.clientCapabilities?.workspace?.applyEdit == true;
+    final includeSuggestionSets =
+        suggestFromUnimportedLibraries && server.clientCapabilities.applyEdit;
 
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
@@ -101,8 +69,7 @@ class CompletionHandler
 
       if (fileExtension == '.dart' && !unit.isError) {
         serverResultsFuture = _getServerDartItems(
-          completionCapabilities,
-          clientSupportedCompletionKinds,
+          server.clientCapabilities,
           includeSuggestionSets,
           unit.result,
           offset,
@@ -121,8 +88,7 @@ class CompletionHandler
         if (generator != null) {
           serverResultsFuture = _getServerYamlItems(
             generator,
-            completionCapabilities,
-            clientSupportedCompletionKinds,
+            server.clientCapabilities,
             path.result,
             lineInfo.result,
             offset,
@@ -133,8 +99,8 @@ class CompletionHandler
 
       serverResultsFuture ??= Future.value(success(const <CompletionItem>[]));
 
-      final pluginResultsFuture = _getPluginResults(completionCapabilities,
-          clientSupportedCompletionKinds, lineInfo.result, path.result, offset);
+      final pluginResultsFuture = _getPluginResults(
+          server.clientCapabilities, lineInfo.result, path.result, offset);
 
       // Await both server + plugin results together to allow async/IO to
       // overlap.
@@ -195,8 +161,7 @@ class CompletionHandler
       '$name/$declaringUri';
 
   Future<ErrorOr<List<CompletionItem>>> _getPluginResults(
-    CompletionClientCapabilities completionCapabilities,
-    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    LspClientCapabilities capabilities,
     LineInfo lineInfo,
     String path,
     int offset,
@@ -210,8 +175,7 @@ class CompletionHandler
         .toList();
 
     return success(_pluginResultsToItems(
-      completionCapabilities,
-      clientSupportedCompletionKinds,
+      capabilities,
       lineInfo,
       offset,
       pluginResults,
@@ -219,8 +183,7 @@ class CompletionHandler
   }
 
   Future<ErrorOr<List<CompletionItem>>> _getServerDartItems(
-    CompletionClientCapabilities completionCapabilities,
-    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    LspClientCapabilities capabilities,
     bool includeSuggestionSets,
     ResolvedUnitResult unit,
     int offset,
@@ -288,8 +251,7 @@ class CompletionHandler
             }
 
             return toCompletionItem(
-              completionCapabilities,
-              clientSupportedCompletionKinds,
+              capabilities,
               unit.lineInfo,
               item,
               itemReplacementOffset,
@@ -378,8 +340,7 @@ class CompletionHandler
             return importingUris == null ||
                 importingUris.contains('${library.uri}');
           }).map((item) => declarationToCompletionItem(
-                    completionCapabilities,
-                    clientSupportedCompletionKinds,
+                    capabilities,
                     unit.path,
                     offset,
                     includedSet,
@@ -424,8 +385,7 @@ class CompletionHandler
 
   Future<ErrorOr<List<CompletionItem>>> _getServerYamlItems(
     YamlCompletionGenerator generator,
-    CompletionClientCapabilities completionCapabilities,
-    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    LspClientCapabilities capabilities,
     String path,
     LineInfo lineInfo,
     int offset,
@@ -440,8 +400,7 @@ class CompletionHandler
     final completionItems = suggestions.suggestions
         .map(
           (item) => toCompletionItem(
-            completionCapabilities,
-            clientSupportedCompletionKinds,
+            capabilities,
             lineInfo,
             item,
             suggestions.replacementOffset,
@@ -456,8 +415,7 @@ class CompletionHandler
   }
 
   Iterable<CompletionItem> _pluginResultsToItems(
-    CompletionClientCapabilities completionCapabilities,
-    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    LspClientCapabilities capabilities,
     LineInfo lineInfo,
     int offset,
     List<plugin.CompletionGetSuggestionsResult> pluginResults,
@@ -465,8 +423,7 @@ class CompletionHandler
     return pluginResults.expand((result) {
       return result.results.map(
         (item) => toCompletionItem(
-          completionCapabilities,
-          clientSupportedCompletionKinds,
+          capabilities,
           lineInfo,
           item,
           result.replacementOffset,

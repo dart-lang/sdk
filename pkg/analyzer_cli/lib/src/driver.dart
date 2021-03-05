@@ -11,13 +11,15 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/command_line/arguments.dart'
+    show applyAnalysisOptionFlags;
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/interner.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -573,12 +575,8 @@ class _AnalysisContextProvider {
       packagesFile: _commandLineOptions.packageConfigPath,
       resourceProvider: _resourceProvider,
       sdkPath: _commandLineOptions.dartSdkPath,
+      updateAnalysisOptions: _updateAnalysisOptions,
     );
-
-    for (var _analysisContext in _collection.contexts) {
-      var analysisContext = _analysisContext as DriverBasedAnalysisContext;
-      _configureAnalysisOptionsFromCommandLineOptions(analysisContext);
-    }
 
     _setContextForPath(path);
     _folderContexts[parentFolder] = _analysisContext;
@@ -597,36 +595,22 @@ class _AnalysisContextProvider {
     _pathList = pathList;
   }
 
-  /// TODO(scheglov) Patch options before we create the driver.
-  void _configureAnalysisOptionsFromCommandLineOptions(
-    DriverBasedAnalysisContext analysisContext,
-  ) {
-    var analysisDriver = analysisContext.driver;
-    var optionsImpl = analysisDriver.analysisOptions as AnalysisOptionsImpl;
-
-    if (_commandLineOptions.enabledExperiments != null) {
-      optionsImpl.contextFeatures = FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: ExperimentStatus.currentVersion,
-        flags: _commandLineOptions.enabledExperiments,
-      );
-    }
-
-    if (_commandLineOptions.defaultLanguageVersion != null) {
-      var nonPackageLanguageVersion = Version.parse(
-        _commandLineOptions.defaultLanguageVersion + '.0',
-      );
-      optionsImpl.nonPackageLanguageVersion = nonPackageLanguageVersion;
-      optionsImpl.nonPackageFeatureSet = FeatureSet.latestLanguageVersion()
-          .restrictToVersion(nonPackageLanguageVersion);
-    }
-
-    analysisDriver.configure(
-      analysisOptions: optionsImpl,
-    );
-  }
-
   void _setContextForPath(String path) {
     var analysisContext = _collection.contextFor(path);
     _analysisContext = analysisContext as DriverBasedAnalysisContext;
+  }
+
+  void _updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
+    var args = _commandLineOptions.contextBuilderOptions.argResults;
+    applyAnalysisOptionFlags(analysisOptions, args);
+
+    var defaultLanguageVersion = _commandLineOptions.defaultLanguageVersion;
+    if (defaultLanguageVersion != null) {
+      var nonPackageLanguageVersion =
+          Version.parse('$defaultLanguageVersion.0');
+      analysisOptions.nonPackageLanguageVersion = nonPackageLanguageVersion;
+      analysisOptions.nonPackageFeatureSet = FeatureSet.latestLanguageVersion()
+          .restrictToVersion(nonPackageLanguageVersion);
+    }
   }
 }
