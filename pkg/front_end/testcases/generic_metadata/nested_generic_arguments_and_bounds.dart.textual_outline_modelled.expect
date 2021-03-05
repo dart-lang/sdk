@@ -1,0 +1,7 @@
+A<F<Function<W>(W)>> bar() => throw 42;
+A<Function<Y extends Function<Z>(Z)>(Y)> foo() => throw 42;
+
+class A<X> {}
+
+main() {}
+typedef F<U> = Function<V extends U>(V);
