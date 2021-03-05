@@ -1099,9 +1099,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   MessageHandler* message_handler() const { return message_handler_; }
   void set_message_handler(MessageHandler* value) { message_handler_ = value; }
 
-  bool is_runnable() const { return IsRunnableBit::decode(isolate_flags_); }
+  bool is_runnable() const { return LoadIsolateFlagsBit<IsRunnableBit>(); }
   void set_is_runnable(bool value) {
-    isolate_flags_ = IsRunnableBit::update(value, isolate_flags_);
+    UpdateIsolateFlagsBit<IsRunnableBit>(value);
 #if !defined(PRODUCT)
     if (is_runnable()) {
       set_last_resume_timestamp();
@@ -1120,12 +1120,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return OFFSET_OF(Isolate, single_step_);
   }
 
-  bool ResumeRequest() const {
-    return ResumeRequestBit::decode(isolate_flags_);
-  }
+  bool ResumeRequest() const { return LoadIsolateFlagsBit<ResumeRequestBit>(); }
   // Lets the embedder know that a service message resulted in a resume request.
   void SetResumeRequest() {
-    isolate_flags_ = ResumeRequestBit::update(true, isolate_flags_);
+    UpdateIsolateFlagsBit<ResumeRequestBit>(true);
     set_last_resume_timestamp();
   }
 
@@ -1138,9 +1136,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // Returns whether the vm service has requested that the debugger
   // resume execution.
   bool GetAndClearResumeRequest() {
-    bool resume_request = ResumeRequestBit::decode(isolate_flags_);
-    isolate_flags_ = ResumeRequestBit::update(false, isolate_flags_);
-    return resume_request;
+    return UpdateIsolateFlagsBit<ResumeRequestBit>(false);
   }
 #endif
 
@@ -1162,9 +1158,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void RemoveErrorListener(const SendPort& listener);
   bool NotifyErrorListeners(const char* msg, const char* stacktrace);
 
-  bool ErrorsFatal() const { return ErrorsFatalBit::decode(isolate_flags_); }
-  void SetErrorsFatal(bool val) {
-    isolate_flags_ = ErrorsFatalBit::update(val, isolate_flags_);
+  bool ErrorsFatal() const { return LoadIsolateFlagsBit<ErrorsFatalBit>(); }
+  void SetErrorsFatal(bool value) {
+    UpdateIsolateFlagsBit<ErrorsFatalBit>(value);
   }
 
   Random* random() { return &random_; }
@@ -1254,11 +1250,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
 #if !defined(PRODUCT)
   bool should_pause_post_service_request() const {
-    return ShouldPausePostServiceRequestBit::decode(isolate_flags_);
+    return LoadIsolateFlagsBit<ShouldPausePostServiceRequestBit>();
   }
   void set_should_pause_post_service_request(bool value) {
-    isolate_flags_ =
-        ShouldPausePostServiceRequestBit::update(value, isolate_flags_);
+    UpdateIsolateFlagsBit<ShouldPausePostServiceRequestBit>(value);
   }
 #endif  // !defined(PRODUCT)
 
@@ -1320,17 +1315,17 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 #endif
 
   bool is_service_isolate() const {
-    return IsServiceIsolateBit::decode(isolate_flags_);
+    return LoadIsolateFlagsBit<IsServiceIsolateBit>();
   }
   void set_is_service_isolate(bool value) {
-    isolate_flags_ = IsServiceIsolateBit::update(value, isolate_flags_);
+    UpdateIsolateFlagsBit<IsServiceIsolateBit>(value);
   }
 
   bool is_kernel_isolate() const {
-    return IsKernelIsolateBit::decode(isolate_flags_);
+    return LoadIsolateFlagsBit<IsKernelIsolateBit>();
   }
   void set_is_kernel_isolate(bool value) {
-    isolate_flags_ = IsKernelIsolateBit::update(value, isolate_flags_);
+    UpdateIsolateFlagsBit<IsKernelIsolateBit>(value);
   }
 
   // Whether it's possible for unoptimized code to optimize immediately on entry
@@ -1365,7 +1360,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
 #define DECLARE_GETTER(when, name, bitname, isolate_flag_name, flag_name)      \
   bool name() const {                                                          \
-    return FLAG_FOR_##when(bitname##Bit::decode(isolate_flags_), flag_name);   \
+    return FLAG_FOR_##when(LoadIsolateFlagsBit<bitname##Bit>(), flag_name);    \
   }
   BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(DECLARE_GETTER)
 #undef FLAG_FOR_NONPRODUCT
@@ -1374,10 +1369,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 #undef DECLARE_GETTER
 
   bool has_attempted_stepping() const {
-    return HasAttemptedSteppingBit::decode(isolate_flags_);
+    return LoadIsolateFlagsBit<HasAttemptedSteppingBit>();
   }
   void set_has_attempted_stepping(bool value) {
-    isolate_flags_ = HasAttemptedSteppingBit::update(value, isolate_flags_);
+    UpdateIsolateFlagsBit<HasAttemptedSteppingBit>(value);
   }
 
   static void KillAllIsolates(LibMsgId msg_id);
@@ -1546,7 +1541,18 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   ISOLATE_FLAG_BITS(DECLARE_BITFIELD)
 #undef DECLARE_BITFIELD
 
-  uint32_t isolate_flags_ = 0;
+  template <class T>
+  bool UpdateIsolateFlagsBit(bool value) {
+    return T::decode(value ? isolate_flags_.fetch_or(T::encode(true),
+                                                     std::memory_order_relaxed)
+                           : isolate_flags_.fetch_and(
+                                 ~T::encode(true), std::memory_order_relaxed));
+  }
+  template <class T>
+  bool LoadIsolateFlagsBit() const {
+    return T::decode(isolate_flags_.load(std::memory_order_relaxed));
+  }
+  std::atomic<uint32_t> isolate_flags_;
 
 // Fields that aren't needed in a product build go here with boolean flags at
 // the top.
