@@ -1338,6 +1338,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   int get hashCode => source.hashCode;
 
+  @Deprecated('Not useful for clients')
   @override
   bool get hasLoadLibraryFunction {
     List<FunctionElement> functions = this.functions;
@@ -5029,6 +5030,7 @@ class LibraryElementImpl extends _ExistingElementImpl
     setModifier(Modifier.HAS_EXT_URI, hasExtUri);
   }
 
+  @Deprecated('Not useful for clients')
   @override
   bool get hasLoadLibraryFunction {
     for (int i = 0; i < units.length; i++) {

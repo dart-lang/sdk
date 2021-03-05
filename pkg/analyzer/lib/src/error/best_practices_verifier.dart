@@ -1130,11 +1130,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// See [CompileTimeErrorCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION].
   bool _checkForLoadLibraryFunction(
       ImportDirective node, ImportElement importElement) {
-    LibraryElement? importedLibrary = importElement.importedLibrary;
-    if (importedLibrary == null) {
+    var importedLibrary = importElement.importedLibrary;
+    var prefix = importElement.prefix;
+    if (importedLibrary == null || prefix == null) {
       return false;
     }
-    if (importedLibrary.hasLoadLibraryFunction) {
+    var importNamespace = importElement.namespace;
+    var loadLibraryElement = importNamespace.getPrefixed(
+        prefix.name, FunctionElement.LOAD_LIBRARY_NAME);
+    if (loadLibraryElement != null) {
       _errorReporter.reportErrorForNode(
           HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
           node,

@@ -408,6 +408,7 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
 
   /// Return `true` if this compilation unit defines a top-level function named
   /// `loadLibrary`.
+  @Deprecated('Not useful for clients')
   bool get hasLoadLibraryFunction;
 
   /// Return the [LineInfo] for the [source], or `null` if not computed yet.
@@ -1328,6 +1329,7 @@ abstract class LibraryElement implements _ExistingElement {
 
   /// Return `true` if this library defines a top-level function named
   /// `loadLibrary`.
+  @Deprecated('Not useful for clients')
   bool get hasLoadLibraryFunction;
 
   /// Return an identifier that uniquely identifies this element among the
