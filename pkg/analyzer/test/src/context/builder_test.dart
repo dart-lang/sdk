@@ -484,49 +484,6 @@ b:${resourceProvider.pathContext.toUri(packageB)}
     expect(htmlSource.exists(), isTrue);
   }
 
-  void test_getAnalysisOptions_default_bazel() {
-    _defineMockLintRules();
-    AnalysisOptionsImpl defaultOptions = AnalysisOptionsImpl();
-    builderOptions.defaultOptions = defaultOptions;
-    AnalysisOptionsImpl expected = AnalysisOptionsImpl();
-    expected.lint = true;
-    expected.lintRules = <Linter>[_mockLintRule];
-    newFile('/root/WORKSPACE');
-    newFile('/root/dart/analysis_options/lib/default.yaml', content: '''
-linter:
-  rules:
-    - mock_lint_rule
-''');
-    newFile('/root/dart/analysis_options/lib/flutter.yaml', content: '''
-linter:
-  rules:
-    - mock_lint_rule2
-''');
-    var options = _getAnalysisOptions(builder, convertPath('/root/some/path'));
-    _expectEqualOptions(options, expected);
-  }
-
-  void test_getAnalysisOptions_default_flutter() {
-    _defineMockLintRules();
-    AnalysisOptionsImpl defaultOptions = AnalysisOptionsImpl();
-    builderOptions.defaultOptions = defaultOptions;
-    AnalysisOptionsImpl expected = AnalysisOptionsImpl();
-    expected.lint = true;
-    expected.lintRules = <Linter>[_mockLintRule];
-    String packagesFilePath = convertPath('/some/directory/path/.packages');
-    newFile(packagesFilePath, content: '''
-flutter:${toUriStr('/pkg/flutter/lib/')}
-''');
-    newFile('/pkg/flutter/lib/analysis_options_user.yaml', content: '''
-linter:
-  rules:
-    - mock_lint_rule
-''');
-    String projectPath = convertPath('/some/directory/path');
-    var options = _getAnalysisOptions(builder, projectPath);
-    _expectEqualOptions(options, expected);
-  }
-
   void test_getAnalysisOptions_default_noOverrides() {
     AnalysisOptionsImpl defaultOptions = AnalysisOptionsImpl();
     builderOptions.defaultOptions = defaultOptions;

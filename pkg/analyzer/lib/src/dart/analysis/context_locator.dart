@@ -232,6 +232,8 @@ class ContextLocatorImpl implements ContextLocator {
     required File? optionsFile,
     required File? packagesFile,
   }) {
+    optionsFile ??= _findDefaultOptionsFile(workspace);
+
     var root = ContextRootImpl(resourceProvider, rootFolder, workspace);
     root.packagesFile = packagesFile;
     root.optionsFile = optionsFile;
@@ -370,6 +372,26 @@ class ContextLocatorImpl implements ContextLocator {
       options: ContextBuilderOptions(), // TODO(scheglov) remove it
       rootPath: folder.path,
     );
+  }
+
+  File? _findDefaultOptionsFile(Workspace workspace) {
+    // TODO(scheglov) Create SourceFactory once.
+    var sourceFactory = workspace.createSourceFactory(null, null);
+
+    String? uriStr;
+    if (workspace is WorkspaceWithDefaultAnalysisOptions) {
+      uriStr = WorkspaceWithDefaultAnalysisOptions.uri;
+    } else {
+      uriStr = 'package:flutter/analysis_options_user.yaml';
+    }
+
+    var path = sourceFactory.forUri(uriStr)?.fullName;
+    if (path != null) {
+      var file = resourceProvider.getFile(path);
+      if (file.exists) {
+        return file;
+      }
+    }
   }
 
   /// Return the analysis options file to be used to analyze files in the given
