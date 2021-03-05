@@ -84,6 +84,31 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest
     );
   }
 
+  Future<void> test_error_methodInvocation_importPrefix() async {
+    final content = '''
+import 'dart:async' as prefix;
+
+void f() {
+  prefix(^);
+}
+''';
+
+    await initialize(
+      textDocumentCapabilities: withSignatureHelpContentFormat(
+        emptyTextDocumentClientCapabilities,
+        [MarkupKind.Markdown],
+      ),
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    // Expect no result.
+    final res = await getSignatureHelp(
+      mainFileUri,
+      positionFromMarker(content),
+    );
+    expect(res, isNull);
+  }
+
   Future<void> test_formats_markdown() async {
     final content = '''
     /// Does foo.
