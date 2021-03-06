@@ -106,18 +106,7 @@ double weightedAverage(
     localVariableDistance,
     startsWithDollar,
     superMatches,
-  ], [
-    1.00, // contextType
-    1.00, // elementKind
-    0.50, // hasDeprecated
-    1.00, // inheritanceDistance
-    1.00, // isConstant
-    1.00, // isNoSuchMethod
-    1.00, // keyword
-    1.00, // localVariableDistance
-    0.50, // startsWithDollar
-    1.00, // superMatches
-  ]);
+  ], FeatureComputer.featureWeights);
   return (average + 1.0) / 2.0;
 }
 
@@ -138,6 +127,38 @@ double _weightedAverage(List<double> values, List<double> weights) {
 
 /// An object that computes the values of features.
 class FeatureComputer {
+  /// The names of features whose values are averaged.
+  static List<String> featureNames = [
+    'contextType',
+    'elementKind',
+    'hasDeprecated',
+    'inheritanceDistance',
+    'isConstant',
+    'isNoSuchMethod',
+    'keyword',
+    'localVariableDistance',
+    'startsWithDollar',
+    'superMatches',
+  ];
+
+  /// The values of the weights used to compute an average of feature values.
+  static List<double> featureWeights = defaultFeatureWeights;
+
+  /// The default values of the weights used to compute an average of feature
+  /// values.
+  static const List<double> defaultFeatureWeights = [
+    1.00, // contextType
+    1.00, // elementKind
+    0.50, // hasDeprecated
+    1.00, // inheritanceDistance
+    1.00, // isConstant
+    1.00, // isNoSuchMethod
+    1.00, // keyword
+    1.00, // localVariableDistance
+    0.50, // startsWithDollar
+    1.00, // superMatches
+  ];
+
   /// The type system used to perform operations on types.
   final TypeSystem typeSystem;
 

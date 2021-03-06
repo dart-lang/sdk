@@ -13,6 +13,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/probability_range.dart';
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
@@ -600,6 +601,21 @@ class CompletionMetricsComputer {
 
   CompletionMetricsComputer(this.rootPath, this.options);
 
+  /// Compare the metrics when each feature is used in isolation.
+  void compareIndividualFeatures() {
+    var featureNames = FeatureComputer.featureNames;
+    var featureCount = featureNames.length;
+    for (var i = 0; i < featureCount; i++) {
+      var weights = List.filled(featureCount, 0.00);
+      weights[i] = 1.00;
+      targetMetrics.add(CompletionMetrics(featureNames[i], enableFunction: () {
+        FeatureComputer.featureWeights = weights;
+      }, disableFunction: () {
+        FeatureComputer.featureWeights = FeatureComputer.defaultFeatureWeights;
+      }));
+    }
+  }
+
   /// Compare the relevance [tables] to the default relevance tables.
   void compareRelevanceTables(List<RelevanceTables> tables) {
     assert(tables.isNotEmpty);
@@ -622,9 +638,13 @@ class CompletionMetricsComputer {
         enableFunction: null, disableFunction: null));
 
     // To compare two or more relevance tables, uncomment the line below and
-    // add the `RelevanceTable`s to the list. The default relevance tables
+    // add the `RelevanceTables` to the list. The default relevance tables
     // should not be included in the list.
 //     compareRelevanceTables([]);
+
+    // To compare the relative benefit from each of the features, uncomment the
+    // line below.
+//    compareIndividualFeatures();
 
     final collection = AnalysisContextCollection(
       includedPaths: [rootPath],
