@@ -19,7 +19,6 @@ import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/status/pages.dart';
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -44,8 +43,8 @@ import 'package:analyzer/error/error.dart' as err;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -646,7 +645,7 @@ class CompletionMetricsComputer {
     // line below.
 //    compareIndividualFeatures();
 
-    final collection = AnalysisContextCollection(
+    final collection = AnalysisContextCollectionImpl(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
@@ -830,8 +829,8 @@ class CompletionMetricsComputer {
       var lines = <LocationTableLine>[];
       for (var entry in metrics.locationMrrComputers.entries) {
         var count = entry.value.count;
-        var mrr = (1 / entry.value.mrr);
-        var mrr_5 = (1 / entry.value.mrr_5);
+        var mrr = 1 / entry.value.mrr;
+        var mrr_5 = 1 / entry.value.mrr_5;
         var product = count * mrr;
         lines.add(LocationTableLine(
             label: entry.key,
@@ -1109,7 +1108,7 @@ class CompletionMetricsComputer {
   /// should be captured in the [collector].
   Future<void> _computeInContext(ContextRoot root) async {
     // Create a new collection to avoid consuming large quantities of memory.
-    final collection = AnalysisContextCollection(
+    final collection = AnalysisContextCollectionImpl(
       includedPaths: root.includedPaths.toList(),
       excludedPaths: root.excludedPaths.toList(),
       resourceProvider: _provider,
@@ -1174,9 +1173,7 @@ class CompletionMetricsComputer {
               _provider.setOverlay(filePath,
                   content: overlayContents,
                   modificationStamp: overlayModificationStamp++);
-              (context as DriverBasedAnalysisContext)
-                  .driver
-                  .changeFile(filePath);
+              context.driver.changeFile(filePath);
               resolvedUnitResult =
                   await context.currentSession.getResolvedUnit(filePath);
             }

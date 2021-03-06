@@ -38,7 +38,7 @@ class ByteStreamClientChannelTest {
     inputSink = IOSink(inputStream);
     var outputStream = StreamController<List<int>>();
     outputLineStream = outputStream.stream
-        .transform((Utf8Codec()).decoder)
+        .transform(Utf8Codec().decoder)
         .transform(LineSplitter());
     outputSink = IOSink(outputStream);
     channel = ByteStreamClientChannel(inputStream.stream, outputSink);
@@ -124,7 +124,7 @@ class ByteStreamServerChannelTest {
     inputSink = IOSink(inputStream);
     var outputStream = StreamController<List<int>>();
     outputLineStream = outputStream.stream
-        .transform((Utf8Codec()).decoder)
+        .transform(Utf8Codec().decoder)
         .transform(LineSplitter());
     var outputSink = IOSink(outputStream);
     channel = ByteStreamServerChannel(

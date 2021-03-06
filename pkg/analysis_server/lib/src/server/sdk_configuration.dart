@@ -55,7 +55,7 @@ class SdkConfiguration {
 
   /// Return a string describing the contents of this SDK configuration.
   String get displayString {
-    return _values.keys.map((key) => '$key: ${_values[key]}').join(('\n'));
+    return _values.keys.map((key) => '$key: ${_values[key]}').join('\n');
   }
 
   /// Returns whether this SDK configuration has any configured values.

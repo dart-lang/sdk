@@ -596,8 +596,7 @@ class _AnalysisContextProvider {
   }
 
   void _setContextForPath(String path) {
-    var analysisContext = _collection.contextFor(path);
-    _analysisContext = analysisContext as DriverBasedAnalysisContext;
+    _analysisContext = _collection.contextFor(path);
   }
 
   void _updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {

@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io' hide File;
 
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -511,7 +510,7 @@ class MigrationCliRunner implements DartFixListenerClient {
 
   _FixCodeProcessor _fixCodeProcessor;
 
-  AnalysisContextCollection _contextCollection;
+  AnalysisContextCollectionImpl _contextCollection;
 
   bool _hasExceptions = false;
 
@@ -531,16 +530,15 @@ class MigrationCliRunner implements DartFixListenerClient {
     // Handle the case of more than one analysis context being found (typically,
     // the current directory and one or more sub-directories).
     if (hasMultipleAnalysisContext) {
-      return contextCollection.contextFor(options.directory)
-          as DriverBasedAnalysisContext;
+      return contextCollection.contextFor(options.directory);
     } else {
-      return contextCollection.contexts.single as DriverBasedAnalysisContext;
+      return contextCollection.contexts.single;
     }
   }
 
   Ansi get ansi => logger.ansi;
 
-  AnalysisContextCollection get contextCollection {
+  AnalysisContextCollectionImpl get contextCollection {
     _contextCollection ??= AnalysisContextCollectionImpl(
         includedPaths: [options.directory],
         resourceProvider: resourceProvider,

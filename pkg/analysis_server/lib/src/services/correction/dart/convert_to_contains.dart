@@ -76,7 +76,7 @@ class ConvertToContains extends CorrectionProducer {
         expression.operator.type == TokenType.MINUS) {
       var operand = expression.operand;
       if (operand is IntegerLiteral) {
-        return -(operand.value);
+        return -operand.value;
       }
     }
     throw StateError('invalid integer value');

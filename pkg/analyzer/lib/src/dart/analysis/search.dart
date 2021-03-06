@@ -503,7 +503,7 @@ class SearchedFiles {
   }
 
   void ownAnalyzed(Search search) {
-    for (var path in search._driver.analyzedFiles.files) {
+    for (var path in search._driver.addedFiles) {
       if (path.endsWith('.dart')) {
         add(path, search);
       }

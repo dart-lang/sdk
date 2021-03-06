@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -18,6 +17,7 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 
@@ -47,17 +47,11 @@ class AbstractContextTest with ResourceProviderMixin {
   final ByteStore _byteStore = MemoryByteStore();
 
   final Map<String, String> _declaredVariables = {};
-  AnalysisContextCollection _analysisContextCollection;
-
-  List<AnalysisContext> get allContexts {
-    _createAnalysisContexts();
-    return _analysisContextCollection.contexts;
-  }
+  AnalysisContextCollectionImpl _analysisContextCollection;
 
   List<AnalysisDriver> get allDrivers {
-    return allContexts
-        .map((e) => (e as DriverBasedAnalysisContext).driver)
-        .toList();
+    _createAnalysisContexts();
+    return _analysisContextCollection.contexts.map((e) => e.driver).toList();
   }
 
   /// The file system specific `/home/test/analysis_options.yaml` path.
@@ -106,10 +100,7 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   AnalysisContext contextFor(String path) {
-    _createAnalysisContexts();
-
-    path = convertPath(path);
-    return _analysisContextCollection.contextFor(path);
+    return _contextFor(path);
   }
 
   /// Create an analysis options file based on the given arguments.
@@ -148,8 +139,7 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   AnalysisDriver driverFor(String path) {
-    var context = contextFor(path) as DriverBasedAnalysisContext;
-    return context.driver;
+    return _contextFor(path).driver;
   }
 
   /// Return the existing analysis context that should be used to analyze the
@@ -174,6 +164,7 @@ class AbstractContextTest with ResourceProviderMixin {
       throw StateError('Only dart files can be changed after analysis.');
     }
 
+    _addAnalyzedFileToDrivers(path);
     return super.newFile(path, content: content);
   }
 
@@ -259,6 +250,33 @@ class AbstractContextTest with ResourceProviderMixin {
     writePackageConfig(path, config);
   }
 
+  void _addAnalyzedFilesToDrivers() {
+    for (var analysisContext in _analysisContextCollection.contexts) {
+      for (var path in analysisContext.contextRoot.analyzedFiles()) {
+        if (file_paths.isDart(resourceProvider.pathContext, path)) {
+          analysisContext.driver.addFile(path);
+        }
+      }
+    }
+  }
+
+  void _addAnalyzedFileToDrivers(String path) {
+    if (_analysisContextCollection != null) {
+      for (var analysisContext in _analysisContextCollection.contexts) {
+        if (analysisContext.contextRoot.isAnalyzed(path)) {
+          analysisContext.driver.addFile(path);
+        }
+      }
+    }
+  }
+
+  DriverBasedAnalysisContext _contextFor(String path) {
+    _createAnalysisContexts();
+
+    path = convertPath(path);
+    return _analysisContextCollection.contextFor(path);
+  }
+
   /// Create all analysis contexts in [collectionIncludedPaths].
   void _createAnalysisContexts() {
     if (_analysisContextCollection != null) {
@@ -274,6 +292,7 @@ class AbstractContextTest with ResourceProviderMixin {
       sdkPath: convertPath(sdkRoot),
     );
 
+    _addAnalyzedFilesToDrivers();
     verifyCreatedCollection();
   }
 }

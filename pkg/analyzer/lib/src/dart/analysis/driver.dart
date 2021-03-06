@@ -248,8 +248,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Whether resolved units should be indexed.
   final bool enableIndex;
 
-  late final DriverAnalyzedFiles analyzedFiles = DriverAnalyzedFiles(this);
-
   /// The current analysis session.
   late AnalysisSessionImpl _currentSession;
 
@@ -448,7 +446,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (!_fsState.hasUri(path)) {
       return;
     }
-    analyzedFiles.reset();
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
       _fileTracker.addFile(path);
       // If the file is known, it has already been read, even if it did not
@@ -1203,7 +1200,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// but does not guarantee this.
   void removeFile(String path) {
     _throwIfNotAbsolutePath(path);
-    analyzedFiles.reset();
     _fileTracker.removeFile(path);
     clearLibraryContext();
     _priorityResults.clear();
@@ -2084,29 +2080,6 @@ class AnalysisResult extends ResolvedUnitResultImpl {
       this._index)
       : super(session, path, uri, exists, content, lineInfo, isPart, unit,
             errors);
-}
-
-/// The cache of files analyzed in the driver.
-class DriverAnalyzedFiles {
-  final AnalysisDriver _driver;
-  List<String>? _files;
-
-  DriverAnalyzedFiles(this._driver);
-
-  List<String> get files {
-    var files = _files;
-
-    if (files == null) {
-      var contextRoot = _driver.analysisContext!.contextRoot;
-      _files = files = contextRoot.analyzedFiles().toList();
-    }
-
-    return files;
-  }
-
-  void reset() {
-    _files = null;
-  }
 }
 
 /// An object that watches for the creation and removal of analysis drivers.

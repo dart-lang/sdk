@@ -429,7 +429,7 @@ class _CodeFragmentScanner {
   }
 
   /// Return `true` if the [char] is a digit.
-  bool _isDigit(int char) => (char >= $0 && char <= $9);
+  bool _isDigit(int char) => char >= $0 && char <= $9;
 
   /// Return `true` if the [char] is a letter.
   bool _isLetter(int char) =>

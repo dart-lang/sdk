@@ -643,7 +643,7 @@ ErrorOr<String> pathOfUri(Uri uri) {
       message: 'Document URI was not supplied',
     ));
   }
-  final isValidFileUri = (uri?.isScheme('file') ?? false);
+  final isValidFileUri = uri?.isScheme('file') ?? false;
   if (!isValidFileUri) {
     return ErrorOr<String>.error(ResponseError(
       code: lsp.ServerErrorCodes.InvalidFilePath,

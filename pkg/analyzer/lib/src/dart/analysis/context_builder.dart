@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_builder.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -38,7 +37,7 @@ class ContextBuilderImpl implements ContextBuilder {
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
   @override
-  AnalysisContext createContext({
+  DriverBasedAnalysisContext createContext({
     ByteStore? byteStore,
     required ContextRoot contextRoot,
     DeclaredVariables? declaredVariables,
