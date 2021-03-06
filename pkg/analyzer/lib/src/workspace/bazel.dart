@@ -446,8 +446,9 @@ class BazelWorkspace extends Workspace
         return writableFile;
       }
       // READONLY
+      var readonly = this.readonly;
       if (readonly != null) {
-        File file = provider.getFile(context.join(readonly!, relative));
+        File file = provider.getFile(context.join(readonly, relative));
         if (file.exists) {
           return file;
         }
@@ -573,8 +574,9 @@ class BazelWorkspace extends Workspace
       }
     }
     // READONLY
+    var readonly = this.readonly;
     if (readonly != null) {
-      if (context.isWithin(readonly!, p)) {
+      if (context.isWithin(readonly, p)) {
         return context.relative(p, from: readonly);
       }
     }
@@ -751,21 +753,13 @@ class BazelWorkspacePackage extends WorkspacePackage {
 
   @override
   bool contains(Source source) {
-    if (source.uri.isScheme('package')) {
-      return source.uri.toString().startsWith(_uriPrefix);
-    }
-    var filePath = source.fullName;
-    if (workspace.findFile(filePath) == null) {
-      return false;
-    }
-    if (!workspace.provider.pathContext.isWithin(root, filePath)) {
-      return false;
+    var uri = source.uri;
+    if (uri.isScheme('package')) {
+      return uri.toString().startsWith(_uriPrefix);
     }
 
-    // Just because [filePath] is within [root] does not mean it is in this
-    // package; it could be in a "subpackage." Must go through the work of
-    // learning exactly which package [filePath] is contained in.
-    return workspace.findPackageFor(filePath)!.root == root;
+    var path = source.fullName;
+    return workspace.findPackageFor(path)?.root == root;
   }
 
   @override
