@@ -38,17 +38,18 @@ class Cache<K, V> {
   }
 
   void _evict() {
-    while (_currentSizeBytes > _maxSizeBytes) {
-      if (_map.isEmpty) {
-        // Should be impossible, since _currentSizeBytes should always match
-        // _map.  But recover anyway.
-        assert(false);
-        _currentSizeBytes = 0;
-        break;
+    if (_currentSizeBytes > _maxSizeBytes) {
+      var keysToRemove = <K>[];
+      for (var entry in _map.entries) {
+        keysToRemove.add(entry.key);
+        _currentSizeBytes -= _meter(entry.value);
+        if (_currentSizeBytes <= _maxSizeBytes) {
+          break;
+        }
       }
-      K key = _map.keys.first;
-      V value = _map.remove(key)!;
-      _currentSizeBytes -= _meter(value);
+      for (var key in keysToRemove) {
+        _map.remove(key);
+      }
     }
   }
 }
