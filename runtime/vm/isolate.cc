@@ -1716,6 +1716,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
 #if !defined(DART_PRECOMPILED_RUNTIME)
       native_callback_trampolines_(),
 #endif
+      isolate_flags_(0),
 #if !defined(PRODUCT)
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
       vm_tag_counters_(),
