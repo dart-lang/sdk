@@ -399,13 +399,12 @@ class ContextManagerImpl implements ContextManager {
       sdkPath: sdkManager.defaultSdkDirectory,
     );
 
-    for (var context in _collection.contexts) {
-      var contextImpl = context as DriverBasedAnalysisContext;
-      var driver = contextImpl.driver;
+    for (var analysisContext in _collection.contexts) {
+      var driver = analysisContext.driver;
 
       callbacks.listenAnalysisDriver(driver);
 
-      var rootFolder = contextImpl.contextRoot.root;
+      var rootFolder = analysisContext.contextRoot.root;
       driverMap[rootFolder] = driver;
 
       changeSubscriptions[rootFolder] = rootFolder.changes
@@ -413,7 +412,7 @@ class ContextManagerImpl implements ContextManager {
 
       _watchBazelFilesIfNeeded(rootFolder, driver);
 
-      for (var file in contextImpl.contextRoot.analyzedFiles()) {
+      for (var file in analysisContext.contextRoot.analyzedFiles()) {
         if (file_paths.isAndroidManifestXml(pathContext, file)) {
           _analyzeAndroidManifestXml(driver, file);
         } else if (file_paths.isDart(pathContext, file)) {
@@ -421,7 +420,7 @@ class ContextManagerImpl implements ContextManager {
         }
       }
 
-      var optionsFile = context.contextRoot.optionsFile;
+      var optionsFile = analysisContext.contextRoot.optionsFile;
       if (optionsFile != null) {
         _analyzeAnalysisOptionsYaml(driver, optionsFile.path);
       }
@@ -455,8 +454,7 @@ class ContextManagerImpl implements ContextManager {
   void _destroyAnalysisContexts() {
     if (_collection != null) {
       for (var analysisContext in _collection.contexts) {
-        var contextImpl = analysisContext as DriverBasedAnalysisContext;
-        _destroyAnalysisContext(contextImpl);
+        _destroyAnalysisContext(analysisContext);
       }
       callbacks.afterContextsDestroyed();
     }
@@ -530,8 +528,7 @@ class ContextManagerImpl implements ContextManager {
     }
 
     if (file_paths.isDart(pathContext, path)) {
-      for (var analysisContext_ in _collection.contexts) {
-        var analysisContext = analysisContext_ as DriverBasedAnalysisContext;
+      for (var analysisContext in _collection.contexts) {
         switch (type) {
           case ChangeType.ADD:
             if (analysisContext.contextRoot.isAnalyzed(path)) {

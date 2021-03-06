@@ -111,7 +111,7 @@ abstract class ContextResolutionTest
   ByteStore _byteStore = getContextResolutionTestByteStore();
 
   Map<String, String> _declaredVariables = {};
-  AnalysisContextCollection? _analysisContextCollection;
+  AnalysisContextCollectionImpl? _analysisContextCollection;
 
   /// If not `null`, [resolveFile] will use the context that corresponds
   /// to this path, instead of the given path.
@@ -157,10 +157,7 @@ abstract class ContextResolutionTest
   }
 
   AnalysisContext contextFor(String path) {
-    _createAnalysisContexts();
-
-    path = convertPath(path);
-    return _analysisContextCollection!.contextFor(path);
+    return _contextFor(path);
   }
 
   void disposeAnalysisContextCollection() {
@@ -170,8 +167,7 @@ abstract class ContextResolutionTest
   }
 
   AnalysisDriver driverFor(String path) {
-    var context = contextFor(path) as DriverBasedAnalysisContext;
-    return context.driver;
+    return _contextFor(path).driver;
   }
 
   @override
@@ -210,6 +206,13 @@ abstract class ContextResolutionTest
   }
 
   void verifyCreatedCollection() {}
+
+  DriverBasedAnalysisContext _contextFor(String path) {
+    _createAnalysisContexts();
+
+    path = convertPath(path);
+    return _analysisContextCollection!.contextFor(path);
+  }
 
   /// Create all analysis contexts in [collectionIncludedPaths].
   void _createAnalysisContexts() {

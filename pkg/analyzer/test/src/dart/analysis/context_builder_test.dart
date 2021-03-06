@@ -7,7 +7,6 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/src/dart/analysis/context_builder.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/basic.dart';
@@ -49,7 +48,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
       contextRoot: contextRoot,
       declaredVariables: declaredVariables,
       sdkPath: resourceProvider.convertPath(sdkRoot),
-    ) as DriverBasedAnalysisContext;
+    );
     expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     assertEquals(context.driver.declaredVariables, declaredVariables);
@@ -60,10 +59,10 @@ class ContextBuilderImplTest with ResourceProviderMixin {
         DeclaredVariables.fromMap({'bar': 'true'});
     MockSdk sdk = MockSdk(resourceProvider: resourceProvider);
     var context = contextBuilder.createContext(
-            contextRoot: contextRoot,
-            declaredVariables: declaredVariables,
-            sdkPath: resourceProvider.convertPath(sdkRoot))
-        as DriverBasedAnalysisContext;
+      contextRoot: contextRoot,
+      declaredVariables: declaredVariables,
+      sdkPath: resourceProvider.convertPath(sdkRoot),
+    );
     expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     assertEquals(context.driver.declaredVariables, declaredVariables);
@@ -84,9 +83,9 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   test_createContext_sdkPath() {
     MockSdk sdk = MockSdk(resourceProvider: resourceProvider);
     var context = contextBuilder.createContext(
-            contextRoot: contextRoot,
-            sdkPath: resourceProvider.convertPath(sdkRoot))
-        as DriverBasedAnalysisContext;
+      contextRoot: contextRoot,
+      sdkPath: resourceProvider.convertPath(sdkRoot),
+    );
     expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     expect(context.driver.sourceFactory.dartSdk!.mapDartUri('dart:core'),

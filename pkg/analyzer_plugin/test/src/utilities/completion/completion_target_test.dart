@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart' as analyzer;
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:test/test.dart';
@@ -670,22 +669,9 @@ class CompletionTargetTest extends _Base {
   }
 
   Future<void> test_MapLiteral_expression() async {
-    super.setUp();
-    final experimentStatus = (driverFor(testPackageRootPath).analysisOptions
-            as analyzer.AnalysisOptionsImpl)
-        .experimentStatus;
-    if (experimentStatus.control_flow_collections ||
-        experimentStatus.spread_collections) {
-      // SimpleIdentifier  MapLiteral  VariableDeclaration
-      await createTarget('foo = {1: 2, T^');
-      assertTarget('T', '{1 : 2, T}');
-    } else {
-      // TODO(b/35569): remove this branch of test behavior
-
-      // SimpleIdentifier  MapLiteralEntry  MapLiteral  VariableDeclaration
-      await createTarget('foo = {1: 2, T^');
-      assertTarget('T : ', '{1 : 2, T : }');
-    }
+    // SimpleIdentifier  MapLiteral  VariableDeclaration
+    await createTarget('foo = {1: 2, T^');
+    assertTarget('T', '{1 : 2, T}');
   }
 
   Future<void> test_MapLiteralEntry() async {
