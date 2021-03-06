@@ -156,10 +156,6 @@ ArgParser createArgParser() {
             'support in LSP.',
         defaultsTo: false,
         negatable: false)
-    ..addFlag(CompletionMetricsOptions.MD,
-        help: 'Use markdown as the output format.',
-        defaultsTo: false,
-        negatable: false)
     ..addOption(
       'help',
       abbr: 'h',
@@ -783,13 +779,8 @@ class CompletionMetricsComputer {
   }
 
   void printHeading(int level, String heading) {
-    if (options.markdown) {
-      var prefix = '#' * level;
-      print('$prefix $heading');
-    } else {
-      print(heading);
-      print(((level == 1) ? '=' : '-') * heading.length);
-    }
+    var prefix = '#' * level;
+    print('$prefix $heading');
     print('');
   }
 
@@ -818,6 +809,7 @@ class CompletionMetricsComputer {
       ['', 'mrr', 'inverse mrr', 'mrr_5', 'inverse mrr_5', 'count'],
       toRow(metrics.mrrComputer),
       toRow(metrics.successfulMrrComputer),
+      ['', '', '', '', '', ''],
       for (var group in groups) toRow(metrics.groupMrrComputers[group]),
     ];
     rightJustifyColumns(table, [2, 4, 5]);
@@ -1423,9 +1415,6 @@ class CompletionMetricsOptions {
   /// computing suggestions.
   static const String AVAILABLE_SUGGESTIONS = 'available-suggestions';
 
-  /// A flag that causes the output to be in markdown format.
-  static const String MD = 'md';
-
   /// An option to control whether and how overlays should be produced.
   static const String OVERLAY = 'overlay';
 
@@ -1473,9 +1462,6 @@ class CompletionMetricsOptions {
   /// run.
   final bool availableSuggestions;
 
-  /// A flag indicating whether the output should use markdown.
-  final bool markdown;
-
   /// The overlay mode that should be used.
   final String overlay;
 
@@ -1509,7 +1495,6 @@ class CompletionMetricsOptions {
   factory CompletionMetricsOptions(results) {
     return CompletionMetricsOptions._(
         availableSuggestions: results[AVAILABLE_SUGGESTIONS],
-        markdown: results[MD],
         overlay: results[OVERLAY],
         printMissedCompletionDetails: results[PRINT_MISSED_COMPLETION_DETAILS],
         printMissedCompletionSummary: results[PRINT_MISSED_COMPLETION_SUMMARY],
@@ -1521,7 +1506,6 @@ class CompletionMetricsOptions {
 
   CompletionMetricsOptions._(
       {@required this.availableSuggestions,
-      @required this.markdown,
       @required this.overlay,
       @required this.printMissedCompletionDetails,
       @required this.printMissedCompletionSummary,
