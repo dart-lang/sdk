@@ -777,8 +777,8 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
       pages.add(MemoryAndCpuPage(this, profiler));
     }
 
-    pages.sort(((Page a, Page b) =>
-        a.title.toLowerCase().compareTo(b.title.toLowerCase())));
+    pages.sort((Page a, Page b) =>
+        a.title.toLowerCase().compareTo(b.title.toLowerCase()));
 
     // Add the status page at the beginning.
     pages.insert(0, StatusPage(this));

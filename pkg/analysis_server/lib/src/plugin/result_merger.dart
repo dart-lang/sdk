@@ -575,12 +575,12 @@ class ResultMerger {
         lengths.addAll(feedback.lengths);
       }
       return ExtractLocalVariableFeedback(names.toList(), offsets, lengths,
-          coveringExpressionOffsets: (coveringExpressionOffsets.isEmpty
+          coveringExpressionOffsets: coveringExpressionOffsets.isEmpty
               ? null
-              : coveringExpressionOffsets),
-          coveringExpressionLengths: (coveringExpressionLengths.isEmpty
+              : coveringExpressionOffsets,
+          coveringExpressionLengths: coveringExpressionLengths.isEmpty
               ? null
-              : coveringExpressionLengths));
+              : coveringExpressionLengths);
     } else if (first is ExtractMethodFeedback) {
       var offset = first.offset;
       var length = first.length;

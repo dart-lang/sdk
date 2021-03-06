@@ -830,8 +830,8 @@ class CompletionMetricsComputer {
       var lines = <LocationTableLine>[];
       for (var entry in metrics.locationMrrComputers.entries) {
         var count = entry.value.count;
-        var mrr = (1 / entry.value.mrr);
-        var mrr_5 = (1 / entry.value.mrr_5);
+        var mrr = 1 / entry.value.mrr;
+        var mrr_5 = 1 / entry.value.mrr_5;
         var product = count * mrr;
         lines.add(LocationTableLine(
             label: entry.key,

@@ -786,7 +786,7 @@ class Server {
     void installHandler(
         Stream<List<int>> stream, void Function(String) handler) {
       stream
-          .transform((Utf8Codec()).decoder)
+          .transform(Utf8Codec().decoder)
           .transform(LineSplitter())
           .listen(handler);
     }
