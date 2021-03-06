@@ -16,6 +16,7 @@ import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/track_widget_constructor_locations.dart';
 import 'package:_js_interop_checks/js_interop_checks.dart';
+import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 
 import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
@@ -92,11 +93,13 @@ class DevCompilerTarget extends Target {
         'dart:collection',
         'dart:html',
         'dart:indexed_db',
+        'dart:js_util',
         'dart:math',
         'dart:svg',
         'dart:web_audio',
         'dart:web_gl',
         'dart:web_sql',
+        'dart:_foreign_helper',
         'dart:_interceptors',
         'dart:_js_helper',
         'dart:_native_typed_data',
@@ -152,8 +155,10 @@ class DevCompilerTarget extends Target {
       {void Function(String msg) logger,
       ChangedStructureNotifier changedStructureNotifier}) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
+    var jsUtilOptimizer = JsUtilOptimizer(coreTypes);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
+      jsUtilOptimizer.visitLibrary(library);
       JsInteropChecks(
               coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,

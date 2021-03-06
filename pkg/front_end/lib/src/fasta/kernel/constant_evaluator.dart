@@ -989,6 +989,13 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
     return result;
   }
 
+  /// Execute the statement using the [StatementConstantEvaluator].
+  Constant execute(Statement statement) {
+    StatementConstantEvaluator statementEvaluator =
+        new StatementConstantEvaluator(this);
+    return statement.accept(statementEvaluator);
+  }
+
   /// Create an error-constant indicating that an error has been detected during
   /// constant evaluation.
   AbortConstant createErrorConstant(TreeNode node, Message message,
@@ -2738,17 +2745,7 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
         if (value is AbortConstant) return value;
         env.updateVariableValue(parameter, value);
       }
-      Statement body = function.body;
-      if (body is ReturnStatement) {
-        if (!enableConstFunctions) {
-          return createInvalidExpressionConstant(
-              node, "Return statements are not supported.");
-        }
-        return body.expression.accept(this);
-      } else {
-        return createInvalidExpressionConstant(
-            node, "Unsupported statement: ${body.runtimeType}.");
-      }
+      return execute(function.body);
     });
   }
 
@@ -3207,6 +3204,27 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
       node = node.parent;
     }
   }
+}
+
+class StatementConstantEvaluator extends StatementVisitor<Constant> {
+  ConstantEvaluator exprEvaluator;
+
+  StatementConstantEvaluator(this.exprEvaluator) {
+    if (!exprEvaluator.enableConstFunctions) {
+      throw new UnsupportedError("Const functions feature is not enabled.");
+    }
+  }
+
+  /// Evaluate the expression using the [ConstantEvaluator].
+  Constant evaluate(Expression expr) => expr.accept(exprEvaluator);
+
+  @override
+  Constant defaultStatement(Statement node) => throw new UnsupportedError(
+      'Statement constant evaluation does not support ${node.runtimeType}.');
+
+  @override
+  Constant visitReturnStatement(ReturnStatement node) =>
+      evaluate(node.expression);
 }
 
 class ConstantCoverage {

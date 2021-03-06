@@ -389,6 +389,7 @@ establish
 established
 estimate
 eval
+execute
 exhausted
 existence
 existentially
