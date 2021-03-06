@@ -49,7 +49,7 @@ class ConstructorInitializerResolver {
 
     _astResolver = AstResolver(_linker, _unitElement, initializerScope);
 
-    var body = _constructorNode.body as FunctionBodyImpl;
+    var body = _constructorNode.body;
     body.localVariableInfo = LocalVariableInfo();
 
     _initializers();

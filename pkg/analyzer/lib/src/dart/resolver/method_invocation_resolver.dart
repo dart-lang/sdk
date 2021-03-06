@@ -94,7 +94,7 @@ class MethodInvocationResolver {
       return;
     }
 
-    if (receiver is SimpleIdentifier) {
+    if (receiver is SimpleIdentifierImpl) {
       var receiverElement = receiver.staticElement;
       if (receiverElement is PrefixElement) {
         _resolveReceiverPrefix(node, receiverElement, nameNode, name);
@@ -102,7 +102,7 @@ class MethodInvocationResolver {
       }
     }
 
-    if (receiver is Identifier) {
+    if (receiver is IdentifierImpl) {
       var receiverElement = receiver.staticElement;
       if (receiverElement is ExtensionElement) {
         _resolveExtensionMember(
@@ -111,17 +111,17 @@ class MethodInvocationResolver {
       }
     }
 
-    if (receiver is SuperExpression) {
+    if (receiver is SuperExpressionImpl) {
       _resolveReceiverSuper(node, receiver, nameNode, name);
       return;
     }
 
-    if (receiver is ExtensionOverride) {
+    if (receiver is ExtensionOverrideImpl) {
       _resolveExtensionOverride(node, receiver, nameNode, name);
       return;
     }
 
-    if (receiver is Identifier) {
+    if (receiver is IdentifierImpl) {
       var element = receiver.staticElement;
       if (element is ClassElement) {
         _resolveReceiverTypeLiteral(node, element, nameNode, name);

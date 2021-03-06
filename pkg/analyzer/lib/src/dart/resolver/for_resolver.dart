@@ -23,9 +23,9 @@ class ForResolver {
 
   void resolveElement(ForElementImpl node) {
     var forLoopParts = node.forLoopParts;
-    if (forLoopParts is ForParts) {
+    if (forLoopParts is ForPartsImpl) {
       _forParts(node, forLoopParts, node.body);
-    } else if (forLoopParts is ForEachParts) {
+    } else if (forLoopParts is ForEachPartsImpl) {
       _forEachParts(node, node.awaitKeyword != null, forLoopParts, node.body);
     }
   }
@@ -34,9 +34,9 @@ class ForResolver {
     _resolver.checkUnreachableNode(node);
 
     var forLoopParts = node.forLoopParts;
-    if (forLoopParts is ForParts) {
+    if (forLoopParts is ForPartsImpl) {
       _forParts(node, forLoopParts, node.body);
-    } else if (forLoopParts is ForEachParts) {
+    } else if (forLoopParts is ForEachPartsImpl) {
       _forEachParts(node, node.awaitKeyword != null, forLoopParts, node.body);
     }
   }

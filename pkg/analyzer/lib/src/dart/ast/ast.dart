@@ -50,7 +50,7 @@ class AdjacentStringsImpl extends StringLiteralImpl implements AdjacentStrings {
   Token get endToken => _strings.endToken!;
 
   @override
-  NodeList<StringLiteral> get strings => _strings;
+  NodeListImpl<StringLiteral> get strings => _strings;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAdjacentStrings(this);
@@ -107,7 +107,7 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   }
 
   @override
-  Comment? get documentationComment => _comment;
+  CommentImpl? get documentationComment => _comment;
 
   @override
   set documentationComment(Comment? comment) {
@@ -115,7 +115,7 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   }
 
   @override
-  NodeList<Annotation> get metadata => _metadata;
+  NodeListImpl<Annotation> get metadata => _metadata;
 
   @override
   List<AstNode> get sortedCommentAndAnnotations {
@@ -226,7 +226,7 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   }
 
   @override
-  ArgumentList? get arguments => _arguments;
+  ArgumentListImpl? get arguments => _arguments;
 
   @override
   set arguments(ArgumentList? arguments) {
@@ -246,7 +246,7 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
     ..add(_arguments);
 
   @override
-  SimpleIdentifier? get constructorName => _constructorName;
+  SimpleIdentifierImpl? get constructorName => _constructorName;
 
   @override
   set constructorName(SimpleIdentifier? name) {
@@ -279,7 +279,7 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   }
 
   @override
-  Identifier get name => _name;
+  IdentifierImpl get name => _name;
 
   @override
   set name(Identifier name) {
@@ -290,7 +290,7 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   AstNode get parent => super.parent!;
 
   @override
-  TypeArgumentList? get typeArguments => _typeArguments;
+  TypeArgumentListImpl? get typeArguments => _typeArguments;
 
   /// Sets the type arguments to the constructor being invoked to the given
   /// [typeArguments].
@@ -347,7 +347,7 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   }
 
   @override
-  NodeList<Expression> get arguments => _arguments;
+  NodeListImpl<Expression> get arguments => _arguments;
 
   @override
   Token get beginToken => leftParenthesis;
@@ -440,7 +440,7 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   Token get endToken => _type.endToken;
 
   @override
-  Expression get expression => _expression;
+  ExpressionImpl get expression => _expression;
 
   @override
   set expression(Expression expression) {
@@ -451,7 +451,7 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   Precedence get precedence => Precedence.relational;
 
   @override
-  TypeAnnotation get type => _type;
+  TypeAnnotationImpl get type => _type;
 
   @override
   set type(TypeAnnotation type) {
@@ -513,7 +513,7 @@ class AssertInitializerImpl extends ConstructorInitializerImpl
     ..add(rightParenthesis);
 
   @override
-  Expression get condition => _condition;
+  ExpressionImpl get condition => _condition;
 
   @override
   set condition(Expression condition) {
@@ -524,7 +524,7 @@ class AssertInitializerImpl extends ConstructorInitializerImpl
   Token get endToken => rightParenthesis;
 
   @override
-  Expression? get message => _message;
+  ExpressionImpl? get message => _message;
 
   @override
   set message(Expression? expression) {
@@ -589,7 +589,7 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
     ..add(semicolon);
 
   @override
-  Expression get condition => _condition;
+  ExpressionImpl get condition => _condition;
 
   @override
   set condition(Expression condition) {
@@ -600,7 +600,7 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
   Token get endToken => semicolon;
 
   @override
-  Expression? get message => _message;
+  ExpressionImpl? get message => _message;
 
   @override
   set message(Expression? expression) {
@@ -659,7 +659,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
   Token get endToken => _rightHandSide.endToken;
 
   @override
-  Expression get leftHandSide => _leftHandSide;
+  ExpressionImpl get leftHandSide => _leftHandSide;
 
   @override
   set leftHandSide(Expression expression) {
@@ -670,7 +670,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.assignment;
 
   @override
-  Expression get rightHandSide => _rightHandSide;
+  ExpressionImpl get rightHandSide => _rightHandSide;
 
   @override
   set rightHandSide(Expression expression) {
@@ -869,7 +869,7 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
   Token get endToken => _expression.endToken;
 
   @override
-  Expression get expression => _expression;
+  ExpressionImpl get expression => _expression;
 
   @override
   set expression(Expression expression) {
@@ -929,7 +929,7 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   Token get endToken => _rightOperand.endToken;
 
   @override
-  Expression get leftOperand => _leftOperand;
+  ExpressionImpl get leftOperand => _leftOperand;
 
   @override
   set leftOperand(Expression expression) {
@@ -940,7 +940,7 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   Precedence get precedence => Precedence.forTokenType(operator.type);
 
   @override
-  Expression get rightOperand => _rightOperand;
+  ExpressionImpl get rightOperand => _rightOperand;
 
   @override
   set rightOperand(Expression expression) {
@@ -993,7 +993,7 @@ class BlockFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @override
-  Block get block => _block;
+  BlockImpl get block => _block;
 
   @override
   set block(Block block) {
@@ -1059,7 +1059,7 @@ class BlockImpl extends StatementImpl implements Block {
   Token get endToken => rightBracket;
 
   @override
-  NodeList<Statement> get statements => _statements;
+  NodeListImpl<Statement> get statements => _statements;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlock(this);
@@ -1150,7 +1150,7 @@ class BreakStatementImpl extends StatementImpl implements BreakStatement {
   Token get endToken => semicolon;
 
   @override
-  SimpleIdentifier? get label => _label;
+  SimpleIdentifierImpl? get label => _label;
 
   @override
   set label(SimpleIdentifier? identifier) {
@@ -1200,7 +1200,7 @@ class CascadeExpressionImpl extends ExpressionImpl
   Token get beginToken => _target.beginToken;
 
   @override
-  NodeList<Expression> get cascadeSections => _cascadeSections;
+  NodeListImpl<Expression> get cascadeSections => _cascadeSections;
 
   @override
   Iterable<SyntacticEntity> get childEntities => ChildEntities()
@@ -1219,7 +1219,7 @@ class CascadeExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.cascade;
 
   @override
-  Expression get target => _target;
+  ExpressionImpl get target => _target;
 
   @override
   set target(Expression target) {
@@ -1321,7 +1321,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 
   @override
-  Block get body => _body;
+  BlockImpl get body => _body;
 
   @override
   set body(Block block) {
@@ -1344,7 +1344,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   Token get endToken => _body.endToken;
 
   @override
-  SimpleIdentifier? get exceptionParameter => _exceptionParameter;
+  SimpleIdentifierImpl? get exceptionParameter => _exceptionParameter;
 
   @override
   set exceptionParameter(SimpleIdentifier? parameter) {
@@ -1352,7 +1352,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 
   @override
-  TypeAnnotation? get exceptionType => _exceptionType;
+  TypeAnnotationImpl? get exceptionType => _exceptionType;
 
   @override
   set exceptionType(TypeAnnotation? exceptionType) {
@@ -1360,7 +1360,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 
   @override
-  SimpleIdentifier? get stackTraceParameter => _stackTraceParameter;
+  SimpleIdentifierImpl? get stackTraceParameter => _stackTraceParameter;
 
   @override
   set stackTraceParameter(SimpleIdentifier? parameter) {
@@ -1479,7 +1479,7 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   ClassElement? get declaredElement => _name.staticElement as ClassElement?;
 
   @override
-  ExtendsClause? get extendsClause => _extendsClause;
+  ExtendsClauseImpl? get extendsClause => _extendsClause;
 
   @override
   set extendsClause(ExtendsClause? extendsClause) {
@@ -1498,7 +1498,7 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   bool get isAbstract => abstractKeyword != null;
 
   @override
-  NativeClause? get nativeClause => _nativeClause;
+  NativeClauseImpl? get nativeClause => _nativeClause;
 
   @override
   set nativeClause(NativeClause? nativeClause) {
@@ -1506,7 +1506,7 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   }
 
   @override
-  WithClause? get withClause => _withClause;
+  WithClauseImpl? get withClause => _withClause;
 
   @override
   set withClause(WithClause? withClause) {
@@ -1597,7 +1597,7 @@ abstract class ClassOrMixinDeclarationImpl
   Token get endToken => rightBracket;
 
   @override
-  ImplementsClause? get implementsClause => _implementsClause;
+  ImplementsClauseImpl? get implementsClause => _implementsClause;
 
   set implementsClause(ImplementsClause? implementsClause) {
     _implementsClause =
@@ -1605,10 +1605,10 @@ abstract class ClassOrMixinDeclarationImpl
   }
 
   @override
-  NodeList<ClassMember> get members => _members;
+  NodeListImpl<ClassMember> get members => _members;
 
   @override
-  TypeParameterList? get typeParameters => _typeParameters;
+  TypeParameterListImpl? get typeParameters => _typeParameters;
 
   set typeParameters(TypeParameterList? typeParameters) {
     _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
@@ -1734,7 +1734,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl
   }
 
   @override
-  ImplementsClause? get implementsClause => _implementsClause;
+  ImplementsClauseImpl? get implementsClause => _implementsClause;
 
   @override
   set implementsClause(ImplementsClause? implementsClause) {
@@ -1746,7 +1746,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl
   bool get isAbstract => abstractKeyword != null;
 
   @override
-  TypeName get superclass => _superclass;
+  TypeNameImpl get superclass => _superclass;
 
   @override
   set superclass(TypeName superclass) {
@@ -1754,7 +1754,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl
   }
 
   @override
-  TypeParameterList? get typeParameters => _typeParameters;
+  TypeParameterListImpl? get typeParameters => _typeParameters;
 
   @override
   set typeParameters(TypeParameterList? typeParameters) {
@@ -1762,7 +1762,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl
   }
 
   @override
-  WithClause get withClause => _withClause;
+  WithClauseImpl get withClause => _withClause;
 
   @override
   set withClause(WithClause withClause) {
@@ -1861,7 +1861,7 @@ class CommentImpl extends AstNodeImpl implements Comment {
   bool get isEndOfLine => _type == CommentType.END_OF_LINE;
 
   @override
-  NodeList<CommentReference> get references => _references;
+  NodeListImpl<CommentReference> get references => _references;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitComment(this);
@@ -1920,7 +1920,7 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
   Token get endToken => _identifier.endToken;
 
   @override
-  Identifier get identifier => _identifier;
+  IdentifierImpl get identifier => _identifier;
 
   @override
   set identifier(Identifier identifier) {
@@ -2048,10 +2048,10 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   }
 
   @override
-  NodeList<CompilationUnitMember> get declarations => _declarations;
+  NodeListImpl<CompilationUnitMember> get declarations => _declarations;
 
   @override
-  NodeList<Directive> get directives => _directives;
+  NodeListImpl<Directive> get directives => _directives;
 
   @override
   set element(CompilationUnitElement? element) {
@@ -2203,7 +2203,7 @@ class ConditionalExpressionImpl extends ExpressionImpl
     ..add(_elseExpression);
 
   @override
-  Expression get condition => _condition;
+  ExpressionImpl get condition => _condition;
 
   @override
   set condition(Expression expression) {
@@ -2211,7 +2211,7 @@ class ConditionalExpressionImpl extends ExpressionImpl
   }
 
   @override
-  Expression get elseExpression => _elseExpression;
+  ExpressionImpl get elseExpression => _elseExpression;
 
   @override
   set elseExpression(Expression expression) {
@@ -2225,7 +2225,7 @@ class ConditionalExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.conditional;
 
   @override
-  Expression get thenExpression => _thenExpression;
+  ExpressionImpl get thenExpression => _thenExpression;
 
   @override
   set thenExpression(Expression expression) {
@@ -2300,7 +2300,7 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   Token get endToken => _uri.endToken;
 
   @override
-  DottedName get name => _name;
+  DottedNameImpl get name => _name;
 
   @override
   set name(DottedName name) {
@@ -2308,7 +2308,7 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }
 
   @override
-  StringLiteral get uri => _uri;
+  StringLiteralImpl get uri => _uri;
 
   @override
   set uri(StringLiteral uri) {
@@ -2316,7 +2316,7 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }
 
   @override
-  StringLiteral? get value => _value;
+  StringLiteralImpl? get value => _value;
 
   @override
   set value(StringLiteral? value) {
@@ -2449,7 +2449,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  FunctionBody get body => _body;
+  FunctionBodyImpl get body => _body;
 
   @override
   set body(FunctionBody functionBody) {
@@ -2486,10 +2486,10 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  NodeList<ConstructorInitializer> get initializers => _initializers;
+  NodeListImpl<ConstructorInitializer> get initializers => _initializers;
 
   @override
-  SimpleIdentifier? get name => _name;
+  SimpleIdentifierImpl? get name => _name;
 
   @override
   set name(SimpleIdentifier? identifier) {
@@ -2497,7 +2497,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  FormalParameterList get parameters => _parameters;
+  FormalParameterListImpl get parameters => _parameters;
 
   @override
   set parameters(FormalParameterList parameters) {
@@ -2505,7 +2505,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  ConstructorName? get redirectedConstructor => _redirectedConstructor;
+  ConstructorNameImpl? get redirectedConstructor => _redirectedConstructor;
 
   @override
   set redirectedConstructor(ConstructorName? redirectedConstructor) {
@@ -2514,7 +2514,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  Identifier get returnType => _returnType;
+  IdentifierImpl get returnType => _returnType;
 
   @override
   set returnType(Identifier typeName) {
@@ -2591,7 +2591,7 @@ class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   Token get endToken => _expression.endToken;
 
   @override
-  Expression get expression => _expression;
+  ExpressionImpl get expression => _expression;
 
   @override
   set expression(Expression expression) {
@@ -2599,7 +2599,7 @@ class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   }
 
   @override
-  SimpleIdentifier get fieldName => _fieldName;
+  SimpleIdentifierImpl get fieldName => _fieldName;
 
   @override
   set fieldName(SimpleIdentifier identifier) {
@@ -2672,7 +2672,7 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   }
 
   @override
-  SimpleIdentifier? get name => _name;
+  SimpleIdentifierImpl? get name => _name;
 
   @override
   set name(SimpleIdentifier? name) {
@@ -2680,7 +2680,7 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   }
 
   @override
-  TypeName get type => _type;
+  TypeNameImpl get type => _type;
 
   @override
   set type(TypeName type) {
@@ -2739,7 +2739,7 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
   Token get endToken => semicolon;
 
   @override
-  SimpleIdentifier? get label => _label;
+  SimpleIdentifierImpl? get label => _label;
 
   @override
   set label(SimpleIdentifier? identifier) {
@@ -2818,7 +2818,7 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   }
 
   @override
-  SimpleIdentifier get identifier => _identifier;
+  SimpleIdentifierImpl get identifier => _identifier;
 
   @override
   set identifier(SimpleIdentifier identifier) {
@@ -2832,7 +2832,7 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @override
-  TypeAnnotation? get type => _type;
+  TypeAnnotationImpl? get type => _type;
 
   @override
   set type(TypeAnnotation? type) {
@@ -2915,7 +2915,7 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   ParameterElement? get declaredElement => _parameter.declaredElement;
 
   @override
-  Expression? get defaultValue => _defaultValue;
+  ExpressionImpl? get defaultValue => _defaultValue;
 
   @override
   set defaultValue(Expression? expression) {
@@ -2931,7 +2931,7 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   }
 
   @override
-  SimpleIdentifier? get identifier => _parameter.identifier;
+  SimpleIdentifierImpl? get identifier => _parameter.identifier;
 
   @override
   bool get isConst => _parameter.isConst;
@@ -2940,10 +2940,10 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   bool get isFinal => _parameter.isFinal;
 
   @override
-  NodeList<Annotation> get metadata => _parameter.metadata;
+  NodeListImpl<Annotation> get metadata => _parameter.metadata;
 
   @override
-  NormalFormalParameter get parameter => _parameter;
+  NormalFormalParameterImpl get parameter => _parameter;
 
   @override
   set parameter(NormalFormalParameter formalParameter) {
@@ -3041,7 +3041,7 @@ class DoStatementImpl extends StatementImpl implements DoStatement {
   Token get beginToken => doKeyword;
 
   @override
-  Statement get body => _body;
+  StatementImpl get body => _body;
 
   @override
   set body(Statement statement) {
@@ -3059,7 +3059,7 @@ class DoStatementImpl extends StatementImpl implements DoStatement {
     ..add(semicolon);
 
   @override
-  Expression get condition => _condition;
+  ExpressionImpl get condition => _condition;
 
   @override
   set condition(Expression expression) {
@@ -3101,7 +3101,7 @@ class DottedNameImpl extends AstNodeImpl implements DottedName {
       ChildEntities()..addAll(_components);
 
   @override
-  NodeList<SimpleIdentifier> get components => _components;
+  NodeListImpl<SimpleIdentifier> get components => _components;
 
   @override
   Token get endToken => _components.endToken!;
@@ -3252,7 +3252,7 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
 
   @override
-  SimpleIdentifier get name => _name;
+  SimpleIdentifierImpl get name => _name;
 
   @override
   set name(SimpleIdentifier name) {
@@ -3319,7 +3319,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..add(rightBracket);
 
   @override
-  NodeList<EnumConstantDeclaration> get constants => _constants;
+  NodeListImpl<EnumConstantDeclaration> get constants => _constants;
 
   @override
   ClassElement? get declaredElement => _name.staticElement as ClassElement?;
@@ -3453,7 +3453,7 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @override
-  Expression get expression => _expression;
+  ExpressionImpl get expression => _expression;
 
   @override
   set expression(Expression expression) {
@@ -3578,7 +3578,7 @@ abstract class ExpressionImpl extends AstNodeImpl
   }
 
   @override
-  Expression get unParenthesized => this;
+  ExpressionImpl get unParenthesized => this;
 }
 
 /// An expression used as a statement.
@@ -3616,7 +3616,7 @@ class ExpressionStatementImpl extends StatementImpl
   }
 
   @override
-  Expression get expression => _expression;
+  ExpressionImpl get expression => _expression;
 
   @override
   set expression(Expression expression) {
@@ -3664,7 +3664,7 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   Token get endToken => _superclass.endToken;
 
   @override
-  TypeName get superclass => _superclass;
+  TypeNameImpl get superclass => _superclass;
 
   @override
   set superclass(TypeName name) {
@@ -3759,7 +3759,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   Token get endToken => rightBracket;
 
   @override
-  TypeAnnotation get extendedType => _extendedType;
+  TypeAnnotationImpl get extendedType => _extendedType;
 
   set extendedType(TypeAnnotation extendedClass) {
     _extendedType = _becomeParentOf(extendedClass as TypeAnnotationImpl);
@@ -3769,17 +3769,17 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   Token get firstTokenAfterCommentAndMetadata => extensionKeyword;
 
   @override
-  NodeList<ClassMember> get members => _members;
+  NodeListImpl<ClassMember> get members => _members;
 
   @override
-  SimpleIdentifier? get name => _name;
+  SimpleIdentifierImpl? get name => _name;
 
   set name(SimpleIdentifier? identifier) {
     _name = _becomeParentOf(identifier as SimpleIdentifierImpl?);
   }
 
   @override
-  TypeParameterList? get typeParameters => _typeParameters;
+  TypeParameterListImpl? get typeParameters => _typeParameters;
 
   set typeParameters(TypeParameterList? typeParameters) {
     _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
@@ -3831,7 +3831,7 @@ class ExtensionOverrideImpl extends ExpressionImpl
   }
 
   @override
-  ArgumentList get argumentList => _argumentList;
+  ArgumentListImpl get argumentList => _argumentList;
 
   set argumentList(ArgumentList argumentList) {
     _argumentList = _becomeParentOf(argumentList as ArgumentListImpl);
@@ -3850,7 +3850,7 @@ class ExtensionOverrideImpl extends ExpressionImpl
   Token get endToken => _argumentList.endToken;
 
   @override
-  Identifier get extensionName => _extensionName;
+  IdentifierImpl get extensionName => _extensionName;
 
   set extensionName(Identifier extensionName) {
     _extensionName = _becomeParentOf(extensionName as IdentifierImpl);
@@ -3872,7 +3872,7 @@ class ExtensionOverrideImpl extends ExpressionImpl
   }
 
   @override
-  TypeArgumentList? get typeArguments => _typeArguments;
+  TypeArgumentListImpl? get typeArguments => _typeArguments;
 
   set typeArguments(TypeArgumentList? typeArguments) {
     _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl?);
@@ -3948,7 +3948,7 @@ class FieldDeclarationImpl extends ClassMemberImpl
   Token get endToken => semicolon;
 
   @override
-  VariableDeclarationList get fields => _fieldList;
+  VariableDeclarationListImpl get fields => _fieldList;
 
   @override
   set fields(VariableDeclarationList fields) {
@@ -4047,7 +4047,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    NodeList<Annotation> metadata = this.metadata;
+    NodeListImpl<Annotation> metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
     } else if (requiredKeyword != null) {
@@ -4077,7 +4077,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  SimpleIdentifier get identifier => super.identifier!;
+  SimpleIdentifierImpl get identifier => super.identifier!;
 
   @override
   bool get isConst => keyword?.keyword == Keyword.CONST;
@@ -4086,7 +4086,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @override
-  FormalParameterList? get parameters => _parameters;
+  FormalParameterListImpl? get parameters => _parameters;
 
   @override
   set parameters(FormalParameterList? parameters) {
@@ -4094,7 +4094,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  TypeAnnotation? get type => _type;
+  TypeAnnotationImpl? get type => _type;
 
   @override
   set type(TypeAnnotation? type) {
@@ -4102,7 +4102,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  TypeParameterList? get typeParameters => _typeParameters;
+  TypeParameterListImpl? get typeParameters => _typeParameters;
 
   @override
   set typeParameters(TypeParameterList? typeParameters) {
@@ -4149,7 +4149,7 @@ abstract class ForEachPartsImpl extends ForLoopPartsImpl
   Token get endToken => _iterable.endToken;
 
   @override
-  Expression get iterable => _iterable;
+  ExpressionImpl get iterable => _iterable;
 
   set iterable(Expression expression) {
     _iterable = _becomeParentOf(expression as ExpressionImpl);
@@ -4183,7 +4183,7 @@ class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
     ..addAll(super.childEntities);
 
   @override
-  DeclaredIdentifier get loopVariable => _loopVariable;
+  DeclaredIdentifierImpl get loopVariable => _loopVariable;
 
   set loopVariable(DeclaredIdentifier variable) {
     _loopVariable = _becomeParentOf(variable as DeclaredIdentifierImpl);
@@ -4222,7 +4222,7 @@ class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     ..addAll(super.childEntities);
 
   @override
-  SimpleIdentifier get identifier => _identifier;
+  SimpleIdentifierImpl get identifier => _identifier;
 
   set identifier(SimpleIdentifier identifier) {
     _identifier = _becomeParentOf(identifier as SimpleIdentifierImpl);
@@ -4268,7 +4268,7 @@ class ForElementImpl extends CollectionElementImpl implements ForElement {
   Token get beginToken => awaitKeyword ?? forKeyword;
 
   @override
-  CollectionElement get body => _body;
+  CollectionElementImpl get body => _body;
 
   set body(CollectionElement statement) {
     _body = _becomeParentOf(statement as CollectionElementImpl);
@@ -4287,7 +4287,7 @@ class ForElementImpl extends CollectionElementImpl implements ForElement {
   Token get endToken => _body.endToken;
 
   @override
-  ForLoopParts get forLoopParts => _forLoopParts;
+  ForLoopPartsImpl get forLoopParts => _forLoopParts;
 
   set forLoopParts(ForLoopParts forLoopParts) {
     _forLoopParts = _becomeParentOf(forLoopParts as ForLoopPartsImpl);
@@ -4462,7 +4462,7 @@ class FormalParameterListImpl extends AstNodeImpl
   }
 
   @override
-  NodeList<FormalParameter> get parameters => _parameters;
+  NodeListImpl<FormalParameter> get parameters => _parameters;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFormalParameterList(this);
@@ -4508,7 +4508,7 @@ abstract class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
     ..addAll(_updaters);
 
   @override
-  Expression? get condition => _condition;
+  ExpressionImpl? get condition => _condition;
 
   set condition(Expression? expression) {
     _condition = _becomeParentOf(expression as ExpressionImpl?);
@@ -4518,7 +4518,7 @@ abstract class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   Token get endToken => _updaters.endToken ?? rightSeparator;
 
   @override
-  NodeList<Expression> get updaters => _updaters;
+  NodeListImpl<Expression> get updaters => _updaters;
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -4556,7 +4556,7 @@ class ForPartsWithDeclarationsImpl extends ForPartsImpl
     ..addAll(super.childEntities);
 
   @override
-  VariableDeclarationList get variables => _variableList;
+  VariableDeclarationListImpl get variables => _variableList;
 
   set variables(VariableDeclarationList? variableList) {
     _variableList =
@@ -4603,7 +4603,7 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
     ..addAll(super.childEntities);
 
   @override
-  Expression? get initialization => _initialization;
+  ExpressionImpl? get initialization => _initialization;
 
   set initialization(Expression? initialization) {
     _initialization = _becomeParentOf(initialization as ExpressionImpl?);
@@ -4649,7 +4649,7 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
   Token get beginToken => awaitKeyword ?? forKeyword;
 
   @override
-  Statement get body => _body;
+  StatementImpl get body => _body;
 
   set body(Statement statement) {
     _body = _becomeParentOf(statement as StatementImpl);
@@ -4668,7 +4668,7 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
   Token get endToken => _body.endToken;
 
   @override
-  ForLoopParts get forLoopParts => _forLoopParts;
+  ForLoopPartsImpl get forLoopParts => _forLoopParts;
 
   set forLoopParts(ForLoopParts forLoopParts) {
     _forLoopParts = _becomeParentOf(forLoopParts as ForLoopPartsImpl);
@@ -4809,7 +4809,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   }
 
   @override
-  FunctionExpression get functionExpression => _functionExpression;
+  FunctionExpressionImpl get functionExpression => _functionExpression;
 
   @override
   set functionExpression(FunctionExpression functionExpression) {
@@ -4824,7 +4824,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   bool get isSetter => propertyKeyword?.keyword == Keyword.SET;
 
   @override
-  TypeAnnotation? get returnType => _returnType;
+  TypeAnnotationImpl? get returnType => _returnType;
 
   @override
   set returnType(TypeAnnotation? type) {
@@ -4865,7 +4865,7 @@ class FunctionDeclarationStatementImpl extends StatementImpl
   Token get endToken => _functionDeclaration.endToken;
 
   @override
-  FunctionDeclaration get functionDeclaration => _functionDeclaration;
+  FunctionDeclarationImpl get functionDeclaration => _functionDeclaration;
 
   @override
   set functionDeclaration(FunctionDeclaration functionDeclaration) {
@@ -4921,7 +4921,7 @@ class FunctionExpressionImpl extends ExpressionImpl
   }
 
   @override
-  FunctionBody get body => _body;
+  FunctionBodyImpl get body => _body;
 
   @override
   set body(FunctionBody functionBody) {
@@ -4938,7 +4938,7 @@ class FunctionExpressionImpl extends ExpressionImpl
   }
 
   @override
-  FormalParameterList? get parameters => _parameters;
+  FormalParameterListImpl? get parameters => _parameters;
 
   @override
   set parameters(FormalParameterList? parameters) {
@@ -4949,7 +4949,7 @@ class FunctionExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.primary;
 
   @override
-  TypeParameterList? get typeParameters => _typeParameters;
+  TypeParameterListImpl? get typeParameters => _typeParameters;
 
   @override
   set typeParameters(TypeParameterList? typeParameters) {
@@ -5004,7 +5004,7 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   Token get endToken => _argumentList.endToken;
 
   @override
-  Expression get function => _function;
+  ExpressionImpl get function => _function;
 
   @override
   set function(Expression expression) {
@@ -5089,7 +5089,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl
       _name.staticElement as FunctionTypeAliasElement?;
 
   @override
-  FormalParameterList get parameters => _parameters;
+  FormalParameterListImpl get parameters => _parameters;
 
   @override
   set parameters(FormalParameterList parameters) {
@@ -5097,7 +5097,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl
   }
 
   @override
-  TypeAnnotation? get returnType => _returnType;
+  TypeAnnotationImpl? get returnType => _returnType;
 
   @override
   set returnType(TypeAnnotation? type) {
@@ -5105,7 +5105,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl
   }
 
   @override
-  TypeParameterList? get typeParameters => _typeParameters;
+  TypeParameterListImpl? get typeParameters => _typeParameters;
 
   @override
   set typeParameters(TypeParameterList? typeParameters) {
@@ -5169,7 +5169,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    NodeList<Annotation> metadata = this.metadata;
+    NodeListImpl<Annotation> metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
     } else if (requiredKeyword != null) {
@@ -5190,7 +5190,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   Token get endToken => question ?? _parameters.endToken;
 
   @override
-  SimpleIdentifier get identifier => super.identifier!;
+  SimpleIdentifierImpl get identifier => super.identifier!;
 
   @override
   bool get isConst => false;
@@ -5199,7 +5199,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   bool get isFinal => false;
 
   @override
-  FormalParameterList get parameters => _parameters;
+  FormalParameterListImpl get parameters => _parameters;
 
   @override
   set parameters(FormalParameterList parameters) {
@@ -5207,7 +5207,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  TypeAnnotation? get returnType => _returnType;
+  TypeAnnotationImpl? get returnType => _returnType;
 
   @override
   set returnType(TypeAnnotation? type) {
@@ -5215,7 +5215,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  TypeParameterList? get typeParameters => _typeParameters;
+  TypeParameterListImpl? get typeParameters => _typeParameters;
 
   @override
   set typeParameters(TypeParameterList? typeParameters) {
@@ -5314,7 +5314,7 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
   Token get endToken => question ?? _parameters.endToken;
 
   @override
-  FormalParameterList get parameters => _parameters;
+  FormalParameterListImpl get parameters => _parameters;
 
   @override
   set parameters(FormalParameterList parameters) {
@@ -5322,7 +5322,7 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
   }
 
   @override
-  TypeAnnotation? get returnType => _returnType;
+  TypeAnnotationImpl? get returnType => _returnType;
 
   @override
   set returnType(TypeAnnotation? type) {
@@ -5332,7 +5332,7 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
   /// Return the type parameters for the function type, or `null` if the
   /// function type does not have any type parameters.
   @override
-  TypeParameterList? get typeParameters => _typeParameters;
+  TypeParameterListImpl? get typeParameters => _typeParameters;
 
   /// Set the type parameters for the function type to the given list of
   /// [typeParameters].
@@ -5419,7 +5419,7 @@ class GenericTypeAliasImpl extends TypeAliasImpl
   }
 
   @override
-  TypeAnnotation get type => _type;
+  TypeAnnotationImpl get type => _type;
 
   /// Set the type being defined by the alias to the given [TypeAnnotation].
   set type(TypeAnnotation typeAnnotation) {
@@ -5427,7 +5427,7 @@ class GenericTypeAliasImpl extends TypeAliasImpl
   }
 
   @override
-  TypeParameterList? get typeParameters => _typeParameters;
+  TypeParameterListImpl? get typeParameters => _typeParameters;
 
   @override
   set typeParameters(TypeParameterList? typeParameters) {
@@ -5476,7 +5476,7 @@ class HideCombinatorImpl extends CombinatorImpl implements HideCombinator {
   Token get endToken => _hiddenNames.endToken!;
 
   @override
-  NodeList<SimpleIdentifier> get hiddenNames => _hiddenNames;
+  NodeListImpl<SimpleIdentifier> get hiddenNames => _hiddenNames;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitHideCombinator(this);
@@ -5548,7 +5548,7 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
     ..add(_elseElement);
 
   @override
-  Expression get condition => _condition;
+  ExpressionImpl get condition => _condition;
 
   set condition(Expression condition) {
     _condition = _becomeParentOf(condition as ExpressionImpl);
@@ -5565,7 +5565,7 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
   Token get endToken => _elseElement?.endToken ?? _thenElement.endToken;
 
   @override
-  CollectionElement get thenElement => _thenElement;
+  CollectionElementImpl get thenElement => _thenElement;
 
   set thenElement(CollectionElement element) {
     _thenElement = _becomeParentOf(element as CollectionElementImpl);
@@ -5638,7 +5638,7 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
     ..add(_elseStatement);
 
   @override
-  Expression get condition => _condition;
+  ExpressionImpl get condition => _condition;
 
   @override
   set condition(Expression condition) {
@@ -5646,7 +5646,7 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   }
 
   @override
-  Statement? get elseStatement => _elseStatement;
+  StatementImpl? get elseStatement => _elseStatement;
 
   @override
   set elseStatement(Statement? statement) {
@@ -5662,7 +5662,7 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   }
 
   @override
-  Statement get thenStatement => _thenStatement;
+  StatementImpl get thenStatement => _thenStatement;
 
   @override
   set thenStatement(Statement statement) {
@@ -5710,7 +5710,7 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   Token get endToken => _interfaces.endToken!;
 
   @override
-  NodeList<TypeName> get interfaces => _interfaces;
+  NodeListImpl<TypeName> get interfaces => _interfaces;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitImplementsClause(this);
@@ -5781,7 +5781,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   ImportElement? get element => super.element as ImportElement?;
 
   @override
-  SimpleIdentifier? get prefix => _prefix;
+  SimpleIdentifierImpl? get prefix => _prefix;
 
   @override
   set prefix(SimpleIdentifier? identifier) {
@@ -5872,7 +5872,7 @@ class IndexExpressionImpl extends ExpressionImpl
   Token get endToken => rightBracket;
 
   @override
-  Expression get index => _index;
+  ExpressionImpl get index => _index;
 
   @override
   set index(Expression expression) {
@@ -5900,7 +5900,7 @@ class IndexExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.postfix;
 
   @override
-  Expression get realTarget {
+  ExpressionImpl get realTarget {
     if (isCascaded) {
       return _ancestorCascade.target;
     }
@@ -5908,7 +5908,7 @@ class IndexExpressionImpl extends ExpressionImpl
   }
 
   @override
-  Expression? get target => _target;
+  ExpressionImpl? get target => _target;
 
   @override
   set target(Expression? expression) {
@@ -5918,10 +5918,10 @@ class IndexExpressionImpl extends ExpressionImpl
   /// Return the cascade that contains this [IndexExpression].
   ///
   /// We expect that [isCascaded] is `true`.
-  CascadeExpression get _ancestorCascade {
+  CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
     for (var ancestor = parent!;; ancestor = ancestor.parent!) {
-      if (ancestor is CascadeExpression) {
+      if (ancestor is CascadeExpressionImpl) {
         return ancestor;
       }
     }
@@ -6033,7 +6033,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   }
 
   @override
-  ArgumentList get argumentList => _argumentList;
+  ArgumentListImpl get argumentList => _argumentList;
 
   @override
   set argumentList(ArgumentList argumentList) {
@@ -6051,7 +6051,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
     ..add(_argumentList);
 
   @override
-  ConstructorName get constructorName => _constructorName;
+  ConstructorNameImpl get constructorName => _constructorName;
 
   @override
   set constructorName(ConstructorName name) {
@@ -6080,7 +6080,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   /// with the class in which the constructor is defined. It is always an error
   /// if there are type arguments because Dart doesn't currently support generic
   /// constructors, but we capture them in the AST in order to recover better.
-  TypeArgumentList? get typeArguments => _typeArguments;
+  TypeArgumentListImpl? get typeArguments => _typeArguments;
 
   /// Return the type arguments associated with the constructor, rather than
   /// with the class in which the constructor is defined. It is always an error
@@ -6255,7 +6255,7 @@ class InterpolationExpressionImpl extends InterpolationElementImpl
   Token get endToken => rightBracket ?? _expression.endToken;
 
   @override
-  Expression get expression => _expression;
+  ExpressionImpl get expression => _expression;
 
   @override
   set expression(Expression expression) {
@@ -6345,14 +6345,14 @@ abstract class InvocationExpressionImpl extends ExpressionImpl
   }
 
   @override
-  ArgumentList get argumentList => _argumentList;
+  ArgumentListImpl get argumentList => _argumentList;
 
   set argumentList(ArgumentList argumentList) {
     _argumentList = _becomeParentOf(argumentList as ArgumentListImpl);
   }
 
   @override
-  TypeArgumentList? get typeArguments => _typeArguments;
+  TypeArgumentListImpl? get typeArguments => _typeArguments;
 
   set typeArguments(TypeArgumentList? typeArguments) {
     _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl?);
@@ -6400,7 +6400,7 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   Token get endToken => _type.endToken;
 
   @override
-  Expression get expression => _expression;
+  ExpressionImpl get expression => _expression;
 
   @override
   set expression(Expression expression) {
@@ -6411,7 +6411,7 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   Precedence get precedence => Precedence.relational;
 
   @override
-  TypeAnnotation get type => _type;
+  TypeAnnotationImpl get type => _type;
 
   @override
   set type(TypeAnnotation type) {
@@ -6462,10 +6462,10 @@ class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
   Token get endToken => _statement.endToken;
 
   @override
-  NodeList<Label> get labels => _labels;
+  NodeListImpl<Label> get labels => _labels;
 
   @override
-  Statement get statement => _statement;
+  StatementImpl get statement => _statement;
 
   @override
   set statement(Statement statement) {
@@ -6473,7 +6473,7 @@ class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
   }
 
   @override
-  Statement get unlabeled => _statement.unlabeled;
+  StatementImpl get unlabeled => _statement.unlabeled;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLabeledStatement(this);
@@ -6513,7 +6513,7 @@ class LabelImpl extends AstNodeImpl implements Label {
   Token get endToken => colon;
 
   @override
-  SimpleIdentifier get label => _label;
+  SimpleIdentifierImpl get label => _label;
 
   @override
   set label(SimpleIdentifier label) {
@@ -6573,7 +6573,7 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   Token get keyword => libraryKeyword;
 
   @override
-  LibraryIdentifier get name => _name;
+  LibraryIdentifierImpl get name => _name;
 
   @override
   set name(LibraryIdentifier name) {
@@ -6613,7 +6613,7 @@ class LibraryIdentifierImpl extends IdentifierImpl
       ChildEntities()..addAll(_components);
 
   @override
-  NodeList<SimpleIdentifier> get components => _components;
+  NodeListImpl<SimpleIdentifier> get components => _components;
 
   @override
   Token get endToken => _components.endToken!;
@@ -6707,7 +6707,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
     ..add(rightBracket);
 
   @override
-  NodeList<CollectionElement> get elements => _elements;
+  NodeListImpl<CollectionElement> get elements => _elements;
 
   @override
   Token get endToken => rightBracket;
@@ -6783,7 +6783,7 @@ class MapLiteralEntryImpl extends CollectionElementImpl
   Token get endToken => _value.endToken;
 
   @override
-  Expression get key => _key;
+  ExpressionImpl get key => _key;
 
   @override
   set key(Expression string) {
@@ -6791,7 +6791,7 @@ class MapLiteralEntryImpl extends CollectionElementImpl
   }
 
   @override
-  Expression get value => _value;
+  ExpressionImpl get value => _value;
 
   @override
   set value(Expression expression) {
@@ -6890,7 +6890,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  FunctionBody get body => _body;
+  FunctionBodyImpl get body => _body;
 
   @override
   set body(FunctionBody functionBody) {
@@ -6956,7 +6956,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
   bool get isStatic => modifierKeyword?.keyword == Keyword.STATIC;
 
   @override
-  SimpleIdentifier get name => _name;
+  SimpleIdentifierImpl get name => _name;
 
   @override
   set name(SimpleIdentifier identifier) {
@@ -6964,7 +6964,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  FormalParameterList? get parameters => _parameters;
+  FormalParameterListImpl? get parameters => _parameters;
 
   @override
   set parameters(FormalParameterList? parameters) {
@@ -6972,7 +6972,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  TypeAnnotation? get returnType => _returnType;
+  TypeAnnotationImpl? get returnType => _returnType;
 
   @override
   set returnType(TypeAnnotation? type) {
@@ -6980,7 +6980,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  TypeParameterList? get typeParameters => _typeParameters;
+  TypeParameterListImpl? get typeParameters => _typeParameters;
 
   @override
   set typeParameters(TypeParameterList? typeParameters) {
@@ -7060,7 +7060,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   Token get endToken => _argumentList.endToken;
 
   @override
-  Expression get function => methodName;
+  ExpressionImpl get function => methodName;
 
   @override
   bool get isCascaded =>
@@ -7079,7 +7079,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   }
 
   @override
-  SimpleIdentifier get methodName => _methodName;
+  SimpleIdentifierImpl get methodName => _methodName;
 
   @override
   set methodName(SimpleIdentifier identifier) {
@@ -7106,7 +7106,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   Precedence get precedence => Precedence.postfix;
 
   @override
-  Expression? get realTarget {
+  ExpressionImpl? get realTarget {
     if (isCascaded) {
       return _ancestorCascade.target;
     }
@@ -7114,7 +7114,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   }
 
   @override
-  Expression? get target => _target;
+  ExpressionImpl? get target => _target;
 
   @override
   set target(Expression? expression) {
@@ -7124,10 +7124,10 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   /// Return the cascade that contains this [IndexExpression].
   ///
   /// We expect that [isCascaded] is `true`.
-  CascadeExpression get _ancestorCascade {
+  CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
     for (var ancestor = parent!;; ancestor = ancestor.parent!) {
-      if (ancestor is CascadeExpression) {
+      if (ancestor is CascadeExpressionImpl) {
         return ancestor;
       }
     }
@@ -7209,7 +7209,7 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
   }
 
   @override
-  ImplementsClause? get implementsClause => _implementsClause;
+  ImplementsClauseImpl? get implementsClause => _implementsClause;
 
   @override
   set implementsClause(ImplementsClause? implementsClause) {
@@ -7218,7 +7218,7 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
   }
 
   @override
-  NodeList<ClassMember> get members => _members;
+  NodeListImpl<ClassMember> get members => _members;
 
   @override
   OnClause? get onClause => _onClause;
@@ -7228,7 +7228,7 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
   }
 
   @override
-  TypeParameterList? get typeParameters => _typeParameters;
+  TypeParameterListImpl? get typeParameters => _typeParameters;
 
   @override
   set typeParameters(TypeParameterList? typeParameters) {
@@ -7265,7 +7265,7 @@ abstract class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  SimpleIdentifier get name => _name;
+  SimpleIdentifierImpl get name => _name;
 
   @override
   set name(SimpleIdentifier identifier) {
@@ -7311,7 +7311,7 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
   Token get endToken => _expression.endToken;
 
   @override
-  Expression get expression => _expression;
+  ExpressionImpl get expression => _expression;
 
   @override
   set expression(Expression expression) {
@@ -7319,7 +7319,7 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
   }
 
   @override
-  Label get name => _name;
+  LabelImpl get name => _name;
 
   @override
   set name(Label identifier) {
@@ -7385,10 +7385,10 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   }
 
   @override
-  NodeList<Combinator> get combinators => _combinators;
+  NodeListImpl<Combinator> get combinators => _combinators;
 
   @override
-  NodeList<Configuration> get configurations => _configurations;
+  NodeListImpl<Configuration> get configurations => _configurations;
 
   @override
   Token get endToken => semicolon;
@@ -7430,7 +7430,7 @@ class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   }
 
   @override
-  StringLiteral? get name => _name;
+  StringLiteralImpl? get name => _name;
 
   @override
   set name(StringLiteral? name) {
@@ -7483,7 +7483,7 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
   Token get endToken => semicolon;
 
   @override
-  StringLiteral? get stringLiteral => _stringLiteral;
+  StringLiteralImpl? get stringLiteral => _stringLiteral;
 
   @override
   set stringLiteral(StringLiteral? stringLiteral) {
@@ -7540,7 +7540,7 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   }
 
   @override
-  AstNode get owner => _owner;
+  AstNodeImpl get owner => _owner;
 
   @override
   E operator [](int index) {
@@ -7650,7 +7650,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   }
 
   @override
-  Comment? get documentationComment => _comment;
+  CommentImpl? get documentationComment => _comment;
 
   @override
   set documentationComment(Comment? comment) {
@@ -7658,7 +7658,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   }
 
   @override
-  SimpleIdentifier? get identifier => _identifier;
+  SimpleIdentifierImpl? get identifier => _identifier;
 
   @override
   set identifier(SimpleIdentifier? identifier) {
@@ -7675,7 +7675,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   }
 
   @override
-  NodeList<Annotation> get metadata => _metadata;
+  NodeListImpl<Annotation> get metadata => _metadata;
 
   @override
   set metadata(List<Annotation> metadata) {
@@ -7818,7 +7818,7 @@ class OnClauseImpl extends AstNodeImpl implements OnClause {
   Token get endToken => _superclassConstraints.endToken!;
 
   @override
-  NodeList<TypeName> get superclassConstraints => _superclassConstraints;
+  NodeListImpl<TypeName> get superclassConstraints => _superclassConstraints;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitOnClause(this);
@@ -7865,7 +7865,7 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
   Token get endToken => rightParenthesis;
 
   @override
-  Expression get expression => _expression;
+  ExpressionImpl get expression => _expression;
 
   @override
   set expression(Expression expression) {
@@ -7876,10 +7876,10 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.primary;
 
   @override
-  Expression get unParenthesized {
+  ExpressionImpl get unParenthesized {
     // This is somewhat inefficient, but it avoids a stack overflow in the
     // degenerate case.
-    Expression expression = _expression;
+    var expression = _expression;
     while (expression is ParenthesizedExpressionImpl) {
       expression = expression._expression;
     }
@@ -7995,7 +7995,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   Token get keyword => partKeyword;
 
   @override
-  LibraryIdentifier? get libraryName => _libraryName;
+  LibraryIdentifierImpl? get libraryName => _libraryName;
 
   @override
   set libraryName(LibraryIdentifier? libraryName) {
@@ -8003,7 +8003,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   }
 
   @override
-  StringLiteral? get uri => _uri;
+  StringLiteralImpl? get uri => _uri;
 
   @override
   set uri(StringLiteral? uri) {
@@ -8057,7 +8057,7 @@ class PostfixExpressionImpl extends ExpressionImpl
   Token get endToken => operator;
 
   @override
-  Expression get operand => _operand;
+  ExpressionImpl get operand => _operand;
 
   @override
   set operand(Expression expression) {
@@ -8131,7 +8131,7 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   Token get endToken => _identifier.endToken;
 
   @override
-  SimpleIdentifier get identifier => _identifier;
+  SimpleIdentifierImpl get identifier => _identifier;
 
   @override
   set identifier(SimpleIdentifier identifier) {
@@ -8159,7 +8159,7 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   Precedence get precedence => Precedence.postfix;
 
   @override
-  SimpleIdentifier get prefix => _prefix;
+  SimpleIdentifierImpl get prefix => _prefix;
 
   @override
   set prefix(SimpleIdentifier identifier) {
@@ -8217,7 +8217,7 @@ class PrefixExpressionImpl extends ExpressionImpl
   Token get endToken => _operand.endToken;
 
   @override
-  Expression get operand => _operand;
+  ExpressionImpl get operand => _operand;
 
   @override
   set operand(Expression expression) {
@@ -8321,7 +8321,7 @@ class PropertyAccessImpl extends ExpressionImpl
   Precedence get precedence => Precedence.postfix;
 
   @override
-  SimpleIdentifier get propertyName => _propertyName;
+  SimpleIdentifierImpl get propertyName => _propertyName;
 
   @override
   set propertyName(SimpleIdentifier identifier) {
@@ -8329,7 +8329,7 @@ class PropertyAccessImpl extends ExpressionImpl
   }
 
   @override
-  Expression get realTarget {
+  ExpressionImpl get realTarget {
     if (isCascaded) {
       return _ancestorCascade.target;
     }
@@ -8337,7 +8337,7 @@ class PropertyAccessImpl extends ExpressionImpl
   }
 
   @override
-  Expression? get target => _target;
+  ExpressionImpl? get target => _target;
 
   @override
   set target(Expression? expression) {
@@ -8347,10 +8347,10 @@ class PropertyAccessImpl extends ExpressionImpl
   /// Return the cascade that contains this [IndexExpression].
   ///
   /// We expect that [isCascaded] is `true`.
-  CascadeExpression get _ancestorCascade {
+  CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
     for (var ancestor = parent!;; ancestor = ancestor.parent!) {
-      if (ancestor is CascadeExpression) {
+      if (ancestor is CascadeExpressionImpl) {
         return ancestor;
       }
     }
@@ -8412,7 +8412,7 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
   }
 
   @override
-  ArgumentList get argumentList => _argumentList;
+  ArgumentListImpl get argumentList => _argumentList;
 
   @override
   set argumentList(ArgumentList argumentList) {
@@ -8430,7 +8430,7 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
     ..add(_argumentList);
 
   @override
-  SimpleIdentifier? get constructorName => _constructorName;
+  SimpleIdentifierImpl? get constructorName => _constructorName;
 
   @override
   set constructorName(SimpleIdentifier? identifier) {
@@ -8520,7 +8520,7 @@ class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
   Token get endToken => semicolon;
 
   @override
-  Expression? get expression => _expression;
+  ExpressionImpl? get expression => _expression;
 
   @override
   set expression(Expression? expression) {
@@ -8625,7 +8625,7 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
     ..add(rightBracket);
 
   @override
-  NodeList<CollectionElement> get elements => _elements;
+  NodeListImpl<CollectionElement> get elements => _elements;
 
   @override
   Token get endToken => rightBracket;
@@ -8688,7 +8688,7 @@ class ShowCombinatorImpl extends CombinatorImpl implements ShowCombinator {
   Token get endToken => _shownNames.endToken!;
 
   @override
-  NodeList<SimpleIdentifier> get shownNames => _shownNames;
+  NodeListImpl<SimpleIdentifier> get shownNames => _shownNames;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitShowCombinator(this);
@@ -8739,7 +8739,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    NodeList<Annotation> metadata = this.metadata;
+    NodeListImpl<Annotation> metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
     } else if (requiredKeyword != null) {
@@ -8768,7 +8768,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @override
-  TypeAnnotation? get type => _type;
+  TypeAnnotationImpl? get type => _type;
 
   @override
   set type(TypeAnnotation? type) {
@@ -9097,7 +9097,7 @@ class SpreadElementImpl extends AstNodeImpl
   Token get endToken => _expression.endToken;
 
   @override
-  Expression get expression => _expression;
+  ExpressionImpl get expression => _expression;
 
   set expression(Expression expression) {
     _expression = _becomeParentOf(expression as ExpressionImpl);
@@ -9137,7 +9137,7 @@ class SpreadElementImpl extends AstNodeImpl
 ///      | [FunctionDeclarationStatement]
 abstract class StatementImpl extends AstNodeImpl implements Statement {
   @override
-  Statement get unlabeled => this;
+  StatementImpl get unlabeled => this;
 }
 
 /// A string interpolation literal.
@@ -9176,7 +9176,7 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
 
   /// Return the elements that will be composed to produce the resulting string.
   @override
-  NodeList<InterpolationElement> get elements => _elements;
+  NodeListImpl<InterpolationElement> get elements => _elements;
 
   @override
   Token get endToken => _elements.endToken!;
@@ -9365,7 +9365,7 @@ class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   }
 
   @override
-  ArgumentList get argumentList => _argumentList;
+  ArgumentListImpl get argumentList => _argumentList;
 
   @override
   set argumentList(ArgumentList argumentList) {
@@ -9383,7 +9383,7 @@ class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     ..add(_argumentList);
 
   @override
-  SimpleIdentifier? get constructorName => _constructorName;
+  SimpleIdentifierImpl? get constructorName => _constructorName;
 
   @override
   set constructorName(SimpleIdentifier? identifier) {
@@ -9463,7 +9463,7 @@ class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     ..addAll(statements);
 
   @override
-  Expression get expression => _expression;
+  ExpressionImpl get expression => _expression;
 
   @override
   set expression(Expression expression) {
@@ -9554,10 +9554,10 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
   }
 
   @override
-  NodeList<Label> get labels => _labels;
+  NodeListImpl<Label> get labels => _labels;
 
   @override
-  NodeList<Statement> get statements => _statements;
+  NodeListImpl<Statement> get statements => _statements;
 }
 
 /// A switch statement.
@@ -9623,7 +9623,7 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
   Token get endToken => rightBracket;
 
   @override
-  Expression get expression => _expression;
+  ExpressionImpl get expression => _expression;
 
   @override
   set expression(Expression expression) {
@@ -9631,7 +9631,7 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
   }
 
   @override
-  NodeList<SwitchMember> get members => _members;
+  NodeListImpl<SwitchMember> get members => _members;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchStatement(this);
@@ -9744,7 +9744,7 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
   }
 
   @override
-  Expression get expression => _expression;
+  ExpressionImpl get expression => _expression;
 
   @override
   set expression(Expression expression) {
@@ -9809,7 +9809,7 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
       externalKeyword ?? _variableList.beginToken;
 
   @override
-  VariableDeclarationList get variables => _variableList;
+  VariableDeclarationListImpl get variables => _variableList;
 
   @override
   set variables(VariableDeclarationList variables) {
@@ -9868,7 +9868,7 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
   Token get beginToken => tryKeyword;
 
   @override
-  Block get body => _body;
+  BlockImpl get body => _body;
 
   @override
   set body(Block block) {
@@ -9876,7 +9876,7 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
   }
 
   @override
-  NodeList<CatchClause> get catchClauses => _catchClauses;
+  NodeListImpl<CatchClause> get catchClauses => _catchClauses;
 
   @override
   Iterable<SyntacticEntity> get childEntities => ChildEntities()
@@ -9980,7 +9980,7 @@ class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
   }
 
   @override
-  NodeList<TypeAnnotation> get arguments => _arguments;
+  NodeListImpl<TypeAnnotation> get arguments => _arguments;
 
   @override
   Token get beginToken => leftBracket;
@@ -10032,7 +10032,7 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   }
 
   @override
-  TypeArgumentList? get typeArguments => _typeArguments;
+  TypeArgumentListImpl? get typeArguments => _typeArguments;
 
   @override
   set typeArguments(TypeArgumentList? typeArguments) {
@@ -10098,7 +10098,7 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
   bool get isSynthetic => _name.isSynthetic && _typeArguments == null;
 
   @override
-  Identifier get name => _name;
+  IdentifierImpl get name => _name;
 
   @override
   set name(Identifier identifier) {
@@ -10106,7 +10106,7 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
   }
 
   @override
-  TypeArgumentList? get typeArguments => _typeArguments;
+  TypeArgumentListImpl? get typeArguments => _typeArguments;
 
   @override
   set typeArguments(TypeArgumentList? typeArguments) {
@@ -10163,7 +10163,7 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   }
 
   @override
-  TypeAnnotation? get bound => _bound;
+  TypeAnnotationImpl? get bound => _bound;
 
   @override
   set bound(TypeAnnotation? type) {
@@ -10190,7 +10190,7 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
 
   @override
-  SimpleIdentifier get name => _name;
+  SimpleIdentifierImpl get name => _name;
 
   @override
   set name(SimpleIdentifier identifier) {
@@ -10243,7 +10243,7 @@ class TypeParameterListImpl extends AstNodeImpl implements TypeParameterList {
   Token get endToken => rightBracket;
 
   @override
-  NodeList<TypeParameter> get typeParameters => _typeParameters;
+  NodeListImpl<TypeParameter> get typeParameters => _typeParameters;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeParameterList(this);
@@ -10285,7 +10285,7 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
   }
 
   @override
-  StringLiteral get uri => _uri;
+  StringLiteralImpl get uri => _uri;
 
   @override
   set uri(StringLiteral uri) {
@@ -10401,11 +10401,11 @@ class VariableDeclarationImpl extends DeclarationImpl
   /// grandparent node for Dartdoc comments if no documentation is specifically
   /// available on the node.
   @override
-  Comment? get documentationComment {
-    Comment? comment = super.documentationComment;
+  CommentImpl? get documentationComment {
+    var comment = super.documentationComment;
     if (comment == null) {
       var node = parent?.parent;
-      if (node is AnnotatedNode) {
+      if (node is AnnotatedNodeImpl) {
         return node.documentationComment;
       }
     }
@@ -10424,7 +10424,7 @@ class VariableDeclarationImpl extends DeclarationImpl
   Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
 
   @override
-  Expression? get initializer => _initializer;
+  ExpressionImpl? get initializer => _initializer;
 
   @override
   set initializer(Expression? expression) {
@@ -10450,7 +10450,7 @@ class VariableDeclarationImpl extends DeclarationImpl
   }
 
   @override
-  SimpleIdentifier get name => _name;
+  SimpleIdentifierImpl get name => _name;
 
   @override
   set name(SimpleIdentifier identifier) {
@@ -10546,7 +10546,7 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   bool get isLate => lateKeyword != null;
 
   @override
-  TypeAnnotation? get type => _type;
+  TypeAnnotationImpl? get type => _type;
 
   @override
   set type(TypeAnnotation? type) {
@@ -10554,7 +10554,7 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   }
 
   @override
-  NodeList<VariableDeclaration> get variables => _variables;
+  NodeListImpl<VariableDeclaration> get variables => _variables;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -10598,7 +10598,7 @@ class VariableDeclarationStatementImpl extends StatementImpl
   Token get endToken => semicolon;
 
   @override
-  VariableDeclarationList get variables => _variableList;
+  VariableDeclarationListImpl get variables => _variableList;
 
   @override
   set variables(VariableDeclarationList variables) {
@@ -10649,7 +10649,7 @@ class WhileStatementImpl extends StatementImpl implements WhileStatement {
   Token get beginToken => whileKeyword;
 
   @override
-  Statement get body => _body;
+  StatementImpl get body => _body;
 
   @override
   set body(Statement statement) {
@@ -10665,7 +10665,7 @@ class WhileStatementImpl extends StatementImpl implements WhileStatement {
     ..add(_body);
 
   @override
-  Expression get condition => _condition;
+  ExpressionImpl get condition => _condition;
 
   @override
   set condition(Expression expression) {
@@ -10715,7 +10715,7 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
   Token get endToken => _mixinTypes.endToken!;
 
   @override
-  NodeList<TypeName> get mixinTypes => _mixinTypes;
+  NodeListImpl<TypeName> get mixinTypes => _mixinTypes;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWithClause(this);
@@ -10771,7 +10771,7 @@ class YieldStatementImpl extends StatementImpl implements YieldStatement {
   }
 
   @override
-  Expression get expression => _expression;
+  ExpressionImpl get expression => _expression;
 
   @override
   set expression(Expression expression) {

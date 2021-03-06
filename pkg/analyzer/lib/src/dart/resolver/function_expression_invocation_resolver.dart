@@ -37,7 +37,7 @@ class FunctionExpressionInvocationResolver {
   void resolve(FunctionExpressionInvocationImpl node) {
     var function = node.function;
 
-    if (function is ExtensionOverride) {
+    if (function is ExtensionOverrideImpl) {
       _resolveReceiverExtensionOverride(node, function);
       return;
     }
