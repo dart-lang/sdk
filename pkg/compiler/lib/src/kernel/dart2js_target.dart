@@ -9,6 +9,7 @@ library compiler.src.kernel.dart2js_target;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
+import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -92,8 +93,10 @@ class Dart2jsTarget extends Target {
 
   @override
   List<String> get extraIndexedLibraries => const [
+        'dart:_foreign_helper',
         'dart:_interceptors',
         'dart:_js_helper',
+        'dart:js_util'
       ];
 
   @override
@@ -127,7 +130,11 @@ class Dart2jsTarget extends Target {
       {void logger(String msg),
       ChangedStructureNotifier changedStructureNotifier}) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
+    var jsUtilOptimizer = JsUtilOptimizer(coreTypes);
     for (var library in libraries) {
+      // TODO (rileyporter): Merge js_util optimizations with other lowerings
+      // in the single pass in `transformations/lowering.dart`.
+      jsUtilOptimizer.visitLibrary(library);
       JsInteropChecks(
               coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,

@@ -31,6 +31,7 @@ class Foo {
   external num get a;
   external num bar();
   external Object get objectProperty;
+  external List get list;
 }
 
 @JS('Foo')
@@ -213,6 +214,11 @@ main() {
           js_util.callMethod(
               js_util.getProperty(f, 'fnList')[0], 'apply', [f, []]),
           equals(42));
+      expect(js_util.getProperty(f.list, "0"), equals(2));
+      var index = 0;
+      expect(js_util.getProperty(f.list, index++), equals(2));
+      expect(index, equals(1));
+      expect(js_util.getProperty(f.list, index), equals(4));
 
       // Accessing nested object properites.
       var objectProperty = js_util.getProperty(f, 'objectProperty');
@@ -222,6 +228,13 @@ main() {
       expect(
           js_util.getProperty(objectProperty, 'functionProperty') is Function,
           isTrue);
+      // Using nested getProperty calls.
+      expect(
+          js_util.getProperty(
+              js_util.getProperty(
+                  js_util.getProperty(f, 'objectProperty'), 'list'),
+              1),
+          equals(20));
 
       // Using a variable for the property name.
       String propertyName = 'a';
@@ -289,6 +302,10 @@ main() {
       expect(js_util.getProperty(f.objectProperty, 'c'), equals('new val'));
       js_util.setProperty(f.objectProperty, 'list', [1, 2, 3]);
       expect(js_util.getProperty(f.objectProperty, 'list')[1], equals(2));
+      // Using a nested getProperty call.
+      js_util.setProperty(
+          js_util.getProperty(f, 'objectProperty'), 'c', 'nested val');
+      expect(js_util.getProperty(f.objectProperty, 'c'), equals('nested val'));
 
       // Using a variable for the property name.
       String propertyName = 'bar';
@@ -316,6 +333,11 @@ main() {
 
       // Call method on a nested function property.
       expect(js_util.callMethod(f.objectProperty, 'functionProperty', []),
+          equals('Function Property'));
+      // Using a nested getProperty call.
+      expect(
+          js_util.callMethod(
+              js_util.getProperty(f, 'objectProperty'), 'functionProperty', []),
           equals('Function Property'));
 
       // Call method with different args.
