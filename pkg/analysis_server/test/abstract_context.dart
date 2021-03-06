@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 
@@ -174,6 +175,7 @@ class AbstractContextTest with ResourceProviderMixin {
       throw StateError('Only dart files can be changed after analysis.');
     }
 
+    _addAnalyzedFileToDrivers(path);
     return super.newFile(path, content: content);
   }
 
@@ -259,6 +261,28 @@ class AbstractContextTest with ResourceProviderMixin {
     writePackageConfig(path, config);
   }
 
+  void _addAnalyzedFilesToDrivers() {
+    for (var analysisContext in _analysisContextCollection.contexts) {
+      var driver = (analysisContext as DriverBasedAnalysisContext).driver;
+      for (var path in analysisContext.contextRoot.analyzedFiles()) {
+        if (file_paths.isDart(resourceProvider.pathContext, path)) {
+          driver.addFile(path);
+        }
+      }
+    }
+  }
+
+  void _addAnalyzedFileToDrivers(String path) {
+    if (_analysisContextCollection != null) {
+      for (var analysisContext in _analysisContextCollection.contexts) {
+        if (analysisContext.contextRoot.isAnalyzed(path)) {
+          var driver = (analysisContext as DriverBasedAnalysisContext).driver;
+          driver.addFile(path);
+        }
+      }
+    }
+  }
+
   /// Create all analysis contexts in [collectionIncludedPaths].
   void _createAnalysisContexts() {
     if (_analysisContextCollection != null) {
@@ -274,6 +298,7 @@ class AbstractContextTest with ResourceProviderMixin {
       sdkPath: convertPath(sdkRoot),
     );
 
+    _addAnalyzedFilesToDrivers();
     verifyCreatedCollection();
   }
 }
