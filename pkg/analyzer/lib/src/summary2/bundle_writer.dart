@@ -762,15 +762,18 @@ class _BundleWriterReferences {
   int _indexOfReference(Reference? reference) {
     if (reference == null) return 0;
     if (reference.parent == null) return 0;
-    if (reference.index != null) return reference.index!;
+
+    var index = reference.index;
+    if (index != null) return index;
 
     var parentIndex = _indexOfReference(reference.parent);
     _referenceParents.add(parentIndex);
     _referenceNames.add(reference.name);
 
-    reference.index = references.length;
+    index = references.length;
+    reference.index = index;
     references.add(reference);
-    return reference.index!;
+    return index;
   }
 }
 
