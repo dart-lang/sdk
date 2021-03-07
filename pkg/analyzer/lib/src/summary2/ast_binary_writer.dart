@@ -19,6 +19,7 @@ import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/tokens_writer.dart';
 import 'package:analyzer/src/task/inference_error.dart';
+import 'package:analyzer/src/util/either.dart';
 
 /// Serializer of fully resolved ASTs.
 class AstBinaryWriter extends ThrowingAstVisitor<void> {
@@ -261,7 +262,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _UnitMemberIndexItem(
         offset: classOffset,
         tag: Tag.Class,
-        name: node.name.name,
+        name: Either2.t1(node.name.name),
         classIndexOffset: classIndexOffset,
       ),
     );
@@ -273,7 +274,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _UnitMemberIndexItem(
         offset: _sink.offset,
         tag: Tag.ClassTypeAlias,
-        name: node.name.name,
+        name: Either2.t1(node.name.name),
       ),
     );
 
@@ -551,7 +552,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _UnitMemberIndexItem(
         offset: _sink.offset,
         tag: Tag.EnumDeclaration,
-        name: node.name.name,
+        name: Either2.t1(node.name.name),
       ),
     );
 
@@ -639,7 +640,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _UnitMemberIndexItem(
         offset: classOffset,
         tag: Tag.ExtensionDeclaration,
-        name: indexName,
+        name: Either2.t1(indexName),
         classIndexOffset: classIndexOffset,
       ),
     );
@@ -810,8 +811,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _UnitMemberIndexItem(
         offset: _sink.offset,
         tag: indexTag,
-        name: node.name.name,
-        variableNames: null,
+        name: Either2.t1(node.name.name),
       ),
     );
 
@@ -896,8 +896,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _UnitMemberIndexItem(
         offset: _sink.offset,
         tag: Tag.FunctionTypeAlias,
-        name: node.name.name,
-        variableNames: null,
+        name: Either2.t1(node.name.name),
       ),
     );
 
@@ -996,7 +995,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _UnitMemberIndexItem(
         offset: _sink.offset,
         tag: Tag.GenericTypeAlias,
-        name: node.name.name,
+        name: Either2.t1(node.name.name),
       ),
     );
 
@@ -1405,7 +1404,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _UnitMemberIndexItem(
         offset: classOffset,
         tag: Tag.MixinDeclaration,
-        name: node.name.name,
+        name: Either2.t1(node.name.name),
         classIndexOffset: classIndexOffset,
       ),
     );
@@ -1758,9 +1757,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _UnitMemberIndexItem(
         offset: _sink.offset,
         tag: Tag.TopLevelVariableDeclaration,
-        variableNames: node.variables.variables
-            .map((variable) => variable.name.name)
-            .toList(),
+        name: Either2.t2(
+          node.variables.variables
+              .map((variable) => variable.name.name)
+              .toList(),
+        ),
       ),
     );
 
@@ -2324,8 +2325,7 @@ class _IsSerializableExpressionVisitor extends RecursiveAstVisitor<void> {
 class _UnitMemberIndexItem {
   final int offset;
   final int tag;
-  final String? name;
-  final List<String>? variableNames;
+  final Either2<String, List<String>> name;
 
   /// The absolute offset of the index of class members, `0` if not a class.
   final int classIndexOffset;
@@ -2333,8 +2333,7 @@ class _UnitMemberIndexItem {
   _UnitMemberIndexItem({
     required this.offset,
     required this.tag,
-    this.name,
-    this.variableNames,
+    required this.name,
     this.classIndexOffset = 0,
   });
 }

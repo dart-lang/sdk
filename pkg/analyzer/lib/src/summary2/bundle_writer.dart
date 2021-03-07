@@ -43,11 +43,11 @@ Uint8List writeUnitToBytes({required CompilationUnit unit}) {
   for (var declaration in unitWriter.unitMemberIndexItems) {
     sink.writeUInt30(declaration.offset);
     sink.writeByte(declaration.tag);
-    if (declaration.name != null) {
-      _writeStringReference(declaration.name!);
-    } else {
-      sink.writeList(declaration.variableNames!, _writeStringReference);
-    }
+    declaration.name.map((name) {
+      _writeStringReference(name);
+    }, (variableNames) {
+      sink.writeList(variableNames, _writeStringReference);
+    });
     if (declaration.classIndexOffset != 0) {
       sink.writeUInt30(declaration.classIndexOffset);
     }
@@ -199,6 +199,8 @@ class BundleWriterAst {
   /// Write the [node] into the [sink].
   ///
   /// Return the pointer at [AstUnitFormat.headerOffset].
+  ///
+  /// TODO(scheglov) looks very similar to [writeUnitToBytes]
   int writeUnit(CompilationUnit node) {
     var headerOffset = sink.offset;
 
@@ -219,11 +221,11 @@ class BundleWriterAst {
     for (var declaration in unitWriter.unitMemberIndexItems) {
       sink.writeUInt30(declaration.offset);
       sink.writeByte(declaration.tag);
-      if (declaration.name != null) {
-        _writeStringReference(declaration.name!);
-      } else {
-        sink.writeList(declaration.variableNames!, _writeStringReference);
-      }
+      declaration.name.map((name) {
+        _writeStringReference(name);
+      }, (variableNames) {
+        sink.writeList(variableNames, _writeStringReference);
+      });
       if (declaration.classIndexOffset != 0) {
         sink.writeUInt30(declaration.classIndexOffset);
       }
@@ -760,15 +762,18 @@ class _BundleWriterReferences {
   int _indexOfReference(Reference? reference) {
     if (reference == null) return 0;
     if (reference.parent == null) return 0;
-    if (reference.index != null) return reference.index!;
+
+    var index = reference.index;
+    if (index != null) return index;
 
     var parentIndex = _indexOfReference(reference.parent);
     _referenceParents.add(parentIndex);
     _referenceNames.add(reference.name);
 
-    reference.index = references.length;
+    index = references.length;
+    reference.index = index;
     references.add(reference);
-    return reference.index!;
+    return index;
   }
 }
 
