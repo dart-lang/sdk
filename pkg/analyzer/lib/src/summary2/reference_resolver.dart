@@ -416,11 +416,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitTypeName(TypeName node) {
+  void visitTypeName(covariant TypeNameImpl node) {
     var typeIdentifier = node.name;
 
     Element? element;
-    if (typeIdentifier is PrefixedIdentifier) {
+    if (typeIdentifier is PrefixedIdentifierImpl) {
       var prefix = typeIdentifier.prefix;
       var prefixName = prefix.name;
       var prefixElement = scope.lookup(prefixName).getter;
@@ -434,7 +434,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
         nameNode.staticElement = element;
       }
     } else {
-      var nameNode = typeIdentifier as SimpleIdentifier;
+      var nameNode = typeIdentifier as SimpleIdentifierImpl;
       var name = nameNode.name;
 
       if (name == 'void') {
@@ -491,7 +491,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   void _createTypeParameterElement(
     ElementImpl enclosingElement,
-    TypeParameter node,
+    TypeParameterImpl node,
   ) {
     var element = TypeParameterElementImpl.forLinkedNode(
       enclosingElement,
@@ -507,6 +507,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     if (typeParameterList == null) return;
 
     for (var typeParameter in typeParameterList.typeParameters) {
+      typeParameter as TypeParameterImpl;
       _createTypeParameterElement(enclosingElement, typeParameter);
     }
   }

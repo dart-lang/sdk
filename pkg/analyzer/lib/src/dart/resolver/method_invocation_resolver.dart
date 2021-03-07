@@ -83,7 +83,7 @@ class MethodInvocationResolver {
   void resolve(MethodInvocationImpl node) {
     _invocation = node;
 
-    SimpleIdentifier nameNode = node.methodName;
+    var nameNode = node.methodName;
     String name = nameNode.name;
     _currentName = Name(_definingLibraryUri, name);
 
@@ -210,7 +210,7 @@ class MethodInvocationResolver {
     }
   }
 
-  void _reportInvocationOfNonFunction(MethodInvocation node) {
+  void _reportInvocationOfNonFunction(MethodInvocationImpl node) {
     _setDynamicResolution(node, setNameTypeToDynamic: false);
     _resolver.errorReporter.reportErrorForNode(
       CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION,
@@ -239,7 +239,7 @@ class MethodInvocationResolver {
   }
 
   void _reportUndefinedFunction(
-    MethodInvocation node, {
+    MethodInvocationImpl node, {
     required String? prefix,
     required String name,
   }) {
@@ -257,7 +257,7 @@ class MethodInvocationResolver {
   }
 
   void _reportUndefinedMethod(
-      MethodInvocation node, String name, ClassElement typeReference) {
+      MethodInvocationImpl node, String name, ClassElement typeReference) {
     _setDynamicResolution(node);
     _resolver.errorReporter.reportErrorForNode(
       CompileTimeErrorCode.UNDEFINED_METHOD,
@@ -266,7 +266,7 @@ class MethodInvocationResolver {
     );
   }
 
-  void _reportUseOfVoidType(MethodInvocation node, AstNode errorNode) {
+  void _reportUseOfVoidType(MethodInvocationImpl node, AstNode errorNode) {
     _setDynamicResolution(node);
     _resolver.errorReporter.reportErrorForNode(
       CompileTimeErrorCode.USE_OF_VOID_RESULT,
@@ -276,7 +276,7 @@ class MethodInvocationResolver {
 
   /// [InvocationExpression.staticInvokeType] has been set for the [node].
   /// Use it to set context for arguments, and resolve them.
-  void _resolveArguments(MethodInvocation node) {
+  void _resolveArguments(MethodInvocationImpl node) {
     // TODO(scheglov) This is bad, don't write raw type, carry it
     _inferenceHelper.inferArgumentTypesForInvocation(
       node,
@@ -285,7 +285,7 @@ class MethodInvocationResolver {
     node.argumentList.accept(_resolver);
   }
 
-  void _resolveArguments_finishInference(MethodInvocation node) {
+  void _resolveArguments_finishInference(MethodInvocationImpl node) {
     _resolveArguments(node);
 
     // TODO(scheglov) This is bad, don't put / get raw FunctionType this way.
@@ -318,8 +318,8 @@ class MethodInvocationResolver {
     return null;
   }
 
-  void _resolveExtensionMember(MethodInvocation node, Identifier receiver,
-      ExtensionElement extension, SimpleIdentifier nameNode, String name) {
+  void _resolveExtensionMember(MethodInvocationImpl node, Identifier receiver,
+      ExtensionElement extension, SimpleIdentifierImpl nameNode, String name) {
     var getter = extension.getGetter(name);
     if (getter != null) {
       getter = _resolver.toLegacyElement(getter);
@@ -346,8 +346,8 @@ class MethodInvocationResolver {
     );
   }
 
-  void _resolveExtensionOverride(MethodInvocation node,
-      ExtensionOverride override, SimpleIdentifier nameNode, String name) {
+  void _resolveExtensionOverride(MethodInvocationImpl node,
+      ExtensionOverride override, SimpleIdentifierImpl nameNode, String name) {
     var result = _extensionResolver.getOverrideMember(override, name);
     var member = _resolver.toLegacyElement(result.getter);
 
@@ -385,7 +385,7 @@ class MethodInvocationResolver {
     _setResolution(node, member.type);
   }
 
-  void _resolveReceiverDynamicBounded(MethodInvocation node) {
+  void _resolveReceiverDynamicBounded(MethodInvocationImpl node) {
     var nameNode = node.methodName;
 
     var objectElement = _typeSystem.typeProvider.objectElement;
@@ -415,10 +415,10 @@ class MethodInvocationResolver {
   }
 
   void _resolveReceiverFunctionBounded(
-    MethodInvocation node,
+    MethodInvocationImpl node,
     Expression receiver,
     DartType receiverType,
-    SimpleIdentifier nameNode,
+    SimpleIdentifierImpl nameNode,
     String name,
   ) {
     if (name == FunctionElement.CALL_METHOD_NAME) {
@@ -441,7 +441,7 @@ class MethodInvocationResolver {
   }
 
   void _resolveReceiverNever(
-    MethodInvocation node,
+    MethodInvocationImpl node,
     Expression receiver,
     DartType receiverType,
   ) {
@@ -492,7 +492,7 @@ class MethodInvocationResolver {
   }
 
   void _resolveReceiverNull(
-      MethodInvocation node, SimpleIdentifier nameNode, String name) {
+      MethodInvocationImpl node, SimpleIdentifierImpl nameNode, String name) {
     var element = nameScope.lookup(name).getter;
     if (element != null) {
       element = _resolver.toLegacyElement(element);
@@ -543,8 +543,8 @@ class MethodInvocationResolver {
     );
   }
 
-  void _resolveReceiverPrefix(MethodInvocation node, PrefixElement prefix,
-      SimpleIdentifier nameNode, String name) {
+  void _resolveReceiverPrefix(MethodInvocationImpl node, PrefixElement prefix,
+      SimpleIdentifierImpl nameNode, String name) {
     // Note: prefix?.bar is reported as an error in ElementResolver.
 
     if (name == FunctionElement.LOAD_LIBRARY_NAME) {
@@ -584,8 +584,8 @@ class MethodInvocationResolver {
     );
   }
 
-  void _resolveReceiverSuper(MethodInvocation node, SuperExpression receiver,
-      SimpleIdentifier nameNode, String name) {
+  void _resolveReceiverSuper(MethodInvocationImpl node,
+      SuperExpression receiver, SimpleIdentifierImpl nameNode, String name) {
     var enclosingClass = _resolver.enclosingClass;
     if (SuperContext.of(receiver) != SuperContext.valid) {
       _setDynamicResolution(node);
@@ -633,10 +633,10 @@ class MethodInvocationResolver {
   }
 
   void _resolveReceiverType({
-    required MethodInvocation node,
+    required MethodInvocationImpl node,
     required Expression? receiver,
     required DartType receiverType,
-    required SimpleIdentifier nameNode,
+    required SimpleIdentifierImpl nameNode,
     required String name,
     required Expression receiverErrorNode,
   }) {
@@ -688,8 +688,8 @@ class MethodInvocationResolver {
     }
   }
 
-  void _resolveReceiverTypeLiteral(MethodInvocation node, ClassElement receiver,
-      SimpleIdentifier nameNode, String name) {
+  void _resolveReceiverTypeLiteral(MethodInvocationImpl node,
+      ClassElement receiver, SimpleIdentifierImpl nameNode, String name) {
     if (node.isCascaded) {
       receiver = _typeType.element;
     }
@@ -728,29 +728,30 @@ class MethodInvocationResolver {
   /// an [InterfaceType]. So, it should be represented as instead as a
   /// [FunctionExpressionInvocation].
   void _rewriteAsFunctionExpressionInvocation(
-    MethodInvocation node,
+    MethodInvocationImpl node,
     DartType getterReturnType,
   ) {
     var targetType = _resolveTypeParameter(getterReturnType);
     node.methodName.staticType = targetType;
 
-    Expression functionExpression;
+    ExpressionImpl functionExpression;
     var target = node.target;
     if (target == null) {
       functionExpression = node.methodName;
     } else {
-      if (target is SimpleIdentifier && target.staticElement is PrefixElement) {
+      if (target is SimpleIdentifierImpl &&
+          target.staticElement is PrefixElement) {
         functionExpression = astFactory.prefixedIdentifier(
           target,
           node.operator!,
           node.methodName,
-        );
+        ) as PrefixedIdentifierImpl;
       } else {
         functionExpression = astFactory.propertyAccess(
           target,
           node.operator!,
           node.methodName,
-        );
+        ) as PropertyAccessImpl;
       }
       _resolver.flowAnalysis?.flow?.propertyGet(
           functionExpression, target, node.methodName.name, getterReturnType);
@@ -768,7 +769,7 @@ class MethodInvocationResolver {
     _resolver.flowAnalysis?.transferTestData(node, invocation);
   }
 
-  void _setDynamicResolution(MethodInvocation node,
+  void _setDynamicResolution(MethodInvocationImpl node,
       {bool setNameTypeToDynamic = true}) {
     if (setNameTypeToDynamic) {
       node.methodName.staticType = _dynamicType;
@@ -794,7 +795,7 @@ class MethodInvocationResolver {
     }
   }
 
-  void _setResolution(MethodInvocation node, DartType type) {
+  void _setResolution(MethodInvocationImpl node, DartType type) {
     // TODO(scheglov) We need this for StaticTypeAnalyzer to run inference.
     // But it seems weird. Do we need to know the raw type of a function?!
     node.methodName.staticType = type;
@@ -805,8 +806,7 @@ class MethodInvocationResolver {
     }
 
     if (type is FunctionType) {
-      _inferenceHelper.resolveMethodInvocation(
-          node: node as MethodInvocationImpl, rawType: type);
+      _inferenceHelper.resolveMethodInvocation(node: node, rawType: type);
       return;
     }
 
@@ -821,7 +821,8 @@ class MethodInvocationResolver {
   /// this method resolver. If we rewrite a [MethodInvocation] node, this
   /// method will return the resulting [FunctionExpressionInvocation], so
   /// that the resolver visitor will know to continue resolving this new node.
-  static FunctionExpressionInvocation? getRewriteResult(MethodInvocation node) {
+  static FunctionExpressionInvocation? getRewriteResult(
+      MethodInvocationImpl node) {
     return node.getProperty(_rewriteResultKey);
   }
 

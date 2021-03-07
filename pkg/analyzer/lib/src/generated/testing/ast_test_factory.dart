@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
@@ -1358,9 +1359,9 @@ class AstTestFactory {
   /// have type parameters.
   static TypeName typeName(ClassElement element,
       [List<TypeAnnotation>? arguments]) {
-    SimpleIdentifier name = identifier3(element.name);
+    var name = identifier3(element.name) as SimpleIdentifierImpl;
     name.staticElement = element;
-    TypeName typeName = typeName3(name, arguments);
+    var typeName = typeName3(name, arguments) as TypeNameImpl;
     typeName.type = element.instantiate(
       typeArguments: List.filled(
         element.typeParameters.length,

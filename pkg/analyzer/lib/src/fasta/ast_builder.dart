@@ -64,7 +64,11 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         ClassDeclarationImpl,
         CompilationUnitImpl,
         ExtensionDeclarationImpl,
+        ImportDirectiveImpl,
+        MethodInvocationImpl,
         MixinDeclarationImpl,
+        SimpleIdentifierImpl,
+        TypeArgumentListImpl,
         TypeParameterImpl;
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -517,7 +521,7 @@ class AstBuilder extends StackListener {
       } else {
         push(ast.propertyAccess(receiver, dot, identifierOrInvoke));
       }
-    } else if (identifierOrInvoke is MethodInvocation) {
+    } else if (identifierOrInvoke is MethodInvocationImpl) {
       assert(identifierOrInvoke.target == null);
       identifierOrInvoke
         ..target = receiver
@@ -537,9 +541,9 @@ class AstBuilder extends StackListener {
   }
 
   void doInvocation(
-      TypeArgumentList? typeArguments, MethodInvocation arguments) {
+      TypeArgumentList? typeArguments, MethodInvocationImpl arguments) {
     var receiver = pop() as Expression;
-    if (receiver is SimpleIdentifier) {
+    if (receiver is SimpleIdentifierImpl) {
       arguments.methodName = receiver;
       if (typeArguments != null) {
         arguments.typeArguments = typeArguments;
@@ -3320,7 +3324,7 @@ class AstBuilder extends StackListener {
     var implementsClause = pop(NullValue.IdentifierList) as ImplementsClause?;
     var withClause = pop(NullValue.WithClause) as WithClause?;
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClause?;
-    var declaration = declarations.last as ClassDeclaration;
+    var declaration = declarations.last as ClassDeclarationImpl;
     if (extendsClause != null) {
       if (declaration.extendsClause?.superclass == null) {
         declaration.extendsClause = extendsClause;
@@ -3354,7 +3358,7 @@ class AstBuilder extends StackListener {
     var prefix = pop(NullValue.Prefix) as SimpleIdentifier?;
     var configurations = pop() as List<Configuration>?;
 
-    var directive = directives.last as ImportDirective;
+    var directive = directives.last as ImportDirectiveImpl;
     if (combinators != null) {
       directive.combinators.addAll(combinators);
     }
@@ -3406,8 +3410,8 @@ class AstBuilder extends StackListener {
   void handleSend(Token beginToken, Token endToken) {
     debugEvent("Send");
 
-    var arguments = pop() as MethodInvocation?;
-    var typeArguments = pop() as TypeArgumentList?;
+    var arguments = pop() as MethodInvocationImpl?;
+    var typeArguments = pop() as TypeArgumentListImpl?;
     if (arguments != null) {
       doInvocation(typeArguments, arguments);
     } else {

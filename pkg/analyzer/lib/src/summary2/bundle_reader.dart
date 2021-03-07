@@ -1211,7 +1211,7 @@ class _ClassReader extends _UnitMemberReader {
     required this.reference,
     required UnitReader unitReader,
     required int offset,
-    required CompilationUnit unit,
+    required CompilationUnitImpl unit,
     required this.indexOffset,
   }) : super(unitReader, offset, unit) {
     reference.nodeAccessor ??= this;
@@ -1348,7 +1348,7 @@ class _ReferenceReader {
 class _UnitMemberReader implements ReferenceNodeAccessor {
   final UnitReader unitReader;
   final int offset;
-  final CompilationUnit _unit;
+  final CompilationUnitImpl _unit;
   final int _index;
   CompilationUnitMemberImpl? _node;
 

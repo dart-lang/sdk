@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -34,7 +35,7 @@ class FunctionExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(FunctionExpression node) {
+  void resolve(FunctionExpressionImpl node) {
     var isFunctionDeclaration = node.parent is FunctionDeclaration;
     var body = node.body;
 
@@ -174,7 +175,7 @@ class FunctionExpressionResolver {
     }).toList());
   }
 
-  void _resolve2(FunctionExpression node) {
+  void _resolve2(FunctionExpressionImpl node) {
     var functionElement = node.declaredElement as ExecutableElementImpl;
 
     if (_shouldUpdateReturnType(node)) {

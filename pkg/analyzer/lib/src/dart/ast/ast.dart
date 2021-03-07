@@ -4327,6 +4327,9 @@ abstract class FormalParameterImpl extends AstNodeImpl
   }
 
   @override
+  SimpleIdentifierImpl? get identifier;
+
+  @override
   bool get isNamed => kind.isNamed;
 
   @override
@@ -4354,10 +4357,10 @@ abstract class FormalParameterImpl extends AstNodeImpl
   ParameterKind get kind;
 
   static void setDeclaredElement(
-    FormalParameter node,
+    FormalParameterImpl node,
     ParameterElement element,
   ) {
-    if (node is DefaultFormalParameter) {
+    if (node is DefaultFormalParameterImpl) {
       setDeclaredElement(node.parameter, element);
     } else if (node is SimpleFormalParameterImpl) {
       node.declaredElement = element;

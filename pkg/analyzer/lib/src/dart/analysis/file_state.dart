@@ -403,7 +403,7 @@ class FileState {
   /// Return a new parsed unresolved [CompilationUnit].
   ///
   /// If an exception happens during parsing, an empty unit is returned.
-  CompilationUnit parse([AnalysisErrorListener? errorListener]) {
+  CompilationUnitImpl parse([AnalysisErrorListener? errorListener]) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
       return _parse(errorListener);
@@ -527,7 +527,7 @@ class FileState {
     }
   }
 
-  CompilationUnit _createEmptyCompilationUnit() {
+  CompilationUnitImpl _createEmptyCompilationUnit() {
     var token = Token.eof(0);
     var unit = astFactory.compilationUnit(
       beginToken: token,
@@ -605,7 +605,7 @@ class FileState {
     }
   }
 
-  CompilationUnit _parse(AnalysisErrorListener errorListener) {
+  CompilationUnitImpl _parse(AnalysisErrorListener errorListener) {
     if (source == null) {
       return _createEmptyCompilationUnit();
     }
@@ -628,7 +628,7 @@ class FileState {
     );
     parser.enableOptionalNewAndConst = true;
 
-    var unit = parser.parseCompilationUnit(token) as CompilationUnitImpl;
+    var unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     unit.languageVersion = LibraryLanguageVersion(
       package: packageLanguageVersion!,

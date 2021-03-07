@@ -1126,13 +1126,15 @@ class AstBinaryReader {
     var index = readNode() as Expression;
     // TODO(scheglov) Is this clumsy?
     if (target != null) {
-      return astFactory.indexExpressionForTarget2(
+      return (astFactory.indexExpressionForTarget2(
         target: target,
         question: AstBinaryFlags.hasQuestion(flags) ? Tokens.QUESTION : null,
         leftBracket: Tokens.OPEN_SQUARE_BRACKET,
         index: index,
         rightBracket: Tokens.CLOSE_SQUARE_BRACKET,
-      )..period = AstBinaryFlags.hasPeriod(flags) ? Tokens.PERIOD_PERIOD : null;
+      ) as IndexExpressionImpl)
+        ..period =
+            AstBinaryFlags.hasPeriod(flags) ? Tokens.PERIOD_PERIOD : null;
     } else {
       return astFactory.indexExpressionForCascade2(
         period: Tokens.PERIOD_PERIOD,

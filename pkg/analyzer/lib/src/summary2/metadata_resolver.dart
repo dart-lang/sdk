@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/scope.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -20,7 +21,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
       : _scope = _libraryScope;
 
   @override
-  void visitAnnotation(Annotation node) {
+  void visitAnnotation(covariant AnnotationImpl node) {
     node.elementAnnotation = ElementAnnotationImpl(_unitElement);
 
     var astResolver = AstResolver(_linker, _unitElement, _scope);

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:test/test.dart';
 
@@ -17,11 +18,11 @@ import '../../../generated/test_support.dart';
 abstract class AbstractRecoveryTest extends FastaParserTestCase {
   void testRecovery(
       String invalidCode, List<ErrorCode>? errorCodes, String validCode,
-      {CompilationUnit Function(CompilationUnit unit)?
+      {CompilationUnitImpl Function(CompilationUnitImpl unit)?
           adjustValidUnitBeforeComparison,
       List<ErrorCode>? expectedErrorsInValidCode,
       FeatureSet? featureSet}) {
-    CompilationUnit validUnit;
+    CompilationUnitImpl validUnit;
 
     // Assert that the valid code is indeed valid.
     try {
@@ -39,7 +40,7 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
 
     // Compare the structures before asserting valid errors.
     GatheringErrorListener listener = GatheringErrorListener(checkRanges: true);
-    CompilationUnit invalidUnit =
+    var invalidUnit =
         parseCompilationUnit2(invalidCode, listener, featureSet: featureSet);
     validateTokenStream(invalidUnit.beginToken);
     if (adjustValidUnitBeforeComparison != null) {

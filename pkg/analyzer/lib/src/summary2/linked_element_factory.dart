@@ -329,7 +329,7 @@ class LinkedElementFactory {
           parentElement as ClassElementImpl, reference, node);
       var element = reference.element as ConstructorElementImpl;
       return element;
-    } else if (node is EnumDeclaration) {
+    } else if (node is EnumDeclarationImpl) {
       EnumElementImpl.forLinkedNode(
           parentElement as CompilationUnitElementImpl, reference, node);
       assert(reference.element != null);
@@ -350,7 +350,7 @@ class LinkedElementFactory {
       }
       assert(reference.element != null);
       return reference.element;
-    } else if (node is FunctionDeclaration) {
+    } else if (node is FunctionDeclarationImpl) {
       if (node.propertyKeyword != null) {
         _topLevelPropertyAccessor(parent,
             parentElement as CompilationUnitElementImpl, reference, node);
@@ -367,7 +367,7 @@ class LinkedElementFactory {
           node as TypeAlias);
       assert(reference.element != null);
       return reference.element;
-    } else if (node is MethodDeclaration) {
+    } else if (node is MethodDeclarationImpl) {
       if (node.propertyKeyword != null) {
         _classPropertyAccessor(
             parent, parentElement as ElementImpl, reference, node);
@@ -377,7 +377,7 @@ class LinkedElementFactory {
       }
       assert(reference.element != null);
       return reference.element;
-    } else if (node is MixinDeclaration) {
+    } else if (node is MixinDeclarationImpl) {
       MixinElementImpl.forLinkedNode(
           parentElement as CompilationUnitElementImpl, reference, node);
       assert(reference.element != null);

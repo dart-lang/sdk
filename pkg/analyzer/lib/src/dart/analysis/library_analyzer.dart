@@ -109,7 +109,7 @@ class LibraryAnalyzer {
   /// Compute analysis results for all units of the library.
   Map<FileState, UnitAnalysisResult> analyzeSync() {
     timerLibraryAnalyzer.start();
-    Map<FileState, CompilationUnit> units = {};
+    Map<FileState, CompilationUnitImpl> units = {};
 
     // Parse all files.
     timerLibraryAnalyzerFreshUnit.start();
@@ -517,10 +517,10 @@ class LibraryAnalyzer {
   }
 
   /// Return a new parsed unresolved [CompilationUnit].
-  CompilationUnit _parse(FileState file) {
+  CompilationUnitImpl _parse(FileState file) {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     String content = file.content;
-    CompilationUnit unit = file.parse(errorListener);
+    var unit = file.parse(errorListener);
 
     LineInfo lineInfo = unit.lineInfo!;
     _fileToLineInfo[file] = lineInfo;
@@ -529,8 +529,8 @@ class LibraryAnalyzer {
     return unit;
   }
 
-  void _resolveDirectives(Map<FileState, CompilationUnit> units) {
-    CompilationUnit definingCompilationUnit = units[_library]!;
+  void _resolveDirectives(Map<FileState, CompilationUnitImpl> units) {
+    var definingCompilationUnit = units[_library]!;
     definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
 
     bool matchNodeElement(Directive node, Element element) {
@@ -541,14 +541,14 @@ class LibraryAnalyzer {
 
     LibraryIdentifier? libraryNameNode;
     var seenPartSources = <Source>{};
-    var directivesToResolve = <Directive>[];
+    var directivesToResolve = <DirectiveImpl>[];
     int partDirectiveIndex = 0;
     int partElementIndex = 0;
     for (Directive directive in definingCompilationUnit.directives) {
-      if (directive is LibraryDirective) {
+      if (directive is LibraryDirectiveImpl) {
         libraryNameNode = directive.name;
         directivesToResolve.add(directive);
-      } else if (directive is ImportDirective) {
+      } else if (directive is ImportDirectiveImpl) {
         for (ImportElement importElement in _libraryElement.imports) {
           if (matchNodeElement(directive, importElement)) {
             directive.element = importElement;
@@ -562,7 +562,7 @@ class LibraryAnalyzer {
             }
           }
         }
-      } else if (directive is ExportDirective) {
+      } else if (directive is ExportDirectiveImpl) {
         for (ExportElement exportElement in _libraryElement.exports) {
           if (matchNodeElement(directive, exportElement)) {
             directive.element = exportElement;
@@ -575,7 +575,7 @@ class LibraryAnalyzer {
             }
           }
         }
-      } else if (directive is PartDirective) {
+      } else if (directive is PartDirectiveImpl) {
         StringLiteral partUri = directive.uri;
 
         var partFile = _library.partedFiles[partDirectiveIndex++];
@@ -647,7 +647,7 @@ class LibraryAnalyzer {
     //
     // Resolve the relevant directives to the library element.
     //
-    for (Directive directive in directivesToResolve) {
+    for (var directive in directivesToResolve) {
       directive.element = _libraryElement;
     }
 
@@ -734,8 +734,8 @@ class LibraryAnalyzer {
   }
 
   void _resolveUriBasedDirectives(FileState file, CompilationUnit unit) {
-    for (Directive directive in unit.directives) {
-      if (directive is UriBasedDirective) {
+    for (var directive in unit.directives) {
+      if (directive is UriBasedDirectiveImpl) {
         StringLiteral uriLiteral = directive.uri;
         String? uriContent = uriLiteral.stringValue?.trim();
         directive.uriContent = uriContent;
@@ -751,6 +751,7 @@ class LibraryAnalyzer {
           relativeUri,
         );
         for (var configuration in directive.configurations) {
+          configuration as ConfigurationImpl;
           var uriLiteral = configuration.uri;
           String? uriContent = uriLiteral.stringValue?.trim();
           Source? defaultSource = _resolveUri(

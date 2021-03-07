@@ -85,10 +85,10 @@ class InvocationInferenceHelper {
   /// This takes into account both the context type, as well as information from
   /// the argument types.
   void inferGenericInvocationExpression(
-    InvocationExpression node,
+    InvocationExpressionImpl node,
     DartType? type,
   ) {
-    ArgumentList arguments = node.argumentList;
+    var arguments = node.argumentList;
     var freshType = _getFreshType(type);
 
     var inferred = inferGenericInvoke(
@@ -180,7 +180,7 @@ class InvocationInferenceHelper {
   /// @param type the static type of the node
   ///
   /// TODO(scheglov) this is duplication
-  void recordStaticType(Expression expression, DartType type) {
+  void recordStaticType(ExpressionImpl expression, DartType type) {
     var hooks = _migrationResolutionHooks;
     if (hooks != null) {
       type = hooks.modifyExpressionType(expression, type);
@@ -325,7 +325,7 @@ class InvocationInferenceHelper {
     required FunctionType rawType,
     required DartType? contextType,
     required TypeArgumentList? typeArgumentList,
-    required ArgumentList argumentList,
+    required ArgumentListImpl argumentList,
     required bool isConst,
     required AstNode errorNode,
   }) {
@@ -426,7 +426,7 @@ class InvocationInferenceHelper {
   }
 
   void _setCorrespondingParameters(
-    ArgumentList argumentList,
+    ArgumentListImpl argumentList,
     FunctionType invokeType,
   ) {
     var parameters = ResolverVisitor.resolveArgumentsToParameters(

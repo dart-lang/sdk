@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -327,8 +328,9 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(elementC, null);
     elementC.constructors = <ConstructorElement>[constructor];
-    TypeName typeName =
-        AstTestFactory.typeName(elementC, [AstTestFactory.typeName(elementI)]);
+    var typeName =
+        AstTestFactory.typeName(elementC, [AstTestFactory.typeName(elementI)])
+            as TypeNameImpl;
     typeName.type = interfaceTypeStar(elementC,
         typeArguments: [interfaceTypeStar(elementI)]);
     InstanceCreationExpression node =
@@ -525,7 +527,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @param value the value of the literal
   /// @return an integer literal that has been resolved to the correct type
   DoubleLiteral _resolvedDouble(double value) {
-    DoubleLiteral literal = AstTestFactory.doubleLiteral(value);
+    var literal = AstTestFactory.doubleLiteral(value) as DoubleLiteralImpl;
     literal.staticType = _typeProvider.doubleType;
     return literal;
   }
@@ -535,7 +537,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @param value the value of the literal
   /// @return an integer literal that has been resolved to the correct type
   IntegerLiteral _resolvedInteger(int value) {
-    IntegerLiteral literal = AstTestFactory.integer(value);
+    var literal = AstTestFactory.integer(value) as IntegerLiteralImpl;
     literal.staticType = _typeProvider.intType;
     return literal;
   }
@@ -545,7 +547,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @param value the value of the literal
   /// @return a string literal that has been resolved to the correct type
   SimpleStringLiteral _resolvedString(String value) {
-    SimpleStringLiteral string = AstTestFactory.string2(value);
+    var string = AstTestFactory.string2(value) as SimpleStringLiteralImpl;
     string.staticType = _typeProvider.stringType;
     return string;
   }
@@ -558,7 +560,8 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @return a simple identifier that has been resolved to a variable element
   ///           with the given type
   SimpleIdentifier _resolvedVariable(InterfaceType type, String variableName) {
-    SimpleIdentifier identifier = AstTestFactory.identifier3(variableName);
+    var identifier =
+        AstTestFactory.identifier3(variableName) as SimpleIdentifierImpl;
     VariableElementImpl element =
         ElementFactory.localVariableElement(identifier);
     element.type = type;

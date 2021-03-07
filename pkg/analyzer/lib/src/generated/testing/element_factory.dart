@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
@@ -340,9 +341,9 @@ class ElementFactory {
       ConstTopLevelVariableElementImpl constant =
           ConstTopLevelVariableElementImpl(name, -1);
       var typeElement = type.element as ClassElement;
-      InstanceCreationExpression initializer =
-          AstTestFactory.instanceCreationExpression2(
-              Keyword.CONST, AstTestFactory.typeName(typeElement));
+      var initializer = AstTestFactory.instanceCreationExpression2(
+              Keyword.CONST, AstTestFactory.typeName(typeElement))
+          as InstanceCreationExpressionImpl;
       if (type is InterfaceType) {
         var element = typeElement.unnamedConstructor;
         initializer.constructorName.staticElement = element;

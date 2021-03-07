@@ -23,15 +23,15 @@ class ConstantAstCloner extends AstCloner {
   ConstantAstCloner() : super(true);
 
   @override
-  Annotation visitAnnotation(Annotation node) {
-    Annotation annotation = super.visitAnnotation(node);
+  AnnotationImpl visitAnnotation(Annotation node) {
+    var annotation = super.visitAnnotation(node);
     annotation.element = node.element;
     return annotation;
   }
 
   @override
-  ConstructorName visitConstructorName(ConstructorName node) {
-    ConstructorName name = super.visitConstructorName(node);
+  ConstructorNameImpl visitConstructorName(ConstructorName node) {
+    var name = super.visitConstructorName(node);
     name.staticElement = node.staticElement;
     return name;
   }
@@ -45,10 +45,9 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
-  InstanceCreationExpression visitInstanceCreationExpression(
+  InstanceCreationExpressionImpl visitInstanceCreationExpression(
       InstanceCreationExpression node) {
-    InstanceCreationExpression expression =
-        super.visitInstanceCreationExpression(node);
+    var expression = super.visitInstanceCreationExpression(node);
     if (node.keyword == null) {
       if (node.isConst) {
         expression.keyword = KeywordToken(Keyword.CONST, node.offset);
@@ -60,15 +59,15 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
-  IntegerLiteral visitIntegerLiteral(IntegerLiteral node) {
-    IntegerLiteral integer = super.visitIntegerLiteral(node);
+  IntegerLiteralImpl visitIntegerLiteral(IntegerLiteral node) {
+    var integer = super.visitIntegerLiteral(node);
     integer.staticType = node.staticType;
     return integer;
   }
 
   @override
-  ListLiteral visitListLiteral(ListLiteral node) {
-    ListLiteral literal = super.visitListLiteral(node);
+  ListLiteralImpl visitListLiteral(ListLiteral node) {
+    var literal = super.visitListLiteral(node);
     literal.staticType = node.staticType;
     if (node.constKeyword == null && node.isConst) {
       literal.constKeyword = KeywordToken(Keyword.CONST, node.offset);
@@ -91,17 +90,16 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
-  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(
+  RedirectingConstructorInvocationImpl visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    RedirectingConstructorInvocation invocation =
-        super.visitRedirectingConstructorInvocation(node);
+    var invocation = super.visitRedirectingConstructorInvocation(node);
     invocation.staticElement = node.staticElement;
     return invocation;
   }
 
   @override
-  SetOrMapLiteral visitSetOrMapLiteral(SetOrMapLiteral node) {
-    SetOrMapLiteral literal = super.visitSetOrMapLiteral(node);
+  SetOrMapLiteralImpl visitSetOrMapLiteral(SetOrMapLiteral node) {
+    var literal = super.visitSetOrMapLiteral(node);
     literal.staticType = node.staticType;
     if (node.constKeyword == null && node.isConst) {
       literal.constKeyword = KeywordToken(Keyword.CONST, node.offset);
@@ -119,17 +117,16 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
-  SuperConstructorInvocation visitSuperConstructorInvocation(
+  SuperConstructorInvocationImpl visitSuperConstructorInvocation(
       SuperConstructorInvocation node) {
-    SuperConstructorInvocation invocation =
-        super.visitSuperConstructorInvocation(node);
+    var invocation = super.visitSuperConstructorInvocation(node);
     invocation.staticElement = node.staticElement;
     return invocation;
   }
 
   @override
-  TypeName visitTypeName(TypeName node) {
-    TypeName typeName = super.visitTypeName(node);
+  TypeNameImpl visitTypeName(TypeName node) {
+    var typeName = super.visitTypeName(node);
     typeName.type = node.type;
     return typeName;
   }

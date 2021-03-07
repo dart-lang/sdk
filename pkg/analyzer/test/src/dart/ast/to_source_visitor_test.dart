@@ -1406,14 +1406,12 @@ class ToSourceVisitor2Test {
   }
 
   void test_visitFunctionDeclaration_external() {
-    FunctionDeclaration functionDeclaration =
-        AstTestFactory.functionDeclaration(
-            null,
-            null,
-            "f",
-            AstTestFactory.functionExpression2(
-                AstTestFactory.formalParameterList(),
-                AstTestFactory.emptyFunctionBody()));
+    var functionDeclaration = AstTestFactory.functionDeclaration(
+        null,
+        null,
+        "f",
+        AstTestFactory.functionExpression2(AstTestFactory.formalParameterList(),
+            AstTestFactory.emptyFunctionBody())) as FunctionDeclarationImpl;
     functionDeclaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
     _assertSource("external f();", functionDeclaration);

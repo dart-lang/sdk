@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -59,7 +60,8 @@ class CanBeConstConstructorTest extends AbstractLinterContextTest {
   late final LinterContextImpl context;
 
   void assertCanBeConstConstructor(String search, bool expectedResult) {
-    var constructor = findNode.constructor(search);
+    var constructor =
+        findNode.constructor(search) as ConstructorDeclarationImpl;
     expect(context.canBeConstConstructor(constructor), expectedResult);
   }
 

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' show CompilationUnitImpl;
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:pub_semver/src/version.dart';
@@ -155,9 +154,8 @@ class C {}
   }
 
   void test_parse_toplevel_member_called_late_calling_self() {
-    var unit =
-        parseCompilationUnit('void late() { late(); }', featureSet: nonNullable)
-            as CompilationUnitImpl;
+    var unit = parseCompilationUnit('void late() { late(); }',
+        featureSet: nonNullable);
     var method = unit.declarations[0] as FunctionDeclaration;
 
     expect(method.documentationComment, isNull);

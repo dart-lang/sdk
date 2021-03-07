@@ -380,14 +380,13 @@ class FastaParserTestCase
   }
 
   @override
-  CompilationUnit parseCompilationUnit(String content,
+  CompilationUnitImpl parseCompilationUnit(String content,
       {List<ErrorCode>? codes,
       List<ExpectedError>? errors,
       FeatureSet? featureSet}) {
     GatheringErrorListener listener = GatheringErrorListener(checkRanges: true);
 
-    CompilationUnit unit =
-        parseCompilationUnit2(content, listener, featureSet: featureSet);
+    var unit = parseCompilationUnit2(content, listener, featureSet: featureSet);
 
     // Assert and return result
     if (codes != null) {
@@ -401,7 +400,7 @@ class FastaParserTestCase
     return unit;
   }
 
-  CompilationUnit parseCompilationUnit2(
+  CompilationUnitImpl parseCompilationUnit2(
       String content, GatheringErrorListener listener,
       {LanguageVersionToken? languageVersion, FeatureSet? featureSet}) {
     featureSet ??= FeatureSet.forTesting();
@@ -857,7 +856,7 @@ class ParserProxy extends analyzer.Parser {
   }
 
   @override
-  CompilationUnit parseCompilationUnit2() {
+  CompilationUnitImpl parseCompilationUnit2() {
     var result = super.parseCompilationUnit2();
     expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
     expect(astBuilder.stack, hasLength(0));
@@ -1192,7 +1191,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
       featureSet: FeatureSet.forTesting(),
     );
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    CompilationUnit unit = parser.parseCompilationUnit(result.tokens);
+    var unit = parser.parseCompilationUnit(result.tokens);
     unit.lineInfo = LineInfo(result.lineStarts);
     return unit;
   }

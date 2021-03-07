@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
@@ -32,7 +33,7 @@ class LegacyTypeAsserterTest {
   }
 
   test_nullableUnit_expressionStaticType_bottom() async {
-    var identifier = AstTestFactory.identifier3('foo');
+    var identifier = AstTestFactory.identifier3('foo') as SimpleIdentifierImpl;
     var unit = _wrapExpression(identifier);
     identifier.staticType = NeverTypeImpl.instance;
     expect(() {
@@ -41,21 +42,21 @@ class LegacyTypeAsserterTest {
   }
 
   test_nullableUnit_expressionStaticType_bottomQuestion() async {
-    var identifier = AstTestFactory.identifier3('foo');
+    var identifier = AstTestFactory.identifier3('foo') as SimpleIdentifierImpl;
     var unit = _wrapExpression(identifier);
     identifier.staticType = NeverTypeImpl.instanceNullable;
     LegacyTypeAsserter.assertLegacyTypes(unit);
   }
 
   test_nullableUnit_expressionStaticType_dynamic() async {
-    var identifier = AstTestFactory.identifier3('foo');
+    var identifier = AstTestFactory.identifier3('foo') as SimpleIdentifierImpl;
     var unit = _wrapExpression(identifier);
     identifier.staticType = typeProvider.dynamicType;
     LegacyTypeAsserter.assertLegacyTypes(unit);
   }
 
   test_nullableUnit_expressionStaticType_nonNull() async {
-    var identifier = AstTestFactory.identifier3('foo');
+    var identifier = AstTestFactory.identifier3('foo') as SimpleIdentifierImpl;
     var unit = _wrapExpression(identifier);
     identifier.staticType = (typeProvider.intType as TypeImpl)
         .withNullability(NullabilitySuffix.none);
@@ -65,7 +66,7 @@ class LegacyTypeAsserterTest {
   }
 
   test_nullableUnit_expressionStaticType_nonNullTypeArgument() async {
-    var identifier = AstTestFactory.identifier3('foo');
+    var identifier = AstTestFactory.identifier3('foo') as SimpleIdentifierImpl;
     var unit = _wrapExpression(identifier);
     identifier.staticType = typeProvider.listType(
         (typeProvider.intType as TypeImpl)
@@ -77,7 +78,7 @@ class LegacyTypeAsserterTest {
   }
 
   test_nullableUnit_expressionStaticType_nonNullTypeParameter() async {
-    var identifier = AstTestFactory.identifier3('foo');
+    var identifier = AstTestFactory.identifier3('foo') as SimpleIdentifierImpl;
     var unit = _wrapExpression(identifier);
     identifier.staticType = typeProvider.listElement.instantiate(
       typeArguments: [
@@ -93,7 +94,7 @@ class LegacyTypeAsserterTest {
   }
 
   test_nullableUnit_expressionStaticType_nonNullTypeParameterBound() async {
-    var identifier = AstTestFactory.identifier3('foo');
+    var identifier = AstTestFactory.identifier3('foo') as SimpleIdentifierImpl;
     var unit = _wrapExpression(identifier);
     var T = TypeParameterElementImpl.synthetic('T');
     T.bound = (typeProvider.intType as TypeImpl)
@@ -108,14 +109,14 @@ class LegacyTypeAsserterTest {
   }
 
   test_nullableUnit_expressionStaticType_null() async {
-    var identifier = AstTestFactory.identifier3('foo');
+    var identifier = AstTestFactory.identifier3('foo') as SimpleIdentifierImpl;
     var unit = _wrapExpression(identifier);
     identifier.staticType = typeProvider.nullType;
     LegacyTypeAsserter.assertLegacyTypes(unit);
   }
 
   test_nullableUnit_expressionStaticType_question() async {
-    var identifier = AstTestFactory.identifier3('foo');
+    var identifier = AstTestFactory.identifier3('foo') as SimpleIdentifierImpl;
     var unit = _wrapExpression(identifier);
     identifier.staticType = (typeProvider.intType as TypeImpl)
         .withNullability(NullabilitySuffix.question);
@@ -125,7 +126,7 @@ class LegacyTypeAsserterTest {
   }
 
   test_nullableUnit_expressionStaticType_star() async {
-    var identifier = AstTestFactory.identifier3('foo');
+    var identifier = AstTestFactory.identifier3('foo') as SimpleIdentifierImpl;
     var unit = _wrapExpression(identifier);
     identifier.staticType = (typeProvider.intType as TypeImpl)
         .withNullability(NullabilitySuffix.star);
@@ -133,7 +134,7 @@ class LegacyTypeAsserterTest {
   }
 
   test_nullableUnit_expressionStaticType_void() async {
-    var identifier = AstTestFactory.identifier3('foo');
+    var identifier = AstTestFactory.identifier3('foo') as SimpleIdentifierImpl;
     var unit = _wrapExpression(identifier);
     identifier.staticType = VoidTypeImpl.instance;
     LegacyTypeAsserter.assertLegacyTypes(unit);

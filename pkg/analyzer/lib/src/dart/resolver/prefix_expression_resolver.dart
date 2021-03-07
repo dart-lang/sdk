@@ -131,7 +131,7 @@ class PrefixExpressionResolver {
   /// @param type the static type of the node
   ///
   /// TODO(scheglov) this is duplicate
-  void _recordStaticType(Expression expression, DartType type) {
+  void _recordStaticType(ExpressionImpl expression, DartType type) {
     _inferenceHelper.recordStaticType(expression, type);
   }
 

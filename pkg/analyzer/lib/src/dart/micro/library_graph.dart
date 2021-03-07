@@ -175,7 +175,8 @@ class FileState {
     _libraryCycle = cycle;
   }
 
-  CompilationUnit parse(AnalysisErrorListener errorListener, String content) {
+  CompilationUnitImpl parse(
+      AnalysisErrorListener errorListener, String content) {
     CharSequenceReader reader = CharSequenceReader(content);
     Scanner scanner = Scanner(source, reader, errorListener)
       ..configureFeatures(
@@ -196,7 +197,7 @@ class FileState {
       featureSet: scanner.featureSet,
     );
     parser.enableOptionalNewAndConst = true;
-    CompilationUnit unit = parser.parseCompilationUnit(token);
+    var unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
 
     // StringToken uses a static instance of StringCanonicalizer, so we need
@@ -204,8 +205,7 @@ class FileState {
     StringToken.canonicalizer.clear();
 
     // TODO(scheglov) Use actual versions.
-    var unitImpl = unit as CompilationUnitImpl;
-    unitImpl.languageVersion = LibraryLanguageVersion(
+    unit.languageVersion = LibraryLanguageVersion(
       package: ExperimentStatus.currentVersion,
       override: null,
     );

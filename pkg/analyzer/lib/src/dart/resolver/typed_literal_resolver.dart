@@ -70,7 +70,7 @@ class TypedLiteralResolver {
         : NullabilitySuffix.star;
   }
 
-  void resolveListLiteral(ListLiteral node) {
+  void resolveListLiteral(ListLiteralImpl node) {
     InterfaceType? listType;
 
     var typeArguments = node.typeArguments?.arguments;
@@ -644,7 +644,7 @@ class TypedLiteralResolver {
   /// @param type the static type of the node
   ///
   /// TODO(scheglov) Inline this.
-  void _recordStaticType(Expression expression, DartType type) {
+  void _recordStaticType(ExpressionImpl expression, DartType type) {
     expression.staticType = type;
 //    if (type == null) {
 //      expression.staticType = _dynamicType;
@@ -656,7 +656,7 @@ class TypedLiteralResolver {
 //    }
   }
 
-  void _resolveListLiteral2(ListLiteral node) {
+  void _resolveListLiteral2(ListLiteralImpl node) {
     var typeArguments = node.typeArguments?.arguments;
 
     // If we have explicit arguments, use them.
@@ -691,7 +691,7 @@ class TypedLiteralResolver {
     _recordStaticType(node, listDynamicType);
   }
 
-  void _resolveSetOrMapLiteral2(SetOrMapLiteral node) {
+  void _resolveSetOrMapLiteral2(SetOrMapLiteralImpl node) {
     var typeArguments = node.typeArguments?.arguments;
 
     // If we have type arguments, use them.
@@ -699,7 +699,7 @@ class TypedLiteralResolver {
     //  ResolverVisitor._fromTypeArguments
     if (typeArguments != null) {
       if (typeArguments.length == 1) {
-        (node as SetOrMapLiteralImpl).becomeSet();
+        node.becomeSet();
         var elementType = typeArguments[0].type!;
         _recordStaticType(
           node,
@@ -710,7 +710,7 @@ class TypedLiteralResolver {
         );
         return;
       } else if (typeArguments.length == 2) {
-        (node as SetOrMapLiteralImpl).becomeMap();
+        node.becomeMap();
         var keyType = typeArguments[0].type!;
         var valueType = typeArguments[1].type!;
         _recordStaticType(
@@ -730,10 +730,10 @@ class TypedLiteralResolver {
       // The literal is ambiguous, and further analysis won't resolve the
       // ambiguity.  Leave it as neither a set nor a map.
     } else if (literalType.element == _typeProvider.mapElement) {
-      (node as SetOrMapLiteralImpl).becomeMap();
+      node.becomeMap();
     } else {
       assert(literalType.element == _typeProvider.setElement);
-      (node as SetOrMapLiteralImpl).becomeSet();
+      node.becomeSet();
     }
     if (_strictInference &&
         _getSetOrMapElements(node).isEmpty &&

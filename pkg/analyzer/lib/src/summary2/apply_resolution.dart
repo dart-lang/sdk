@@ -81,7 +81,7 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitAnnotation(Annotation node) {
+  void visitAnnotation(covariant AnnotationImpl node) {
     _expectMarker(MarkerTag.Annotation_name);
     node.name.accept(this);
     _expectMarker(MarkerTag.Annotation_constructorName);
@@ -100,7 +100,7 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitAsExpression(AsExpression node) {
+  void visitAsExpression(covariant AsExpressionImpl node) {
     _expectMarker(MarkerTag.AsExpression_expression);
     node.expression.accept(this);
     _expectMarker(MarkerTag.AsExpression_type);
@@ -142,7 +142,7 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitAwaitExpression(AwaitExpression node) {
+  void visitAwaitExpression(covariant AwaitExpressionImpl node) {
     _expectMarker(MarkerTag.AwaitExpression_expression);
     node.expression.accept(this);
     _expectMarker(MarkerTag.AwaitExpression_expression2);
@@ -151,7 +151,7 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(covariant BinaryExpressionImpl node) {
     _expectMarker(MarkerTag.BinaryExpression_leftOperand);
     node.leftOperand.accept(this);
     _expectMarker(MarkerTag.BinaryExpression_rightOperand);
@@ -166,12 +166,12 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitBooleanLiteral(BooleanLiteral node) {
+  void visitBooleanLiteral(covariant BooleanLiteralImpl node) {
     _expression(node);
   }
 
   @override
-  void visitCascadeExpression(CascadeExpression node) {
+  void visitCascadeExpression(covariant CascadeExpressionImpl node) {
     _expectMarker(MarkerTag.CascadeExpression_target);
     node.target.accept(this);
     _expectMarker(MarkerTag.CascadeExpression_cascadeSections);
@@ -241,7 +241,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  void visitConditionalExpression(ConditionalExpression node) {
+  void visitConditionalExpression(covariant ConditionalExpressionImpl node) {
     _expectMarker(MarkerTag.ConditionalExpression_condition);
     node.condition.accept(this);
     _expectMarker(MarkerTag.ConditionalExpression_thenExpression);
@@ -302,7 +302,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
+  void visitConstructorName(covariant ConstructorNameImpl node) {
     // Rewrite:
     //   ConstructorName
     //     type: TypeName
@@ -475,7 +475,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
+  void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     if (node.declaredElement == null) {
       assert(node.parent is! DefaultFormalParameter);
       var enclosing = _enclosingElements.last;
@@ -527,6 +527,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     for (var variable in node.variables.variables) {
+      variable as VariableDeclarationImpl;
       var nameNode = variable.name;
       nameNode.staticElement = LocalVariableElementImpl(
         nameNode.name,
@@ -579,7 +580,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
 
   @override
   void visitFunctionExpressionInvocation(
-    FunctionExpressionInvocation node, {
+    covariant FunctionExpressionInvocationImpl node, {
     bool readRewrite = true,
   }) {
     // Read possible rewrite of `MethodInvocation`.
@@ -628,7 +629,8 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  void visitFunctionTypedFormalParameter(
+      covariant FunctionTypedFormalParameterImpl node) {
     if (node.declaredElement == null) {
       assert(node.parent is! DefaultFormalParameter);
       var enclosing = _enclosingElements.last;
@@ -733,7 +735,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  void visitIndexExpression(IndexExpression node) {
+  void visitIndexExpression(covariant IndexExpressionImpl node) {
     _expectMarker(MarkerTag.IndexExpression_target);
     node.target?.accept(this);
     _expectMarker(MarkerTag.IndexExpression_index);
@@ -747,7 +749,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
 
   @override
   void visitInstanceCreationExpression(
-    InstanceCreationExpression node, {
+    covariant InstanceCreationExpressionImpl node, {
     bool readRewrite = true,
   }) {
     // Read possible rewrite of `MethodInvocation`.
@@ -770,7 +772,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  void visitIntegerLiteral(IntegerLiteral node) {
+  void visitIntegerLiteral(covariant IntegerLiteralImpl node) {
     _expression(node);
   }
 
@@ -785,7 +787,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  void visitIsExpression(IsExpression node) {
+  void visitIsExpression(covariant IsExpressionImpl node) {
     _expectMarker(MarkerTag.IsExpression_expression);
     node.expression.accept(this);
     _expectMarker(MarkerTag.IsExpression_type);
@@ -807,7 +809,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  void visitListLiteral(ListLiteral node) {
+  void visitListLiteral(covariant ListLiteralImpl node) {
     _expectMarker(MarkerTag.ListLiteral_typeArguments);
     node.typeArguments?.accept(this);
     _expectMarker(MarkerTag.ListLiteral_elements);
@@ -872,7 +874,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(covariant MethodInvocationImpl node) {
     var rewriteTag = _resolution.readByte();
     if (rewriteTag == MethodInvocationRewriteTag.none) {
       // No rewrite necessary.
@@ -912,7 +914,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
         expression,
         node.typeArguments,
         node.argumentList,
-      );
+      ) as FunctionExpressionInvocationImpl;
       NodeReplacer.replace(node, replacement);
       visitFunctionExpressionInvocation(replacement, readRewrite: false);
       return;
@@ -926,7 +928,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
           node.methodName,
         ),
         node.argumentList,
-      );
+      ) as InstanceCreationExpressionImpl;
       NodeReplacer.replace(node, replacement);
       visitInstanceCreationExpression(replacement, readRewrite: false);
       return;
@@ -947,7 +949,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
           null,
         ),
         node.argumentList,
-      );
+      ) as InstanceCreationExpressionImpl;
       NodeReplacer.replace(node, replacement);
       visitInstanceCreationExpression(replacement, readRewrite: false);
       return;
@@ -1012,7 +1014,8 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  void visitParenthesizedExpression(ParenthesizedExpression node) {
+  void visitParenthesizedExpression(
+      covariant ParenthesizedExpressionImpl node) {
     _expectMarker(MarkerTag.ParenthesizedExpression_expression);
     node.expression.accept(this);
     _expectMarker(MarkerTag.ParenthesizedExpression_expression2);
@@ -1059,7 +1062,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+  void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
     _expectMarker(MarkerTag.PrefixedIdentifier_prefix);
     node.prefix.accept(this);
     _expectMarker(MarkerTag.PrefixedIdentifier_identifier);
@@ -1092,7 +1095,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  void visitPropertyAccess(PropertyAccess node) {
+  void visitPropertyAccess(covariant PropertyAccessImpl node) {
     _expectMarker(MarkerTag.PropertyAccess_target);
     node.target?.accept(this);
     _expectMarker(MarkerTag.PropertyAccess_propertyName);
@@ -1105,7 +1108,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+      covariant RedirectingConstructorInvocationImpl node) {
     _expectMarker(MarkerTag.RedirectingConstructorInvocation_constructorName);
     node.constructorName?.accept(this);
     _expectMarker(MarkerTag.RedirectingConstructorInvocation_argumentList);
@@ -1117,13 +1120,13 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+  void visitSetOrMapLiteral(covariant SetOrMapLiteralImpl node) {
     _expectMarker(MarkerTag.SetOrMapLiteral_flags);
     var mapOrSetBits = _resolution.readByte();
     if ((mapOrSetBits & 0x01) != 0) {
-      (node as SetOrMapLiteralImpl).becomeMap();
+      node.becomeMap();
     } else if ((mapOrSetBits & 0x02) != 0) {
-      (node as SetOrMapLiteralImpl).becomeSet();
+      node.becomeSet();
     }
 
     _expectMarker(MarkerTag.SetOrMapLiteral_typeArguments);
@@ -1141,7 +1144,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  visitSimpleFormalParameter(SimpleFormalParameter node) {
+  visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
     var element = node.declaredElement as ParameterElementImpl?;
     if (element == null) {
       assert(node.parent is! DefaultFormalParameter);
@@ -1162,7 +1165,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
     _expectMarker(MarkerTag.SimpleIdentifier_staticElement);
     node.staticElement = _nextElement();
     _expectMarker(MarkerTag.SimpleIdentifier_expression);
@@ -1191,7 +1194,8 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  void visitSuperConstructorInvocation(
+      covariant SuperConstructorInvocationImpl node) {
     _expectMarker(MarkerTag.SuperConstructorInvocation_constructorName);
     node.constructorName?.accept(this);
     _expectMarker(MarkerTag.SuperConstructorInvocation_argumentList);
@@ -1203,26 +1207,26 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  void visitSuperExpression(SuperExpression node) {
+  void visitSuperExpression(covariant SuperExpressionImpl node) {
     _expectMarker(MarkerTag.SuperExpression_expression);
     _expression(node);
     _expectMarker(MarkerTag.SuperExpression_end);
   }
 
   @override
-  void visitSymbolLiteral(SymbolLiteral node) {
+  void visitSymbolLiteral(covariant SymbolLiteralImpl node) {
     _expression(node);
   }
 
   @override
-  void visitThisExpression(ThisExpression node) {
+  void visitThisExpression(covariant ThisExpressionImpl node) {
     _expectMarker(MarkerTag.ThisExpression_expression);
     _expression(node);
     _expectMarker(MarkerTag.ThisExpression_end);
   }
 
   @override
-  void visitThrowExpression(ThrowExpression node) {
+  void visitThrowExpression(covariant ThrowExpressionImpl node) {
     _expectMarker(MarkerTag.ThrowExpression_expression);
     node.expression.accept(this);
     _expectMarker(MarkerTag.ThrowExpression_expression2);
@@ -1247,7 +1251,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
-  visitTypeName(TypeName node) {
+  visitTypeName(covariant TypeNameImpl node) {
     _expectMarker(MarkerTag.TypeName_name);
     node.name.accept(this);
     _expectMarker(MarkerTag.TypeName_typeArguments);
@@ -1262,6 +1266,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
   @override
   visitTypeParameterList(TypeParameterList node) {
     for (var typeParameter in node.typeParameters) {
+      typeParameter as TypeParameterImpl;
       var element = TypeParameterElementImpl.forLinkedNode(
         _enclosingElements.last,
         typeParameter,
@@ -1419,7 +1424,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
     }
   }
 
-  void _expression(Expression node) {
+  void _expression(ExpressionImpl node) {
     _expectMarker(MarkerTag.Expression_staticType);
     node.staticType = _nextType();
   }
@@ -1449,7 +1454,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
     _expectMarker(MarkerTag.ForParts_end);
   }
 
-  void _invocationExpression(InvocationExpression node) {
+  void _invocationExpression(covariant InvocationExpressionImpl node) {
     _expectMarker(MarkerTag.InvocationExpression_typeArguments);
     node.typeArguments?.accept(this);
     _expectMarker(MarkerTag.InvocationExpression_argumentList);
@@ -1458,7 +1463,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
     _expression(node);
     _expectMarker(MarkerTag.InvocationExpression_end);
     // TODO(scheglov) typeArgumentTypes and staticInvokeType?
-    var nodeImpl = node as InvocationExpressionImpl;
+    var nodeImpl = node;
     nodeImpl.typeArgumentTypes = [];
   }
 
@@ -1529,7 +1534,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
     ArgumentList argumentList,
   ) {
     for (var argument in argumentList.arguments) {
-      if (argument is NamedExpression) {
+      if (argument is NamedExpressionImpl) {
         var nameNode = argument.name.label;
         if (executable is ExecutableElement) {
           var parameters = executable.parameters;
