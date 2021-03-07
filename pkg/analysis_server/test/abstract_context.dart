@@ -164,6 +164,7 @@ class AbstractContextTest with ResourceProviderMixin {
       throw StateError('Only dart files can be changed after analysis.');
     }
 
+    path = convertPath(path);
     _addAnalyzedFileToDrivers(path);
     return super.newFile(path, content: content);
   }
