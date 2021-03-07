@@ -5,9 +5,8 @@
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
@@ -370,7 +369,7 @@ class AstBinaryReader {
       Tokens.OPEN_CURLY_BRACKET,
       const <ClassMember>[],
       Tokens.CLOSE_CURLY_BRACKET,
-    ) as ClassDeclarationImpl;
+    );
     node.nativeClause = nativeClause;
 
     node.linkedContext = LinkedContext(
@@ -412,7 +411,7 @@ class AstBinaryReader {
       withClause,
       implementsClause,
       Tokens.SEMICOLON,
-    ) as ClassTypeAliasImpl;
+    );
 
     node.linkedContext = LinkedContext(
       _unitReader,
@@ -496,7 +495,7 @@ class AstBinaryReader {
       initializers,
       redirectedConstructor,
       AstTestFactory.emptyFunctionBody(),
-    ) as ConstructorDeclarationImpl;
+    );
 
     node.linkedContext = LinkedContext(
       _unitReader,
@@ -579,7 +578,7 @@ class AstBinaryReader {
       kind,
       AstBinaryFlags.hasInitializer(flags) ? Tokens.COLON : null,
       defaultValue,
-    ) as DefaultFormalParameterImpl;
+    );
     node.summaryData = SummaryDataForFormalParameter(
       codeOffset: codeOffset,
       codeLength: codeLength,
@@ -606,8 +605,7 @@ class AstBinaryReader {
     var name = readNode() as SimpleIdentifier;
     var metadata = _readNodeList<Annotation>();
 
-    var node = astFactory.enumConstantDeclaration(null, metadata, name)
-        as EnumConstantDeclarationImpl;
+    var node = astFactory.enumConstantDeclaration(null, metadata, name);
 
     node.linkedContext = LinkedContext(
       _unitReader,
@@ -638,7 +636,7 @@ class AstBinaryReader {
       Tokens.OPEN_CURLY_BRACKET,
       constants,
       Tokens.CLOSE_CURLY_BRACKET,
-    ) as EnumDeclarationImpl;
+    );
 
     node.linkedContext = LinkedContext(
       _unitReader,
@@ -667,7 +665,7 @@ class AstBinaryReader {
       configurations,
       combinators,
       Tokens.SEMICOLON,
-    ) as ExportDirectiveImpl;
+    );
 
     node.linkedContext = LinkedContext(
       _unitReader,
@@ -707,7 +705,7 @@ class AstBinaryReader {
       leftBracket: Tokens.OPEN_CURLY_BRACKET,
       members: const <ClassMember>[],
       rightBracket: Tokens.CLOSE_CURLY_BRACKET,
-    ) as ExtensionDeclarationImpl;
+    );
 
     node.linkedContext = LinkedContext(
       _unitReader,
@@ -751,7 +749,7 @@ class AstBinaryReader {
       metadata: metadata,
       semicolon: Tokens.SEMICOLON,
       staticKeyword: AstBinaryFlags.isStatic(flags) ? Tokens.STATIC : null,
-    ) as FieldDeclarationImpl;
+    );
 
     node.linkedContext = LinkedContext(
       _unitReader,
@@ -797,7 +795,7 @@ class AstBinaryReader {
       question: AstBinaryFlags.hasQuestion(flags) ? Tokens.QUESTION : null,
       requiredKeyword:
           AstBinaryFlags.isRequired(flags) ? Tokens.REQUIRED : null,
-    ) as FieldFormalParameterImpl;
+    );
     node.summaryData = SummaryDataForFormalParameter(
       codeOffset: codeOffset,
       codeLength: codeLength,
@@ -901,7 +899,7 @@ class AstBinaryReader {
       ),
       name,
       functionExpression,
-    ) as FunctionDeclarationImpl;
+    );
 
     node.linkedContext = LinkedContext(
       _unitReader,
@@ -959,7 +957,7 @@ class AstBinaryReader {
       typeParameters,
       formalParameters,
       Tokens.SEMICOLON,
-    ) as FunctionTypeAliasImpl;
+    );
 
     node.linkedContext = LinkedContext(
       _unitReader,
@@ -993,7 +991,7 @@ class AstBinaryReader {
           AstBinaryFlags.isRequired(flags) ? Tokens.REQUIRED : null,
       returnType: returnType,
       typeParameters: typeParameters,
-    ) as FunctionTypedFormalParameterImpl;
+    );
     node.summaryData = SummaryDataForFormalParameter(
       codeOffset: codeOffset,
       codeLength: codeLength,
@@ -1035,7 +1033,7 @@ class AstBinaryReader {
       Tokens.EQ,
       type,
       Tokens.SEMICOLON,
-    ) as GenericTypeAliasImpl;
+    );
 
     node.linkedContext = LinkedContext(
       _unitReader,
@@ -1106,7 +1104,7 @@ class AstBinaryReader {
       prefixIdentifier,
       combinators,
       Tokens.SEMICOLON,
-    ) as ImportDirectiveImpl;
+    );
 
     node.linkedContext = LinkedContext(
       _unitReader,
@@ -1132,7 +1130,7 @@ class AstBinaryReader {
         leftBracket: Tokens.OPEN_SQUARE_BRACKET,
         index: index,
         rightBracket: Tokens.CLOSE_SQUARE_BRACKET,
-      ) as IndexExpressionImpl)
+      ))
         ..period =
             AstBinaryFlags.hasPeriod(flags) ? Tokens.PERIOD_PERIOD : null;
     } else {
@@ -1250,7 +1248,7 @@ class AstBinaryReader {
       KeywordToken(Keyword.LIBRARY, keywordOffset),
       name,
       Tokens.SEMICOLON,
-    ) as LibraryDirectiveImpl;
+    );
     SummaryDataForLibraryDirective(
       _unitReader,
       node,
@@ -1317,7 +1315,7 @@ class AstBinaryReader {
       typeParameters,
       formalParameters,
       body,
-    ) as MethodDeclarationImpl;
+    );
 
     node.linkedContext = LinkedContext(
       _unitReader,
@@ -1374,7 +1372,7 @@ class AstBinaryReader {
       Tokens.OPEN_CURLY_BRACKET,
       const <ClassMember>[],
       Tokens.CLOSE_CURLY_BRACKET,
-    ) as MixinDeclarationImpl;
+    );
 
     node.linkedContext = LinkedContext(
       _unitReader,
@@ -1550,7 +1548,7 @@ class AstBinaryReader {
       leftBracket: Tokens.OPEN_CURLY_BRACKET,
       typeArguments: typeArguments,
       rightBracket: Tokens.CLOSE_CURLY_BRACKET,
-    ) as SetOrMapLiteralImpl;
+    );
     return node;
   }
 
@@ -1588,7 +1586,7 @@ class AstBinaryReader {
       ),
       requiredKeyword:
           AstBinaryFlags.isRequired(flags) ? Tokens.REQUIRED : null,
-    ) as SimpleFormalParameterImpl;
+    );
     node.summaryData = SummaryDataForFormalParameter(
       codeOffset: codeOffset,
       codeLength: codeLength,
@@ -1683,7 +1681,7 @@ class AstBinaryReader {
       Tokens.SEMICOLON,
       externalKeyword:
           AstBinaryFlags.isExternal(flags) ? Tokens.EXTERNAL : null,
-    ) as TopLevelVariableDeclarationImpl;
+    );
 
     node.linkedContext = LinkedContext(
       _unitReader,
@@ -1728,7 +1726,7 @@ class AstBinaryReader {
       name,
       bound != null ? Tokens.EXTENDS : null,
       bound,
-    ) as TypeParameterImpl;
+    );
     node.summaryData = SummaryDataForTypeParameter(
       codeOffset: codeOffset,
       codeLength: codeLength,
@@ -1788,7 +1786,7 @@ class AstBinaryReader {
       name,
       Tokens.EQ,
       initializer,
-    ) as VariableDeclarationImpl;
+    );
 
     node.hasInitializer = AstBinaryFlags.hasInitializer(flags);
 

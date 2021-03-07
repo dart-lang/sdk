@@ -4,9 +4,8 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -156,7 +155,7 @@ class ConstructorDeclarationTest {
         null,
         AstTestFactory.formalParameterList(),
         [],
-        AstTestFactory.emptyFunctionBody()) as ConstructorDeclarationImpl;
+        AstTestFactory.emptyFunctionBody());
     declaration.externalKeyword = externalKeyword;
     declaration.constKeyword!.offset = 8;
     Token factoryKeyword = declaration.factoryKeyword!;
@@ -174,7 +173,7 @@ class ConstructorDeclarationTest {
         null,
         AstTestFactory.formalParameterList(),
         [],
-        AstTestFactory.emptyFunctionBody()) as ConstructorDeclarationImpl;
+        AstTestFactory.emptyFunctionBody());
     declaration.externalKeyword = token;
     declaration.constKeyword!.offset = 9;
     declaration.factoryKeyword!.offset = 15;
@@ -203,7 +202,7 @@ class ConstructorDeclarationTest {
         null,
         AstTestFactory.formalParameterList(),
         [],
-        AstTestFactory.emptyFunctionBody()) as ConstructorDeclarationImpl;
+        AstTestFactory.emptyFunctionBody());
     declaration.externalKeyword = externalKeyword;
     expect(declaration.firstTokenAfterCommentAndMetadata, externalKeyword);
   }
@@ -899,8 +898,7 @@ class NodeListTest {
     nodes.add(firstNode);
     nodes.add(secondNode);
     nodes.add(thirdNode);
-    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList())
-        as NodeListImpl<AstNode>;
+    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     list.addAll(nodes);
     expect(list, hasLength(3));
     AstNode fourthNode = AstTestFactory.integer(0);
@@ -913,8 +911,7 @@ class NodeListTest {
 
   void test_set_negative() {
     AstNode node = AstTestFactory.booleanLiteral(true);
-    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList())
-        as NodeListImpl<AstNode>;
+    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[-1] = node;
       fail("Expected IndexOutOfBoundsException");
@@ -925,8 +922,7 @@ class NodeListTest {
 
   void test_set_tooBig() {
     AstNode node = AstTestFactory.booleanLiteral(true);
-    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList())
-        as NodeListImpl<AstNode>;
+    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[1] = node;
       fail("Expected IndexOutOfBoundsException");
@@ -1725,8 +1721,7 @@ class VariableDeclarationTest extends ParserTestCase {
   void test_getDocumentationComment_onGrandParent() {
     VariableDeclaration varDecl = AstTestFactory.variableDeclaration("a");
     var decl =
-        AstTestFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl])
-            as TopLevelVariableDeclarationImpl;
+        AstTestFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
     Comment comment = astFactory.documentationComment([]);
     expect(varDecl.documentationComment, isNull);
     decl.documentationComment = comment;
@@ -1735,8 +1730,7 @@ class VariableDeclarationTest extends ParserTestCase {
   }
 
   void test_getDocumentationComment_onNode() {
-    var decl =
-        AstTestFactory.variableDeclaration("a") as VariableDeclarationImpl;
+    var decl = AstTestFactory.variableDeclaration("a");
     Comment comment = astFactory.documentationComment([]);
     decl.documentationComment = comment;
     expect(decl.documentationComment, isNotNull);

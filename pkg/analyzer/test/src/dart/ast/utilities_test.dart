@@ -5,12 +5,12 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -137,7 +137,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   void test_topLevelVariableDeclaration_external() {
     var fromNode = AstTestFactory.topLevelVariableDeclaration2(
         Keyword.VAR, [AstTestFactory.variableDeclaration('x')],
-        isExternal: false) as TopLevelVariableDeclarationImpl;
+        isExternal: false);
     TopLevelVariableElement element = TopLevelVariableElementImpl('x', -1);
     (fromNode.variables.variables[0] as VariableDeclarationImpl)
         .name
@@ -168,7 +168,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
             TokenFactory.tokenFromString('world'),
             'world',
           )
-        ]) as AdjacentStringsImpl;
+        ]);
 
     var fromNode = createNode();
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('B'));
@@ -182,8 +182,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   void test_visitAnnotation() {
     String annotationName = "proxy";
     var fromNode =
-        AstTestFactory.annotation(AstTestFactory.identifier3(annotationName))
-            as AnnotationImpl;
+        AstTestFactory.annotation(AstTestFactory.identifier3(annotationName));
     Element element = ElementFactory.topLevelVariableElement2(annotationName);
     fromNode.element = element;
     Annotation toNode =
@@ -200,7 +199,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
         AstTestFactory.identifier3(annotationClassName),
         AstTestFactory.identifier3(annotationConstructorName),
         AstTestFactory.argumentList(
-            [AstTestFactory.identifier3(argumentName)])) as AnnotationImpl;
+            [AstTestFactory.identifier3(argumentName)]));
     var elementA = ElementFactory.classElement2(annotationClassName, ['T']);
     var element = ElementFactory.constructorElement(
         elementA, annotationConstructorName, true, [typeProvider.dynamicType]);
@@ -213,7 +212,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
         AstTestFactory.identifier3(annotationClassName),
         AstTestFactory.identifier3(annotationConstructorName),
         AstTestFactory.argumentList(
-            [AstTestFactory.identifier3(argumentName)])) as AnnotationImpl;
+            [AstTestFactory.identifier3(argumentName)]));
     toNode.typeArguments = AstTestFactory.typeArgumentList2(
         [AstTestFactory.typeName4(typeArgumentName)]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -225,8 +224,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitAsExpression() {
     var fromNode = AstTestFactory.asExpression(
-            AstTestFactory.identifier3("x"), AstTestFactory.typeName4("A"))
-        as AsExpressionImpl;
+        AstTestFactory.identifier3("x"), AstTestFactory.typeName4("A"));
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('B'));
     fromNode.staticType = staticType;
     AsExpression toNode = AstTestFactory.asExpression(
@@ -239,7 +237,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
     var fromNode = AstTestFactory.assignmentExpression(
         AstTestFactory.identifier3("a"),
         TokenType.PLUS_EQ,
-        AstTestFactory.identifier3("b")) as AssignmentExpressionImpl;
+        AstTestFactory.identifier3("b"));
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     MethodElement staticElement = ElementFactory.methodElement("+", staticType);
     fromNode.staticElement = staticElement;
@@ -257,7 +255,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
     var fromNode = AstTestFactory.binaryExpression(
         AstTestFactory.identifier3("a"),
         TokenType.PLUS,
-        AstTestFactory.identifier3("b")) as BinaryExpressionImpl;
+        AstTestFactory.identifier3("b"));
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     MethodElement staticElement = ElementFactory.methodElement("+", staticType);
     fromNode.staticElement = staticElement;
@@ -272,7 +270,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitBooleanLiteral() {
-    var fromNode = AstTestFactory.booleanLiteral(true) as BooleanLiteralImpl;
+    var fromNode = AstTestFactory.booleanLiteral(true);
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     BooleanLiteral toNode = AstTestFactory.booleanLiteral(true);
@@ -282,8 +280,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitCascadeExpression() {
     var fromNode = AstTestFactory.cascadeExpression(
-            AstTestFactory.identifier3("a"), [AstTestFactory.identifier3("b")])
-        as CascadeExpressionImpl;
+        AstTestFactory.identifier3("a"), [AstTestFactory.identifier3("b")]);
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     CascadeExpression toNode = AstTestFactory.cascadeExpression(
@@ -293,7 +290,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitCompilationUnit() {
-    var fromNode = AstTestFactory.compilationUnit() as CompilationUnitImpl;
+    var fromNode = AstTestFactory.compilationUnit();
     CompilationUnitElement element = CompilationUnitElementImpl();
     fromNode.element = element;
     CompilationUnit toNode = AstTestFactory.compilationUnit();
@@ -305,7 +302,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
     var fromNode = AstTestFactory.conditionalExpression(
         AstTestFactory.identifier3("c"),
         AstTestFactory.identifier3("a"),
-        AstTestFactory.identifier3("b")) as ConditionalExpressionImpl;
+        AstTestFactory.identifier3("b"));
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     ConditionalExpression toNode = AstTestFactory.conditionalExpression(
@@ -322,7 +319,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
     var fromNode = AstTestFactory.constructorDeclaration(
         AstTestFactory.identifier3(className),
         constructorName,
-        AstTestFactory.formalParameterList(), []) as ConstructorDeclarationImpl;
+        AstTestFactory.formalParameterList(), []);
     ConstructorElement element = ElementFactory.constructorElement2(
         ElementFactory.classElement2(className), constructorName);
     fromNode.declaredElement = element;
@@ -336,8 +333,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitConstructorName() {
     var fromNode =
-        AstTestFactory.constructorName(AstTestFactory.typeName4("A"), "c")
-            as ConstructorNameImpl;
+        AstTestFactory.constructorName(AstTestFactory.typeName4("A"), "c");
     ConstructorElement staticElement = ElementFactory.constructorElement2(
         ElementFactory.classElement2("A"), "c");
     fromNode.staticElement = staticElement;
@@ -348,7 +344,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitDoubleLiteral() {
-    var fromNode = AstTestFactory.doubleLiteral(1.0) as DoubleLiteralImpl;
+    var fromNode = AstTestFactory.doubleLiteral(1.0);
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     DoubleLiteral toNode = AstTestFactory.doubleLiteral(1.0);
@@ -357,8 +353,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitExportDirective() {
-    var fromNode =
-        AstTestFactory.exportDirective2("dart:uri") as ExportDirectiveImpl;
+    var fromNode = AstTestFactory.exportDirective2("dart:uri");
     ExportElement element = ExportElementImpl(-1);
     fromNode.element = element;
     ExportDirective toNode = AstTestFactory.exportDirective2("dart:uri");
@@ -430,10 +425,9 @@ class ResolutionCopierTest with ElementsTypesMixin {
   void test_visitForEachPartsWithIdentifier() {
     ForEachPartsWithIdentifierImpl createNode() =>
         astFactory.forEachPartsWithIdentifier(
-                identifier: AstTestFactory.identifier3('a'),
-                inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
-                iterable: AstTestFactory.identifier3('b'))
-            as ForEachPartsWithIdentifierImpl;
+            identifier: AstTestFactory.identifier3('a'),
+            inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
+            iterable: AstTestFactory.identifier3('b'));
 
     DartType typeA = interfaceTypeStar(ElementFactory.classElement2('A'));
     DartType typeB = interfaceTypeStar(ElementFactory.classElement2('B'));
@@ -457,7 +451,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
             inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
             iterable: AstTestFactory.identifier3('b')),
         rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-        body: AstTestFactory.identifier3('c')) as ForElementImpl;
+        body: AstTestFactory.identifier3('c'));
 
     DartType typeC = interfaceTypeStar(ElementFactory.classElement2('C'));
 
@@ -554,7 +548,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   void test_visitFunctionExpression() {
     var fromNode = AstTestFactory.functionExpression2(
         AstTestFactory.formalParameterList(),
-        AstTestFactory.emptyFunctionBody()) as FunctionExpressionImpl;
+        AstTestFactory.emptyFunctionBody());
     MethodElement element = ElementFactory.methodElement(
         "m", interfaceTypeStar(ElementFactory.classElement2('C')));
     fromNode.declaredElement = element;
@@ -570,12 +564,12 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitFunctionExpressionInvocation() {
     var fromNode = AstTestFactory.functionExpressionInvocation(
-        AstTestFactory.identifier3("f")) as FunctionExpressionInvocationImpl;
+        AstTestFactory.identifier3("f"));
     MethodElement staticElement = ElementFactory.methodElement(
         "m", interfaceTypeStar(ElementFactory.classElement2('C')));
     fromNode.staticElement = staticElement;
     var toNode = AstTestFactory.functionExpressionInvocation(
-        AstTestFactory.identifier3("f")) as FunctionExpressionInvocationImpl;
+        AstTestFactory.identifier3("f"));
     ClassElement elementT = ElementFactory.classElement2('T');
     fromNode.typeArguments = AstTestFactory.typeArgumentList(
         <TypeAnnotation>[AstTestFactory.typeName(elementT)]);
@@ -594,7 +588,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
         condition: AstTestFactory.identifier3('a'),
         rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
         thenElement: AstTestFactory.identifier3('b'),
-        elseElement: AstTestFactory.identifier3('c')) as IfElementImpl;
+        elseElement: AstTestFactory.identifier3('c'));
 
     DartType typeA = interfaceTypeStar(ElementFactory.classElement2('A'));
     DartType typeB = interfaceTypeStar(ElementFactory.classElement2('B'));
@@ -613,8 +607,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitImportDirective() {
-    var fromNode = AstTestFactory.importDirective3("dart:uri", null)
-        as ImportDirectiveImpl;
+    var fromNode = AstTestFactory.importDirective3("dart:uri", null);
     ImportElement element = ImportElementImpl(0);
     fromNode.element = element;
     ImportDirective toNode = AstTestFactory.importDirective3("dart:uri", null);
@@ -626,7 +619,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
     var fromNode = AstTestFactory.indexExpression(
       target: AstTestFactory.identifier3("a"),
       index: AstTestFactory.integer(0),
-    ) as IndexExpressionImpl;
+    );
     MethodElement staticElement = ElementFactory.methodElement(
         "m", interfaceTypeStar(ElementFactory.classElement2('C')));
     fromNode.staticElement = staticElement;
@@ -643,8 +636,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitInstanceCreationExpression() {
     var fromNode = AstTestFactory.instanceCreationExpression2(
-            Keyword.NEW, AstTestFactory.typeName4("C"))
-        as InstanceCreationExpressionImpl;
+        Keyword.NEW, AstTestFactory.typeName4("C"));
     ConstructorElement staticElement = ElementFactory.constructorElement2(
         ElementFactory.classElement2("C"), null);
     fromNode.constructorName.staticElement = staticElement;
@@ -659,7 +651,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitIntegerLiteral() {
-    var fromNode = AstTestFactory.integer(2) as IntegerLiteralImpl;
+    var fromNode = AstTestFactory.integer(2);
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     IntegerLiteral toNode = AstTestFactory.integer(2);
@@ -668,8 +660,8 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitIsExpression() {
-    var fromNode = AstTestFactory.isExpression(AstTestFactory.identifier3("x"),
-        false, AstTestFactory.typeName4("A")) as IsExpressionImpl;
+    var fromNode = AstTestFactory.isExpression(
+        AstTestFactory.identifier3("x"), false, AstTestFactory.typeName4("A"));
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     IsExpression toNode = AstTestFactory.isExpression(
@@ -680,8 +672,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitLibraryIdentifier() {
     var fromNode =
-        AstTestFactory.libraryIdentifier([AstTestFactory.identifier3("lib")])
-            as LibraryIdentifierImpl;
+        AstTestFactory.libraryIdentifier([AstTestFactory.identifier3("lib")]);
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     LibraryIdentifier toNode =
@@ -697,7 +688,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
           TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
           [AstTestFactory.identifier3('b')],
           TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET),
-        ) as ListLiteralImpl;
+        );
 
     DartType typeA = interfaceTypeStar(ElementFactory.classElement2('A'));
     DartType typeB = interfaceTypeStar(ElementFactory.classElement2('B'));
@@ -716,8 +707,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitMapLiteral() {
-    var fromNode =
-        AstTestFactory.setOrMapLiteral(null, null) as SetOrMapLiteralImpl;
+    var fromNode = AstTestFactory.setOrMapLiteral(null, null);
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     SetOrMapLiteral toNode = AstTestFactory.setOrMapLiteral(null, null);
@@ -726,9 +716,8 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitMethodInvocation() {
-    var fromNode =
-        AstTestFactory.methodInvocation2("m") as MethodInvocationImpl;
-    var toNode = AstTestFactory.methodInvocation2("m") as MethodInvocationImpl;
+    var fromNode = AstTestFactory.methodInvocation2("m");
+    var toNode = AstTestFactory.methodInvocation2("m");
     ClassElement elementT = ElementFactory.classElement2('T');
     fromNode.typeArguments = AstTestFactory.typeArgumentList(
         <TypeAnnotation>[AstTestFactory.typeName(elementT)]);
@@ -739,8 +728,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitNamedExpression() {
     var fromNode =
-        AstTestFactory.namedExpression2("n", AstTestFactory.integer(0))
-            as NamedExpressionImpl;
+        AstTestFactory.namedExpression2("n", AstTestFactory.integer(0));
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     NamedExpression toNode =
@@ -750,7 +738,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitNullLiteral() {
-    var fromNode = AstTestFactory.nullLiteral() as NullLiteralImpl;
+    var fromNode = AstTestFactory.nullLiteral();
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     NullLiteral toNode = AstTestFactory.nullLiteral();
@@ -760,8 +748,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitParenthesizedExpression() {
     var fromNode =
-        AstTestFactory.parenthesizedExpression(AstTestFactory.integer(0))
-            as ParenthesizedExpressionImpl;
+        AstTestFactory.parenthesizedExpression(AstTestFactory.integer(0));
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     ParenthesizedExpression toNode =
@@ -771,8 +758,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitPartDirective() {
-    var fromNode =
-        AstTestFactory.partDirective2("part.dart") as PartDirectiveImpl;
+    var fromNode = AstTestFactory.partDirective2("part.dart");
     LibraryElement element = LibraryElementImpl(
         _AnalysisContextMock(),
         _AnalysisSessionMock(),
@@ -788,7 +774,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitPartOfDirective() {
     var fromNode = AstTestFactory.partOfDirective(
-        AstTestFactory.libraryIdentifier2(["lib"])) as PartOfDirectiveImpl;
+        AstTestFactory.libraryIdentifier2(["lib"]));
     LibraryElement element = LibraryElementImpl(
         _AnalysisContextMock(),
         _AnalysisSessionMock(),
@@ -806,8 +792,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   void test_visitPostfixExpression() {
     String variableName = "x";
     var fromNode = AstTestFactory.postfixExpression(
-            AstTestFactory.identifier3(variableName), TokenType.PLUS_PLUS)
-        as PostfixExpressionImpl;
+        AstTestFactory.identifier3(variableName), TokenType.PLUS_PLUS);
     MethodElement staticElement = ElementFactory.methodElement(
         "+", interfaceTypeStar(ElementFactory.classElement2('C')));
     fromNode.staticElement = staticElement;
@@ -821,8 +806,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitPrefixedIdentifier() {
-    var fromNode =
-        AstTestFactory.identifier5("p", "f") as PrefixedIdentifierImpl;
+    var fromNode = AstTestFactory.identifier5("p", "f");
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     PrefixedIdentifier toNode = AstTestFactory.identifier5("p", "f");
@@ -832,8 +816,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitPrefixExpression() {
     var fromNode = AstTestFactory.prefixExpression(
-            TokenType.PLUS_PLUS, AstTestFactory.identifier3("x"))
-        as PrefixExpressionImpl;
+        TokenType.PLUS_PLUS, AstTestFactory.identifier3("x"));
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     MethodElement staticElement = ElementFactory.methodElement(
         "+", interfaceTypeStar(ElementFactory.classElement2('C')));
@@ -848,8 +831,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitPropertyAccess() {
     var fromNode =
-        AstTestFactory.propertyAccess2(AstTestFactory.identifier3("x"), "y")
-            as PropertyAccessImpl;
+        AstTestFactory.propertyAccess2(AstTestFactory.identifier3("x"), "y");
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     PropertyAccess toNode =
@@ -859,8 +841,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitRedirectingConstructorInvocation() {
-    var fromNode = AstTestFactory.redirectingConstructorInvocation()
-        as RedirectingConstructorInvocationImpl;
+    var fromNode = AstTestFactory.redirectingConstructorInvocation();
     ConstructorElement staticElement = ElementFactory.constructorElement2(
         ElementFactory.classElement2("C"), null);
     fromNode.staticElement = staticElement;
@@ -871,7 +852,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitRethrowExpression() {
-    var fromNode = AstTestFactory.rethrowExpression() as RethrowExpressionImpl;
+    var fromNode = AstTestFactory.rethrowExpression();
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     RethrowExpression toNode = AstTestFactory.rethrowExpression();
@@ -887,7 +868,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
           elements: [AstTestFactory.mapLiteralEntry3('c', 'd')],
           rightBracket:
               TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET),
-        ) as SetOrMapLiteralImpl;
+        );
 
     DartType typeA = interfaceTypeStar(ElementFactory.classElement2('A'));
     DartType typeB = interfaceTypeStar(ElementFactory.classElement2('B'));
@@ -918,7 +899,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
           elements: [AstTestFactory.identifier3('b')],
           rightBracket:
               TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET),
-        ) as SetOrMapLiteralImpl;
+        );
 
     DartType typeA = interfaceTypeStar(ElementFactory.classElement2('A'));
     DartType typeB = interfaceTypeStar(ElementFactory.classElement2('B'));
@@ -934,7 +915,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitSimpleIdentifier() {
-    var fromNode = AstTestFactory.identifier3("x") as SimpleIdentifierImpl;
+    var fromNode = AstTestFactory.identifier3("x");
     MethodElement staticElement = ElementFactory.methodElement(
         "m", interfaceTypeStar(ElementFactory.classElement2('C')));
     fromNode.staticElement = staticElement;
@@ -947,7 +928,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitSimpleStringLiteral() {
-    var fromNode = AstTestFactory.string2("abc") as SimpleStringLiteralImpl;
+    var fromNode = AstTestFactory.string2("abc");
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     SimpleStringLiteral toNode = AstTestFactory.string2("abc");
@@ -982,8 +963,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitStringInterpolation() {
     var fromNode =
-        AstTestFactory.string([AstTestFactory.interpolationString("a", "'a'")])
-            as StringInterpolationImpl;
+        AstTestFactory.string([AstTestFactory.interpolationString("a", "'a'")]);
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     StringInterpolation toNode =
@@ -993,8 +973,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitSuperConstructorInvocation() {
-    var fromNode = AstTestFactory.superConstructorInvocation()
-        as SuperConstructorInvocationImpl;
+    var fromNode = AstTestFactory.superConstructorInvocation();
     ConstructorElement staticElement = ElementFactory.constructorElement2(
         ElementFactory.classElement2("C"), null);
     fromNode.staticElement = staticElement;
@@ -1005,7 +984,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitSuperExpression() {
-    var fromNode = AstTestFactory.superExpression() as SuperExpressionImpl;
+    var fromNode = AstTestFactory.superExpression();
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     SuperExpression toNode = AstTestFactory.superExpression();
@@ -1014,7 +993,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitSymbolLiteral() {
-    var fromNode = AstTestFactory.symbolLiteral(["s"]) as SymbolLiteralImpl;
+    var fromNode = AstTestFactory.symbolLiteral(["s"]);
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     SymbolLiteral toNode = AstTestFactory.symbolLiteral(["s"]);
@@ -1023,7 +1002,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitThisExpression() {
-    var fromNode = AstTestFactory.thisExpression() as ThisExpressionImpl;
+    var fromNode = AstTestFactory.thisExpression();
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     ThisExpression toNode = AstTestFactory.thisExpression();
@@ -1034,7 +1013,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   void test_visitThrowExpression() {
     var fromNode = AstTestFactory.throwExpression2(
       AstTestFactory.integer(0),
-    ) as ThrowExpressionImpl;
+    );
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     ThrowExpression toNode = AstTestFactory.throwExpression2(
@@ -1045,7 +1024,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitTypeName() {
-    var fromNode = AstTestFactory.typeName4("C") as TypeNameImpl;
+    var fromNode = AstTestFactory.typeName4("C");
     DartType type = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.type = type;
     TypeName toNode = AstTestFactory.typeName4("C");

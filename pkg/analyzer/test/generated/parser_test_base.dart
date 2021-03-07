@@ -11,12 +11,11 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerConfiguration, ScannerResult, scanString;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/ast.dart'
-    show ClassDeclarationImpl, CompilationUnitImpl;
+import 'package:analyzer/src/dart/ast/ast.dart' show CompilationUnitImpl;
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
@@ -816,7 +815,7 @@ class ParserProxy extends analyzer.Parser {
         Tokens.OPEN_CURLY_BRACKET /* leftBracket */,
         <ClassMember>[],
         Tokens.CLOSE_CURLY_BRACKET /* rightBracket */,
-      ) as ClassDeclarationImpl;
+      );
       // TODO(danrubel): disambiguate between class and mixin
       currentToken = fastaParser.parseClassMember(currentToken, className);
       //currentToken = fastaParser.parseMixinMember(currentToken);

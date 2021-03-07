@@ -54,8 +54,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
-import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -70,6 +68,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         SimpleIdentifierImpl,
         TypeArgumentListImpl,
         TypeParameterImpl;
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
@@ -80,7 +79,7 @@ const _invalidCollectionElement = _InvalidCollectionElement._();
 
 /// A parser listener that builds the analyzer's AST structure.
 class AstBuilder extends StackListener {
-  final AstFactory ast = standard.astFactory;
+  final AstFactoryImpl ast = astFactory;
 
   final FastaErrorReporter errorReporter;
   final Uri fileUri;
@@ -252,7 +251,7 @@ class AstBuilder extends StackListener {
       leftBracket: Tokens.OPEN_CURLY_BRACKET,
       rightBracket: Tokens.CLOSE_CURLY_BRACKET,
       members: [],
-    ) as ExtensionDeclarationImpl;
+    );
 
     declarations.add(extensionDeclaration!);
   }
@@ -1027,7 +1026,7 @@ class AstBuilder extends StackListener {
         directives: directives,
         declarations: declarations,
         endToken: endToken,
-        featureSet: _featureSet) as CompilationUnitImpl;
+        featureSet: _featureSet);
     push(unit);
   }
 
@@ -2519,7 +2518,7 @@ class AstBuilder extends StackListener {
       Tokens.OPEN_CURLY_BRACKET, // leftBracket
       <ClassMember>[],
       Tokens.CLOSE_CURLY_BRACKET, // rightBracket
-    ) as ClassDeclarationImpl;
+    );
 
     classDeclaration!.nativeClause = nativeClause;
     declarations.add(classDeclaration!);
@@ -3150,7 +3149,7 @@ class AstBuilder extends StackListener {
       Tokens.OPEN_CURLY_BRACKET, // leftBracket
       <ClassMember>[],
       Tokens.CLOSE_CURLY_BRACKET, // rightBracket
-    ) as MixinDeclarationImpl;
+    );
     declarations.add(mixinDeclaration!);
   }
 

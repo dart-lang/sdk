@@ -4,10 +4,9 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
@@ -2743,7 +2742,7 @@ class NodeReplacerTest {
         AstTestFactory.implementsClause([AstTestFactory.typeName4("D")]), [
       AstTestFactory.fieldDeclaration2(
           false, null, [AstTestFactory.variableDeclaration("f")])
-    ]) as ClassDeclarationImpl;
+    ]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -2760,13 +2759,12 @@ class NodeReplacerTest {
 
   void test_classTypeAlias() {
     var node = AstTestFactory.classTypeAlias(
-            "A",
-            AstTestFactory.typeParameterList(["E"]),
-            null,
-            AstTestFactory.typeName4("B"),
-            AstTestFactory.withClause([AstTestFactory.typeName4("C")]),
-            AstTestFactory.implementsClause([AstTestFactory.typeName4("D")]))
-        as ClassTypeAliasImpl;
+        "A",
+        AstTestFactory.typeParameterList(["E"]),
+        null,
+        AstTestFactory.typeName4("B"),
+        AstTestFactory.withClause([AstTestFactory.typeName4("C")]),
+        AstTestFactory.implementsClause([AstTestFactory.typeName4("D")]));
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -2826,7 +2824,7 @@ class NodeReplacerTest {
           AstTestFactory.constructorFieldInitializer(
               false, "x", AstTestFactory.integer(0))
         ],
-        AstTestFactory.emptyFunctionBody()) as ConstructorDeclarationImpl;
+        AstTestFactory.emptyFunctionBody());
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -2870,8 +2868,7 @@ class NodeReplacerTest {
 
   void test_declaredIdentifier() {
     var node =
-        AstTestFactory.declaredIdentifier4(AstTestFactory.typeName4("C"), "i")
-            as DeclaredIdentifierImpl;
+        AstTestFactory.declaredIdentifier4(AstTestFactory.typeName4("C"), "i");
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -2906,8 +2903,7 @@ class NodeReplacerTest {
   }
 
   void test_enumDeclaration() {
-    var node = AstTestFactory.enumDeclaration2("E", ["ONE", "TWO"])
-        as EnumDeclarationImpl;
+    var node = AstTestFactory.enumDeclaration2("E", ["ONE", "TWO"]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -2918,7 +2914,7 @@ class NodeReplacerTest {
   void test_exportDirective() {
     var node = AstTestFactory.exportDirective2("", [
       AstTestFactory.hideCombinator2(["C"])
-    ]) as ExportDirectiveImpl;
+    ]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -2948,7 +2944,7 @@ class NodeReplacerTest {
         false,
         null,
         AstTestFactory.typeName4("C"),
-        [AstTestFactory.variableDeclaration("c")]) as FieldDeclarationImpl;
+        [AstTestFactory.variableDeclaration("c")]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -2961,7 +2957,7 @@ class NodeReplacerTest {
         null,
         AstTestFactory.typeName4("C"),
         "f",
-        AstTestFactory.formalParameterList()) as FieldFormalParameterImpl;
+        AstTestFactory.formalParameterList());
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata = [
       AstTestFactory.annotation(AstTestFactory.identifier3("a"))
@@ -3040,13 +3036,11 @@ class NodeReplacerTest {
 
   void test_functionDeclaration() {
     var node = AstTestFactory.functionDeclaration(
-            AstTestFactory.typeName4("R"),
-            null,
-            "f",
-            AstTestFactory.functionExpression2(
-                AstTestFactory.formalParameterList(),
-                AstTestFactory.blockFunctionBody(AstTestFactory.block())))
-        as FunctionDeclarationImpl;
+        AstTestFactory.typeName4("R"),
+        null,
+        "f",
+        AstTestFactory.functionExpression2(AstTestFactory.formalParameterList(),
+            AstTestFactory.blockFunctionBody(AstTestFactory.block())));
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -3092,7 +3086,7 @@ class NodeReplacerTest {
         AstTestFactory.typeName4("R"),
         "F",
         AstTestFactory.typeParameterList(["E"]),
-        AstTestFactory.formalParameterList()) as FunctionTypeAliasImpl;
+        AstTestFactory.formalParameterList());
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -3105,10 +3099,9 @@ class NodeReplacerTest {
 
   void test_functionTypedFormalParameter() {
     var node = AstTestFactory.functionTypedFormalParameter(
-            AstTestFactory.typeName4("R"),
-            "f",
-            [AstTestFactory.simpleFormalParameter3("p")])
-        as FunctionTypedFormalParameterImpl;
+        AstTestFactory.typeName4("R"),
+        "f",
+        [AstTestFactory.simpleFormalParameter3("p")]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata = [
       AstTestFactory.annotation(AstTestFactory.identifier3("a"))
@@ -3145,7 +3138,7 @@ class NodeReplacerTest {
     var node = AstTestFactory.importDirective3("", "p", [
       AstTestFactory.showCombinator2(["A"]),
       AstTestFactory.hideCombinator2(["B"])
-    ]) as ImportDirectiveImpl;
+    ]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -3198,7 +3191,7 @@ class NodeReplacerTest {
   }
 
   void test_libraryDirective() {
-    var node = AstTestFactory.libraryDirective2("lib") as LibraryDirectiveImpl;
+    var node = AstTestFactory.libraryDirective2("lib");
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -3238,14 +3231,13 @@ class NodeReplacerTest {
 
   void test_methodDeclaration() {
     var node = AstTestFactory.methodDeclaration2(
-            null,
-            AstTestFactory.typeName4("A"),
-            null,
-            null,
-            AstTestFactory.identifier3("m"),
-            AstTestFactory.formalParameterList(),
-            AstTestFactory.blockFunctionBody(AstTestFactory.block()))
-        as MethodDeclarationImpl;
+        null,
+        AstTestFactory.typeName4("A"),
+        null,
+        null,
+        AstTestFactory.identifier3("m"),
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.blockFunctionBody(AstTestFactory.block()));
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -3289,7 +3281,7 @@ class NodeReplacerTest {
   }
 
   void test_partDirective() {
-    var node = AstTestFactory.partDirective2("") as PartDirectiveImpl;
+    var node = AstTestFactory.partDirective2("");
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -3298,7 +3290,7 @@ class NodeReplacerTest {
 
   void test_partOfDirective() {
     var node = AstTestFactory.partOfDirective(
-        AstTestFactory.libraryIdentifier2(["lib"])) as PartOfDirectiveImpl;
+        AstTestFactory.libraryIdentifier2(["lib"]));
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -3354,7 +3346,7 @@ class NodeReplacerTest {
 
   void test_simpleFormalParameter() {
     var node = AstTestFactory.simpleFormalParameter4(
-        AstTestFactory.typeName4("T"), "p") as SimpleFormalParameterImpl;
+        AstTestFactory.typeName4("T"), "p");
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata = [
       AstTestFactory.annotation(AstTestFactory.identifier3("a"))
@@ -3413,10 +3405,9 @@ class NodeReplacerTest {
 
   void test_topLevelVariableDeclaration() {
     var node = AstTestFactory.topLevelVariableDeclaration(
-            null,
-            AstTestFactory.typeName4("T"),
-            [AstTestFactory.variableDeclaration("t")])
-        as TopLevelVariableDeclarationImpl;
+        null,
+        AstTestFactory.typeName4("T"),
+        [AstTestFactory.variableDeclaration("t")]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -3464,8 +3455,7 @@ class NodeReplacerTest {
 
   void test_variableDeclaration() {
     var node =
-        AstTestFactory.variableDeclaration2("a", AstTestFactory.nullLiteral())
-            as VariableDeclarationImpl;
+        AstTestFactory.variableDeclaration2("a", AstTestFactory.nullLiteral());
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -3476,10 +3466,9 @@ class NodeReplacerTest {
 
   void test_variableDeclarationList() {
     var node = AstTestFactory.variableDeclarationList(
-            null,
-            AstTestFactory.typeName4("T"),
-            [AstTestFactory.variableDeclaration("a")])
-        as VariableDeclarationListImpl;
+        null,
+        AstTestFactory.typeName4("T"),
+        [AstTestFactory.variableDeclaration("a")]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));

@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -745,13 +745,13 @@ class MethodInvocationResolver {
           target,
           node.operator!,
           node.methodName,
-        ) as PrefixedIdentifierImpl;
+        );
       } else {
         functionExpression = astFactory.propertyAccess(
           target,
           node.operator!,
           node.methodName,
-        ) as PropertyAccessImpl;
+        );
       }
       _resolver.flowAnalysis?.flow?.propertyGet(
           functionExpression, target, node.methodName.name, getterReturnType);

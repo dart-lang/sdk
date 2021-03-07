@@ -5,7 +5,6 @@
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -13,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -944,7 +944,7 @@ class UnitReader implements ReferenceNodeAccessor {
       declarations: [],
       endToken: Tokens.BANG,
       featureSet: featureSet,
-    ) as CompilationUnitImpl;
+    );
     _unit.languageVersion = languageVersion;
     _unit.lineInfo = lineInfo;
     _unit.summaryData = SummaryDataForCompilationUnit(codeLength);

@@ -5,7 +5,6 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -118,7 +117,7 @@ class AstCloner implements AstVisitor<AstNode> {
       typeArguments: cloneNullableNode(node.typeArguments),
       period: cloneNullableToken(node.period),
       constructorName: cloneNullableNode(node.constructorName),
-      arguments: cloneNullableNode(node.arguments)) as AnnotationImpl;
+      arguments: cloneNullableNode(node.arguments));
 
   @override
   ArgumentList visitArgumentList(ArgumentList node) => astFactory.argumentList(
@@ -217,7 +216,7 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNullableNode(node.implementsClause),
         cloneToken(node.leftBracket),
         cloneNodeList(node.members),
-        cloneToken(node.rightBracket)) as ClassDeclarationImpl;
+        cloneToken(node.rightBracket));
     copy.nativeClause = cloneNullableNode(node.nativeClause);
     return copy;
   }
@@ -280,7 +279,7 @@ class AstCloner implements AstVisitor<AstNode> {
         directives: cloneNodeList(node.directives),
         declarations: cloneNodeList(node.declarations),
         endToken: cloneToken(node.endToken),
-        featureSet: node.featureSet) as CompilationUnitImpl;
+        featureSet: node.featureSet);
     clone.lineInfo = node.lineInfo;
     return clone;
   }
@@ -336,10 +335,8 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   ConstructorNameImpl visitConstructorName(ConstructorName node) =>
-      astFactory.constructorName(
-          cloneNode(node.type),
-          cloneNullableToken(node.period),
-          cloneNullableNode(node.name)) as ConstructorNameImpl;
+      astFactory.constructorName(cloneNode(node.type),
+          cloneNullableToken(node.period), cloneNullableNode(node.name));
 
   @override
   ContinueStatement visitContinueStatement(ContinueStatement node) =>
@@ -417,7 +414,7 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNode(node.uri),
         cloneNodeList(node.configurations),
         cloneNodeList(node.combinators),
-        cloneToken(node.semicolon)) as ExportDirectiveImpl;
+        cloneToken(node.semicolon));
     directive.selectedUriContent = node.selectedUriContent;
     directive.selectedSource = node.selectedSource;
     directive.uriSource = node.uriSource;
@@ -671,7 +668,7 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNullableToken(node.asKeyword),
         cloneNullableNode(node.prefix),
         cloneNodeList(node.combinators),
-        cloneToken(node.semicolon)) as ImportDirectiveImpl;
+        cloneToken(node.semicolon));
     directive.selectedUriContent = node.selectedUriContent;
     directive.selectedSource = node.selectedSource;
     directive.uriSource = node.uriSource;
@@ -700,23 +697,18 @@ class AstCloner implements AstVisitor<AstNode> {
   @override
   InstanceCreationExpressionImpl visitInstanceCreationExpression(
           InstanceCreationExpression node) =>
-      astFactory.instanceCreationExpression(
-          cloneNullableToken(node.keyword),
-          cloneNode(node.constructorName),
-          cloneNode(node.argumentList)) as InstanceCreationExpressionImpl;
+      astFactory.instanceCreationExpression(cloneNullableToken(node.keyword),
+          cloneNode(node.constructorName), cloneNode(node.argumentList));
 
   @override
   IntegerLiteralImpl visitIntegerLiteral(IntegerLiteral node) =>
-      astFactory.integerLiteral(cloneToken(node.literal), node.value)
-          as IntegerLiteralImpl;
+      astFactory.integerLiteral(cloneToken(node.literal), node.value);
 
   @override
   InterpolationExpressionImpl visitInterpolationExpression(
           InterpolationExpression node) =>
-      astFactory.interpolationExpression(
-          cloneToken(node.leftBracket),
-          cloneNode(node.expression),
-          cloneNullableToken(node.rightBracket)) as InterpolationExpressionImpl;
+      astFactory.interpolationExpression(cloneToken(node.leftBracket),
+          cloneNode(node.expression), cloneNullableToken(node.rightBracket));
 
   @override
   InterpolationString visitInterpolationString(InterpolationString node) =>
@@ -756,7 +748,7 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneNullableNode(node.typeArguments),
       cloneToken(node.leftBracket),
       cloneNodeList(node.elements),
-      cloneToken(node.rightBracket)) as ListLiteralImpl;
+      cloneToken(node.rightBracket));
 
   @override
   MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) =>
@@ -835,7 +827,7 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNodeList(node.metadata),
         cloneToken(node.partKeyword),
         cloneNode(node.uri),
-        cloneToken(node.semicolon)) as PartDirectiveImpl;
+        cloneToken(node.semicolon));
     directive.uriSource = node.uriSource;
     directive.uriContent = node.uriContent;
     return directive;
@@ -877,7 +869,7 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneToken(node.thisKeyword),
           cloneNullableToken(node.period),
           cloneNullableNode(node.constructorName),
-          cloneNode(node.argumentList)) as RedirectingConstructorInvocationImpl;
+          cloneNode(node.argumentList));
 
   @override
   RethrowExpression visitRethrowExpression(RethrowExpression node) =>
@@ -899,7 +891,7 @@ class AstCloner implements AstVisitor<AstNode> {
         typeArguments: cloneNullableNode(node.typeArguments),
         leftBracket: cloneToken(node.leftBracket),
         elements: cloneNodeList(node.elements),
-        rightBracket: cloneToken(node.rightBracket)) as SetOrMapLiteralImpl;
+        rightBracket: cloneToken(node.rightBracket));
     if (node.isMap) {
       result.becomeMap();
     } else if (node.isSet) {
@@ -949,7 +941,7 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneToken(node.superKeyword),
           cloneNullableToken(node.period),
           cloneNullableNode(node.constructorName),
-          cloneNode(node.argumentList)) as SuperConstructorInvocationImpl;
+          cloneNode(node.argumentList));
 
   @override
   SuperExpression visitSuperExpression(SuperExpression node) =>
@@ -1022,13 +1014,13 @@ class AstCloner implements AstVisitor<AstNode> {
   @override
   TypeNameImpl visitTypeName(TypeName node) => astFactory.typeName(
       cloneNode(node.name), cloneNullableNode(node.typeArguments),
-      question: cloneNullableToken(node.question)) as TypeNameImpl;
+      question: cloneNullableToken(node.question));
 
   @override
   TypeParameter visitTypeParameter(TypeParameter node) =>
       // TODO (kallentu) : Clean up TypeParameterImpl and AstFactoryImpl casting
       // once variance is added to the interface.
-      (astFactory as AstFactoryImpl).typeParameter2(
+      astFactory.typeParameter2(
           comment: cloneNullableNode(node.documentationComment),
           metadata: cloneNodeList(node.metadata),
           name: cloneNode(node.name),

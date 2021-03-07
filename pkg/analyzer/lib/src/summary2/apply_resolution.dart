@@ -5,11 +5,11 @@
 import 'dart:math';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
@@ -914,7 +914,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
         expression,
         node.typeArguments,
         node.argumentList,
-      ) as FunctionExpressionInvocationImpl;
+      );
       NodeReplacer.replace(node, replacement);
       visitFunctionExpressionInvocation(replacement, readRewrite: false);
       return;
@@ -928,7 +928,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
           node.methodName,
         ),
         node.argumentList,
-      ) as InstanceCreationExpressionImpl;
+      );
       NodeReplacer.replace(node, replacement);
       visitInstanceCreationExpression(replacement, readRewrite: false);
       return;
@@ -949,7 +949,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
           null,
         ),
         node.argumentList,
-      ) as InstanceCreationExpressionImpl;
+      );
       NodeReplacer.replace(node, replacement);
       visitInstanceCreationExpression(replacement, readRewrite: false);
       return;
