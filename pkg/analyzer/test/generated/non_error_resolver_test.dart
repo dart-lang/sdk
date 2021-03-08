@@ -2340,13 +2340,15 @@ class C = Object with B;
     // B's superclass is "Object with A1<T>".  So mixin type inference succeeds
     // (since C's base class implements A1<int>), and "with B" is interpreted as
     // "with B<int>".
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class A1<T> {}
 class A2<T> {}
 class B<T> = Object with A1<T>, A2<T>;
 class Base implements A1<int> {}
 class C = Base with B;
-''');
+''', [
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 122, 1),
+    ]);
     var bReference = result.unit!.declaredElement!.getType('C')!.mixins[0];
     assertType(bReference.typeArguments[0], 'int');
   }

@@ -3267,17 +3267,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   bool _checkForMixinInheritsNotFromObject(
       TypeName mixinName, ClassElement mixinElement) {
     var mixinSupertype = mixinElement.supertype;
-    if (mixinSupertype != null) {
-      if (!mixinSupertype.isDartCoreObject ||
-          !mixinElement.isMixinApplication && mixinElement.mixins.isNotEmpty) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
-            mixinName,
-            [mixinElement.name]);
-        return true;
+    if (mixinSupertype == null || mixinSupertype.isDartCoreObject) {
+      var mixins = mixinElement.mixins;
+      if (mixins.isEmpty ||
+          mixinElement.isMixinApplication && mixins.length < 2) {
+        return false;
       }
     }
-    return false;
+
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
+      mixinName,
+      [mixinElement.name],
+    );
+    return true;
   }
 
   /// Check that superclass constrains for the mixin type of [mixinName] at
