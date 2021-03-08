@@ -94,6 +94,90 @@ class InferenceVisitor
   }
 
   @override
+  ExpressionInferenceResult visitDynamicGet(
+      DynamicGet node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitInstanceGet(
+      InstanceGet node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitInstanceTearOff(
+      InstanceTearOff node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitDynamicInvocation(
+      DynamicInvocation node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitDynamicSet(
+      DynamicSet node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitEqualsCall(
+      EqualsCall node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitEqualsNull(
+      EqualsNull node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitFunctionInvocation(
+      FunctionInvocation node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitInstanceInvocation(
+      InstanceInvocation node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitInstanceGetterInvocation(
+      InstanceGetterInvocation node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitInstanceSet(
+      InstanceSet node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitLocalFunctionInvocation(
+      LocalFunctionInvocation node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitStaticTearOff(
+      StaticTearOff node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitFunctionTearOff(
+      FunctionTearOff node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
   ExpressionInferenceResult visitFileUriExpression(
       FileUriExpression node, DartType typeContext) {
     return _unhandledExpression(node, typeContext);
@@ -3747,12 +3831,15 @@ class InferenceVisitor
 
     if (inferrer.useNewMethodInvocationEncoding) {
       if (_isNull(right)) {
-        equals = new EqualsNull(left, isNot: isNot)..fileOffset = fileOffset;
+        equals = new EqualsNull(left)..fileOffset = fileOffset;
       } else if (_isNull(left)) {
-        equals = new EqualsNull(rightResult.expression, isNot: isNot)
+        equals = new EqualsNull(rightResult.expression)
           ..fileOffset = fileOffset;
       }
       if (equals != null) {
+        if (isNot) {
+          equals = new Not(equals)..fileOffset = fileOffset;
+        }
         inferrer.flowAnalysis.equalityOp_end(
             equals, rightResult.expression, rightResult.inferredType,
             notEqual: isNot);
@@ -3798,10 +3885,11 @@ class InferenceVisitor
         FunctionType functionType =
             inferrer.getFunctionType(equalsTarget, leftType);
         equals = new EqualsCall(left, right,
-            isNot: isNot,
-            functionType: functionType,
-            interfaceTarget: equalsTarget.member)
+            functionType: functionType, interfaceTarget: equalsTarget.member)
           ..fileOffset = fileOffset;
+        if (isNot) {
+          equals = new Not(equals)..fileOffset = fileOffset;
+        }
       } else {
         assert(equalsTarget.isNever);
         FunctionType functionType = new FunctionType([const DynamicType()],
@@ -3812,8 +3900,11 @@ class InferenceVisitor
                 instrumented: false)
             .member;
         equals = new EqualsCall(left, right,
-            isNot: isNot, functionType: functionType, interfaceTarget: target)
+            functionType: functionType, interfaceTarget: target)
           ..fileOffset = fileOffset;
+        if (isNot) {
+          equals = new Not(equals)..fileOffset = fileOffset;
+        }
       }
     } else {
       equals = new MethodInvocation(
@@ -5708,7 +5799,7 @@ class InferenceVisitor
         node.fileOffset, receiver, receiverType, node.name, typeContext,
         isThisReceiver: node.receiver is ThisExpression);
     inferrer.flowAnalysis.propertyGet(
-        node, node.receiver, node.name.name, readResult.inferredType);
+        node, node.receiver, node.name.text, readResult.inferredType);
     ExpressionInferenceResult expressionInferenceResult =
         inferrer.createNullAwareExpressionInferenceResult(
             readResult.inferredType, readResult.expression, nullAwareGuards);
@@ -6866,97 +6957,6 @@ class InferenceVisitor
             inferrer.helper.uri);
       }
     }
-  }
-
-  @override
-  ExpressionInferenceResult visitDynamicGet(
-      DynamicGet node, DartType typeContext) {
-    // TODO: implement visitDynamicGet
-    throw new UnimplementedError();
-  }
-
-  @override
-  ExpressionInferenceResult visitInstanceGet(
-      InstanceGet node, DartType typeContext) {
-    // TODO: implement visitInstanceGet
-    throw new UnimplementedError();
-  }
-
-  @override
-  ExpressionInferenceResult visitInstanceTearOff(
-      InstanceTearOff node, DartType typeContext) {
-    // TODO: implement visitInstanceTearOff
-    throw new UnimplementedError();
-  }
-
-  @override
-  ExpressionInferenceResult visitDynamicInvocation(
-      DynamicInvocation node, DartType typeContext) {
-    // TODO: implement visitDynamicInvocation
-    throw new UnimplementedError();
-  }
-
-  @override
-  ExpressionInferenceResult visitDynamicSet(
-      DynamicSet node, DartType typeContext) {
-    // TODO: implement visitDynamicSet
-    throw new UnimplementedError();
-  }
-
-  @override
-  ExpressionInferenceResult visitEqualsCall(
-      EqualsCall node, DartType typeContext) {
-    // TODO: implement visitEqualsCall
-    throw new UnimplementedError();
-  }
-
-  @override
-  ExpressionInferenceResult visitEqualsNull(
-      EqualsNull node, DartType typeContext) {
-    // TODO: implement visitEqualsNull
-    throw new UnimplementedError();
-  }
-
-  @override
-  ExpressionInferenceResult visitFunctionInvocation(
-      FunctionInvocation node, DartType typeContext) {
-    // TODO: implement visitFunctionInvocation
-    throw new UnimplementedError();
-  }
-
-  @override
-  ExpressionInferenceResult visitInstanceInvocation(
-      InstanceInvocation node, DartType typeContext) {
-    // TODO: implement visitInstanceInvocation
-    throw new UnimplementedError();
-  }
-
-  @override
-  ExpressionInferenceResult visitInstanceSet(
-      InstanceSet node, DartType typeContext) {
-    // TODO: implement visitInstanceSet
-    throw new UnimplementedError();
-  }
-
-  @override
-  ExpressionInferenceResult visitLocalFunctionInvocation(
-      LocalFunctionInvocation node, DartType typeContext) {
-    // TODO: implement visitLocalFunctionInvocation
-    throw new UnimplementedError();
-  }
-
-  @override
-  ExpressionInferenceResult visitStaticTearOff(
-      StaticTearOff node, DartType typeContext) {
-    // TODO: implement visitStaticTearOff
-    throw new UnimplementedError();
-  }
-
-  @override
-  ExpressionInferenceResult visitFunctionTearOff(
-      FunctionTearOff node, DartType arg) {
-    // TODO: implement visitFunctionTearOff
-    throw new UnimplementedError();
   }
 }
 

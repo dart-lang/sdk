@@ -5329,6 +5329,169 @@ class InstanceInvocation extends InvocationExpression {
   }
 }
 
+/// An invocation of an instance getter or field with a statically known
+/// interface target.
+///
+/// This is used only for web backend in order to support invocation of
+/// native properties as functions. This node will be removed when this
+/// invocation style is no longer supported.
+class InstanceGetterInvocation extends InvocationExpression {
+  // Must match serialized bit positions.
+  static const int FlagInvariant = 1 << 0;
+  static const int FlagBoundsSafe = 1 << 1;
+
+  final InstanceAccessKind kind;
+  Expression receiver;
+
+  @override
+  Name name;
+
+  @override
+  Arguments arguments;
+
+  int flags = 0;
+
+  /// The static type of the invocation.
+  ///
+  /// This includes substituted type parameters from the static receiver type
+  /// and generic type arguments.
+  ///
+  /// For instance
+  ///
+  ///    class A<T> {
+  ///      Map<T, S> map<S>(S s) { ... }
+  ///    }
+  ///    m(A<String> a) {
+  ///      a.map(0); // The function type is `Map<String, int> Function(int)`.
+  ///    }
+  ///
+  FunctionType functionType;
+
+  Reference interfaceTargetReference;
+
+  InstanceGetterInvocation(InstanceAccessKind kind, Expression receiver,
+      Name name, Arguments arguments,
+      {required Procedure interfaceTarget, required FunctionType functionType})
+      : this.byReference(kind, receiver, name, arguments,
+            interfaceTargetReference:
+                getNonNullableMemberReferenceGetter(interfaceTarget),
+            functionType: functionType);
+
+  InstanceGetterInvocation.byReference(
+      this.kind, this.receiver, this.name, this.arguments,
+      {required this.interfaceTargetReference, required this.functionType})
+      // ignore: unnecessary_null_comparison
+      : assert(interfaceTargetReference != null),
+        // ignore: unnecessary_null_comparison
+        assert(functionType != null),
+        assert(functionType.typeParameters.isEmpty) {
+    receiver.parent = this;
+    arguments.parent = this;
+  }
+
+  Member get interfaceTarget => interfaceTargetReference.asProcedure;
+
+  void set interfaceTarget(Member target) {
+    interfaceTargetReference = getNonNullableMemberReferenceGetter(target);
+  }
+
+  /// If `true`, this call is known to be safe wrt. parameter covariance checks.
+  ///
+  /// This is for instance the case in code patterns like this
+  ///
+  ///     List<int> list = <int>[];
+  ///     list.add(0);
+  ///
+  /// where the `list` variable is known to hold a value of the same type as
+  /// the static type. In contrast the would not be the case in code patterns
+  /// like this
+  ///
+  ///     List<num> list = <double>[];
+  ///     list.add(0); // Runtime error `int` is not a subtype of `double`.
+  ///
+  bool get isInvariant => flags & FlagInvariant != 0;
+
+  void set isInvariant(bool value) {
+    flags = value ? (flags | FlagInvariant) : (flags & ~FlagInvariant);
+  }
+
+  /// If `true`, this call is known to be safe wrt. parameter covariance checks.
+  ///
+  /// This is for instance the case in code patterns like this
+  ///
+  ///     List list = new List.filled(2, 0);
+  ///     list[1] = 42;
+  ///
+  /// where the `list` is known to have a sufficient length for the update
+  /// in `list[1] = 42`.
+  bool get isBoundsSafe => flags & FlagBoundsSafe != 0;
+
+  void set isBoundsSafe(bool value) {
+    flags = value ? (flags | FlagBoundsSafe) : (flags & ~FlagBoundsSafe);
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      functionType.returnType;
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceGetterInvocation(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitInstanceGetterInvocation(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    receiver.accept(v);
+    interfaceTarget.acceptReference(v);
+    name.accept(v);
+    arguments.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
+    if (receiver != null) {
+      receiver = v.transform(receiver);
+      receiver.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (arguments != null) {
+      arguments = v.transform(arguments);
+      arguments.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
+    if (receiver != null) {
+      receiver = v.transform(receiver);
+      receiver.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (arguments != null) {
+      arguments = v.transform(arguments);
+      arguments.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "InstanceGetterInvocation($kind, ${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeInterfaceMemberName(interfaceTargetReference, name);
+    printer.writeArguments(arguments);
+  }
+}
+
 /// Access kind used by [FunctionInvocation] and [FunctionTearOff].
 enum FunctionAccessKind {
   /// An access to the 'call' method on an expression of static type `Function`.
@@ -5472,7 +5635,6 @@ class FunctionInvocation extends InvocationExpression {
 /// An invocation of a local function declaration.
 class LocalFunctionInvocation extends InvocationExpression {
   /// The variable declaration for the function declaration.
-  // TODO(johnniwinther): Should this be the `FunctionDeclaration` instead?
   VariableDeclaration variable;
 
   @override
@@ -5498,6 +5660,10 @@ class LocalFunctionInvocation extends InvocationExpression {
       : assert(functionType != null) {
     arguments.parent = this;
   }
+
+  /// The declaration for the invoked local function.
+  FunctionDeclaration get localFunction =>
+      variable.parent as FunctionDeclaration;
 
   @override
   Name get name => Name.callName;
@@ -5548,21 +5714,14 @@ class LocalFunctionInvocation extends InvocationExpression {
   }
 }
 
-/// Nullness test of an expression, that is `e == null` or `e != null`.
+/// Nullness test of an expression, that is `e == null`.
 ///
-/// This is generated for code like `e1 == e2` and `e1 != e2` where `e1` or `e2`
-/// is `null`.
+/// This is generated for code like `e1 == e2` where `e1` or `e2` is `null`.
 class EqualsNull extends Expression {
   /// The expression tested for nullness.
   Expression expression;
 
-  /// If `true` this is an `e != null` test. Otherwise it is an `e == null`
-  /// test.
-  final bool isNot;
-
-  EqualsNull(this.expression, {required this.isNot})
-      // ignore: unnecessary_null_comparison
-      : assert(isNot != null) {
+  EqualsNull(this.expression) {
     expression.parent = this;
   }
 
@@ -5608,18 +5767,14 @@ class EqualsNull extends Expression {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(expression, minimumPrecedence: precedence);
-    if (isNot) {
-      printer.write(' != null');
-    } else {
-      printer.write(' == null');
-    }
+    printer.write(' == null');
   }
 }
 
-/// A test of equality, that is `e1 == e2` or `e1 != e2`.
+/// A test of equality, that is `e1 == e2`.
 ///
-/// This is generated for code like `e1 == e2` and `e1 != e2` where neither `e1`
-/// nor `e2` is `null`.
+/// This is generated for code like `e1 == e2` where neither `e1` nor `e2` is
+/// `null`.
 class EqualsCall extends Expression {
   Expression left;
   Expression right;
@@ -5639,27 +5794,17 @@ class EqualsCall extends Expression {
   ///
   FunctionType functionType;
 
-  /// If `true` this is an `e1 != e2` test. Otherwise it is an `e1 == e2` test.
-  final bool isNot;
-
   Reference interfaceTargetReference;
 
   EqualsCall(Expression left, Expression right,
-      {required bool isNot,
-      required FunctionType functionType,
-      required Procedure interfaceTarget})
+      {required FunctionType functionType, required Procedure interfaceTarget})
       : this.byReference(left, right,
-            isNot: isNot,
             functionType: functionType,
             interfaceTargetReference:
                 getNonNullableMemberReferenceGetter(interfaceTarget));
 
   EqualsCall.byReference(this.left, this.right,
-      {required this.isNot,
-      required this.functionType,
-      required this.interfaceTargetReference})
-      // ignore: unnecessary_null_comparison
-      : assert(isNot != null) {
+      {required this.functionType, required this.interfaceTargetReference}) {
     left.parent = this;
     right.parent = this;
   }
@@ -5726,11 +5871,7 @@ class EqualsCall extends Expression {
   void toTextInternal(AstPrinter printer) {
     int minimumPrecedence = precedence;
     printer.writeExpression(left, minimumPrecedence: minimumPrecedence);
-    if (isNot) {
-      printer.write(' != ');
-    } else {
-      printer.write(' == ');
-    }
+    printer.write(' == ');
     printer.writeExpression(right, minimumPrecedence: minimumPrecedence + 1);
   }
 }

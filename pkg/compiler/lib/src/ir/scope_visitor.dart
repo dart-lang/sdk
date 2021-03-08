@@ -1107,12 +1107,8 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   EvaluationComplexity visitLocalFunctionInvocation(
       ir.LocalFunctionInvocation node) {
     if (node.arguments.types.isNotEmpty) {
-      assert(
-          node.variable.parent is ir.LocalFunction,
-          "Unexpected variable in local function invocation ${node} "
-          "(${node.runtimeType}).");
       VariableUse usage =
-          new VariableUse.localTypeArgument(node.variable.parent, node);
+          new VariableUse.localTypeArgument(node.localFunction, node);
       visitNodesInContext(node.arguments.types, usage);
     }
     visitArguments(node.arguments);
@@ -1145,7 +1141,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   EvaluationComplexity visitPropertyGet(ir.PropertyGet node) {
     node.receiver = _handleExpression(node.receiver);
     EvaluationComplexity complexity = _lastExpressionComplexity;
-    if (complexity.isConstant && node.name.name == 'length') {
+    if (complexity.isConstant && node.name.text == 'length') {
       return _evaluateImplicitConstant(node);
     }
     return const EvaluationComplexity.lazy();
@@ -1155,7 +1151,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   EvaluationComplexity visitInstanceGet(ir.InstanceGet node) {
     node.receiver = _handleExpression(node.receiver);
     EvaluationComplexity complexity = _lastExpressionComplexity;
-    if (complexity.isConstant && node.name.name == 'length') {
+    if (complexity.isConstant && node.name.text == 'length') {
       return _evaluateImplicitConstant(node);
     }
     return const EvaluationComplexity.lazy();
@@ -1171,7 +1167,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   EvaluationComplexity visitDynamicGet(ir.DynamicGet node) {
     node.receiver = _handleExpression(node.receiver);
     EvaluationComplexity complexity = _lastExpressionComplexity;
-    if (complexity.isConstant && node.name.name == 'length') {
+    if (complexity.isConstant && node.name.text == 'length') {
       return _evaluateImplicitConstant(node);
     }
     return const EvaluationComplexity.lazy();

@@ -1557,7 +1557,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeNode(node.left);
     writeNode(node.right);
-    writeByte(node.isNot ? 1 : 0);
     writeDartType(node.functionType);
     writeNonNullInstanceMemberReference(node.interfaceTargetReference);
   }
@@ -1567,7 +1566,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.EqualsNull);
     writeOffset(node.fileOffset);
     writeNode(node.expression);
-    writeByte(node.isNot ? 1 : 0);
   }
 
   @override
@@ -1584,6 +1582,19 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitInstanceInvocation(InstanceInvocation node) {
     writeByte(Tag.InstanceInvocation);
+    writeByte(node.kind.index);
+    writeByte(node.flags);
+    writeOffset(node.fileOffset);
+    writeNode(node.receiver);
+    writeName(node.name);
+    writeArgumentsNode(node.arguments);
+    writeDartType(node.functionType);
+    writeNonNullInstanceMemberReference(node.interfaceTargetReference);
+  }
+
+  @override
+  void visitInstanceGetterInvocation(InstanceGetterInvocation node) {
+    writeByte(Tag.InstanceGetterInvocation);
     writeByte(node.kind.index);
     writeByte(node.flags);
     writeOffset(node.fileOffset);

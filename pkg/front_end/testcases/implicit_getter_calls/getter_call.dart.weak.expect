@@ -171,7 +171,7 @@ static method callGetter(self::Class* c) → dynamic {
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   self::enableRead = true;
-  if(expected !={core::Object::==}{(core::Object*) →* core::bool*} actual)
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual))
     throw "Expected ${expected}, ${actual}";
 }
 

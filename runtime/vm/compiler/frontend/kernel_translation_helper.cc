@@ -2135,7 +2135,6 @@ void KernelReaderHelper::SkipDartType() {
     case kInvalidType:
     case kDynamicType:
     case kVoidType:
-    case kBottomType:
       // those contain nothing.
       return;
     case kNeverType:
@@ -2985,11 +2984,6 @@ void TypeTranslator::BuildTypeInternal() {
                     .ToNullability(nullability, Heap::kOld);
       break;
     }
-    case kBottomType:
-      // Map Bottom type to Null type until not emitted by CFE anymore.
-      result_ = IG->object_store()->null_type();
-      ASSERT(result_.IsNullable());
-      break;
     case kInterfaceType:
       BuildInterfaceType(false);
       break;

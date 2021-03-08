@@ -106,8 +106,7 @@ Statement createGetterWithInitializer(
           new ConditionalExpression(
               useNewMethodInvocationEncoding
                   ? (new EqualsNull(
-                      new VariableGet(variable)..fileOffset = fileOffset,
-                      isNot: false)
+                      new VariableGet(variable)..fileOffset = fileOffset)
                     ..fileOffset = fileOffset)
                   : new MethodInvocation(
                       new VariableGet(variable)..fileOffset = fileOffset,
@@ -261,8 +260,7 @@ Statement createGetterWithInitializerWithRecheck(
           new ConditionalExpression(
               useNewMethodInvocationEncoding
                   ? (new EqualsNull(
-                      new VariableGet(variable)..fileOffset = fileOffset,
-                      isNot: false)
+                      new VariableGet(variable)..fileOffset = fileOffset)
                     ..fileOffset = fileOffset)
                   : new MethodInvocation(
                       new VariableGet(variable)..fileOffset = fileOffset,
@@ -278,8 +276,7 @@ Statement createGetterWithInitializerWithRecheck(
                       useNewMethodInvocationEncoding
                           ? (new EqualsNull(
                               createVariableRead(needsPromotion: false)
-                                ..fileOffset = fileOffset,
-                              isNot: false)
+                                ..fileOffset = fileOffset)
                             ..fileOffset = fileOffset)
                           : new MethodInvocation(
                               createVariableRead(needsPromotion: false)
@@ -381,8 +378,7 @@ Statement createGetterBodyWithoutInitializer(
           new ConditionalExpression(
               useNewMethodInvocationEncoding
                   ? (new EqualsNull(
-                      new VariableGet(variable)..fileOffset = fileOffset,
-                      isNot: false)
+                      new VariableGet(variable)..fileOffset = fileOffset)
                     ..fileOffset = fileOffset)
                   : new MethodInvocation(
                       new VariableGet(variable)..fileOffset = fileOffset,
@@ -540,8 +536,7 @@ Statement createSetterBodyFinal(
       //    }
       return new IfStatement(
         useNewMethodInvocationEncoding
-            ? (new EqualsNull(createVariableRead()..fileOffset = fileOffset,
-                isNot: false)
+            ? (new EqualsNull(createVariableRead()..fileOffset = fileOffset)
               ..fileOffset = fileOffset)
             : new MethodInvocation(
                 createVariableRead()..fileOffset = fileOffset,

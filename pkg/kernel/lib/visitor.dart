@@ -35,6 +35,8 @@ abstract class ExpressionVisitor<R> {
   R visitDynamicInvocation(DynamicInvocation node) => defaultExpression(node);
   R visitFunctionInvocation(FunctionInvocation node) => defaultExpression(node);
   R visitInstanceInvocation(InstanceInvocation node) => defaultExpression(node);
+  R visitInstanceGetterInvocation(InstanceGetterInvocation node) =>
+      defaultExpression(node);
   R visitEqualsNull(EqualsNull node) => defaultExpression(node);
   R visitEqualsCall(EqualsCall node) => defaultExpression(node);
   R visitMethodInvocation(MethodInvocation node) => defaultExpression(node);
@@ -207,6 +209,8 @@ abstract class TreeVisitor<R>
   R visitDynamicInvocation(DynamicInvocation node) => defaultExpression(node);
   R visitFunctionInvocation(FunctionInvocation node) => defaultExpression(node);
   R visitInstanceInvocation(InstanceInvocation node) => defaultExpression(node);
+  R visitInstanceGetterInvocation(InstanceGetterInvocation node) =>
+      defaultExpression(node);
   R visitEqualsNull(EqualsNull node) => defaultExpression(node);
   R visitEqualsCall(EqualsCall node) => defaultExpression(node);
   R visitMethodInvocation(MethodInvocation node) => defaultExpression(node);
@@ -362,6 +366,8 @@ abstract class TreeVisitor1<R, A>
   R visitFunctionInvocation(FunctionInvocation node, A arg) =>
       defaultExpression(node, arg);
   R visitInstanceInvocation(InstanceInvocation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitInstanceGetterInvocation(InstanceGetterInvocation node, A arg) =>
       defaultExpression(node, arg);
   R visitEqualsNull(EqualsNull node, A arg) => defaultExpression(node, arg);
   R visitEqualsCall(EqualsCall node, A arg) => defaultExpression(node, arg);
@@ -1449,6 +1455,8 @@ abstract class ExpressionVisitor1<R, T> {
   R visitFunctionInvocation(FunctionInvocation node, T arg) =>
       defaultExpression(node, arg);
   R visitInstanceInvocation(InstanceInvocation node, T arg) =>
+      defaultExpression(node, arg);
+  R visitInstanceGetterInvocation(InstanceGetterInvocation node, T arg) =>
       defaultExpression(node, arg);
   R visitEqualsNull(EqualsNull node, T arg) => defaultExpression(node, arg);
   R visitEqualsCall(EqualsCall node, T arg) => defaultExpression(node, arg);

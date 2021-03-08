@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 56;
+  UInt32 formatVersion = 57;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -741,6 +741,19 @@ type InstanceInvocation extends Expression {
   MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
+type InstanceGetterInvocation extends Expression {
+  Byte tag = 89;
+  Byte kind; // Index into InstanceAccessKind above.
+  Byte flags (isInvariant, isBoundsSafe);
+  FileOffset fileOffset;
+  Expression receiver;
+  Name name;
+  Arguments arguments;
+  DartType functionType;
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin; // May be NullReference.
+}
+
 type DynamicInvocation extends Expression {
   Byte tag = 124;
   Byte kind; // Index into DynamicAccessKind above.
@@ -789,7 +802,6 @@ type EqualsNull extends Expression {
   Byte tag = 15;
   FileOffset fileOffset;
   Expression expression;
-  Byte isNot;
 }
 
 type EqualsCall extends Expression {
@@ -797,7 +809,6 @@ type EqualsCall extends Expression {
   FileOffset fileOffset;
   Expression left;
   Expression right;
-  Byte isNot;
   DartType functionType;
   MemberReference interfaceTarget;
   MemberReference interfaceTargetOrigin; // May be NullReference.

@@ -919,10 +919,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
         node, node.variable.parent, node.arguments, selector);
   }
 
-  TypeInformation _handleEqualsNull(ir.Expression node, ir.Expression operand,
-      {bool isNot}) {
-    assert(isNot != null);
-    _potentiallyAddNullCheck(node, operand, isNot: isNot);
+  TypeInformation _handleEqualsNull(ir.Expression node, ir.Expression operand) {
+    _potentiallyAddNullCheck(node, operand);
     return _types.boolType;
   }
 
@@ -932,7 +930,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     // receiver of the call to `==`, which doesn't happen in this case. Remove
     // this when the ssa builder recognized `== null` directly.
     _typeOfReceiver(node, node.expression);
-    return _handleEqualsNull(node, node.expression, isNot: node.isNot);
+    return _handleEqualsNull(node, node.expression);
   }
 
   TypeInformation _handleMethodInvocation(
@@ -975,20 +973,22 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     return type;
   }
 
-  TypeInformation _handleEqualsCall(ir.Expression node, ir.Expression left,
-      TypeInformation leftType, ir.Expression right, TypeInformation rightType,
-      {bool isNot}) {
-    assert(isNot != null);
+  TypeInformation _handleEqualsCall(
+      ir.Expression node,
+      ir.Expression left,
+      TypeInformation leftType,
+      ir.Expression right,
+      TypeInformation rightType) {
     // TODO(johnniwinther). This triggers the computation of the mask for the
     // receiver of the call to `==`, which might not happen in this case. Remove
     // this when the ssa builder recognized `== null` directly.
     _typeOfReceiver(node, left);
     if (_types.isNull(leftType)) {
       // null == o
-      return _handleEqualsNull(node, right, isNot: isNot);
+      return _handleEqualsNull(node, right);
     } else if (_types.isNull(rightType)) {
       // o == null
-      return _handleEqualsNull(node, left, isNot: isNot);
+      return _handleEqualsNull(node, left);
     }
     Selector selector = Selector.binaryOperator('==');
     ArgumentsTypes arguments = ArgumentsTypes([rightType], null);
@@ -1000,8 +1000,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
   TypeInformation visitEqualsCall(ir.EqualsCall node) {
     TypeInformation leftType = visit(node.left);
     TypeInformation rightType = visit(node.right);
-    return _handleEqualsCall(node, node.left, leftType, node.right, rightType,
-        isNot: node.isNot);
+    return _handleEqualsCall(node, node.left, leftType, node.right, rightType);
   }
 
   @override
@@ -1053,8 +1052,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     if (selector.name == '==') {
       return _handleEqualsCall(node, node.receiver, receiverType,
-          node.arguments.positional.first, arguments.positional[0],
-          isNot: false);
+          node.arguments.positional.first, arguments.positional[0]);
     }
 
     return _handleMethodInvocation(node, node.receiver, receiverType, selector,
@@ -1725,9 +1723,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     }
   }
 
-  void _potentiallyAddNullCheck(ir.Expression node, ir.Expression receiver,
-      {bool isNot}) {
-    assert(isNot != null);
+  void _potentiallyAddNullCheck(ir.Expression node, ir.Expression receiver) {
     if (!_accumulateIsChecks) return;
     if (receiver is ir.VariableGet) {
       Local local = _localsMap.getLocalVariable(receiver.variable);
@@ -1750,14 +1746,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
           node,
           _closedWorld.commonElements.objectType,
           excludeNull: true);
-
-      if (isNot) {
-        _setStateAfter(
-            _state, stateAfterCheckWhenNotNull, stateAfterCheckWhenNull);
-      } else {
-        _setStateAfter(
-            _state, stateAfterCheckWhenNull, stateAfterCheckWhenNotNull);
-      }
+      _setStateAfter(
+          _state, stateAfterCheckWhenNull, stateAfterCheckWhenNotNull);
     }
   }
 

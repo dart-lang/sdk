@@ -1936,6 +1936,8 @@ class BinaryBuilder {
         return _readMethodInvocation();
       case Tag.InstanceInvocation:
         return _readInstanceInvocation();
+      case Tag.InstanceGetterInvocation:
+        return _readInstanceGetterInvocation();
       case Tag.DynamicInvocation:
         return _readDynamicInvocation();
       case Tag.FunctionInvocation:
@@ -2193,6 +2195,18 @@ class BinaryBuilder {
       ..flags = flags;
   }
 
+  Expression _readInstanceGetterInvocation() {
+    InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+    int flags = readByte();
+    int offset = readOffset();
+    return new InstanceGetterInvocation.byReference(
+        kind, readExpression(), readName(), readArguments(),
+        functionType: readDartType() as FunctionType,
+        interfaceTargetReference: readNonNullInstanceMemberReference())
+      ..fileOffset = offset
+      ..flags = flags;
+  }
+
   Expression _readDynamicInvocation() {
     DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
     int offset = readOffset();
@@ -2223,21 +2237,20 @@ class BinaryBuilder {
   Expression _readLocalFunctionInvocation() {
     int offset = readOffset();
     readUInt30(); // offset of the variable declaration in the binary.
-    return new LocalFunctionInvocation(readVariableReference(), readArguments(),
+    VariableDeclaration variable = readVariableReference();
+    return new LocalFunctionInvocation(variable, readArguments(),
         functionType: readDartType() as FunctionType)
       ..fileOffset = offset;
   }
 
   Expression _readEqualsNull() {
     int offset = readOffset();
-    return new EqualsNull(readExpression(), isNot: readByte() == 1)
-      ..fileOffset = offset;
+    return new EqualsNull(readExpression())..fileOffset = offset;
   }
 
   Expression _readEqualsCall() {
     int offset = readOffset();
     return new EqualsCall.byReference(readExpression(), readExpression(),
-        isNot: readByte() == 1,
         functionType: readDartType() as FunctionType,
         interfaceTargetReference: readNonNullInstanceMemberReference())
       ..fileOffset = offset;
@@ -2768,8 +2781,8 @@ class BinaryBuilder {
     int offset = readOffset();
     VariableDeclaration variable = readVariableDeclaration();
     variableStack.add(variable); // Will be popped by the enclosing scope.
-    FunctionNode function = readFunctionNode();
-    return new FunctionDeclaration(variable, function)..fileOffset = offset;
+    return new FunctionDeclaration(variable, readFunctionNode())
+      ..fileOffset = offset;
   }
 
   void _readSwitchCaseInto(SwitchCase caseNode) {

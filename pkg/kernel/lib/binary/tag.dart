@@ -90,6 +90,7 @@ class Tag {
   static const int InstanceGet = 118;
   static const int InstanceSet = 119;
   static const int InstanceInvocation = 120;
+  static const int InstanceGetterInvocation = 89;
   static const int InstanceTearOff = 121;
   static const int DynamicGet = 122;
   static const int DynamicSet = 123;
@@ -124,6 +125,7 @@ class Tag {
 
   // Types
   static const int TypedefType = 87;
+  // 89 is occupied by [InstanceGetterInvocation] (expression).
   static const int InvalidType = 90;
   static const int DynamicType = 91;
   static const int VoidType = 92;
@@ -172,7 +174,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 56;
+  static const int BinaryFormatVersion = 57;
 }
 
 abstract class ConstantTag {

@@ -738,8 +738,7 @@ class TypeInferrerImpl implements TypeInferrer {
     Expression nullCheck;
     // TODO(johnniwinther): Avoid null-check for non-nullable expressions.
     if (useNewMethodInvocationEncoding) {
-      nullCheck = new EqualsNull(new VariableGet(t)..fileOffset = fileOffset,
-          isNot: false)
+      nullCheck = new EqualsNull(new VariableGet(t)..fileOffset = fileOffset)
         ..fileOffset = fileOffset;
     } else {
       nullCheck = new MethodInvocation(
@@ -2910,7 +2909,8 @@ class TypeInferrerImpl implements TypeInferrer {
           ..fileOffset = fileOffset;
       } else if (receiver is VariableGet) {
         VariableDeclaration variable = receiver.variable;
-        if (variable.parent is FunctionDeclaration) {
+        TreeNode parent = variable.parent;
+        if (parent is FunctionDeclaration) {
           assert(inferredFunctionType != unknownFunction,
               "Unknown function type for local function invocation.");
           expression = new LocalFunctionInvocation(variable, arguments,
@@ -3403,7 +3403,7 @@ class TypeInferrerImpl implements TypeInferrer {
           resultType: calleeType, interfaceTarget: originalTarget)
         ..fileOffset = fileOffset;
       flowAnalysis.propertyGet(
-          originalPropertyGet, originalReceiver, originalName.name, calleeType);
+          originalPropertyGet, originalReceiver, originalName.text, calleeType);
     } else {
       originalPropertyGet =
           new PropertyGet(originalReceiver, originalName, originalTarget)
@@ -4246,7 +4246,7 @@ class TypeInferrerImpl implements TypeInferrer {
   Expression createEqualsNull(
       int fileOffset, Expression left, Member equalsMember) {
     if (useNewMethodInvocationEncoding) {
-      return new EqualsNull(left, isNot: false)..fileOffset = fileOffset;
+      return new EqualsNull(left)..fileOffset = fileOffset;
     } else {
       return new MethodInvocation(
           left,

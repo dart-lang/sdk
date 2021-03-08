@@ -5277,9 +5277,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   void _handleEquals(ir.Expression node, ir.Expression left,
-      HInstruction leftInstruction, HInstruction rightInstruction,
-      {bool isNot}) {
-    assert(isNot != null);
+      HInstruction leftInstruction, HInstruction rightInstruction) {
     _pushDynamicInvocation(
         node,
         _getStaticType(left),
@@ -5288,10 +5286,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         <HInstruction>[leftInstruction, rightInstruction],
         const <DartType>[],
         _sourceInformationBuilder.buildCall(left, node));
-    if (isNot) {
-      push(new HNot(popBoolified(), _abstractValueDomain.boolType)
-        ..sourceInformation = _sourceInformationBuilder.buildUnary(node));
-    }
   }
 
   @override
@@ -5299,8 +5293,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     node.expression.accept(this);
     HInstruction receiverInstruction = pop();
     return _handleEquals(node, node.expression, receiverInstruction,
-        graph.addConstantNull(closedWorld),
-        isNot: node.isNot);
+        graph.addConstantNull(closedWorld));
   }
 
   @override
@@ -5309,8 +5302,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction leftInstruction = pop();
     node.right.accept(this);
     HInstruction rightInstruction = pop();
-    return _handleEquals(node, node.left, leftInstruction, rightInstruction,
-        isNot: node.isNot);
+    return _handleEquals(node, node.left, leftInstruction, rightInstruction);
   }
 
   HInterceptor _interceptorFor(

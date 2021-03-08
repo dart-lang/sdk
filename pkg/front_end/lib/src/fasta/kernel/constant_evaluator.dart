@@ -609,11 +609,9 @@ class ConstantsTransformer extends RemovingTransformer {
     Expression left = transform(node.left);
     Expression right = transform(node.right);
     if (_isNull(left)) {
-      return new EqualsNull(right, isNot: node.isNot)
-        ..fileOffset = node.fileOffset;
+      return new EqualsNull(right)..fileOffset = node.fileOffset;
     } else if (_isNull(right)) {
-      return new EqualsNull(left, isNot: node.isNot)
-        ..fileOffset = node.fileOffset;
+      return new EqualsNull(left)..fileOffset = node.fileOffset;
     }
     node.left = left..parent = node;
     node.right = right..parent = node;
@@ -1931,13 +1929,12 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
       return unevaluated(
           node,
           new EqualsCall(extract(left), extract(right),
-              isNot: node.isNot,
               functionType: node.functionType,
               interfaceTarget: node.interfaceTarget)
             ..fileOffset = node.fileOffset);
     }
 
-    return _handleEquals(node, left, right, isNot: node.isNot);
+    return _handleEquals(node, left, right);
   }
 
   @override
@@ -1946,18 +1943,14 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
     if (expression is AbortConstant) return expression;
 
     if (shouldBeUnevaluated) {
-      return unevaluated(
-          node,
-          new EqualsNull(extract(expression), isNot: node.isNot)
-            ..fileOffset = node.fileOffset);
+      return unevaluated(node,
+          new EqualsNull(extract(expression))..fileOffset = node.fileOffset);
     }
 
-    return _handleEquals(node, expression, nullConstant, isNot: node.isNot);
+    return _handleEquals(node, expression, nullConstant);
   }
 
-  Constant _handleEquals(Expression node, Constant left, Constant right,
-      {bool isNot}) {
-    assert(isNot != null);
+  Constant _handleEquals(Expression node, Constant left, Constant right) {
     if (left is NullConstant ||
         left is BoolConstant ||
         left is IntConstant ||
@@ -1966,17 +1959,7 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
         right is NullConstant) {
       // [DoubleConstant] uses [identical] to determine equality, so we need
       // to take the special cases into account.
-      Constant result =
-          doubleSpecialCases(left, right) ?? makeBoolConstant(left == right);
-      if (isNot) {
-        if (result == trueConstant) {
-          result = falseConstant;
-        } else {
-          assert(result == falseConstant);
-          result = trueConstant;
-        }
-      }
-      return result;
+      return doubleSpecialCases(left, right) ?? makeBoolConstant(left == right);
     } else {
       return createErrorConstant(
           node,
@@ -1993,7 +1976,7 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
     // parsed as `!(a == b)` it is handled implicitly through ==.
     if (arguments.length == 1 && op == '==') {
       final Constant right = arguments[0];
-      return _handleEquals(node, receiver, right, isNot: false);
+      return _handleEquals(node, receiver, right);
     }
 
     // This is a white-listed set of methods we need to support on constants.
@@ -2466,7 +2449,7 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
         return createErrorConstant(
             node,
             templateConstEvalInvalidStaticInvocation
-                .withArguments(target.name.name));
+                .withArguments(target.name.text));
       } else {
         return createInvalidExpressionConstant(
             node, 'No support for ${target.runtimeType} in a static tear-off.');
