@@ -44,7 +44,7 @@ class ElementFactory {
       String typeName, InterfaceType? superclassType,
       [List<String>? parameterNames]) {
     ClassElementImpl element = ClassElementImpl(typeName, 0);
-    element.constructors = const [];
+    element.constructors = const <ConstructorElement>[];
     element.supertype = superclassType;
     if (parameterNames != null) {
       element.typeParameters = typeParameters(parameterNames);
@@ -58,7 +58,7 @@ class ElementFactory {
 
   static ClassElementImpl classElement3({
     required String name,
-    List<TypeParameterElementImpl>? typeParameters,
+    List<TypeParameterElement>? typeParameters,
     List<String> typeParameterNames = const [],
     InterfaceType? supertype,
     List<InterfaceType> mixins = const [],
@@ -72,7 +72,7 @@ class ElementFactory {
     element.supertype = supertype;
     element.mixins = mixins;
     element.interfaces = interfaces;
-    element.constructors = const [];
+    element.constructors = const <ConstructorElement>[];
     return element;
   }
 
@@ -132,7 +132,7 @@ class ElementFactory {
           [List<DartType> argumentTypes = const []]) =>
       constructorElement(definingClass, name, false, argumentTypes);
 
-  static ExportElementImpl exportFor(LibraryElementImpl exportedLibrary,
+  static ExportElementImpl exportFor(LibraryElement exportedLibrary,
       [List<NamespaceCombinator> combinators = const <NamespaceCombinator>[]]) {
     ExportElementImpl spec = ExportElementImpl(-1);
     spec.exportedLibrary = exportedLibrary;
@@ -188,7 +188,7 @@ class ElementFactory {
   }
 
   static ImportElementImpl importFor(
-      LibraryElementImpl importedLibrary, PrefixElementImpl? prefix,
+      LibraryElement importedLibrary, PrefixElement? prefix,
       [List<NamespaceCombinator> combinators = const <NamespaceCombinator>[]]) {
     ImportElementImpl spec = ImportElementImpl(0);
     spec.importedLibrary = importedLibrary;
@@ -234,7 +234,7 @@ class ElementFactory {
       ClassElement enclosingElement,
       String methodName,
       DartType returnType,
-      List<ParameterElementImpl> parameters) {
+      List<ParameterElement> parameters) {
     MethodElementImpl method = MethodElementImpl(methodName, 0);
     method.enclosingElement = enclosingElement;
     method.parameters = parameters;
@@ -244,7 +244,7 @@ class ElementFactory {
 
   static MixinElementImpl mixinElement({
     required String name,
-    List<TypeParameterElementImpl>? typeParameters,
+    List<TypeParameterElement>? typeParameters,
     List<String> typeParameterNames = const [],
     List<InterfaceType> constraints = const [],
     List<InterfaceType> interfaces = const [],
@@ -259,7 +259,7 @@ class ElementFactory {
     element.typeParameters = typeParameters;
     element.superclassConstraints = constraints;
     element.interfaces = interfaces;
-    element.constructors = const [];
+    element.constructors = const <ConstructorElement>[];
     return element;
   }
 
@@ -320,7 +320,7 @@ class ElementFactory {
     setter.isSetter = true;
     setter.isSynthetic = true;
     setter.variable = field;
-    setter.parameters = [parameter];
+    setter.parameters = <ParameterElement>[parameter];
     setter.returnType = VoidTypeImpl.instance;
     setter.isStatic = isStatic;
     field.setter = setter;
@@ -366,7 +366,7 @@ class ElementFactory {
     return TypeParameterElementImpl(name, 0);
   }
 
-  static List<TypeParameterElementImpl> typeParameters(List<String> names) {
+  static List<TypeParameterElement> typeParameters(List<String> names) {
     return names.map((name) => typeParameterWithType(name)).toList();
   }
 

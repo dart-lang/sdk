@@ -310,7 +310,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     String constructorName = "m";
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classElement, constructorName);
-    classElement.constructors = [constructor];
+    classElement.constructors = <ConstructorElement>[constructor];
     InstanceCreationExpression node =
         AstTestFactory.instanceCreationExpression2(
             null,
@@ -326,7 +326,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     ClassElementImpl elementI = ElementFactory.classElement2("I");
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(elementC, null);
-    elementC.constructors = [constructor];
+    elementC.constructors = <ConstructorElement>[constructor];
     var typeName =
         AstTestFactory.typeName(elementC, [AstTestFactory.typeName(elementI)]);
     typeName.type = interfaceTypeStar(elementC,
@@ -345,7 +345,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     ClassElementImpl classElement = ElementFactory.classElement2("C");
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classElement, null);
-    classElement.constructors = [constructor];
+    classElement.constructors = <ConstructorElement>[constructor];
     InstanceCreationExpression node =
         AstTestFactory.instanceCreationExpression2(
             null, AstTestFactory.typeName(classElement));

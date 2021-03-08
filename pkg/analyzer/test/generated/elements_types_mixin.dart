@@ -158,10 +158,10 @@ mixin ElementsTypesMixin {
     required String name,
     bool isAbstract = false,
     InterfaceType? superType,
-    List<TypeParameterElementImpl> typeParameters = const [],
+    List<TypeParameterElement> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
     List<InterfaceType> mixins = const [],
-    List<MethodElementImpl> methods = const [],
+    List<MethodElement> methods = const [],
   }) {
     var element = ClassElementImpl(name, 0);
     element.enclosingElement = testLibrary.definingCompilationUnit;
@@ -439,12 +439,12 @@ mixin ElementsTypesMixin {
     );
   }
 
-  MethodElementImpl method(
+  MethodElement method(
     String name,
     DartType returnType, {
     bool isStatic = false,
-    List<TypeParameterElementImpl> typeFormals = const [],
-    List<ParameterElementImpl> parameters = const [],
+    List<TypeParameterElement> typeFormals = const [],
+    List<ParameterElement> parameters = const [],
   }) {
     return MethodElementImpl(name, 0)
       ..isStatic = isStatic
@@ -455,7 +455,7 @@ mixin ElementsTypesMixin {
 
   MixinElementImpl mixin_({
     required String name,
-    List<TypeParameterElementImpl> typeParameters = const [],
+    List<TypeParameterElement> typeParameters = const [],
     List<InterfaceType>? constraints,
     List<InterfaceType> interfaces = const [],
   }) {
@@ -464,7 +464,7 @@ mixin ElementsTypesMixin {
     element.typeParameters = typeParameters;
     element.superclassConstraints = constraints ?? [typeProvider.objectType];
     element.interfaces = interfaces;
-    element.constructors = const <ConstructorElementImpl>[];
+    element.constructors = const <ConstructorElement>[];
     return element;
   }
 
@@ -549,7 +549,7 @@ mixin ElementsTypesMixin {
     );
   }
 
-  ParameterElementImpl requiredParameter({
+  ParameterElement requiredParameter({
     String? name,
     required DartType type,
     bool isCovariant = false,
@@ -563,7 +563,7 @@ mixin ElementsTypesMixin {
 
   TypeAliasElementImpl typeAlias({
     required String name,
-    required List<TypeParameterElementImpl> typeParameters,
+    required List<TypeParameterElement> typeParameters,
     required DartType aliasedType,
   }) {
     var element = TypeAliasElementImpl(name, 0);

@@ -375,7 +375,7 @@ class MigrationResolutionHooksImpl
       });
 
   @override
-  List<ParameterElementImpl> getExecutableParameters(
+  List<ParameterElement> getExecutableParameters(
       ExecutableElementImpl element) {
     if (_fixBuilder._graph.isBeingMigrated(element.library.source)) {
       // The element is part of a library that's being migrated, so its
@@ -386,7 +386,7 @@ class MigrationResolutionHooksImpl
       // The element is not part of a library that's being migrated, so its
       // parameters probably haven't been visited; we need to get the parameters
       // from the final function type.
-      return getExecutableType(element).parameters.cast();
+      return getExecutableType(element).parameters;
     }
   }
 

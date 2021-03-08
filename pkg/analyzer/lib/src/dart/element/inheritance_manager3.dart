@@ -766,9 +766,9 @@ class InheritanceManager3 {
       var firstMethod = first;
       var result = MethodElementImpl(firstMethod.name, -1);
       result.enclosingElement = targetClass;
-      result.typeParameters = resultType.typeFormals.cast();
+      result.typeParameters = resultType.typeFormals;
       result.returnType = resultType.returnType;
-      result.parameters = resultType.parameters.cast();
+      result.parameters = resultType.parameters;
       return result;
     } else {
       var firstAccessor = first as PropertyAccessorElement;
@@ -779,7 +779,7 @@ class InheritanceManager3 {
       result.isGetter = firstAccessor.isGetter;
       result.isSetter = firstAccessor.isSetter;
       result.returnType = resultType.returnType;
-      result.parameters = resultType.parameters.cast();
+      result.parameters = resultType.parameters;
 
       var field = FieldElementImpl(variableName, -1);
       if (firstAccessor.isGetter) {

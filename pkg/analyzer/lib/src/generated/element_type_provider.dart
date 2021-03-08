@@ -38,7 +38,7 @@ class ElementTypeProvider {
   /// Queries the parameters of an executable element's signature.
   ///
   /// Equivalent to `getExecutableType(...).parameters`.
-  List<ParameterElementImpl> getExecutableParameters(
+  List<ParameterElement> getExecutableParameters(
           ExecutableElementImpl element) =>
       element.parametersInternal;
 

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -249,8 +250,8 @@ class LibraryBuilder {
   }
 
   void buildDirectives() {
-    var exports = <ExportElementImpl>[];
-    var imports = <ImportElementImpl>[];
+    var exports = <ExportElement>[];
+    var imports = <ImportElement>[];
     var hasCoreImport = false;
 
     // Build elements directives in all units.
@@ -331,8 +332,9 @@ class LibraryBuilder {
 
   void resolveMetadata() {
     for (var unit in element.units) {
+      var unitImpl = unit as CompilationUnitElementImpl;
       var resolver = MetadataResolver(linker, scope, unit);
-      unit.linkedNode!.accept(resolver);
+      unitImpl.linkedNode!.accept(resolver);
     }
   }
 

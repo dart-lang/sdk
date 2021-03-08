@@ -29,7 +29,7 @@ class DefaultValueResolver {
 
   void resolve() {
     for (var unit in _libraryElement.units) {
-      _unitElement = unit;
+      _unitElement = unit as CompilationUnitElementImpl;
 
       for (var extensionElement in unit.extensions) {
         _extension(extensionElement);
@@ -49,16 +49,16 @@ class DefaultValueResolver {
     }
   }
 
-  void _class(ClassElementImpl classElement) {
+  void _class(ClassElement classElement) {
     _classElement = classElement;
 
     for (var element in classElement.constructors) {
-      _constructor(element);
+      _constructor(element as ConstructorElementImpl);
     }
 
     for (var element in classElement.methods) {
       _setScopeFromElement(element);
-      _method(element);
+      _method(element as MethodElementImpl);
     }
 
     _classElement = null;
@@ -100,7 +100,7 @@ class DefaultValueResolver {
   void _parameter(ParameterElementImpl parameter) {
     // If a function typed parameter, process nested parameters.
     for (var localParameter in parameter.parameters) {
-      _parameter(localParameter);
+      _parameter(localParameter as ParameterElementImpl);
     }
 
     var node = _defaultParameter(parameter);

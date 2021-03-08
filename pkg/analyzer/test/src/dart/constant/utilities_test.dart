@@ -222,7 +222,7 @@ class ConstantFinderTest {
     classDeclaration.members.add(fieldDeclaration);
     _node = classDeclaration;
     ClassElementImpl classElement = ElementFactory.classElement2(className);
-    classElement.fields = [fieldElement];
+    classElement.fields = <FieldElement>[fieldElement];
     classDeclaration.name.staticElement = classElement;
     if (hasConstConstructor) {
       var constructorDeclaration = AstTestFactory.constructorDeclaration2(
@@ -234,12 +234,12 @@ class ConstantFinderTest {
           [],
           AstTestFactory.blockFunctionBody2());
       classDeclaration.members.add(constructorDeclaration);
-      var constructorElement =
+      ConstructorElement constructorElement =
           ElementFactory.constructorElement(classElement, '', true);
       constructorDeclaration.declaredElement = constructorElement;
-      classElement.constructors = [constructorElement];
+      classElement.constructors = <ConstructorElement>[constructorElement];
     } else {
-      classElement.constructors = const [];
+      classElement.constructors = const <ConstructorElement>[];
     }
     return variableDeclaration;
   }

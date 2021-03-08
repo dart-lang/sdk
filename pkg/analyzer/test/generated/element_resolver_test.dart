@@ -317,7 +317,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     // Need to set up the imported library so that the identifiers can be
     // resolved.
     String prefixName = "p";
-    _definingLibrary.imports = [
+    _definingLibrary.imports = <ImportElement>[
       ElementFactory.importFor(
           _LibraryElementMock(), ElementFactory.prefix(prefixName))
     ];
@@ -368,11 +368,11 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     // set accessors
     String propName = "p";
-    var getter =
+    PropertyAccessorElement getter =
         ElementFactory.getterElement(propName, false, _typeProvider.intType);
-    var setter =
+    PropertyAccessorElement setter =
         ElementFactory.setterElement(propName, false, _typeProvider.intType);
-    classA.accessors = [getter, setter];
+    classA.accessors = <PropertyAccessorElement>[getter, setter];
     // set name scope
     _visitor.nameScope = LocalScope(_RootScopeMock.instance)..add(classA);
     // prepare "A.p"
@@ -390,8 +390,9 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   test_visitCommentReference_prefixedIdentifier_class_method() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     // set method
-    var method = ElementFactory.methodElement("m", _typeProvider.intType);
-    classA.methods = [method];
+    MethodElement method =
+        ElementFactory.methodElement("m", _typeProvider.intType);
+    classA.methods = <MethodElement>[method];
     // set name scope
     _visitor.nameScope = LocalScope(_RootScopeMock.instance)..add(classA);
     // prepare "A.m"
@@ -409,8 +410,9 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   test_visitCommentReference_prefixedIdentifier_class_operator() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     // set method
-    var method = ElementFactory.methodElement("==", _typeProvider.boolType);
-    classA.methods = [method];
+    MethodElement method =
+        ElementFactory.methodElement("==", _typeProvider.boolType);
+    classA.methods = <MethodElement>[method];
     // set name scope
     _visitor.nameScope = LocalScope(_RootScopeMock.instance)..add(classA);
     // prepare "A.=="
@@ -428,9 +430,9 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     _encloseElement(classA);
     String constructorName = "a";
-    var constructor =
+    ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
-    classA.constructors = [constructor];
+    classA.constructors = <ConstructorElement>[constructor];
     ConstructorName name = AstTestFactory.constructorName(
         AstTestFactory.typeName(classA), constructorName);
     _resolveNode(name);
@@ -442,9 +444,9 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     _encloseElement(classA);
     String constructorName = 'named';
-    var constructor =
+    ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
-    classA.constructors = [constructor];
+    classA.constructors = <ConstructorElement>[constructor];
     ConstructorName name = AstTestFactory.constructorName(
         AstTestFactory.typeName(classA), constructorName);
     _resolveNode(name);
@@ -491,7 +493,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     FieldElementImpl fieldElement =
         ElementFactory.fieldElement(fieldName, false, false, false, intType);
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.fields = [fieldElement];
+    classA.fields = <FieldElement>[fieldElement];
     var parameter = AstTestFactory.fieldFormalParameter2(fieldName);
     FieldFormalParameterElementImpl parameterElement =
         ElementFactory.fieldFormalParameter(parameter.identifier);
@@ -514,10 +516,10 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitImportDirective_noCombinators_prefix() async {
     String prefixName = "p";
-    var importElement = ElementFactory.importFor(
+    ImportElement importElement = ElementFactory.importFor(
         ElementFactory.library(_definingLibrary.context, "lib"),
         ElementFactory.prefix(prefixName));
-    _definingLibrary.imports = [importElement];
+    _definingLibrary.imports = <ImportElement>[importElement];
     var directive = AstTestFactory.importDirective3('dart:math', prefixName);
     directive.element = importElement;
     _resolveNode(directive);
@@ -537,9 +539,15 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.topLevelVariableElement2("B");
     TopLevelVariableElementImpl varC =
         ElementFactory.topLevelVariableElement2("C");
-    CompilationUnitElementImpl unit = library.definingCompilationUnit;
-    unit.accessors = [varA.getter!, varA.setter!, varB.getter!, varC.setter!];
-    unit.topLevelVariables = [varA, varB, varC];
+    CompilationUnitElementImpl unit =
+        library.definingCompilationUnit as CompilationUnitElementImpl;
+    unit.accessors = <PropertyAccessorElement>[
+      varA.getter!,
+      varA.setter!,
+      varB.getter!,
+      varC.setter!
+    ];
+    unit.topLevelVariables = <TopLevelVariableElement>[varA, varB, varC];
     directive.element = ElementFactory.importFor(library, null);
     _resolveNode(directive);
     expect(combinator.shownNames[0].staticElement, same(varA));
@@ -551,9 +559,9 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   test_visitInstanceCreationExpression_named() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String constructorName = "a";
-    var constructor =
+    ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
-    classA.constructors = [constructor];
+    classA.constructors = <ConstructorElement>[constructor];
     var name = AstTestFactory.constructorName(
         AstTestFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
@@ -566,9 +574,9 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   test_visitInstanceCreationExpression_unnamed() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String constructorName = 'named';
-    var constructor =
+    ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
-    classA.constructors = [constructor];
+    classA.constructors = <ConstructorElement>[constructor];
     var name = AstTestFactory.constructorName(
         AstTestFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
@@ -584,10 +592,10 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     String parameterName = "a";
-    var parameter =
+    ParameterElement parameter =
         ElementFactory.namedParameter2(parameterName, _typeProvider.intType);
-    constructor.parameters = [parameter];
-    classA.constructors = [constructor];
+    constructor.parameters = <ParameterElement>[parameter];
+    classA.constructors = <ConstructorElement>[constructor];
     var name = AstTestFactory.constructorName(
         AstTestFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
@@ -638,13 +646,13 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _encloseElement(superclass);
     ConstructorElementImpl superConstructor =
         ElementFactory.constructorElement2(superclass, null);
-    superclass.constructors = [superConstructor];
+    superclass.constructors = <ConstructorElement>[superConstructor];
     ClassElementImpl subclass =
         ElementFactory.classElement("B", interfaceTypeStar(superclass));
     _encloseElement(subclass);
     ConstructorElementImpl subConstructor =
         ElementFactory.constructorElement2(subclass, null);
-    subclass.constructors = [subConstructor];
+    subclass.constructors = <ConstructorElement>[subConstructor];
     SuperConstructorInvocation invocation =
         AstTestFactory.superConstructorInvocation();
     AstTestFactory.classDeclaration(null, 'C', null, null, null, null, [
@@ -662,15 +670,15 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     ConstructorElementImpl superConstructor =
         ElementFactory.constructorElement2(superclass, null);
     String parameterName = "p";
-    var parameter = ElementFactory.namedParameter(parameterName);
-    superConstructor.parameters = [parameter];
-    superclass.constructors = [superConstructor];
+    ParameterElement parameter = ElementFactory.namedParameter(parameterName);
+    superConstructor.parameters = <ParameterElement>[parameter];
+    superclass.constructors = <ConstructorElement>[superConstructor];
     ClassElementImpl subclass =
         ElementFactory.classElement("B", interfaceTypeStar(superclass));
     _encloseElement(subclass);
     ConstructorElementImpl subConstructor =
         ElementFactory.constructorElement2(subclass, null);
-    subclass.constructors = [subConstructor];
+    subclass.constructors = <ConstructorElement>[subConstructor];
     SuperConstructorInvocation invocation =
         AstTestFactory.superConstructorInvocation([
       AstTestFactory.namedExpression2(parameterName, AstTestFactory.integer(0))
@@ -816,7 +824,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   }
 }
 
-class _LibraryElementMock implements LibraryElementImpl {
+class _LibraryElementMock implements LibraryElement {
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

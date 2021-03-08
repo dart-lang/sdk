@@ -405,7 +405,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
     _expectMarker(MarkerTag.ExportDirective_namespaceDirective);
     _namespaceDirective(node);
     _expectMarker(MarkerTag.ExportDirective_exportedLibrary);
-    elementImpl.exportedLibrary = _nextElement() as LibraryElementImpl?;
+    elementImpl.exportedLibrary = _nextElement() as LibraryElement?;
     _expectMarker(MarkerTag.ExportDirective_end);
   }
 
@@ -729,7 +729,7 @@ resolution.byteOffset: ${_resolution.byteOffset}
 
     var element = node.element as ImportElementImpl;
     _expectMarker(MarkerTag.ImportDirective_importedLibrary);
-    element.importedLibrary = _nextElement() as LibraryElementImpl?;
+    element.importedLibrary = _nextElement() as LibraryElement?;
 
     _expectMarker(MarkerTag.ImportDirective_end);
   }
