@@ -317,8 +317,6 @@ class B<X> extends A<void Function<Y extends X>()> {}
           CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
           22,
           1),
-      error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-          35, 28),
     ]);
   }
 }

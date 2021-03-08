@@ -64,6 +64,9 @@ class TypedLiteralResolver {
 
   DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
+  bool get _genericMetadataIsEnabled =>
+      _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
+
   NullabilitySuffix get _noneOrStarSuffix {
     return _isNonNullableByDefault
         ? NullabilitySuffix.none
@@ -460,6 +463,7 @@ class TypedLiteralResolver {
       isConst: node.isConst,
       errorReporter: _errorReporter,
       errorNode: node,
+      genericMetadataIsEnabled: _genericMetadataIsEnabled,
     )!;
     return element.instantiate(
       typeArguments: typeArguments,
@@ -484,6 +488,7 @@ class TypedLiteralResolver {
       isConst: node.isConst,
       errorReporter: _errorReporter,
       errorNode: node,
+      genericMetadataIsEnabled: _genericMetadataIsEnabled,
     )!;
     return element.instantiate(
       typeArguments: typeArguments,
@@ -582,6 +587,7 @@ class TypedLiteralResolver {
       isConst: node.isConst,
       errorReporter: _errorReporter,
       errorNode: node,
+      genericMetadataIsEnabled: _genericMetadataIsEnabled,
     )!;
     return element.instantiate(
       typeArguments: typeArguments,
@@ -782,6 +788,7 @@ class TypedLiteralResolver {
       declaredReturnType: element.thisType,
       argumentTypes: argumentTypes,
       contextReturnType: contextType,
+      genericMetadataIsEnabled: _genericMetadataIsEnabled,
     )!;
     return element.instantiate(
       typeArguments: typeArguments,
@@ -813,6 +820,7 @@ class TypedLiteralResolver {
       declaredReturnType: element.thisType,
       argumentTypes: argumentTypes,
       contextReturnType: contextType,
+      genericMetadataIsEnabled: _genericMetadataIsEnabled,
     )!;
     return element.instantiate(
       typeArguments: typeArguments,

@@ -4,6 +4,7 @@
 
 import "dart:math" as math;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -216,10 +217,12 @@ class TypeArgumentsVerifier {
       var typeArgument = typeArguments[i];
 
       if (typeArgument is FunctionType && typeArgument.typeFormals.isNotEmpty) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-          _typeArgumentErrorNode(typeName, i),
-        );
+        if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+            _typeArgumentErrorNode(typeName, i),
+          );
+        }
         continue;
       }
 
@@ -354,10 +357,13 @@ class TypeArgumentsVerifier {
         DartType argType = typeArgs[i];
 
         if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-            typeArgumentList[i],
-          );
+          if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode
+                  .GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+              typeArgumentList[i],
+            );
+          }
           continue;
         }
 

@@ -243,6 +243,12 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
+  List<String> get experiments => [
+        EnableString.generic_metadata,
+        EnableString.nonfunction_type_aliases,
+        EnableString.triple_shift,
+      ];
+
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';
 
@@ -266,10 +272,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
-        experiments: [
-          EnableString.nonfunction_type_aliases,
-          EnableString.triple_shift,
-        ],
+        experiments: experiments,
       ),
     );
     writeTestPackageConfig(

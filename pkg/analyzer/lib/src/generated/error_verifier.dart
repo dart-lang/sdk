@@ -2684,6 +2684,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (node == null) {
       return;
     }
+    if (_featureSet?.isEnabled(Feature.generic_metadata) ?? false) {
+      return;
+    }
     DartType type = node.type!;
     if (type is FunctionType && type.typeFormals.isNotEmpty) {
       _errorReporter.reportErrorForNode(
@@ -4915,6 +4918,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
                 mixinElement,
                 mixinSupertypeConstraints,
                 matchingInterfaceTypes,
+                genericMetadataIsEnabled: _currentLibrary.featureSet
+                    .isEnabled(Feature.generic_metadata),
               );
               if (inferredTypeArguments == null) {
                 _errorReporter.reportErrorForToken(

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -20,19 +21,22 @@ class InvocationInferenceHelper {
   final ErrorReporter _errorReporter;
   final TypeSystemImpl _typeSystem;
   final MigrationResolutionHooks? _migrationResolutionHooks;
+  final bool _genericMetadataIsEnabled;
 
   List<DartType>? _typeArgumentTypes;
   FunctionType? _invokeType;
 
-  InvocationInferenceHelper(
-      {required ResolverVisitor resolver,
-      required ErrorReporter errorReporter,
-      required TypeSystemImpl typeSystem,
-      required MigrationResolutionHooks? migrationResolutionHooks})
-      : _resolver = resolver,
+  InvocationInferenceHelper({
+    required ResolverVisitor resolver,
+    required ErrorReporter errorReporter,
+    required TypeSystemImpl typeSystem,
+    required MigrationResolutionHooks? migrationResolutionHooks,
+  })   : _resolver = resolver,
         _errorReporter = errorReporter,
         _typeSystem = typeSystem,
-        _migrationResolutionHooks = migrationResolutionHooks;
+        _migrationResolutionHooks = migrationResolutionHooks,
+        _genericMetadataIsEnabled = resolver.definingLibrary.featureSet
+            .isEnabled(Feature.generic_metadata);
 
   /// Compute the return type of the method or function represented by the given
   /// type that is being invoked.
@@ -62,6 +66,7 @@ class InvocationInferenceHelper {
         isConst: isConst,
         errorReporter: _errorReporter,
         errorNode: errorNode,
+        genericMetadataIsEnabled: _genericMetadataIsEnabled,
       );
       if (typeArguments != null) {
         return uninstantiatedType.instantiate(typeArguments);
@@ -164,6 +169,7 @@ class InvocationInferenceHelper {
         tearOffType,
         errorReporter: _resolver.errorReporter,
         errorNode: expression,
+        genericMetadataIsEnabled: _genericMetadataIsEnabled,
       )!;
       (identifier as SimpleIdentifierImpl).tearOffTypeArgumentTypes =
           typeArguments;
@@ -266,6 +272,7 @@ class InvocationInferenceHelper {
       isConst: isConst,
       errorReporter: _errorReporter,
       errorNode: errorNode,
+      genericMetadataIsEnabled: _genericMetadataIsEnabled,
     );
   }
 
@@ -302,6 +309,7 @@ class InvocationInferenceHelper {
       isConst: isConst,
       errorReporter: _errorReporter,
       errorNode: errorNode,
+      genericMetadataIsEnabled: _genericMetadataIsEnabled,
     );
     return typeArgs;
   }
