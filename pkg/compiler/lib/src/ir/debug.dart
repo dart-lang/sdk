@@ -50,6 +50,37 @@ class DebugPrinter extends Visitor<void>
   }
 
   @override
+  visitStaticInvocation(StaticInvocation node) {
+    openNode(node, '${node.runtimeType}', {'target': '${node.target}'});
+    node.visitChildren(this);
+    closeNode();
+  }
+
+  @override
+  visitArguments(Arguments node) {
+    openNode(node, '${node.runtimeType}', {
+      'typeArgs': '${node.types}',
+      'positionalArgs': '${node.positional}',
+      'namedArgs': '${node.named}'
+    });
+    node.visitChildren(this);
+    closeNode();
+  }
+
+  @override
+  visitAsExpression(AsExpression node) {
+    openNode(node, '${node.runtimeType}',
+        {'operand': '${node.operand}', 'DartType': '${node.type}'});
+    node.visitChildren(this);
+    closeNode();
+  }
+
+  @override
+  visitStringLiteral(StringLiteral node) {
+    openAndCloseNode(node, '${node.runtimeType}', {'value': '${node.value}'});
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     openNode(node, '${node.runtimeType}', {
       'name': '${node.name ?? '--unnamed--'}',
