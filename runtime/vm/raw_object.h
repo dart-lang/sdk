@@ -212,21 +212,22 @@ class UntaggedObject {
   class ReservedBits
       : public BitField<uword, intptr_t, kReservedTagPos, kReservedTagSize> {};
 
+  template <typename T>
   class Tags {
    public:
     Tags() : tags_(0) {}
 
-    operator uword() const { return tags_.load(std::memory_order_relaxed); }
+    operator T() const { return tags_.load(std::memory_order_relaxed); }
 
-    uword operator=(uword tags) {
+    T operator=(T tags) {
       tags_.store(tags, std::memory_order_relaxed);
       return tags;
     }
 
-    uword load(std::memory_order order) const { return tags_.load(order); }
+    T load(std::memory_order order) const { return tags_.load(order); }
 
-    bool compare_exchange_weak(uword old_tags,
-                               uword new_tags,
+    bool compare_exchange_weak(T old_tags,
+                               T new_tags,
                                std::memory_order order) {
       return tags_.compare_exchange_weak(old_tags, new_tags, order);
     }
@@ -238,7 +239,7 @@ class UntaggedObject {
 
     template <class TagBitField>
     NO_SANITIZE_THREAD typename TagBitField::Type ReadIgnoreRace() const {
-      return TagBitField::decode(*reinterpret_cast<const uword*>(&tags_));
+      return TagBitField::decode(*reinterpret_cast<const T*>(&tags_));
     }
 
     template <class TagBitField>
@@ -252,8 +253,8 @@ class UntaggedObject {
 
     template <class TagBitField>
     void Update(typename TagBitField::Type value) {
-      uword old_tags = tags_.load(std::memory_order_relaxed);
-      uword new_tags;
+      T old_tags = tags_.load(std::memory_order_relaxed);
+      T new_tags;
       do {
         new_tags = TagBitField::update(value, old_tags);
       } while (!tags_.compare_exchange_weak(old_tags, new_tags,
@@ -269,21 +270,21 @@ class UntaggedObject {
 
     template <class TagBitField>
     bool TryAcquire() {
-      uword mask = TagBitField::encode(true);
-      uword old_tags = tags_.fetch_or(mask, std::memory_order_relaxed);
+      T mask = TagBitField::encode(true);
+      T old_tags = tags_.fetch_or(mask, std::memory_order_relaxed);
       return !TagBitField::decode(old_tags);
     }
 
     template <class TagBitField>
     bool TryClear() {
-      uword mask = ~TagBitField::encode(true);
-      uword old_tags = tags_.fetch_and(mask, std::memory_order_relaxed);
+      T mask = ~TagBitField::encode(true);
+      T old_tags = tags_.fetch_and(mask, std::memory_order_relaxed);
       return TagBitField::decode(old_tags);
     }
 
    private:
-    std::atomic<uword> tags_;
-    COMPILE_ASSERT(sizeof(std::atomic<uword>) == sizeof(uword));
+    std::atomic<T> tags_;
+    COMPILE_ASSERT(sizeof(std::atomic<T>) == sizeof(T));
   };
 
   // Assumes this is a heap object.
@@ -519,7 +520,7 @@ class UntaggedObject {
   }
 
  private:
-  Tags tags_;  // Various object tags (bits).
+  Tags<uword> tags_;  // Various object tags (bits).
 
   intptr_t VisitPointersPredefined(ObjectPointerVisitor* visitor,
                                    intptr_t class_id);
@@ -1143,7 +1144,7 @@ class UntaggedFunction : public UntaggedObject {
   NOT_IN_PRECOMPILED(UnboxedParameterBitmap unboxed_parameters_info_);
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
   NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
-  uint32_t kind_tag_;  // See Function::KindTagBits.
+  Tags<uint32_t> kind_tag_;  // See Function::KindTagBits.
   uint32_t packed_fields_;
 
   // TODO(regis): Split packed_fields_ in 2 uint32_t if max values are too low.
