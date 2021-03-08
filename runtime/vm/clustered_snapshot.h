@@ -399,13 +399,13 @@ class Serializer : public ThreadStackResource {
   bool CreateArtificalNodeIfNeeded(ObjectPtr obj);
 
   bool InCurrentLoadingUnit(ObjectPtr obj, bool record = false);
-  GrowableArray<LoadingUnitSerializationData*>* loading_units() {
+  GrowableArray<LoadingUnitSerializationData*>* loading_units() const {
     return loading_units_;
   }
   void set_loading_units(GrowableArray<LoadingUnitSerializationData*>* units) {
     loading_units_ = units;
   }
-  intptr_t current_loading_unit_id() { return current_loading_unit_id_; }
+  intptr_t current_loading_unit_id() const { return current_loading_unit_id_; }
   void set_current_loading_unit_id(intptr_t id) {
     current_loading_unit_id_ = id;
   }

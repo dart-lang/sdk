@@ -785,11 +785,10 @@ class TypeArgumentsDeserializationCluster
           d, refs, Array::Handle(object_store->canonical_type_arguments()));
       object_store->set_canonical_type_arguments(table_);
     } else if (canonicalize) {
-      Thread* thread = Thread::Current();
       TypeArguments& type_arg = TypeArguments::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         type_arg ^= refs.At(i);
-        type_arg = type_arg.Canonicalize(thread, nullptr);
+        type_arg = type_arg.Canonicalize(d->thread(), nullptr);
         refs.SetAt(i, type_arg);
       }
     }
@@ -2337,8 +2336,9 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
       intptr_t restore_position = d->position();
       d->set_position(fill_position_);
 
-      ObjectPool& pool = ObjectPool::Handle();
-      Object& entry = Object::Handle();
+      auto Z = d->zone();
+      ObjectPool& pool = ObjectPool::Handle(Z);
+      Object& entry = Object::Handle(Z);
       for (intptr_t id = start_index_; id < stop_index_; id++) {
         pool ^= refs.At(id);
         const intptr_t length = d->ReadUnsigned();
@@ -3641,13 +3641,12 @@ class AbstractInstanceDeserializationCluster : public DeserializationCluster {
  public:
   void PostLoad(Deserializer* d, const Array& refs, bool canonicalize) {
     if (canonicalize) {
-      Thread* thread = Thread::Current();
       SafepointMutexLocker ml(
-          thread->isolate_group()->constant_canonicalization_mutex());
+          d->isolate_group()->constant_canonicalization_mutex());
       Instance& instance = Instance::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         instance ^= refs.At(i);
-        instance = instance.CanonicalizeLocked(thread);
+        instance = instance.CanonicalizeLocked(d->thread());
         refs.SetAt(i, instance);
       }
     }
@@ -3920,11 +3919,10 @@ class TypeDeserializationCluster
                          Array::Handle(object_store->canonical_types()));
       object_store->set_canonical_types(table_);
     } else if (canonicalize) {
-      Thread* thread = Thread::Current();
       AbstractType& type = AbstractType::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         type ^= refs.At(i);
-        type = type.Canonicalize(thread, nullptr);
+        type = type.Canonicalize(d->thread(), nullptr);
         refs.SetAt(i, type);
       }
     }
@@ -4050,11 +4048,10 @@ class FunctionTypeDeserializationCluster
           d, refs, Array::Handle(object_store->canonical_function_types()));
       object_store->set_canonical_function_types(table_);
     } else if (canonicalize) {
-      Thread* thread = Thread::Current();
       AbstractType& type = AbstractType::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         type ^= refs.At(i);
-        type = type.Canonicalize(thread, nullptr);
+        type = type.Canonicalize(d->thread(), nullptr);
         refs.SetAt(i, type);
       }
     }
@@ -4142,11 +4139,10 @@ class TypeRefDeserializationCluster : public DeserializationCluster {
 
   void PostLoad(Deserializer* d, const Array& refs, bool canonicalize) {
     if (canonicalize) {
-      Thread* thread = Thread::Current();
       AbstractType& type = AbstractType::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         type ^= refs.At(i);
-        type = type.Canonicalize(thread, nullptr);
+        type = type.Canonicalize(d->thread(), nullptr);
         refs.SetAt(i, type);
       }
     }
@@ -4274,11 +4270,10 @@ class TypeParameterDeserializationCluster
           d, refs, Array::Handle(object_store->canonical_type_parameters()));
       object_store->set_canonical_type_parameters(table_);
     } else if (canonicalize) {
-      Thread* thread = Thread::Current();
       TypeParameter& type_param = TypeParameter::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         type_param ^= refs.At(i);
-        type_param ^= type_param.Canonicalize(thread, nullptr);
+        type_param ^= type_param.Canonicalize(d->thread(), nullptr);
         refs.SetAt(i, type_param);
       }
     }
@@ -4441,13 +4436,12 @@ class MintDeserializationCluster : public DeserializationCluster {
 
   void PostLoad(Deserializer* d, const Array& refs, bool canonicalize) {
     if (canonicalize) {
-      Thread* thread = Thread::Current();
       const Class& mint_cls = Class::Handle(
           d->zone(), d->isolate_group()->object_store()->mint_class());
       Object& number = Object::Handle(d->zone());
       Mint& number2 = Mint::Handle(d->zone());
       SafepointMutexLocker ml(
-          thread->isolate_group()->constant_canonicalization_mutex());
+          d->isolate_group()->constant_canonicalization_mutex());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         number = refs.At(i);
         if (!number.IsMint()) continue;
@@ -4527,18 +4521,19 @@ class DoubleDeserializationCluster : public DeserializationCluster {
 
   void PostLoad(Deserializer* d, const Array& refs, bool canonicalize) {
     if (canonicalize) {
-      const Class& cls = Class::Handle(
-          d->zone(), d->isolate_group()->object_store()->double_class());
-      SafepointMutexLocker ml(
-          d->isolate_group()->constant_canonicalization_mutex());
-      Double& dbl = Double::Handle(d->zone());
-      Double& dbl2 = Double::Handle(d->zone());
+      auto Z = d->zone();
+      auto isolate_group = d->isolate_group();
+      const Class& cls =
+          Class::Handle(Z, isolate_group->object_store()->double_class());
+      SafepointMutexLocker ml(isolate_group->constant_canonicalization_mutex());
+      Double& dbl = Double::Handle(Z);
+      Double& dbl2 = Double::Handle(Z);
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         dbl ^= refs.At(i);
-        dbl2 = cls.LookupCanonicalDouble(d->zone(), dbl.value());
+        dbl2 = cls.LookupCanonicalDouble(Z, dbl.value());
         if (dbl2.IsNull()) {
           dbl.SetCanonical();
-          cls.InsertCanonicalDouble(d->zone(), dbl);
+          cls.InsertCanonicalDouble(Z, dbl);
         } else {
           refs.SetAt(i, dbl2);
         }
@@ -5338,13 +5333,13 @@ class StringDeserializationCluster : public DeserializationCluster {
  public:
   void PostLoad(Deserializer* d, const Array& refs, bool canonicalize) {
     if (canonicalize) {
-      Thread* thread = Thread::Current();
-      SafepointMutexLocker ml(
-          thread->isolate_group()->constant_canonicalization_mutex());
-      CanonicalStringSet table(
-          d->zone(), d->isolate_group()->object_store()->symbol_table());
-      String& str = String::Handle(d->zone());
-      String& str2 = String::Handle(d->zone());
+      auto Z = d->zone();
+      auto isolate_group = d->isolate_group();
+      SafepointMutexLocker ml(isolate_group->constant_canonicalization_mutex());
+      CanonicalStringSet table(Z,
+                               isolate_group->object_store()->symbol_table());
+      String& str = String::Handle(Z);
+      String& str2 = String::Handle(Z);
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         str ^= refs.At(i);
         str2 ^= table.InsertOrGet(str);
@@ -5354,7 +5349,7 @@ class StringDeserializationCluster : public DeserializationCluster {
           refs.SetAt(i, str2);
         }
       }
-      d->isolate_group()->object_store()->set_symbol_table(table.Release());
+      isolate_group->object_store()->set_symbol_table(table.Release());
     }
   }
 };
@@ -5861,7 +5856,7 @@ class ProgramDeserializationRoots : public DeserializationRoots {
   }
 
   void PostLoad(Deserializer* d, const Array& refs) {
-    auto isolate_group = d->thread()->isolate_group();
+    auto isolate_group = d->isolate_group();
     isolate_group->class_table()->CopySizesFromClassObjects();
     d->heap()->old_space()->EvaluateAfterLoading();
 
@@ -6026,10 +6021,10 @@ class UnitDeserializationRoots : public DeserializationRoots {
 
     // Reinitialize the dispatch table by rereading the table's serialization
     // in the root snapshot.
-    IsolateGroup* group = d->thread()->isolate_group();
-    if (group->dispatch_table_snapshot() != nullptr) {
-      ReadStream stream(group->dispatch_table_snapshot(),
-                        group->dispatch_table_snapshot_size());
+    auto isolate_group = d->isolate_group();
+    if (isolate_group->dispatch_table_snapshot() != nullptr) {
+      ReadStream stream(isolate_group->dispatch_table_snapshot(),
+                        isolate_group->dispatch_table_snapshot_size());
       d->ReadDispatchTable(&stream);
     }
   }
