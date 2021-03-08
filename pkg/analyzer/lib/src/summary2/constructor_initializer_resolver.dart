@@ -24,11 +24,11 @@ class ConstructorInitializerResolver {
 
   void resolve() {
     for (var unit in _libraryElement.units) {
-      _unitElement = unit as CompilationUnitElementImpl;
+      _unitElement = unit;
       for (var classElement in unit.types) {
         _classElement = classElement;
         for (var constructorElement in classElement.constructors) {
-          _constructor(constructorElement as ConstructorElementImpl);
+          _constructor(constructorElement);
         }
       }
     }

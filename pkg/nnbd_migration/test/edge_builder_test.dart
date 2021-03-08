@@ -446,7 +446,7 @@ class AssignmentCheckerTest extends Object
   }
 
   @override
-  TypeParameterElement typeParameter(String name, DecoratedType bound) {
+  TypeParameterElementImpl typeParameter(String name, DecoratedType bound) {
     var t = super.typeParameter(name, bound);
     checker.bounds[t] = bound;
     return t;

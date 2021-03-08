@@ -196,7 +196,7 @@ class InstanceMemberInferrer {
       if (parameters.isEmpty) {
         return;
       }
-      var parameter = parameters[0] as ParameterElementImpl;
+      var parameter = parameters[0];
 
       if (overriddenSetters.any(_isCovariantSetter)) {
         parameter.inheritsCovariant = true;
@@ -234,7 +234,7 @@ class InstanceMemberInferrer {
     if (field != null) {
       if (field.setter != null) {
         if (overriddenSetters.any(_isCovariantSetter)) {
-          var parameter = field.setter!.parameters[0] as ParameterElementImpl;
+          var parameter = field.setter!.parameters[0];
           parameter.inheritsCovariant = true;
         }
       }
@@ -333,16 +333,16 @@ class InstanceMemberInferrer {
         currentClassElement = classElement;
         for (var field in classElement.fields) {
           _inferAccessorOrField(
-            field: field as FieldElementImpl,
+            field: field,
           );
         }
         for (var accessor in classElement.accessors) {
           _inferAccessorOrField(
-            accessor: accessor as PropertyAccessorElementImpl,
+            accessor: accessor,
           );
         }
         for (var method in classElement.methods) {
-          _inferExecutable(method as MethodElementImpl);
+          _inferExecutable(method);
         }
         //
         // Infer initializing formal parameter types. This must happen after
@@ -527,7 +527,7 @@ class InstanceMemberInferrer {
       return;
     }
 
-    var parameter = parameters[0] as ParameterElementImpl;
+    var parameter = parameters[0];
     if (!parameter.hasImplicitType) {
       element.isOperatorEqualWithParameterTypeFromObject = false;
       return;

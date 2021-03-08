@@ -111,7 +111,7 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
   DecoratedType object({NullabilityNode node}) =>
       DecoratedType(typeProvider.objectType, node ?? newNode());
 
-  TypeParameterElement typeParameter(String name, DecoratedType bound) {
+  TypeParameterElementImpl typeParameter(String name, DecoratedType bound) {
     var element = TypeParameterElementImpl.synthetic(name);
     element.bound = bound.type;
     decoratedTypeParameterBounds.put(element, bound);

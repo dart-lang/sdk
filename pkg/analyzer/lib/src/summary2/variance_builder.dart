@@ -83,7 +83,7 @@ class VarianceBuilder {
         if (arguments.isNotEmpty) {
           var parameters = element.typeParameters;
           for (var i = 0; i < arguments.length && i < parameters.length; i++) {
-            var parameter = parameters[i] as TypeParameterElementImpl;
+            var parameter = parameters[i];
             var parameterVariance = parameter.variance;
             result = result.meet(
               parameterVariance.combine(

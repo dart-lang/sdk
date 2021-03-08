@@ -2924,16 +2924,14 @@ const Object y = const
         C/*location: test.dart;C*/.
         named/*location: test.dart;C;named*/(0);
 ''');
-    var x = library.definingCompilationUnit.topLevelVariables[0]
-        as TopLevelVariableElementImpl;
+    var x = library.definingCompilationUnit.topLevelVariables[0];
     var xExpr = x.constantInitializer as InstanceCreationExpression;
     var xType = xExpr.constructorName.staticElement!.returnType;
     _assertTypeStr(
       xType,
       'C<int>',
     );
-    var y = library.definingCompilationUnit.topLevelVariables[0]
-        as TopLevelVariableElementImpl;
+    var y = library.definingCompilationUnit.topLevelVariables[0];
     var yExpr = y.constantInitializer as InstanceCreationExpression;
     var yType = yExpr.constructorName.staticElement!.returnType;
     _assertTypeStr(yType, 'C<int>');
@@ -13749,7 +13747,7 @@ int j;
 
   Element _elementOfDefiningUnit(
       LibraryElementImpl library, List<String> names) {
-    var unit = library.definingCompilationUnit as CompilationUnitElementImpl;
+    var unit = library.definingCompilationUnit;
     var reference = unit.reference!;
     names.forEach((name) => reference = reference.getChild(name));
 

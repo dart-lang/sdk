@@ -4677,7 +4677,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       for (var typeParameter in _enclosingClass!.typeParameters) {
         // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
         // variance is added to the interface.
-        if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
+        if (!typeParameter.isLegacyCovariant) {
           var fields = node.fields;
           var fieldElement = fields.variables.first.declaredElement!;
           var fieldName = fields.variables.first.name;
@@ -4706,7 +4706,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     for (var typeParameter in _enclosingClass!.typeParameters) {
       // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
       // variance is added to the interface.
-      if ((typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
+      if (typeParameter.isLegacyCovariant) {
         continue;
       }
 
@@ -4756,8 +4756,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           var superVariance = Variance(typeParameter, superInterface);
           // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
           // variance is added to the interface.
-          var typeParameterElementImpl =
-              typeParameter as TypeParameterElementImpl;
+          var typeParameterElementImpl = typeParameter;
           // Let `D` be a class or mixin declaration, let `S` be a direct
           // superinterface of `D`, and let `X` be a type parameter declared by
           // `D`.

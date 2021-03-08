@@ -136,7 +136,7 @@ class _MockSdkElementsBuilder {
     _deprecatedElement = deprecatedElement = _class(name: 'Deprecated');
     deprecatedElement.supertype = objectType;
 
-    deprecatedElement.fields = <FieldElement>[
+    deprecatedElement.fields = <FieldElementImpl>[
       _field('message', stringType, isFinal: true),
     ];
 
@@ -165,11 +165,11 @@ class _MockSdkElementsBuilder {
     );
     doubleElement.supertype = numType;
 
-    FieldElement staticConstDoubleField(String name) {
+    FieldElementImpl staticConstDoubleField(String name) {
       return _field(name, doubleType, isStatic: true, isConst: true);
     }
 
-    doubleElement.fields = <FieldElement>[
+    doubleElement.fields = <FieldElementImpl>[
       staticConstDoubleField('nan'),
       staticConstDoubleField('infinity'),
       staticConstDoubleField('negativeInfinity'),
@@ -585,7 +585,7 @@ class _MockSdkElementsBuilder {
     _objectElement = objectElement = ElementFactory.object;
     objectElement.interfaces = const <InterfaceType>[];
     objectElement.mixins = const <InterfaceType>[];
-    objectElement.typeParameters = const <TypeParameterElement>[];
+    objectElement.typeParameters = const <TypeParameterElementImpl>[];
     objectElement.constructors = [
       _constructor(isConst: true),
     ];
@@ -874,7 +874,7 @@ class _MockSdkElementsBuilder {
     asyncUnit.librarySource = asyncUnit.source = asyncSource;
     asyncLibrary.definingCompilationUnit = asyncUnit;
 
-    asyncUnit.types = <ClassElement>[
+    asyncUnit.types = [
       completerElement,
       futureElement,
       futureOrElement,
@@ -891,7 +891,7 @@ class _MockSdkElementsBuilder {
     var coreSource = analysisContext.sourceFactory.forUri('dart:core')!;
     coreUnit.librarySource = coreUnit.source = coreSource;
 
-    coreUnit.types = <ClassElement>[
+    coreUnit.types = [
       boolElement,
       comparableElement,
       deprecatedElement,
@@ -914,7 +914,7 @@ class _MockSdkElementsBuilder {
       typeElement,
     ];
 
-    coreUnit.functions = <FunctionElement>[
+    coreUnit.functions = <FunctionElementImpl>[
       _function('identical', boolType, parameters: [
         _requiredParameter('a', objectType),
         _requiredParameter('b', objectType),
@@ -942,12 +942,12 @@ class _MockSdkElementsBuilder {
       isConst: true,
     );
 
-    coreUnit.accessors = <PropertyAccessorElement>[
+    coreUnit.accessors = <PropertyAccessorElementImpl>[
       deprecatedVariable.getter!,
       overrideVariable.getter!,
       proxyVariable.getter!,
     ];
-    coreUnit.topLevelVariables = <TopLevelVariableElement>[
+    coreUnit.topLevelVariables = <TopLevelVariableElementImpl>[
       deprecatedVariable,
       overrideVariable,
       proxyVariable,
@@ -969,21 +969,21 @@ class _MockSdkElementsBuilder {
   ClassElementImpl _class({
     required String name,
     bool isAbstract = false,
-    List<TypeParameterElement> typeParameters = const [],
+    List<TypeParameterElementImpl> typeParameters = const [],
   }) {
     var element = ClassElementImpl(name, 0);
     element.typeParameters = typeParameters;
-    element.constructors = <ConstructorElement>[
+    element.constructors = <ConstructorElementImpl>[
       _constructor(),
     ];
     return element;
   }
 
-  ConstructorElement _constructor({
+  ConstructorElementImpl _constructor({
     String name = '',
     bool isConst = false,
     bool isFactory = false,
-    List<ParameterElement> parameters = const [],
+    List<ParameterElementImpl> parameters = const [],
   }) {
     var element = ConstructorElementImpl(name, 0);
     element.isFactory = isFactory;
@@ -992,7 +992,7 @@ class _MockSdkElementsBuilder {
     return element;
   }
 
-  FieldElement _field(
+  FieldElementImpl _field(
     String name,
     DartType type, {
     bool isConst = false,
@@ -1002,11 +1002,11 @@ class _MockSdkElementsBuilder {
     return ElementFactory.fieldElement(name, isStatic, isFinal, isConst, type);
   }
 
-  FunctionElement _function(
+  FunctionElementImpl _function(
     String name,
     DartType returnType, {
-    List<TypeParameterElement> typeFormals = const [],
-    List<ParameterElement> parameters = const [],
+    List<TypeParameterElementImpl> typeFormals = const [],
+    List<ParameterElementImpl> parameters = const [],
   }) {
     return FunctionElementImpl(name, 0)
       ..parameters = parameters
@@ -1027,7 +1027,7 @@ class _MockSdkElementsBuilder {
     );
   }
 
-  PropertyAccessorElement _getter(
+  PropertyAccessorElementImpl _getter(
     String name,
     DartType type, {
     bool isStatic = false,
@@ -1060,11 +1060,11 @@ class _MockSdkElementsBuilder {
     );
   }
 
-  MethodElement _method(
+  MethodElementImpl _method(
     String name,
     DartType returnType, {
-    List<TypeParameterElement> typeFormals = const [],
-    List<ParameterElement> parameters = const [],
+    List<TypeParameterElementImpl> typeFormals = const [],
+    List<ParameterElementImpl> parameters = const [],
   }) {
     return MethodElementImpl(name, 0)
       ..parameters = parameters
@@ -1072,7 +1072,7 @@ class _MockSdkElementsBuilder {
       ..typeParameters = typeFormals;
   }
 
-  ParameterElement _namedParameter(String name, DartType type,
+  ParameterElementImpl _namedParameter(String name, DartType type,
       {String? initializerCode}) {
     var parameter = DefaultParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.NAMED;
@@ -1081,14 +1081,14 @@ class _MockSdkElementsBuilder {
     return parameter;
   }
 
-  ParameterElement _positionalParameter(String name, DartType type) {
+  ParameterElementImpl _positionalParameter(String name, DartType type) {
     var parameter = ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.POSITIONAL;
     parameter.type = type;
     return parameter;
   }
 
-  ParameterElement _requiredParameter(String name, DartType type) {
+  ParameterElementImpl _requiredParameter(String name, DartType type) {
     var parameter = ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.REQUIRED;
     parameter.type = type;
@@ -1098,16 +1098,16 @@ class _MockSdkElementsBuilder {
   /// Set the [accessors] and the corresponding fields for the [classElement].
   void _setAccessors(
     ClassElementImpl classElement,
-    List<PropertyAccessorElement> accessors,
+    List<PropertyAccessorElementImpl> accessors,
   ) {
     classElement.accessors = accessors;
     classElement.fields = accessors
         .map((accessor) => accessor.variable)
-        .cast<FieldElement>()
+        .cast<FieldElementImpl>()
         .toList();
   }
 
-  TopLevelVariableElement _topLevelVariable(
+  TopLevelVariableElementImpl _topLevelVariable(
     String name,
     DartType type, {
     bool isConst = false,
