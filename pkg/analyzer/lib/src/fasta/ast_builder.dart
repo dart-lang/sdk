@@ -57,17 +57,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/ast/ast.dart'
-    show
-        ClassDeclarationImpl,
-        CompilationUnitImpl,
-        ExtensionDeclarationImpl,
-        ImportDirectiveImpl,
-        MethodInvocationImpl,
-        MixinDeclarationImpl,
-        SimpleIdentifierImpl,
-        TypeArgumentListImpl,
-        TypeParameterImpl;
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -562,7 +552,7 @@ class AstBuilder extends StackListener {
     assert(optional(')', rightParenthesis));
     debugEvent("Arguments");
 
-    var expressions = popTypedList2<Expression>(count);
+    var expressions = popTypedList2<ExpressionImpl>(count);
     ArgumentList arguments =
         ast.argumentList(leftParenthesis, expressions, rightParenthesis);
     push(ast.methodInvocation(
@@ -661,7 +651,7 @@ class AstBuilder extends StackListener {
     assert(optional('}', rightBracket));
     debugEvent("Block");
 
-    var statements = popTypedList2<Statement>(count);
+    var statements = popTypedList2<StatementImpl>(count);
     push(ast.block(leftBracket, statements, rightBracket));
   }
 
@@ -671,7 +661,7 @@ class AstBuilder extends StackListener {
     assert(optional('}', rightBracket));
     debugEvent("BlockFunctionBody");
 
-    var statements = popTypedList2<Statement>(count);
+    var statements = popTypedList2<StatementImpl>(count);
     Block block = ast.block(leftBracket, statements, rightBracket);
     var star = pop() as Token?;
     var asyncKeyword = pop() as Token?;
@@ -896,7 +886,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    var variables = popTypedList2<VariableDeclaration>(count);
+    var variables = popTypedList2<VariableDeclarationImpl>(count);
     var type = pop() as TypeAnnotation?;
     var variableList = ast.variableDeclarationList2(
       lateKeyword: lateToken,
@@ -1010,7 +1000,7 @@ class AstBuilder extends StackListener {
   @override
   void endCombinators(int count) {
     debugEvent("Combinators");
-    push(popTypedList<Combinator>(count) ?? NullValue.Combinators);
+    push(popTypedList<CombinatorImpl>(count) ?? NullValue.Combinators);
   }
 
   @override
@@ -1073,7 +1063,7 @@ class AstBuilder extends StackListener {
   void endConditionalUris(int count) {
     debugEvent("ConditionalUris");
 
-    push(popTypedList<Configuration>(count) ?? NullValue.ConditionalUris);
+    push(popTypedList<ConfigurationImpl>(count) ?? NullValue.ConditionalUris);
   }
 
   @override
@@ -1138,7 +1128,7 @@ class AstBuilder extends StackListener {
     assert(optional('{', leftBrace));
     debugEvent("Enum");
 
-    var constants = popTypedList2<EnumConstantDeclaration>(count);
+    var constants = popTypedList2<EnumConstantDeclarationImpl>(count);
     var name = pop() as SimpleIdentifier;
     var metadata = pop() as List<Annotation>?;
     var comment = _findComment(metadata, enumKeyword);
@@ -1734,7 +1724,7 @@ class AstBuilder extends StackListener {
     debugEvent("LabeledStatement");
 
     var statement = pop() as Statement;
-    var labels = popTypedList2<Label>(labelCount);
+    var labels = popTypedList2<LabelImpl>(labelCount);
     push(ast.labeledStatement(labels, statement));
   }
 
@@ -1855,7 +1845,7 @@ class AstBuilder extends StackListener {
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
 
-    push(popTypedList<Annotation>(count) ?? NullValue.Metadata);
+    push(popTypedList<AnnotationImpl>(count) ?? NullValue.Metadata);
   }
 
   @override
@@ -1972,8 +1962,8 @@ class AstBuilder extends StackListener {
         (optional('{', leftDelimeter) && optional('}', rightDelimeter)));
     debugEvent("OptionalFormalParameters");
 
-    push(_OptionalFormalParameters(
-        popTypedList2<FormalParameter>(count), leftDelimeter, rightDelimeter));
+    push(_OptionalFormalParameters(popTypedList2<FormalParameterImpl>(count),
+        leftDelimeter, rightDelimeter));
   }
 
   @override
@@ -2096,12 +2086,12 @@ class AstBuilder extends StackListener {
         : optional(':', colonAfterDefault!));
     debugEvent("SwitchCase");
 
-    var statements = popTypedList2<Statement>(statementCount);
+    var statements = popTypedList2<StatementImpl>(statementCount);
     List<SwitchMember?> members;
 
     if (labelCount == 0 && defaultKeyword == null) {
       // Common situation: case with no default and no labels.
-      members = popTypedList2<SwitchMember>(expressionCount);
+      members = popTypedList2<SwitchMemberImpl>(expressionCount);
     } else {
       // Labels and case statements may be intertwined
       if (defaultKeyword != null) {
@@ -2185,7 +2175,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    var variables = popTypedList2<VariableDeclaration>(count);
+    var variables = popTypedList2<VariableDeclarationImpl>(count);
     var type = pop() as TypeAnnotation?;
     var variableList = ast.variableDeclarationList2(
       lateKeyword: lateToken,
@@ -2236,7 +2226,7 @@ class AstBuilder extends StackListener {
     debugEvent("TryStatement");
 
     var finallyBlock = popIfNotNull(finallyKeyword) as Block?;
-    var catchClauses = popTypedList2<CatchClause>(catchCount);
+    var catchClauses = popTypedList2<CatchClauseImpl>(catchCount);
     var body = pop() as Block;
     push(ast.tryStatement(
         tryKeyword, body, catchClauses, finallyKeyword, finallyBlock));
@@ -2248,14 +2238,14 @@ class AstBuilder extends StackListener {
     assert(optional('>', rightBracket));
     debugEvent("TypeArguments");
 
-    var arguments = popTypedList2<TypeAnnotation>(count);
+    var arguments = popTypedList2<TypeAnnotationImpl>(count);
     push(ast.typeArgumentList(leftBracket, arguments, rightBracket));
   }
 
   @override
   void endTypeList(int count) {
     debugEvent("TypeList");
-    push(popTypedList<TypeName>(count) ?? NullValue.TypeList);
+    push(popTypedList<TypeNameImpl>(count) ?? NullValue.TypeList);
   }
 
   @override
@@ -2314,7 +2304,7 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull(';', semicolon));
     debugEvent("VariablesDeclaration");
 
-    var variables = popTypedList2<VariableDeclaration>(count);
+    var variables = popTypedList2<VariableDeclarationImpl>(count);
     var modifiers = pop(NullValue.Modifiers) as _Modifiers?;
     var type = pop() as TypeAnnotation?;
     var keyword = modifiers?.finalConstOrVarKeyword;
@@ -2536,7 +2526,7 @@ class AstBuilder extends StackListener {
     debugEvent("ClassImplements");
 
     if (implementsKeyword != null) {
-      var interfaces = popTypedList2<TypeName>(interfacesCount);
+      var interfaces = popTypedList2<TypeNameImpl>(interfacesCount);
       push(ast.implementsClause(implementsKeyword, interfaces));
     } else {
       push(NullValue.IdentifierList);
@@ -2583,7 +2573,7 @@ class AstBuilder extends StackListener {
     assert(firstIdentifier.isIdentifier);
     debugEvent("DottedName");
 
-    var components = popTypedList2<SimpleIdentifier>(count);
+    var components = popTypedList2<SimpleIdentifierImpl>(count);
     push(ast.dottedName(components));
   }
 
@@ -2732,7 +2722,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', leftSeparator));
     assert(updateExpressionCount >= 0);
 
-    var updates = popTypedList2<Expression>(updateExpressionCount);
+    var updates = popTypedList2<ExpressionImpl>(updateExpressionCount);
     var conditionStatement = pop() as Statement;
     var initializerPart = pop();
 
@@ -2807,7 +2797,7 @@ class AstBuilder extends StackListener {
   void handleIdentifierList(int count) {
     debugEvent("IdentifierList");
 
-    push(popTypedList<SimpleIdentifier>(count) ?? NullValue.IdentifierList);
+    push(popTypedList<SimpleIdentifierImpl>(count) ?? NullValue.IdentifierList);
   }
 
   @override
@@ -2994,7 +2984,7 @@ class AstBuilder extends StackListener {
       push(ast.listLiteral(
           constKeyword, typeArguments, leftBracket, elements, rightBracket));
     } else {
-      var elements = popTypedList<Expression>(count) ?? const [];
+      var elements = popTypedList<ExpressionImpl>(count) ?? const [];
       var typeArguments = pop() as TypeArgumentList?;
 
       List<Expression> expressions = <Expression>[];
@@ -3159,7 +3149,7 @@ class AstBuilder extends StackListener {
     debugEvent("MixinOn");
 
     if (onKeyword != null) {
-      var types = popTypedList2<TypeName>(typeCount);
+      var types = popTypedList2<TypeNameImpl>(typeCount);
       push(ast.onClause(onKeyword, types));
     } else {
       push(NullValue.IdentifierList);
@@ -3320,9 +3310,10 @@ class AstBuilder extends StackListener {
   void handleRecoverClassHeader() {
     debugEvent("RecoverClassHeader");
 
-    var implementsClause = pop(NullValue.IdentifierList) as ImplementsClause?;
-    var withClause = pop(NullValue.WithClause) as WithClause?;
-    var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClause?;
+    var implementsClause =
+        pop(NullValue.IdentifierList) as ImplementsClauseImpl?;
+    var withClause = pop(NullValue.WithClause) as WithClauseImpl?;
+    var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClauseImpl?;
     var declaration = declarations.last as ClassDeclarationImpl;
     if (extendsClause != null) {
       if (declaration.extendsClause?.superclass == null) {
@@ -3351,11 +3342,11 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull(';', semicolon));
     debugEvent("RecoverImport");
 
-    var combinators = pop() as List<Combinator>?;
+    var combinators = pop() as List<CombinatorImpl>?;
     var deferredKeyword = pop(NullValue.Deferred) as Token?;
     var asKeyword = pop(NullValue.As) as Token?;
     var prefix = pop(NullValue.Prefix) as SimpleIdentifier?;
-    var configurations = pop() as List<Configuration>?;
+    var configurations = pop() as List<ConfigurationImpl>?;
 
     var directive = directives.last as ImportDirectiveImpl;
     if (combinators != null) {
@@ -3376,7 +3367,8 @@ class AstBuilder extends StackListener {
 
   @override
   void handleRecoverMixinHeader() {
-    var implementsClause = pop(NullValue.IdentifierList) as ImplementsClause?;
+    var implementsClause =
+        pop(NullValue.IdentifierList) as ImplementsClauseImpl?;
     var onClause = pop(NullValue.IdentifierList) as OnClause?;
 
     if (onClause != null) {
@@ -3442,7 +3434,7 @@ class AstBuilder extends StackListener {
   void handleStringJuxtaposition(Token startToken, int literalCount) {
     debugEvent("StringJuxtaposition");
 
-    var strings = popTypedList2<StringLiteral>(literalCount);
+    var strings = popTypedList2<StringLiteralImpl>(literalCount);
     push(ast.adjacentStrings(strings));
   }
 
@@ -3502,7 +3494,7 @@ class AstBuilder extends StackListener {
   void handleTypeVariablesDefined(Token token, int count) {
     debugEvent("handleTypeVariablesDefined");
     assert(count > 0);
-    push(popTypedList<TypeParameter>(count));
+    push(popTypedList<TypeParameterImpl>(count));
   }
 
   @override
@@ -3607,7 +3599,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    return popTypedList<CommentReference>(count) ?? const [];
+    return popTypedList<CommentReferenceImpl>(count) ?? const [];
   }
 
   List<CollectionElement> popCollectionElements(int count) {
