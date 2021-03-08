@@ -865,6 +865,7 @@ class DeferredLoadTask extends CompilerTask {
     Map<ImportEntity, int> importMap = {};
     var entities = _deferredImportDescriptions.keys.toList();
     entities.sort(_compareImportEntities);
+    entities = entities.reversed.toList();
     for (var key in entities) {
       importMap[key] = id++;
     }

@@ -50,7 +50,9 @@ void testDumpDeferredGraph() async {
   // result we expect to have an 6 output files:
   //  * one for code that is only use by an individual deferred import, and
   //  * an extra one for the intersection of lib1 and lib2.
-  var expected = ['10000', '01000', '00100', '00010', '00001', '01100'];
+  var expected = ['10000', '01000', '00100', '00010', '00001', '00110'];
+  expected.sort();
+  actual.sort();
   Expect.listEquals(expected, actual);
 }
 
