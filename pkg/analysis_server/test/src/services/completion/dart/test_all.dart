@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'completion_test.dart' as completion;
 import 'feature_computer_test.dart' as feature_computer;
 
 void main() {
   defineReflectiveSuite(() {
+    completion.main();
     feature_computer.main();
   }, name: 'dart');
 }

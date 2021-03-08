@@ -7773,17 +7773,17 @@ TypeParameterPtr Function::LookupTypeParameter(const String& type_name,
 }
 
 void Function::set_kind(UntaggedFunction::Kind value) const {
-  set_kind_tag(KindBits::update(value, untag()->kind_tag_));
+  untag()->kind_tag_.Update<KindBits>(value);
 }
 
 void Function::set_modifier(UntaggedFunction::AsyncModifier value) const {
-  set_kind_tag(ModifierBits::update(value, untag()->kind_tag_));
+  untag()->kind_tag_.Update<ModifierBits>(value);
 }
 
 void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
   // Prevent multiple settings of kind.
   ASSERT((value == MethodRecognizer::kUnknown) || !IsRecognized());
-  set_kind_tag(RecognizedBits::update(value, untag()->kind_tag_));
+  untag()->kind_tag_.Update<RecognizedBits>(value);
 }
 
 void Function::set_token_pos(TokenPosition token_pos) const {
@@ -7796,7 +7796,7 @@ void Function::set_token_pos(TokenPosition token_pos) const {
 }
 
 void Function::set_kind_tag(uint32_t value) const {
-  StoreNonPointer(&untag()->kind_tag_, static_cast<uint32_t>(value));
+  untag()->kind_tag_ = value;
 }
 
 void Function::set_packed_fields(uint32_t packed_fields) const {
@@ -8700,7 +8700,7 @@ bool Function::IsImplicitConstructor() const {
 
 bool Function::IsImplicitStaticClosureFunction(FunctionPtr func) {
   NoSafepointScope no_safepoint;
-  uint32_t kind_tag = func->untag()->kind_tag_;
+  uint32_t kind_tag = func->untag()->kind_tag_.load(std::memory_order_relaxed);
   return (KindBits::decode(kind_tag) ==
           UntaggedFunction::kImplicitClosureFunction) &&
          StaticBit::decode(kind_tag);
@@ -20339,6 +20339,7 @@ bool Type::IsDeclarationTypeOf(const Class& cls) const {
   return nullability() == Nullability::kNonNullable;
 }
 
+// Keep in sync with TypeSerializationCluster::IsInCanonicalSet.
 AbstractTypePtr Type::Canonicalize(Thread* thread, TrailPtr trail) const {
   Zone* zone = thread->zone();
   ASSERT(IsFinalized());

@@ -303,6 +303,8 @@ class _MixinInference {
       mixinElement,
       mixinSupertypeConstraints,
       matchingInterfaceTypes,
+      genericMetadataIsEnabled:
+          mixinElement.library.featureSet.isEnabled(Feature.generic_metadata),
     );
     if (inferredTypeArguments != null) {
       var inferredMixin = mixinElement.instantiate(

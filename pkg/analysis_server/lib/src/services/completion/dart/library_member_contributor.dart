@@ -54,8 +54,10 @@ class LibraryMemberContributor extends DartCompletionContributor {
               if (element is ClassElement) {
                 for (var constructor in element.constructors) {
                   if (!constructor.isPrivate) {
-                    builder.suggestConstructor(constructor,
-                        kind: CompletionSuggestionKind.INVOCATION);
+                    if (!element.isAbstract || constructor.isFactory) {
+                      builder.suggestConstructor(constructor,
+                          kind: CompletionSuggestionKind.INVOCATION);
+                    }
                   }
                 }
               }

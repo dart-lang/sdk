@@ -4369,19 +4369,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitDynamicGet(DynamicGet node) {
-    return _emitPropertyGet(node.receiver, null, node.name.name);
+    return _emitPropertyGet(node.receiver, null, node.name.text);
   }
 
   @override
   js_ast.Expression visitInstanceGet(InstanceGet node) {
     return _emitPropertyGet(
-        node.receiver, node.interfaceTarget, node.name.name);
+        node.receiver, node.interfaceTarget, node.name.text);
   }
 
   @override
   js_ast.Expression visitInstanceTearOff(InstanceTearOff node) {
     return _emitPropertyGet(
-        node.receiver, node.interfaceTarget, node.name.name);
+        node.receiver, node.interfaceTarget, node.name.text);
   }
 
   @override
@@ -4554,6 +4554,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
+  js_ast.Expression visitInstanceGetterInvocation(
+      InstanceGetterInvocation node) {
+    return _emitMethodCall(
+        node.receiver, node.interfaceTarget, node.arguments, node);
+  }
+
+  @override
   js_ast.Expression visitLocalFunctionInvocation(LocalFunctionInvocation node) {
     return _emitMethodCall(
         VariableGet(node.variable)..fileOffset = node.fileOffset,
@@ -4565,13 +4572,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitEqualsCall(EqualsCall node) {
     return _emitEqualityOperator(node.left, node.interfaceTarget, node.right,
-        negated: node.isNot);
+        negated: false);
   }
 
   @override
   js_ast.Expression visitEqualsNull(EqualsNull node) {
     return _emitCoreIdenticalCall([node.expression, NullLiteral()],
-        negated: node.isNot);
+        negated: false);
   }
 
   @override
@@ -4591,12 +4598,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     /// list and the element type is known to be invariant so it can skip the
     /// type check.
     bool isNativeListInvariantAdd(InvocationExpression node) {
-      if (node is MethodInvocation &&
-          node.isInvariant &&
-          node.name.name == 'add') {
+      Expression receiver;
+      if (receiver != null && node.name.text == 'add') {
         // The call to add is marked as invariant, so the type check on the
         // parameter to add is not needed.
-        var receiver = node.receiver;
         if (receiver is VariableGet &&
             receiver.variable.isFinal &&
             !receiver.variable.isLate) {
@@ -5559,6 +5564,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (operand is MethodInvocation && operand.name.text == '==') {
       return _emitEqualityOperator(operand.receiver, operand.interfaceTarget,
           operand.arguments.positional[0],
+          negated: true);
+    } else if (operand is EqualsCall) {
+      return _emitEqualityOperator(
+          operand.left, operand.interfaceTarget, operand.right,
+          negated: true);
+    } else if (operand is EqualsNull) {
+      return _emitCoreIdenticalCall([operand.expression, NullLiteral()],
           negated: true);
     } else if (operand is StaticInvocation &&
         operand.target == _coreTypes.identicalProcedure) {

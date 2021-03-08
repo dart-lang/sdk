@@ -946,22 +946,22 @@ class CollectionTransformer extends Transformer {
   Expression _createEqualsNull(Expression expression, {bool notEquals: false}) {
     assert(expression != null);
     assert(expression.fileOffset != TreeNode.noOffset);
+    Expression check;
     if (useNewMethodInvocationEncoding) {
-      return new EqualsNull(expression, isNot: notEquals)
-        ..fileOffset = expression.fileOffset;
+      check = new EqualsNull(expression)..fileOffset = expression.fileOffset;
     } else {
-      Expression check = new MethodInvocation(
+      check = new MethodInvocation(
           expression,
           new Name('=='),
           new Arguments(
               [new NullLiteral()..fileOffset = expression.fileOffset]),
           _objectEquals)
         ..fileOffset = expression.fileOffset;
-      if (notEquals) {
-        check = new Not(check)..fileOffset = expression.fileOffset;
-      }
-      return check;
     }
+    if (notEquals) {
+      check = new Not(check)..fileOffset = expression.fileOffset;
+    }
+    return check;
   }
 
   Expression _createIndexSet(int fileOffset, Expression receiver,

@@ -361,7 +361,7 @@ class SuggestionBuilder {
       }
     }
     if (completion == null || completion.isEmpty) {
-      return null;
+      return;
     }
 
     var returnType = _instantiateClassElement(enclosingClass);

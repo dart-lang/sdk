@@ -1501,11 +1501,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     int precedence = Precedence.EQUALITY;
     writeExpression(node.left, precedence);
     writeSpace();
-    if (node.isNot) {
-      writeSymbol('!=');
-    } else {
-      writeSymbol('==');
-    }
+    writeSymbol('==');
     writeInterfaceTarget(Name.equalsName, node.interfaceTargetReference);
     writeSymbol('{');
     writeType(node.functionType);
@@ -1517,11 +1513,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   visitEqualsNull(EqualsNull node) {
     writeExpression(node.expression, Precedence.EQUALITY);
     writeSpace();
-    if (node.isNot) {
-      writeSymbol('!=');
-    } else {
-      writeSymbol('==');
-    }
+    writeSymbol('==');
     writeSpace();
     writeSymbol('null');
   }
@@ -2737,6 +2729,9 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitInstanceInvocation(InstanceInvocation node) => CALLEE;
+
+  @override
+  int visitInstanceGetterInvocation(InstanceGetterInvocation node) => CALLEE;
 
   @override
   int visitDynamicInvocation(DynamicInvocation node) => CALLEE;

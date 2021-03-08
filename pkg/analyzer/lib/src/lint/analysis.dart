@@ -201,7 +201,7 @@ class LintDriver {
 
     List<AnalysisErrorInfo> errors = [];
     for (Source source in sources) {
-      var errorsResult = (await analysisDriver.getErrors(source.fullName))!;
+      var errorsResult = await analysisDriver.getErrors(source.fullName);
       errors.add(
           AnalysisErrorInfoImpl(errorsResult.errors, errorsResult.lineInfo));
       _sourcesAnalyzed.add(source);

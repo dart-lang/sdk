@@ -1156,7 +1156,7 @@ bbb() {}
     String content = 'int f() => 42 + bar();';
     addTestFile(content, priority: true);
 
-    var result = (await driver.getErrors(testFile))!;
+    var result = await driver.getErrors(testFile);
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
     expect(result.errors, hasLength(1));
@@ -2212,7 +2212,7 @@ import 'b.dart';
     getFile(asyncPath).delete();
     addTestFile('class C {}');
 
-    ErrorsResult result = (await driver.getErrors(testFile))!;
+    ErrorsResult result = await driver.getErrors(testFile);
     expect(result.errors, hasLength(1));
 
     AnalysisError error = result.errors[0];
@@ -2224,7 +2224,7 @@ import 'b.dart';
     getFile(corePath).delete();
     addTestFile('class C {}');
 
-    ErrorsResult result = (await driver.getErrors(testFile))!;
+    ErrorsResult result = await driver.getErrors(testFile);
     expect(result.errors, hasLength(1));
 
     AnalysisError error = result.errors[0];
@@ -2452,13 +2452,13 @@ var b = new B();
 
     // Process a.dart so that we know that it's a library for c.dart later.
     {
-      ErrorsResult result = (await driver.getErrors(a))!;
+      ErrorsResult result = await driver.getErrors(a);
       expect(result.errors, isEmpty);
     }
 
     // c.dart does not have errors in the context of a.dart
     {
-      ErrorsResult result = (await driver.getErrors(c))!;
+      ErrorsResult result = await driver.getErrors(c);
       expect(result.errors, isEmpty);
     }
   }
@@ -2488,7 +2488,7 @@ var b = new B();
 
     // c.dart is resolve in the context of a.dart, so have no errors
     {
-      ErrorsResult result = (await driver.getErrors(c))!;
+      ErrorsResult result = await driver.getErrors(c);
       expect(result.errors, isEmpty);
     }
   }

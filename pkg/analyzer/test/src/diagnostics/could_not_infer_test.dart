@@ -271,4 +271,29 @@ void f(dynamic a) {
 }
 ''');
   }
+
+  test_functionType() async {
+    await assertNoErrorsInCode('''
+void f<X>() {}
+
+main() {
+  [f];
+}
+''');
+  }
+
+  test_functionType_optOutOfGenericMetadata() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+void f<X>() {}
+''');
+    await assertErrorsInCode('''
+// @dart=2.12
+import 'a.dart';
+main() {
+  [f];
+}
+''', [
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 42, 3),
+    ]);
+  }
 }

@@ -16,17 +16,20 @@ import 'package:analyzer/src/generated/source.dart';
 /// Clients may not extend, implement or mix-in this class.
 abstract class AnalysisResult {
   /// The absolute and normalized path of the file that was analyzed.
+  /// If [state] is not [ResultState.VALID], throws [StateError].
   ///
   /// TODO(migration): should not be nullable
   String? get path;
 
   /// Return the session used to compute this result.
+  /// If [state] is not [ResultState.VALID], throws [StateError].
   AnalysisSession get session;
 
   /// The state of the results.
   ResultState get state;
 
   /// The absolute URI of the file that was analyzed.
+  /// If [state] is not [ResultState.VALID], throws [StateError].
   Uri get uri;
 }
 
@@ -35,6 +38,7 @@ abstract class AnalysisResult {
 /// Clients may not extend, implement or mix-in this class.
 abstract class AnalysisResultWithErrors implements FileResult {
   /// The analysis errors that were computed during analysis.
+  /// If [state] is not [ResultState.VALID], throws [StateError].
   List<AnalysisError> get errors;
 }
 
@@ -69,9 +73,11 @@ abstract class ErrorsResult implements AnalysisResultWithErrors {}
 /// Clients may not extend, implement or mix-in this class.
 abstract class FileResult implements AnalysisResult {
   /// Whether the file is a part.
+  /// If [state] is not [ResultState.VALID], throws [StateError].
   bool get isPart;
 
   /// Information about lines in the content.
+  /// If [state] is not [ResultState.VALID], throws [StateError].
   LineInfo get lineInfo;
 }
 
@@ -173,6 +179,14 @@ enum ResultState {
   /// not represent a file. It might represent something else, such as a
   /// directory, or it might not represent anything.
   NOT_A_FILE,
+
+  /// An indication that analysis could not be performed because the path does
+  /// not represent the corresponding URI.
+  ///
+  /// This usually happens in Bazel workspaces, when a URI is resolved to
+  /// a generated file, but there is also a writable file to which this URI
+  /// would be resolved, if there were no generated file.
+  NOT_FILE_OF_URI,
 
   /// An indication that analysis completed normally and the results are valid.
   VALID

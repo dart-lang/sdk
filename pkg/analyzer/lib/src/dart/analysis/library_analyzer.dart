@@ -751,6 +751,7 @@ class LibraryAnalyzer {
           relativeUri,
         );
         for (var configuration in directive.configurations) {
+          configuration as ConfigurationImpl;
           var uriLiteral = configuration.uri;
           String? uriContent = uriLiteral.stringValue?.trim();
           Source? defaultSource = _resolveUri(

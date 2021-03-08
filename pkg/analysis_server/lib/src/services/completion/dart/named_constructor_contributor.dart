@@ -42,9 +42,11 @@ class NamedConstructorContributor extends DartCompletionContributor {
     var isLocalClassDecl = classElem.library == libElem;
     for (var constructor in classElem.constructors) {
       if (isLocalClassDecl || !constructor.isPrivate) {
-        var name = constructor.name;
-        if (name != null) {
-          builder.suggestConstructor(constructor, hasClassName: true);
+        if (!classElem.isAbstract || constructor.isFactory) {
+          var name = constructor.name;
+          if (name != null) {
+            builder.suggestConstructor(constructor, hasClassName: true);
+          }
         }
       }
     }

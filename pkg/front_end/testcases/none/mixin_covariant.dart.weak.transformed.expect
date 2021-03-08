@@ -65,7 +65,7 @@ static method main() → dynamic {
   self::expect("Mixin", m.{self::Mixin::method4}(0, 1){(core::int, core::int) → core::String});
 }
 static method expect(dynamic expected, dynamic actual) → void {
-  if(expected !={core::Object::==}{(core::Object) → core::bool} actual)
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 static method throws(() → void f) → void {

@@ -747,43 +747,38 @@ LocalFunctionInvocation wrapLocalFunctionInvocation(
 }
 
 TextSerializer<EqualsNull> equalsNullSerializer =
-    new Wrapped<Tuple2<Expression, bool>, EqualsNull>(
-        unwrapEqualsNull,
-        wrapEqualsNull,
-        new Tuple2Serializer(expressionSerializer, const DartBool()));
+    new Wrapped<Expression, EqualsNull>(
+        unwrapEqualsNull, wrapEqualsNull, expressionSerializer);
 
-Tuple2<Expression, bool> unwrapEqualsNull(EqualsNull expression) {
-  return new Tuple2(expression.expression, expression.isNot);
+Expression unwrapEqualsNull(EqualsNull expression) {
+  return expression.expression;
 }
 
-EqualsNull wrapEqualsNull(Tuple2<Expression, bool> tuple) {
-  return new EqualsNull(tuple.first, isNot: tuple.second);
+EqualsNull wrapEqualsNull(Expression expression) {
+  return new EqualsNull(expression);
 }
 
 TextSerializer<EqualsCall> equalsCallSerializer = new Wrapped<
-        Tuple5<Expression, Expression, bool, CanonicalName, DartType>,
-        EqualsCall>(
+        Tuple4<Expression, Expression, CanonicalName, DartType>, EqualsCall>(
     unwrapEqualsCall,
     wrapEqualsCall,
-    new Tuple5Serializer(expressionSerializer, expressionSerializer,
-        const DartBool(), const CanonicalNameSerializer(), dartTypeSerializer));
+    new Tuple4Serializer(expressionSerializer, expressionSerializer,
+        const CanonicalNameSerializer(), dartTypeSerializer));
 
-Tuple5<Expression, Expression, bool, CanonicalName, DartType> unwrapEqualsCall(
+Tuple4<Expression, Expression, CanonicalName, DartType> unwrapEqualsCall(
     EqualsCall expression) {
-  return new Tuple5(
+  return new Tuple4(
       expression.left,
       expression.right,
-      expression.isNot,
       expression.interfaceTargetReference.canonicalName,
       expression.functionType);
 }
 
 EqualsCall wrapEqualsCall(
-    Tuple5<Expression, Expression, bool, CanonicalName, DartType> tuple) {
+    Tuple4<Expression, Expression, CanonicalName, DartType> tuple) {
   return new EqualsCall.byReference(tuple.first, tuple.second,
-      isNot: tuple.third,
-      interfaceTargetReference: tuple.fourth.getReference(),
-      functionType: tuple.fifth);
+      interfaceTargetReference: tuple.third.getReference(),
+      functionType: tuple.fourth);
 }
 
 TextSerializer<SuperMethodInvocation> superMethodInvocationSerializer =

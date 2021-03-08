@@ -81,7 +81,7 @@ class ScopeOffsetValidator extends Visitor<void> with VisitorVoidMixin {
                 member.isForwardingStub ||
                 member.stubKind == ProcedureStubKind.ConcreteMixinStub
             : (member is Field)
-                ? member.name.name.contains(redirectingName)
+                ? member.name.text.contains(redirectingName)
                 : false;
 
     if (!noBreakPointPossible) {

@@ -200,9 +200,9 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   _visitInvocation(Expression node, Name name) {
-    if (name.name == '[]') {
+    if (name.text == '[]') {
       computeForNode(node, computeDefaultNodeId(node));
-    } else if (name.name == '[]=') {
+    } else if (name.text == '[]=') {
       computeForNode(node, createUpdateId(node));
     } else {
       if (node.fileOffset != TreeNode.noOffset) {
@@ -221,7 +221,7 @@ abstract class DataExtractor<T> extends Visitor<void>
       // This is an invocation of a named local function.
       computeForNode(node, createInvokeId(node.receiver));
       node.arguments.accept(this);
-    } else if (node.name.name == '==' &&
+    } else if (node.name.text == '==' &&
         receiver is VariableGet &&
         receiver.variable.name == null) {
       // This is a desugared `?.`.
@@ -270,6 +270,12 @@ abstract class DataExtractor<T> extends Visitor<void>
   visitInstanceInvocation(InstanceInvocation node) {
     _visitInvocation(node, node.name);
     super.visitInstanceInvocation(node);
+  }
+
+  @override
+  visitInstanceGetterInvocation(InstanceGetterInvocation node) {
+    _visitInvocation(node, node.name);
+    super.visitInstanceGetterInvocation(node);
   }
 
   @override

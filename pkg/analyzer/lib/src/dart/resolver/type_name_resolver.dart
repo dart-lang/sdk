@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -53,6 +54,9 @@ class TypeNameResolver {
   TypeNameResolver(this.typeSystem, TypeProvider typeProvider,
       this.isNonNullableByDefault, this.errorReporter)
       : dynamicType = typeProvider.dynamicType;
+
+  bool get _genericMetadataIsEnabled =>
+      enclosingClass!.library.featureSet.isEnabled(Feature.generic_metadata);
 
   NullabilitySuffix get _noneOrStarSuffix {
     return isNonNullableByDefault
@@ -167,6 +171,7 @@ class TypeNameResolver {
           declaredReturnType: element.thisType,
           argumentTypes: const [],
           contextReturnType: enclosingClass!.thisType,
+          genericMetadataIsEnabled: _genericMetadataIsEnabled,
         )!;
         return element.instantiate(
           typeArguments: typeArguments,

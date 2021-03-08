@@ -59,7 +59,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   driver.AnalysisDriver getDriver() => _driver;
 
   @override
-  Future<ErrorsResult?> getErrors(String path) {
+  Future<ErrorsResult> getErrors(String path) {
     _checkConsistency();
     return _driver.getErrors(path);
   }

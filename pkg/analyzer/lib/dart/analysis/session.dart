@@ -36,9 +36,7 @@ abstract class AnalysisSession {
   ///
   /// If the file cannot be analyzed by this session, then the result will have
   /// a result state indicating the nature of the problem.
-  ///
-  /// TODO(migration): should not be nullable
-  Future<ErrorsResult?> getErrors(String path);
+  Future<ErrorsResult> getErrors(String path);
 
   /// Return information about the file at the given absolute, normalized
   /// [path].

@@ -2121,7 +2121,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         break;
       } else if (node is ir.Field) {
         // Add the field name for closures in field initializers.
-        String name = node.name?.name;
+        String name = node.name?.text;
         if (name != null) parts.add(name);
       }
       current = current.parent;

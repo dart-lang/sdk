@@ -150,7 +150,8 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       extension.extendedType,
       'extendedType',
     );
-    var typeArguments = inferrer.infer(typeParameters, failAtError: true);
+    var typeArguments = inferrer.infer(typeParameters,
+        failAtError: true, genericMetadataIsEnabled: true);
     if (typeArguments == null) {
       return null;
     }

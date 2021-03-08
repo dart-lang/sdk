@@ -833,8 +833,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   void handleEqualsCall(ir.Expression left, ir.DartType leftType,
       ir.Expression right, ir.DartType rightType, ir.Member interfaceTarget) {}
 
-  void _registerEqualsNull(TypeMap afterInvocation, ir.Expression expression,
-      {bool isNot: false}) {
+  void _registerEqualsNull(TypeMap afterInvocation, ir.Expression expression) {
     if (expression is ir.VariableGet &&
         !_invalidatedVariables.contains(expression.variable)) {
       // If `expression == null` is true, we promote the type of the
@@ -845,13 +844,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
           isTrue: false);
       TypeMap ofItsDeclaredType = afterInvocation
           .promote(expression.variable, expression.variable.type, isTrue: true);
-      if (isNot) {
-        typeMapWhenTrue = ofItsDeclaredType;
-        typeMapWhenFalse = notOfItsDeclaredType;
-      } else {
-        typeMapWhenTrue = notOfItsDeclaredType;
-        typeMapWhenFalse = ofItsDeclaredType;
-      }
+      typeMapWhenTrue = notOfItsDeclaredType;
+      typeMapWhenFalse = ofItsDeclaredType;
     }
   }
 
@@ -968,7 +962,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   ir.DartType visitEqualsNull(ir.EqualsNull node) {
     visitNode(node.expression);
-    _registerEqualsNull(typeMap, node.expression, isNot: node.isNot);
+    _registerEqualsNull(typeMap, node.expression);
     return super.visitEqualsNull(node);
   }
 
@@ -984,7 +978,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   ir.DartType visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) {
     ArgumentTypes argumentTypes = _visitArguments(node.arguments);
-    ir.FunctionDeclaration localFunction = node.variable.parent;
+    ir.FunctionDeclaration localFunction = node.localFunction;
     ir.DartType returnType = super.visitLocalFunctionInvocation(node);
     handleLocalFunctionInvocation(
         node, localFunction, argumentTypes, returnType);

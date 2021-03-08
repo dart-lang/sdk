@@ -20,7 +20,7 @@ String get _dartSdkVersion {
 
   // Convert a git hash to 8 chars.
   // '2.8.0-edge.fd992e423ef69ece9f44bd3ac58fa2355b563212'
-  var versionRegExp = RegExp(r'^.*\.([0123456789abcdef]+)$');
+  var versionRegExp = RegExp(r'^.*\.([0-9a-f]+)$');
   var match = versionRegExp.firstMatch(version);
   if (match != null && match.group(1).length == 40) {
     var commit = match.group(1);

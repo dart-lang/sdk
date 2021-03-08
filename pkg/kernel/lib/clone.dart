@@ -466,7 +466,13 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   visitFunctionDeclaration(FunctionDeclaration node) {
     VariableDeclaration newVariable = clone(node.variable);
-    return new FunctionDeclaration(newVariable, clone(node.function!));
+    // Create the declaration before cloning the body to support recursive
+    // [LocalFunctionInvocation] nodes.
+    FunctionDeclaration declaration =
+        new FunctionDeclaration(newVariable, null);
+    FunctionNode functionNode = clone(node.function!);
+    declaration.function = functionNode..parent = declaration;
+    return declaration;
   }
 
   void prepareTypeParameters(List<TypeParameter> typeParameters) {
@@ -637,14 +643,13 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   @override
   TreeNode visitEqualsCall(EqualsCall node) {
     return new EqualsCall.byReference(clone(node.left), clone(node.right),
-        isNot: node.isNot,
         functionType: visitType(node.functionType) as FunctionType,
         interfaceTargetReference: node.interfaceTargetReference);
   }
 
   @override
   TreeNode visitEqualsNull(EqualsNull node) {
-    return new EqualsNull(clone(node.expression), isNot: node.isNot);
+    return new EqualsNull(clone(node.expression));
   }
 
   @override
@@ -665,6 +670,14 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   @override
   TreeNode visitInstanceInvocation(InstanceInvocation node) {
     return new InstanceInvocation.byReference(
+        node.kind, clone(node.receiver), node.name, clone(node.arguments),
+        functionType: visitType(node.functionType) as FunctionType,
+        interfaceTargetReference: node.interfaceTargetReference);
+  }
+
+  @override
+  TreeNode visitInstanceGetterInvocation(InstanceGetterInvocation node) {
+    return new InstanceGetterInvocation.byReference(
         node.kind, clone(node.receiver), node.name, clone(node.arguments),
         functionType: visitType(node.functionType) as FunctionType,
         interfaceTargetReference: node.interfaceTargetReference);

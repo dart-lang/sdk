@@ -1740,6 +1740,7 @@ class Class : public Object {
   friend class Intrinsifier;
   friend class ProgramWalker;
   friend class Precompiler;
+  friend class ClassFinalizer;
 };
 
 // Classification of type genericity according to type parameter owners.
@@ -2816,14 +2817,11 @@ class Function : public Object {
   void SetForwardingChecks(const Array& checks) const;
 
   UntaggedFunction::Kind kind() const {
-    return KindBits::decode(untag()->kind_tag_);
-  }
-  static UntaggedFunction::Kind kind(FunctionPtr function) {
-    return KindBits::decode(function->untag()->kind_tag_);
+    return untag()->kind_tag_.Read<KindBits>();
   }
 
   UntaggedFunction::AsyncModifier modifier() const {
-    return ModifierBits::decode(untag()->kind_tag_);
+    return untag()->kind_tag_.Read<ModifierBits>();
   }
 
   static const char* KindToCString(UntaggedFunction::Kind kind);
@@ -3066,7 +3064,7 @@ class Function : public Object {
   bool CanBeInlined() const;
 
   MethodRecognizer::Kind recognized_kind() const {
-    return RecognizedBits::decode(untag()->kind_tag_);
+    return untag()->kind_tag_.Read<RecognizedBits>();
   }
   void set_recognized_kind(MethodRecognizer::Kind value) const;
 
@@ -3361,7 +3359,7 @@ class Function : public Object {
   }
   static bool IsFfiTrampoline(FunctionPtr function) {
     NoSafepointScope no_safepoint;
-    return KindBits::decode(function->untag()->kind_tag_) ==
+    return function->untag()->kind_tag_.Read<KindBits>() ==
            UntaggedFunction::kFfiTrampoline;
   }
 
@@ -3631,6 +3629,8 @@ class Function : public Object {
   // has_pragma: Has a @pragma decoration.
   // no_such_method_forwarder: A stub method that just calls noSuchMethod.
 
+// Bits that are set when function is created, don't have to worry about
+// concurrent updates.
 #define FOR_EACH_FUNCTION_KIND_BIT(V)                                          \
   V(Static, is_static)                                                         \
   V(Const, is_const)                                                           \
@@ -3638,7 +3638,6 @@ class Function : public Object {
   V(Reflectable, is_reflectable)                                               \
   V(Visible, is_visible)                                                       \
   V(Debuggable, is_debuggable)                                                 \
-  V(Inlinable, is_inlinable)                                                   \
   V(Intrinsic, is_intrinsic)                                                   \
   V(Native, is_native)                                                         \
   V(External, is_external)                                                     \
@@ -3647,13 +3646,25 @@ class Function : public Object {
   V(HasPragma, has_pragma)                                                     \
   V(IsSynthetic, is_synthetic)                                                 \
   V(IsExtensionMember, is_extension_member)
+// Bit that is updated after function is constructed, has to be updated in
+// concurrent-safe manner.
+#define FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(V)                                 \
+  V(Inlinable, is_inlinable)
 
 #define DEFINE_ACCESSORS(name, accessor_name)                                  \
   void set_##accessor_name(bool value) const {                                 \
-    set_kind_tag(name##Bit::update(value, untag()->kind_tag_));                \
+    untag()->kind_tag_.UpdateBool<name##Bit>(value);                           \
   }                                                                            \
-  bool accessor_name() const { return name##Bit::decode(untag()->kind_tag_); }
+  bool accessor_name() const { return untag()->kind_tag_.Read<name##Bit>(); }
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
+#undef DEFINE_ACCESSORS
+
+#define DEFINE_ACCESSORS(name, accessor_name)                                  \
+  void set_##accessor_name(bool value) const {                                 \
+    untag()->kind_tag_.UpdateUnsynchronized<name##Bit>(value);                 \
+  }                                                                            \
+  bool accessor_name() const { return untag()->kind_tag_.Read<name##Bit>(); }
+  FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DEFINE_ACCESSORS)
 #undef DEFINE_ACCESSORS
 
   // optimizable: Candidate for going through the optimizing compiler. False for
@@ -3678,6 +3689,7 @@ class Function : public Object {
 // Single bit sized fields start here.
 #define DECLARE_BIT(name, _) k##name##Bit,
     FOR_EACH_FUNCTION_KIND_BIT(DECLARE_BIT)
+    FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DECLARE_BIT)
 #undef DECLARE_BIT
         kNumTagBits
   };
@@ -3705,6 +3717,7 @@ class Function : public Object {
 #define DEFINE_BIT(name, _)                                                    \
   class name##Bit : public BitField<uint32_t, bool, k##name##Bit, 1> {};
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
+  FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DEFINE_BIT)
 #undef DEFINE_BIT
 
  private:
@@ -7079,7 +7092,7 @@ class Instance : public Object {
   }
 
   InstancePtr Canonicalize(Thread* thread) const;
-  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
   virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
   virtual void CanonicalizeFieldsLocked(Thread* thread) const;
 
@@ -7458,7 +7471,7 @@ class TypeArguments : public Instance {
   // Return true if all types of this vector are finalized.
   bool IsFinalized() const;
 
-  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
   virtual InstancePtr CanonicalizeLocked(Thread* thread) const {
     return Canonicalize(thread, nullptr);
   }
@@ -7648,7 +7661,7 @@ class AbstractType : public Instance {
       Heap::Space space,
       TrailPtr trail = nullptr) const;
 
-  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
   virtual InstancePtr CanonicalizeLocked(Thread* thread) const {
     return Canonicalize(thread, nullptr);
   }
@@ -8464,7 +8477,7 @@ class Number : public Instance {
   StringPtr ToString(Heap::Space space) const;
 
   // Numbers are canonicalized differently from other instances/strings.
-  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
   virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
 
 #if defined(DEBUG)
@@ -8866,7 +8879,7 @@ class String : public Instance {
   bool EndsWith(const String& other) const;
 
   // Strings are canonicalized using the symbol table.
-  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
   virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
 
 #if defined(DEBUG)

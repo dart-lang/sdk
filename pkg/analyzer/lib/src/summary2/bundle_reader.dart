@@ -1020,7 +1020,7 @@ class UnitReader implements ReferenceNodeAccessor {
         var astReader = AstBinaryReader(
           reader: this,
         );
-        var directive = astReader.readNode() as DirectiveImpl;
+        var directive = astReader.readNode() as Directive;
         _unit.directives.add(directive);
       }
     }

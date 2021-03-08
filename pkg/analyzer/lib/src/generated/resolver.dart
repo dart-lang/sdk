@@ -333,10 +333,11 @@ class ResolverVisitor extends ScopedVisitor {
     extensionResolver = ExtensionMemberResolver(this);
     typePropertyResolver = TypePropertyResolver(this);
     inferenceHelper = InvocationInferenceHelper(
-        resolver: this,
-        errorReporter: errorReporter,
-        typeSystem: typeSystem,
-        migrationResolutionHooks: migrationResolutionHooks);
+      resolver: this,
+      errorReporter: errorReporter,
+      typeSystem: typeSystem,
+      migrationResolutionHooks: migrationResolutionHooks,
+    );
     _assignmentExpressionResolver = AssignmentExpressionResolver(
       resolver: this,
     );
