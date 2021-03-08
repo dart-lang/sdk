@@ -20339,6 +20339,7 @@ bool Type::IsDeclarationTypeOf(const Class& cls) const {
   return nullability() == Nullability::kNonNullable;
 }
 
+// Keep in sync with TypeSerializationCluster::IsInCanonicalSet.
 AbstractTypePtr Type::Canonicalize(Thread* thread, TrailPtr trail) const {
   Zone* zone = thread->zone();
   ASSERT(IsFinalized());

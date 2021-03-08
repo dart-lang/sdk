@@ -226,7 +226,7 @@ class Serializer : public ThreadStackResource {
   ObjectPtr ParentOf(const Object& object);
 #endif
 
-  SerializationCluster* NewClusterForClass(intptr_t cid);
+  SerializationCluster* NewClusterForClass(intptr_t cid, bool is_canonical);
 
   void ReserveHeader() {
     // Make room for recording snapshot buffer size.

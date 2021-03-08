@@ -10,6 +10,37 @@
 
 namespace dart {
 
+// Storage traits control how memory is allocated for HashTable.
+// Default ArrayStorageTraits use an Array to store HashTable contents.
+struct ArrayStorageTraits {
+  using ArrayHandle = Array;
+  using ArrayPtr = ArrayPtr;
+
+  static ArrayHandle& PtrToHandle(ArrayPtr ptr) { return Array::Handle(ptr); }
+
+  static void SetHandle(ArrayHandle& dst, const ArrayHandle& src) {  // NOLINT
+    dst = src.ptr();
+  }
+
+  static void ClearHandle(ArrayHandle& handle) {  // NOLINT
+    handle = Array::null();
+  }
+
+  static ArrayPtr New(Zone* zone, intptr_t length, Heap::Space space) {
+    return Array::New(length, space);
+  }
+
+  static bool IsImmutable(const ArrayHandle& handle) {
+    return handle.ptr()->untag()->InVMIsolateHeap();
+  }
+};
+
+class HashTableBase : public ValueObject {
+ public:
+  static const Object& UnusedMarker() { return Object::transition_sentinel(); }
+  static const Object& DeletedMarker() { return Object::sentinel(); }
+};
+
 // OVERVIEW:
 //
 // Hash maps and hash sets all use RawArray as backing storage. At the lowest
@@ -71,29 +102,34 @@ namespace dart {
 //    uword Hash(const Key& key) for any number of desired lookup key types.
 //  kPayloadSize: number of components of the payload in each entry.
 //  kMetaDataSize: number of elements reserved (e.g., for iteration order data).
-template <typename KeyTraits, intptr_t kPayloadSize, intptr_t kMetaDataSize>
-class HashTable : public ValueObject {
+template <typename KeyTraits,
+          intptr_t kPayloadSize,
+          intptr_t kMetaDataSize,
+          typename StorageTraits = ArrayStorageTraits>
+class HashTable : public HashTableBase {
  public:
   typedef KeyTraits Traits;
+  typedef StorageTraits Storage;
+
   // Uses the passed in handles for all handle operations.
   // 'Release' must be called at the end to obtain the final table
   // after potential growth/shrinkage.
-  HashTable(Object* key, Smi* index, Array* data)
+  HashTable(Object* key, Smi* index, typename StorageTraits::ArrayHandle* data)
       : key_handle_(key),
         smi_handle_(index),
         data_(data),
         released_data_(NULL) {}
   // Uses 'zone' for handle allocation. 'Release' must be called at the end
   // to obtain the final table after potential growth/shrinkage.
-  HashTable(Zone* zone, ArrayPtr data)
+  HashTable(Zone* zone, typename StorageTraits::ArrayPtr data)
       : key_handle_(&Object::Handle(zone)),
         smi_handle_(&Smi::Handle(zone)),
-        data_(&Array::Handle(zone, data)),
+        data_(&StorageTraits::PtrToHandle(data)),
         released_data_(NULL) {}
 
   // Returns the final table. The handle is cleared when this HashTable is
   // destroyed.
-  Array& Release() {
+  typename StorageTraits::ArrayHandle& Release() {
     ASSERT(data_ != NULL);
     ASSERT(released_data_ == NULL);
     // Ensure that no methods are called after 'Release'.
@@ -106,7 +142,7 @@ class HashTable : public ValueObject {
     // In DEBUG mode, calling 'Release' is mandatory.
     ASSERT(data_ == NULL);
     if (released_data_ != NULL) {
-      *released_data_ = Array::null();
+      StorageTraits::ClearHandle(*released_data_);
     }
   }
 
@@ -245,9 +281,6 @@ class HashTable : public ValueObject {
     NOT_IN_PRECOMPILED(ASSERT(NumOccupied() < NumEntries()));
   }
 
-  const Object& UnusedMarker() const { return Object::transition_sentinel(); }
-  const Object& DeletedMarker() const { return *data_; }
-
   bool IsUnused(intptr_t entry) const {
     return InternalGetKey(entry) == UnusedMarker().ptr();
   }
@@ -314,7 +347,7 @@ class HashTable : public ValueObject {
   }
   void UpdateCollisions(intptr_t collisions) const {
     if (KeyTraits::ReportStats()) {
-      if (data_->ptr()->untag()->InVMIsolateHeap()) {
+      if (Storage::IsImmutable(*data_)) {
         return;
       }
       AdjustSmiValueAt(kNumProbesIndex, collisions + 1);
@@ -403,10 +436,17 @@ class HashTable : public ValueObject {
   Object* key_handle_;
   Smi* smi_handle_;
   // Exactly one of these is non-NULL, depending on whether Release was called.
-  Array* data_;
-  Array* released_data_;
+  typename StorageTraits::ArrayHandle* data_;
+  typename StorageTraits::ArrayHandle* released_data_;
 
   friend class HashTables;
+  template <typename Table, bool kAllCanonicalObjectsAreIncludedIntoSet>
+  friend class CanonicalSetDeserializationCluster;
+  template <typename Table,
+            typename HandleType,
+            typename PointerType,
+            bool kAllCanonicalObjectsAreIncludedIntoSet>
+  friend class CanonicalSetSerializationCluster;
 };
 
 // Table with unspecified iteration order. No payload overhead or metadata.
@@ -448,17 +488,20 @@ class HashTables : public AllStatic {
  public:
   // Allocates and initializes a table.
   template <typename Table>
-  static ArrayPtr New(intptr_t initial_capacity,
-                      Heap::Space space = Heap::kNew) {
+  static typename Table::Storage::ArrayPtr New(intptr_t initial_capacity,
+                                               Heap::Space space = Heap::kNew) {
+    auto zone = Thread::Current()->zone();
     Table table(
-        Thread::Current()->zone(),
-        Array::New(Table::ArrayLengthForNumOccupied(initial_capacity), space));
+        zone,
+        Table::Storage::New(
+            zone, Table::ArrayLengthForNumOccupied(initial_capacity), space));
     table.Initialize();
     return table.Release().ptr();
   }
 
   template <typename Table>
-  static ArrayPtr New(const Array& array) {
+  static typename Table::Storage::ArrayPtr New(
+      const typename Table::Storage::ArrayHandle& array) {
     Table table(Thread::Current()->zone(), array.ptr());
     table.Initialize();
     return table.Release().ptr();
@@ -513,7 +556,7 @@ class HashTables : public AllStatic {
     Table new_table(New<Table>(new_capacity,  // Is rounded up to power of 2.
                                table.data_->IsOld() ? Heap::kOld : Heap::kNew));
     Copy(table, new_table);
-    *table.data_ = new_table.Release().ptr();
+    Table::Storage::SetHandle(*table.data_, new_table.Release());
     NOT_IN_PRODUCT(table.UpdateGrowth(); table.PrintStats();)
   }
 
@@ -547,7 +590,8 @@ class HashTables : public AllStatic {
       for (intptr_t i = 0; i < table.Length(); i++) {
         element = table.At(i);
         if (!element.IsSmi()) {
-          element = WeakSerializationReference::New(element, table);
+          element = WeakSerializationReference::New(
+              element, HashTableBase::DeletedMarker());
           table.SetAt(i, element);
         }
       }

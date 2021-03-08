@@ -1740,6 +1740,7 @@ class Class : public Object {
   friend class Intrinsifier;
   friend class ProgramWalker;
   friend class Precompiler;
+  friend class ClassFinalizer;
 };
 
 // Classification of type genericity according to type parameter owners.

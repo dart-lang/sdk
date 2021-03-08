@@ -908,6 +908,7 @@ class UntaggedClass : public UntaggedObject {
   friend class UntaggedTypeArguments;
   friend class SnapshotReader;
   friend class InstanceSerializationCluster;
+  friend class TypeSerializationCluster;
   friend class CidRewriteVisitor;
   friend class Api;
 };
@@ -2744,7 +2745,8 @@ class UntaggedArray : public UntaggedInstance {
   friend class ICData;            // For high performance access.
   friend class SubtypeTestCache;  // For high performance access.
   friend class ReversePc;
-
+  template <typename Table, bool kAllCanonicalObjectsAreIncludedIntoSet>
+  friend class CanonicalSetDeserializationCluster;
   friend class OldPage;
 };
 
