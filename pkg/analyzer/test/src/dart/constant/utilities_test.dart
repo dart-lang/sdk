@@ -215,7 +215,7 @@ class ConstantFinderTest {
         keyword == Keyword.CONST,
         _typeProvider.intType);
     variableDeclaration.name.staticElement = fieldElement;
-    FieldDeclaration fieldDeclaration = AstTestFactory.fieldDeclaration2(
+    var fieldDeclaration = AstTestFactory.fieldDeclaration2(
         isStatic, keyword, <VariableDeclaration>[variableDeclaration]);
     var classDeclaration = AstTestFactory.classDeclaration(
         null, className, null, null, null, null);

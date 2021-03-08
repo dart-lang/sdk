@@ -139,9 +139,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
         Keyword.VAR, [AstTestFactory.variableDeclaration('x')],
         isExternal: false);
     TopLevelVariableElement element = TopLevelVariableElementImpl('x', -1);
-    (fromNode.variables.variables[0] as VariableDeclarationImpl)
-        .name
-        .staticElement = element;
+    fromNode.variables.variables[0].name.staticElement = element;
     TopLevelVariableDeclaration toNode1 =
         AstTestFactory.topLevelVariableDeclaration2(
             Keyword.VAR, [AstTestFactory.variableDeclaration('x')],
