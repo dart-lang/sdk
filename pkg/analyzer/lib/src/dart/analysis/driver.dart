@@ -556,10 +556,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ///
   /// This method does not use analysis priorities, and must not be used in
   /// interactive analysis, such as Analysis Server or its plugins.
-  Future<ErrorsResult?> getErrors(String path) async {
+  Future<ErrorsResult> getErrors(String path) async {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
-      return null;
+      return NotValidErrorsResultImpl(ResultState.NOT_FILE_OF_URI);
     }
 
     var completer = Completer<ErrorsResult>();

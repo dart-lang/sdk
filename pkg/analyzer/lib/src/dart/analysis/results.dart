@@ -66,6 +66,56 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   ResultState get state => ResultState.VALID;
 }
 
+/// The implementation of [AnalysisResult] when not [ResultState.VALID].
+class NotValidAnalysisResultImpl implements AnalysisResult {
+  @override
+  final ResultState state;
+
+  NotValidAnalysisResultImpl(this.state);
+
+  @override
+  String? get path {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  AnalysisSession get session {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  Uri get uri {
+    throw StateError('This result is not valid');
+  }
+}
+
+/// The implementation of [ErrorsResult] when not [ResultState.VALID].
+class NotValidErrorsResultImpl extends NotValidFileResultImpl
+    implements ErrorsResult {
+  NotValidErrorsResultImpl(ResultState state) : super(state);
+
+  @override
+  List<AnalysisError> get errors {
+    throw StateError('This result is not valid');
+  }
+}
+
+/// The implementation of [FileResult] when not [ResultState.VALID].
+class NotValidFileResultImpl extends NotValidAnalysisResultImpl
+    implements FileResult {
+  NotValidFileResultImpl(ResultState state) : super(state);
+
+  @override
+  bool get isPart {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  LineInfo get lineInfo {
+    throw StateError('This result is not valid');
+  }
+}
+
 class ParsedLibraryResultImpl extends AnalysisResultImpl
     implements ParsedLibraryResult {
   @override

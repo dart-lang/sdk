@@ -1,5 +1,6 @@
-## 1.2.0
+## 1.2.0-dev
 * Deprecated all setters in API of AST. Use `parseString()` instead.
+* `AnalysisSession.getErrors()` does not return `null`, check its `state`.
 
 ## 1.1.0
 * Deprecated `TypeProvider.futureType2()`, `iterableType2()`, etc.
