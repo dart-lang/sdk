@@ -111,6 +111,76 @@ class A {
 ''');
   }
 
+  Future<void> test_suggestion_class_abstract() async {
+    var path = convertPath('/home/test/lib/a.dart');
+    var uriStr = 'package:test/a.dart';
+
+    newFile(path, content: r'''
+abstract class A {
+  A.a();
+  factory A.b() => _B();
+}
+class _B extends A {
+  _B() : super.a();
+}
+''');
+
+    var set = await waitForSetWithUri(uriStr);
+    assertNoSuggestion(set, 'A.a');
+    assertNoSuggestion(set, '_B');
+    assertJsonText(_getSuggestion(set, 'A'), '''
+{
+  "label": "A",
+  "declaringLibraryUri": "package:test/a.dart",
+  "element": {
+    "kind": "CLASS",
+    "name": "A",
+    "location": {
+      "file": "/home/test/lib/a.dart",
+      "offset": 15,
+      "length": 0,
+      "startLine": 1,
+      "startColumn": 16
+    },
+    "flags": 1
+  },
+  "relevanceTags": [
+    "ElementKind.CLASS",
+    "package:test/a.dart::A",
+    "A"
+  ]
+}
+''');
+    assertJsonText(_getSuggestion(set, 'A.b'), '''
+{
+  "label": "A.b",
+  "declaringLibraryUri": "package:test/a.dart",
+  "element": {
+    "kind": "CONSTRUCTOR",
+    "name": "b",
+    "location": {
+      "file": "/home/test/lib/a.dart",
+      "offset": 40,
+      "length": 0,
+      "startLine": 3,
+      "startColumn": 13
+    },
+    "flags": 0,
+    "parameters": "()",
+    "returnType": "A"
+  },
+  "parameterNames": [],
+  "parameterTypes": [],
+  "relevanceTags": [
+    "ElementKind.CONSTRUCTOR",
+    "package:test/a.dart::A",
+    "b"
+  ],
+  "requiredParameterCount": 0
+}
+''');
+  }
+
   Future<void> test_suggestion_class_part() async {
     var a_path = convertPath('/home/test/lib/a.dart');
     var b_path = convertPath('/home/test/lib/b.dart');
@@ -370,6 +440,14 @@ var stringV = 'hi';
   ]
 }
 ''');
+  }
+
+  static void assertNoSuggestion(AvailableSuggestionSet set, String label,
+      {ElementKind kind}) {
+    var suggestion = set.items.singleWhere(
+        (s) => s.label == label && (kind == null || s.element.kind == kind),
+        orElse: () => null);
+    expect(suggestion, null);
   }
 
   static AvailableSuggestion _getSuggestion(

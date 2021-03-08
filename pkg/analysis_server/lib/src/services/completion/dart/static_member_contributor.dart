@@ -41,7 +41,9 @@ class StaticMemberContributor extends DartCompletionContributor {
         }
         for (var constructor in element.constructors) {
           if (isVisible(constructor)) {
-            builder.suggestConstructor(constructor, hasClassName: true);
+            if (!element.isAbstract || constructor.isFactory) {
+              builder.suggestConstructor(constructor, hasClassName: true);
+            }
           }
         }
         for (var field in element.fields) {

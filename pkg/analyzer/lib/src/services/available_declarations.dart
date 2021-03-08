@@ -1409,13 +1409,15 @@ class _File {
       var isDeprecated = _hasDeprecatedAnnotation(node);
 
       var hasConstructor = false;
-      void addClassMembers(Declaration parent, List<ClassMember> members) {
+      void addClassMembers(Declaration parent, bool parentIsAbstract,
+          List<ClassMember> members) {
         for (var classMember in members) {
           setCodeRange(classMember);
           setDartDoc(classMember);
           isDeprecated = _hasDeprecatedAnnotation(classMember);
 
-          if (classMember is ConstructorDeclaration) {
+          if (classMember is ConstructorDeclaration &&
+              (!parentIsAbstract || classMember.factoryKeyword != null)) {
             var parameters = classMember.parameters;
             var defaultArguments = _computeDefaultArguments(parameters);
             var isConst = classMember.constKeyword != null;
@@ -1534,7 +1536,8 @@ class _File {
         );
         if (classDeclaration == null) continue;
 
-        addClassMembers(classDeclaration, node.members);
+        addClassMembers(
+            classDeclaration, classDeclaration.isAbstract, node.members);
 
         if (!hasConstructor) {
           classDeclaration.children.add(Declaration(
@@ -1689,7 +1692,7 @@ class _File {
           relevanceTags: ['ElementKind.MIXIN'],
         );
         if (mixinDeclaration == null) continue;
-        addClassMembers(mixinDeclaration, node.members);
+        addClassMembers(mixinDeclaration, false, node.members);
       } else if (node is TopLevelVariableDeclaration) {
         var isConst = node.variables.isConst;
         var isFinal = node.variables.isFinal;
