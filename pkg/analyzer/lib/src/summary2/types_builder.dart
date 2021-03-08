@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -226,7 +227,7 @@ class _MixinInference {
     if (withClause == null) return;
 
     for (var mixinNode in withClause.mixinTypes) {
-      var mixinType = _inferSingle(mixinNode);
+      var mixinType = _inferSingle(mixinNode as TypeNameImpl);
       interfacesMerger.addWithSupertypes(mixinType);
     }
   }
@@ -262,7 +263,7 @@ class _MixinInference {
     return result;
   }
 
-  InterfaceType _inferSingle(TypeName mixinNode) {
+  InterfaceType _inferSingle(TypeNameImpl mixinNode) {
     var mixinType = _interfaceType(mixinNode.type!);
 
     if (mixinNode.typeArguments != null) {

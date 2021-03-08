@@ -1872,21 +1872,22 @@ class CommentImpl extends AstNodeImpl implements Comment {
   }
 
   /// Create a block comment consisting of the given [tokens].
-  static Comment createBlockComment(List<Token> tokens) =>
+  static CommentImpl createBlockComment(List<Token> tokens) =>
       CommentImpl(tokens, CommentType.BLOCK, const <CommentReference>[]);
 
   /// Create a documentation comment consisting of the given [tokens].
-  static Comment createDocumentationComment(List<Token> tokens) => CommentImpl(
-      tokens, CommentType.DOCUMENTATION, const <CommentReference>[]);
+  static CommentImpl createDocumentationComment(List<Token> tokens) =>
+      CommentImpl(
+          tokens, CommentType.DOCUMENTATION, const <CommentReference>[]);
 
   /// Create a documentation comment consisting of the given [tokens] and having
   /// the given [references] embedded within it.
-  static Comment createDocumentationCommentWithReferences(
+  static CommentImpl createDocumentationCommentWithReferences(
           List<Token> tokens, List<CommentReference> references) =>
       CommentImpl(tokens, CommentType.DOCUMENTATION, references);
 
   /// Create an end-of-line comment consisting of the given [tokens].
-  static Comment createEndOfLineComment(List<Token> tokens) =>
+  static CommentImpl createEndOfLineComment(List<Token> tokens) =>
       CommentImpl(tokens, CommentType.END_OF_LINE, const <CommentReference>[]);
 }
 
@@ -4327,6 +4328,9 @@ abstract class FormalParameterImpl extends AstNodeImpl
   }
 
   @override
+  SimpleIdentifierImpl? get identifier;
+
+  @override
   bool get isNamed => kind.isNamed;
 
   @override
@@ -4354,10 +4358,10 @@ abstract class FormalParameterImpl extends AstNodeImpl
   ParameterKind get kind;
 
   static void setDeclaredElement(
-    FormalParameter node,
+    FormalParameterImpl node,
     ParameterElement element,
   ) {
-    if (node is DefaultFormalParameter) {
+    if (node is DefaultFormalParameterImpl) {
       setDeclaredElement(node.parameter, element);
     } else if (node is SimpleFormalParameterImpl) {
       node.declaredElement = element;

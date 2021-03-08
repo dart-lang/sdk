@@ -10,7 +10,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
@@ -23,6 +22,7 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -403,7 +403,7 @@ class FileState {
   /// Return a new parsed unresolved [CompilationUnit].
   ///
   /// If an exception happens during parsing, an empty unit is returned.
-  CompilationUnit parse([AnalysisErrorListener? errorListener]) {
+  CompilationUnitImpl parse([AnalysisErrorListener? errorListener]) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
       return _parse(errorListener);
@@ -527,13 +527,13 @@ class FileState {
     }
   }
 
-  CompilationUnit _createEmptyCompilationUnit() {
+  CompilationUnitImpl _createEmptyCompilationUnit() {
     var token = Token.eof(0);
     var unit = astFactory.compilationUnit(
       beginToken: token,
       endToken: token,
       featureSet: _contextFeatureSet!,
-    ) as CompilationUnitImpl;
+    );
 
     unit.lineInfo = LineInfo(const <int>[0]);
 
@@ -605,7 +605,7 @@ class FileState {
     }
   }
 
-  CompilationUnit _parse(AnalysisErrorListener errorListener) {
+  CompilationUnitImpl _parse(AnalysisErrorListener errorListener) {
     if (source == null) {
       return _createEmptyCompilationUnit();
     }
@@ -628,7 +628,7 @@ class FileState {
     );
     parser.enableOptionalNewAndConst = true;
 
-    var unit = parser.parseCompilationUnit(token) as CompilationUnitImpl;
+    var unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     unit.languageVersion = LibraryLanguageVersion(
       package: packageLanguageVersion!,

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -35,7 +36,7 @@ class NamedTypeBuilder extends TypeBuilder {
   /// The node for which this builder is created, or `null` if the builder
   /// was detached from its node, e.g. during computing default types for
   /// type parameters.
-  final TypeName? node;
+  final TypeNameImpl? node;
 
   /// The actual built type, not a [TypeBuilder] anymore.
   ///
@@ -49,7 +50,7 @@ class NamedTypeBuilder extends TypeBuilder {
 
   factory NamedTypeBuilder.of(
     TypeSystemImpl typeSystem,
-    TypeName node,
+    TypeNameImpl node,
     Element element,
     NullabilitySuffix nullabilitySuffix,
   ) {

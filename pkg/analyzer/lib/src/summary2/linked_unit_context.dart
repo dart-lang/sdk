@@ -70,11 +70,11 @@ class LinkedUnitContext {
       var libraryElement =
           libraryContext.reference.element as LibraryElementImpl;
       for (var directive in unit!.directives) {
-        if (directive is ExportDirective) {
+        if (directive is ExportDirectiveImpl) {
           if (directive.element == null) {
             ExportElementImpl.forLinkedNode(libraryElement, directive);
           }
-        } else if (directive is ImportDirective) {
+        } else if (directive is ImportDirectiveImpl) {
           if (directive.element == null) {
             ImportElementImpl.forLinkedNode(libraryElement, directive);
           }
@@ -345,9 +345,9 @@ class LinkedUnitContext {
     return const <Annotation>[];
   }
 
-  List<MethodDeclaration> getMethods(CompilationUnitMember node) {
+  List<MethodDeclarationImpl> getMethods(CompilationUnitMember node) {
     return _getClassOrExtensionOrMixinMembers(node)
-        .whereType<MethodDeclaration>()
+        .whereType<MethodDeclarationImpl>()
         .toList();
   }
 
@@ -394,36 +394,36 @@ class LinkedUnitContext {
     }
   }
 
-  TypeParameterList? getTypeParameters2(AstNode node) {
-    if (node is ClassDeclaration) {
+  TypeParameterListImpl? getTypeParameters2(AstNode node) {
+    if (node is ClassDeclarationImpl) {
       return node.typeParameters;
-    } else if (node is ClassTypeAlias) {
+    } else if (node is ClassTypeAliasImpl) {
       return node.typeParameters;
-    } else if (node is ConstructorDeclaration) {
+    } else if (node is ConstructorDeclarationImpl) {
       return null;
-    } else if (node is DefaultFormalParameter) {
+    } else if (node is DefaultFormalParameterImpl) {
       return getTypeParameters2(node.parameter);
-    } else if (node is ExtensionDeclaration) {
+    } else if (node is ExtensionDeclarationImpl) {
       return node.typeParameters;
-    } else if (node is FieldFormalParameter) {
+    } else if (node is FieldFormalParameterImpl) {
       return node.typeParameters;
-    } else if (node is FunctionDeclaration) {
+    } else if (node is FunctionDeclarationImpl) {
       return getTypeParameters2(node.functionExpression);
-    } else if (node is FunctionExpression) {
+    } else if (node is FunctionExpressionImpl) {
       return node.typeParameters;
-    } else if (node is FunctionTypedFormalParameter) {
+    } else if (node is FunctionTypedFormalParameterImpl) {
       return node.typeParameters;
-    } else if (node is FunctionTypeAlias) {
+    } else if (node is FunctionTypeAliasImpl) {
       return node.typeParameters;
-    } else if (node is GenericFunctionType) {
+    } else if (node is GenericFunctionTypeImpl) {
       return node.typeParameters;
-    } else if (node is GenericTypeAlias) {
+    } else if (node is GenericTypeAliasImpl) {
       return node.typeParameters;
-    } else if (node is MethodDeclaration) {
+    } else if (node is MethodDeclarationImpl) {
       return node.typeParameters;
-    } else if (node is MixinDeclaration) {
+    } else if (node is MixinDeclarationImpl) {
       return node.typeParameters;
-    } else if (node is SimpleFormalParameter) {
+    } else if (node is SimpleFormalParameterImpl) {
       return null;
     } else {
       throw UnimplementedError('${node.runtimeType}');

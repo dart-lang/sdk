@@ -1,3 +1,6 @@
+## 1.2.0
+* Deprecated all setters in API of AST. Use `parseString()` instead.
+
 ## 1.1.0
 * Deprecated `TypeProvider.futureType2()`, `iterableType2()`, etc.
   Use corresponding `TypeProvider.futureType()`, `iterableType()`, etc.

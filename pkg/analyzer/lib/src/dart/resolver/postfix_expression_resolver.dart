@@ -118,7 +118,7 @@ class PostfixExpressionResolver {
     }
   }
 
-  void _resolve1(PostfixExpression node, DartType receiverType) {
+  void _resolve1(PostfixExpressionImpl node, DartType receiverType) {
     Expression operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
@@ -155,7 +155,7 @@ class PostfixExpressionResolver {
     }
   }
 
-  void _resolve2(PostfixExpression node, DartType receiverType) {
+  void _resolve2(PostfixExpressionImpl node, DartType receiverType) {
     Expression operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {

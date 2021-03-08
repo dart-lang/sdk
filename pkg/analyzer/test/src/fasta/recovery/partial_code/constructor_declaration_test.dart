@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 
 import 'partial_code_support.dart';
@@ -113,9 +114,9 @@ class ConstructorTest extends PartialCodeTest {
         tail: '}');
   }
 
-  CompilationUnit setSeparator(CompilationUnit unit) {
+  CompilationUnitImpl setSeparator(CompilationUnitImpl unit) {
     var declaration = unit.declarations[0] as ClassDeclaration;
-    var member = declaration.members[0] as ConstructorDeclaration;
+    var member = declaration.members[0] as ConstructorDeclarationImpl;
     member.separator =
         Token(TokenType.COLON, member.parameters.endToken.charOffset + 1);
     return unit;

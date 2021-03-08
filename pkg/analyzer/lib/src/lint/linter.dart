@@ -16,6 +16,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/constant_verifier.dart';
@@ -328,9 +329,9 @@ class LinterContextImpl implements LinterContext {
 
   @override
   bool canBeConst(Expression expression) {
-    if (expression is InstanceCreationExpression) {
+    if (expression is InstanceCreationExpressionImpl) {
       return _canBeConstInstanceCreation(expression);
-    } else if (expression is TypedLiteral) {
+    } else if (expression is TypedLiteralImpl) {
       return _canBeConstTypedLiteral(expression);
     } else {
       return false;
@@ -338,7 +339,7 @@ class LinterContextImpl implements LinterContext {
   }
 
   @override
-  bool canBeConstConstructor(ConstructorDeclaration node) {
+  bool canBeConstConstructor(covariant ConstructorDeclarationImpl node) {
     var element = node.declaredElement!;
 
     ClassElement classElement = element.enclosingElement;
@@ -426,7 +427,7 @@ class LinterContextImpl implements LinterContext {
     return const LinterNameInScopeResolutionResult._none();
   }
 
-  bool _canBeConstInstanceCreation(InstanceCreationExpression node) {
+  bool _canBeConstInstanceCreation(InstanceCreationExpressionImpl node) {
     //
     // Verify that the invoked constructor is a const constructor.
     //
@@ -452,7 +453,7 @@ class LinterContextImpl implements LinterContext {
     }
   }
 
-  bool _canBeConstTypedLiteral(TypedLiteral node) {
+  bool _canBeConstTypedLiteral(TypedLiteralImpl node) {
     var oldKeyword = node.constKeyword;
     try {
       node.constKeyword = KeywordToken(Keyword.CONST, node.offset);

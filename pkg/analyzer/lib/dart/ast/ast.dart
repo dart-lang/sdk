@@ -69,6 +69,7 @@ abstract class AnnotatedNode implements AstNode {
 
   /// Set the documentation comment associated with this node to the given
   /// [comment].
+  @Deprecated('Clients should not build AST manually')
   set documentationComment(Comment? comment);
 
   /// Return the first token following the comment and metadata.
@@ -103,12 +104,14 @@ abstract class Annotation implements AstNode {
 
   /// Set the arguments to the constructor being invoked to the given
   /// [arguments].
+  @Deprecated('Clients should not build AST manually')
   set arguments(ArgumentList? arguments);
 
   /// Return the at sign that introduced the annotation.
   Token get atSign;
 
   /// Set the at sign that introduced the annotation to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set atSign(Token token);
 
   /// Return the name of the constructor being invoked, or `null` if this
@@ -116,6 +119,7 @@ abstract class Annotation implements AstNode {
   SimpleIdentifier? get constructorName;
 
   /// Set the name of the constructor being invoked to the given [name].
+  @Deprecated('Clients should not build AST manually')
   set constructorName(SimpleIdentifier? name);
 
   /// Return the element associated with this annotation, or `null` if the AST
@@ -124,6 +128,7 @@ abstract class Annotation implements AstNode {
   Element? get element;
 
   /// Set the element associated with this annotation to the given [element].
+  @Deprecated('Clients should not build AST manually')
   set element(Element? element);
 
   /// Return the element annotation representing this annotation in the element
@@ -132,6 +137,7 @@ abstract class Annotation implements AstNode {
 
   /// Set the element annotation representing this annotation in the element
   /// model to the given [annotation].
+  @Deprecated('Clients should not build AST manually')
   set elementAnnotation(ElementAnnotation? annotation);
 
   /// Return the name of the class defining the constructor that is being
@@ -140,6 +146,7 @@ abstract class Annotation implements AstNode {
 
   /// Set the name of the class defining the constructor that is being invoked
   /// or the name of the field that is being referenced to the given [name].
+  @Deprecated('Clients should not build AST manually')
   set name(Identifier name);
 
   @override
@@ -150,6 +157,7 @@ abstract class Annotation implements AstNode {
   Token? get period;
 
   /// Set the period before the constructor name to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set period(Token? token);
 
   /// Returns the type arguments to the constructor being invoked, or `null` if
@@ -183,18 +191,21 @@ abstract class ArgumentList implements AstNode {
   /// list to the given list of [parameters]. The list of parameters must be the
   /// same length as the number of arguments, but can contain `null` entries if
   /// a given argument does not correspond to a formal parameter.
+  @Deprecated('Clients should not build AST manually')
   set correspondingStaticParameters(List<ParameterElement?> parameters);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftParenthesis(Token token);
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightParenthesis(Token token);
 }
 
@@ -209,6 +220,7 @@ abstract class AsExpression implements Expression {
   Token get asOperator;
 
   /// Set the 'as' operator to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set asOperator(Token token);
 
   /// Return the expression used to compute the value being cast.
@@ -216,12 +228,14 @@ abstract class AsExpression implements Expression {
 
   /// Set the expression used to compute the value being cast to the given
   /// [expression].
+  @Deprecated('Clients should not build AST manually')
   set expression(Expression expression);
 
   /// Return the type being cast to.
   TypeAnnotation get type;
 
   /// Set the type being cast to to the given [type].
+  @Deprecated('Clients should not build AST manually')
   set type(TypeAnnotation type);
 }
 
@@ -241,6 +255,7 @@ abstract class Assertion implements AstNode {
   Token get assertKeyword;
 
   /// Set the token representing the 'assert' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set assertKeyword(Token token);
 
   /// Return the comma between the [condition] and the [message], or `null` if
@@ -249,6 +264,7 @@ abstract class Assertion implements AstNode {
 
   /// Set the comma between the [condition] and the [message] to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set comma(Token? token);
 
   /// Return the condition that is being asserted to be `true`.
@@ -256,12 +272,14 @@ abstract class Assertion implements AstNode {
 
   /// Set the condition that is being asserted to be `true` to the given
   /// [condition].
+  @Deprecated('Clients should not build AST manually')
   set condition(Expression condition);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftParenthesis(Token token);
 
   /// Return the message to report if the assertion fails, or `null` if no
@@ -270,12 +288,14 @@ abstract class Assertion implements AstNode {
 
   /// Set the message to report if the assertion fails to the given
   /// [expression].
+  @Deprecated('Clients should not build AST manually')
   set message(Expression? expression);
 
   ///  Return the right parenthesis.
   Token get rightParenthesis;
 
   ///  Set the right parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightParenthesis(Token token);
 }
 
@@ -290,6 +310,7 @@ abstract class AssertStatement implements Assertion, Statement {
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 }
 
@@ -308,12 +329,14 @@ abstract class AssignmentExpression
   Expression get leftHandSide;
 
   /// Return the expression used to compute the left hand side.
+  @Deprecated('Clients should not build AST manually')
   set leftHandSide(Expression expression);
 
   /// Return the assignment operator being applied.
   Token get operator;
 
   /// Set the assignment operator being applied to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set operator(Token token);
 
   /// Return the expression used to compute the right hand side.
@@ -321,6 +344,7 @@ abstract class AssignmentExpression
 
   /// Set the expression used to compute the left hand side to the given
   /// [expression].
+  @Deprecated('Clients should not build AST manually')
   set rightHandSide(Expression expression);
 }
 
@@ -689,6 +713,7 @@ abstract class AwaitExpression implements Expression {
   Token get awaitKeyword;
 
   /// Set the 'await' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set awaitKeyword(Token token);
 
   /// Return the expression whose value is being waited on.
@@ -696,6 +721,7 @@ abstract class AwaitExpression implements Expression {
 
   /// Set the expression whose value is being waited on to the given
   /// [expression].
+  @Deprecated('Clients should not build AST manually')
   set expression(Expression expression);
 }
 
@@ -712,12 +738,14 @@ abstract class BinaryExpression
 
   /// Set the expression used to compute the left operand to the given
   /// [expression].
+  @Deprecated('Clients should not build AST manually')
   set leftOperand(Expression expression);
 
   /// Return the binary operator being applied.
   Token get operator;
 
   /// Set the binary operator being applied to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set operator(Token token);
 
   /// Return the expression used to compute the right operand.
@@ -725,6 +753,7 @@ abstract class BinaryExpression
 
   /// Set the expression used to compute the right operand to the given
   /// [expression].
+  @Deprecated('Clients should not build AST manually')
   set rightOperand(Expression expression);
 
   /// The function type of the invocation, or `null` if the AST structure has
@@ -732,6 +761,7 @@ abstract class BinaryExpression
   FunctionType? get staticInvokeType;
 
   /// Sets the function type of the invocation.
+  @Deprecated('Clients should not build AST manually')
   set staticInvokeType(FunctionType? value);
 }
 
@@ -746,12 +776,14 @@ abstract class Block implements Statement {
   Token get leftBracket;
 
   /// Set the left curly bracket to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftBracket(Token token);
 
   /// Return the right curly bracket.
   Token get rightBracket;
 
   /// Set the right curly bracket to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightBracket(Token token);
 
   /// Return the statements contained in the block.
@@ -769,12 +801,15 @@ abstract class BlockFunctionBody implements FunctionBody {
   Block get block;
 
   /// Set the block representing the body of the function to the given [block].
+  @Deprecated('Clients should not build AST manually')
   set block(Block block);
 
   /// Set token representing the 'async' or 'sync' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set keyword(Token? token);
 
   /// Set the star following the 'async' or 'sync' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set star(Token? token);
 }
 
@@ -789,6 +824,7 @@ abstract class BooleanLiteral implements Literal {
   Token get literal;
 
   /// Set the token representing the literal to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set literal(Token token);
 
   /// Return the value of the literal.
@@ -806,6 +842,7 @@ abstract class BreakStatement implements Statement {
   Token get breakKeyword;
 
   /// Set the token representing the 'break' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set breakKeyword(Token token);
 
   /// Return the label associated with the statement, or `null` if there is no
@@ -813,12 +850,14 @@ abstract class BreakStatement implements Statement {
   SimpleIdentifier? get label;
 
   /// Set the label associated with the statement to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set label(SimpleIdentifier? identifier);
 
   /// Return the semicolon terminating the statement.
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 
   /// Return the node from which this break statement is breaking.
@@ -833,6 +872,7 @@ abstract class BreakStatement implements Statement {
 
   /// Set the node from which this break statement is breaking to the given
   /// [node].
+  @Deprecated('Clients should not build AST manually')
   set target(AstNode? node);
 }
 
@@ -866,6 +906,7 @@ abstract class CascadeExpression
   Expression get target;
 
   /// Set the target of the cascade sections to the given [target].
+  @Deprecated('Clients should not build AST manually')
   set target(Expression target);
 }
 
@@ -884,6 +925,7 @@ abstract class CatchClause implements AstNode {
   Block get body;
 
   /// Set the body of the catch block to the given [block].
+  @Deprecated('Clients should not build AST manually')
   set body(Block block);
 
   /// Return the token representing the 'catch' keyword, or `null` if there is
@@ -891,6 +933,7 @@ abstract class CatchClause implements AstNode {
   Token? get catchKeyword;
 
   /// Set the token representing the 'catch' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set catchKeyword(Token? token);
 
   /// Return the comma separating the exception parameter from the stack trace
@@ -899,6 +942,7 @@ abstract class CatchClause implements AstNode {
 
   /// Set the comma separating the exception parameter from the stack trace
   /// parameter to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set comma(Token? token);
 
   /// Return the parameter whose value will be the exception that was thrown, or
@@ -907,6 +951,7 @@ abstract class CatchClause implements AstNode {
 
   /// Set the parameter whose value will be the exception that was thrown to the
   /// given [parameter].
+  @Deprecated('Clients should not build AST manually')
   set exceptionParameter(SimpleIdentifier? parameter);
 
   /// Return the type of exceptions caught by this catch clause, or `null` if
@@ -915,12 +960,14 @@ abstract class CatchClause implements AstNode {
 
   /// Set the type of exceptions caught by this catch clause to the given
   /// [exceptionType].
+  @Deprecated('Clients should not build AST manually')
   set exceptionType(TypeAnnotation? exceptionType);
 
   /// Return the left parenthesis, or `null` if there is no 'catch' keyword.
   Token? get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftParenthesis(Token? token);
 
   /// Return the token representing the 'on' keyword, or `null` if there is no
@@ -928,12 +975,14 @@ abstract class CatchClause implements AstNode {
   Token? get onKeyword;
 
   /// Set the token representing the 'on' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set onKeyword(Token? token);
 
   /// Return the right parenthesis, or `null` if there is no 'catch' keyword.
   Token? get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightParenthesis(Token? token);
 
   /// Return the parameter whose value will be the stack trace associated with
@@ -942,6 +991,7 @@ abstract class CatchClause implements AstNode {
 
   /// Set the parameter whose value will be the stack trace associated with the
   /// exception to the given [parameter].
+  @Deprecated('Clients should not build AST manually')
   set stackTraceParameter(SimpleIdentifier? parameter);
 }
 
@@ -959,12 +1009,14 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   Token? get abstractKeyword;
 
   /// Set the 'abstract' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set abstractKeyword(Token? token);
 
   /// Return the token representing the 'class' keyword.
   Token get classKeyword;
 
   /// Set the token representing the 'class' keyword.
+  @Deprecated('Clients should not build AST manually')
   set classKeyword(Token token);
 
   /// Return the extends clause for this class, or `null` if the class does not
@@ -972,15 +1024,18 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   ExtendsClause? get extendsClause;
 
   /// Set the extends clause for this class to the given [extendsClause].
+  @Deprecated('Clients should not build AST manually')
   set extendsClause(ExtendsClause? extendsClause);
 
   /// Set the implements clause for the class to the given [implementsClause].
+  @Deprecated('Clients should not build AST manually')
   set implementsClause(ImplementsClause? implementsClause);
 
   /// Return `true` if this class is declared to be an abstract class.
   bool get isAbstract;
 
   /// Set the left curly bracket to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftBracket(Token token);
 
   /// Return the native clause for this class, or `null` if the class does not
@@ -988,13 +1043,16 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   NativeClause? get nativeClause;
 
   /// Set the native clause for this class to the given [nativeClause].
+  @Deprecated('Clients should not build AST manually')
   set nativeClause(NativeClause? nativeClause);
 
   /// Set the right curly bracket to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightBracket(Token token);
 
   /// Set the type parameters for the class to the given list of
   /// [typeParameters].
+  @Deprecated('Clients should not build AST manually')
   set typeParameters(TypeParameterList? typeParameters);
 
   /// Return the with clause for the class, or `null` if the class does not have
@@ -1002,6 +1060,7 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   WithClause? get withClause;
 
   /// Set the with clause for the class to the given [withClause].
+  @Deprecated('Clients should not build AST manually')
   set withClause(WithClause? withClause);
 
   /// Return the constructor declared in the class with the given [name], or
@@ -1071,6 +1130,7 @@ abstract class ClassTypeAlias implements TypeAlias {
   Token? get abstractKeyword;
 
   /// Set the token for the 'abstract' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set abstractKeyword(Token? token);
 
   @override
@@ -1081,6 +1141,7 @@ abstract class ClassTypeAlias implements TypeAlias {
 
   /// Set the token for the '=' separating the name from the definition to the
   /// given [token].
+  @Deprecated('Clients should not build AST manually')
   set equals(Token token);
 
   /// Return the implements clause for this class, or `null` if there is no
@@ -1088,6 +1149,7 @@ abstract class ClassTypeAlias implements TypeAlias {
   ImplementsClause? get implementsClause;
 
   /// Set the implements clause for this class to the given [implementsClause].
+  @Deprecated('Clients should not build AST manually')
   set implementsClause(ImplementsClause? implementsClause);
 
   /// Return `true` if this class is declared to be an abstract class.
@@ -1101,6 +1163,7 @@ abstract class ClassTypeAlias implements TypeAlias {
 
   /// Set the name of the superclass of the class being declared to the given
   /// [superclass] name.
+  @Deprecated('Clients should not build AST manually')
   set superclass(TypeName superclass);
 
   /// Return the type parameters for the class, or `null` if the class does not
@@ -1109,12 +1172,14 @@ abstract class ClassTypeAlias implements TypeAlias {
 
   /// Set the type parameters for the class to the given list of
   /// [typeParameters].
+  @Deprecated('Clients should not build AST manually')
   set typeParameters(TypeParameterList? typeParameters);
 
   /// Return the with clause for this class.
   WithClause get withClause;
 
   /// Set the with clause for this class to the given with [withClause].
+  @Deprecated('Clients should not build AST manually')
   set withClause(WithClause withClause);
 }
 
@@ -1144,6 +1209,7 @@ abstract class Combinator implements AstNode {
 
   /// Set the 'hide' or 'show' keyword specifying what kind of processing is
   /// to be done on the names to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set keyword(Token token);
 }
 
@@ -1193,6 +1259,7 @@ abstract class CommentReference implements AstNode {
   Identifier get identifier;
 
   /// Set the identifier being referenced to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set identifier(Identifier identifier);
 
   /// Return the token representing the 'new' keyword, or `null` if there was no
@@ -1200,6 +1267,7 @@ abstract class CommentReference implements AstNode {
   Token? get newKeyword;
 
   /// Set the token representing the 'new' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set newKeyword(Token? token);
 }
 
@@ -1229,6 +1297,7 @@ abstract class CommentReference implements AstNode {
 abstract class CompilationUnit implements AstNode {
   /// Set the first token included in this node's source range to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set beginToken(Token token);
 
   /// Return the declarations contained in this compilation unit.
@@ -1243,10 +1312,12 @@ abstract class CompilationUnit implements AstNode {
 
   /// Set the element associated with this compilation unit to the given
   /// [element].
+  @Deprecated('Clients should not build AST manually')
   set element(CompilationUnitElement? element);
 
   /// Set the last token included in this node's source range to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set endToken(Token token);
 
   /// The set of features available to this compilation unit.
@@ -1264,6 +1335,7 @@ abstract class CompilationUnit implements AstNode {
   LineInfo? get lineInfo;
 
   /// Set the line information for this compilation unit to the given [info].
+  @Deprecated('Clients should not build AST manually')
   set lineInfo(LineInfo? info);
 
   /// Return the script tag at the beginning of the compilation unit, or `null`
@@ -1272,6 +1344,7 @@ abstract class CompilationUnit implements AstNode {
 
   /// Set the script tag at the beginning of the compilation unit to the given
   /// [scriptTag].
+  @Deprecated('Clients should not build AST manually')
   set scriptTag(ScriptTag? scriptTag);
 
   /// Return a list containing all of the directives and declarations in this
@@ -1366,6 +1439,7 @@ abstract class ConditionalExpression implements Expression {
 
   /// Set the token used to separate the then expression from the else
   /// expression to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set colon(Token token);
 
   /// Return the condition used to determine which of the expressions is
@@ -1374,6 +1448,7 @@ abstract class ConditionalExpression implements Expression {
 
   /// Set the condition used to determine which of the expressions is executed
   /// next to the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set condition(Expression expression);
 
   /// Return the expression that is executed if the condition evaluates to
@@ -1382,6 +1457,7 @@ abstract class ConditionalExpression implements Expression {
 
   /// Set the expression that is executed if the condition evaluates to `false`
   /// to the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set elseExpression(Expression expression);
 
   /// Return the token used to separate the condition from the then expression.
@@ -1389,6 +1465,7 @@ abstract class ConditionalExpression implements Expression {
 
   /// Set the token used to separate the condition from the then expression to
   /// the given [token].
+  @Deprecated('Clients should not build AST manually')
   set question(Token token);
 
   /// Return the expression that is executed if the condition evaluates to
@@ -1397,6 +1474,7 @@ abstract class ConditionalExpression implements Expression {
 
   /// Set the expression that is executed if the condition evaluates to `true`
   /// to the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set thenExpression(Expression expression);
 }
 
@@ -1418,18 +1496,21 @@ abstract class Configuration implements AstNode {
   Token? get equalToken;
 
   /// Set the token for the equal operator to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set equalToken(Token? token);
 
   /// Return the token for the 'if' keyword.
   Token get ifKeyword;
 
   /// Set the token for the 'if' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set ifKeyword(Token token);
 
   /// Return the token for the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the token for the left parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftParenthesis(Token token);
 
   /// Return the name of the declared variable whose value is being used in the
@@ -1438,12 +1519,14 @@ abstract class Configuration implements AstNode {
 
   /// Set the name of the declared variable whose value is being used in the
   /// condition to the given [name].
+  @Deprecated('Clients should not build AST manually')
   set name(DottedName name);
 
   /// Return the token for the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the token for the right parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightParenthesis(Token token);
 
   /// Return the URI of the implementation library to be used if the condition
@@ -1452,12 +1535,14 @@ abstract class Configuration implements AstNode {
 
   /// Set the URI of the implementation library to be used if the condition is
   /// true to the given [uri].
+  @Deprecated('Clients should not build AST manually')
   set uri(StringLiteral uri);
 
   /// Return the source to which the [uri] was resolved.
   Source? get uriSource;
 
   /// Set the source to which the [uri] was resolved to the given [source].
+  @Deprecated('Clients should not build AST manually')
   set uriSource(Source? source);
 
   /// Return the value to which the value of the declared variable will be
@@ -1466,6 +1551,7 @@ abstract class Configuration implements AstNode {
 
   /// Set the value to which the value of the declared variable will be
   /// compared to the given [value].
+  @Deprecated('Clients should not build AST manually')
   set value(StringLiteral? value);
 }
 
@@ -1495,6 +1581,7 @@ abstract class ConstructorDeclaration implements ClassMember {
   FunctionBody get body;
 
   /// Set the body of the constructor to the given [functionBody].
+  @Deprecated('Clients should not build AST manually')
   set body(FunctionBody functionBody);
 
   /// Return the token for the 'const' keyword, or `null` if the constructor is
@@ -1502,6 +1589,7 @@ abstract class ConstructorDeclaration implements ClassMember {
   Token? get constKeyword;
 
   /// Set the token for the 'const' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set constKeyword(Token? token);
 
   @override
@@ -1512,6 +1600,7 @@ abstract class ConstructorDeclaration implements ClassMember {
 
   /// Set the token for the 'external' keyword, or `null` if the constructor
   /// is not external.
+  @Deprecated('Clients should not build AST manually')
   set externalKeyword(Token? token);
 
   /// Return the token for the 'factory' keyword, or `null` if the constructor
@@ -1519,6 +1608,7 @@ abstract class ConstructorDeclaration implements ClassMember {
   Token? get factoryKeyword;
 
   /// Set the token for the 'factory' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set factoryKeyword(Token? token);
 
   /// Return the initializers associated with the constructor.
@@ -1529,6 +1619,7 @@ abstract class ConstructorDeclaration implements ClassMember {
   SimpleIdentifier? get name;
 
   /// Set the name of the constructor to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set name(SimpleIdentifier? identifier);
 
   /// Return the parameters associated with the constructor.
@@ -1536,6 +1627,7 @@ abstract class ConstructorDeclaration implements ClassMember {
 
   /// Set the parameters associated with the constructor to the given list of
   /// [parameters].
+  @Deprecated('Clients should not build AST manually')
   set parameters(FormalParameterList parameters);
 
   /// Return the token for the period before the constructor name, or `null` if
@@ -1544,6 +1636,7 @@ abstract class ConstructorDeclaration implements ClassMember {
 
   /// Set the token for the period before the constructor name to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set period(Token? token);
 
   /// Return the name of the constructor to which this constructor will be
@@ -1552,6 +1645,7 @@ abstract class ConstructorDeclaration implements ClassMember {
 
   /// Set the name of the constructor to which this constructor will be
   /// redirected to the given [redirectedConstructor] name.
+  @Deprecated('Clients should not build AST manually')
   set redirectedConstructor(ConstructorName? redirectedConstructor);
 
   /// Return the type of object being created.
@@ -1562,6 +1656,7 @@ abstract class ConstructorDeclaration implements ClassMember {
   Identifier get returnType;
 
   /// Set the type of object being created to the given [typeName].
+  @Deprecated('Clients should not build AST manually')
   set returnType(Identifier typeName);
 
   /// Return the token for the separator (colon or equals) before the
@@ -1570,6 +1665,7 @@ abstract class ConstructorDeclaration implements ClassMember {
 
   /// Set the token for the separator (colon or equals) before the initializer
   /// list or redirection to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set separator(Token? token);
 }
 
@@ -1586,6 +1682,7 @@ abstract class ConstructorFieldInitializer implements ConstructorInitializer {
 
   /// Set the token for the equal sign between the field name and the
   /// expression to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set equals(Token token);
 
   /// Return the expression computing the value to which the field will be
@@ -1594,12 +1691,14 @@ abstract class ConstructorFieldInitializer implements ConstructorInitializer {
 
   /// Set the expression computing the value to which the field will be
   /// initialized to the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set expression(Expression expression);
 
   /// Return the name of the field being initialized.
   SimpleIdentifier get fieldName;
 
   /// Set the name of the field being initialized to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set fieldName(SimpleIdentifier identifier);
 
   /// Return the token for the period after the 'this' keyword, or `null` if
@@ -1608,6 +1707,7 @@ abstract class ConstructorFieldInitializer implements ConstructorInitializer {
 
   /// Set the token for the period after the 'this' keyword to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set period(Token? token);
 
   /// Return the token for the 'this' keyword, or `null` if there is no 'this'
@@ -1615,6 +1715,7 @@ abstract class ConstructorFieldInitializer implements ConstructorInitializer {
   Token? get thisKeyword;
 
   /// Set the token for the 'this' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set thisKeyword(Token? token);
 }
 
@@ -1640,6 +1741,7 @@ abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
   SimpleIdentifier? get name;
 
   /// Set the name of the constructor to the given [name].
+  @Deprecated('Clients should not build AST manually')
   set name(SimpleIdentifier? name);
 
   /// Return the token for the period before the constructor name, or `null` if
@@ -1648,6 +1750,7 @@ abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
 
   /// Set the token for the period before the constructor name to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set period(Token? token);
 
   /// Return the name of the type defining the constructor.
@@ -1655,6 +1758,7 @@ abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
 
   /// Set the name of the type defining the constructor to the given [type]
   /// name.
+  @Deprecated('Clients should not build AST manually')
   set type(TypeName type);
 }
 
@@ -1669,6 +1773,7 @@ abstract class ConstructorReferenceNode implements AstNode {
 
   /// Set the element associated with the referenced constructor based on static
   /// type information to the given [element].
+  @Deprecated('Clients should not build AST manually')
   set staticElement(ConstructorElement? element);
 }
 
@@ -1683,6 +1788,7 @@ abstract class ContinueStatement implements Statement {
   Token get continueKeyword;
 
   /// Set the token representing the 'continue' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set continueKeyword(Token token);
 
   /// Return the label associated with the statement, or `null` if there is no
@@ -1690,12 +1796,14 @@ abstract class ContinueStatement implements Statement {
   SimpleIdentifier? get label;
 
   /// Set the label associated with the statement to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set label(SimpleIdentifier? identifier);
 
   /// Return the semicolon terminating the statement.
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 
   /// Return the node to which this continue statement is continuing.
@@ -1710,6 +1818,7 @@ abstract class ContinueStatement implements Statement {
 
   /// Set the node to which this continue statement is continuing to the given
   /// [node].
+  @Deprecated('Clients should not build AST manually')
   set target(AstNode? node);
 }
 
@@ -1739,6 +1848,7 @@ abstract class DeclaredIdentifier implements Declaration {
   SimpleIdentifier get identifier;
 
   /// Set the name of the variable being declared to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set identifier(SimpleIdentifier identifier);
 
   /// Return `true` if this variable was declared with the 'const' modifier.
@@ -1755,6 +1865,7 @@ abstract class DeclaredIdentifier implements Declaration {
 
   /// Set the token representing either the 'final', 'const' or 'var' keyword to
   /// the given [token].
+  @Deprecated('Clients should not build AST manually')
   set keyword(Token? token);
 
   /// Return the name of the declared type of the parameter, or `null` if the
@@ -1762,6 +1873,7 @@ abstract class DeclaredIdentifier implements Declaration {
   TypeAnnotation? get type;
 
   /// Set the declared type of the parameter to the given [type].
+  @Deprecated('Clients should not build AST manually')
   set type(TypeAnnotation? type);
 }
 
@@ -1784,9 +1896,11 @@ abstract class DefaultFormalParameter implements FormalParameter {
 
   /// Set the expression computing the default value for the parameter to the
   /// given [expression].
+  @Deprecated('Clients should not build AST manually')
   set defaultValue(Expression? expression);
 
   /// Set the kind of this parameter to the given [kind].
+  @Deprecated('Clients should not build AST manually')
   set kind(ParameterKind kind);
 
   /// Return the formal parameter with which the default value is associated.
@@ -1794,6 +1908,7 @@ abstract class DefaultFormalParameter implements FormalParameter {
 
   /// Set the formal parameter with which the default value is associated to the
   /// given [formalParameter].
+  @Deprecated('Clients should not build AST manually')
   set parameter(NormalFormalParameter formalParameter);
 
   /// Return the token separating the parameter from the default value, or
@@ -1802,6 +1917,7 @@ abstract class DefaultFormalParameter implements FormalParameter {
 
   /// Set the token separating the parameter from the default value to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set separator(Token? token);
 }
 
@@ -1822,6 +1938,7 @@ abstract class Directive implements AnnotatedNode {
   Element? get element;
 
   /// Set the element associated with this directive to the given [element].
+  @Deprecated('Clients should not build AST manually')
   set element(Element? element);
 
   /// Return the token representing the keyword that introduces this directive
@@ -1840,6 +1957,7 @@ abstract class DoStatement implements Statement {
   Statement get body;
 
   /// Set the body of the loop to the given [statement].
+  @Deprecated('Clients should not build AST manually')
   set body(Statement statement);
 
   /// Return the condition that determines when the loop will terminate.
@@ -1847,36 +1965,42 @@ abstract class DoStatement implements Statement {
 
   /// Set the condition that determines when the loop will terminate to the
   /// given [expression].
+  @Deprecated('Clients should not build AST manually')
   set condition(Expression expression);
 
   /// Return the token representing the 'do' keyword.
   Token get doKeyword;
 
   /// Set the token representing the 'do' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set doKeyword(Token token);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftParenthesis(Token token);
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightParenthesis(Token token);
 
   /// Return the semicolon terminating the statement.
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 
   /// Return the token representing the 'while' keyword.
   Token get whileKeyword;
 
   /// Set the token representing the 'while' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set whileKeyword(Token token);
 }
 
@@ -1906,12 +2030,14 @@ abstract class DoubleLiteral implements Literal {
   Token get literal;
 
   /// Set the token representing the literal to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set literal(Token token);
 
   /// Return the value of the literal.
   double get value;
 
   /// Set the value of the literal to the given [value].
+  @Deprecated('Clients should not build AST manually')
   set value(double value);
 }
 
@@ -1929,6 +2055,7 @@ abstract class EmptyFunctionBody implements FunctionBody {
 
   /// Set the token representing the semicolon that marks the end of the
   /// function body to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 }
 
@@ -1943,6 +2070,7 @@ abstract class EmptyStatement implements Statement {
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 }
 
@@ -1954,6 +2082,7 @@ abstract class EnumConstantDeclaration implements Declaration {
   SimpleIdentifier get name;
 
   /// Set the name of the constant to the given [name].
+  @Deprecated('Clients should not build AST manually')
   set name(SimpleIdentifier name);
 }
 
@@ -1974,12 +2103,14 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
   Token get enumKeyword;
 
   /// Set the 'enum' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set enumKeyword(Token token);
 
   /// Return the left curly bracket.
   Token get leftBracket;
 
   /// Set the left curly bracket to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftBracket(Token token);
 
   @override
@@ -1989,6 +2120,7 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
   Token get rightBracket;
 
   /// Set the right curly bracket to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightBracket(Token token);
 }
 
@@ -2036,6 +2168,7 @@ abstract class Expression implements CollectionElement {
   DartType? get staticType;
 
   /// Set the static type of this expression to the given [type].
+  @Deprecated('Clients should not build AST manually')
   set staticType(DartType? type);
 
   /// If this expression is a parenthesized expression, return the result of
@@ -2056,6 +2189,7 @@ abstract class ExpressionFunctionBody implements FunctionBody {
 
   /// Set the expression representing the body of the function to the given
   /// [expression].
+  @Deprecated('Clients should not build AST manually')
   set expression(Expression expression);
 
   /// Return the token introducing the expression that represents the body of the
@@ -2064,15 +2198,18 @@ abstract class ExpressionFunctionBody implements FunctionBody {
 
   /// Set the token introducing the expression that represents the body of the
   /// function to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set functionDefinition(Token token);
 
   /// Set token representing the 'async' or 'sync' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set keyword(Token? token);
 
   /// Return the semicolon terminating the statement.
   Token? get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token? token);
 }
 
@@ -2087,6 +2224,7 @@ abstract class ExpressionStatement implements Statement {
   Expression get expression;
 
   /// Set the expression that comprises the statement to the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set expression(Expression expression);
 
   /// Return the semicolon terminating the statement, or `null` if the
@@ -2095,6 +2233,7 @@ abstract class ExpressionStatement implements Statement {
   Token? get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token? token);
 }
 
@@ -2109,12 +2248,14 @@ abstract class ExtendsClause implements AstNode {
   Token get extendsKeyword;
 
   /// Set the token representing the 'extends' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set extendsKeyword(Token token);
 
   /// Return the name of the class that is being extended.
   TypeName get superclass;
 
   /// Set the name of the class that is being extended to the given [name].
+  @Deprecated('Clients should not build AST manually')
   set superclass(TypeName name);
 }
 
@@ -2231,6 +2372,7 @@ abstract class FieldDeclaration implements ClassMember {
   Token? get covariantKeyword;
 
   /// Set the token for the 'covariant' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set covariantKeyword(Token? token);
 
   /// The `external` keyword, or `null` if the keyword was not used.
@@ -2240,6 +2382,7 @@ abstract class FieldDeclaration implements ClassMember {
   VariableDeclarationList get fields;
 
   /// Set the fields being declared to the given list of [fields].
+  @Deprecated('Clients should not build AST manually')
   set fields(VariableDeclarationList fields);
 
   /// Return `true` if the fields are declared to be static.
@@ -2249,6 +2392,7 @@ abstract class FieldDeclaration implements ClassMember {
   Token get semicolon;
 
   /// Set the semicolon terminating the declaration to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 
   /// Return the token representing the 'static' keyword, or `null` if the
@@ -2256,6 +2400,7 @@ abstract class FieldDeclaration implements ClassMember {
   Token? get staticKeyword;
 
   /// Set the token representing the 'static' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set staticKeyword(Token? token);
 }
 
@@ -2276,6 +2421,7 @@ abstract class FieldFormalParameter implements NormalFormalParameter {
 
   /// Set the token representing either the 'final', 'const' or 'var' keyword to
   /// the given [token].
+  @Deprecated('Clients should not build AST manually')
   set keyword(Token? token);
 
   /// Return the parameters of the function-typed parameter, or `null` if this
@@ -2284,12 +2430,14 @@ abstract class FieldFormalParameter implements NormalFormalParameter {
 
   /// Set the parameters of the function-typed parameter to the given
   /// [parameters].
+  @Deprecated('Clients should not build AST manually')
   set parameters(FormalParameterList? parameters);
 
   /// Return the token representing the period.
   Token get period;
 
   /// Set the token representing the period to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set period(Token token);
 
   /// If the parameter is function-typed, and has the question mark, then its
@@ -2301,6 +2449,7 @@ abstract class FieldFormalParameter implements NormalFormalParameter {
   Token get thisKeyword;
 
   /// Set the token representing the 'this' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set thisKeyword(Token token);
 
   /// Return the declared type of the parameter, or `null` if the parameter does
@@ -2311,6 +2460,7 @@ abstract class FieldFormalParameter implements NormalFormalParameter {
   TypeAnnotation? get type;
 
   /// Set the declared type of the parameter to the given [type].
+  @Deprecated('Clients should not build AST manually')
   set type(TypeAnnotation? type);
 
   /// Return the type parameters associated with this method, or `null` if this
@@ -2319,6 +2469,7 @@ abstract class FieldFormalParameter implements NormalFormalParameter {
 
   /// Set the type parameters associated with this method to the given
   /// [typeParameters].
+  @Deprecated('Clients should not build AST manually')
   set typeParameters(TypeParameterList? typeParameters);
 }
 
@@ -2506,12 +2657,14 @@ abstract class FormalParameterList implements AstNode {
 
   /// Set the left square bracket ('[') or left curly brace ('{') introducing
   /// the optional parameters to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftDelimiter(Token? token);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftParenthesis(Token token);
 
   /// Return a list containing the elements representing the parameters in this
@@ -2531,12 +2684,14 @@ abstract class FormalParameterList implements AstNode {
 
   /// Set the right square bracket (']') or right curly brace ('}') terminating
   /// the optional parameters to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightDelimiter(Token? token);
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightParenthesis(Token token);
 }
 
@@ -2693,6 +2848,7 @@ abstract class FunctionDeclaration implements NamedCompilationUnitMember {
   Token? get externalKeyword;
 
   /// Set the token representing the 'external' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set externalKeyword(Token? token);
 
   /// Return the function expression being wrapped.
@@ -2700,6 +2856,7 @@ abstract class FunctionDeclaration implements NamedCompilationUnitMember {
 
   /// Set the function expression being wrapped to the given
   /// [functionExpression].
+  @Deprecated('Clients should not build AST manually')
   set functionExpression(FunctionExpression functionExpression);
 
   /// Return `true` if this function declares a getter.
@@ -2717,6 +2874,7 @@ abstract class FunctionDeclaration implements NamedCompilationUnitMember {
 
   /// Set the token representing the 'get' or 'set' keyword to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set propertyKeyword(Token? token);
 
   /// Return the return type of the function, or `null` if no return type was
@@ -2724,6 +2882,7 @@ abstract class FunctionDeclaration implements NamedCompilationUnitMember {
   TypeAnnotation? get returnType;
 
   /// Set the return type of the function to the given [type].
+  @Deprecated('Clients should not build AST manually')
   set returnType(TypeAnnotation? type);
 }
 
@@ -2736,6 +2895,7 @@ abstract class FunctionDeclarationStatement implements Statement {
 
   /// Set the function declaration being wrapped to the given
   /// [functionDeclaration].
+  @Deprecated('Clients should not build AST manually')
   set functionDeclaration(FunctionDeclaration functionDeclaration);
 }
 
@@ -2750,6 +2910,7 @@ abstract class FunctionExpression implements Expression {
   FunctionBody get body;
 
   /// Set the body of the function to the given [functionBody].
+  @Deprecated('Clients should not build AST manually')
   set body(FunctionBody functionBody);
 
   /// Return the element associated with the function, or `null` if the AST
@@ -2762,6 +2923,7 @@ abstract class FunctionExpression implements Expression {
 
   /// Set the parameters associated with the function to the given list of
   /// [parameters].
+  @Deprecated('Clients should not build AST manually')
   set parameters(FormalParameterList? parameters);
 
   /// Return the type parameters associated with this method, or `null` if this
@@ -2770,6 +2932,7 @@ abstract class FunctionExpression implements Expression {
 
   /// Set the type parameters associated with this method to the given
   /// [typeParameters].
+  @Deprecated('Clients should not build AST manually')
   set typeParameters(TypeParameterList? typeParameters);
 }
 
@@ -2786,6 +2949,7 @@ abstract class FunctionExpression implements Expression {
 abstract class FunctionExpressionInvocation
     implements NullShortableExpression, InvocationExpression {
   /// Set the list of arguments to the method to the given [argumentList].
+  @Deprecated('Clients should not build AST manually')
   set argumentList(ArgumentList argumentList);
 
   /// Return the expression producing the function being invoked.
@@ -2794,6 +2958,7 @@ abstract class FunctionExpressionInvocation
 
   /// Set the expression producing the function being invoked to the given
   /// [expression].
+  @Deprecated('Clients should not build AST manually')
   set function(Expression expression);
 
   /// Return the element associated with the function being invoked based on
@@ -2803,10 +2968,12 @@ abstract class FunctionExpressionInvocation
 
   /// Set the element associated with the function being invoked based on static
   /// type information to the given [element].
+  @Deprecated('Clients should not build AST manually')
   set staticElement(ExecutableElement? element);
 
   /// Set the type arguments to be applied to the method being invoked to the
   /// given [typeArguments].
+  @Deprecated('Clients should not build AST manually')
   set typeArguments(TypeArgumentList? typeArguments);
 }
 
@@ -2829,6 +2996,7 @@ abstract class FunctionTypeAlias implements TypeAlias {
 
   /// Set the parameters associated with the function type to the given list of
   /// [parameters].
+  @Deprecated('Clients should not build AST manually')
   set parameters(FormalParameterList parameters);
 
   /// Return the return type of the function type being defined, or `null` if no
@@ -2837,6 +3005,7 @@ abstract class FunctionTypeAlias implements TypeAlias {
 
   /// Set the return type of the function type being defined to the given
   /// [type].
+  @Deprecated('Clients should not build AST manually')
   set returnType(TypeAnnotation? type);
 
   /// Return the type parameters for the function type, or `null` if the
@@ -2845,6 +3014,7 @@ abstract class FunctionTypeAlias implements TypeAlias {
 
   /// Set the type parameters for the function type to the given list of
   /// [typeParameters].
+  @Deprecated('Clients should not build AST manually')
   set typeParameters(TypeParameterList? typeParameters);
 }
 
@@ -2864,6 +3034,7 @@ abstract class FunctionTypedFormalParameter implements NormalFormalParameter {
 
   /// Set the parameters of the function-typed parameter to the given
   /// [parameters].
+  @Deprecated('Clients should not build AST manually')
   set parameters(FormalParameterList parameters);
 
   /// Return the question mark indicating that the function type is nullable, or
@@ -2876,6 +3047,7 @@ abstract class FunctionTypedFormalParameter implements NormalFormalParameter {
   TypeAnnotation? get returnType;
 
   /// Set the return type of the function to the given [type].
+  @Deprecated('Clients should not build AST manually')
   set returnType(TypeAnnotation? type);
 
   /// Return the type parameters associated with this function, or `null` if
@@ -2884,6 +3056,7 @@ abstract class FunctionTypedFormalParameter implements NormalFormalParameter {
 
   /// Set the type parameters associated with this method to the given
   /// [typeParameters].
+  @Deprecated('Clients should not build AST manually')
   set typeParameters(TypeParameterList? typeParameters);
 }
 
@@ -2922,6 +3095,7 @@ abstract class GenericFunctionType implements TypeAnnotation {
   Token get functionKeyword;
 
   /// Set the keyword 'Function' to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set functionKeyword(Token token);
 
   /// Return the parameters associated with the function type.
@@ -2929,10 +3103,12 @@ abstract class GenericFunctionType implements TypeAnnotation {
 
   /// Set the parameters associated with the function type to the given list of
   /// [parameters].
+  @Deprecated('Clients should not build AST manually')
   set parameters(FormalParameterList parameters);
 
   /// Set the question mark indicating that the type is nullable to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set question(Token? token);
 
   /// Return the return type of the function type being defined, or `null` if
@@ -2940,6 +3116,7 @@ abstract class GenericFunctionType implements TypeAnnotation {
   TypeAnnotation? get returnType;
 
   /// Set the return type of the function type being defined to the given[type].
+  @Deprecated('Clients should not build AST manually')
   set returnType(TypeAnnotation? type);
 
   /// Return the type parameters for the function type, or `null` if the
@@ -2948,6 +3125,7 @@ abstract class GenericFunctionType implements TypeAnnotation {
 
   /// Set the type parameters for the function type to the given list of
   /// [typeParameters].
+  @Deprecated('Clients should not build AST manually')
   set typeParameters(TypeParameterList? typeParameters);
 }
 
@@ -3071,6 +3249,7 @@ abstract class IfStatement implements Statement {
 
   /// Set the condition used to determine which of the statements is executed
   /// next to the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set condition(Expression expression);
 
   /// Return the token representing the 'else' keyword, or `null` if there is no
@@ -3078,6 +3257,7 @@ abstract class IfStatement implements Statement {
   Token? get elseKeyword;
 
   /// Set the token representing the 'else' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set elseKeyword(Token? token);
 
   /// Return the statement that is executed if the condition evaluates to
@@ -3086,24 +3266,28 @@ abstract class IfStatement implements Statement {
 
   /// Set the statement that is executed if the condition evaluates to `false`
   /// to the given [statement].
+  @Deprecated('Clients should not build AST manually')
   set elseStatement(Statement? statement);
 
   /// Return the token representing the 'if' keyword.
   Token get ifKeyword;
 
   /// Set the token representing the 'if' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set ifKeyword(Token token);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftParenthesis(Token token);
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightParenthesis(Token token);
 
   /// Return the statement that is executed if the condition evaluates to
@@ -3112,6 +3296,7 @@ abstract class IfStatement implements Statement {
 
   /// Set the statement that is executed if the condition evaluates to `true` to
   /// the given [statement].
+  @Deprecated('Clients should not build AST manually')
   set thenStatement(Statement statement);
 }
 
@@ -3126,6 +3311,7 @@ abstract class ImplementsClause implements AstNode {
   Token get implementsKeyword;
 
   /// Set the token representing the 'implements' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set implementsKeyword(Token token);
 
   /// Return the list of the interfaces that are being implemented.
@@ -3251,6 +3437,7 @@ abstract class ImportDirective implements NamespaceDirective {
   Token? get asKeyword;
 
   /// Set the token representing the 'as' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set asKeyword(Token? token);
 
   /// Return the token representing the 'deferred' keyword, or `null` if the
@@ -3258,6 +3445,7 @@ abstract class ImportDirective implements NamespaceDirective {
   Token? get deferredKeyword;
 
   /// Set the token representing the 'deferred' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set deferredKeyword(Token? token);
 
   @override
@@ -3269,6 +3457,7 @@ abstract class ImportDirective implements NamespaceDirective {
 
   /// Set the prefix to be used with the imported names to the given
   /// [identifier].
+  @Deprecated('Clients should not build AST manually')
   set prefix(SimpleIdentifier? identifier);
 }
 
@@ -3284,6 +3473,7 @@ abstract class IndexExpression
   Expression get index;
 
   /// Set the expression used to compute the index to the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set index(Expression expression);
 
   /// Return `true` if this expression is cascaded.
@@ -3299,6 +3489,7 @@ abstract class IndexExpression
   Token get leftBracket;
 
   /// Set the left square bracket to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftBracket(Token token);
 
   /// Return the period (".." | "?..") before a cascaded index expression, or
@@ -3307,6 +3498,7 @@ abstract class IndexExpression
 
   /// Set the period ("..") before a cascaded index expression to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set period(Token? token);
 
   /// Return the question mark before the left bracket, or `null` if there is no
@@ -3333,6 +3525,7 @@ abstract class IndexExpression
 
   /// Set the expression used to compute the object being indexed to the given
   /// [expression].
+  @Deprecated('Clients should not build AST manually')
   set target(Expression? expression);
 
   /// Return `true` if this expression is computing a right-hand value (that is,
@@ -3367,12 +3560,14 @@ abstract class InstanceCreationExpression implements Expression {
   ArgumentList get argumentList;
 
   /// Set the list of arguments to the constructor to the given [argumentList].
+  @Deprecated('Clients should not build AST manually')
   set argumentList(ArgumentList argumentList);
 
   /// Return the name of the constructor to be invoked.
   ConstructorName get constructorName;
 
   /// Set the name of the constructor to be invoked to the given [name].
+  @Deprecated('Clients should not build AST manually')
   set constructorName(ConstructorName name);
 
   /// Return `true` if this creation expression is used to invoke a constant
@@ -3387,6 +3582,7 @@ abstract class InstanceCreationExpression implements Expression {
 
   /// Set the 'new' or 'const' keyword used to indicate how an object should be
   /// created to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set keyword(Token? token);
 }
 
@@ -3409,6 +3605,7 @@ abstract class IntegerLiteral implements Literal {
   Token get literal;
 
   /// Set the token representing the literal to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set literal(Token token);
 
   /// Return the value of the literal, or `null` when [literal] does not
@@ -3416,6 +3613,7 @@ abstract class IntegerLiteral implements Literal {
   int? get value;
 
   /// Set the value of the literal to the given [value].
+  @Deprecated('Clients should not build AST manually')
   set value(int? value);
 }
 
@@ -3442,6 +3640,7 @@ abstract class InterpolationExpression implements InterpolationElement {
 
   /// Set the expression to be evaluated for the value to be converted into a
   /// string to the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set expression(Expression expression);
 
   /// Return the token used to introduce the interpolation expression; either
@@ -3452,6 +3651,7 @@ abstract class InterpolationExpression implements InterpolationElement {
   /// Set the token used to introduce the interpolation expression; either '$'
   /// if the expression is a simple identifier or '${' if the expression is a
   /// full expression to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftBracket(Token token);
 
   /// Return the right curly bracket, or `null` if the expression is an
@@ -3459,6 +3659,7 @@ abstract class InterpolationExpression implements InterpolationElement {
   Token? get rightBracket;
 
   /// Set the right curly bracket to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightBracket(Token? token);
 }
 
@@ -3473,6 +3674,7 @@ abstract class InterpolationString implements InterpolationElement {
   Token get contents;
 
   /// Set the characters that will be added to the string to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set contents(Token token);
 
   /// Return the offset of the after-last contents character.
@@ -3485,6 +3687,7 @@ abstract class InterpolationString implements InterpolationElement {
   String get value;
 
   /// Set the value of the literal to the given [value].
+  @Deprecated('Clients should not build AST manually')
   set value(String value);
 }
 
@@ -3517,6 +3720,7 @@ abstract class InvocationExpression implements Expression {
 
   /// Sets the function type of the invocation based on the static type
   /// information.
+  @Deprecated('Clients should not build AST manually')
   set staticInvokeType(DartType? value);
 
   /// Return the type arguments to be applied to the method being invoked, or
@@ -3546,12 +3750,14 @@ abstract class IsExpression implements Expression {
 
   /// Set the expression used to compute the value whose type is being tested to
   /// the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set expression(Expression expression);
 
   /// Return the is operator.
   Token get isOperator;
 
   /// Set the is operator to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set isOperator(Token token);
 
   /// Return the not operator, or `null` if the sense of the test is not
@@ -3559,12 +3765,14 @@ abstract class IsExpression implements Expression {
   Token? get notOperator;
 
   /// Set the not operator to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set notOperator(Token? token);
 
   /// Return the type being tested for.
   TypeAnnotation get type;
 
   /// Set the type being tested for to the given [type].
+  @Deprecated('Clients should not build AST manually')
   set type(TypeAnnotation type);
 }
 
@@ -3580,12 +3788,14 @@ abstract class Label implements AstNode {
 
   /// Set the colon that separates the label from the statement to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set colon(Token token);
 
   /// Return the label being associated with the statement.
   SimpleIdentifier get label;
 
   /// Set the label being associated with the statement to the given [label].
+  @Deprecated('Clients should not build AST manually')
   set label(SimpleIdentifier label);
 }
 
@@ -3604,6 +3814,7 @@ abstract class LabeledStatement implements Statement {
 
   /// Set the statement with which the labels are being associated to the given
   /// [statement].
+  @Deprecated('Clients should not build AST manually')
   set statement(Statement statement);
 }
 
@@ -3618,18 +3829,21 @@ abstract class LibraryDirective implements Directive {
   Token get libraryKeyword;
 
   /// Set the token representing the 'library' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set libraryKeyword(Token token);
 
   /// Return the name of the library being defined.
   LibraryIdentifier get name;
 
   /// Set the name of the library being defined to the given [name].
+  @Deprecated('Clients should not build AST manually')
   set name(LibraryIdentifier name);
 
   /// Return the semicolon terminating the directive.
   Token get semicolon;
 
   /// Set the semicolon terminating the directive to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 }
 
@@ -3661,12 +3875,14 @@ abstract class ListLiteral implements TypedLiteral {
   Token get leftBracket;
 
   /// Set the left square bracket to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftBracket(Token token);
 
   /// Return the right square bracket.
   Token get rightBracket;
 
   /// Set the right square bracket to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightBracket(Token token);
 }
 
@@ -3697,12 +3913,14 @@ abstract class MapLiteralEntry implements CollectionElement {
 
   /// Set the expression computing the key with which the value will be
   /// associated to the given [string].
+  @Deprecated('Clients should not build AST manually')
   set key(Expression string);
 
   /// Return the colon that separates the key from the value.
   Token get separator;
 
   /// Set the colon that separates the key from the value to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set separator(Token token);
 
   /// Return the expression computing the value that will be associated with the
@@ -3711,6 +3929,7 @@ abstract class MapLiteralEntry implements CollectionElement {
 
   /// Set the expression computing the value that will be associated with the
   /// key to the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set value(Expression expression);
 }
 
@@ -3737,6 +3956,7 @@ abstract class MethodDeclaration implements ClassMember {
   FunctionBody get body;
 
   /// Set the body of the method to the given [functionBody].
+  @Deprecated('Clients should not build AST manually')
   set body(FunctionBody functionBody);
 
   @override
@@ -3747,6 +3967,7 @@ abstract class MethodDeclaration implements ClassMember {
   Token? get externalKeyword;
 
   /// Set the token for the 'external' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set externalKeyword(Token? token);
 
   /// Return `true` if this method is declared to be an abstract method.
@@ -3770,12 +3991,14 @@ abstract class MethodDeclaration implements ClassMember {
 
   /// Set the token representing the 'abstract' or 'static' keyword to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set modifierKeyword(Token? token);
 
   /// Return the name of the method.
   SimpleIdentifier get name;
 
   /// Set the name of the method to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set name(SimpleIdentifier identifier);
 
   /// Return the token representing the 'operator' keyword, or `null` if this
@@ -3783,6 +4006,7 @@ abstract class MethodDeclaration implements ClassMember {
   Token? get operatorKeyword;
 
   /// Set the token representing the 'operator' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set operatorKeyword(Token? token);
 
   /// Return the parameters associated with the method, or `null` if this method
@@ -3791,6 +4015,7 @@ abstract class MethodDeclaration implements ClassMember {
 
   /// Set the parameters associated with the method to the given list of
   /// [parameters].
+  @Deprecated('Clients should not build AST manually')
   set parameters(FormalParameterList? parameters);
 
   /// Return the token representing the 'get' or 'set' keyword, or `null` if
@@ -3799,6 +4024,7 @@ abstract class MethodDeclaration implements ClassMember {
 
   /// Set the token representing the 'get' or 'set' keyword to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set propertyKeyword(Token? token);
 
   /// Return the return type of the method, or `null` if no return type was
@@ -3806,6 +4032,7 @@ abstract class MethodDeclaration implements ClassMember {
   TypeAnnotation? get returnType;
 
   /// Set the return type of the method to the given [type].
+  @Deprecated('Clients should not build AST manually')
   set returnType(TypeAnnotation? type);
 
   /// Return the type parameters associated with this method, or `null` if this
@@ -3814,6 +4041,7 @@ abstract class MethodDeclaration implements ClassMember {
 
   /// Set the type parameters associated with this method to the given
   /// [typeParameters].
+  @Deprecated('Clients should not build AST manually')
   set typeParameters(TypeParameterList? typeParameters);
 }
 
@@ -3831,6 +4059,7 @@ abstract class MethodDeclaration implements ClassMember {
 abstract class MethodInvocation
     implements NullShortableExpression, InvocationExpression {
   /// Set the list of arguments to the method to the given [argumentList].
+  @Deprecated('Clients should not build AST manually')
   set argumentList(ArgumentList argumentList);
 
   /// Return `true` if this expression is cascaded.
@@ -3846,6 +4075,7 @@ abstract class MethodInvocation
   SimpleIdentifier get methodName;
 
   /// Set the name of the method being invoked to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set methodName(SimpleIdentifier identifier);
 
   /// Return the operator that separates the target from the method name, or
@@ -3857,6 +4087,7 @@ abstract class MethodInvocation
 
   /// Set the operator that separates the target from the method name to the
   /// given [token].
+  @Deprecated('Clients should not build AST manually')
   set operator(Token? token);
 
   /// Return the expression used to compute the receiver of the invocation.
@@ -3876,10 +4107,12 @@ abstract class MethodInvocation
 
   /// Set the expression producing the object on which the method is defined to
   /// the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set target(Expression? expression);
 
   /// Set the type arguments to be applied to the method being invoked to the
   /// given [typeArguments].
+  @Deprecated('Clients should not build AST manually')
   set typeArguments(TypeArgumentList? typeArguments);
 }
 
@@ -3896,6 +4129,7 @@ abstract class MethodReferenceExpression implements AstNode {
 
   /// Set the element associated with the expression based on static types to
   /// the given [element].
+  @Deprecated('Clients should not build AST manually')
   set staticElement(MethodElement? element);
 }
 
@@ -3923,6 +4157,7 @@ abstract class NamedCompilationUnitMember implements CompilationUnitMember {
   SimpleIdentifier get name;
 
   /// Set the name of the member being declared to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set name(SimpleIdentifier identifier);
 }
 
@@ -3944,12 +4179,14 @@ abstract class NamedExpression implements Expression {
 
   /// Set the expression with which the name is associated to the given
   /// [expression].
+  @Deprecated('Clients should not build AST manually')
   set expression(Expression expression);
 
   /// Return the name associated with the expression.
   Label get name;
 
   /// Set the name associated with the expression to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set name(Label identifier);
 }
 
@@ -3970,13 +4207,16 @@ abstract class NamedType implements TypeAnnotation {
   Identifier get name;
 
   /// Set the name of the type to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set name(Identifier identifier);
 
   /// Set the question mark indicating that the type is nullable to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set question(Token? token);
 
   /// Set the type being named to the given [type].
+  @Deprecated('Clients should not build AST manually')
   set type(DartType? type);
 
   /// Return the type arguments associated with the type, or `null` if there are
@@ -3985,6 +4225,7 @@ abstract class NamedType implements TypeAnnotation {
 
   /// Set the type arguments associated with the type to the given
   /// [typeArguments].
+  @Deprecated('Clients should not build AST manually')
   set typeArguments(TypeArgumentList? typeArguments);
 }
 
@@ -4005,12 +4246,13 @@ abstract class NamespaceDirective implements UriBasedDirective {
 
   /// Set the token representing the keyword that introduces this directive
   /// ('import', 'export', 'library' or 'part') to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set keyword(Token token);
 
   /// Return the source that was selected based on the declared variables.
   ///
   /// This will be the source from the first configuration whose condition is
-  /// true, or the [uriSource] if either there are no configurations or if
+  /// true, or the `[uriSource]` if either there are no configurations or if
   /// there are no configurations whose condition is true.
   Source? get selectedSource;
 
@@ -4018,7 +4260,7 @@ abstract class NamespaceDirective implements UriBasedDirective {
   /// variables.
   ///
   /// This will be the URI from the first configuration whose condition is
-  /// true, or the [uriContent] if either there are no configurations or if
+  /// true, or the `[uriContent]` if either there are no configurations or if
   /// there are no configurations whose condition is true.
   String? get selectedUriContent;
 
@@ -4026,6 +4268,7 @@ abstract class NamespaceDirective implements UriBasedDirective {
   Token get semicolon;
 
   /// Set the semicolon terminating the directive to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 }
 
@@ -4041,12 +4284,14 @@ abstract class NativeClause implements AstNode {
 
   /// Set the name of the native object that implements the class to the given
   /// [name].
+  @Deprecated('Clients should not build AST manually')
   set name(StringLiteral? name);
 
   /// Return the token representing the 'native' keyword.
   Token get nativeKeyword;
 
   /// Set the token representing the 'native' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set nativeKeyword(Token token);
 }
 
@@ -4064,6 +4309,7 @@ abstract class NativeFunctionBody implements FunctionBody {
 
   /// Set the token representing 'native' that marks the start of the function
   /// body to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set nativeKeyword(Token token);
 
   /// Return the token representing the semicolon that marks the end of the
@@ -4072,6 +4318,7 @@ abstract class NativeFunctionBody implements FunctionBody {
 
   /// Set the token representing the semicolon that marks the end of the
   /// function body to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 
   /// Return the string literal representing the string after the 'native'
@@ -4080,6 +4327,7 @@ abstract class NativeFunctionBody implements FunctionBody {
 
   /// Set the string literal representing the string after the 'native' token to
   /// the given [stringLiteral].
+  @Deprecated('Clients should not build AST manually')
   set stringLiteral(StringLiteral? stringLiteral);
 }
 
@@ -4105,6 +4353,7 @@ abstract class NodeList<E extends AstNode> implements List<E> {
 
   /// Set the node at the given [index] in the list to the given [node] or throw
   /// a [RangeError] if [index] is out of bounds.
+  @Deprecated('Clients should not build AST manually')
   @override
   void operator []=(int index, E node);
 
@@ -4122,6 +4371,7 @@ abstract class NodeList<E extends AstNode> implements List<E> {
 /// Clients may not extend, implement or mix-in this class.
 abstract class NormalFormalParameter implements FormalParameter {
   /// Set the token for the 'covariant' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set covariantKeyword(Token? token);
 
   /// Return the documentation comment associated with this parameter, or `null`
@@ -4131,12 +4381,15 @@ abstract class NormalFormalParameter implements FormalParameter {
 
   /// Set the documentation comment associated with this parameter to the given
   /// [comment].
+  @Deprecated('Clients should not build AST manually')
   set documentationComment(Comment? comment);
 
   /// Set the name of the parameter being declared to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set identifier(SimpleIdentifier? identifier);
 
   /// Set the metadata associated with this node to the given [metadata].
+  @Deprecated('Clients should not build AST manually')
   set metadata(List<Annotation> metadata);
 
   /// Return a list containing the comment and annotations associated with this
@@ -4155,6 +4408,7 @@ abstract class NullLiteral implements Literal {
   Token get literal;
 
   /// Set the token representing the literal to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set literal(Token token);
 }
 
@@ -4201,18 +4455,21 @@ abstract class ParenthesizedExpression implements Expression {
   Expression get expression;
 
   /// Set the expression within the parentheses to the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set expression(Expression expression);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftParenthesis(Token token);
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightParenthesis(Token token);
 }
 
@@ -4227,12 +4484,14 @@ abstract class PartDirective implements UriBasedDirective {
   Token get partKeyword;
 
   /// Set the token representing the 'part' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set partKeyword(Token token);
 
   /// Return the semicolon terminating the directive.
   Token get semicolon;
 
   /// Set the semicolon terminating the directive to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 }
 
@@ -4249,24 +4508,28 @@ abstract class PartOfDirective implements Directive {
 
   /// Set the name of the library that the containing compilation unit is part
   /// of to the given [libraryName].
+  @Deprecated('Clients should not build AST manually')
   set libraryName(LibraryIdentifier? libraryName);
 
   /// Return the token representing the 'of' keyword.
   Token get ofKeyword;
 
   /// Set the token representing the 'of' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set ofKeyword(Token token);
 
   /// Return the token representing the 'part' keyword.
   Token get partKeyword;
 
   /// Set the token representing the 'part' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set partKeyword(Token token);
 
   /// Return the semicolon terminating the directive.
   Token get semicolon;
 
   /// Set the semicolon terminating the directive to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 
   /// Return the URI of the library that the containing compilation unit is part
@@ -4277,6 +4540,7 @@ abstract class PartOfDirective implements Directive {
   /// Return the URI of the library that the containing compilation unit is part
   /// of, or `null` if no URI was given (typically because a library name was
   /// provided).
+  @Deprecated('Clients should not build AST manually')
   set uri(StringLiteral? uri);
 }
 
@@ -4297,6 +4561,7 @@ abstract class PostfixExpression
 
   /// Set the expression computing the operand for the operator to the given
   /// [expression].
+  @Deprecated('Clients should not build AST manually')
   set operand(Expression expression);
 
   /// Return the postfix operator being applied to the operand.
@@ -4304,6 +4569,7 @@ abstract class PostfixExpression
 
   /// Set the postfix operator being applied to the operand to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set operator(Token token);
 }
 
@@ -4319,6 +4585,7 @@ abstract class PrefixedIdentifier implements Identifier {
   SimpleIdentifier get identifier;
 
   /// Set the identifier being prefixed to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set identifier(SimpleIdentifier identifier);
 
   /// Return `true` if this type is a deferred type. If the AST structure has
@@ -4333,6 +4600,7 @@ abstract class PrefixedIdentifier implements Identifier {
 
   /// Set the period used to separate the prefix from the identifier to the
   /// given [token].
+  @Deprecated('Clients should not build AST manually')
   set period(Token token);
 
   /// Return the prefix associated with the library in which the identifier is
@@ -4341,6 +4609,7 @@ abstract class PrefixedIdentifier implements Identifier {
 
   /// Set the prefix associated with the library in which the identifier is
   /// defined to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set prefix(SimpleIdentifier identifier);
 }
 
@@ -4361,12 +4630,14 @@ abstract class PrefixExpression
 
   /// Set the expression computing the operand for the operator to the given
   /// [expression].
+  @Deprecated('Clients should not build AST manually')
   set operand(Expression expression);
 
   /// Return the prefix operator being applied to the operand.
   Token get operator;
 
   /// Set the prefix operator being applied to the operand to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set operator(Token token);
 }
 
@@ -4394,12 +4665,14 @@ abstract class PropertyAccess implements NullShortableExpression {
   Token get operator;
 
   /// Set the property access operator to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set operator(Token token);
 
   /// Return the name of the property being accessed.
   SimpleIdentifier get propertyName;
 
   /// Set the name of the property being accessed to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set propertyName(SimpleIdentifier identifier);
 
   /// Return the expression used to compute the receiver of the invocation.
@@ -4419,6 +4692,7 @@ abstract class PropertyAccess implements NullShortableExpression {
 
   /// Set the expression computing the object defining the property being
   /// accessed to the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set target(Expression? expression);
 }
 
@@ -4435,6 +4709,7 @@ abstract class RedirectingConstructorInvocation
   ArgumentList get argumentList;
 
   /// Set the list of arguments to the constructor to the given [argumentList].
+  @Deprecated('Clients should not build AST manually')
   set argumentList(ArgumentList argumentList);
 
   /// Return the name of the constructor that is being invoked, or `null` if the
@@ -4443,6 +4718,7 @@ abstract class RedirectingConstructorInvocation
 
   /// Set the name of the constructor that is being invoked to the given
   /// [identifier].
+  @Deprecated('Clients should not build AST manually')
   set constructorName(SimpleIdentifier? identifier);
 
   /// Return the token for the period before the name of the constructor that is
@@ -4451,12 +4727,14 @@ abstract class RedirectingConstructorInvocation
 
   /// Set the token for the period before the name of the constructor that is
   /// being invoked to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set period(Token? token);
 
   /// Return the token for the 'this' keyword.
   Token get thisKeyword;
 
   /// Set the token for the 'this' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set thisKeyword(Token token);
 }
 
@@ -4471,6 +4749,7 @@ abstract class RethrowExpression implements Expression {
   Token get rethrowKeyword;
 
   /// Set the token representing the 'rethrow' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rethrowKeyword(Token token);
 }
 
@@ -4487,18 +4766,21 @@ abstract class ReturnStatement implements Statement {
 
   /// Set the expression computing the value to be returned to the given
   /// [expression].
+  @Deprecated('Clients should not build AST manually')
   set expression(Expression? expression);
 
   /// Return the token representing the 'return' keyword.
   Token get returnKeyword;
 
   /// Set the token representing the 'return' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set returnKeyword(Token token);
 
   /// Return the semicolon terminating the statement.
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 }
 
@@ -4514,6 +4796,7 @@ abstract class ScriptTag implements AstNode {
   Token get scriptTag;
 
   /// Set the token representing this script tag to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set scriptTag(Token token);
 }
 
@@ -4605,6 +4888,7 @@ abstract class SimpleFormalParameter implements NormalFormalParameter {
 
   /// Set the token representing either the 'final', 'const' or 'var' keyword to
   /// the given [token].
+  @Deprecated('Clients should not build AST manually')
   set keyword(Token? token);
 
   /// Return the declared type of the parameter, or `null` if the parameter does
@@ -4612,6 +4896,7 @@ abstract class SimpleFormalParameter implements NormalFormalParameter {
   TypeAnnotation? get type;
 
   /// Set the declared type of the parameter to the given [type].
+  @Deprecated('Clients should not build AST manually')
   set type(TypeAnnotation? type);
 }
 
@@ -4632,10 +4917,11 @@ abstract class SimpleIdentifier implements Identifier {
 
   /// Set the element associated with this identifier based on static type
   /// information to the given [element].
+  @Deprecated('Clients should not build AST manually')
   set staticElement(Element? element);
 
   /// If the identifier is a tear-off, return the inferred type arguments
-  /// applied to the function type of the element to produce its [staticType].
+  /// applied to the function type of the element to produce its `[staticType]`.
   ///
   /// Return an empty list if the function type does not have type parameters.
   ///
@@ -4650,6 +4936,7 @@ abstract class SimpleIdentifier implements Identifier {
   Token get token;
 
   /// Set the token representing the identifier to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set token(Token token);
 
   /// Return `true` if this identifier is the name being declared in a
@@ -4701,12 +4988,14 @@ abstract class SimpleStringLiteral implements SingleStringLiteral {
   Token get literal;
 
   /// Set the token representing the literal to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set literal(Token token);
 
   /// Return the value of the literal.
   String get value;
 
   /// Set the value of the literal to the given [string].
+  @Deprecated('Clients should not build AST manually')
   set value(String string);
 }
 
@@ -4818,6 +5107,7 @@ abstract class SuperConstructorInvocation
   ArgumentList get argumentList;
 
   /// Set the list of arguments to the constructor to the given [argumentList].
+  @Deprecated('Clients should not build AST manually')
   set argumentList(ArgumentList argumentList);
 
   /// Return the name of the constructor that is being invoked, or `null` if the
@@ -4826,6 +5116,7 @@ abstract class SuperConstructorInvocation
 
   /// Set the name of the constructor that is being invoked to the given
   /// [identifier].
+  @Deprecated('Clients should not build AST manually')
   set constructorName(SimpleIdentifier? identifier);
 
   /// Return the token for the period before the name of the constructor that is
@@ -4834,12 +5125,14 @@ abstract class SuperConstructorInvocation
 
   /// Set the token for the period before the name of the constructor that is
   /// being invoked to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set period(Token? token);
 
   /// Return the token for the 'super' keyword.
   Token get superKeyword;
 
   /// Set the token for the 'super' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set superKeyword(Token token);
 }
 
@@ -4854,6 +5147,7 @@ abstract class SuperExpression implements Expression {
   Token get superKeyword;
 
   /// Set the token representing the 'super' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set superKeyword(Token token);
 }
 
@@ -4869,6 +5163,7 @@ abstract class SwitchCase implements SwitchMember {
 
   /// Set the expression controlling whether the statements will be executed to
   /// the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set expression(Expression expression);
 }
 
@@ -4894,6 +5189,7 @@ abstract class SwitchMember implements AstNode {
 
   /// Set the colon separating the keyword or the expression from the
   /// statements to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set colon(Token token);
 
   /// Return the token representing the 'case' or 'default' keyword.
@@ -4901,6 +5197,7 @@ abstract class SwitchMember implements AstNode {
 
   /// Set the token representing the 'case' or 'default' keyword to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set keyword(Token token);
 
   /// Return the labels associated with the switch member.
@@ -4924,18 +5221,21 @@ abstract class SwitchStatement implements Statement {
 
   /// Set the expression used to determine which of the switch members will be
   /// selected to the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set expression(Expression expression);
 
   /// Return the left curly bracket.
   Token get leftBracket;
 
   /// Set the left curly bracket to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftBracket(Token token);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftParenthesis(Token token);
 
   /// Return the switch members that can be selected by the expression.
@@ -4945,18 +5245,21 @@ abstract class SwitchStatement implements Statement {
   Token get rightBracket;
 
   /// Set the right curly bracket to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightBracket(Token token);
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightParenthesis(Token token);
 
   /// Return the token representing the 'switch' keyword.
   Token get switchKeyword;
 
   /// Set the token representing the 'switch' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set switchKeyword(Token token);
 }
 
@@ -4974,6 +5277,7 @@ abstract class SymbolLiteral implements Literal {
   Token get poundSign;
 
   /// Set the token introducing the literal to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set poundSign(Token token);
 }
 
@@ -4988,6 +5292,7 @@ abstract class ThisExpression implements Expression {
   Token get thisKeyword;
 
   /// Set the token representing the 'this' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set thisKeyword(Token token);
 }
 
@@ -5003,12 +5308,14 @@ abstract class ThrowExpression implements Expression {
 
   /// Set the expression computing the exception to be thrown to the given
   /// [expression].
+  @Deprecated('Clients should not build AST manually')
   set expression(Expression expression);
 
   /// Return the token representing the 'throw' keyword.
   Token get throwKeyword;
 
   /// Set the token representing the 'throw' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set throwKeyword(Token token);
 }
 
@@ -5034,6 +5341,7 @@ abstract class TopLevelVariableDeclaration implements CompilationUnitMember {
   Token get semicolon;
 
   /// Set the semicolon terminating the declaration to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 
   /// Return the top-level variables being declared.
@@ -5041,6 +5349,7 @@ abstract class TopLevelVariableDeclaration implements CompilationUnitMember {
 
   /// Set the top-level variables being declared to the given list of
   /// [variables].
+  @Deprecated('Clients should not build AST manually')
   set variables(VariableDeclarationList variables);
 }
 
@@ -5058,6 +5367,7 @@ abstract class TryStatement implements Statement {
   Block get body;
 
   /// Set the body of the statement to the given [block].
+  @Deprecated('Clients should not build AST manually')
   set body(Block block);
 
   /// Return the catch clauses contained in the try statement.
@@ -5068,6 +5378,7 @@ abstract class TryStatement implements Statement {
   Block? get finallyBlock;
 
   /// Set the finally block contained in the try statement to the given [block].
+  @Deprecated('Clients should not build AST manually')
   set finallyBlock(Block? block);
 
   /// Return the token representing the 'finally' keyword, or `null` if the
@@ -5075,12 +5386,14 @@ abstract class TryStatement implements Statement {
   Token? get finallyKeyword;
 
   /// Set the token representing the 'finally' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set finallyKeyword(Token? token);
 
   /// Return the token representing the 'try' keyword.
   Token get tryKeyword;
 
   /// Set the token representing the 'try' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set tryKeyword(Token token);
 }
 
@@ -5102,12 +5415,14 @@ abstract class TypeAlias implements NamedCompilationUnitMember {
   Token get semicolon;
 
   /// Set the semicolon terminating the declaration to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 
   /// Return the token representing the 'typedef' keyword.
   Token get typedefKeyword;
 
   /// Set the token representing the 'typedef' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set typedefKeyword(Token token);
 }
 
@@ -5142,12 +5457,14 @@ abstract class TypeArgumentList implements AstNode {
   Token get leftBracket;
 
   /// Set the left bracket to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftBracket(Token token);
 
   /// Return the right bracket.
   Token get rightBracket;
 
   /// Set the right bracket to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightBracket(Token token);
 }
 
@@ -5164,6 +5481,7 @@ abstract class TypedLiteral implements Literal {
   Token? get constKeyword;
 
   /// Set the token representing the 'const' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set constKeyword(Token? token);
 
   /// Return `true` if this literal is a constant expression, either because the
@@ -5177,6 +5495,7 @@ abstract class TypedLiteral implements Literal {
 
   /// Set the type argument associated with this literal to the given
   /// [typeArguments].
+  @Deprecated('Clients should not build AST manually')
   set typeArguments(TypeArgumentList? typeArguments);
 }
 
@@ -5200,6 +5519,7 @@ abstract class TypeParameter implements Declaration {
   TypeAnnotation? get bound;
 
   /// Set the upper bound for legal arguments to the given [type].
+  @Deprecated('Clients should not build AST manually')
   set bound(TypeAnnotation? type);
 
   @override
@@ -5210,12 +5530,14 @@ abstract class TypeParameter implements Declaration {
   Token? get extendsKeyword;
 
   /// Set the token representing the 'extends' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set extendsKeyword(Token? token);
 
   /// Return the name of the type parameter.
   SimpleIdentifier get name;
 
   /// Set the name of the type parameter to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set name(SimpleIdentifier identifier);
 }
 
@@ -5249,6 +5571,7 @@ abstract class UriBasedDirective implements Directive {
   StringLiteral get uri;
 
   /// Set the URI referenced by this directive to the given [uri].
+  @Deprecated('Clients should not build AST manually')
   set uri(StringLiteral uri);
 
   /// Return the content of the [uri], or `null` if the AST structure has not
@@ -5256,6 +5579,7 @@ abstract class UriBasedDirective implements Directive {
   String? get uriContent;
 
   /// Set the content of the [uri] to the given [content].
+  @Deprecated('Clients should not build AST manually')
   set uriContent(String? content);
 
   /// Return the element associated with the [uri] of this directive, or `null`
@@ -5270,6 +5594,7 @@ abstract class UriBasedDirective implements Directive {
   Source? get uriSource;
 
   /// Set the source to which the [uri] was resolved to the given [source].
+  @Deprecated('Clients should not build AST manually')
   set uriSource(Source? source);
 }
 
@@ -5296,6 +5621,7 @@ abstract class VariableDeclaration implements Declaration {
 
   /// Set the equal sign separating the variable name from the initial value to
   /// the given [token].
+  @Deprecated('Clients should not build AST manually')
   set equals(Token? token);
 
   /// Return the expression used to compute the initial value for the variable,
@@ -5304,6 +5630,7 @@ abstract class VariableDeclaration implements Declaration {
 
   /// Set the expression used to compute the initial value for the variable to
   /// the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set initializer(Expression? expression);
 
   /// Return `true` if this variable was declared with the 'const' modifier.
@@ -5322,6 +5649,7 @@ abstract class VariableDeclaration implements Declaration {
   SimpleIdentifier get name;
 
   /// Set the name of the variable being declared to the given [identifier].
+  @Deprecated('Clients should not build AST manually')
   set name(SimpleIdentifier identifier);
 }
 
@@ -5360,6 +5688,7 @@ abstract class VariableDeclarationList implements AnnotatedNode {
 
   /// Set the token representing the 'final', 'const' or 'var' keyword to the
   /// given [token].
+  @Deprecated('Clients should not build AST manually')
   set keyword(Token? token);
 
   /// Return the token representing the 'late' keyword, or `null` if the late
@@ -5371,6 +5700,7 @@ abstract class VariableDeclarationList implements AnnotatedNode {
   TypeAnnotation? get type;
 
   /// Set the type of the variables being declared to the given [type].
+  @Deprecated('Clients should not build AST manually')
   set type(TypeAnnotation? type);
 
   /// Return a list containing the individual variables being declared.
@@ -5389,12 +5719,14 @@ abstract class VariableDeclarationStatement implements Statement {
   Token get semicolon;
 
   /// Set the semicolon terminating the statement to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 
   /// Return the variables being declared.
   VariableDeclarationList get variables;
 
   /// Set the variables being declared to the given list of [variables].
+  @Deprecated('Clients should not build AST manually')
   set variables(VariableDeclarationList variables);
 }
 
@@ -5409,6 +5741,7 @@ abstract class WhileStatement implements Statement {
   Statement get body;
 
   /// Set the body of the loop to the given [statement].
+  @Deprecated('Clients should not build AST manually')
   set body(Statement statement);
 
   /// Return the expression used to determine whether to execute the body of the
@@ -5417,24 +5750,28 @@ abstract class WhileStatement implements Statement {
 
   /// Set the expression used to determine whether to execute the body of the
   /// loop to the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set condition(Expression expression);
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
 
   /// Set the left parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set leftParenthesis(Token token);
 
   /// Return the right parenthesis.
   Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set rightParenthesis(Token token);
 
   /// Return the token representing the 'while' keyword.
   Token get whileKeyword;
 
   /// Set the token representing the 'while' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set whileKeyword(Token token);
 }
 
@@ -5452,6 +5789,7 @@ abstract class WithClause implements AstNode {
   Token get withKeyword;
 
   /// Set the token representing the 'with' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set withKeyword(Token token);
 }
 
@@ -5466,12 +5804,14 @@ abstract class YieldStatement implements Statement {
   Expression get expression;
 
   /// Set the expression whose value will be yielded to the given [expression].
+  @Deprecated('Clients should not build AST manually')
   set expression(Expression expression);
 
   /// Return the semicolon following the expression.
   Token get semicolon;
 
   /// Return the semicolon following the expression to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
 
   /// Return the star optionally following the 'yield' keyword.
@@ -5479,11 +5819,13 @@ abstract class YieldStatement implements Statement {
 
   /// Return the star optionally following the 'yield' keyword to the given
   /// [token].
+  @Deprecated('Clients should not build AST manually')
   set star(Token? token);
 
   /// Return the 'yield' keyword.
   Token get yieldKeyword;
 
   /// Return the 'yield' keyword to the given [token].
+  @Deprecated('Clients should not build AST manually')
   set yieldKeyword(Token token);
 }

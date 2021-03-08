@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -82,7 +83,7 @@ class DefaultTypesBuilder {
     for (var cycle in allCycles) {
       for (var element in cycle) {
         var boundNode = element.parameter.bound;
-        if (boundNode is TypeName) {
+        if (boundNode is TypeNameImpl) {
           boundNode.type = DynamicTypeImpl.instance;
         } else {
           throw UnimplementedError('(${boundNode.runtimeType}) $boundNode');
@@ -97,8 +98,9 @@ class DefaultTypesBuilder {
 
     Map<String, TypeParameter>? typeParametersByName;
     for (var parameter in typeParameters) {
+      parameter as TypeParameterImpl;
       var boundNode = parameter.bound;
-      if (boundNode is TypeName) {
+      if (boundNode is TypeNameImpl) {
         if (typeParametersByName == null) {
           typeParametersByName = {};
           for (var parameterNode in typeParameters) {

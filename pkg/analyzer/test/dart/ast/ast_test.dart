@@ -4,8 +4,8 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -148,7 +148,7 @@ class ConstructorDeclarationTest {
   void test_firstTokenAfterCommentAndMetadata_all_inverted() {
     Token externalKeyword = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
     externalKeyword.offset = 14;
-    ConstructorDeclaration declaration = AstTestFactory.constructorDeclaration2(
+    var declaration = AstTestFactory.constructorDeclaration2(
         Keyword.CONST,
         Keyword.FACTORY,
         AstTestFactory.identifier3('int'),
@@ -166,7 +166,7 @@ class ConstructorDeclarationTest {
   void test_firstTokenAfterCommentAndMetadata_all_normal() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
     token.offset = 0;
-    ConstructorDeclaration declaration = AstTestFactory.constructorDeclaration2(
+    var declaration = AstTestFactory.constructorDeclaration2(
         Keyword.CONST,
         Keyword.FACTORY,
         AstTestFactory.identifier3('int'),
@@ -195,7 +195,7 @@ class ConstructorDeclarationTest {
 
   void test_firstTokenAfterCommentAndMetadata_externalOnly() {
     Token externalKeyword = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
-    ConstructorDeclaration declaration = AstTestFactory.constructorDeclaration2(
+    var declaration = AstTestFactory.constructorDeclaration2(
         null,
         null,
         AstTestFactory.identifier3('int'),
@@ -898,8 +898,7 @@ class NodeListTest {
     nodes.add(firstNode);
     nodes.add(secondNode);
     nodes.add(thirdNode);
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
+    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     list.addAll(nodes);
     expect(list, hasLength(3));
     AstNode fourthNode = AstTestFactory.integer(0);
@@ -912,8 +911,7 @@ class NodeListTest {
 
   void test_set_negative() {
     AstNode node = AstTestFactory.booleanLiteral(true);
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
+    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[-1] = node;
       fail("Expected IndexOutOfBoundsException");
@@ -924,8 +922,7 @@ class NodeListTest {
 
   void test_set_tooBig() {
     AstNode node = AstTestFactory.booleanLiteral(true);
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
+    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[1] = node;
       fail("Expected IndexOutOfBoundsException");
@@ -1723,7 +1720,7 @@ class StringInterpolationTest extends ParserTestCase {
 class VariableDeclarationTest extends ParserTestCase {
   void test_getDocumentationComment_onGrandParent() {
     VariableDeclaration varDecl = AstTestFactory.variableDeclaration("a");
-    TopLevelVariableDeclaration decl =
+    var decl =
         AstTestFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
     Comment comment = astFactory.documentationComment([]);
     expect(varDecl.documentationComment, isNull);
@@ -1733,7 +1730,7 @@ class VariableDeclarationTest extends ParserTestCase {
   }
 
   void test_getDocumentationComment_onNode() {
-    VariableDeclaration decl = AstTestFactory.variableDeclaration("a");
+    var decl = AstTestFactory.variableDeclaration("a");
     Comment comment = astFactory.documentationComment([]);
     decl.documentationComment = comment;
     expect(decl.documentationComment, isNotNull);

@@ -122,7 +122,7 @@ class LibraryBuilder {
               linkingUnit.reference.element as CompilationUnitElementImpl,
               reference,
               node);
-        } else if (node is ast.EnumDeclaration) {
+        } else if (node is ast.EnumDeclarationImpl) {
           var name = node.name.name;
           var reference = enumRef.getChild(name);
           reference.node ??= node;
@@ -147,7 +147,7 @@ class LibraryBuilder {
               linkingUnit.reference.element as CompilationUnitElementImpl,
               reference,
               node);
-        } else if (node is ast.FunctionDeclaration) {
+        } else if (node is ast.FunctionDeclarationImpl) {
           var name = node.name.name;
 
           Reference reference;
@@ -193,7 +193,7 @@ class LibraryBuilder {
               linkingUnit.reference.element as CompilationUnitElementImpl,
               reference,
               node);
-        } else if (node is ast.MixinDeclaration) {
+        } else if (node is ast.MixinDeclarationImpl) {
           var name = node.name.name;
           var reference = mixinRef.getChild(name);
           reference.node ??= node;
@@ -259,12 +259,12 @@ class LibraryBuilder {
     var isDefiningUnit = true;
     for (var unitContext in context.units) {
       for (var node in unitContext.unit!.directives) {
-        if (node is ast.ExportDirective) {
+        if (node is ast.ExportDirectiveImpl) {
           var exportElement = ExportElementImpl.forLinkedNode(element, node);
           if (isDefiningUnit) {
             exports.add(exportElement);
           }
-        } else if (node is ast.ImportDirective) {
+        } else if (node is ast.ImportDirectiveImpl) {
           var importElement = ImportElementImpl.forLinkedNode(element, node);
           if (isDefiningUnit) {
             imports.add(importElement);

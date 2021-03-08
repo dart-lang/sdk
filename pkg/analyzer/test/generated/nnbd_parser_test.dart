@@ -24,7 +24,7 @@ main() {
 @reflectiveTest
 class NNBDParserTest extends FastaParserTestCase {
   @override
-  CompilationUnit parseCompilationUnit(String content,
+  CompilationUnitImpl parseCompilationUnit(String content,
           {List<ErrorCode>? codes,
           List<ExpectedError>? errors,
           FeatureSet? featureSet}) =>

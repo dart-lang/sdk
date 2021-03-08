@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -29,7 +30,7 @@ class SimpleIdentifierResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
-  void resolve(SimpleIdentifier node) {
+  void resolve(SimpleIdentifierImpl node) {
     if (node.inDeclarationContext()) {
       return;
     }
@@ -110,7 +111,7 @@ class SimpleIdentifierResolver {
   /// @param type the static type of the node
   ///
   /// TODO(scheglov) this is duplicate
-  void _recordStaticType(Expression expression, DartType type) {
+  void _recordStaticType(ExpressionImpl expression, DartType type) {
     var hooks = _resolver.migrationResolutionHooks;
     if (hooks != null) {
       type = hooks.modifyExpressionType(expression, type);
@@ -122,7 +123,7 @@ class SimpleIdentifierResolver {
     }
   }
 
-  void _resolve1(SimpleIdentifier node) {
+  void _resolve1(SimpleIdentifierImpl node) {
     //
     // Synthetic identifiers have been already reported during parsing.
     //
@@ -213,7 +214,7 @@ class SimpleIdentifierResolver {
     node.staticElement = element;
   }
 
-  void _resolve2(SimpleIdentifier node) {
+  void _resolve2(SimpleIdentifierImpl node) {
     var element = node.staticElement;
 
     if (element is ExtensionElement) {
@@ -260,14 +261,14 @@ class SimpleIdentifierResolver {
   }
 
   /// TODO(scheglov) this is duplicate
-  void _setExtensionIdentifierType(Identifier node) {
-    if (node is SimpleIdentifier && node.inDeclarationContext()) {
+  void _setExtensionIdentifierType(IdentifierImpl node) {
+    if (node is SimpleIdentifierImpl && node.inDeclarationContext()) {
       return;
     }
 
     var parent = node.parent;
 
-    if (parent is PrefixedIdentifier && parent.identifier == node) {
+    if (parent is PrefixedIdentifierImpl && parent.identifier == node) {
       node = parent;
       parent = node.parent;
     }
@@ -275,7 +276,7 @@ class SimpleIdentifierResolver {
     if (parent is CommentReference ||
         parent is ExtensionOverride && parent.extensionName == node ||
         parent is MethodInvocation && parent.target == node ||
-        parent is PrefixedIdentifier && parent.prefix == node ||
+        parent is PrefixedIdentifierImpl && parent.prefix == node ||
         parent is PropertyAccess && parent.target == node) {
       return;
     }
@@ -286,7 +287,7 @@ class SimpleIdentifierResolver {
       [node.name],
     );
 
-    if (node is PrefixedIdentifier) {
+    if (node is PrefixedIdentifierImpl) {
       node.identifier.staticType = DynamicTypeImpl.instance;
       node.staticType = DynamicTypeImpl.instance;
     } else if (node is SimpleIdentifier) {

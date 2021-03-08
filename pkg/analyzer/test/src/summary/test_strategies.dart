@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -34,11 +33,10 @@ CompilationUnit parseText(
     AnalysisErrorListener.NULL_LISTENER,
     featureSet: scanner.featureSet,
   );
-  CompilationUnit unit = parser.parseCompilationUnit(token);
+  var unit = parser.parseCompilationUnit(token);
   unit.lineInfo = LineInfo(scanner.lineStarts);
 
-  var unitImpl = unit as CompilationUnitImpl;
-  unitImpl.languageVersion = LibraryLanguageVersion(
+  unit.languageVersion = LibraryLanguageVersion(
     package: ExperimentStatus.currentVersion,
     override: null,
   );

@@ -4,12 +4,12 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
@@ -480,7 +480,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitExportDirective_noCombinators() async {
-    ExportDirective directive = AstTestFactory.exportDirective2('dart:math');
+    var directive = AstTestFactory.exportDirective2('dart:math');
     directive.element = ElementFactory.exportFor(
         ElementFactory.library(_definingLibrary.context, "lib"));
     _resolveNode(directive);
@@ -494,8 +494,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.fieldElement(fieldName, false, false, false, intType);
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.fields = <FieldElement>[fieldElement];
-    FieldFormalParameter parameter =
-        AstTestFactory.fieldFormalParameter2(fieldName);
+    var parameter = AstTestFactory.fieldFormalParameter2(fieldName);
     FieldFormalParameterElementImpl parameterElement =
         ElementFactory.fieldFormalParameter(parameter.identifier);
     parameterElement.field = fieldElement;
@@ -507,8 +506,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitImportDirective_noCombinators_noPrefix() async {
-    ImportDirective directive =
-        AstTestFactory.importDirective3('dart:math', null);
+    var directive = AstTestFactory.importDirective3('dart:math', null);
     directive.element = ElementFactory.importFor(
         ElementFactory.library(_definingLibrary.context, "lib"), null);
     _resolveNode(directive);
@@ -522,8 +520,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.library(_definingLibrary.context, "lib"),
         ElementFactory.prefix(prefixName));
     _definingLibrary.imports = <ImportElement>[importElement];
-    ImportDirective directive =
-        AstTestFactory.importDirective3('dart:math', prefixName);
+    var directive = AstTestFactory.importDirective3('dart:math', prefixName);
     directive.element = importElement;
     _resolveNode(directive);
     _listener.assertNoErrors();
@@ -532,7 +529,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitImportDirective_withCombinators() async {
     ShowCombinator combinator = AstTestFactory.showCombinator2(["A", "B", "C"]);
-    ImportDirective directive =
+    var directive =
         AstTestFactory.importDirective3('dart:math', null, [combinator]);
     LibraryElementImpl library =
         ElementFactory.library(_definingLibrary.context, "lib");
@@ -565,7 +562,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
-    ConstructorName name = AstTestFactory.constructorName(
+    var name = AstTestFactory.constructorName(
         AstTestFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation =
@@ -580,7 +577,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
-    ConstructorName name = AstTestFactory.constructorName(
+    var name = AstTestFactory.constructorName(
         AstTestFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation =
@@ -599,7 +596,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.namedParameter2(parameterName, _typeProvider.intType);
     constructor.parameters = <ParameterElement>[parameter];
     classA.constructors = <ConstructorElement>[constructor];
-    ConstructorName name = AstTestFactory.constructorName(
+    var name = AstTestFactory.constructorName(
         AstTestFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation =
@@ -618,7 +615,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitMethodInvocation() async {
     InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier left = AstTestFactory.identifier3("i");
+    var left = AstTestFactory.identifier3("i");
     left.staticType = numType;
     String methodName = "abs";
     MethodInvocation invocation =
@@ -631,7 +628,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitPrefixedIdentifier_dynamic() async {
     DartType dynamicType = _typeProvider.dynamicType;
-    SimpleIdentifier target = AstTestFactory.identifier3("a");
+    var target = AstTestFactory.identifier3("a");
     VariableElementImpl variable = ElementFactory.localVariableElement(target);
     variable.type = dynamicType;
     target.staticElement = variable;

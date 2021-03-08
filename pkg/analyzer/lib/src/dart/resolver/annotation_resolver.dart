@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -22,7 +23,7 @@ class AnnotationResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  void resolve(Annotation node) {
+  void resolve(AnnotationImpl node) {
     AstNode parent = node.parent;
 
     _resolve1(node);
@@ -63,10 +64,10 @@ class AnnotationResolver {
     );
   }
 
-  void _resolve1(Annotation node) {
+  void _resolve1(AnnotationImpl node) {
     var nodeName = node.name;
 
-    if (nodeName is PrefixedIdentifier) {
+    if (nodeName is PrefixedIdentifierImpl) {
       var prefix = nodeName.prefix;
       var identifier = nodeName.identifier;
 
@@ -111,7 +112,7 @@ class AnnotationResolver {
         identifier.staticElement = element;
       }
     } else {
-      var identifier = nodeName as SimpleIdentifier;
+      var identifier = nodeName as SimpleIdentifierImpl;
 
       var resolver = PropertyElementResolver(_resolver);
       var result = resolver.resolveSimpleIdentifier(
@@ -136,7 +137,7 @@ class AnnotationResolver {
   }
 
   void _resolveAnnotationConstructorInvocationArguments(
-      Annotation annotation, ConstructorElement constructor) {
+      AnnotationImpl annotation, ConstructorElement constructor) {
     var argumentList = annotation.arguments;
     // error will be reported in ConstantVerifier
     if (argumentList == null) {
@@ -150,12 +151,12 @@ class AnnotationResolver {
   }
 
   /// Continues resolution of the given [annotation].
-  void _resolveAnnotationElement(Annotation annotation) {
+  void _resolveAnnotationElement(AnnotationImpl annotation) {
     late final SimpleIdentifier nameNode1;
-    SimpleIdentifier? nameNode2;
+    SimpleIdentifierImpl? nameNode2;
     {
       Identifier annName = annotation.name;
-      if (annName is PrefixedIdentifier) {
+      if (annName is PrefixedIdentifierImpl) {
         nameNode1 = annName.prefix;
         nameNode2 = annName.identifier;
       } else {
@@ -163,7 +164,7 @@ class AnnotationResolver {
         nameNode2 = null;
       }
     }
-    SimpleIdentifier? nameNode3 = annotation.constructorName;
+    SimpleIdentifierImpl? nameNode3 = annotation.constructorName;
     ConstructorElement? constructor;
     bool undefined = false;
     //

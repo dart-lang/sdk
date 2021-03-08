@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test/test.dart';
 
 import '../../../../generated/test_support.dart';
 import '../recovery_test_support.dart';
 
-typedef AdjustValidUnitBeforeComparison = CompilationUnit Function(
-    CompilationUnit unit);
+typedef AdjustValidUnitBeforeComparison = CompilationUnitImpl Function(
+    CompilationUnitImpl unit);
 
 /// A base class that adds support for tests that test how well the parser
 /// recovers when the user has entered an incomplete (but otherwise correct)

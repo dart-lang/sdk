@@ -10,6 +10,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -186,14 +187,14 @@ class Parser {
 
   Expression parseBitwiseXorExpression() => parseExpression2();
 
-  CompilationUnit parseCompilationUnit(Token token) {
+  CompilationUnitImpl parseCompilationUnit(Token token) {
     currentToken = token;
     return parseCompilationUnit2();
   }
 
-  CompilationUnit parseCompilationUnit2() {
+  CompilationUnitImpl parseCompilationUnit2() {
     currentToken = fastaParser.parseUnit(currentToken);
-    return astBuilder.pop() as CompilationUnit;
+    return astBuilder.pop() as CompilationUnitImpl;
   }
 
   Expression parseConditionalExpression() => parseExpression2();

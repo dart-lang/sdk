@@ -340,9 +340,8 @@ class ElementFactory {
       ConstTopLevelVariableElementImpl constant =
           ConstTopLevelVariableElementImpl(name, -1);
       var typeElement = type.element as ClassElement;
-      InstanceCreationExpression initializer =
-          AstTestFactory.instanceCreationExpression2(
-              Keyword.CONST, AstTestFactory.typeName(typeElement));
+      var initializer = AstTestFactory.instanceCreationExpression2(
+          Keyword.CONST, AstTestFactory.typeName(typeElement));
       if (type is InterfaceType) {
         var element = typeElement.unnamedConstructor;
         initializer.constructorName.staticElement = element;

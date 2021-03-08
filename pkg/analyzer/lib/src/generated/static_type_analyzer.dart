@@ -76,7 +76,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// @param type the static type of the node
   ///
   /// TODO(scheglov) this is duplication
-  void recordStaticType(Expression expression, DartType type) {
+  void recordStaticType(ExpressionImpl expression, DartType type) {
     var hooks = _migrationResolutionHooks;
     if (hooks != null) {
       type = hooks.modifyExpressionType(expression, type);
@@ -91,7 +91,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
   /// `String`.</blockquote>
   @override
-  void visitAdjacentStrings(AdjacentStrings node) {
+  void visitAdjacentStrings(covariant AdjacentStringsImpl node) {
     recordStaticType(node, _typeProvider.stringType);
   }
 
@@ -102,7 +102,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   ///
   /// The static type of a cast expression <i>e as T</i> is <i>T</i>.</blockquote>
   @override
-  void visitAsExpression(AsExpression node) {
+  void visitAsExpression(covariant AsExpressionImpl node) {
     recordStaticType(node, _getType(node.type));
   }
 
@@ -111,7 +111,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   ///   The static type of [the expression "await e"] is flatten(T) where T is
   ///   the static type of e.
   @override
-  void visitAwaitExpression(AwaitExpression node) {
+  void visitAwaitExpression(covariant AwaitExpressionImpl node) {
     var resultType = node.expression.typeOrThrow;
     resultType = _typeSystem.flatten(resultType);
     recordStaticType(node, resultType);
@@ -120,7 +120,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// The Dart Language Specification, 12.4: <blockquote>The static type of a boolean literal is
   /// bool.</blockquote>
   @override
-  void visitBooleanLiteral(BooleanLiteral node) {
+  void visitBooleanLiteral(covariant BooleanLiteralImpl node) {
     recordStaticType(node, _typeProvider.boolType);
   }
 
@@ -128,7 +128,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// of the form <i>e..suffix</i> is equivalent to the expression <i>(t) {t.suffix; return
   /// t;}(e)</i>.</blockquote>
   @override
-  void visitCascadeExpression(CascadeExpression node) {
+  void visitCascadeExpression(covariant CascadeExpressionImpl node) {
     recordStaticType(node, node.target.typeOrThrow);
   }
 
@@ -140,14 +140,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// The static type of <i>c</i> is the least upper bound of the static type of <i>e<sub>2</sub></i>
   /// and the static type of <i>e<sub>3</sub></i>.</blockquote>
   @override
-  void visitConditionalExpression(ConditionalExpression node) {
+  void visitConditionalExpression(covariant ConditionalExpressionImpl node) {
     _analyzeLeastUpperBound(node, node.thenExpression, node.elseExpression);
   }
 
   /// The Dart Language Specification, 12.3: <blockquote>The static type of a literal double is
   /// double.</blockquote>
   @override
-  void visitDoubleLiteral(DoubleLiteral node) {
+  void visitDoubleLiteral(covariant DoubleLiteralImpl node) {
     recordStaticType(node, _typeProvider.doubleType);
   }
 
@@ -195,7 +195,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// expression of either the form <i>const T.id(a<sub>1</sub>, &hellip;, a<sub>n</sub>)</i> or the
   /// form <i>const T(a<sub>1</sub>, &hellip;, a<sub>n</sub>)</i> is <i>T</i>. </blockquote>
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(
+      covariant InstanceCreationExpressionImpl node) {
     _inferInstanceCreationExpression(node);
     recordStaticType(node, node.constructorName.type.type!);
   }
@@ -234,7 +235,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   ///
   /// The static type of an is-expression is `bool`.</blockquote>
   @override
-  void visitIsExpression(IsExpression node) {
+  void visitIsExpression(covariant IsExpressionImpl node) {
     recordStaticType(node, _typeProvider.boolType);
   }
 
@@ -244,7 +245,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitNamedExpression(NamedExpression node) {
+  void visitNamedExpression(covariant NamedExpressionImpl node) {
     Expression expression = node.expression;
     recordStaticType(node, expression.typeOrThrow);
   }
@@ -252,12 +253,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// The Dart Language Specification, 12.2: <blockquote>The static type of `null` is bottom.
   /// </blockquote>
   @override
-  void visitNullLiteral(NullLiteral node) {
+  void visitNullLiteral(covariant NullLiteralImpl node) {
     recordStaticType(node, _typeProvider.nullType);
   }
 
   @override
-  void visitParenthesizedExpression(ParenthesizedExpression node) {
+  void visitParenthesizedExpression(
+      covariant ParenthesizedExpressionImpl node) {
     Expression expression = node.expression;
     recordStaticType(node, expression.typeOrThrow);
   }
@@ -265,26 +267,26 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// The Dart Language Specification, 12.9: <blockquote>The static type of a rethrow expression is
   /// bottom.</blockquote>
   @override
-  void visitRethrowExpression(RethrowExpression node) {
+  void visitRethrowExpression(covariant RethrowExpressionImpl node) {
     recordStaticType(node, _typeProvider.bottomType);
   }
 
   /// The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
   /// `String`.</blockquote>
   @override
-  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+  void visitSimpleStringLiteral(covariant SimpleStringLiteralImpl node) {
     recordStaticType(node, _typeProvider.stringType);
   }
 
   /// The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
   /// `String`.</blockquote>
   @override
-  void visitStringInterpolation(StringInterpolation node) {
+  void visitStringInterpolation(covariant StringInterpolationImpl node) {
     recordStaticType(node, _typeProvider.stringType);
   }
 
   @override
-  void visitSuperExpression(SuperExpression node) {
+  void visitSuperExpression(covariant SuperExpressionImpl node) {
     var thisType = _resolver.thisType;
     _resolver.flowAnalysis?.flow?.thisOrSuper(node, thisType ?? _dynamicType);
     if (thisType == null ||
@@ -298,14 +300,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitSymbolLiteral(SymbolLiteral node) {
+  void visitSymbolLiteral(covariant SymbolLiteralImpl node) {
     recordStaticType(node, _typeProvider.symbolType);
   }
 
   /// The Dart Language Specification, 12.10: <blockquote>The static type of `this` is the
   /// interface of the immediately enclosing class.</blockquote>
   @override
-  void visitThisExpression(ThisExpression node) {
+  void visitThisExpression(covariant ThisExpressionImpl node) {
     var thisType = _resolver.thisType;
     _resolver.flowAnalysis?.flow?.thisOrSuper(node, thisType ?? _dynamicType);
     if (thisType == null) {
@@ -320,14 +322,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// The Dart Language Specification, 12.8: <blockquote>The static type of a throw expression is
   /// bottom.</blockquote>
   @override
-  void visitThrowExpression(ThrowExpression node) {
+  void visitThrowExpression(covariant ThrowExpressionImpl node) {
     recordStaticType(node, _typeProvider.bottomType);
   }
 
   /// Set the static type of [node] to be the least upper bound of the static
   /// types of subexpressions [expr1] and [expr2].
   void _analyzeLeastUpperBound(
-      Expression node, Expression expr1, Expression expr2) {
+      ExpressionImpl node, Expression expr1, Expression expr2) {
     var staticType1 = expr1.typeOrThrow;
     var staticType2 = expr2.typeOrThrow;
 
@@ -337,7 +339,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// Set the static type of [node] to be the least upper bound of the static
   /// types [staticType1] and [staticType2].
   void _analyzeLeastUpperBoundTypes(
-      Expression node, DartType staticType1, DartType staticType2) {
+      ExpressionImpl node, DartType staticType1, DartType staticType2) {
     DartType staticType =
         _typeSystem.getLeastUpperBound(staticType1, staticType2);
 
@@ -359,8 +361,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   /// Given an instance creation of a possibly generic type, infer the type
   /// arguments using the current context type as well as the argument types.
-  void _inferInstanceCreationExpression(InstanceCreationExpression node) {
-    ConstructorName constructor = node.constructorName;
+  void _inferInstanceCreationExpression(InstanceCreationExpressionImpl node) {
+    var constructor = node.constructorName;
     var originalElement = constructor.staticElement;
     // If the constructor is generic, we'll have a ConstructorMember that
     // substitutes in type arguments (possibly `dynamic`) from earlier in
@@ -387,7 +389,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     FunctionType constructorType = constructorToGenericFunctionType(rawElement);
 
-    ArgumentList arguments = node.argumentList;
+    var arguments = node.argumentList;
     var inferred = _resolver.inferenceHelper.inferGenericInvoke(
         node,
         constructorType,

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -198,13 +198,13 @@ part 'foo.dart';
 ''', adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd);
   }
 
-  CompilationUnit _moveFirstDirectiveToEnd(CompilationUnit unit) {
+  CompilationUnitImpl _moveFirstDirectiveToEnd(CompilationUnitImpl unit) {
     unit.directives.add(unit.directives.removeAt(0));
     unit.beginToken = unit.directives[0].beginToken;
     return unit;
   }
 
-  CompilationUnit _updateBeginToken(CompilationUnit unit) {
+  CompilationUnitImpl _updateBeginToken(CompilationUnitImpl unit) {
     unit.beginToken = unit.declarations[0].beginToken;
     return unit;
   }

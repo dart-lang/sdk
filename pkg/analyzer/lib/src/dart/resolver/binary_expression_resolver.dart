@@ -78,7 +78,7 @@ class BinaryExpressionResolver {
   ///
   /// TODO(scheglov) this is duplicate
   void _analyzeLeastUpperBoundTypes(
-      Expression node, DartType staticType1, DartType staticType2) {
+      ExpressionImpl node, DartType staticType1, DartType staticType2) {
     var staticType = _typeSystem.getLeastUpperBound(staticType1, staticType2);
 
     staticType = _resolver.toLegacyTypeIfOptOut(staticType);
@@ -264,7 +264,7 @@ class BinaryExpressionResolver {
   }
 
   void _resolveUserDefinableElement(
-    BinaryExpression node,
+    BinaryExpressionImpl node,
     String methodName, {
     bool promoteLeftTypeToNonNull = false,
   }) {

@@ -11,12 +11,11 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerConfiguration, ScannerResult, scanString;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/ast.dart'
-    show ClassDeclarationImpl, CompilationUnitImpl;
+import 'package:analyzer/src/dart/ast/ast.dart' show CompilationUnitImpl;
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
@@ -380,14 +379,13 @@ class FastaParserTestCase
   }
 
   @override
-  CompilationUnit parseCompilationUnit(String content,
+  CompilationUnitImpl parseCompilationUnit(String content,
       {List<ErrorCode>? codes,
       List<ExpectedError>? errors,
       FeatureSet? featureSet}) {
     GatheringErrorListener listener = GatheringErrorListener(checkRanges: true);
 
-    CompilationUnit unit =
-        parseCompilationUnit2(content, listener, featureSet: featureSet);
+    var unit = parseCompilationUnit2(content, listener, featureSet: featureSet);
 
     // Assert and return result
     if (codes != null) {
@@ -401,7 +399,7 @@ class FastaParserTestCase
     return unit;
   }
 
-  CompilationUnit parseCompilationUnit2(
+  CompilationUnitImpl parseCompilationUnit2(
       String content, GatheringErrorListener listener,
       {LanguageVersionToken? languageVersion, FeatureSet? featureSet}) {
     featureSet ??= FeatureSet.forTesting();
@@ -817,7 +815,7 @@ class ParserProxy extends analyzer.Parser {
         Tokens.OPEN_CURLY_BRACKET /* leftBracket */,
         <ClassMember>[],
         Tokens.CLOSE_CURLY_BRACKET /* rightBracket */,
-      ) as ClassDeclarationImpl;
+      );
       // TODO(danrubel): disambiguate between class and mixin
       currentToken = fastaParser.parseClassMember(currentToken, className);
       //currentToken = fastaParser.parseMixinMember(currentToken);
@@ -857,7 +855,7 @@ class ParserProxy extends analyzer.Parser {
   }
 
   @override
-  CompilationUnit parseCompilationUnit2() {
+  CompilationUnitImpl parseCompilationUnit2() {
     var result = super.parseCompilationUnit2();
     expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
     expect(astBuilder.stack, hasLength(0));
@@ -1192,7 +1190,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
       featureSet: FeatureSet.forTesting(),
     );
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    CompilationUnit unit = parser.parseCompilationUnit(result.tokens);
+    var unit = parser.parseCompilationUnit(result.tokens);
     unit.lineInfo = LineInfo(result.lineStarts);
     return unit;
   }

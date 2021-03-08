@@ -64,11 +64,11 @@ class TypeNameResolver {
   /// given [node] is resolved, all its children must be already resolved.
   ///
   /// The client must set [nameScope] before calling [resolveTypeName].
-  void resolveTypeName(TypeName node) {
+  void resolveTypeName(TypeNameImpl node) {
     rewriteResult = null;
 
     var typeIdentifier = node.name;
-    if (typeIdentifier is PrefixedIdentifier) {
+    if (typeIdentifier is PrefixedIdentifierImpl) {
       var prefix = typeIdentifier.prefix;
       var prefixName = prefix.name;
       var prefixElement = nameScope.lookup(prefixName).getter;
@@ -101,7 +101,7 @@ class TypeNameResolver {
       );
       node.type = dynamicType;
     } else {
-      var nameNode = typeIdentifier as SimpleIdentifier;
+      var nameNode = typeIdentifier as SimpleIdentifierImpl;
       var name = nameNode.name;
 
       if (name == 'void') {
@@ -271,7 +271,7 @@ class TypeNameResolver {
     }
   }
 
-  void _resolveToElement(TypeName node, Element? element) {
+  void _resolveToElement(TypeNameImpl node, Element? element) {
     if (element == null) {
       node.type = dynamicType;
       if (!nameScope.shouldIgnoreUndefined(node.name)) {
@@ -294,11 +294,12 @@ class TypeNameResolver {
   /// will be a [PrefixElement]. But when we resolved the `prefix` it turned
   /// out to be a [ClassElement], so it is probably a `Class.constructor`.
   void _rewriteToConstructorName(
-    TypeName node,
+    TypeNameImpl node,
     PrefixedIdentifier typeIdentifier,
   ) {
     var constructorName = node.parent;
-    if (constructorName is ConstructorName && constructorName.name == null) {
+    if (constructorName is ConstructorNameImpl &&
+        constructorName.name == null) {
       var classIdentifier = typeIdentifier.prefix;
       var constructorIdentifier = typeIdentifier.identifier;
 

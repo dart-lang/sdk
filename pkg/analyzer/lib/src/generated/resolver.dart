@@ -583,7 +583,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   /// If we reached a null-shorting termination, and the [node] has null
   /// shorting, make the type of the [node] nullable.
-  void nullShortingTermination(Expression node, {bool discardType = false}) {
+  void nullShortingTermination(ExpressionImpl node,
+      {bool discardType = false}) {
     if (!_isNonNullableByDefault) return;
 
     if (identical(_unfinishedNullShorts.last, node)) {
@@ -858,7 +859,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitAnnotation(Annotation node) {
+  void visitAnnotation(covariant AnnotationImpl node) {
     AstNode parent = node.parent;
     if (identical(parent, _enclosingClassDeclaration) ||
         identical(parent, _enclosingFunctionTypeAlias) ||
@@ -1030,7 +1031,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitCascadeExpression(CascadeExpression node) {
+  void visitCascadeExpression(covariant CascadeExpressionImpl node) {
     InferenceContext.setTypeFromNode(node.target, node);
     node.target.accept(this);
 
@@ -1493,7 +1494,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     var outerFunction = _enclosingFunction;
     _enclosingFunction = node.declaredElement!;
 
@@ -1630,7 +1631,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitIndexExpression(IndexExpression node) {
+  void visitIndexExpression(covariant IndexExpressionImpl node) {
     node.target?.accept(this);
     startNullAwareIndexExpression(node);
 
@@ -1661,7 +1662,8 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(
+      covariant InstanceCreationExpressionImpl node) {
     node.constructorName.accept(this);
     _inferArgumentTypesForInstanceCreate(node);
     node.argumentList.accept(this);
@@ -1689,7 +1691,7 @@ class ResolverVisitor extends ScopedVisitor {
   void visitLibraryIdentifier(LibraryIdentifier node) {}
 
   @override
-  void visitListLiteral(ListLiteral node) {
+  void visitListLiteral(covariant ListLiteralImpl node) {
     checkUnreachableNode(node);
     _typedLiteralResolver.resolveListLiteral(node);
   }
@@ -1730,14 +1732,14 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(covariant MethodInvocationImpl node) {
     var target = node.target;
     target?.accept(this);
 
     if (_migratableAstInfoProvider.isMethodInvocationNullAware(node)) {
       var flow = flowAnalysis?.flow;
       if (flow != null) {
-        if (target is SimpleIdentifier &&
+        if (target is SimpleIdentifierImpl &&
             target.staticElement is ClassElement) {
           // `?.` to access static methods is equivalent to `.`, so do nothing.
         } else {
@@ -1817,7 +1819,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+  void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
     _prefixedIdentifierResolver.resolve(node);
   }
 
@@ -1827,7 +1829,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitPropertyAccess(PropertyAccess node) {
+  void visitPropertyAccess(covariant PropertyAccessImpl node) {
     node.target?.accept(this);
     startNullAwarePropertyAccess(node);
 
@@ -1905,7 +1907,7 @@ class ResolverVisitor extends ScopedVisitor {
   void visitShowCombinator(ShowCombinator node) {}
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
     SimpleIdentifierResolver(this, flowAnalysis).resolve(node);
   }
 
@@ -2161,8 +2163,9 @@ class ResolverVisitor extends ScopedVisitor {
     return false;
   }
 
-  void _inferArgumentTypesForInstanceCreate(InstanceCreationExpression node) {
-    ConstructorName constructor = node.constructorName;
+  void _inferArgumentTypesForInstanceCreate(
+      covariant InstanceCreationExpressionImpl node) {
+    var constructor = node.constructorName;
     TypeName classTypeName = constructor.type;
     // if (classTypeName == null) {
     //   return;
@@ -2199,7 +2202,7 @@ class ResolverVisitor extends ScopedVisitor {
           isConst: node.isConst, errorNode: node.constructorName);
 
       if (inferred != null) {
-        ArgumentList arguments = node.argumentList;
+        var arguments = node.argumentList;
         InferenceContext.setType(arguments, inferred);
         // Fix up the parameter elements based on inferred method.
         arguments.correspondingStaticParameters =
@@ -2305,8 +2308,8 @@ class ResolverVisitor extends ScopedVisitor {
     Expression? firstUnresolvedArgument;
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
-      if (argument is NamedExpression) {
-        SimpleIdentifier nameNode = argument.name.label;
+      if (argument is NamedExpressionImpl) {
+        var nameNode = argument.name.label;
         String name = nameNode.name;
         var element = namedParameters != null ? namedParameters[name] : null;
         if (element == null) {
@@ -2393,7 +2396,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
             migrationResolutionHooks);
 
   @override
-  void visitConditionalExpression(ConditionalExpression node) {
+  void visitConditionalExpression(covariant ConditionalExpressionImpl node) {
     var conditionalKnownValue =
         _migrationResolutionHooks.getConditionalKnownValue(node);
     if (conditionalKnownValue == null) {
@@ -3230,7 +3233,7 @@ class VariableResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
     // Ignore if already resolved - declaration or type.
     if (node.inDeclarationContext()) {
       return;

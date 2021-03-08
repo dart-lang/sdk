@@ -327,7 +327,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(elementC, null);
     elementC.constructors = <ConstructorElement>[constructor];
-    TypeName typeName =
+    var typeName =
         AstTestFactory.typeName(elementC, [AstTestFactory.typeName(elementI)]);
     typeName.type = interfaceTypeStar(elementC,
         typeArguments: [interfaceTypeStar(elementI)]);
@@ -525,7 +525,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @param value the value of the literal
   /// @return an integer literal that has been resolved to the correct type
   DoubleLiteral _resolvedDouble(double value) {
-    DoubleLiteral literal = AstTestFactory.doubleLiteral(value);
+    var literal = AstTestFactory.doubleLiteral(value);
     literal.staticType = _typeProvider.doubleType;
     return literal;
   }
@@ -535,7 +535,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @param value the value of the literal
   /// @return an integer literal that has been resolved to the correct type
   IntegerLiteral _resolvedInteger(int value) {
-    IntegerLiteral literal = AstTestFactory.integer(value);
+    var literal = AstTestFactory.integer(value);
     literal.staticType = _typeProvider.intType;
     return literal;
   }
@@ -545,7 +545,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @param value the value of the literal
   /// @return a string literal that has been resolved to the correct type
   SimpleStringLiteral _resolvedString(String value) {
-    SimpleStringLiteral string = AstTestFactory.string2(value);
+    var string = AstTestFactory.string2(value);
     string.staticType = _typeProvider.stringType;
     return string;
   }
@@ -558,7 +558,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @return a simple identifier that has been resolved to a variable element
   ///           with the given type
   SimpleIdentifier _resolvedVariable(InterfaceType type, String variableName) {
-    SimpleIdentifier identifier = AstTestFactory.identifier3(variableName);
+    var identifier = AstTestFactory.identifier3(variableName);
     VariableElementImpl element =
         ElementFactory.localVariableElement(identifier);
     element.type = type;

@@ -54,8 +54,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
-import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -64,8 +62,13 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         ClassDeclarationImpl,
         CompilationUnitImpl,
         ExtensionDeclarationImpl,
+        ImportDirectiveImpl,
+        MethodInvocationImpl,
         MixinDeclarationImpl,
+        SimpleIdentifierImpl,
+        TypeArgumentListImpl,
         TypeParameterImpl;
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
@@ -76,7 +79,7 @@ const _invalidCollectionElement = _InvalidCollectionElement._();
 
 /// A parser listener that builds the analyzer's AST structure.
 class AstBuilder extends StackListener {
-  final AstFactory ast = standard.astFactory;
+  final AstFactoryImpl ast = astFactory;
 
   final FastaErrorReporter errorReporter;
   final Uri fileUri;
@@ -248,7 +251,7 @@ class AstBuilder extends StackListener {
       leftBracket: Tokens.OPEN_CURLY_BRACKET,
       rightBracket: Tokens.CLOSE_CURLY_BRACKET,
       members: [],
-    ) as ExtensionDeclarationImpl;
+    );
 
     declarations.add(extensionDeclaration!);
   }
@@ -517,7 +520,7 @@ class AstBuilder extends StackListener {
       } else {
         push(ast.propertyAccess(receiver, dot, identifierOrInvoke));
       }
-    } else if (identifierOrInvoke is MethodInvocation) {
+    } else if (identifierOrInvoke is MethodInvocationImpl) {
       assert(identifierOrInvoke.target == null);
       identifierOrInvoke
         ..target = receiver
@@ -537,9 +540,9 @@ class AstBuilder extends StackListener {
   }
 
   void doInvocation(
-      TypeArgumentList? typeArguments, MethodInvocation arguments) {
+      TypeArgumentList? typeArguments, MethodInvocationImpl arguments) {
     var receiver = pop() as Expression;
-    if (receiver is SimpleIdentifier) {
+    if (receiver is SimpleIdentifierImpl) {
       arguments.methodName = receiver;
       if (typeArguments != null) {
         arguments.typeArguments = typeArguments;
@@ -1023,7 +1026,7 @@ class AstBuilder extends StackListener {
         directives: directives,
         declarations: declarations,
         endToken: endToken,
-        featureSet: _featureSet) as CompilationUnitImpl;
+        featureSet: _featureSet);
     push(unit);
   }
 
@@ -2515,7 +2518,7 @@ class AstBuilder extends StackListener {
       Tokens.OPEN_CURLY_BRACKET, // leftBracket
       <ClassMember>[],
       Tokens.CLOSE_CURLY_BRACKET, // rightBracket
-    ) as ClassDeclarationImpl;
+    );
 
     classDeclaration!.nativeClause = nativeClause;
     declarations.add(classDeclaration!);
@@ -3146,7 +3149,7 @@ class AstBuilder extends StackListener {
       Tokens.OPEN_CURLY_BRACKET, // leftBracket
       <ClassMember>[],
       Tokens.CLOSE_CURLY_BRACKET, // rightBracket
-    ) as MixinDeclarationImpl;
+    );
     declarations.add(mixinDeclaration!);
   }
 
@@ -3320,7 +3323,7 @@ class AstBuilder extends StackListener {
     var implementsClause = pop(NullValue.IdentifierList) as ImplementsClause?;
     var withClause = pop(NullValue.WithClause) as WithClause?;
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClause?;
-    var declaration = declarations.last as ClassDeclaration;
+    var declaration = declarations.last as ClassDeclarationImpl;
     if (extendsClause != null) {
       if (declaration.extendsClause?.superclass == null) {
         declaration.extendsClause = extendsClause;
@@ -3354,7 +3357,7 @@ class AstBuilder extends StackListener {
     var prefix = pop(NullValue.Prefix) as SimpleIdentifier?;
     var configurations = pop() as List<Configuration>?;
 
-    var directive = directives.last as ImportDirective;
+    var directive = directives.last as ImportDirectiveImpl;
     if (combinators != null) {
       directive.combinators.addAll(combinators);
     }
@@ -3406,8 +3409,8 @@ class AstBuilder extends StackListener {
   void handleSend(Token beginToken, Token endToken) {
     debugEvent("Send");
 
-    var arguments = pop() as MethodInvocation?;
-    var typeArguments = pop() as TypeArgumentList?;
+    var arguments = pop() as MethodInvocationImpl?;
+    var typeArguments = pop() as TypeArgumentListImpl?;
     if (arguments != null) {
       doInvocation(typeArguments, arguments);
     } else {

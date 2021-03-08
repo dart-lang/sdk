@@ -120,7 +120,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
   @override
-  void visitBreakStatement(BreakStatement node) {
+  void visitBreakStatement(covariant BreakStatementImpl node) {
     node.target = _lookupBreakOrContinueTarget(node, node.label, false);
   }
 
@@ -135,9 +135,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitCommentReference(CommentReference node) {
-    Identifier identifier = node.identifier;
-    if (identifier is SimpleIdentifier) {
+  void visitCommentReference(covariant CommentReferenceImpl node) {
+    var identifier = node.identifier;
+    if (identifier is SimpleIdentifierImpl) {
       var element = _resolveSimpleIdentifier(identifier);
       if (element == null) {
         // TODO(brianwilkerson) Report this error?
@@ -163,12 +163,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
           }
         }
       }
-    } else if (identifier is PrefixedIdentifier) {
-      SimpleIdentifier prefix = identifier.prefix;
+    } else if (identifier is PrefixedIdentifierImpl) {
+      var prefix = identifier.prefix;
       var prefixElement = _resolveSimpleIdentifier(prefix);
       prefix.staticElement = prefixElement;
 
-      SimpleIdentifier name = identifier.identifier;
+      var name = identifier.identifier;
 
       if (prefixElement == null) {
 //        resolver.reportError(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, prefix, prefix.getName());
@@ -235,15 +235,16 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    SimpleIdentifier fieldName = node.fieldName;
+  void visitConstructorFieldInitializer(
+      covariant ConstructorFieldInitializerImpl node) {
+    var fieldName = node.fieldName;
     ClassElement enclosingClass = _resolver.enclosingClass!;
     var fieldElement = enclosingClass.getField(fieldName.name);
     fieldName.staticElement = fieldElement;
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
+  void visitConstructorName(covariant ConstructorNameImpl node) {
     DartType type = node.type.type!;
     if (type.isDynamic) {
       // Nothing to do.
@@ -276,7 +277,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitContinueStatement(ContinueStatement node) {
+  void visitContinueStatement(covariant ContinueStatementImpl node) {
     node.target = _lookupBreakOrContinueTarget(node, node.label, true);
   }
 
@@ -344,7 +345,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitImportDirective(ImportDirective node) {
+  void visitImportDirective(covariant ImportDirectiveImpl node) {
     var prefixNode = node.prefix;
     if (prefixNode != null) {
       String prefixName = prefixNode.name;
@@ -370,9 +371,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(
+      covariant InstanceCreationExpressionImpl node) {
     var invokedConstructor = node.constructorName.staticElement;
-    ArgumentList argumentList = node.argumentList;
+    var argumentList = node.argumentList;
     var parameters =
         _resolveArgumentsToFunction(argumentList, invokedConstructor);
     if (parameters != null) {
@@ -407,7 +409,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+      covariant RedirectingConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
     if (enclosingClass == null) {
       // TODO(brianwilkerson) Report this error.
@@ -429,7 +431,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       name.staticElement = element;
     }
     node.staticElement = element;
-    ArgumentList argumentList = node.argumentList;
+    var argumentList = node.argumentList;
     var parameters = _resolveArgumentsToFunction(argumentList, element);
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
@@ -442,7 +444,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  void visitSuperConstructorInvocation(
+      covariant SuperConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
     if (enclosingClass == null) {
       // TODO(brianwilkerson) Report this error.
@@ -491,7 +494,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         _resolver.nameScope.shouldIgnoreUndefined(superclassName)) {
       return;
     }
-    ArgumentList argumentList = node.argumentList;
+    var argumentList = node.argumentList;
     var parameters = _resolveArgumentsToFunction(argumentList, element);
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
@@ -532,7 +535,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// that statement (if any). The flag [isContinue] is `true` if the node being
   /// visited is a continue statement.
   AstNode? _lookupBreakOrContinueTarget(
-      AstNode parentNode, SimpleIdentifier? labelNode, bool isContinue) {
+      AstNode parentNode, SimpleIdentifierImpl? labelNode, bool isContinue) {
     if (labelNode == null) {
       return _resolver.implicitLabelScope.getTarget(isContinue);
     } else {
@@ -611,7 +614,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       } else {
         names = (combinator as ShowCombinator).shownNames;
       }
-      for (SimpleIdentifier name in names) {
+      for (var name in names) {
+        name as SimpleIdentifierImpl;
         String nameStr = name.name;
         var element = namespace.get(nameStr) ?? namespace.get("$nameStr=");
         if (element != null) {

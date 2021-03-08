@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/error/codes.dart';
 
@@ -109,7 +110,7 @@ class AstRewriter {
           );
         }
       }
-    } else if (target is PrefixedIdentifier) {
+    } else if (target is PrefixedIdentifierImpl) {
       // Possible case: p.C.n()
       var prefixElement = nameScope.lookup(target.prefix.name).getter;
       target.prefix.staticElement = prefixElement;

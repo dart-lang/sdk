@@ -890,7 +890,7 @@ abstract class _AssignmentLikeExpressionHandler {
     writeType = writeTypeToSet;
     // TODO(scheglov) Remove this after the analyzer breaking change that
     // will top setting types for LHS.
-    target.staticType = writeTypeToSet;
+    (target as ExpressionImpl).staticType = writeTypeToSet;
     var fixBuilder = hooks._fixBuilder;
     if (combinerType == TokenType.EQ) {
       rhsContextType = writeTypeToSet;
@@ -1167,7 +1167,8 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
         _makeTypeNameNullable(node, decoratedType);
       }
     }
-    node.type = _fixBuilder._variables.toFinalType(decoratedType);
+    (node as TypeNameImpl).type =
+        _fixBuilder._variables.toFinalType(decoratedType);
     super.visitTypeName(node);
   }
 
