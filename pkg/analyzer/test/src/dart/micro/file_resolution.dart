@@ -14,8 +14,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:crypto/crypto.dart';
-
-// import 'package:linter/src/rules.dart';
+import 'package:linter/src/rules.dart';
 
 import '../resolution/resolution.dart';
 
@@ -78,7 +77,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   }
 
   void setUp() {
-    // registerLintRules();
+    registerLintRules();
 
     logger = PerformanceLog(logBuffer);
     sdk = MockSdk(resourceProvider: resourceProvider);

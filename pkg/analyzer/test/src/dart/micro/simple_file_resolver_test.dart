@@ -296,7 +296,6 @@ int b = a;
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/2399')
   test_analysisOptions_lints() async {
     newFile('/workspace/dart/analysis_options/lib/default.yaml', content: r'''
 linter:
