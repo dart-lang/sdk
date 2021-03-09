@@ -36,6 +36,7 @@ const not = const NotOperation();
 const remainder = const RemainderOperation();
 const shiftLeft = const ShiftLeftOperation();
 const shiftRight = const ShiftRightOperation();
+const shiftRightUnsigned = const ShiftRightUnsignedOperation();
 const subtract = const SubtractOperation();
 const truncatingDivide = const TruncatingDivideOperation();
 const codeUnitAt = const CodeUnitAtOperation();
@@ -470,6 +471,24 @@ class ShiftRightOperation extends BinaryBitOperation {
 
   @override
   apply(left, right) => left >> right;
+}
+
+class ShiftRightUnsignedOperation extends BinaryBitOperation {
+  @override
+  final String name = '>>>';
+
+  const ShiftRightUnsignedOperation();
+
+  @override
+  BigInt foldInts(BigInt left, BigInt right) {
+    if (right < BigInt.zero) return null;
+    return left.toUnsigned(32) >> right.toInt();
+  }
+
+  @override
+  apply(left, right) {
+    throw UnimplementedError('ShiftRightUnsignedOperation.apply');
+  }
 }
 
 abstract class BinaryBoolOperation implements BinaryOperation {

@@ -27,7 +27,8 @@ main(List<String> args) {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     bool strict = args.contains('-s');
     await checkTests(dataDir, new OptimizationDataComputer(strict: strict),
-        options: [Flags.disableInlining], args: args);
+        options: [Flags.disableInlining, '--enable-experiment=triple-shift'],
+        args: args);
   });
 }
 

@@ -32,7 +32,7 @@ runTests(List<String> args, [int shardIndex]) {
     await checkTests(dataDir, const TypeMaskDataComputer(),
         forUserLibrariesOnly: true,
         args: args,
-        options: [stopAfterTypeInference],
+        options: [stopAfterTypeInference, '--enable-experiment=triple-shift'],
         testedConfigs: allInternalConfigs,
         skip: skip,
         shardIndex: shardIndex ?? 0,

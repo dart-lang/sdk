@@ -67,8 +67,9 @@ class InvokeDynamicSpecializer {
       if (name == '/') return const DivideSpecializer();
       if (name == '~/') return const TruncatingDivideSpecializer();
       if (name == '%') return const ModuloSpecializer();
-      if (name == '>>') return const ShiftRightSpecializer();
       if (name == '<<') return const ShiftLeftSpecializer();
+      if (name == '>>') return const ShiftRightSpecializer();
+      if (name == '>>>') return const ShiftRightUnsignedSpecializer();
       if (name == '&') return const BitAndSpecializer();
       if (name == '|') return const BitOrSpecializer();
       if (name == '^') return const BitXorSpecializer();
@@ -1042,6 +1043,71 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
   void registerOptimization(
       OptimizationTestLog log, HInstruction original, HInstruction converted) {
     log.registerShiftRight(original, converted);
+  }
+}
+
+class ShiftRightUnsignedSpecializer extends BinaryBitOpSpecializer {
+  const ShiftRightUnsignedSpecializer();
+
+  @override
+  AbstractValue computeTypeFromInputTypes(HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
+    HInstruction left = instruction.inputs[1];
+    if (left.isUInt32(closedWorld.abstractValueDomain).isDefinitelyTrue) {
+      return left.instructionType;
+    }
+    return super.computeTypeFromInputTypes(instruction, results, closedWorld);
+  }
+
+  @override
+  HInstruction tryConvertToBuiltin(
+      HInvokeDynamic instruction,
+      HGraph graph,
+      GlobalTypeInferenceResults results,
+      JCommonElements commonElements,
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
+    if (left.isInteger(closedWorld.abstractValueDomain).isDefinitelyTrue) {
+      if (argumentLessThan32(right)) {
+        HInstruction converted =
+            newBuiltinVariant(instruction, results, closedWorld);
+        if (log != null) {
+          registerOptimization(log, instruction, converted);
+        }
+        return converted;
+      }
+      // Even if there is no builtin equivalent instruction, we know
+      // the instruction does not have any side effect, and that it
+      // can be GVN'ed.
+      clearAllSideEffects(instruction);
+      if (isPositive(right, closedWorld)) {
+        redirectSelector(instruction, '_shruOtherPositive', commonElements);
+        if (log != null) {
+          registerOptimization(log, instruction, null);
+        }
+      }
+    }
+    return null;
+  }
+
+  @override
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
+    return HShiftRight(instruction.inputs[1], instruction.inputs[2],
+        computeTypeFromInputTypes(instruction, results, closedWorld));
+  }
+
+  @override
+  constant_system.BinaryOperation operation() {
+    return constant_system.shiftRightUnsigned;
+  }
+
+  @override
+  void registerOptimization(
+      OptimizationTestLog log, HInstruction original, HInstruction converted) {
+    log.registerShiftRightUnsigned(original, converted);
   }
 }
 
