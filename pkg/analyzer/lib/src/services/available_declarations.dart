@@ -596,7 +596,7 @@ class DeclarationsTracker {
 
     if (_scheduledFiles.isNotEmpty) {
       var scheduledFile = _scheduledFiles.removeLast();
-      var file = _getFileByPath(scheduledFile.context, scheduledFile.path)!;
+      var file = _getFileByPath(scheduledFile.context, [], scheduledFile.path)!;
 
       if (!file.isLibrary) return;
 
@@ -653,6 +653,16 @@ class DeclarationsTracker {
     }
   }
 
+  /// TODO(scheglov) Remove after fixing
+  /// https://github.com/dart-lang/sdk/issues/45233
+  void _addPathOrUri(List<String> pathOrUriList, String path, Uri uri) {
+    pathOrUriList.add('(uri: $uri, path: $path)');
+
+    if (pathOrUriList.length > 200) {
+      throw StateError('Suspected cycle. $pathOrUriList');
+    }
+  }
+
   /// Compute exported declarations for the given [libraries].
   void _computeExportedDeclarations(Set<_File> libraries) {
     var walker = _LibraryWalker();
@@ -686,7 +696,8 @@ class DeclarationsTracker {
     return null;
   }
 
-  _File? _getFileByPath(DeclarationsContext context, String path) {
+  _File? _getFileByPath(
+      DeclarationsContext context, List<String> partOrUriList, String path) {
     var file = _pathToFile[path];
     if (file == null) {
       var uri = context._restoreUri(path);
@@ -694,13 +705,16 @@ class DeclarationsTracker {
         file = _File(this, path, uri);
         _pathToFile[path] = file;
         _uriToFile[uri] = file;
-        file.refresh(context);
+        _addPathOrUri(partOrUriList, path, uri);
+        file.refresh(context, partOrUriList);
+        partOrUriList.removeLast();
       }
     }
     return file;
   }
 
-  _File? _getFileByUri(DeclarationsContext context, Uri uri) {
+  _File? _getFileByUri(
+      DeclarationsContext context, List<String> partOrUriList, Uri uri) {
     var file = _uriToFile[uri];
     if (file != null) {
       return file;
@@ -726,7 +740,9 @@ class DeclarationsTracker {
     _pathToFile[path] = file;
     _uriToFile[uri] = file;
 
-    file.refresh(context);
+    _addPathOrUri(partOrUriList, path, uri);
+    file.refresh(context, partOrUriList);
+    partOrUriList.removeLast();
     return file;
   }
 
@@ -745,13 +761,13 @@ class DeclarationsTracker {
     var containingContext = _findContextOfPath(path);
     if (containingContext == null) return;
 
-    var file = _getFileByPath(containingContext, path);
+    var file = _getFileByPath(containingContext, [], path);
     if (file == null) return;
 
     var wasLibrary = file.isLibrary;
     var oldLibrary = wasLibrary ? file : file.library;
 
-    file.refresh(containingContext);
+    file.refresh(containingContext, []);
     var isLibrary = file.isLibrary;
     var newLibrary = isLibrary ? file : file.library;
 
@@ -763,17 +779,17 @@ class DeclarationsTracker {
       } else {
         notLibraries.add(file);
         if (newLibrary != null) {
-          newLibrary.refresh(containingContext);
+          newLibrary.refresh(containingContext, []);
           _invalidateExportedDeclarations(invalidatedLibraries, newLibrary);
         }
       }
     } else {
       if (oldLibrary != null) {
-        oldLibrary.refresh(containingContext);
+        oldLibrary.refresh(containingContext, []);
         _invalidateExportedDeclarations(invalidatedLibraries, oldLibrary);
       }
       if (newLibrary != null && newLibrary != oldLibrary) {
-        newLibrary.refresh(containingContext);
+        newLibrary.refresh(containingContext, []);
         _invalidateExportedDeclarations(invalidatedLibraries, newLibrary);
       }
     }
@@ -1164,7 +1180,7 @@ class _File {
 
   String get uriStr => uri.toString();
 
-  void refresh(DeclarationsContext context) {
+  void refresh(DeclarationsContext context, List<String> partOrUriList) {
     var resource = tracker._resourceProvider.getFile(path);
 
     int modificationStamp;
@@ -1225,10 +1241,10 @@ class _File {
 
     // Resolve exports and parts.
     for (var export in exports) {
-      export.file = _fileForRelativeUri(context, export.uri);
+      export.file = _fileForRelativeUri(context, partOrUriList, export.uri);
     }
     for (var part in parts) {
-      part.file = _fileForRelativeUri(context, part.uri);
+      part.file = _fileForRelativeUri(context, partOrUriList, part.uri);
     }
     exports.removeWhere((e) => e.file == null);
     parts.removeWhere((e) => e.file == null);
@@ -1753,9 +1769,13 @@ class _File {
   }
 
   /// Return the [_File] for the given [relative] URI, maybe `null`.
-  _File? _fileForRelativeUri(DeclarationsContext context, Uri relative) {
+  _File? _fileForRelativeUri(
+    DeclarationsContext context,
+    List<String> partOrUriList,
+    Uri relative,
+  ) {
     var absoluteUri = resolveRelativeUri(uri, relative);
-    return tracker._getFileByUri(context, absoluteUri);
+    return tracker._getFileByUri(context, partOrUriList, absoluteUri);
   }
 
   void _putFileDeclarationsToByteStore(String contentKey) {
