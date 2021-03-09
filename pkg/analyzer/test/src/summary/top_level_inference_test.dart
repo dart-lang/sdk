@@ -2712,7 +2712,7 @@ class C extends A implements B {
 
     var path = convertPath(testFilePath);
     var analysisSession = contextFor(path).currentSession;
-    var result = (await analysisSession.getUnitElement(path))!;
+    var result = await analysisSession.getUnitElement(path);
     return result.element.library;
   }
 }

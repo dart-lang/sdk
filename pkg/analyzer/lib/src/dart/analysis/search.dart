@@ -55,7 +55,7 @@ class Search {
     for (String file in files) {
       if (searchedFiles.add(file, this)) {
         var unitResult = await _driver.getUnitElement(file);
-        if (unitResult != null) {
+        if (unitResult.state == ResultState.VALID) {
           unitResult.element.types.forEach(addElements);
           unitResult.element.mixins.forEach(addElements);
         }
@@ -175,7 +175,7 @@ class Search {
     List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
     for (FileState file in knownFiles) {
       var unitResult = await _driver.getUnitElement(file.path!);
-      if (unitResult != null) {
+      if (unitResult.state == ResultState.VALID) {
         CompilationUnitElement unitElement = unitResult.element;
         unitElement.accessors.forEach(addElement);
         unitElement.enums.forEach(addElement);
@@ -284,7 +284,7 @@ class Search {
 
   Future<CompilationUnitElement?> _getUnitElement(String file) async {
     var result = await _driver.getUnitElement(file);
-    return result?.element;
+    return result.state == ResultState.VALID ? result.element : null;
   }
 
   Future<List<SearchResult>> _searchReferences(
@@ -378,7 +378,7 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      ResolvedUnitResult unitResult = (await _driver.getResult(unitPath))!;
+      ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
       _ImportElementReferencesVisitor visitor =
           _ImportElementReferencesVisitor(element, unitElement);
       unitResult.unit!.accept(visitor);
@@ -397,7 +397,7 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     for (CompilationUnitElement unitElement in element.units) {
       String unitPath = unitElement.source.fullName;
-      ResolvedUnitResult unitResult = (await _driver.getResult(unitPath))!;
+      ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
       CompilationUnit unit = unitResult.unit!;
       for (Directive directive in unit.directives) {
         if (directive is PartOfDirective && directive.element == element) {
@@ -422,7 +422,7 @@ class Search {
     }
 
     // Prepare the unit.
-    ResolvedUnitResult unitResult = (await _driver.getResult(path))!;
+    ResolvedUnitResult unitResult = await _driver.getResult(path);
     var unit = unitResult.unit;
     if (unit == null) {
       return const <SearchResult>[];
@@ -475,7 +475,7 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      ResolvedUnitResult unitResult = (await _driver.getResult(unitPath))!;
+      ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
       _LocalReferencesVisitor visitor =
           _LocalReferencesVisitor(element, unitElement);
       unitResult.unit!.accept(visitor);
