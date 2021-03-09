@@ -31,6 +31,17 @@ class ContextTypeTest extends FeatureComputerTest {
     }
   }
 
+  Future<void> test_argumentList_instanceCreation() async {
+    await assertContextType('''
+class C {
+  C({String s}) {}
+}
+void f() {
+  C(s:^);
+}
+''', 'String');
+  }
+
   Future<void> test_argumentList_named_afterColon() async {
     await assertContextType('''
 void f({int i, String s, bool b}) {}
@@ -83,6 +94,17 @@ void g() {
 void f(int i, {String s = ''}) {}
 void g() {
   f(^ s:);
+}
+''', 'int');
+  }
+
+  Future<void> test_argumentList_named_method() async {
+    await assertContextType('''
+class C {
+  void m(int i) {}
+}
+void f(C c) {
+  c.m(^);
 }
 ''', 'int');
   }

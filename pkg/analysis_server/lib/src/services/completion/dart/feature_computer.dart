@@ -1004,18 +1004,24 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 }
 
 /// Some useful extensions on [AstNode] for this computer.
-extension AstNodeFeatureComputerExtension on AstNode {
+extension on AstNode {
   bool contains(int o) => offset <= o && o <= end;
+}
 
-  /// Return the [FunctionType], if there is one, for this [AstNode].
+/// Some useful extensions on [ArgumentList] for this computer.
+extension on ArgumentList {
+  /// Return the [FunctionType], if there is one, for this [ArgumentList].
   FunctionType get functionType {
-    if (parent is MethodInvocation) {
-      var type = (parent as MethodInvocation).staticInvokeType;
+    var parent = this.parent;
+    if (parent is InstanceCreationExpression) {
+      return parent.constructorName.staticElement?.type;
+    } else if (parent is MethodInvocation) {
+      var type = parent.staticInvokeType;
       if (type is FunctionType) {
         return type;
       }
     } else if (parent is FunctionExpressionInvocation) {
-      var type = (parent as FunctionExpressionInvocation).staticInvokeType;
+      var type = parent.staticInvokeType;
       if (type is FunctionType) {
         return type;
       }
