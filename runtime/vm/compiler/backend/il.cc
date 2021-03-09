@@ -5387,7 +5387,7 @@ intptr_t AssertAssignableInstr::statistics_tag() const {
 
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateAssertAssignable(value()->Type(), source(), deopt_id(),
-                                     dst_name(), locs());
+                                     dst_name(), locs(), licm_hoisted());
   ASSERT(locs()->in(kInstancePos).reg() == locs()->out(0).reg());
 }
 

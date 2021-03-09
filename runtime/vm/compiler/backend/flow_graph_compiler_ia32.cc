@@ -339,7 +339,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(
     const InstructionSource& source,
     intptr_t deopt_id,
     const String& dst_name,
-    LocationSummary* locs) {
+    LocationSummary* locs,
+    bool was_licm_hoisted) {
   ASSERT(!source.token_pos.IsClassifying());
   ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
 
@@ -395,26 +396,33 @@ void FlowGraphCompiler::GenerateAssertAssignable(
   }
 
   __ Bind(&runtime_call);
-  __ PushObject(Object::null_object());            // Make room for the result.
-  __ pushl(TypeTestABI::kInstanceReg);             // Push the source object.
-  // Push the type of the destination.
+
+  // We push the inputs of [AssertAssignable] in the same order as they lie on
+  // the stack in unoptimized code.
+  // That will make the deopt environment we emit as metadata correct and
+  // doesn't need pruning (as in other architectures).
+
+  static_assert(AssertAssignableInstr::kNumInputs == 4,
+                "Expected AssertAssignable to have 4 inputs");
+
+  __ PushRegister(TypeTestABI::kInstanceReg);
   if (!dst_type.IsNull()) {
     __ PushObject(dst_type);
   } else {
-    __ pushl(TypeTestABI::kDstTypeReg);
+    __ PushRegister(TypeTestABI::kDstTypeReg);
   }
-  __ pushl(TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ pushl(TypeTestABI::kFunctionTypeArgumentsReg);
-  __ PushObject(dst_name);  // Push the name of the destination.
-  // Can reuse kInstanceReg as scratch here since it was pushed above.
-  __ LoadObject(TypeTestABI::kInstanceReg, test_cache);
-  __ pushl(TypeTestABI::kInstanceReg);
-  __ PushObject(Smi::ZoneHandle(zone(), Smi::New(kTypeCheckFromInline)));
-  GenerateRuntimeCall(source, deopt_id, kTypeCheckRuntimeEntry, 7, locs);
-  // Pop the parameters supplied to the runtime entry. The result of the
-  // type check runtime call is the checked value.
-  __ Drop(7);
-  __ popl(TypeTestABI::kInstanceReg);
+  __ PushRegister(TypeTestABI::kInstantiatorTypeArgumentsReg);
+  __ PushRegister(TypeTestABI::kFunctionTypeArgumentsReg);
+
+  // Pass destination name and subtype test reg as register arguments.
+  __ LoadObject(AssertAssignableStubABI::kDstNameReg, dst_name);
+  __ LoadObject(AssertAssignableStubABI::kSubtypeTestReg, test_cache);
+
+  GenerateStubCall(source, StubCode::AssertAssignable(),
+                   UntaggedPcDescriptors::kOther, locs, deopt_id);
+
+  __ Drop(AssertAssignableInstr::kNumInputs - 1);
+  __ PopRegister(TypeTestABI::kInstanceReg);
 
   __ Bind(&is_assignable);
 }

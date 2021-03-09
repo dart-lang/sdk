@@ -179,6 +179,31 @@ void StubCodeCompiler::GenerateAssertSubtypeStub(Assembler* assembler) {
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateAssertAssignableStub(Assembler* assembler) {
+#if !defined(TARGET_ARCH_IA32)
+  __ Breakpoint();
+#else
+  __ EnterStubFrame();
+  __ PushObject(Object::null_object());  // Make room for the result.
+  __ pushl(Address(
+      EBP, target::kWordSize * AssertAssignableStubABI::kInstanceSlotFromFp));
+  __ pushl(Address(
+      EBP, target::kWordSize * AssertAssignableStubABI::kDstTypeSlotFromFp));
+  __ pushl(Address(
+      EBP,
+      target::kWordSize * AssertAssignableStubABI::kInstantiatorTAVSlotFromFp));
+  __ pushl(Address(EBP, target::kWordSize *
+                            AssertAssignableStubABI::kFunctionTAVSlotFromFp));
+  __ PushRegister(AssertAssignableStubABI::kDstNameReg);
+  __ PushRegister(AssertAssignableStubABI::kSubtypeTestReg);
+  __ PushObject(Smi::ZoneHandle(Smi::New(kTypeCheckFromInline)));
+  __ CallRuntime(kTypeCheckRuntimeEntry, /*argument_count=*/7);
+  __ Drop(8);
+  __ LeaveStubFrame();
+  __ Ret();
+#endif
+}
+
 void StubCodeCompiler::GenerateInstanceOfStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for the result.

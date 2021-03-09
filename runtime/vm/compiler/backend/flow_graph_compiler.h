@@ -592,7 +592,8 @@ class FlowGraphCompiler : public ValueObject {
                                 const InstructionSource& source,
                                 intptr_t deopt_id,
                                 const String& dst_name,
-                                LocationSummary* locs);
+                                LocationSummary* locs,
+                                bool was_licm_hoisted);
 
 #if !defined(TARGET_ARCH_IA32)
   void GenerateCallerChecksForAssertAssignable(CompileType* receiver_type,
@@ -604,7 +605,8 @@ class FlowGraphCompiler : public ValueObject {
                        Register reg_with_type,
                        const AbstractType& dst_type,
                        const String& dst_name,
-                       LocationSummary* locs);
+                       LocationSummary* locs,
+                       bool was_licm_hoisted);
 
   static void GenerateIndirectTTSCall(compiler::Assembler* assembler,
                                       Register reg_with_type,
@@ -862,7 +864,8 @@ class FlowGraphCompiler : public ValueObject {
                                 ICData::DeoptReasonId reason,
                                 uint32_t flags = 0);
 
-  CompilerDeoptInfo* AddDeoptIndexAtCall(intptr_t deopt_id);
+  CompilerDeoptInfo* AddDeoptIndexAtCall(intptr_t deopt_id,
+                                         Environment* env = nullptr);
   CompilerDeoptInfo* AddSlowPathDeoptInfo(intptr_t deopt_id, Environment* env);
 
   void AddSlowPathCode(SlowPathCode* slow_path);
