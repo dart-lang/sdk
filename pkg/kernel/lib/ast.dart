@@ -348,6 +348,52 @@ class Reference {
     }
     return node as Extension;
   }
+
+  bool get isConsistent {
+    NamedNode? node = _node;
+    if (node != null) {
+      if (node.reference != this &&
+          (node is! Field || node.setterReference != this)) {
+        // The reference of a [NamedNode] must point to this reference, or
+        // if the node is a [Field] the setter reference must point to this
+        // reference.
+        return false;
+      }
+    }
+    if (canonicalName != null && canonicalName!.reference != this) {
+      return false;
+    }
+    return true;
+  }
+
+  String getInconsistency() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('Reference ${this} (${hashCode}):');
+    NamedNode? node = _node;
+    if (node != null) {
+      if (node is Field) {
+        if (node.getterReference != this && node.setterReference != this) {
+          sb.write(' _node=${node} (${node.runtimeType}:${node.hashCode})');
+          sb.write(' _node.getterReference='
+              '${node.getterReference} (${node.getterReference.hashCode})');
+          sb.write(' _node.setterReference='
+              '${node.setterReference} (${node.setterReference.hashCode})');
+        }
+      } else {
+        if (node.reference != this) {
+          sb.write(' _node=${node} (${node.runtimeType}:${node.hashCode})');
+          sb.write(' _node.reference='
+              '${node.reference} (${node.reference.hashCode})');
+        }
+      }
+    }
+    if (canonicalName != null && canonicalName!.reference != this) {
+      sb.write(' canonicalName=${canonicalName} (${canonicalName.hashCode})');
+      sb.write(' canonicalName.reference='
+          '${canonicalName!.reference} (${canonicalName!.reference.hashCode})');
+    }
+    return sb.toString();
+  }
 }
 
 // ------------------------------------------------------------------------
@@ -13140,10 +13186,7 @@ Reference getNonNullableClassReference(Class class_) {
 
 /// Returns the canonical name of [member], or throws an exception if the
 /// member has not been assigned a canonical name yet.
-///
-/// Returns `null` if the member is `null`.
-CanonicalName? getCanonicalNameOfMemberGetter(Member? member) {
-  if (member == null) return null;
+CanonicalName getCanonicalNameOfMemberGetter(Member member) {
   CanonicalName? canonicalName;
   if (member is Field) {
     canonicalName = member.getterCanonicalName;
@@ -13158,10 +13201,7 @@ CanonicalName? getCanonicalNameOfMemberGetter(Member? member) {
 
 /// Returns the canonical name of [member], or throws an exception if the
 /// member has not been assigned a canonical name yet.
-///
-/// Returns `null` if the member is `null`.
-CanonicalName? getCanonicalNameOfMemberSetter(Member? member) {
-  if (member == null) return null;
+CanonicalName getCanonicalNameOfMemberSetter(Member member) {
   CanonicalName? canonicalName;
   if (member is Field) {
     canonicalName = member.setterCanonicalName;
@@ -13176,38 +13216,29 @@ CanonicalName? getCanonicalNameOfMemberSetter(Member? member) {
 
 /// Returns the canonical name of [class_], or throws an exception if the
 /// class has not been assigned a canonical name yet.
-///
-/// Returns `null` if the class is `null`.
-CanonicalName? getCanonicalNameOfClass(Class? class_) {
-  if (class_ == null) return null;
+CanonicalName getCanonicalNameOfClass(Class class_) {
   if (class_.canonicalName == null) {
     throw '$class_ has no canonical name';
   }
-  return class_.canonicalName;
+  return class_.canonicalName!;
 }
 
 /// Returns the canonical name of [extension], or throws an exception if the
 /// class has not been assigned a canonical name yet.
-///
-/// Returns `null` if the extension is `null`.
-CanonicalName? getCanonicalNameOfExtension(Extension? extension) {
-  if (extension == null) return null;
+CanonicalName getCanonicalNameOfExtension(Extension extension) {
   if (extension.canonicalName == null) {
     throw '$extension has no canonical name';
   }
-  return extension.canonicalName;
+  return extension.canonicalName!;
 }
 
 /// Returns the canonical name of [library], or throws an exception if the
 /// library has not been assigned a canonical name yet.
-///
-/// Returns `null` if the library is `null`.
-CanonicalName? getCanonicalNameOfLibrary(Library? library) {
-  if (library == null) return null;
+CanonicalName getCanonicalNameOfLibrary(Library library) {
   if (library.canonicalName == null) {
     throw '$library has no canonical name';
   }
-  return library.canonicalName;
+  return library.canonicalName!;
 }
 
 /// Murmur-inspired hashing, with a fall-back to Jenkins-inspired hashing when
@@ -13343,14 +13374,11 @@ bool mapEquals(Map a, Map b) {
 
 /// Returns the canonical name of [typedef_], or throws an exception if the
 /// typedef has not been assigned a canonical name yet.
-///
-/// Returns `null` if the typedef is `null`.
-CanonicalName? getCanonicalNameOfTypedef(Typedef? typedef_) {
-  if (typedef_ == null) return null;
+CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
   if (typedef_.canonicalName == null) {
     throw '$typedef_ has no canonical name';
   }
-  return typedef_.canonicalName;
+  return typedef_.canonicalName!;
 }
 
 /// Annotation describing information which is not part of Dart semantics; in

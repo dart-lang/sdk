@@ -508,7 +508,7 @@ void FlowGraphCompiler::EmitCallsiteMetadata(const InstructionSource& source,
     // deoptimization point in optimized code, after call.
     const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
     if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after);
+      AddDeoptIndexAtCall(deopt_id_after, env);
     } else {
       // Add deoptimization continuation point after the call and before the
       // arguments are removed.
@@ -902,14 +902,18 @@ void FlowGraphCompiler::AddDispatchTableCallTarget(
   dispatch_table_call_targets_.Add(selector);
 }
 
-CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
+CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
+                                                          Environment* env) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
   ASSERT(!FLAG_precompiled_mode);
+  if (env == nullptr) {
+    env = pending_deoptimization_env_;
+  }
   CompilerDeoptInfo* info =
       new (zone()) CompilerDeoptInfo(deopt_id, ICData::kDeoptAtCall,
                                      0,  // No flags.
-                                     pending_deoptimization_env_);
+                                     env);
   info->set_pc_offset(assembler()->CodeSize());
   deopt_infos_.Add(info);
   return info;
@@ -2859,7 +2863,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(
     const InstructionSource& source,
     intptr_t deopt_id,
     const String& dst_name,
-    LocationSummary* locs) {
+    LocationSummary* locs,
+    bool was_licm_hoisted) {
   ASSERT(!source.token_pos.IsClassifying());
   ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
 
@@ -2890,7 +2895,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(
     }
   }
 
-  GenerateTTSCall(source, deopt_id, type_reg, dst_type, dst_name, locs);
+  GenerateTTSCall(source, deopt_id, type_reg, dst_type, dst_name, locs,
+                  was_licm_hoisted);
   __ Bind(&done);
 }
 
@@ -2902,7 +2908,8 @@ void FlowGraphCompiler::GenerateTTSCall(const InstructionSource& source,
                                         Register reg_with_type,
                                         const AbstractType& dst_type,
                                         const String& dst_name,
-                                        LocationSummary* locs) {
+                                        LocationSummary* locs,
+                                        bool was_licm_hoisted) {
   ASSERT(!dst_name.IsNull());
   // We use 2 consecutive entries in the pool for the subtype cache and the
   // destination name.  The second entry, namely [dst_name] seems to be unused,
@@ -2929,7 +2936,22 @@ void FlowGraphCompiler::GenerateTTSCall(const InstructionSource& source,
   } else {
     GenerateIndirectTTSCall(assembler(), reg_with_type, sub_type_cache_index);
   }
-  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kOther, locs);
+
+  // Lazy deopt to after the call should not have the inputs to AssertAssignable
+  // because those are poped before doing the call.
+  auto pruned_env = pending_deoptimization_env_;
+  if (pruned_env != nullptr) {
+    // If the AssertAssignable was licm hoisted, a lazy-deopt will not continue
+    // after the TTS call inside the assert assignable. Rather the lazy-deopt
+    // will continue at the instruction it was hoisted above (e.g. continue at a
+    // Goto branch) and will later on re-do the AssertAssignable (again).
+    if (!was_licm_hoisted) {
+      pruned_env = pruned_env->DeepCopy(
+          zone(), pruned_env->Length() - AssertAssignableInstr::kNumInputs);
+    }
+  }
+  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kOther, locs,
+                       pruned_env);
 }
 
 // Optimize assignable type check by adding inlined tests for:

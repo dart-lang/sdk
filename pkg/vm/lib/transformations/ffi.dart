@@ -7,13 +7,14 @@
 
 library vm.transformations.ffi;
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/type_environment.dart'
+    show TypeEnvironment, SubtypeCheckMode;
 
 /// Represents the (instantiated) ffi.NativeType.
 enum NativeType {
@@ -212,8 +213,14 @@ class FfiTransformer extends Transformer {
   final Class allocatorClass;
   final Class nativeFunctionClass;
   final Class opaqueClass;
-  final Class cArrayClass;
-  final Class cArraySizeClass;
+  final Class arrayClass;
+  final Class arraySizeClass;
+  final Field arraySizeDimension1Field;
+  final Field arraySizeDimension2Field;
+  final Field arraySizeDimension3Field;
+  final Field arraySizeDimension4Field;
+  final Field arraySizeDimension5Field;
+  final Field arraySizeDimensionsField;
   final Class pointerClass;
   final Class structClass;
   final Class ffiStructLayoutClass;
@@ -230,15 +237,23 @@ class FfiTransformer extends Transformer {
   final Procedure structPointerRef;
   final Procedure structPointerElemAt;
   final Procedure structArrayElemAt;
+  final Procedure arrayArrayElemAt;
+  final Procedure arrayArrayAssignAt;
   final Procedure asFunctionMethod;
   final Procedure asFunctionInternal;
   final Procedure sizeOfMethod;
   final Procedure lookupFunctionMethod;
   final Procedure fromFunctionMethod;
   final Field addressOfField;
-  final Field cArrayTypedDataBaseField;
+  final Field arrayTypedDataBaseField;
+  final Field arraySizeField;
+  final Field arrayNestedDimensionsField;
+  final Procedure arrayCheckIndex;
+  final Field arrayNestedDimensionsFlattened;
+  final Field arrayNestedDimensionsFirst;
+  final Field arrayNestedDimensionsRest;
   final Constructor structFromPointer;
-  final Constructor cArrayConstructor;
+  final Constructor arrayConstructor;
   final Procedure fromAddressInternal;
   final Procedure libraryLookupMethod;
   final Procedure abiMethod;
@@ -285,8 +300,20 @@ class FfiTransformer extends Transformer {
         allocatorClass = index.getClass('dart:ffi', 'Allocator'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
         opaqueClass = index.getClass('dart:ffi', 'Opaque'),
-        cArrayClass = index.getClass('dart:ffi', 'Array'),
-        cArraySizeClass = index.getClass('dart:ffi', '_ArraySize'),
+        arrayClass = index.getClass('dart:ffi', 'Array'),
+        arraySizeClass = index.getClass('dart:ffi', '_ArraySize'),
+        arraySizeDimension1Field =
+            index.getMember('dart:ffi', '_ArraySize', 'dimension1'),
+        arraySizeDimension2Field =
+            index.getMember('dart:ffi', '_ArraySize', 'dimension2'),
+        arraySizeDimension3Field =
+            index.getMember('dart:ffi', '_ArraySize', 'dimension3'),
+        arraySizeDimension4Field =
+            index.getMember('dart:ffi', '_ArraySize', 'dimension4'),
+        arraySizeDimension5Field =
+            index.getMember('dart:ffi', '_ArraySize', 'dimension5'),
+        arraySizeDimensionsField =
+            index.getMember('dart:ffi', '_ArraySize', 'dimensions'),
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
         structClass = index.getClass('dart:ffi', 'Struct'),
         ffiStructLayoutClass = index.getClass('dart:ffi', '_FfiStructLayout'),
@@ -305,11 +332,21 @@ class FfiTransformer extends Transformer {
         elementAtMethod = index.getMember('dart:ffi', 'Pointer', 'elementAt'),
         addressGetter = index.getMember('dart:ffi', 'Pointer', 'get:address'),
         addressOfField = index.getMember('dart:ffi', 'Struct', '_addressOf'),
-        cArrayTypedDataBaseField =
+        arrayTypedDataBaseField =
             index.getMember('dart:ffi', 'Array', '_typedDataBase'),
+        arraySizeField = index.getMember('dart:ffi', 'Array', '_size'),
+        arrayNestedDimensionsField =
+            index.getMember('dart:ffi', 'Array', '_nestedDimensions'),
+        arrayCheckIndex = index.getMember('dart:ffi', 'Array', '_checkIndex'),
+        arrayNestedDimensionsFlattened =
+            index.getMember('dart:ffi', 'Array', '_nestedDimensionsFlattened'),
+        arrayNestedDimensionsFirst =
+            index.getMember('dart:ffi', 'Array', '_nestedDimensionsFirst'),
+        arrayNestedDimensionsRest =
+            index.getMember('dart:ffi', 'Array', '_nestedDimensionsRest'),
         structFromPointer =
             index.getMember('dart:ffi', 'Struct', '_fromPointer'),
-        cArrayConstructor = index.getMember('dart:ffi', 'Array', '_'),
+        arrayConstructor = index.getMember('dart:ffi', 'Array', '_'),
         fromAddressInternal =
             index.getTopLevelMember('dart:ffi', '_fromAddress'),
         structPointerRef =
@@ -317,6 +354,8 @@ class FfiTransformer extends Transformer {
         structPointerElemAt =
             index.getMember('dart:ffi', 'StructPointer', '[]'),
         structArrayElemAt = index.getMember('dart:ffi', 'StructArray', '[]'),
+        arrayArrayElemAt = index.getMember('dart:ffi', 'ArrayArray', '[]'),
+        arrayArrayAssignAt = index.getMember('dart:ffi', 'ArrayArray', '[]='),
         asFunctionMethod =
             index.getMember('dart:ffi', 'NativeFunctionPointer', 'asFunction'),
         asFunctionInternal =
@@ -391,7 +430,8 @@ class FfiTransformer extends Transformer {
   DartType convertNativeTypeToDartType(DartType nativeType,
       {bool allowStructs = false,
       bool allowStructItself = false,
-      bool allowHandle = false}) {
+      bool allowHandle = false,
+      bool allowInlineArray = false}) {
     if (nativeType is! InterfaceType) {
       return null;
     }
@@ -399,6 +439,12 @@ class FfiTransformer extends Transformer {
     final Class nativeClass = native.classNode;
     final NativeType nativeType_ = getType(nativeClass);
 
+    if (nativeClass == arrayClass) {
+      if (!allowInlineArray) {
+        return null;
+      }
+      return nativeType;
+    }
     if (hierarchy.isSubclassOf(nativeClass, structClass)) {
       if (structClass == nativeClass) {
         return allowStructItself ? nativeType : null;
@@ -457,18 +503,22 @@ class FfiTransformer extends Transformer {
     return NativeType.values[index];
   }
 
+  ConstantExpression intListConstantExpression(List<int> values) =>
+      ConstantExpression(
+          ListConstant(InterfaceType(intClass, Nullability.legacy),
+              [for (var v in values) IntConstant(v)]),
+          InterfaceType(listClass, Nullability.legacy,
+              [InterfaceType(intClass, Nullability.legacy)]));
+
   /// Expression that queries VM internals at runtime to figure out on which ABI
   /// we are.
   Expression runtimeBranchOnLayout(Map<Abi, int> values) {
     return MethodInvocation(
-        ConstantExpression(
-            ListConstant(InterfaceType(intClass, Nullability.legacy), [
-              IntConstant(values[Abi.wordSize64]),
-              IntConstant(values[Abi.wordSize32Align32]),
-              IntConstant(values[Abi.wordSize32Align64])
-            ]),
-            InterfaceType(listClass, Nullability.legacy,
-                [InterfaceType(intClass, Nullability.legacy)])),
+        intListConstantExpression([
+          values[Abi.wordSize64],
+          values[Abi.wordSize32Align32],
+          values[Abi.wordSize32Align64]
+        ]),
         Name("[]"),
         Arguments([StaticInvocation(abiMethod, Arguments([]))]),
         listElementAt);
@@ -577,6 +627,102 @@ class FfiTransformer extends Transformer {
                 length,
                 fileOffset),
             coreTypes.objectNonNullableRawType));
+  }
+
+  bool isPrimitiveType(DartType type) {
+    if (type is InvalidType) {
+      return false;
+    }
+    if (type is NullType) {
+      return false;
+    }
+    if (!env.isSubtypeOf(
+        type,
+        InterfaceType(nativeTypesClasses[NativeType.kNativeType.index],
+            Nullability.legacy),
+        SubtypeCheckMode.ignoringNullabilities)) {
+      return false;
+    }
+    if (isPointerType(type)) {
+      return false;
+    }
+    if (type is InterfaceType) {
+      final nativeType = getType(type.classNode);
+      return nativeType != null;
+    }
+    return false;
+  }
+
+  bool isPointerType(DartType type) {
+    if (type is InvalidType) {
+      return false;
+    }
+    if (type is NullType) {
+      return false;
+    }
+    return env.isSubtypeOf(
+        type,
+        InterfaceType(pointerClass, Nullability.legacy, [
+          InterfaceType(nativeTypesClasses[NativeType.kNativeType.index],
+              Nullability.legacy)
+        ]),
+        SubtypeCheckMode.ignoringNullabilities);
+  }
+
+  bool isArrayType(DartType type) {
+    if (type is InvalidType) {
+      return false;
+    }
+    if (type is NullType) {
+      return false;
+    }
+    return env.isSubtypeOf(
+        type,
+        InterfaceType(arrayClass, Nullability.legacy, [
+          InterfaceType(nativeTypesClasses[NativeType.kNativeType.index],
+              Nullability.legacy)
+        ]),
+        SubtypeCheckMode.ignoringNullabilities);
+  }
+
+  /// Returns the single element type nested type argument of `Array`.
+  ///
+  /// `Array<Array<Array<Int8>>>` -> `Int8`.
+  DartType arraySingleElementType(DartType dartType) {
+    InterfaceType elementType = dartType as InterfaceType;
+    while (elementType.classNode == arrayClass) {
+      elementType = elementType.typeArguments[0] as InterfaceType;
+    }
+    return elementType;
+  }
+
+  /// Returns the number of dimensions of `Array`.
+  ///
+  /// `Array<Array<Array<Int8>>>` -> 3.
+  int arrayDimensions(DartType dartType) {
+    InterfaceType elementType = dartType as InterfaceType;
+    int dimensions = 0;
+    while (elementType.classNode == arrayClass) {
+      elementType = elementType.typeArguments[0] as InterfaceType;
+      dimensions++;
+    }
+    return dimensions;
+  }
+
+  bool isStructSubtype(DartType type) {
+    if (type is InvalidType) {
+      return false;
+    }
+    if (type is NullType) {
+      return false;
+    }
+    if (type is InterfaceType) {
+      if (type.classNode == structClass) {
+        return false;
+      }
+    }
+    return env.isSubtypeOf(type, InterfaceType(structClass, Nullability.legacy),
+        SubtypeCheckMode.ignoringNullabilities);
   }
 }
 

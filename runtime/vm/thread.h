@@ -340,6 +340,8 @@ class Thread : public ThreadState {
     return ++stack_overflow_count_;
   }
 
+  uint32_t IncrementAndGetRuntimeCallCount() { return ++runtime_call_count_; }
+
   static uword stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {
     return fpu_regs
                ? stack_overflow_shared_with_fpu_regs_entry_point_offset()
@@ -1014,6 +1016,7 @@ class Thread : public ThreadState {
   uint16_t deferred_interrupts_mask_;
   uint16_t deferred_interrupts_;
   int32_t stack_overflow_count_;
+  uint32_t runtime_call_count_ = 0;
 
   // Deoptimization of stack frames.
   PendingDeopts pending_deopts_;

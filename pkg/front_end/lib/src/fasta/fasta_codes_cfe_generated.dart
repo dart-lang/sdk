@@ -4732,6 +4732,43 @@ Message _withArgumentsThrowingNotAssignableToObjectError(
 const Template<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>
+    templateUndefinedExtensionGetter = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The getter '#name' isn't defined for the extension '#type'.""",
+        tipTemplate:
+            r"""Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'.""",
+        withArguments: _withArgumentsUndefinedExtensionGetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+    Message Function(String name, DartType _type,
+        bool isNonNullableByDefault)> codeUndefinedExtensionGetter = const Code<
+    Message Function(String name, DartType _type, bool isNonNullableByDefault)>(
+  "UndefinedExtensionGetter",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUndefinedExtensionGetter(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeUndefinedExtensionGetter,
+      message:
+          """The getter '${name}' isn't defined for the extension '${type}'.""" +
+              labeler.originMessages,
+      tip: """Try correcting the name to the name of an existing getter, or defining a getter or field named '${name}'.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
     templateUndefinedExtensionMethod = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
@@ -4762,6 +4799,82 @@ Message _withArgumentsUndefinedExtensionMethod(
           """The method '${name}' isn't defined for the extension '${type}'.""" +
               labeler.originMessages,
       tip: """Try correcting the name to the name of an existing method, or defining a method name '${name}'.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateUndefinedExtensionOperator = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The operator '#name' isn't defined for the extension '#type'.""",
+        tipTemplate:
+            r"""Try correcting the operator to an existing operator, or defining a '#name' operator.""",
+        withArguments: _withArgumentsUndefinedExtensionOperator);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeUndefinedExtensionOperator = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "UndefinedExtensionOperator",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUndefinedExtensionOperator(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeUndefinedExtensionOperator,
+      message:
+          """The operator '${name}' isn't defined for the extension '${type}'.""" +
+              labeler.originMessages,
+      tip: """Try correcting the operator to an existing operator, or defining a '${name}' operator.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateUndefinedExtensionSetter = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The setter '#name' isn't defined for the extension '#type'.""",
+        tipTemplate:
+            r"""Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'.""",
+        withArguments: _withArgumentsUndefinedExtensionSetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+    Message Function(String name, DartType _type,
+        bool isNonNullableByDefault)> codeUndefinedExtensionSetter = const Code<
+    Message Function(String name, DartType _type, bool isNonNullableByDefault)>(
+  "UndefinedExtensionSetter",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUndefinedExtensionSetter(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeUndefinedExtensionSetter,
+      message:
+          """The setter '${name}' isn't defined for the extension '${type}'.""" +
+              labeler.originMessages,
+      tip: """Try correcting the name to the name of an existing setter, or defining a setter or field named '${name}'.""",
       arguments: {'name': name, 'type': _type});
 }
 

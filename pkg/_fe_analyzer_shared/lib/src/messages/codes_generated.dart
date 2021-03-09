@@ -3926,6 +3926,32 @@ Message _withArgumentsFfiSizeAnnotation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateFfiSizeAnnotationDimensions = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Field '#name' must have an 'Array' annotation that matches the dimensions.""",
+    withArguments: _withArgumentsFfiSizeAnnotationDimensions);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiSizeAnnotationDimensions =
+    const Code<Message Function(String name)>(
+  "FfiSizeAnnotationDimensions",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiSizeAnnotationDimensions(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiSizeAnnotationDimensions,
+      message:
+          """Field '${name}' must have an 'Array' annotation that matches the dimensions.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateFfiStructGeneric =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Struct '#name' should not be generic.""",

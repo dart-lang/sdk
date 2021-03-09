@@ -857,6 +857,9 @@ dig
 digit
 digits
 dill
+dimension
+dimensional
+dimensions
 dir
 direct
 direction

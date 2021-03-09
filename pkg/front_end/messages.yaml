@@ -3491,9 +3491,21 @@ UndefinedOperator:
       c + 0;
     }
 
+UndefinedExtensionGetter:
+  template: "The getter '#name' isn't defined for the extension '#type'."
+  tip: "Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'."
+
+UndefinedExtensionSetter:
+  template: "The setter '#name' isn't defined for the extension '#type'."
+  tip: "Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'."
+
 UndefinedExtensionMethod:
   template: "The method '#name' isn't defined for the extension '#type'."
   tip: "Try correcting the name to the name of an existing method, or defining a method name '#name'."
+
+UndefinedExtensionOperator:
+  template: "The operator '#name' isn't defined for the extension '#type'."
+  tip: "Try correcting the operator to an existing operator, or defining a '#name' operator."
 
 AmbiguousExtensionMethod:
   template: "The method '#name' is defined in multiple extensions for '#type' and neither is more specific."
@@ -4270,6 +4282,11 @@ FfiExtendsOrImplementsSealedClass:
 FfiSizeAnnotation:
   # Used by dart:ffi
   template: "Field '#name' must have exactly one 'Array' annotation."
+  external: test/ffi_test.dart
+
+FfiSizeAnnotationDimensions:
+  # Used by dart:ffi
+  template: "Field '#name' must have an 'Array' annotation that matches the dimensions."
   external: test/ffi_test.dart
 
 FfiStructGeneric:

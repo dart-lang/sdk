@@ -451,6 +451,22 @@ struct StructStruct16BytesMixed3 {
   int16_t a2[2];
 };
 
+struct Struct8BytesInlineArrayMultiDimensionalInt {
+  uint8_t a0[2][2][2];
+};
+
+struct Struct32BytesInlineArrayMultiDimensionalInt {
+  uint8_t a0[2][2][2][2][2];
+};
+
+struct Struct64BytesInlineArrayMultiDimensionalInt {
+  uint8_t a0[2][2][2][2][2][2];
+};
+
+struct Struct4BytesInlineArrayMultiDimensionalInt {
+  Struct1ByteInt a0[2][2];
+};
+
 // Used for testing structs by value.
 // Smallest struct with data.
 // 10 struct arguments will exhaust available registers.
@@ -3819,6 +3835,160 @@ DART_EXPORT float PassStructStruct16BytesMixed3x10(
   result += a9.a1[0].a2;
   result += a9.a2[0];
   result += a9.a2[1];
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Test multi dimensional inline array struct as argument.
+DART_EXPORT uint32_t PassUint8Struct32BytesInlineArrayMultiDimensionalI(
+    uint8_t a0,
+    Struct32BytesInlineArrayMultiDimensionalInt a1,
+    uint8_t a2,
+    Struct8BytesInlineArrayMultiDimensionalInt a3,
+    uint8_t a4,
+    Struct8BytesInlineArrayMultiDimensionalInt a5,
+    uint8_t a6) {
+  std::cout << "PassUint8Struct32BytesInlineArrayMultiDimensionalI"
+            << "(" << static_cast<int>(a0) << ", ([[[[["
+            << static_cast<int>(a1.a0[0][0][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][0][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[0][0][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][0][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][1][1][1]) << "]]], [[["
+            << static_cast<int>(a1.a0[0][1][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][1][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[0][1][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][1][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][1][1][1]) << "]]]], [[[["
+            << static_cast<int>(a1.a0[1][0][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][0][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[1][0][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][0][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][1][1][1]) << "]]], [[["
+            << static_cast<int>(a1.a0[1][1][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][1][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[1][1][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][1][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][1][1][1]) << "]]]]]), "
+            << static_cast<int>(a2) << ", ([[["
+            << static_cast<int>(a3.a0[0][0][0]) << ", "
+            << static_cast<int>(a3.a0[0][0][1]) << "], ["
+            << static_cast<int>(a3.a0[0][1][0]) << ", "
+            << static_cast<int>(a3.a0[0][1][1]) << "]], [["
+            << static_cast<int>(a3.a0[1][0][0]) << ", "
+            << static_cast<int>(a3.a0[1][0][1]) << "], ["
+            << static_cast<int>(a3.a0[1][1][0]) << ", "
+            << static_cast<int>(a3.a0[1][1][1]) << "]]]), "
+            << static_cast<int>(a4) << ", ([[["
+            << static_cast<int>(a5.a0[0][0][0]) << ", "
+            << static_cast<int>(a5.a0[0][0][1]) << "], ["
+            << static_cast<int>(a5.a0[0][1][0]) << ", "
+            << static_cast<int>(a5.a0[0][1][1]) << "]], [["
+            << static_cast<int>(a5.a0[1][0][0]) << ", "
+            << static_cast<int>(a5.a0[1][0][1]) << "], ["
+            << static_cast<int>(a5.a0[1][1][0]) << ", "
+            << static_cast<int>(a5.a0[1][1][1]) << "]]]), "
+            << static_cast<int>(a6) << ")"
+            << "\n";
+
+  uint32_t result = 0;
+
+  result += a0;
+  result += a1.a0[0][0][0][0][0];
+  result += a1.a0[0][0][0][0][1];
+  result += a1.a0[0][0][0][1][0];
+  result += a1.a0[0][0][0][1][1];
+  result += a1.a0[0][0][1][0][0];
+  result += a1.a0[0][0][1][0][1];
+  result += a1.a0[0][0][1][1][0];
+  result += a1.a0[0][0][1][1][1];
+  result += a1.a0[0][1][0][0][0];
+  result += a1.a0[0][1][0][0][1];
+  result += a1.a0[0][1][0][1][0];
+  result += a1.a0[0][1][0][1][1];
+  result += a1.a0[0][1][1][0][0];
+  result += a1.a0[0][1][1][0][1];
+  result += a1.a0[0][1][1][1][0];
+  result += a1.a0[0][1][1][1][1];
+  result += a1.a0[1][0][0][0][0];
+  result += a1.a0[1][0][0][0][1];
+  result += a1.a0[1][0][0][1][0];
+  result += a1.a0[1][0][0][1][1];
+  result += a1.a0[1][0][1][0][0];
+  result += a1.a0[1][0][1][0][1];
+  result += a1.a0[1][0][1][1][0];
+  result += a1.a0[1][0][1][1][1];
+  result += a1.a0[1][1][0][0][0];
+  result += a1.a0[1][1][0][0][1];
+  result += a1.a0[1][1][0][1][0];
+  result += a1.a0[1][1][0][1][1];
+  result += a1.a0[1][1][1][0][0];
+  result += a1.a0[1][1][1][0][1];
+  result += a1.a0[1][1][1][1][0];
+  result += a1.a0[1][1][1][1][1];
+  result += a2;
+  result += a3.a0[0][0][0];
+  result += a3.a0[0][0][1];
+  result += a3.a0[0][1][0];
+  result += a3.a0[0][1][1];
+  result += a3.a0[1][0][0];
+  result += a3.a0[1][0][1];
+  result += a3.a0[1][1][0];
+  result += a3.a0[1][1][1];
+  result += a4;
+  result += a5.a0[0][0][0];
+  result += a5.a0[0][0][1];
+  result += a5.a0[0][1][0];
+  result += a5.a0[0][1][1];
+  result += a5.a0[1][0][0];
+  result += a5.a0[1][0][1];
+  result += a5.a0[1][1][0];
+  result += a5.a0[1][1][1];
+  result += a6;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Test struct in multi dimensional inline array.
+DART_EXPORT uint32_t PassUint8Struct4BytesInlineArrayMultiDimensionalIn(
+    uint8_t a0,
+    Struct4BytesInlineArrayMultiDimensionalInt a1,
+    uint8_t a2) {
+  std::cout << "PassUint8Struct4BytesInlineArrayMultiDimensionalIn"
+            << "(" << static_cast<int>(a0) << ", ([[("
+            << static_cast<int>(a1.a0[0][0].a0) << "), ("
+            << static_cast<int>(a1.a0[0][1].a0) << ")], [("
+            << static_cast<int>(a1.a0[1][0].a0) << "), ("
+            << static_cast<int>(a1.a0[1][1].a0) << ")]]), "
+            << static_cast<int>(a2) << ")"
+            << "\n";
+
+  uint32_t result = 0;
+
+  result += a0;
+  result += a1.a0[0][0].a0;
+  result += a1.a0[0][1].a0;
+  result += a1.a0[1][0].a0;
+  result += a1.a0[1][1].a0;
+  result += a2;
 
   std::cout << "result = " << result << "\n";
 
@@ -9992,6 +10162,206 @@ DART_EXPORT intptr_t TestPassStructStruct16BytesMixed3x10(
   result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
 
   CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Test multi dimensional inline array struct as argument.
+DART_EXPORT intptr_t TestPassUint8Struct32BytesInlineArrayMultiDimensionalI(
+    // NOLINTNEXTLINE(whitespace/parens)
+    uint32_t (*f)(uint8_t a0,
+                  Struct32BytesInlineArrayMultiDimensionalInt a1,
+                  uint8_t a2,
+                  Struct8BytesInlineArrayMultiDimensionalInt a3,
+                  uint8_t a4,
+                  Struct8BytesInlineArrayMultiDimensionalInt a5,
+                  uint8_t a6)) {
+  uint8_t a0;
+  Struct32BytesInlineArrayMultiDimensionalInt a1;
+  uint8_t a2;
+  Struct8BytesInlineArrayMultiDimensionalInt a3;
+  uint8_t a4;
+  Struct8BytesInlineArrayMultiDimensionalInt a5;
+  uint8_t a6;
+
+  a0 = 1;
+  a1.a0[0][0][0][0][0] = 2;
+  a1.a0[0][0][0][0][1] = 3;
+  a1.a0[0][0][0][1][0] = 4;
+  a1.a0[0][0][0][1][1] = 5;
+  a1.a0[0][0][1][0][0] = 6;
+  a1.a0[0][0][1][0][1] = 7;
+  a1.a0[0][0][1][1][0] = 8;
+  a1.a0[0][0][1][1][1] = 9;
+  a1.a0[0][1][0][0][0] = 10;
+  a1.a0[0][1][0][0][1] = 11;
+  a1.a0[0][1][0][1][0] = 12;
+  a1.a0[0][1][0][1][1] = 13;
+  a1.a0[0][1][1][0][0] = 14;
+  a1.a0[0][1][1][0][1] = 15;
+  a1.a0[0][1][1][1][0] = 16;
+  a1.a0[0][1][1][1][1] = 17;
+  a1.a0[1][0][0][0][0] = 18;
+  a1.a0[1][0][0][0][1] = 19;
+  a1.a0[1][0][0][1][0] = 20;
+  a1.a0[1][0][0][1][1] = 21;
+  a1.a0[1][0][1][0][0] = 22;
+  a1.a0[1][0][1][0][1] = 23;
+  a1.a0[1][0][1][1][0] = 24;
+  a1.a0[1][0][1][1][1] = 25;
+  a1.a0[1][1][0][0][0] = 26;
+  a1.a0[1][1][0][0][1] = 27;
+  a1.a0[1][1][0][1][0] = 28;
+  a1.a0[1][1][0][1][1] = 29;
+  a1.a0[1][1][1][0][0] = 30;
+  a1.a0[1][1][1][0][1] = 31;
+  a1.a0[1][1][1][1][0] = 32;
+  a1.a0[1][1][1][1][1] = 33;
+  a2 = 34;
+  a3.a0[0][0][0] = 35;
+  a3.a0[0][0][1] = 36;
+  a3.a0[0][1][0] = 37;
+  a3.a0[0][1][1] = 38;
+  a3.a0[1][0][0] = 39;
+  a3.a0[1][0][1] = 40;
+  a3.a0[1][1][0] = 41;
+  a3.a0[1][1][1] = 42;
+  a4 = 43;
+  a5.a0[0][0][0] = 44;
+  a5.a0[0][0][1] = 45;
+  a5.a0[0][1][0] = 46;
+  a5.a0[0][1][1] = 47;
+  a5.a0[1][0][0] = 48;
+  a5.a0[1][0][1] = 49;
+  a5.a0[1][1][0] = 50;
+  a5.a0[1][1][1] = 51;
+  a6 = 52;
+
+  std::cout << "Calling TestPassUint8Struct32BytesInlineArrayMultiDimensionalI("
+            << "(" << static_cast<int>(a0) << ", ([[[[["
+            << static_cast<int>(a1.a0[0][0][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][0][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[0][0][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][0][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][1][1][1]) << "]]], [[["
+            << static_cast<int>(a1.a0[0][1][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][1][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[0][1][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][1][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][1][1][1]) << "]]]], [[[["
+            << static_cast<int>(a1.a0[1][0][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][0][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[1][0][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][0][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][1][1][1]) << "]]], [[["
+            << static_cast<int>(a1.a0[1][1][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][1][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[1][1][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][1][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][1][1][1]) << "]]]]]), "
+            << static_cast<int>(a2) << ", ([[["
+            << static_cast<int>(a3.a0[0][0][0]) << ", "
+            << static_cast<int>(a3.a0[0][0][1]) << "], ["
+            << static_cast<int>(a3.a0[0][1][0]) << ", "
+            << static_cast<int>(a3.a0[0][1][1]) << "]], [["
+            << static_cast<int>(a3.a0[1][0][0]) << ", "
+            << static_cast<int>(a3.a0[1][0][1]) << "], ["
+            << static_cast<int>(a3.a0[1][1][0]) << ", "
+            << static_cast<int>(a3.a0[1][1][1]) << "]]]), "
+            << static_cast<int>(a4) << ", ([[["
+            << static_cast<int>(a5.a0[0][0][0]) << ", "
+            << static_cast<int>(a5.a0[0][0][1]) << "], ["
+            << static_cast<int>(a5.a0[0][1][0]) << ", "
+            << static_cast<int>(a5.a0[0][1][1]) << "]], [["
+            << static_cast<int>(a5.a0[1][0][0]) << ", "
+            << static_cast<int>(a5.a0[1][0][1]) << "], ["
+            << static_cast<int>(a5.a0[1][1][0]) << ", "
+            << static_cast<int>(a5.a0[1][1][1]) << "]]]), "
+            << static_cast<int>(a6) << ")"
+            << ")\n";
+
+  uint32_t result = f(a0, a1, a2, a3, a4, a5, a6);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(1378, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Test struct in multi dimensional inline array.
+DART_EXPORT intptr_t TestPassUint8Struct4BytesInlineArrayMultiDimensionalIn(
+    // NOLINTNEXTLINE(whitespace/parens)
+    uint32_t (*f)(uint8_t a0,
+                  Struct4BytesInlineArrayMultiDimensionalInt a1,
+                  uint8_t a2)) {
+  uint8_t a0;
+  Struct4BytesInlineArrayMultiDimensionalInt a1;
+  uint8_t a2;
+
+  a0 = 1;
+  a1.a0[0][0].a0 = 2;
+  a1.a0[0][1].a0 = -3;
+  a1.a0[1][0].a0 = 4;
+  a1.a0[1][1].a0 = -5;
+  a2 = 6;
+
+  std::cout << "Calling TestPassUint8Struct4BytesInlineArrayMultiDimensionalIn("
+            << "(" << static_cast<int>(a0) << ", ([[("
+            << static_cast<int>(a1.a0[0][0].a0) << "), ("
+            << static_cast<int>(a1.a0[0][1].a0) << ")], [("
+            << static_cast<int>(a1.a0[1][0].a0) << "), ("
+            << static_cast<int>(a1.a0[1][1].a0) << ")]]), "
+            << static_cast<int>(a2) << ")"
+            << ")\n";
+
+  uint32_t result = f(a0, a1, a2);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(5, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2);
+
+  CHECK_EQ(0, result);
 
   return 0;
 }

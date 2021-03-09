@@ -138,6 +138,17 @@ struct AssertSubtypeABI {
   // (throws if the subtype check fails).
 };
 
+// For calling the ia32-specific AssertAssignableStub
+struct AssertAssignableStubABI {
+  static const Register kDstNameReg = EBX;
+  static const Register kSubtypeTestReg = ECX;
+
+  static const intptr_t kInstanceSlotFromFp = 2 + 3;
+  static const intptr_t kDstTypeSlotFromFp = 2 + 2;
+  static const intptr_t kInstantiatorTAVSlotFromFp = 2 + 1;
+  static const intptr_t kFunctionTAVSlotFromFp = 2 + 0;
+};
+
 // ABI for InitStaticFieldStub.
 struct InitStaticFieldABI {
   static const Register kFieldReg = EAX;

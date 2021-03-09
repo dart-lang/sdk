@@ -1,0 +1,86 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:typed_data" as typ;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+import "package:ffi/ffi.dart";
+
+@#C7
+class StructInlineArrayMultiDimensional extends ffi::Struct {
+  static final field core::int* #sizeOf = (#C8).{core::List::[]}(ffi::_abi())/*isLegacy*/;
+  synthetic constructor •() → self::StructInlineArrayMultiDimensional
+    : super ffi::Struct::•()
+    ;
+  @#C11
+  constructor #fromTypedDataBase(dynamic #pointer) → dynamic
+    : super ffi::Struct::_fromPointer(#pointer)
+    ;
+  @#C13
+  get a0() → ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>
+    return new ffi::Array::_<ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>>( block {
+      core::Object #typedDataBase = this.{ffi::Struct::_addressOf};
+      core::int #offset = (#C15).{core::List::[]}(ffi::_abi());
+    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Array<ffi::Array<ffi::Uint8>>>(#typedDataBase.{ffi::Pointer::address}.{core::num::+}(#offset)) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}.{core::num::+}(#offset), (#C8).{core::List::[]}(ffi::_abi())), #C12, #C16);
+  @#C13
+  set a0(ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> #externalFieldValue) → void
+    return ffi::_memCopy(this.{ffi::Struct::_addressOf}, (#C15).{core::List::[]}(ffi::_abi()), #externalFieldValue.{ffi::Array::_typedDataBase}, #C14, (#C8).{core::List::[]}(ffi::_abi()));
+}
+static method main() → dynamic {
+  final ffi::Pointer<self::StructInlineArrayMultiDimensional> pointer = (#C17).{ffi::Allocator::allocate}<self::StructInlineArrayMultiDimensional>(self::StructInlineArrayMultiDimensional::#sizeOf);
+  final self::StructInlineArrayMultiDimensional struct = new self::StructInlineArrayMultiDimensional::#fromTypedDataBase(pointer!);
+  final ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> array = struct.{self::StructInlineArrayMultiDimensional::a0};
+  final ffi::Array<ffi::Array<ffi::Uint8>> subArray = block {
+    ffi::Array<dynamic> #array = array!;
+    core::int #index = 0!;
+    #array.{ffi::Array::_checkIndex}(#index);
+    core::int #singleElementSize = #C18;
+    core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened});
+    core::int #offset = #elementSize.{core::num::*}(#index);
+  } =>new ffi::Array::_<ffi::Array<ffi::Uint8>>( block {
+    core::Object #typedDataBase = #array.{ffi::Array::_typedDataBase};
+    core::int #offset = #offset;
+  } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Array<ffi::Uint8>>(#typedDataBase.{ffi::Pointer::address}.{core::num::+}(#offset)) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}.{core::num::+}(#offset), #elementSize), #array.{ffi::Array::_nestedDimensionsFirst}, #array.{ffi::Array::_nestedDimensionsRest});
+  block {
+    ffi::Array<dynamic> #array = array!;
+    core::int #index = 1!;
+    #array.{ffi::Array::_checkIndex}(#index);
+    core::int #singleElementSize = #C18;
+    core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened});
+    core::int #offset = #elementSize.{core::num::*}(#index);
+  } =>ffi::_memCopy(#array.{ffi::Array::_typedDataBase}, #offset, subArray.{ffi::Array::_typedDataBase}, #C14, #elementSize);
+  (#C17).{ffi::Allocator::free}(pointer);
+}
+
+constants  {
+  #C1 = "vm:ffi:struct-fields"
+  #C2 = TypeLiteralConstant(ffi::Uint8)
+  #C3 = 8
+  #C4 = ffi::_FfiInlineArray {elementType:#C2, length:#C3}
+  #C5 = <core::Type>[#C4]
+  #C6 = ffi::_FfiStructLayout {fieldTypes:#C5}
+  #C7 = core::pragma {name:#C1, options:#C6}
+  #C8 = <core::int*>[#C3, #C3, #C3]
+  #C9 = "vm:entry-point"
+  #C10 = null
+  #C11 = core::pragma {name:#C9, options:#C10}
+  #C12 = 2
+  #C13 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C12, dimension2:#C12, dimension3:#C12, dimension4:#C10, dimension5:#C10, dimensions:#C10}
+  #C14 = 0
+  #C15 = <core::int*>[#C14, #C14, #C14]
+  #C16 = <core::int*>[#C12, #C12]
+  #C17 = all::_CallocAllocator {}
+  #C18 = 1
+}
+
+Extra constant evaluation status:
+Evaluated: NullCheck @ org-dartlang-testcase:///ffi_struct_inline_array_multi_dimensional.dart:18:25 -> IntConstant(0)
+Evaluated: NullCheck @ org-dartlang-testcase:///ffi_struct_inline_array_multi_dimensional.dart:19:8 -> IntConstant(1)
+Extra constant evaluation: evaluated: 110, effectively constant: 2
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///ffi_struct_inline_array_multi_dimensional.dart:
+- _ArraySize. (from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/ffi_patch.dart:156:9)

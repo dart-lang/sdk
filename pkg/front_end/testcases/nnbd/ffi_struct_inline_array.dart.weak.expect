@@ -9,19 +9,20 @@ class StructInlineArray extends ffi::Struct {
   synthetic constructor •() → self::StructInlineArray
     : super ffi::Struct::•()
     ;
-  @#C2
+  @#C3
   external get a0() → ffi::Array<ffi::Uint8>;
-  @#C2
+  @#C3
   external set a0(ffi::Array<ffi::Uint8> #externalFieldValue) → void;
 }
 static method main() → dynamic {}
 
 constants  {
   #C1 = 8
-  #C2 = ffi::_ArraySize<ffi::NativeType*> {dimension1:#C1}
+  #C2 = null
+  #C3 = ffi::_ArraySize<ffi::NativeType*> {dimension1:#C1, dimension2:#C2, dimension3:#C2, dimension4:#C2, dimension5:#C2, dimensions:#C2}
 }
 
 
 Constructor coverage from constants:
 org-dartlang-testcase:///ffi_struct_inline_array.dart:
-- _ArraySize. (from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/ffi_patch.dart:133:9)
+- _ArraySize. (from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/ffi_patch.dart:156:9)

@@ -310,6 +310,24 @@ On x64, arguments are split over FP and int registers.
 On x64, it will exhaust the integer registers with the 6th argument.
 The rest goes on the stack.
 On arm, arguments are 4 byte aligned."""),
+  FunctionType(
+      [
+        uint8,
+        struct8bytesInlineArrayMultiDimesional,
+        uint8,
+        struct8bytesInlineArrayMultiDimesional,
+        uint8,
+        struct8bytesInlineArrayMultiDimesional,
+        uint8
+      ],
+      uint32,
+      """
+Test multi dimensional inline array struct as argument."""),
+  FunctionType(
+      [uint8, structMultiDimensionalStruct, uint8],
+      uint32,
+      """
+Test struct in multi dimensional inline array."""),
   FunctionType(struct1byteInt.memberTypes, struct1byteInt, """
 Smallest struct with data."""),
   FunctionType(struct3bytesInt.memberTypes, struct3bytesInt, """
@@ -507,6 +525,10 @@ final structs = [
   struct16bytesFloatInlineNested,
   struct32bytesDoubleInlineNested,
   struct16bytesMixedInlineNested,
+  struct8bytesInlineArrayMultiDimesional,
+  struct32bytesInlineArrayMultiDimesional,
+  struct64bytesInlineArrayMultiDimesional,
+  structMultiDimensionalStruct,
 ];
 
 final struct1byteInt = StructType([int8]);
@@ -634,3 +656,19 @@ final struct16bytesMixedInlineNested = StructType.override([
   FixedLengthArrayType(StructType([float, int16, int16]), 1),
   FixedLengthArrayType(int16, 2),
 ], "Struct16BytesMixed3");
+
+final struct8bytesInlineArrayMultiDimesional = StructType([
+  FixedLengthArrayType.multi(uint8, [2, 2, 2])
+]);
+
+final struct32bytesInlineArrayMultiDimesional = StructType([
+  FixedLengthArrayType.multi(uint8, [2, 2, 2, 2, 2])
+]);
+
+final struct64bytesInlineArrayMultiDimesional = StructType([
+  FixedLengthArrayType.multi(uint8, [2, 2, 2, 2, 2, 2])
+]);
+
+final structMultiDimensionalStruct = StructType([
+  FixedLengthArrayType.multi(struct1byteInt, [2, 2])
+]);

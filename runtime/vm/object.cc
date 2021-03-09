@@ -10180,7 +10180,9 @@ intptr_t Field::guarded_cid() const {
   // This assertion ensures that the cid seen by the background compiler is
   // consistent. So the assertion passes if the field is a clone. It also
   // passes if the field is static, because we don't use field guards on
-  // static fields.
+  // static fields. It also passes if we're compiling unoptimized
+  // code (in which case the caller might get different answers if it obtains
+  // the guarded cid multiple times).
   Thread* thread = Thread::Current();
   ASSERT(!thread->IsInsideCompiler() ||
 #if !defined(DART_PRECOMPILED_RUNTIME)

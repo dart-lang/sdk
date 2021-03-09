@@ -65,6 +65,7 @@ export '../fasta/fasta_codes.dart'
         templateFfiFieldNull,
         templateFfiNotStatic,
         templateFfiSizeAnnotation,
+        templateFfiSizeAnnotationDimensions,
         templateFfiStructGeneric,
         templateFfiTypeInvalid,
         templateFfiTypeMismatch;

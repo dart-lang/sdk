@@ -571,6 +571,7 @@ import 'set_element_from_deferred_library_test.dart'
 import 'set_element_type_not_assignable_test.dart'
     as set_element_type_not_assignable;
 import 'shared_deferred_prefix_test.dart' as shared_deferred_prefix;
+import 'size_annotation_dimensions_test.dart' as size_annotation_dimensions;
 import 'spread_expression_from_deferred_library_test.dart'
     as spread_expression_from_deferred_library;
 import 'static_access_to_instance_member_test.dart'
@@ -1044,6 +1045,7 @@ main() {
     sdk_version_ui_as_code_in_const_context.main();
     set_element_type_not_assignable.main();
     shared_deferred_prefix.main();
+    size_annotation_dimensions.main();
     spread_expression_from_deferred_library.main();
     static_access_to_instance_member.main();
     strict_raw_type.main();

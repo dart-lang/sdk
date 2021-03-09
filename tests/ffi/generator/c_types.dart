@@ -133,8 +133,8 @@ class Member {
   String get cStructField {
     String postFix = "";
     if (type is FixedLengthArrayType) {
-      final length = (type as FixedLengthArrayType).length;
-      postFix = "[$length]";
+      final dimensions = (type as FixedLengthArrayType).dimensions;
+      postFix = "[${dimensions.join("][")}]";
     }
     return "${type.cType} $name$postFix;";
   }
@@ -193,6 +193,12 @@ class StructType extends CType {
   bool get hasInlineArrays =>
       members.map((e) => e.type is FixedLengthArrayType).contains(true);
 
+  bool get hasMultiDimensionalInlineArrays => members
+      .map((e) => e.type)
+      .whereType<FixedLengthArrayType>()
+      .where((e) => e.isMulti)
+      .isNotEmpty;
+
   /// All members have the same type.
   bool get isHomogeneous => memberTypes.toSet().length == 1;
 
@@ -216,6 +222,9 @@ class StructType extends CType {
     }
     if (hasInlineArrays) {
       result += "InlineArray";
+      if (hasMultiDimensionalInlineArrays) {
+        result += "MultiDimensional";
+      }
     }
     if (members.length == 0) {
       // No suffix.
@@ -241,10 +250,37 @@ class FixedLengthArrayType extends CType {
 
   FixedLengthArrayType(this.elementType, this.length);
 
+  factory FixedLengthArrayType.multi(CType elementType, List<int> dimensions) {
+    if (dimensions.length == 1) {
+      return FixedLengthArrayType(elementType, dimensions.single);
+    }
+
+    final remainingDimensions = dimensions.sublist(1);
+    final nestedArray =
+        FixedLengthArrayType.multi(elementType, remainingDimensions);
+    return FixedLengthArrayType(nestedArray, dimensions.first);
+  }
+
   String get cType => elementType.cType;
-  String get dartCType => "Array<${elementType.dartType}>";
+  String get dartCType => "Array<${elementType.dartCType}>";
   String get dartType => "Array<${elementType.dartCType}>";
-  String get dartStructFieldAnnotation => "@Array($length)";
+
+  String get dartStructFieldAnnotation {
+    if (dimensions.length > 5) {
+      return "@Array.multi([${dimensions.join(", ")}])";
+    }
+    return "@Array(${dimensions.join(", ")})";
+  }
+
+  List<int> get dimensions {
+    final elementType = this.elementType;
+    if (elementType is FixedLengthArrayType) {
+      return [length, ...elementType.dimensions];
+    }
+    return [length];
+  }
+
+  bool get isMulti => elementType is FixedLengthArrayType;
 
   bool get hasSize => elementType.hasSize;
   int get size => elementType.size * length;

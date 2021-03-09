@@ -3701,6 +3701,7 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
     kDstTypePos = 1,
     kInstantiatorTAVPos = 2,
     kFunctionTAVPos = 3,
+    kNumInputs = 4,
   };
 
   AssertAssignableInstr(const InstructionSource& source,
@@ -3752,6 +3753,9 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
+  bool licm_hoisted() const { return licm_hoisted_; }
+
   virtual Value* RedefinedValue() const;
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -3761,6 +3765,7 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
   const TokenPosition token_pos_;
   const String& dst_name_;
   const Kind kind_;
+  bool licm_hoisted_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableInstr);
 };

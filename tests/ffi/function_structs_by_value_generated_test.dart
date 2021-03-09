@@ -68,6 +68,8 @@ void main() {
     testPassStructStruct16BytesHomogeneousFloat2x5();
     testPassStructStruct32BytesHomogeneousDouble2x5();
     testPassStructStruct16BytesMixed3x10();
+    testPassUint8Struct32BytesInlineArrayMultiDimensionalI();
+    testPassUint8Struct4BytesInlineArrayMultiDimensionalIn();
     testReturnStruct1ByteInt();
     testReturnStruct3BytesHomogeneousUint8();
     testReturnStruct3BytesInt2ByteAligned();
@@ -1043,7 +1045,7 @@ class Struct8BytesInlineArrayInt extends Struct {
   @Array(8)
   external Array<Uint8> a0;
 
-  String toString() => "(${[for (var i = 0; i < 8; i += 1) a0[i]]})";
+  String toString() => "(${[for (var i0 = 0; i0 < 8; i0 += 1) a0[i0]]})";
 }
 
 class StructInlineArrayIrregular extends Struct {
@@ -1053,14 +1055,14 @@ class StructInlineArrayIrregular extends Struct {
   @Uint8()
   external int a1;
 
-  String toString() => "(${[for (var i = 0; i < 2; i += 1) a0[i]]}, ${a1})";
+  String toString() => "(${[for (var i0 = 0; i0 < 2; i0 += 1) a0[i0]]}, ${a1})";
 }
 
 class StructInlineArray100Bytes extends Struct {
   @Array(100)
   external Array<Uint8> a0;
 
-  String toString() => "(${[for (var i = 0; i < 100; i += 1) a0[i]]})";
+  String toString() => "(${[for (var i0 = 0; i0 < 100; i0 += 1) a0[i0]]})";
 }
 
 class StructInlineArrayBig extends Struct {
@@ -1074,7 +1076,7 @@ class StructInlineArrayBig extends Struct {
   external Array<Uint8> a2;
 
   String toString() =>
-      "(${a0}, ${a1}, ${[for (var i = 0; i < 4000; i += 1) a2[i]]})";
+      "(${a0}, ${a1}, ${[for (var i0 = 0; i0 < 4000; i0 += 1) a2[i0]]})";
 }
 
 class StructStruct16BytesHomogeneousFloat2 extends Struct {
@@ -1087,7 +1089,7 @@ class StructStruct16BytesHomogeneousFloat2 extends Struct {
   external double a2;
 
   String toString() =>
-      "(${a0}, ${[for (var i = 0; i < 2; i += 1) a1[i]]}, ${a2})";
+      "(${a0}, ${[for (var i0 = 0; i0 < 2; i0 += 1) a1[i0]]}, ${a2})";
 }
 
 class StructStruct32BytesHomogeneousDouble2 extends Struct {
@@ -1100,7 +1102,7 @@ class StructStruct32BytesHomogeneousDouble2 extends Struct {
   external double a2;
 
   String toString() =>
-      "(${a0}, ${[for (var i = 0; i < 2; i += 1) a1[i]]}, ${a2})";
+      "(${a0}, ${[for (var i0 = 0; i0 < 2; i0 += 1) a1[i0]]}, ${a2})";
 }
 
 class StructStruct16BytesMixed3 extends Struct {
@@ -1112,8 +1114,75 @@ class StructStruct16BytesMixed3 extends Struct {
   @Array(2)
   external Array<Int16> a2;
 
-  String toString() => "(${a0}, ${[for (var i = 0; i < 1; i += 1) a1[i]]}, ${[
-        for (var i = 0; i < 2; i += 1) a2[i]
+  String toString() => "(${a0}, ${[
+        for (var i0 = 0; i0 < 1; i0 += 1) a1[i0]
+      ]}, ${[for (var i0 = 0; i0 < 2; i0 += 1) a2[i0]]})";
+}
+
+class Struct8BytesInlineArrayMultiDimensionalInt extends Struct {
+  @Array(2, 2, 2)
+  external Array<Array<Array<Uint8>>> a0;
+
+  String toString() => "(${[
+        for (var i0 = 0; i0 < 2; i0 += 1)
+          [
+            for (var i1 = 0; i1 < 2; i1 += 1)
+              [for (var i2 = 0; i2 < 2; i2 += 1) a0[i0][i1][i2]]
+          ]
+      ]})";
+}
+
+class Struct32BytesInlineArrayMultiDimensionalInt extends Struct {
+  @Array(2, 2, 2, 2, 2)
+  external Array<Array<Array<Array<Array<Uint8>>>>> a0;
+
+  String toString() => "(${[
+        for (var i0 = 0; i0 < 2; i0 += 1)
+          [
+            for (var i1 = 0; i1 < 2; i1 += 1)
+              [
+                for (var i2 = 0; i2 < 2; i2 += 1)
+                  [
+                    for (var i3 = 0; i3 < 2; i3 += 1)
+                      [for (var i4 = 0; i4 < 2; i4 += 1) a0[i0][i1][i2][i3][i4]]
+                  ]
+              ]
+          ]
+      ]})";
+}
+
+class Struct64BytesInlineArrayMultiDimensionalInt extends Struct {
+  @Array.multi([2, 2, 2, 2, 2, 2])
+  external Array<Array<Array<Array<Array<Array<Uint8>>>>>> a0;
+
+  String toString() => "(${[
+        for (var i0 = 0; i0 < 2; i0 += 1)
+          [
+            for (var i1 = 0; i1 < 2; i1 += 1)
+              [
+                for (var i2 = 0; i2 < 2; i2 += 1)
+                  [
+                    for (var i3 = 0; i3 < 2; i3 += 1)
+                      [
+                        for (var i4 = 0; i4 < 2; i4 += 1)
+                          [
+                            for (var i5 = 0; i5 < 2; i5 += 1)
+                              a0[i0][i1][i2][i3][i4][i5]
+                          ]
+                      ]
+                  ]
+              ]
+          ]
+      ]})";
+}
+
+class Struct4BytesInlineArrayMultiDimensionalInt extends Struct {
+  @Array(2, 2)
+  external Array<Array<Struct1ByteInt>> a0;
+
+  String toString() => "(${[
+        for (var i0 = 0; i0 < 2; i0 += 1)
+          [for (var i1 = 0; i1 < 2; i1 += 1) a0[i0][i1]]
       ]})";
 }
 
@@ -5225,6 +5294,133 @@ void testPassStructStruct16BytesMixed3x10() {
   calloc.free(a7Pointer);
   calloc.free(a8Pointer);
   calloc.free(a9Pointer);
+}
+
+final passUint8Struct32BytesInlineArrayMultiDimensionalI =
+    ffiTestFunctions.lookupFunction<
+        Uint32 Function(
+            Uint8,
+            Struct32BytesInlineArrayMultiDimensionalInt,
+            Uint8,
+            Struct8BytesInlineArrayMultiDimensionalInt,
+            Uint8,
+            Struct8BytesInlineArrayMultiDimensionalInt,
+            Uint8),
+        int Function(
+            int,
+            Struct32BytesInlineArrayMultiDimensionalInt,
+            int,
+            Struct8BytesInlineArrayMultiDimensionalInt,
+            int,
+            Struct8BytesInlineArrayMultiDimensionalInt,
+            int)>("PassUint8Struct32BytesInlineArrayMultiDimensionalI");
+
+/// Test multi dimensional inline array struct as argument.
+void testPassUint8Struct32BytesInlineArrayMultiDimensionalI() {
+  int a0;
+  final a1Pointer = calloc<Struct32BytesInlineArrayMultiDimensionalInt>();
+  final Struct32BytesInlineArrayMultiDimensionalInt a1 = a1Pointer.ref;
+  int a2;
+  final a3Pointer = calloc<Struct8BytesInlineArrayMultiDimensionalInt>();
+  final Struct8BytesInlineArrayMultiDimensionalInt a3 = a3Pointer.ref;
+  int a4;
+  final a5Pointer = calloc<Struct8BytesInlineArrayMultiDimensionalInt>();
+  final Struct8BytesInlineArrayMultiDimensionalInt a5 = a5Pointer.ref;
+  int a6;
+
+  a0 = 1;
+  a1.a0[0][0][0][0][0] = 2;
+  a1.a0[0][0][0][0][1] = 3;
+  a1.a0[0][0][0][1][0] = 4;
+  a1.a0[0][0][0][1][1] = 5;
+  a1.a0[0][0][1][0][0] = 6;
+  a1.a0[0][0][1][0][1] = 7;
+  a1.a0[0][0][1][1][0] = 8;
+  a1.a0[0][0][1][1][1] = 9;
+  a1.a0[0][1][0][0][0] = 10;
+  a1.a0[0][1][0][0][1] = 11;
+  a1.a0[0][1][0][1][0] = 12;
+  a1.a0[0][1][0][1][1] = 13;
+  a1.a0[0][1][1][0][0] = 14;
+  a1.a0[0][1][1][0][1] = 15;
+  a1.a0[0][1][1][1][0] = 16;
+  a1.a0[0][1][1][1][1] = 17;
+  a1.a0[1][0][0][0][0] = 18;
+  a1.a0[1][0][0][0][1] = 19;
+  a1.a0[1][0][0][1][0] = 20;
+  a1.a0[1][0][0][1][1] = 21;
+  a1.a0[1][0][1][0][0] = 22;
+  a1.a0[1][0][1][0][1] = 23;
+  a1.a0[1][0][1][1][0] = 24;
+  a1.a0[1][0][1][1][1] = 25;
+  a1.a0[1][1][0][0][0] = 26;
+  a1.a0[1][1][0][0][1] = 27;
+  a1.a0[1][1][0][1][0] = 28;
+  a1.a0[1][1][0][1][1] = 29;
+  a1.a0[1][1][1][0][0] = 30;
+  a1.a0[1][1][1][0][1] = 31;
+  a1.a0[1][1][1][1][0] = 32;
+  a1.a0[1][1][1][1][1] = 33;
+  a2 = 34;
+  a3.a0[0][0][0] = 35;
+  a3.a0[0][0][1] = 36;
+  a3.a0[0][1][0] = 37;
+  a3.a0[0][1][1] = 38;
+  a3.a0[1][0][0] = 39;
+  a3.a0[1][0][1] = 40;
+  a3.a0[1][1][0] = 41;
+  a3.a0[1][1][1] = 42;
+  a4 = 43;
+  a5.a0[0][0][0] = 44;
+  a5.a0[0][0][1] = 45;
+  a5.a0[0][1][0] = 46;
+  a5.a0[0][1][1] = 47;
+  a5.a0[1][0][0] = 48;
+  a5.a0[1][0][1] = 49;
+  a5.a0[1][1][0] = 50;
+  a5.a0[1][1][1] = 51;
+  a6 = 52;
+
+  final result = passUint8Struct32BytesInlineArrayMultiDimensionalI(
+      a0, a1, a2, a3, a4, a5, a6);
+
+  print("result = $result");
+
+  Expect.equals(1378, result);
+
+  calloc.free(a1Pointer);
+  calloc.free(a3Pointer);
+  calloc.free(a5Pointer);
+}
+
+final passUint8Struct4BytesInlineArrayMultiDimensionalIn =
+    ffiTestFunctions.lookupFunction<
+        Uint32 Function(
+            Uint8, Struct4BytesInlineArrayMultiDimensionalInt, Uint8),
+        int Function(int, Struct4BytesInlineArrayMultiDimensionalInt,
+            int)>("PassUint8Struct4BytesInlineArrayMultiDimensionalIn");
+
+/// Test struct in multi dimensional inline array.
+void testPassUint8Struct4BytesInlineArrayMultiDimensionalIn() {
+  int a0;
+  final a1Pointer = calloc<Struct4BytesInlineArrayMultiDimensionalInt>();
+  final Struct4BytesInlineArrayMultiDimensionalInt a1 = a1Pointer.ref;
+  int a2;
+
+  a0 = 1;
+  a1.a0[0][0].a0 = 2;
+  a1.a0[0][1].a0 = -3;
+  a1.a0[1][0].a0 = 4;
+  a1.a0[1][1].a0 = -5;
+  a2 = 6;
+
+  final result = passUint8Struct4BytesInlineArrayMultiDimensionalIn(a0, a1, a2);
+
+  print("result = $result");
+
+  Expect.equals(5, result);
+
+  calloc.free(a1Pointer);
 }
 
 final returnStruct1ByteInt = ffiTestFunctions.lookupFunction<

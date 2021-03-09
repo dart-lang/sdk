@@ -238,7 +238,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
         ReadBool();
         const NameIndex field_name = ReadCanonicalNameReference();
         const Field& field =
-            Field::Handle(Z, H.LookupFieldByKernelField(field_name));
+            Field::Handle(Z, H.LookupFieldByKernelGetterOrSetter(field_name));
         initializer_fields[i] = &field;
         SkipExpression();
         continue;
@@ -2181,8 +2181,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   const Function* tearoff_interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadInterfaceMemberNameReference();  // read interface_target_reference.
-  if (!H.IsRoot(itarget_name) &&
-      (H.IsGetter(itarget_name) || H.IsField(itarget_name))) {
+  if (!H.IsRoot(itarget_name) && H.IsGetter(itarget_name)) {
     interface_target = &Function::ZoneHandle(
         Z,
         H.LookupMethodByMember(itarget_name, H.DartGetterName(itarget_name)));
@@ -2550,10 +2549,11 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
       inferred_type_metadata_helper_.GetInferredType(offset);
 
   NameIndex target = ReadCanonicalNameReference();  // read target_reference.
+  ASSERT(H.IsGetter(target));
 
-  if (H.IsField(target)) {
-    const Field& field =
-        Field::ZoneHandle(Z, H.LookupFieldByKernelField(target));
+  const Field& field = Field::ZoneHandle(
+      Z, H.LookupFieldByKernelGetterOrSetter(target, /*required=*/false));
+  if (!field.IsNull()) {
     if (field.is_const()) {
       // Since the CFE inlines all references to const variables and fields,
       // it never emits a StaticGet of a const field.
@@ -2606,44 +2606,39 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
   if (p != NULL) *p = position;
 
   NameIndex target = ReadCanonicalNameReference();  // read target_reference.
+  ASSERT(H.IsSetter(target));
 
-  if (H.IsField(target)) {
-    const Field& field =
-        Field::ZoneHandle(Z, H.LookupFieldByKernelField(target));
-    const Class& owner = Class::Handle(Z, field.Owner());
-    const String& setter_name = H.DartSetterName(target);
-    const Function& setter =
-        Function::ZoneHandle(Z, owner.LookupStaticFunction(setter_name));
-    Fragment instructions = BuildExpression();  // read expression.
-    if (NeedsDebugStepCheck(stack(), position)) {
-      instructions = DebugStepCheck(position) + instructions;
-    }
-    LocalVariable* variable = MakeTemporary();
-    instructions += LoadLocal(variable);
-    if (!setter.IsNull() && field.NeedsSetter()) {
-      instructions += StaticCall(position, setter, 1, ICData::kStatic);
-      instructions += Drop();
-    } else {
-      instructions += StoreStaticField(position, field);
-    }
-    return instructions;
-  } else {
-    ASSERT(H.IsProcedure(target));
+  // Evaluate the expression on the right hand side.
+  Fragment instructions = BuildExpression();  // read expression.
 
-    // Evaluate the expression on the right hand side.
-    Fragment instructions = BuildExpression();  // read expression.
+  // Look up the target as a setter first and, if not present, as a field
+  // second. This order is needed to avoid looking up a final field as the
+  // target.
+  const Function& function = Function::ZoneHandle(
+      Z, H.LookupStaticMethodByKernelProcedure(target, /*required=*/false));
+
+  if (!function.IsNull()) {
     LocalVariable* variable = MakeTemporary();
 
     // Prepare argument.
     instructions += LoadLocal(variable);
 
     // Invoke the setter function.
-    const Function& function =
-        Function::ZoneHandle(Z, H.LookupStaticMethodByKernelProcedure(target));
     instructions += StaticCall(position, function, 1, ICData::kStatic);
 
     // Drop the unused result & leave the stored value on the stack.
     return instructions + Drop();
+  } else {
+    const Field& field =
+        Field::ZoneHandle(Z, H.LookupFieldByKernelGetterOrSetter(target));
+    ASSERT(!field.NeedsSetter());
+    if (NeedsDebugStepCheck(stack(), position)) {
+      instructions = DebugStepCheck(position) + instructions;
+    }
+    LocalVariable* variable = MakeTemporary();
+    instructions += LoadLocal(variable);
+    instructions += StoreStaticField(position, field);
+    return instructions;
   }
 }
 
@@ -2771,8 +2766,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   // TODO(dartbug.com/34497): Once front-end desugars calls via
   // fields/getters, filtering of field and getter interface targets here
   // can be turned into assertions.
-  if (!H.IsRoot(itarget_name) && !H.IsField(itarget_name) &&
-      !H.IsGetter(itarget_name)) {
+  if (!H.IsRoot(itarget_name) && !H.IsGetter(itarget_name)) {
     interface_target = &Function::ZoneHandle(
         Z, H.LookupMethodByMember(itarget_name,
                                   H.DartProcedureName(itarget_name)));

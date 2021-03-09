@@ -18,7 +18,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _allocatorClassName = 'Allocator';
   static const _allocateExtensionMethodName = 'call';
   static const _allocatorExtensionName = 'AllocatorAlloc';
-  static const _cArrayClassName = 'Array';
+  static const _arrayClassName = 'Array';
   static const _dartFfiLibraryName = 'dart.ffi';
   static const _opaqueClassName = 'Opaque';
 
@@ -246,6 +246,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return true;
     }
     if (nativeType.isPointer) {
+      return true;
+    }
+    if (nativeType.isArray) {
       return true;
     }
     return false;
@@ -554,9 +557,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final typeArg = (declaredType as InterfaceType).typeArguments.single;
         if (!_isSized(typeArg)) {
           _errorReporter.reportErrorForNode(FfiCode.NON_SIZED_TYPE_ARGUMENT,
-              fieldType, [_cArrayClassName, typeArg.toString()]);
+              fieldType, [_arrayClassName, typeArg.toString()]);
         }
-        _validateSizeOfAnnotation(fieldType, annotations);
+        final arrayDimensions = declaredType.arrayDimensions;
+        _validateSizeOfAnnotation(fieldType, annotations, arrayDimensions);
       } else if (declaredType.isStructSubtype) {
         final clazz = (declaredType as InterfaceType).element;
         if (clazz.isEmptyStruct) {
@@ -708,8 +712,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Validate that the [annotations] include exactly one size annotation. If
   /// an error is produced that cannot be associated with an annotation,
   /// associate it with the [errorNode].
-  void _validateSizeOfAnnotation(
-      AstNode errorNode, NodeList<Annotation> annotations) {
+  void _validateSizeOfAnnotation(AstNode errorNode,
+      NodeList<Annotation> annotations, int arrayDimensions) {
     final ffiSizeAnnotations = annotations.where((annotation) {
       final element = annotation.element;
       return element is ConstructorElement &&
@@ -720,13 +724,33 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (ffiSizeAnnotations.isEmpty) {
       _errorReporter.reportErrorForNode(
           FfiCode.MISSING_SIZE_ANNOTATION_CARRAY, errorNode);
+      return;
     }
+
     if (ffiSizeAnnotations.length > 1) {
       final extraAnnotations = ffiSizeAnnotations.skip(1);
       for (final annotation in extraAnnotations) {
         _errorReporter.reportErrorForNode(
             FfiCode.EXTRA_SIZE_ANNOTATION_CARRAY, annotation);
       }
+    }
+
+    // Check number of dimensions.
+    final annotation = ffiSizeAnnotations.first;
+    final expressions = annotation.arguments!.arguments;
+    int annotationDimensions = 0;
+    for (var expression in expressions) {
+      if (expression is IntegerLiteral) {
+        // Element of `@Array(1, 2, 3)`.
+        annotationDimensions++;
+      } else if (expression is ListLiteral) {
+        // Element of `@Array.multi([1, 2, 3])`.
+        annotationDimensions += expression.elements.length;
+      }
+    }
+    if (annotationDimensions != arrayDimensions) {
+      _errorReporter.reportErrorForNode(
+          FfiCode.SIZE_ANNOTATION_DIMENSIONS, annotation);
     }
   }
 
@@ -845,9 +869,21 @@ extension on DartType {
     final self = this;
     if (self is InterfaceType) {
       final element = self.element;
-      return element.name == FfiVerifier._cArrayClassName && element.isFfiClass;
+      return element.name == FfiVerifier._arrayClassName && element.isFfiClass;
     }
     return false;
+  }
+
+  int get arrayDimensions {
+    DartType iterator = this;
+    int dimensions = 0;
+    while (iterator is InterfaceType &&
+        iterator.element.name == FfiVerifier._arrayClassName &&
+        iterator.element.isFfiClass) {
+      dimensions++;
+      iterator = iterator.typeArguments.single;
+    }
+    return dimensions;
   }
 
   bool get isPointer {

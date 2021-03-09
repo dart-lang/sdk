@@ -207,6 +207,15 @@ class FfiCode extends AnalyzerErrorCode {
           "or subtype of 'Struct'.");
 
   /**
+   * No parameters.
+   */
+  static const FfiCode SIZE_ANNOTATION_DIMENSIONS = FfiCode(
+      name: 'SIZE_ANNOTATION_DIMENSIONS',
+      message:
+          "'Array's must have an 'Array' annotation that matches the dimensions.",
+      correction: "Try adjusting the arguments in the 'Array' annotation.");
+
+  /**
    * Parameters:
    * 0: the name of the subclass
    * 1: the name of the class being extended, implemented, or mixed in

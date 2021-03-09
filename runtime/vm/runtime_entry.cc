@@ -80,6 +80,10 @@ DEFINE_FLAG(charp,
             deoptimize_filter,
             NULL,
             "Deoptimize in named function on stack overflow checks");
+DEFINE_FLAG(charp,
+            deoptimize_on_runtime_call_name_filter,
+            NULL,
+            "Runtime call name filter for --deoptimize-on-runtime-call-every.");
 
 DEFINE_FLAG(bool,
             unopt_monomorphic_calls,
@@ -3203,6 +3207,29 @@ DEFINE_RUNTIME_ENTRY(RewindPostDeopt, 0) {
 #endif  // !PRODUCT
 #endif  // !DART_PRECOMPILED_RUNTIME
   UNREACHABLE();
+}
+
+void OnEveryRuntimeEntryCall(Thread* thread, const char* runtime_call_name) {
+  ASSERT(FLAG_deoptimize_on_runtime_call_every > 0);
+  if (FLAG_precompiled_mode) {
+    return;
+  }
+  if (IsolateGroup::IsSystemIsolateGroup(thread->isolate_group())) {
+    return;
+  }
+  const bool is_deopt_related = strstr(runtime_call_name, "Deoptimize") != 0;
+  if (is_deopt_related) {
+    return;
+  }
+  if (FLAG_deoptimize_on_runtime_call_name_filter != nullptr &&
+      strstr(runtime_call_name, FLAG_deoptimize_on_runtime_call_name_filter) ==
+          0) {
+    return;
+  }
+  const uint32_t count = thread->IncrementAndGetRuntimeCallCount();
+  if ((count % FLAG_deoptimize_on_runtime_call_every) == 0) {
+    DeoptimizeFunctionsOnStack();
+  }
 }
 
 double DartModulo(double left, double right) {

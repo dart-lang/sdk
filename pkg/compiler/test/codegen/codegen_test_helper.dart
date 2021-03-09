@@ -33,7 +33,7 @@ runTests(List<String> args, [int shardIndex]) {
       shards: 2,
       directory: 'data',
       skip: skip,
-      options: [Flags.soundNullSafety]);
+      options: [Flags.soundNullSafety, '--enable-experiment=triple-shift']);
 }
 
 runTests2(List<String> args, [int shardIndex]) {

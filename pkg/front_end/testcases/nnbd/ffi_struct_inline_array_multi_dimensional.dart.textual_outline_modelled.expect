@@ -1,0 +1,9 @@
+import "package:ffi/ffi.dart";
+import 'dart:ffi';
+
+class StructInlineArrayMultiDimensional extends Struct {
+  @Array(2, 2, 2)
+  external Array<Array<Array<Uint8>>> a0;
+}
+
+main() {}

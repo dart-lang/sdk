@@ -30,11 +30,11 @@ void testSizeOf() {
 void testLoad() {
   final pointer = calloc<Struct8BytesInlineArrayInt>();
   final struct = pointer.ref;
-  final cArray = struct.a0;
+  final array = struct.a0;
   pointer.cast<Uint8>()[0] = 42;
   pointer.cast<Uint8>()[7] = 3;
-  Expect.equals(42, cArray[0]);
-  Expect.equals(3, cArray[7]);
+  Expect.equals(42, array[0]);
+  Expect.equals(3, array[7]);
   calloc.free(pointer);
 }
 
@@ -55,9 +55,9 @@ void testStore() {
 void testToString() {
   final pointer = calloc<Struct8BytesInlineArrayInt>();
   final struct = pointer.ref;
-  final cArray = struct.a0;
+  final array = struct.a0;
   for (var i = 0; i < 8; i++) {
-    cArray[i] = i;
+    array[i] = i;
   }
   Expect.equals("([0, 1, 2, 3, 4, 5, 6, 7])", struct.toString());
   calloc.free(pointer);
@@ -77,14 +77,14 @@ void testToString() {
 void testRange() {
   final pointer = calloc<Struct8BytesInlineArrayInt>();
   final struct = pointer.ref;
-  final cArray = struct.a0;
-  cArray[0] = 1;
-  Expect.equals(1, cArray[0]);
-  cArray[7] = 7;
-  Expect.equals(7, cArray[7]);
-  Expect.throws(() => cArray[-1]);
-  Expect.throws(() => cArray[-1] = 0);
-  Expect.throws(() => cArray[8]);
-  Expect.throws(() => cArray[8] = 0);
+  final array = struct.a0;
+  array[0] = 1;
+  Expect.equals(1, array[0]);
+  array[7] = 7;
+  Expect.equals(7, array[7]);
+  Expect.throws(() => array[-1]);
+  Expect.throws(() => array[-1] = 0);
+  Expect.throws(() => array[8]);
+  Expect.throws(() => array[8] = 0);
   calloc.free(pointer);
 }
