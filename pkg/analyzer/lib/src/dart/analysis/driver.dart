@@ -549,8 +549,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /// Return a [Future] that completes with the [ErrorsResult] for the Dart
-  /// file with the given [path]. If the file is not a Dart file or cannot
-  /// be analyzed, the [Future] completes with `null`.
+  /// file with the given [path].
   ///
   /// The [path] must be absolute and normalized.
   ///
@@ -642,7 +641,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       throw ArgumentError('$uri is not a library.');
     }
 
-    UnitElementResult unitResult = (await getUnitElement(file.path!))!;
+    UnitElementResult unitResult = await getUnitElement(file.path!);
     return unitResult.element.library;
   }
 
@@ -784,8 +783,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /// Return a [Future] that completes with a [ResolvedUnitResult] for the Dart
-  /// file with the given [path]. If the file is not a Dart file or cannot
-  /// be analyzed, the [Future] completes with `null`.
+  /// file with the given [path].
   ///
   /// The [path] must be absolute and normalized.
   ///
@@ -800,11 +798,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// it, which is consistent with the current file state (including new states
   /// of the files previously reported using [changeFile]), prior to the next
   /// time the analysis state transitions to "idle".
-  Future<ResolvedUnitResult?> getResult(String path,
+  Future<ResolvedUnitResult> getResult(String path,
       {bool sendCachedToStream = false}) {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
-      return Future.value();
+      return Future.value(
+        NotValidResolvedUnitResultImpl(ResultState.NOT_FILE_OF_URI),
+      );
     }
 
     // Return the cached result.
@@ -842,11 +842,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /// Return a [Future] that completes with the [UnitElementResult] for the
-  /// file with the given [path], or with `null` if the file cannot be analyzed.
-  Future<UnitElementResult?> getUnitElement(String path) {
+  /// file with the given [path].
+  Future<UnitElementResult> getUnitElement(String path) {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
-      return Future.value();
+      return Future.value(
+        NotValidUnitElementResultImpl(ResultState.NOT_FILE_OF_URI),
+      );
     }
     var completer = Completer<UnitElementResult>();
     _unitElementRequestedFiles

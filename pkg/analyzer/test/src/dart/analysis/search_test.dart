@@ -357,7 +357,7 @@ class A {
 ''');
     var element = findElement.unnamedConstructor('A');
 
-    CompilationUnit otherUnit = (await driver.getResult(other))!.unit!;
+    CompilationUnit otherUnit = (await driver.getResult(other)).unit!;
     Element main = otherUnit.declaredElement!.functions[0];
     var expected = [
       ExpectedResult(main, SearchResultKind.REFERENCE,
