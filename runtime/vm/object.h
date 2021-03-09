@@ -9583,11 +9583,6 @@ class Bool : public Instance {
   }
 
  private:
-  void set_value(bool value) const { StoreNonPointer(&untag()->value_, value); }
-
-  // New should only be called to initialize the two legal bool values.
-  static BoolPtr New(bool value);
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Bool, Instance);
   friend class Class;
   friend class Object;  // To initialize the true and false values.

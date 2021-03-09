@@ -720,6 +720,21 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
+void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(locs()->always_calls());
+
+  auto object_store = compiler->isolate_group()->object_store();
+  const auto& assert_boolean_stub =
+      Code::ZoneHandle(compiler->zone(), object_store->assert_boolean_stub());
+
+  compiler::Label done;
+  __ tbnz(&done, AssertBooleanABI::kObjectReg, kBoolVsNullBitPosition);
+  compiler->GenerateStubCall(source(), assert_boolean_stub,
+                             /*kind=*/UntaggedPcDescriptors::kOther, locs(),
+                             deopt_id());
+  __ Bind(&done);
+}
+
 static Condition TokenKindToSmiCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:
@@ -6925,17 +6940,9 @@ LocationSummary* BooleanNegateInstr::MakeLocationSummary(Zone* zone,
 void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register input = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-
-  if (value()->Type()->ToCid() == kBoolCid) {
-    __ eori(
-        result, input,
-        compiler::Immediate(compiler::target::ObjectAlignment::kBoolValueMask));
-  } else {
-    __ LoadObject(result, Bool::True());
-    __ LoadObject(TMP, Bool::False());
-    __ CompareRegisters(result, input);
-    __ csel(result, TMP, result, EQ);
-  }
+  __ eori(
+      result, input,
+      compiler::Immediate(compiler::target::ObjectAlignment::kBoolValueMask));
 }
 
 LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
