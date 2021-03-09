@@ -4103,7 +4103,8 @@ class Field : public Object {
     set_guarded_cid_unsafe(cid);
   }
   void set_guarded_cid_unsafe(intptr_t cid) const {
-    StoreNonPointer(&untag()->guarded_cid_, cid);
+    StoreNonPointer<ClassIdTagType, ClassIdTagType, std::memory_order_relaxed>(
+        &untag()->guarded_cid_, cid);
   }
   static intptr_t guarded_cid_offset() {
     return OFFSET_OF(UntaggedField, guarded_cid_);
