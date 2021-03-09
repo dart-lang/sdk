@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.ast_to_binary;
 
 import 'dart:convert';
@@ -20,34 +18,34 @@ import 'tag.dart';
 /// A [BinaryPrinter] can be used to write one file and must then be
 /// discarded.
 class BinaryPrinter implements Visitor<void>, BinarySink {
-  VariableIndexer _variableIndexer;
-  LabelIndexer _labelIndexer;
-  SwitchCaseIndexer _switchCaseIndexer;
+  VariableIndexer? _variableIndexer;
+  LabelIndexer? _labelIndexer;
+  SwitchCaseIndexer? _switchCaseIndexer;
   final TypeParameterIndexer _typeParameterIndexer = new TypeParameterIndexer();
   final StringIndexer stringIndexer;
-  ConstantIndexer _constantIndexer;
+  late ConstantIndexer _constantIndexer;
   final UriIndexer _sourceUriIndexer = new UriIndexer();
   bool _currentlyInNonimplementation = false;
   final List<bool> _sourcesFromRealImplementation = <bool>[];
   final List<bool> _sourcesUsedInLibrary = <bool>[];
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
-  NonNullableByDefaultCompiledMode compilationMode;
+  NonNullableByDefaultCompiledMode? compilationMode;
 
-  List<_MetadataSubsection> _metadataSubsections;
+  List<_MetadataSubsection>? _metadataSubsections;
 
   final BufferedSink _mainSink;
   final BufferedSink _metadataSink;
   final BytesSink _constantsBytesSink;
-  BufferedSink _constantsSink;
-  BufferedSink _sink;
+  late BufferedSink _constantsSink;
+  late BufferedSink _sink;
   final bool includeSources;
   final bool includeOffsets;
-  final LibraryFilter libraryFilter;
+  final LibraryFilter? libraryFilter;
 
-  List<int> libraryOffsets;
-  List<int> classOffsets;
-  List<int> procedureOffsets;
+  late List<int> libraryOffsets;
+  late List<int> classOffsets;
+  late List<int> procedureOffsets;
   int _binaryOffsetForSourceTable = -1;
   int _binaryOffsetForLinkTable = -1;
   int _binaryOffsetForMetadataPayloads = -1;
@@ -55,10 +53,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   int _binaryOffsetForStringTable = -1;
   int _binaryOffsetForConstantTable = -1;
 
-  List<CanonicalName> _canonicalNameList;
+  late List<CanonicalName> _canonicalNameList;
   Set<CanonicalName> _knownCanonicalNameNonRootTops = new Set<CanonicalName>();
 
-  Library _currentLibrary;
+  Library? _currentLibrary;
 
   /// Create a printer that writes to the given [sink].
   ///
@@ -66,7 +64,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   /// one.
   BinaryPrinter(Sink<List<int>> sink,
       {this.libraryFilter,
-      StringIndexer stringIndexer,
+      StringIndexer? stringIndexer,
       this.includeSources = true,
       this.includeOffsets = true})
       : _mainSink = new BufferedSink(sink),
@@ -83,10 +81,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   int _getVariableIndex(VariableDeclaration variable) {
-    _variableIndexer ??= new VariableIndexer();
-    int index = _variableIndexer[variable];
+    int? index = (_variableIndexer ??= new VariableIndexer())[variable];
     assert(index != null, "No index found for ${variable}");
-    return index;
+    return index!;
   }
 
   void writeByte(int byte) {
@@ -132,7 +129,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     final List<Uint8List> data = <Uint8List>[];
     int totalLength = 0;
     const int minLength = 1 << 16;
-    Uint8List buffer;
+    Uint8List? buffer;
     int index = 0;
 
     // Write the end offsets.
@@ -241,7 +238,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       constant.typeArguments.forEach(writeDartType);
       writeUInt30(constant.fieldValues.length);
       constant.fieldValues.forEach((Reference fieldRef, Constant value) {
-        writeNonNullCanonicalNameReference(fieldRef.canonicalName);
+        writeNonNullCanonicalNameReference(fieldRef.canonicalName!);
         writeConstantReference(value);
       });
     } else if (constant is PartialInstantiationConstant) {
@@ -254,7 +251,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       }
     } else if (constant is TearOffConstant) {
       writeByte(ConstantTag.TearOffConstant);
-      writeNonNullCanonicalNameReference(constant.procedure.canonicalName);
+      writeNonNullCanonicalNameReference(constant.procedure.canonicalName!);
     } else if (constant is TypeLiteralConstant) {
       writeByte(ConstantTag.TypeLiteralConstant);
       writeDartType(constant.type);
@@ -273,7 +270,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   // Returns the new active file uri.
-  void writeUriReference(Uri uri) {
+  void writeUriReference(Uri? uri) {
     final int index = _sourceUriIndexer.put(uri);
     writeUInt30(index);
     if (!_currentlyInNonimplementation) {
@@ -478,7 +475,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     node.accept(this);
   }
 
-  void writeOptionalNode(Node node) {
+  void writeOptionalNode(Node? node) {
     if (node == null) {
       writeByte(Tag.Nothing);
     } else {
@@ -487,7 +484,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  void writeOptionalFunctionNode(FunctionNode node) {
+  void writeOptionalFunctionNode(FunctionNode? node) {
     if (node == null) {
       writeByte(Tag.Nothing);
     } else {
@@ -505,9 +502,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _canonicalNameList = <CanonicalName>[];
     for (int i = 0; i < component.libraries.length; ++i) {
       Library library = component.libraries[i];
-      if (libraryFilter == null || libraryFilter(library)) {
-        _indexLinkTableInternal(library.canonicalName);
-        _knownCanonicalNameNonRootTops.add(library.canonicalName);
+      if (libraryFilter == null || libraryFilter!(library)) {
+        _indexLinkTableInternal(library.canonicalName!);
+        _knownCanonicalNameNonRootTops.add(library.canonicalName!);
       }
     }
   }
@@ -515,7 +512,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void _indexLinkTableInternal(CanonicalName node) {
     node.index = _canonicalNameList.length;
     _canonicalNameList.add(node);
-    Iterable<CanonicalName> children = node.childrenOrNull;
+    Iterable<CanonicalName>? children = node.childrenOrNull;
     if (children != null) {
       for (CanonicalName child in children) {
         _indexLinkTableInternal(child);
@@ -527,7 +524,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void computeCanonicalNames(Component component) {
     for (int i = 0; i < component.libraries.length; ++i) {
       Library library = component.libraries[i];
-      if (libraryFilter == null || libraryFilter(library)) {
+      if (libraryFilter == null || libraryFilter!(library)) {
         component.computeCanonicalNamesForLibrary(library);
       }
     }
@@ -535,7 +532,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void writeCanonicalNameEntry(CanonicalName node) {
     assert(node.isConsistent, node.getInconsistency());
-    CanonicalName parent = node.parent;
+    CanonicalName parent = node.parent!;
     if (parent.isRoot) {
       writeUInt30(0);
     } else {
@@ -559,9 +556,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         _writeNodeMetadataImpl(component, componentOffset);
       }
       libraryOffsets = <int>[];
-      CanonicalName main = getCanonicalNameOfMemberGetter(component.mainMethod);
-      if (main != null) {
-        checkCanonicalName(main);
+      Procedure? mainMethod = component.mainMethod;
+      if (mainMethod != null) {
+        checkCanonicalName(getCanonicalNameOfMemberGetter(mainMethod));
       }
       writeLibraries(component);
       writeUriToSource(component.uriToSource);
@@ -574,7 +571,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         List<Library> librariesNew = <Library>[];
         for (int i = 0; i < libraries.length; i++) {
           Library library = libraries[i];
-          if (libraryFilter(library)) librariesNew.add(library);
+          if (libraryFilter!(library)) librariesNew.add(library);
         }
         libraries = librariesNew;
       }
@@ -584,7 +581,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     });
   }
 
-  void writeListOfStrings(List<String> strings) {
+  void writeListOfStrings(List<String>? strings) {
     writeUInt30(strings?.length ?? 0);
     if (strings != null) {
       for (int i = 0; i < strings.length; i++) {
@@ -614,9 +611,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void _writeNodeMetadataImpl(Node node, int nodeOffset) {
-    for (_MetadataSubsection subsection in _metadataSubsections) {
-      final MetadataRepository<Object> repository = subsection.repository;
-      final Object value = repository.mapping[node];
+    for (_MetadataSubsection subsection in _metadataSubsections!) {
+      final MetadataRepository<Object?> repository = subsection.repository;
+      final Object? value = repository.mapping[node];
       if (value == null) {
         continue;
       }
@@ -642,7 +639,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void enterScope(
-      {List<TypeParameter> typeParameters,
+      {List<TypeParameter>? typeParameters,
       bool memberScope: false,
       bool variableScope: false}) {
     if (typeParameters != null) {
@@ -653,17 +650,17 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
     if (variableScope) {
       _variableIndexer ??= new VariableIndexer();
-      _variableIndexer.pushScope();
+      _variableIndexer!.pushScope();
     }
   }
 
   @override
   void leaveScope(
-      {List<TypeParameter> typeParameters,
+      {List<TypeParameter>? typeParameters,
       bool memberScope: false,
       bool variableScope: false}) {
     if (variableScope) {
-      _variableIndexer.popScope();
+      _variableIndexer!.popScope();
     }
     if (memberScope) {
       _variableIndexer = null;
@@ -688,7 +685,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _metadataSubsections
         ?.removeWhere((_MetadataSubsection s) => s.metadataMapping.isEmpty);
 
-    if (_metadataSubsections == null || _metadataSubsections.isEmpty) {
+    if (_metadataSubsections == null || _metadataSubsections!.isEmpty) {
       _binaryOffsetForMetadataMappings = getBufferOffset();
       writeUInt32(0); // Empty section.
       return;
@@ -700,7 +697,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     // RList<MetadataMapping> metadataMappings
     _binaryOffsetForMetadataMappings = getBufferOffset();
-    for (_MetadataSubsection subsection in _metadataSubsections) {
+    for (_MetadataSubsection subsection in _metadataSubsections!) {
       // UInt32 tag
       writeUInt32(stringIndexer.put(subsection.repository.tag));
 
@@ -712,14 +709,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       }
       writeUInt32(mappingLength ~/ 2);
     }
-    writeUInt32(_metadataSubsections.length);
+    writeUInt32(_metadataSubsections!.length);
   }
 
   /// Write all of some of the libraries of the [component].
   void writeLibraries(Component component) {
     for (int i = 0; i < component.libraries.length; ++i) {
       Library library = component.libraries[i];
-      if (libraryFilter == null || libraryFilter(library)) {
+      if (libraryFilter == null || libraryFilter!(library)) {
         writeLibraryNode(library);
       }
     }
@@ -759,10 +756,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     assert(_binaryOffsetForConstantTable >= 0);
     writeUInt32(_binaryOffsetForConstantTable);
 
-    CanonicalName main = getCanonicalNameOfMemberGetter(component.mainMethod);
-    if (main == null) {
+    Procedure? mainMethod = component.mainMethod;
+    if (mainMethod == null) {
       writeUInt32(0);
     } else {
+      CanonicalName main = getCanonicalNameOfMemberGetter(mainMethod);
       writeUInt32(main.index + 1);
     }
     assert(component.modeRaw != null, "Component mode not set.");
@@ -783,14 +781,17 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     int length = _sourceUriIndexer.index.length;
     writeUInt32(length);
-    List<int> index = new List<int>.filled(length, null);
+    List<int> index = new List<int>.filled(
+        length,
+        // Dummy element value.
+        -1);
 
     // Write data.
     int i = 0;
     Uint8List buffer = new Uint8List(1 << 16);
-    for (Uri uri in _sourceUriIndexer.index.keys) {
+    for (Uri? uri in _sourceUriIndexer.index.keys) {
       index[i] = getBufferOffset();
-      Source source = uriToSource[uri];
+      Source? source = uriToSource[uri];
       if (source == null ||
           !(includeSources &&
               _sourcesFromRealImplementation.length > i &&
@@ -805,7 +806,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeByteList(source.source);
 
       {
-        List<int> lineStarts = source.lineStarts;
+        List<int> lineStarts = source.lineStarts!;
         writeUInt30(lineStarts.length);
         int previousLineStart = 0;
         for (int j = 0; j < lineStarts.length; ++j) {
@@ -820,7 +821,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       outputStringViaBuffer(importUriAsString, buffer);
 
       {
-        Set<Reference> coverage = source.constantCoverageConstructors;
+        Set<Reference>? coverage = source.constantCoverageConstructors;
         if (coverage == null || coverage.isEmpty) {
           writeUInt30(0);
         } else {
@@ -854,7 +855,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeLibraryDependencyReference(LibraryDependency node) {
-    int index = _libraryDependencyIndex[node];
+    int? index = _libraryDependencyIndex[node];
     if (index == null) {
       throw new ArgumentError(
           'Reference to library dependency $node out of scope');
@@ -862,18 +863,18 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUInt30(index);
   }
 
-  void writeNullAllowedInstanceMemberReference(Reference reference) {
+  void writeNullAllowedInstanceMemberReference(Reference? reference) {
     writeNullAllowedReference(reference);
     writeNullAllowedReference(
-        getMemberReferenceGetter(reference?.asMember?.memberSignatureOrigin));
+        getMemberReferenceGetter(reference?.asMember.memberSignatureOrigin));
   }
 
-  void writeNullAllowedReference(Reference reference) {
+  void writeNullAllowedReference(Reference? reference) {
     if (reference == null) {
       writeUInt30(0);
     } else {
       assert(reference.isConsistent, reference.getInconsistency());
-      CanonicalName name = reference.canonicalName;
+      CanonicalName? name = reference.canonicalName;
       if (name == null) {
         throw new ArgumentError('Missing canonical name for $reference');
       }
@@ -885,15 +886,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void writeNonNullInstanceMemberReference(Reference reference) {
     writeNonNullReference(reference);
     writeNullAllowedReference(
-        getMemberReferenceGetter(reference.asMember?.memberSignatureOrigin));
+        getMemberReferenceGetter(reference.asMember.memberSignatureOrigin));
   }
 
   void writeNonNullReference(Reference reference) {
+    // ignore: unnecessary_null_comparison
     if (reference == null) {
       throw new ArgumentError('Got null reference');
     } else {
       assert(reference.isConsistent, reference.getInconsistency());
-      CanonicalName name = reference.canonicalName;
+      CanonicalName? name = reference.canonicalName;
       if (name == null) {
         throw new ArgumentError('Missing canonical name for $reference');
       }
@@ -904,7 +906,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void checkCanonicalName(CanonicalName node) {
     if (_knownCanonicalNameNonRootTops.contains(node.nonRootTop)) return;
-    if (node == null || node.isRoot) return;
+    if (node.isRoot) return;
     if (node.index >= 0 && node.index < _canonicalNameList.length) {
       CanonicalName claim = _canonicalNameList[node.index];
       if (node == claim) {
@@ -912,12 +914,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         return;
       }
     }
-    checkCanonicalName(node.parent);
+    checkCanonicalName(node.parent!);
     node.index = _canonicalNameList.length;
     _canonicalNameList.add(node);
   }
 
-  void writeNullAllowedCanonicalNameReference(CanonicalName name) {
+  void writeNullAllowedCanonicalNameReference(CanonicalName? name) {
     if (name == null) {
       writeUInt30(0);
     } else {
@@ -927,6 +929,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeNonNullCanonicalNameReference(CanonicalName name) {
+    // ignore: unnecessary_null_comparison
     if (name == null) {
       throw new ArgumentError(
           'Expected a canonical name to be valid but was `null`.');
@@ -956,6 +959,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeClassReference(Class class_) {
+    // ignore: unnecessary_null_comparison
     if (class_ == null) {
       throw new ArgumentError(
           'Expected a class reference to be valid but was `null`.');
@@ -971,7 +975,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     // TODO: Consider a more compressed format for private names within the
     // enclosing library.
     if (node.isPrivate) {
-      writeLibraryReference(node.library);
+      writeLibraryReference(node.library!);
     }
   }
 
@@ -1114,7 +1118,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     enterScope(typeParameters: node.typeParameters, variableScope: true);
     writeNodeList(node.typeParameters);
-    writeNode(node.type);
+    writeNode(node.type!);
 
     enterScope(typeParameters: node.typeParametersOfFunctionType);
     writeNodeList(node.typeParametersOfFunctionType);
@@ -1156,7 +1160,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileEndOffset);
 
     writeByte(node.flags);
-    writeStringReference(node.name ?? '');
+    writeStringReference(node.name);
 
     enterScope(memberScope: true);
     writeAnnotationList(node.annotations);
@@ -1203,12 +1207,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeName(node.name ?? _emptyName);
 
     writeAnnotationList(node.annotations);
-    assert(node.function.typeParameters.isEmpty);
-    writeFunctionNode(node.function);
+    assert(node.function!.typeParameters.isEmpty);
+    writeFunctionNode(node.function!);
     // Parameters are in scope in the initializers.
     _variableIndexer ??= new VariableIndexer();
-    _variableIndexer.restoreScope(node.function.positionalParameters.length +
-        node.function.namedParameters.length);
+    _variableIndexer!.restoreScope(node.function!.positionalParameters.length +
+        node.function!.namedParameters.length);
     writeNodeList(node.initializers);
 
     leaveScope(memberScope: true);
@@ -1240,13 +1244,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
           '(${node.reference.node.runtimeType}:'
           '${node.reference.node.hashCode})');
     }
-    if (node.canonicalName.reference.node != node) {
+    if (node.canonicalName!.reference?.node != node) {
       throw new ArgumentError(
           'Trying to serialize orphaned procedure canonical name.\n'
           'Orphaned procedure ${node} (${node.runtimeType}:${node.hashCode})\n'
-          'Linked node ${node.canonicalName.reference.node} '
-          '(${node.canonicalName.reference.node.runtimeType}:'
-          '${node.canonicalName.reference.node.hashCode})');
+          'Linked node ${node.canonicalName!.reference?.node} '
+          '(${node.canonicalName!.reference?.node.runtimeType}:'
+          '${node.canonicalName!.reference?.node.hashCode})');
     }
 
     final bool currentlyInNonimplementationSaved =
@@ -1274,7 +1278,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _currentlyInNonimplementation = currentlyInNonimplementationSaved;
     assert(
         (node.concreteForwardingStubTarget != null) ||
-            !(node.isForwardingStub && node.function.body != null),
+            !(node.isForwardingStub && node.function!.body != null),
         "Invalid forwarding stub $node.");
   }
 
@@ -1290,34 +1294,34 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
           '(${node.getterReference.node.runtimeType}:'
           '${node.getterReference.node.hashCode})');
     }
-    if (node.getterCanonicalName.reference.node != node) {
+    if (node.getterCanonicalName!.reference?.node != node) {
       throw new ArgumentError(
           'Trying to serialize orphaned getter canonical name.\n'
           'Orphaned getter ${node} '
           '(${node.runtimeType}:${node.hashCode})\n'
-          'Linked node ${node.getterCanonicalName.reference.node} '
-          '(${node.getterCanonicalName.reference.node.runtimeType}:'
-          '${node.getterCanonicalName.reference.node.hashCode})');
+          'Linked node ${node.getterCanonicalName!.reference?.node} '
+          '(${node.getterCanonicalName!.reference?.node.runtimeType}:'
+          '${node.getterCanonicalName!.reference?.node.hashCode})');
     }
     if (node.hasSetter) {
       if (node.setterCanonicalName == null) {
         throw new ArgumentError('Missing canonical name for $node');
       }
-      if (node.getterReference.node != node) {
+      if (node.setterReference?.node != node) {
         throw new ArgumentError(
             'Trying to serialize orphaned setter reference.\n'
             'Orphaned setter ${node} (${node.runtimeType}:${node.hashCode})\n'
-            'Linked node ${node.setterReference.node}'
-            '(${node.setterReference.node.runtimeType}:'
-            '${node.setterReference.node.hashCode})');
+            'Linked node ${node.setterReference?.node}'
+            '(${node.setterReference?.node.runtimeType}:'
+            '${node.setterReference?.node.hashCode})');
       }
-      if (node.setterCanonicalName.reference.node != node) {
+      if (node.setterCanonicalName!.reference?.node != node) {
         throw new ArgumentError(
             'Trying to serialize orphaned setter canonical name.\n'
             'Orphaned setter ${node} (${node.runtimeType}:${node.hashCode})\n'
-            'Linked node ${node.setterCanonicalName.reference.node} '
-            '(${node.setterCanonicalName.reference.node.runtimeType}:'
-            '${node.setterCanonicalName.reference.node.hashCode})');
+            'Linked node ${node.setterCanonicalName!.reference?.node} '
+            '(${node.setterCanonicalName!.reference?.node.runtimeType}:'
+            '${node.setterCanonicalName!.reference?.node.hashCode})');
       }
     }
     enterScope(memberScope: true);
@@ -1332,7 +1336,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeUInt30(node.flags);
-    writeName(node.name);
+    writeName(node.name!);
     writeAnnotationList(node.annotations);
     writeNode(node.type);
     writeOptionalNode(node.initializer);
@@ -1354,10 +1358,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
-    writeName(node.name);
+    writeName(node.name!);
 
     writeAnnotationList(node.annotations);
-    writeNonNullReference(node.targetReference);
+    writeNonNullReference(node.targetReference!);
     writeNodeList(node.typeArguments);
     writeNodeList(node.typeParameters);
     writeUInt30(node.positionalParameters.length + node.namedParameters.length);
@@ -1421,9 +1425,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitFunctionNode(FunctionNode node) {
     writeByte(Tag.FunctionNode);
     enterScope(typeParameters: node.typeParameters, variableScope: true);
-    LabelIndexer oldLabels = _labelIndexer;
+    LabelIndexer? oldLabels = _labelIndexer;
     _labelIndexer = null;
-    SwitchCaseIndexer oldCases = _switchCaseIndexer;
+    SwitchCaseIndexer? oldCases = _switchCaseIndexer;
     _switchCaseIndexer = null;
     // Note: FunctionNode has no tag.
     writeOffset(node.fileOffset);
@@ -1741,7 +1745,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       case LogicalExpressionOperator.OR:
         return 1;
     }
-    throw new ArgumentError('Not a logical operator: $operator');
   }
 
   @override
@@ -1964,21 +1967,23 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitLet(Let node) {
     writeByte(Tag.Let);
     writeOffset(node.fileOffset);
-    _variableIndexer ??= new VariableIndexer();
-    _variableIndexer.pushScope();
+    VariableIndexer variableIndexer =
+        _variableIndexer ??= new VariableIndexer();
+    variableIndexer.pushScope();
     writeVariableDeclaration(node.variable);
     writeNode(node.body);
-    _variableIndexer.popScope();
+    variableIndexer.popScope();
   }
 
   @override
   void visitBlockExpression(BlockExpression node) {
     writeByte(Tag.BlockExpression);
-    _variableIndexer ??= new VariableIndexer();
-    _variableIndexer.pushScope();
+    VariableIndexer variableIndexer =
+        _variableIndexer ??= new VariableIndexer();
+    variableIndexer.pushScope();
     writeNodeList(node.body.statements);
     writeNode(node.value);
-    _variableIndexer.popScope();
+    variableIndexer.popScope();
   }
 
   @override
@@ -2000,7 +2005,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeLibraryDependencyReference(node.import);
   }
 
-  writeStatementOrEmpty(Statement node) {
+  writeStatementOrEmpty(Statement? node) {
     if (node == null) {
       writeByte(Tag.EmptyStatement);
     } else {
@@ -2016,22 +2021,24 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitBlock(Block node) {
-    _variableIndexer ??= new VariableIndexer();
-    _variableIndexer.pushScope();
+    VariableIndexer variableIndexer =
+        _variableIndexer ??= new VariableIndexer();
+    variableIndexer.pushScope();
     writeByte(Tag.Block);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeNodeList(node.statements);
-    _variableIndexer.popScope();
+    variableIndexer.popScope();
   }
 
   @override
   void visitAssertBlock(AssertBlock node) {
-    _variableIndexer ??= new VariableIndexer();
-    _variableIndexer.pushScope();
+    VariableIndexer variableIndexer =
+        _variableIndexer ??= new VariableIndexer();
+    variableIndexer.pushScope();
     writeByte(Tag.AssertBlock);
     writeNodeList(node.statements);
-    _variableIndexer.popScope();
+    variableIndexer.popScope();
   }
 
   @override
@@ -2050,13 +2057,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    if (_labelIndexer == null) {
-      _labelIndexer = new LabelIndexer();
-    }
-    _labelIndexer.enter(node);
+    LabelIndexer labelIndexer = _labelIndexer ??= new LabelIndexer();
+    labelIndexer.enter(node);
     writeByte(Tag.LabeledStatement);
     writeNode(node.body);
-    _labelIndexer.exit();
+    labelIndexer.exit();
   }
 
   @override
@@ -2071,7 +2076,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitBreakStatement(BreakStatement node) {
     writeByte(Tag.BreakStatement);
     writeOffset(node.fileOffset);
-    writeUInt30(_labelIndexer[node.target]);
+    writeUInt30(_labelIndexer![node.target]!);
   }
 
   @override
@@ -2092,41 +2097,42 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitForStatement(ForStatement node) {
-    _variableIndexer ??= new VariableIndexer();
-    _variableIndexer.pushScope();
+    VariableIndexer variableIndexer =
+        _variableIndexer ??= new VariableIndexer();
+    variableIndexer.pushScope();
     writeByte(Tag.ForStatement);
     writeOffset(node.fileOffset);
     writeVariableDeclarationList(node.variables);
     writeOptionalNode(node.condition);
     writeNodeList(node.updates);
     writeNode(node.body);
-    _variableIndexer.popScope();
+    variableIndexer.popScope();
   }
 
   @override
   void visitForInStatement(ForInStatement node) {
-    _variableIndexer ??= new VariableIndexer();
-    _variableIndexer.pushScope();
+    VariableIndexer variableIndexer =
+        _variableIndexer ??= new VariableIndexer();
+    variableIndexer.pushScope();
     writeByte(node.isAsync ? Tag.AsyncForInStatement : Tag.ForInStatement);
     writeOffset(node.fileOffset);
     writeOffset(node.bodyOffset);
     writeVariableDeclaration(node.variable);
     writeNode(node.iterable);
     writeNode(node.body);
-    _variableIndexer.popScope();
+    variableIndexer.popScope();
   }
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    if (_switchCaseIndexer == null) {
-      _switchCaseIndexer = new SwitchCaseIndexer();
-    }
-    _switchCaseIndexer.enter(node);
+    SwitchCaseIndexer switchCaseIndexer =
+        _switchCaseIndexer ??= new SwitchCaseIndexer();
+    switchCaseIndexer.enter(node);
     writeByte(Tag.SwitchStatement);
     writeOffset(node.fileOffset);
     writeNode(node.expression);
     writeSwitchCaseNodeList(node.cases);
-    _switchCaseIndexer.exit(node);
+    switchCaseIndexer.exit(node);
   }
 
   @override
@@ -2146,7 +2152,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitContinueSwitchStatement(ContinueSwitchStatement node) {
     writeByte(Tag.ContinueSwitchStatement);
     writeOffset(node.fileOffset);
-    writeUInt30(_switchCaseIndexer[node.target]);
+    writeUInt30(_switchCaseIndexer![node.target]!);
   }
 
   @override
@@ -2181,14 +2187,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitCatch(Catch node) {
     // Note: there is no tag on Catch.
-    _variableIndexer ??= new VariableIndexer();
-    _variableIndexer.pushScope();
+    VariableIndexer variableIndexer =
+        _variableIndexer ??= new VariableIndexer();
+    variableIndexer.pushScope();
     writeOffset(node.fileOffset);
     writeNode(node.guard);
     writeOptionalVariableDeclaration(node.exception);
     writeOptionalVariableDeclaration(node.stackTrace);
     writeNode(node.body);
-    _variableIndexer.popScope();
+    variableIndexer.popScope();
   }
 
   @override
@@ -2226,15 +2233,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOptionalNode(node.initializer);
     // Declare the variable after its initializer. It is not in scope in its
     // own initializer.
-    _variableIndexer ??= new VariableIndexer();
-    _variableIndexer.declare(node);
+    (_variableIndexer ??= new VariableIndexer()).declare(node);
   }
 
   void writeVariableDeclarationList(List<VariableDeclaration> nodes) {
     writeList(nodes, writeVariableDeclaration);
   }
 
-  void writeOptionalVariableDeclaration(VariableDeclaration node) {
+  void writeOptionalVariableDeclaration(VariableDeclaration? node) {
     if (node == null) {
       writeByte(Tag.Nothing);
     } else {
@@ -2248,7 +2254,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.FunctionDeclaration);
     writeOffset(node.fileOffset);
     writeVariableDeclaration(node.variable);
-    writeFunctionNode(node.function);
+    writeFunctionNode(node.function!);
   }
 
   @override
@@ -2290,11 +2296,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitFutureOrType(FutureOrType node) {
     // TODO(dmitryas): Remove special treatment of FutureOr when the VM supports
     // the new encoding: just write the tag.
-    assert(_knownCanonicalNameNonRootTops != null &&
-        _knownCanonicalNameNonRootTops.isNotEmpty);
+    assert(_knownCanonicalNameNonRootTops.isNotEmpty);
     CanonicalName root = _knownCanonicalNameNonRootTops.first;
     while (!root.isRoot) {
-      root = root.parent;
+      root = root.parent!;
     }
     CanonicalName canonicalNameOfFutureOr =
         root.getChild("dart:async").getChild("FutureOr");
@@ -2310,11 +2315,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitNullType(NullType node) {
     // TODO(dmitryas): Remove special treatment of Null when the VM supports the
     // new encoding: just write the tag.
-    assert(_knownCanonicalNameNonRootTops != null &&
-        _knownCanonicalNameNonRootTops.isNotEmpty);
+    assert(_knownCanonicalNameNonRootTops.isNotEmpty);
     CanonicalName root = _knownCanonicalNameNonRootTops.first;
     while (!root.isRoot) {
-      root = root.parent;
+      root = root.parent!;
     }
     CanonicalName canonicalNameOfNull =
         root.getChild("dart:core").getChild("Null");
@@ -2332,11 +2336,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     // requires the nullability byte.
     if (node.typeArguments.isEmpty) {
       writeByte(Tag.SimpleInterfaceType);
-      writeByte(_currentLibrary.nonNullable.index);
+      writeByte(_currentLibrary!.nonNullable.index);
       writeNonNullReference(node.className);
     } else {
       writeByte(Tag.InterfaceType);
-      writeByte(_currentLibrary.nonNullable.index);
+      writeByte(_currentLibrary!.nonNullable.index);
       writeNonNullReference(node.className);
       writeNodeList(node.typeArguments);
     }
@@ -2402,7 +2406,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeByte(node.variance);
     }
     writeStringReference(node.name ?? '');
-    writeNode(node.bound);
+    writeNode(node.bound!);
+    // TODO(johnniwinther): Make this non-optional.
     writeOptionalNode(node.defaultType);
   }
 
@@ -2413,7 +2418,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
     writeByte(Tag.Extension);
     writeNonNullCanonicalNameReference(getCanonicalNameOfExtension(node));
-    writeStringReference(node.name ?? '');
+    writeStringReference(node.name);
     writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
 
@@ -2429,7 +2434,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeName(descriptor.name);
       writeByte(descriptor.kind.index);
       writeByte(descriptor.flags);
-      writeNonNullCanonicalNameReference(descriptor.member.canonicalName);
+      writeNonNullCanonicalNameReference(descriptor.member.canonicalName!);
     }
   }
 
@@ -2710,30 +2715,28 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 typedef bool LibraryFilter(Library _);
 
 class VariableIndexer {
-  Map<VariableDeclaration, int> index;
-  List<int> scopes;
+  Map<VariableDeclaration, int>? index;
+  List<int>? scopes;
   int stackHeight = 0;
 
   void declare(VariableDeclaration node) {
-    index ??= <VariableDeclaration, int>{};
-    index[node] = stackHeight++;
+    (index ??= <VariableDeclaration, int>{})[node] = stackHeight++;
   }
 
   void pushScope() {
-    scopes ??= <int>[];
-    scopes.add(stackHeight);
+    (scopes ??= <int>[]).add(stackHeight);
   }
 
   void popScope() {
-    stackHeight = scopes.removeLast();
+    stackHeight = scopes!.removeLast();
   }
 
   void restoreScope(int numberOfVariables) {
     stackHeight += numberOfVariables;
   }
 
-  int operator [](VariableDeclaration node) {
-    return index == null ? null : index[node];
+  int? operator [](VariableDeclaration node) {
+    return index == null ? null : index![node];
   }
 }
 
@@ -2749,7 +2752,7 @@ class LabelIndexer {
     --stackHeight;
   }
 
-  int operator [](LabeledStatement node) => index[node];
+  int? operator [](LabeledStatement node) => index[node];
 }
 
 class SwitchCaseIndexer {
@@ -2766,7 +2769,7 @@ class SwitchCaseIndexer {
     stackHeight -= node.cases.length;
   }
 
-  int operator [](SwitchCase node) => index[node];
+  int? operator [](SwitchCase node) => index[node];
 }
 
 class ConstantIndexer extends RecursiveResultVisitor {
@@ -2781,7 +2784,7 @@ class ConstantIndexer extends RecursiveResultVisitor {
   ConstantIndexer(this.stringIndexer, this._printer);
 
   int put(Constant constant) {
-    final int oldOffset = offsets[constant];
+    final int? oldOffset = offsets[constant];
     if (oldOffset != null) return oldOffset;
 
     // Traverse DAG in post-order to ensure children have their offsets assigned
@@ -2811,7 +2814,7 @@ class ConstantIndexer extends RecursiveResultVisitor {
     put(node);
   }
 
-  int operator [](Constant node) => offsets[node];
+  int? operator [](Constant node) => offsets[node];
 }
 
 class TypeParameterIndexer {
@@ -2847,7 +2850,7 @@ class StringIndexer {
   }
 
   int put(String string) {
-    int result = index[string];
+    int? result = index[string];
     if (result == null) {
       result = index.length;
       index[string] = result;
@@ -2855,19 +2858,19 @@ class StringIndexer {
     return result;
   }
 
-  int operator [](String string) => index[string];
+  int? operator [](String string) => index[string];
 }
 
 class UriIndexer {
   // Note that the iteration order is important.
-  final Map<Uri, int> index = new Map<Uri, int>();
+  final Map<Uri?, int> index = new Map<Uri?, int>();
 
   UriIndexer() {
     put(null);
   }
 
-  int put(Uri uri) {
-    int result = index[uri];
+  int put(Uri? uri) {
+    int? result = index[uri];
     if (result == null) {
       result = index.length;
       index[uri] = result;
@@ -2887,19 +2890,20 @@ class BufferedSink {
   int flushedLength = 0;
 
   Float64List _doubleBuffer = new Float64List(1);
-  Uint8List _doubleBufferUint8;
+  Uint8List? _doubleBufferUint8;
 
   int get offset => length + flushedLength;
 
   BufferedSink(this._sink);
 
   void addDouble(double d) {
-    _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
+    Uint8List doubleBufferUint8 =
+        _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
     _doubleBuffer[0] = d;
-    addByte4(_doubleBufferUint8[0], _doubleBufferUint8[1],
-        _doubleBufferUint8[2], _doubleBufferUint8[3]);
-    addByte4(_doubleBufferUint8[4], _doubleBufferUint8[5],
-        _doubleBufferUint8[6], _doubleBufferUint8[7]);
+    addByte4(doubleBufferUint8[0], doubleBufferUint8[1], doubleBufferUint8[2],
+        doubleBufferUint8[3]);
+    addByte4(doubleBufferUint8[4], doubleBufferUint8[5], doubleBufferUint8[6],
+        doubleBufferUint8[7]);
   }
 
   @pragma("vm:prefer-inline")
@@ -2979,7 +2983,7 @@ class BufferedSink {
 
 /// Non-empty metadata subsection.
 class _MetadataSubsection {
-  final MetadataRepository<Object> repository;
+  final MetadataRepository<Object?> repository;
 
   /// List of (nodeOffset, metadataOffset) pairs.
   /// Gradually filled by the writer as writing progresses, which by
