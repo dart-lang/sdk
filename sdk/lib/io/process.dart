@@ -177,7 +177,7 @@ class ProcessStartMode {
 /// main() async {
 ///   // List all files in the current directory in UNIX-like systems.
 ///   var result = await Process.run('ls', ['-l']);
-///   print(results.stdout);
+///   print(result.stdout);
 /// }
 /// ```
 /// ## Start a process with the start method
