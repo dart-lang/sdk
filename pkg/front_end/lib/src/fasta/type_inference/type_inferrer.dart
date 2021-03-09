@@ -883,30 +883,46 @@ class TypeInferrerImpl implements TypeInferrer {
   ObjectAccessTarget _findDirectExtensionMember(
       ExtensionType receiverType, Name name, int fileOffset,
       {ObjectAccessTarget defaultTarget}) {
-    Member targetMethod;
+    Member targetMember;
     Member targetTearoff;
+    ProcedureKind targetKind;
     for (ExtensionMemberDescriptor descriptor
         in receiverType.extensionNode.members) {
       if (descriptor.name == name) {
         switch (descriptor.kind) {
           case ExtensionMemberKind.Method:
-            targetMethod = descriptor.member.asMember;
+            targetMember = descriptor.member.asMember;
+            targetTearoff ??= targetMember;
+            targetKind = ProcedureKind.Method;
             break;
           case ExtensionMemberKind.TearOff:
             targetTearoff = descriptor.member.asMember;
             break;
+          case ExtensionMemberKind.Getter:
+            targetMember = descriptor.member.asMember;
+            targetTearoff = null;
+            targetKind = ProcedureKind.Getter;
+            break;
+          case ExtensionMemberKind.Setter:
+            targetMember = descriptor.member.asMember;
+            targetTearoff = null;
+            targetKind = ProcedureKind.Setter;
+            break;
+          case ExtensionMemberKind.Operator:
+            targetMember = descriptor.member.asMember;
+            targetTearoff = null;
+            targetKind = ProcedureKind.Operator;
+            break;
           default:
-            unhandled("${descriptor.kind}", "findInterfaceMember", fileOffset,
-                library.fileUri);
+            unhandled("${descriptor.kind}", "_findDirectExtensionMember",
+                fileOffset, library.fileUri);
         }
       }
     }
-    if (targetMethod != null) {
+    if (targetMember != null) {
+      assert(targetKind != null);
       return new ObjectAccessTarget.extensionMember(
-          targetMethod,
-          targetTearoff ?? targetMethod,
-          ProcedureKind.Method,
-          receiverType.typeArguments);
+          targetMember, targetTearoff, targetKind, receiverType.typeArguments);
     } else {
       return defaultTarget;
     }
@@ -4134,13 +4150,19 @@ class TypeInferrerImpl implements TypeInferrer {
       return engine.forest
           .createPropertyGet(fileOffset, receiver, propertyName);
     } else {
+      Template<Message Function(String, DartType, bool)> templateMissing;
+      if (receiverType is ExtensionType) {
+        templateMissing = templateUndefinedExtensionGetter;
+      } else {
+        templateMissing = templateUndefinedGetter;
+      }
       return _reportMissingOrAmbiguousMember(
           fileOffset,
           propertyName.text.length,
           receiverType,
           propertyName,
           extensionAccessCandidates,
-          templateUndefinedGetter,
+          templateMissing,
           templateAmbiguousExtensionProperty);
     }
   }
@@ -4155,13 +4177,19 @@ class TypeInferrerImpl implements TypeInferrer {
           fileOffset, receiver, propertyName, value,
           forEffect: forEffect);
     } else {
+      Template<Message Function(String, DartType, bool)> templateMissing;
+      if (receiverType is ExtensionType) {
+        templateMissing = templateUndefinedExtensionSetter;
+      } else {
+        templateMissing = templateUndefinedSetter;
+      }
       return _reportMissingOrAmbiguousMember(
           fileOffset,
           propertyName.text.length,
           receiverType,
           propertyName,
           extensionAccessCandidates,
-          templateUndefinedSetter,
+          templateMissing,
           templateAmbiguousExtensionProperty);
     }
   }
@@ -4172,13 +4200,19 @@ class TypeInferrerImpl implements TypeInferrer {
     if (isTopLevel) {
       return engine.forest.createIndexGet(fileOffset, receiver, index);
     } else {
+      Template<Message Function(String, DartType, bool)> templateMissing;
+      if (receiverType is ExtensionType) {
+        templateMissing = templateUndefinedExtensionOperator;
+      } else {
+        templateMissing = templateUndefinedOperator;
+      }
       return _reportMissingOrAmbiguousMember(
           fileOffset,
           noLength,
           receiverType,
           indexGetName,
           extensionAccessCandidates,
-          templateUndefinedOperator,
+          templateMissing,
           templateAmbiguousExtensionOperator);
     }
   }
@@ -4192,13 +4226,19 @@ class TypeInferrerImpl implements TypeInferrer {
       return engine.forest.createIndexSet(fileOffset, receiver, index, value,
           forEffect: forEffect);
     } else {
+      Template<Message Function(String, DartType, bool)> templateMissing;
+      if (receiverType is ExtensionType) {
+        templateMissing = templateUndefinedExtensionOperator;
+      } else {
+        templateMissing = templateUndefinedOperator;
+      }
       return _reportMissingOrAmbiguousMember(
           fileOffset,
           noLength,
           receiverType,
           indexSetName,
           extensionAccessCandidates,
-          templateUndefinedOperator,
+          templateMissing,
           templateAmbiguousExtensionOperator);
     }
   }
@@ -4211,13 +4251,19 @@ class TypeInferrerImpl implements TypeInferrer {
       return engine.forest.createMethodInvocation(fileOffset, left, binaryName,
           engine.forest.createArguments(fileOffset, <Expression>[right]));
     } else {
+      Template<Message Function(String, DartType, bool)> templateMissing;
+      if (leftType is ExtensionType) {
+        templateMissing = templateUndefinedExtensionOperator;
+      } else {
+        templateMissing = templateUndefinedOperator;
+      }
       return _reportMissingOrAmbiguousMember(
           fileOffset,
           binaryName.text.length,
           leftType,
           binaryName,
           extensionAccessCandidates,
-          templateUndefinedOperator,
+          templateMissing,
           templateAmbiguousExtensionOperator);
     }
   }
@@ -4229,13 +4275,19 @@ class TypeInferrerImpl implements TypeInferrer {
       return new UnaryExpression(unaryName, expression)
         ..fileOffset = fileOffset;
     } else {
+      Template<Message Function(String, DartType, bool)> templateMissing;
+      if (expressionType is ExtensionType) {
+        templateMissing = templateUndefinedExtensionOperator;
+      } else {
+        templateMissing = templateUndefinedOperator;
+      }
       return _reportMissingOrAmbiguousMember(
           fileOffset,
           unaryName == unaryMinusName ? 1 : unaryName.text.length,
           expressionType,
           unaryName,
           extensionAccessCandidates,
-          templateUndefinedOperator,
+          templateMissing,
           templateAmbiguousExtensionOperator);
     }
   }

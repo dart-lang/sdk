@@ -1,0 +1,10 @@
+class A {
+  int get foo => 42;
+}
+
+extension E on A {
+  double get bar => 3.14;
+}
+
+main() {}
+test(A a, E e) {}

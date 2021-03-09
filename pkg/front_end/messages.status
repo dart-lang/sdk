@@ -773,8 +773,14 @@ TypedefNotType/example: Fail # Feature not yet enabled by default.
 TypedefNullableType/analyzerCode: Fail
 TypedefTypeVariableNotConstructor/analyzerCode: Fail # Feature not yet enabled by default.
 TypedefTypeVariableNotConstructor/example: Fail # Feature not yet enabled by default.
+UndefinedExtensionGetter/analyzerCode: Fail
+UndefinedExtensionGetter/example: Fail
 UndefinedExtensionMethod/analyzerCode: Fail
 UndefinedExtensionMethod/example: Fail
+UndefinedExtensionOperator/analyzerCode: Fail
+UndefinedExtensionOperator/example: Fail
+UndefinedExtensionSetter/analyzerCode: Fail
+UndefinedExtensionSetter/example: Fail
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
 UnmatchedToken/part_wrapped_script1: Fail

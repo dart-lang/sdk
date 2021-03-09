@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  operator *(dynamic other) → dynamic
+    ;
+  operator [](core::int index) → dynamic
+    ;
+  operator []=(core::int index, dynamic value) → void
+    ;
+  operator unary-() → dynamic
+    ;
+}
+extension E on self::A {
+  operator + = self::E|+;
+}
+static method E|+(lowered final self::A #this, dynamic other) → dynamic
+  ;
+static method test(self::A a, self::E e) → dynamic
+  ;
+static method main() → dynamic
+  ;

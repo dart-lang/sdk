@@ -1,0 +1,10 @@
+class A {
+  void set foo(int value) {}
+}
+
+extension E on A {
+  void set bar(int value) {}
+}
+
+main() {}
+test(A a, E e) {}
