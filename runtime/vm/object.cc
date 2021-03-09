@@ -16513,7 +16513,7 @@ class MallocCodeComments final : public CodeComments {
     for (intptr_t i = 0; i < length_; i++) {
       comments_[i].pc_offset = comments.PCOffsetAt(i);
       comments_[i].comment =
-          Utils::CreateCStringUniquePtr(strdup(comments.CommentAt(i)));
+          Utils::CreateCStringUniquePtr(Utils::StrDup(comments.CommentAt(i)));
     }
   }
 
