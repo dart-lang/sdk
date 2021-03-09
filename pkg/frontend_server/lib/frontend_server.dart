@@ -10,7 +10,7 @@ import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
 import 'package:dev_compiler/dev_compiler.dart'
-    show DevCompilerTarget, ExpressionCompiler;
+    show DevCompilerTarget, ExpressionCompiler, parseModuleFormat;
 
 // front_end/src imports below that require lint `ignore_for_file`
 // are a temporary state of things until frontend team builds better api
@@ -605,6 +605,7 @@ class FrontendCompiler implements CompilerInterface {
       String filename, String fileSystemScheme, String moduleFormat) async {
     var packageConfig = await loadPackageConfigUri(
         _compilerOptions.packagesFileUri ?? File('.packages').absolute.uri);
+    var soundNullSafety = _compilerOptions.nnbdMode == NnbdMode.Strong;
     final Component component = results.component;
     // Compute strongly connected components.
     final strongComponents = StrongComponents(component,
@@ -623,7 +624,8 @@ class FrontendCompiler implements CompilerInterface {
         component, strongComponents, fileSystemScheme, packageConfig,
         useDebuggerModuleNames: useDebuggerModuleNames,
         emitDebugMetadata: emitDebugMetadata,
-        moduleFormat: moduleFormat);
+        moduleFormat: moduleFormat,
+        soundNullSafety: soundNullSafety);
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     final sourceMapsFileSink = sourceMapsFile.openWrite();
@@ -839,6 +841,7 @@ class FrontendCompiler implements CompilerInterface {
 
     var expressionCompiler = new ExpressionCompiler(
       _compilerOptions,
+      parseModuleFormat(_options['dartdevc-module-format'] as String),
       errors,
       _generator.generator,
       kernel2jsCompiler,

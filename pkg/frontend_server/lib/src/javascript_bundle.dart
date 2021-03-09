@@ -27,6 +27,7 @@ class JavaScriptBundler {
       this._fileSystemScheme, this._packageConfig,
       {this.useDebuggerModuleNames = false,
       this.emitDebugMetadata = false,
+      this.soundNullSafety = false,
       String moduleFormat})
       : compilers = <String, ProgramCompiler>{},
         _moduleFormat = parseModuleFormat(moduleFormat ?? 'amd') {
@@ -65,6 +66,7 @@ class JavaScriptBundler {
   final bool emitDebugMetadata;
   final Map<String, ProgramCompiler> compilers;
   final ModuleFormat _moduleFormat;
+  final bool soundNullSafety;
 
   List<Component> _summaries;
   List<Uri> _summaryUris;
@@ -135,6 +137,7 @@ class JavaScriptBundler {
           summarizeApi: false,
           emitDebugMetadata: emitDebugMetadata,
           moduleName: moduleName,
+          soundNullSafety: soundNullSafety,
         ),
         importToSummary,
         summaryToModule,

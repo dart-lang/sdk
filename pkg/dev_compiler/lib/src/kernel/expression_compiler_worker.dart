@@ -10,6 +10,8 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
+import 'package:dev_compiler/dev_compiler.dart';
+import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/ast.dart' show Component, Library;
@@ -82,11 +84,13 @@ class ExpressionCompilerWorker {
 
   final ProcessedOptions _processedOptions;
   final CompilerOptions _compilerOptions;
+  final ModuleFormat _moduleFormat;
   final Component _sdkComponent;
 
   ExpressionCompilerWorker._(
     this._processedOptions,
     this._compilerOptions,
+    this._moduleFormat,
     this._sdkComponent,
     this.requestStream,
     this.sendResponse,
@@ -120,6 +124,9 @@ class ExpressionCompilerWorker {
         parseExperimentalArguments(
             parsedArgs['enable-experiment'] as List<String>),
         onError: (e) => throw e);
+
+    var moduleFormat = parseModuleFormat(parsedArgs['module-format'] as String);
+
     return create(
       librariesSpecificationUri:
           _argToUri(parsedArgs['libraries-file'] as String),
@@ -131,6 +138,7 @@ class ExpressionCompilerWorker {
       sdkRoot: _argToUri(parsedArgs['sdk-root'] as String),
       trackWidgetCreation: parsedArgs['track-widget-creation'] as bool,
       soundNullSafety: parsedArgs['sound-null-safety'] as bool,
+      moduleFormat: moduleFormat,
       verbose: parsedArgs['verbose'] as bool,
       requestStream: requestStream,
       sendResponse: sendResponse,
@@ -152,6 +160,7 @@ class ExpressionCompilerWorker {
     Uri sdkRoot,
     bool trackWidgetCreation = false,
     bool soundNullSafety = false,
+    ModuleFormat moduleFormat = ModuleFormat.amd,
     bool verbose = false,
     Stream<Map<String, dynamic>> requestStream, // Defaults to read from stdin
     void Function(Map<String, dynamic>)
@@ -185,7 +194,7 @@ class ExpressionCompilerWorker {
     });
 
     return ExpressionCompilerWorker._(processedOptions, compilerOptions,
-        sdkComponent, requestStream, sendResponse)
+        moduleFormat, sdkComponent, requestStream, sendResponse)
       .._updateCache(sdkComponent, dartSdkModule, true);
   }
 
@@ -309,6 +318,7 @@ class ExpressionCompilerWorker {
           sourceMap: true,
           summarizeApi: false,
           moduleName: moduleName,
+          soundNullSafety: _compilerOptions.nnbdMode == NnbdMode.Strong,
           // Disable asserts due to failures to load source and
           // locations on kernel loaded from dill files in DDC.
           // https://github.com/dart-lang/sdk/issues/43986
@@ -342,6 +352,7 @@ class ExpressionCompilerWorker {
 
     var expressionCompiler = ExpressionCompiler(
       _compilerOptions,
+      _moduleFormat,
       errors,
       incrementalCompiler,
       kernel2jsCompiler,
@@ -673,6 +684,7 @@ final argParser = ArgParser()
   ..addOption('sdk-root')
   ..addOption('asset-server-address')
   ..addOption('asset-server-port')
+  ..addOption('module-format')
   ..addFlag('track-widget-creation', defaultsTo: false)
   ..addFlag('sound-null-safety', defaultsTo: false)
   ..addFlag('verbose', defaultsTo: false);
