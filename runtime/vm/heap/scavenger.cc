@@ -124,12 +124,28 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   virtual void VisitTypedDataViewPointers(TypedDataViewPtr view,
                                           ObjectPtr* first,
                                           ObjectPtr* last) {
-    // First we forward all fields of the typed data view.
+    // TypedDataViews require extra processing to update their
+    // PointerBase::data_ pointer. If the underlying typed data is external, no
+    // update is needed. If the underlying typed data is internal, the pointer
+    // must be updated if the typed data was copied or promoted. We cannot
+    // safely dereference the underlying typed data to make this distinction.
+    // It may have been forwarded by a different scavanger worker, so the access
+    // could have a data race. Rather than checking the CID of the underlying
+    // typed data, which requires dereferencing the copied/promoted header, we
+    // compare the view's internal pointer to what it should be if the
+    // underlying typed data was internal, and assume that external typed data
+    // never points into the Dart heap. We must do this before VisitPointers
+    // because we want to compare the old pointer and old typed data.
+    const bool is_external =
+        view->untag()->data_ != view->untag()->DataFieldForInternalTypedData();
+
+    // Forward all fields of the typed data view.
     VisitPointers(first, last);
 
     if (view->untag()->data_ == nullptr) {
       ASSERT(RawSmiValue(view->untag()->offset_in_bytes_) == 0 &&
              RawSmiValue(view->untag()->length_) == 0);
+      ASSERT(is_external);
       return;
     }
 
@@ -146,17 +162,21 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         *reinterpret_cast<uword*>(UntaggedObject::ToAddr(td));
     ASSERT(!IsForwarding(td_header) || td->IsOldObject());
 
-    // We can always obtain the class id from the forwarded backing store.
-    const classid_t cid = td->GetClassId();
+    if (!parallel) {
+      // When there is only one worker, there is no data race.
+      ASSERT_EQUAL(IsExternalTypedDataClassId(td->GetClassId()), is_external);
+    }
 
     // If we have external typed data we can simply return since the backing
     // store lives in C-heap and will not move.
-    if (IsExternalTypedDataClassId(cid)) {
+    if (is_external) {
       return;
     }
 
     // Now we update the inner pointer.
-    ASSERT(IsTypedDataClassId(cid));
+    if (!parallel) {
+      ASSERT(IsTypedDataClassId(td->GetClassId()));
+    }
     view->untag()->RecomputeDataFieldForInternalTypedData();
   }
 

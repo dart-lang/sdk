@@ -2646,18 +2646,22 @@ class UntaggedTypedDataView : public UntaggedTypedDataBase {
     data_ = payload + offset_in_bytes;
   }
 
-  // Recopute [data_] based on internal [typed_data_] - needs to be called by GC
-  // whenever the backing store moved.
+  // Recompute [data_] based on internal [typed_data_] - needs to be called by
+  // GC whenever the backing store moved.
   //
   // NOTICE: This method assumes [this] is the forwarded object and the
   // [typed_data_] pointer points to the new backing store. The backing store's
   // fields don't need to be valid - only it's address.
   void RecomputeDataFieldForInternalTypedData() {
+    data_ = DataFieldForInternalTypedData();
+  }
+
+  uint8_t* DataFieldForInternalTypedData() const {
     const intptr_t offset_in_bytes = RawSmiValue(offset_in_bytes_);
     uint8_t* payload =
         reinterpret_cast<uint8_t*>(UntaggedObject::ToAddr(typed_data()) +
                                    UntaggedTypedData::payload_offset());
-    data_ = payload + offset_in_bytes;
+    return payload + offset_in_bytes;
   }
 
   void ValidateInnerPointer() {
