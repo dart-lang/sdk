@@ -3653,7 +3653,7 @@ class Function : public Object {
 
 #define DEFINE_ACCESSORS(name, accessor_name)                                  \
   void set_##accessor_name(bool value) const {                                 \
-    untag()->kind_tag_.UpdateBool<name##Bit>(value);                           \
+    untag()->kind_tag_.UpdateUnsynchronized<name##Bit>(value);                 \
   }                                                                            \
   bool accessor_name() const { return untag()->kind_tag_.Read<name##Bit>(); }
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
@@ -3661,7 +3661,7 @@ class Function : public Object {
 
 #define DEFINE_ACCESSORS(name, accessor_name)                                  \
   void set_##accessor_name(bool value) const {                                 \
-    untag()->kind_tag_.UpdateUnsynchronized<name##Bit>(value);                 \
+    untag()->kind_tag_.UpdateBool<name##Bit>(value);                           \
   }                                                                            \
   bool accessor_name() const { return untag()->kind_tag_.Read<name##Bit>(); }
   FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DEFINE_ACCESSORS)
