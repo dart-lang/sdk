@@ -3211,6 +3211,9 @@ DEFINE_RUNTIME_ENTRY(RewindPostDeopt, 0) {
 
 void OnEveryRuntimeEntryCall(Thread* thread, const char* runtime_call_name) {
   ASSERT(FLAG_deoptimize_on_runtime_call_every > 0);
+  if (FLAG_precompiled_mode) {
+    return;
+  }
   if (IsolateGroup::IsSystemIsolateGroup(thread->isolate_group())) {
     return;
   }
