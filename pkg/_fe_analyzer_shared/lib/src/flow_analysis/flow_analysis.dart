@@ -4065,7 +4065,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       Variable? exceptionVariable, Variable? stackTraceVariable) {
     _TryContext<Variable, Type> context =
         _stack.last as _TryContext<Variable, Type>;
-    _current = context._beforeCatch;
+    _current = context._beforeCatch!;
     if (exceptionVariable != null) {
       _current = _current.declare(exceptionVariable, true);
     }
@@ -4086,7 +4086,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void tryCatchStatement_end() {
     _TryContext<Variable, Type> context =
         _stack.removeLast() as _TryContext<Variable, Type>;
-    _current = context._afterBodyAndCatches.unsplit();
+    _current = context._afterBodyAndCatches!.unsplit();
   }
 
   @override
@@ -4101,7 +4101,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         'No assigned variables info should have been stored for $finallyBlock');
     _TryFinallyContext<Variable, Type> context =
         _stack.removeLast() as _TryFinallyContext<Variable, Type>;
-    _current = context._afterBodyAndCatches
+    _current = context._afterBodyAndCatches!
         .attachFinally(typeOperations, context._beforeFinally, _current);
   }
 
@@ -5051,14 +5051,14 @@ class _TryContext<Variable extends Object, Type extends Object>
     extends _SimpleContext<Variable, Type> {
   /// If the statement is a "try/catch" statement, the flow model representing
   /// program state at the top of any `catch` block.
-  late final FlowModel<Variable, Type> _beforeCatch;
+  FlowModel<Variable, Type>? _beforeCatch;
 
   /// If the statement is a "try/catch" statement, the accumulated flow model
   /// representing program state after the `try` block or one of the `catch`
   /// blocks has finished executing.  If the statement is a "try/finally"
   /// statement, the flow model representing program state after the `try` block
   /// has finished executing.
-  late FlowModel<Variable, Type> _afterBodyAndCatches;
+  FlowModel<Variable, Type>? _afterBodyAndCatches;
 
   _TryContext(FlowModel<Variable, Type> previous) : super(previous);
 
