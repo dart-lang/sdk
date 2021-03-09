@@ -13,7 +13,7 @@ import "package:expect/expect.dart";
 
 main() {
   testIntegerShifts();
-  testNonDoubleShifts();
+  testNonIntegerShifts();
   testConstantShifts();
 }
 
@@ -47,18 +47,18 @@ void testIntegerShifts() {
   // If so, it is zero when converted to a fixed precision.
   if (double.infinity is int) {
     int number = (double.infinity as int);
-    Expect.equals(0, number >> 1);
-    Expect.throws(() => 1 >>> number); // infinity > 64.
+    Expect.equals(0, number >>> 1);
+    Expect.equals(0, 1 >>> number); // infinity > 64.
   }
 }
 
-void testNonDoubleShifts() {
+void testNonIntegerShifts() {
   double n = 0.0;
   n >>> 1; //# 01: compile-time error
   for (dynamic number in [0.0, 1.0, 2.4, -2.4, double.infinity, double.nan]) {
     if (number is! int) {
-      Expect.throws(() => number >>> 1);
-      Expect.throws(() => 1 >>> number);
+      Expect.throws(() => number >>> 1); //# 07: ok
+      Expect.throws(() => 1 >>> number); //# 08: ok
     }
   }
 }
