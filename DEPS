@@ -110,7 +110,7 @@ vars = {
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_rev" : "6bf4b6e5d4d890e6d54559b858ff229d79711171",
   "http_parser_rev": "5dd4d16693242049dfb43b5efa429fedbf932e98",
-  "http_retry_tag": "0.1.1",
+  "http_retry_rev": "845771af7bb5ab38ab740ce4a31f3b0c7680302b",
   "http_rev": "d5c678cd63c3e9c1d779a09acfa95b7e3af84665",
   "http_throttle_tag" : "1.0.2",
   "icu_rev" : "79326efe26e5440f530963704c3c0ff965b3a4ac",
@@ -355,7 +355,7 @@ deps = {
       Var("dart_git") + "http_parser.git" + "@" + Var("http_parser_rev"),
   Var("dart_root") + "/third_party/pkg/http_retry":
       Var("dart_git") + "http_retry.git" +
-      "@" + Var("http_retry_tag"),
+      "@" + Var("http_retry_rev"),
   Var("dart_root") + "/third_party/pkg/http_throttle":
       Var("dart_git") + "http_throttle.git" +
       "@" + Var("http_throttle_tag"),

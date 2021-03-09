@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-03-08T09:29:10.028585",
+  "generated": "2021-03-09T13:31:13.443396",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -339,7 +339,7 @@
       "name": "http_retry",
       "rootUri": "../third_party/pkg/http_retry",
       "packageUri": "lib/",
-      "languageVersion": "1.24"
+      "languageVersion": "2.12"
     },
     {
       "name": "http_throttle",
