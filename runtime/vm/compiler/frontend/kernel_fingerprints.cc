@@ -322,7 +322,7 @@ void KernelFingerprintHelper::CalculateFunctionTypeFingerprint(bool simple) {
 
 void KernelFingerprintHelper::CalculateGetterNameFingerprint() {
   const NameIndex name = ReadCanonicalNameReference();
-  if (!H.IsRoot(name) && (H.IsGetter(name) || H.IsField(name))) {
+  if (!H.IsRoot(name) && H.IsGetter(name)) {
     BuildHash(H.DartGetterName(name).Hash());
   }
   ReadCanonicalNameReference();  // read interface_target_origin_reference
@@ -339,7 +339,7 @@ void KernelFingerprintHelper::CalculateSetterNameFingerprint() {
 void KernelFingerprintHelper::CalculateMethodNameFingerprint() {
   const NameIndex name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (!H.IsRoot(name) && !H.IsField(name)) {
+  if (!H.IsRoot(name)) {
     BuildHash(H.DartProcedureName(name).Hash());
   }
   ReadCanonicalNameReference();  // read interface_target_origin_reference

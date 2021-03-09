@@ -716,8 +716,6 @@ class BinaryBuilder {
       for (CanonicalName child in parentChildren) {
         if (child.name != '@methods' &&
             child.name != '@typedefs' &&
-            child.name != '@fields' &&
-            child.name != '@=fields' &&
             child.name != '@getters' &&
             child.name != '@setters' &&
             child.name != '@factories' &&

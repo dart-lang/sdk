@@ -348,6 +348,52 @@ class Reference {
     }
     return node as Extension;
   }
+
+  bool get isConsistent {
+    NamedNode? node = _node;
+    if (node != null) {
+      if (node.reference != this &&
+          (node is! Field || node.setterReference != this)) {
+        // The reference of a [NamedNode] must point to this reference, or
+        // if the node is a [Field] the setter reference must point to this
+        // reference.
+        return false;
+      }
+    }
+    if (canonicalName != null && canonicalName!.reference != this) {
+      return false;
+    }
+    return true;
+  }
+
+  String getInconsistency() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('Reference ${this} (${hashCode}):');
+    NamedNode? node = _node;
+    if (node != null) {
+      if (node is Field) {
+        if (node.getterReference != this && node.setterReference != this) {
+          sb.write(' _node=${node} (${node.runtimeType}:${node.hashCode})');
+          sb.write(' _node.getterReference='
+              '${node.getterReference} (${node.getterReference.hashCode})');
+          sb.write(' _node.setterReference='
+              '${node.setterReference} (${node.setterReference.hashCode})');
+        }
+      } else {
+        if (node.reference != this) {
+          sb.write(' _node=${node} (${node.runtimeType}:${node.hashCode})');
+          sb.write(' _node.reference='
+              '${node.reference} (${node.reference.hashCode})');
+        }
+      }
+    }
+    if (canonicalName != null && canonicalName!.reference != this) {
+      sb.write(' canonicalName=${canonicalName} (${canonicalName.hashCode})');
+      sb.write(' canonicalName.reference='
+          '${canonicalName!.reference} (${canonicalName!.reference.hashCode})');
+    }
+    return sb.toString();
+  }
 }
 
 // ------------------------------------------------------------------------

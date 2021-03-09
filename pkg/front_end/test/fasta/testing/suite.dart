@@ -159,6 +159,8 @@ import 'package:testing/testing.dart'
         StdioProcess;
 
 import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/transformations/type_flow/transformer.dart' as type_flow;
+import 'package:vm/transformations/pragma.dart' as type_flow;
 
 import '../../utils/kernel_chain.dart'
     show
@@ -312,10 +314,6 @@ class FastaContext extends ChainContext with MatchContext {
   final bool semiFuzz;
   final bool verify;
   final bool soundNullSafety;
-  final Map<Component, KernelTarget> componentToTarget =
-      <Component, KernelTarget>{};
-  final Map<Component, List<Iterable<String>>> componentToDiagnostics =
-      <Component, List<Iterable<String>>>{};
   final Uri platformBinaries;
   final Map<UriConfiguration, UriTranslator> _uriTranslators = {};
   final Map<Uri, FolderOptions> _folderOptions = {};
@@ -393,6 +391,7 @@ class FastaContext extends ChainContext with MatchContext {
     }
     if (fullCompile) {
       steps.add(const Transform());
+      steps.add(const Verify(true));
       steps.add(const StressConstantEvaluatorStep());
       if (!ignoreExpectations) {
         steps.add(new MatchExpectation("$fullPrefix.transformed.expect",
@@ -678,16 +677,25 @@ class FastaContext extends ChainContext with MatchContext {
 
   Expectation get verificationError => expectationSet["VerificationError"];
 
-  Future<Component> loadPlatform(Target target, NnbdMode nnbdMode) async {
+  Uri _getPlatformUri(Target target, NnbdMode nnbdMode) {
     String fileName = computePlatformDillName(
         target,
         nnbdMode,
         () => throw new UnsupportedError(
             "No platform dill for target '${target.name}' with $nnbdMode."));
-    Uri uri = platformBinaries.resolve(fileName);
+    return platformBinaries.resolve(fileName);
+  }
+
+  Future<Component> loadPlatform(Target target, NnbdMode nnbdMode) async {
+    Uri uri = _getPlatformUri(target, nnbdMode);
     return _platforms.putIfAbsent(uri, () {
       return loadComponentFromBytes(new File.fromUri(uri).readAsBytesSync());
     });
+  }
+
+  void clearPlatformCache(Target target, NnbdMode nnbdMode) async {
+    Uri uri = _getPlatformUri(target, nnbdMode);
+    _platforms.remove(uri);
   }
 
   @override
@@ -715,7 +723,9 @@ class FastaContext extends ChainContext with MatchContext {
 
   static Future<FastaContext> create(
       Chain suite, Map<String, String> environment) async {
-    Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
+    String resolvedExecutable = Platform.environment['resolvedExecutable'] ??
+        Platform.resolvedExecutable;
+    Uri vm = Uri.base.resolveUri(new Uri.file(resolvedExecutable));
     Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
 
     void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {
@@ -812,11 +822,12 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
         }
         return new Result<ComponentResult>(
             result, runResult.outcome, runResult.error);
+      case "aot":
       case "none":
       case "noneWithJs":
       case "dart2js":
       case "dartdevc":
-        // TODO(johnniwinther): Support running dart2js and/or dartdevc.
+        // TODO(johnniwinther): Support running vm aot, dart2js and/or dartdevc.
         return pass(result);
       default:
         throw new ArgumentError(
@@ -1648,6 +1659,9 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
     case "vm":
       target = new TestVmTarget(targetFlags);
       break;
+    case "aot":
+      target = new TestVmAotTarget(targetFlags);
+      break;
     case "none":
       target = new NoneTarget(targetFlags);
       break;
@@ -1781,10 +1795,6 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       await instrumentation.loadExpectations(description.uri);
       sourceTarget.loader.instrumentation = instrumentation;
       Component p = await sourceTarget.buildOutlines();
-      context.componentToTarget.clear();
-      context.componentToTarget[p] = sourceTarget;
-      context.componentToDiagnostics.clear();
-      context.componentToDiagnostics[p] = compilationSetup.errors;
       Set<Uri> userLibraries =
           createUserLibrariesImportUriSet(p, sourceTarget.uriTranslator);
       if (fullCompile) {
@@ -1799,7 +1809,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           } else {
             return new Result<ComponentResult>(
                 new ComponentResult(description, p, userLibraries,
-                    compilationSetup.options, sourceTarget),
+                    compilationSetup, sourceTarget),
                 context.expectationSet["InstrumentationMismatch"],
                 instrumentation.problemsAsString,
                 autoFixCommand: '${UPDATE_COMMENTS}=true',
@@ -1807,8 +1817,8 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           }
         }
       }
-      return pass(new ComponentResult(description, p, userLibraries,
-          compilationSetup.options, sourceTarget));
+      return pass(new ComponentResult(
+          description, p, userLibraries, compilationSetup, sourceTarget));
     });
   }
 
@@ -1850,8 +1860,7 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
       ComponentResult result, FastaContext context) async {
     return await CompilerContext.runWithOptions(result.options, (_) async {
       Component component = result.component;
-      KernelTarget sourceTarget = context.componentToTarget[component];
-      context.componentToTarget.remove(component);
+      KernelTarget sourceTarget = result.sourceTarget;
       Target backendTarget = sourceTarget.backendTarget;
       if (backendTarget is TestTarget) {
         backendTarget.performModularTransformations = true;
@@ -1872,7 +1881,18 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
             context.expectationSet["TransformVerificationError"],
             errors.join('\n'));
       }
-      return pass(result);
+      if (backendTarget is TestTarget &&
+          backendTarget.hasGlobalTransformation) {
+        component =
+            backendTarget.performGlobalTransformations(sourceTarget, component);
+        // Clear the currently cached platform since the global transformation
+        // might have modified it.
+        context.clearPlatformCache(
+            backendTarget, result.compilationSetup.options.nnbdMode);
+      }
+
+      return pass(new ComponentResult(result.description, component,
+          result.userLibraries, result.compilationSetup, sourceTarget));
     });
   }
 }
@@ -1973,10 +1993,32 @@ mixin TestTarget on Target {
           logger: logger);
     }
   }
+
+  bool get hasGlobalTransformation => false;
+
+  Component performGlobalTransformations(
+          KernelTarget kernelTarget, Component component) =>
+      component;
 }
 
 class TestVmTarget extends VmTarget with TestTarget {
   TestVmTarget(TargetFlags flags) : super(flags);
+}
+
+class TestVmAotTarget extends TestVmTarget {
+  TestVmAotTarget(TargetFlags flags) : super(flags);
+
+  @override
+  bool get hasGlobalTransformation => true;
+
+  @override
+  Component performGlobalTransformations(
+      KernelTarget kernelTarget, Component component) {
+    return type_flow.transformComponent(
+        this, kernelTarget.loader.coreTypes, component,
+        matcher: new type_flow.ConstantPragmaAnnotationParser(
+            kernelTarget.loader.coreTypes));
+  }
 }
 
 class EnsureNoErrors
@@ -1987,8 +2029,7 @@ class EnsureNoErrors
 
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
-    List<Iterable<String>> errors =
-        context.componentToDiagnostics[result.component];
+    List<Iterable<String>> errors = result.compilationSetup.errors;
     return errors.isEmpty
         ? pass(result)
         : fail(
@@ -2009,7 +2050,7 @@ class MatchHierarchy
     Component component = result.component;
     Uri uri =
         component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
-    KernelTarget target = context.componentToTarget[component];
+    KernelTarget target = result.sourceTarget;
     ClassHierarchyBuilder hierarchy = target.loader.builderHierarchy;
     StringBuffer sb = new StringBuffer();
     for (ClassHierarchyNode node in hierarchy.nodes.values) {

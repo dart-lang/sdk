@@ -554,7 +554,17 @@ class TreeShaker {
                   isFieldInitializerReachable(f) &&
                   mayHaveSideEffects(f.initializer)) ||
               (f.isLate && f.isFinal)) ||
-      isMemberReferencedFromNativeCode(f);
+      isMemberReferencedFromNativeCode(f) ||
+      _isInstanceFieldOfAllocatedEnum(f);
+
+  /// Preserve instance fields of allocated enums as VM relies on their
+  /// existence. Non-allocated enums are converted into ordinary classes during
+  /// the 2nd pass.
+  bool _isInstanceFieldOfAllocatedEnum(Field node) =>
+      !node.isStatic &&
+      node.enclosingClass != null &&
+      node.enclosingClass.isEnum &&
+      isClassAllocated(node.enclosingClass);
 
   void addClassUsedInType(Class c) {
     if (_classesUsedInType.add(c)) {
@@ -687,14 +697,17 @@ class FieldMorpher {
               positionalParameters: [parameter], returnType: const VoidType())
             ..fileOffset = field.fileOffset,
           isAbstract: isAbstract,
-          fileUri: field.fileUri);
+          fileUri: field.fileUri,
+          reference: field.setterReference);
       if (!isAbstract) {
         _extraMembersWithReachableBody.add(accessor);
       }
     } else {
       accessor = new Procedure(field.name, ProcedureKind.Getter,
           new FunctionNode(null, returnType: field.type),
-          isAbstract: true, fileUri: field.fileUri);
+          isAbstract: true,
+          fileUri: field.fileUri,
+          reference: field.getterReference);
     }
     accessor.fileOffset = field.fileOffset;
     field.enclosingClass.addProcedure(accessor);
@@ -739,6 +752,12 @@ class FieldMorpher {
     }
     return _removedFields[target] ?? target;
   }
+
+  bool isGetterReferenceReused(Field node) =>
+      _gettersForRemovedFields.containsKey(node);
+
+  bool isSetterReferenceReused(Field node) =>
+      _settersForRemovedFields.containsKey(node);
 }
 
 /// Visits Dart types and collects all classes and typedefs used in types.
@@ -1246,7 +1265,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
     for (Source source in component.uriToSource.values) {
       source?.constantCoverageConstructors?.removeWhere((Reference reference) {
         Member node = reference.asMember;
-        return !shaker.isMemberUsed(node) && !_preserveSpecialMember(node);
+        return !shaker.isMemberUsed(node);
       });
     }
   }
@@ -1282,6 +1301,10 @@ class _TreeShakerPass2 extends RemovingTransformer {
       debugPrint('Dropped class ${node.name}');
       // Ensure that kernel file writer will not be able to
       // write a dangling reference to the deleted class.
+      assert(
+          node.reference.node == node,
+          "Trying to remove canonical name from reference on $node which has "
+          "been repurposed for ${node.reference.node}.");
       node.reference.canonicalName = null;
       Statistics.classesDropped++;
       return removalSentinel; // Remove the class.
@@ -1297,6 +1320,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
       node.implementedTypes.clear();
       node.typeParameters.clear();
       node.isAbstract = true;
+      node.isEnum = false;
       // Mixin applications cannot have static members.
       assert(node.mixedInType == null);
       node.annotations = const <Expression>[];
@@ -1305,6 +1329,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
     if (!shaker.isClassAllocated(node)) {
       debugPrint('Class ${node.name} converted to abstract');
       node.isAbstract = true;
+      node.isEnum = false;
     }
 
     node.transformOrRemoveChildren(this);
@@ -1312,19 +1337,41 @@ class _TreeShakerPass2 extends RemovingTransformer {
     return node;
   }
 
-  /// Preserve instance fields of enums as VM relies on their existence.
-  bool _preserveSpecialMember(Member node) =>
-      node is Field &&
-      !node.isStatic &&
-      node.enclosingClass != null &&
-      node.enclosingClass.isEnum;
-
   @override
   Member defaultMember(Member node, TreeNode removalSentinel) {
-    if (!shaker.isMemberUsed(node) && !_preserveSpecialMember(node)) {
+    if (!shaker.isMemberUsed(node)) {
       // Ensure that kernel file writer will not be able to
       // write a dangling reference to the deleted member.
-      node.reference.canonicalName = null;
+      if (node is Field) {
+        if (!shaker.fieldMorpher.isGetterReferenceReused(node)) {
+          // The getter reference hasn't be repurposed for another node so we
+          // reset the canonical name to ensure that the getter reference
+          // cannot be serialized.
+          assert(
+              node.getterReference.node == node,
+              "Trying to remove canonical name from getter reference on $node "
+              "which has been repurposed for ${node.getterReference.node}.");
+          node.getterReference.canonicalName = null;
+        }
+        if (node.hasSetter) {
+          if (!shaker.fieldMorpher.isSetterReferenceReused(node)) {
+            // The setter reference hasn't be repurposed for another node so we
+            // reset the canonical name to ensure that the setter reference
+            // cannot be serialized.
+            assert(
+                node.setterReference.node == node,
+                "Trying to remove canonical name from reference on $node which "
+                "has been repurposed for ${node.setterReference.node}.");
+            node.setterReference.canonicalName = null;
+          }
+        }
+      } else {
+        assert(
+            node.reference.node == node,
+            "Trying to remove canonical name from reference on $node which has "
+            "been repurposed for ${node.reference.node}.");
+        node.reference.canonicalName = null;
+      }
       Statistics.membersDropped++;
       return removalSentinel;
     }

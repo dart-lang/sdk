@@ -235,22 +235,7 @@ bool TranslationHelper::IsClass(NameIndex name) {
 }
 
 bool TranslationHelper::IsMember(NameIndex name) {
-  return IsConstructor(name) || IsField(name) || IsProcedure(name);
-}
-
-bool TranslationHelper::IsField(NameIndex name) {
-  // Fields with private names have the import URI of the library where they are
-  // visible as the parent and the string "@fields" as the parent's parent.
-  // Fields with non-private names have the string "@fields' as the parent.
-  if (IsRoot(name)) {
-    return false;
-  }
-  NameIndex kind = CanonicalNameParent(name);
-  if (IsPrivate(name)) {
-    kind = CanonicalNameParent(kind);
-  }
-  return StringEquals(CanonicalNameString(kind), "@fields") ||
-         StringEquals(CanonicalNameString(kind), "@=fields");
+  return IsConstructor(name) || IsProcedure(name);
 }
 
 bool TranslationHelper::IsConstructor(NameIndex name) {
@@ -330,7 +315,7 @@ bool TranslationHelper::IsFactory(NameIndex name) {
 }
 
 NameIndex TranslationHelper::EnclosingName(NameIndex name) {
-  ASSERT(IsField(name) || IsConstructor(name) || IsProcedure(name));
+  ASSERT(IsConstructor(name) || IsProcedure(name));
   NameIndex enclosing = CanonicalNameParent(CanonicalNameParent(name));
   if (IsPrivate(name)) {
     enclosing = CanonicalNameParent(enclosing);
@@ -587,8 +572,10 @@ ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
   return info_.InsertClass(thread_, name_index_handle_, klass);
 }
 
-FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
-  ASSERT(IsField(kernel_field));
+FieldPtr TranslationHelper::LookupFieldByKernelGetterOrSetter(
+    NameIndex kernel_field,
+    bool required) {
+  ASSERT(IsGetter(kernel_field) || IsSetter(kernel_field));
   NameIndex enclosing = EnclosingName(kernel_field);
 
   Class& klass = Class::Handle(Z);
@@ -604,12 +591,15 @@ FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
   Field& field = Field::Handle(
       Z, klass.LookupFieldAllowPrivate(
              DartSymbolObfuscate(CanonicalNameString(kernel_field))));
-  CheckStaticLookup(field);
+  if (required) {
+    CheckStaticLookup(field);
+  }
   return field.ptr();
 }
 
 FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
-    NameIndex procedure) {
+    NameIndex procedure,
+    bool required) {
   const String& procedure_name = DartProcedureName(procedure);
 
   // The parent is either a library or a class (in which case the procedure is a
@@ -620,7 +610,9 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
         Library::Handle(Z, LookupLibraryByKernelLibrary(enclosing));
     Function& function =
         Function::Handle(Z, library.LookupFunctionAllowPrivate(procedure_name));
-    CheckStaticLookup(function);
+    if (required) {
+      CheckStaticLookup(function);
+    }
     return function.ptr();
   } else {
     ASSERT(IsClass(enclosing));
@@ -629,7 +621,9 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
     ASSERT(error == Error::null());
     Function& function = Function::ZoneHandle(
         Z, klass.LookupFunctionAllowPrivate(procedure_name));
-    CheckStaticLookup(function);
+    if (required) {
+      CheckStaticLookup(function);
+    }
     return function.ptr();
   }
 }
