@@ -544,6 +544,81 @@ part of 'a.dart';
 ''');
   }
 
+  test_removeFilesNotNecessaryForAnalysisOf() async {
+    var aPath = convertPath('/workspace/dart/aaa/lib/a.dart');
+    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
+    var cPath = convertPath('/workspace/dart/aaa/lib/c.dart');
+
+    newFile(aPath, content: r'''
+class A {}
+''');
+
+    newFile(bPath, content: r'''
+import 'a.dart';
+''');
+
+    newFile(cPath, content: r'''
+import 'a.dart';
+''');
+
+    await resolveFile(bPath);
+    await resolveFile(cPath);
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([cPath]);
+    _assertRemovedPaths(unorderedEquals([bPath]));
+  }
+
+  test_removeFilesNotNecessaryForAnalysisOf_multiple() async {
+    var bPath = '/workspace/dart/aaa/lib/b.dart';
+    var dPath = convertPath('/workspace/dart/aaa/lib/d.dart');
+    var ePath = convertPath('/workspace/dart/aaa/lib/e.dart');
+    var fPath = convertPath('/workspace/dart/aaa/lib/f.dart');
+
+    newFile('/workspace/dart/aaa/lib/a.dart', content: r'''
+class A {}
+''');
+
+    newFile(bPath, content: r'''
+class B {}
+''');
+
+    newFile('/workspace/dart/aaa/lib/c.dart', content: r'''
+class C {}
+''');
+
+    newFile(dPath, content: r'''
+import 'a.dart';
+''');
+
+    newFile(ePath, content: r'''
+import 'a.dart';
+import 'b.dart';
+''');
+
+    newFile(fPath, content: r'''
+import 'c.dart';
+ ''');
+
+    await resolveFile(dPath);
+    await resolveFile(ePath);
+    await resolveFile(fPath);
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([dPath, fPath]);
+    _assertRemovedPaths(unorderedEquals([bPath, ePath]));
+  }
+
+  test_removeFilesNotNecessaryForAnalysisOf_unknown() async {
+    var aPath = convertPath('/workspace/dart/aaa/lib/a.dart');
+    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
+
+    newFile(aPath, content: r'''
+class A {}
+''');
+
+    await resolveFile(aPath);
+
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([aPath, bPath]);
+    _assertRemovedPaths(isEmpty);
+  }
+
   test_resolve_part_of() async {
     newFile('/workspace/dart/test/lib/a.dart', content: r'''
 part 'test.dart';
@@ -682,64 +757,7 @@ import 'foo:bar';
     ]);
   }
 
-  test_unusedFiles() async {
-    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
-    var cPath = convertPath('/workspace/dart/aaa/lib/c.dart');
-
-    newFile('/workspace/dart/aaa/lib/a.dart', content: r'''
-class A {}
-''');
-
-    newFile(bPath, content: r'''
-import 'a.dart';
-''');
-
-    newFile(cPath, content: r'''
-import 'a.dart';
-''');
-
-    await resolveFile(bPath);
-    await resolveFile(cPath);
-    fileResolver.removeFilesNotNecessaryForAnalysisOf([cPath]);
-    expect(fileResolver.fsState!.testView.unusedFiles.contains(bPath), true);
-    expect(fileResolver.fsState!.testView.unusedFiles.length, 1);
-  }
-
-  test_unusedFiles_mutilple() async {
-    var dPath = convertPath('/workspace/dart/aaa/lib/d.dart');
-    var ePath = convertPath('/workspace/dart/aaa/lib/e.dart');
-    var fPath = convertPath('/workspace/dart/aaa/lib/f.dart');
-
-    newFile('/workspace/dart/aaa/lib/a.dart', content: r'''
-class A {}
-''');
-
-    newFile('/workspace/dart/aaa/lib/b.dart', content: r'''
-class B {}
-''');
-
-    newFile('/workspace/dart/aaa/lib/c.dart', content: r'''
-class C {}
-''');
-
-    newFile(dPath, content: r'''
-import 'a.dart';
-''');
-
-    newFile(ePath, content: r'''
-import 'a.dart';
-import 'b.dart';
-''');
-
-    newFile(fPath, content: r'''
-import 'c.dart';
- ''');
-
-    await resolveFile(dPath);
-    await resolveFile(ePath);
-    await resolveFile(fPath);
-    fileResolver.removeFilesNotNecessaryForAnalysisOf([dPath, fPath]);
-    expect(fileResolver.fsState!.testView.unusedFiles.contains(ePath), true);
-    expect(fileResolver.fsState!.testView.unusedFiles.length, 2);
+  void _assertRemovedPaths(Matcher matcher) {
+    expect(fileResolver.fsState!.testView.removedPaths, matcher);
   }
 }
