@@ -809,7 +809,7 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 }
 
-class ConstantEvaluator extends ExpressionVisitor<Constant> {
+class ConstantEvaluator implements ExpressionVisitor<Constant> {
   final ConstantsBackend backend;
   final NumberSemantics numberSemantics;
   ConstantIntFolder intFolder;
@@ -3198,6 +3198,60 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
       node = node.parent;
     }
   }
+
+  @override
+  Constant defaultBasicLiteral(BasicLiteral node) => defaultExpression(node);
+
+  @override
+  Constant visitAwaitExpression(AwaitExpression node) =>
+      defaultExpression(node);
+
+  @override
+  Constant visitBlockExpression(BlockExpression node) =>
+      defaultExpression(node);
+
+  @override
+  Constant visitDynamicSet(DynamicSet node) => defaultExpression(node);
+
+  @override
+  Constant visitInstanceGetterInvocation(InstanceGetterInvocation node) =>
+      defaultExpression(node);
+
+  @override
+  Constant visitInstanceSet(InstanceSet node) => defaultExpression(node);
+
+  @override
+  Constant visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
+
+  @override
+  Constant visitPropertySet(PropertySet node) => defaultExpression(node);
+
+  @override
+  Constant visitRethrow(Rethrow node) => defaultExpression(node);
+
+  @override
+  Constant visitStaticSet(StaticSet node) => defaultExpression(node);
+
+  @override
+  Constant visitSuperMethodInvocation(SuperMethodInvocation node) =>
+      defaultExpression(node);
+
+  @override
+  Constant visitSuperPropertyGet(SuperPropertyGet node) =>
+      defaultExpression(node);
+
+  @override
+  Constant visitSuperPropertySet(SuperPropertySet node) =>
+      defaultExpression(node);
+
+  @override
+  Constant visitThisExpression(ThisExpression node) => defaultExpression(node);
+
+  @override
+  Constant visitThrow(Throw node) => defaultExpression(node);
+
+  @override
+  Constant visitVariableSet(VariableSet node) => defaultExpression(node);
 }
 
 class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
