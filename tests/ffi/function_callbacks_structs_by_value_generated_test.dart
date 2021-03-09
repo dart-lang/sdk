@@ -273,6 +273,18 @@ final testCases = [
           passStructStruct16BytesMixed3x10, 0.0),
       passStructStruct16BytesMixed3x10AfterCallback),
   CallbackTest.withCheck(
+      "PassUint8Struct32BytesInlineArrayMultiDimensionalI",
+      Pointer.fromFunction<
+              PassUint8Struct32BytesInlineArrayMultiDimensionalIType>(
+          passUint8Struct32BytesInlineArrayMultiDimensionalI, 0),
+      passUint8Struct32BytesInlineArrayMultiDimensionalIAfterCallback),
+  CallbackTest.withCheck(
+      "PassUint8Struct4BytesInlineArrayMultiDimensionalIn",
+      Pointer.fromFunction<
+              PassUint8Struct4BytesInlineArrayMultiDimensionalInType>(
+          passUint8Struct4BytesInlineArrayMultiDimensionalIn, 0),
+      passUint8Struct4BytesInlineArrayMultiDimensionalInAfterCallback),
+  CallbackTest.withCheck(
       "ReturnStruct1ByteInt",
       Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
       returnStruct1ByteIntAfterCallback),
@@ -5965,6 +5977,237 @@ void passStructStruct16BytesMixed3x10AfterCallback() {
   print("after callback result = $result");
 
   Expect.approxEquals(30.0, result);
+}
+
+typedef PassUint8Struct32BytesInlineArrayMultiDimensionalIType
+    = Uint32 Function(
+        Uint8,
+        Struct32BytesInlineArrayMultiDimensionalInt,
+        Uint8,
+        Struct8BytesInlineArrayMultiDimensionalInt,
+        Uint8,
+        Struct8BytesInlineArrayMultiDimensionalInt,
+        Uint8);
+
+// Global variables to be able to test inputs after callback returned.
+int passUint8Struct32BytesInlineArrayMultiDimensionalI_a0 = 0;
+Struct32BytesInlineArrayMultiDimensionalInt
+    passUint8Struct32BytesInlineArrayMultiDimensionalI_a1 =
+    Struct32BytesInlineArrayMultiDimensionalInt();
+int passUint8Struct32BytesInlineArrayMultiDimensionalI_a2 = 0;
+Struct8BytesInlineArrayMultiDimensionalInt
+    passUint8Struct32BytesInlineArrayMultiDimensionalI_a3 =
+    Struct8BytesInlineArrayMultiDimensionalInt();
+int passUint8Struct32BytesInlineArrayMultiDimensionalI_a4 = 0;
+Struct8BytesInlineArrayMultiDimensionalInt
+    passUint8Struct32BytesInlineArrayMultiDimensionalI_a5 =
+    Struct8BytesInlineArrayMultiDimensionalInt();
+int passUint8Struct32BytesInlineArrayMultiDimensionalI_a6 = 0;
+
+// Result variable also global, so we can delete it after the callback.
+int passUint8Struct32BytesInlineArrayMultiDimensionalIResult = 0;
+
+int passUint8Struct32BytesInlineArrayMultiDimensionalICalculateResult() {
+  int result = 0;
+
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a0;
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][0][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][0][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][0][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][0][1][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][1][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][1][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][1][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][1][1][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][0][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][0][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][0][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][0][1][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][1][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][1][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][1][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][1][1][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][0][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][0][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][0][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][0][1][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][1][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][1][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][1][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][1][1][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][0][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][0][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][0][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][0][1][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][1][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][1][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][1][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][1][1][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a2;
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[0][0][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[0][0][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[0][1][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[0][1][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[1][0][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[1][0][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[1][1][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[1][1][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a4;
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[0][0][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[0][0][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[0][1][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[0][1][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[1][0][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[1][0][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[1][1][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[1][1][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a6;
+
+  passUint8Struct32BytesInlineArrayMultiDimensionalIResult = result;
+
+  return result;
+}
+
+/// Test multi dimensional inline array struct as argument.
+int passUint8Struct32BytesInlineArrayMultiDimensionalI(
+    int a0,
+    Struct32BytesInlineArrayMultiDimensionalInt a1,
+    int a2,
+    Struct8BytesInlineArrayMultiDimensionalInt a3,
+    int a4,
+    Struct8BytesInlineArrayMultiDimensionalInt a5,
+    int a6) {
+  print(
+      "passUint8Struct32BytesInlineArrayMultiDimensionalI(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassUint8Struct32BytesInlineArrayMultiDimensionalI throwing on purpose!");
+  }
+
+  passUint8Struct32BytesInlineArrayMultiDimensionalI_a0 = a0;
+  passUint8Struct32BytesInlineArrayMultiDimensionalI_a1 = a1;
+  passUint8Struct32BytesInlineArrayMultiDimensionalI_a2 = a2;
+  passUint8Struct32BytesInlineArrayMultiDimensionalI_a3 = a3;
+  passUint8Struct32BytesInlineArrayMultiDimensionalI_a4 = a4;
+  passUint8Struct32BytesInlineArrayMultiDimensionalI_a5 = a5;
+  passUint8Struct32BytesInlineArrayMultiDimensionalI_a6 = a6;
+
+  final result =
+      passUint8Struct32BytesInlineArrayMultiDimensionalICalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passUint8Struct32BytesInlineArrayMultiDimensionalIAfterCallback() {
+  final result =
+      passUint8Struct32BytesInlineArrayMultiDimensionalICalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(1378, result);
+}
+
+typedef PassUint8Struct4BytesInlineArrayMultiDimensionalInType = Uint32
+    Function(Uint8, Struct4BytesInlineArrayMultiDimensionalInt, Uint8);
+
+// Global variables to be able to test inputs after callback returned.
+int passUint8Struct4BytesInlineArrayMultiDimensionalIn_a0 = 0;
+Struct4BytesInlineArrayMultiDimensionalInt
+    passUint8Struct4BytesInlineArrayMultiDimensionalIn_a1 =
+    Struct4BytesInlineArrayMultiDimensionalInt();
+int passUint8Struct4BytesInlineArrayMultiDimensionalIn_a2 = 0;
+
+// Result variable also global, so we can delete it after the callback.
+int passUint8Struct4BytesInlineArrayMultiDimensionalInResult = 0;
+
+int passUint8Struct4BytesInlineArrayMultiDimensionalInCalculateResult() {
+  int result = 0;
+
+  result += passUint8Struct4BytesInlineArrayMultiDimensionalIn_a0;
+  result += passUint8Struct4BytesInlineArrayMultiDimensionalIn_a1.a0[0][0].a0;
+  result += passUint8Struct4BytesInlineArrayMultiDimensionalIn_a1.a0[0][1].a0;
+  result += passUint8Struct4BytesInlineArrayMultiDimensionalIn_a1.a0[1][0].a0;
+  result += passUint8Struct4BytesInlineArrayMultiDimensionalIn_a1.a0[1][1].a0;
+  result += passUint8Struct4BytesInlineArrayMultiDimensionalIn_a2;
+
+  passUint8Struct4BytesInlineArrayMultiDimensionalInResult = result;
+
+  return result;
+}
+
+/// Test struct in multi dimensional inline array.
+int passUint8Struct4BytesInlineArrayMultiDimensionalIn(
+    int a0, Struct4BytesInlineArrayMultiDimensionalInt a1, int a2) {
+  print(
+      "passUint8Struct4BytesInlineArrayMultiDimensionalIn(${a0}, ${a1}, ${a2})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassUint8Struct4BytesInlineArrayMultiDimensionalIn throwing on purpose!");
+  }
+
+  passUint8Struct4BytesInlineArrayMultiDimensionalIn_a0 = a0;
+  passUint8Struct4BytesInlineArrayMultiDimensionalIn_a1 = a1;
+  passUint8Struct4BytesInlineArrayMultiDimensionalIn_a2 = a2;
+
+  final result =
+      passUint8Struct4BytesInlineArrayMultiDimensionalInCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passUint8Struct4BytesInlineArrayMultiDimensionalInAfterCallback() {
+  final result =
+      passUint8Struct4BytesInlineArrayMultiDimensionalInCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(5, result);
 }
 
 typedef ReturnStruct1ByteIntType = Struct1ByteInt Function(Int8);

@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:ffi" as ffi;
+
+import "dart:ffi";
+import "package:ffi/ffi.dart";
+
+class StructInlineArrayMultiDimensional extends ffi::Struct {
+  synthetic constructor •() → self::StructInlineArrayMultiDimensional
+    ;
+  @ffi::_ArraySize::•<ffi::NativeType>(2, 2, 2)
+  external get a0() → ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>;
+  @ffi::_ArraySize::•<ffi::NativeType>(2, 2, 2)
+  external set a0(ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> #externalFieldValue) → void;
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_struct_inline_array_multi_dimensional.dart:10:4 -> InstanceConstant(const _ArraySize<NativeType*>{_ArraySize.dimension1: 2, _ArraySize.dimension2: 2, _ArraySize.dimension3: 2, _ArraySize.dimension4: null, _ArraySize.dimension5: null, _ArraySize.dimensions: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_struct_inline_array_multi_dimensional.dart:10:4 -> InstanceConstant(const _ArraySize<NativeType*>{_ArraySize.dimension1: 2, _ArraySize.dimension2: 2, _ArraySize.dimension3: 2, _ArraySize.dimension4: null, _ArraySize.dimension5: null, _ArraySize.dimensions: null})
+Extra constant evaluation: evaluated: 2, effectively constant: 2

@@ -93,11 +93,30 @@ class Array<T extends NativeType> extends NativeType {
   /// class MyStruct extends Struct {
   ///   @Array(8)
   ///   external Array<Uint8> inlineArray;
+  ///
+  ///   @Array(2, 2, 2)
+  ///   external Array<Array<Array<Uint8>>> threeDimensionalInlineArray;
   /// }
   /// ```
   ///
   /// Do not invoke in normal code.
-  external const factory Array(int dimension1);
+  external const factory Array(int dimension1,
+      [int dimension2, int dimension3, int dimension4, int dimension5]);
+
+  /// Const constructor to specify [Array] dimensions in [Struct]s.
+  ///
+  /// ```
+  /// class MyStruct extends Struct {
+  ///   @Array.multi([2, 2, 2])
+  ///   external Array<Array<Array<Uint8>>> threeDimensionalInlineArray;
+  ///
+  ///   @Array.multi([2, 2, 2, 2, 2, 2, 2, 2])
+  ///   external Array<Array<Array<Array<Array<Array<Array<Array<Uint8>>>>>>>> eightDimensionalInlineArray;
+  /// }
+  /// ```
+  ///
+  /// Do not invoke in normal code.
+  external const factory Array.multi(List<int> dimensions);
 }
 
 /// Extension on [Pointer] specialized for the type argument [NativeFunction].
@@ -660,6 +679,13 @@ extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
 extension StructArray<T extends Struct> on Array<T> {
   /// This extension method must be invoked with a compile-time constant [T].
   external T operator [](int index);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Array].
+extension ArrayArray<T extends NativeType> on Array<Array<T>> {
+  external Array<T> operator [](int index);
+
+  external void operator []=(int index, Array<T> value);
 }
 
 /// Extension to retrieve the native `Dart_Port` from a [SendPort].

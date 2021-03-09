@@ -4272,6 +4272,11 @@ FfiSizeAnnotation:
   template: "Field '#name' must have exactly one 'Array' annotation."
   external: test/ffi_test.dart
 
+FfiSizeAnnotationDimensions:
+  # Used by dart:ffi
+  template: "Field '#name' must have an 'Array' annotation that matches the dimensions."
+  external: test/ffi_test.dart
+
 FfiStructGeneric:
   # Used by dart:ffi
   template: "Struct '#name' should not be generic."

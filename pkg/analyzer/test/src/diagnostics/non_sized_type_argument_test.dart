@@ -32,10 +32,10 @@ import 'dart:ffi';
 
 class C extends Struct {
   @Array(8)
-  Array<Array<Uint8>> a0;
+  Array<Void> a0;
 }
 ''', [
-      error(FfiCode.NON_SIZED_TYPE_ARGUMENT, 59, 19),
+      error(FfiCode.NON_SIZED_TYPE_ARGUMENT, 59, 11),
     ]);
   }
 }

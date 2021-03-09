@@ -691,7 +691,10 @@ class DartRepresentationOf {
 }
 
 class Array<T extends NativeType> extends NativeType {
-  external const factory Array(int dimension1);
+  external const factory Array(int dimension1,
+      [int dimension2, int dimension3, int dimension4, int dimension5]);
+
+  external const factory Array.multi(List<int> dimensions);
 }
 
 extension StructPointer<T extends Struct> on Pointer<T> {

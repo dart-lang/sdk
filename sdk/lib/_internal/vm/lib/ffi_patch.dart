@@ -115,7 +115,17 @@ class Array<T extends NativeType> {
   final int _size;
 
   @pragma("vm:entry-point")
-  Array._(this._typedDataBase, this._size);
+  final List<int> _nestedDimensions;
+
+  @pragma("vm:entry-point")
+  Array._(this._typedDataBase, this._size, this._nestedDimensions);
+
+  late final int _nestedDimensionsFlattened = _nestedDimensions.fold(
+      1, (accumulator, element) => accumulator * element);
+
+  late final int _nestedDimensionsFirst = _nestedDimensions.first;
+
+  late final List<int> _nestedDimensionsRest = _nestedDimensions.sublist(1);
 
   _checkIndex(int index) {
     if (index < 0 || index >= _size) {
@@ -124,13 +134,35 @@ class Array<T extends NativeType> {
   }
 
   @patch
-  const factory Array(int dimension1) = _ArraySize<T>;
+  const factory Array(int dimension1,
+      [int dimension2,
+      int dimension3,
+      int dimension4,
+      int dimension5]) = _ArraySize<T>;
+
+  @patch
+  const factory Array.multi(List<int> dimensions) = _ArraySize<T>.multi;
 }
 
 class _ArraySize<T extends NativeType> implements Array<T> {
-  final int dimension1;
+  final int? dimension1;
+  final int? dimension2;
+  final int? dimension3;
+  final int? dimension4;
+  final int? dimension5;
 
-  const _ArraySize(this.dimension1);
+  final List<int>? dimensions;
+
+  const _ArraySize(this.dimension1,
+      [this.dimension2, this.dimension3, this.dimension4, this.dimension5])
+      : dimensions = null;
+
+  const _ArraySize.multi(this.dimensions)
+      : dimension1 = null,
+        dimension2 = null,
+        dimension3 = null,
+        dimension4 = null,
+        dimension5 = null;
 }
 
 /// Returns an integer encoding the ABI used for size and alignment
@@ -704,6 +736,16 @@ extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
   @patch
   void operator []=(int index, Pointer<T> value) =>
       _storePointer(this, _intPtrSize * index, value);
+}
+
+extension ArrayArray<T extends NativeType> on Array<Array<T>> {
+  @patch
+  Array<T> operator [](int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  void operator []=(int index, Array<T> value) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 
 extension StructArray<T extends Struct> on Array<T> {

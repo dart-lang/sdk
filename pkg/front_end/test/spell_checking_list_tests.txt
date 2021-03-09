@@ -99,6 +99,7 @@ c's
 c59cdee365b94ce066344840f9e3412d642019b
 ca
 cafebabe
+calloc
 camel
 capitalized
 causal

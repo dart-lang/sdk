@@ -675,8 +675,29 @@ class TestStruct1401 extends Struct {
 }
 
 class TestStruct1402 extends Struct {
-  @Array(8) //# 1402: compile-time error
+  @Array(8, 8, 8) //# 1402: compile-time error
   Array<Array<Uint8>> a0; //# 1402: compile-time error
+
+  Pointer<Uint8> notEmpty;
+}
+
+class TestStruct1403 extends Struct {
+  @Array(8, 8) //# 1403: compile-time error
+  Array<Array<Array<Uint8>>> a0; //# 1403: compile-time error
+
+  Pointer<Uint8> notEmpty;
+}
+
+class TestStruct1404 extends Struct {
+  @Array.multi([8, 8, 8]) //# 1404: compile-time error
+  Array<Array<Uint8>> a0; //# 1404: compile-time error
+
+  Pointer<Uint8> notEmpty;
+}
+
+class TestStruct1405 extends Struct {
+  @Array.multi([8, 8]) //# 1405: compile-time error
+  Array<Array<Array<Uint8>>> a0; //# 1405: compile-time error
 
   Pointer<Uint8> notEmpty;
 }

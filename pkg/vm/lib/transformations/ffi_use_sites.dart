@@ -188,6 +188,20 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         _ensureNativeTypeValid(nativeType, node, allowStructItself: false);
 
         return _replaceRefArray(node);
+      } else if (target == arrayArrayElemAt) {
+        final DartType nativeType = node.arguments.types[0];
+
+        _ensureNativeTypeValid(nativeType, node,
+            allowStructItself: false, allowInlineArray: true);
+
+        return _replaceArrayArrayElemAt(node);
+      } else if (target == arrayArrayAssignAt) {
+        final DartType nativeType = node.arguments.types[0];
+
+        _ensureNativeTypeValid(nativeType, node,
+            allowStructItself: false, allowInlineArray: true);
+
+        return _replaceArrayArrayElemAt(node, setter: true);
       } else if (target == sizeOfMethod) {
         final DartType nativeType = node.arguments.types[0];
 
@@ -469,7 +483,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
     final typedDataBasePrime = typedDataBaseOffset(
         PropertyGet(NullCheck(node.arguments.positional[0]),
-            cArrayTypedDataBaseField.name, cArrayTypedDataBaseField),
+            arrayTypedDataBaseField.name, arrayTypedDataBaseField),
         MethodInvocation(node.arguments.positional[1], numMultiplication.name,
             Arguments([StaticGet(clazz.fields.single)]), numMultiplication),
         StaticGet(clazz.fields.single),
@@ -477,6 +491,146 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         node.fileOffset);
 
     return ConstructorInvocation(constructor, Arguments([typedDataBasePrime]));
+  }
+
+  /// Generates an expression that returns a new `Array<dartType>`.
+  ///
+  /// Sample input getter:
+  /// ```
+  /// this<Array<T>>[index]
+  /// ```
+  ///
+  /// Sample output getter:
+  ///
+  /// ```
+  /// Array #array = this!;
+  /// int #index = index!;
+  /// #array._checkIndex(#index);
+  /// int #singleElementSize = _inlineSizeOf<innermost(T)>();
+  /// int #elementSize = #array.nestedDimensionsFlattened * #singleElementSize;
+  /// int #offset = #elementSize * #index;
+  ///
+  /// new Array<T>._(
+  ///   typedDataBaseOffset(#array._typedDataBase, #offset, #elementSize),
+  ///   #array.nestedDimensionsFirst,
+  ///   #array.nestedDimensionsRest
+  /// )
+  /// ```
+  ///
+  /// Sample input setter:
+  /// ```
+  /// this<Array<T>>[index] = value
+  /// ```
+  ///
+  /// Sample output setter:
+  ///
+  /// ```
+  /// Array #array = this!;
+  /// int #index = index!;
+  /// #array._checkIndex(#index);
+  /// int #singleElementSize = _inlineSizeOf<innermost(T)>();
+  /// int #elementSize = #array.nestedDimensionsFlattened * #singleElementSize;
+  /// int #offset = #elementSize * #index;
+  ///
+  /// _memCopy(
+  ///   #array._typedDataBase, #offset, value._typedDataBase, 0, #elementSize)
+  /// ```
+  Expression _replaceArrayArrayElemAt(StaticInvocation node,
+      {bool setter: false}) {
+    final dartType = node.arguments.types[0];
+    final elementType = arraySingleElementType(dartType as InterfaceType);
+
+    final arrayVar = VariableDeclaration("#array",
+        initializer: NullCheck(node.arguments.positional[0]),
+        type: InterfaceType(arrayClass, Nullability.nonNullable))
+      ..fileOffset = node.fileOffset;
+    final indexVar = VariableDeclaration("#index",
+        initializer: NullCheck(node.arguments.positional[1]),
+        type: coreTypes.intNonNullableRawType)
+      ..fileOffset = node.fileOffset;
+    final singleElementSizeVar = VariableDeclaration("#singleElementSize",
+        initializer: _inlineSizeOf(elementType),
+        type: coreTypes.intNonNullableRawType)
+      ..fileOffset = node.fileOffset;
+    final elementSizeVar = VariableDeclaration("#elementSize",
+        initializer: MethodInvocation(
+            VariableGet(singleElementSizeVar),
+            numMultiplication.name,
+            Arguments([
+              PropertyGet(
+                  VariableGet(arrayVar),
+                  arrayNestedDimensionsFlattened.name,
+                  arrayNestedDimensionsFlattened)
+            ]),
+            numMultiplication),
+        type: coreTypes.intNonNullableRawType)
+      ..fileOffset = node.fileOffset;
+    final offsetVar = VariableDeclaration("#offset",
+        initializer: MethodInvocation(
+            VariableGet(elementSizeVar),
+            numMultiplication.name,
+            Arguments([
+              VariableGet(indexVar),
+            ]),
+            numMultiplication),
+        type: coreTypes.intNonNullableRawType)
+      ..fileOffset = node.fileOffset;
+
+    final checkIndexAndLocalVars = Block([
+      arrayVar,
+      indexVar,
+      ExpressionStatement(MethodInvocation(
+          VariableGet(arrayVar),
+          arrayCheckIndex.name,
+          Arguments([VariableGet(indexVar)]),
+          arrayCheckIndex)),
+      singleElementSizeVar,
+      elementSizeVar,
+      offsetVar
+    ]);
+
+    if (!setter) {
+      // `[]`
+      return BlockExpression(
+          checkIndexAndLocalVars,
+          ConstructorInvocation(
+              arrayConstructor,
+              Arguments([
+                typedDataBaseOffset(
+                    PropertyGet(VariableGet(arrayVar),
+                        arrayTypedDataBaseField.name, arrayTypedDataBaseField),
+                    VariableGet(offsetVar),
+                    VariableGet(elementSizeVar),
+                    dartType,
+                    node.fileOffset),
+                PropertyGet(
+                    VariableGet(arrayVar),
+                    arrayNestedDimensionsFirst.name,
+                    arrayNestedDimensionsFirst),
+                PropertyGet(VariableGet(arrayVar),
+                    arrayNestedDimensionsRest.name, arrayNestedDimensionsRest)
+              ], types: [
+                dartType
+              ])));
+    }
+
+    // `[]=`
+    return BlockExpression(
+        checkIndexAndLocalVars,
+        StaticInvocation(
+            memCopy,
+            Arguments([
+              PropertyGet(VariableGet(arrayVar), arrayTypedDataBaseField.name,
+                  arrayTypedDataBaseField)
+                ..fileOffset = node.fileOffset,
+              VariableGet(offsetVar),
+              PropertyGet(node.arguments.positional[2],
+                  arrayTypedDataBaseField.name, arrayTypedDataBaseField)
+                ..fileOffset = node.fileOffset,
+              ConstantExpression(IntConstant(0)),
+              VariableGet(elementSizeVar),
+            ]))
+          ..fileOffset = node.fileOffset);
   }
 
   @override
@@ -543,11 +697,14 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   void _ensureNativeTypeValid(DartType nativeType, Expression node,
-      {bool allowHandle: false, bool allowStructItself = true}) {
+      {bool allowHandle: false,
+      bool allowStructItself = true,
+      bool allowInlineArray = false}) {
     if (!_nativeTypeValid(nativeType,
         allowStructs: true,
         allowStructItself: allowStructItself,
-        allowHandle: allowHandle)) {
+        allowHandle: allowHandle,
+        allowInlineArray: allowInlineArray)) {
       diagnosticReporter.report(
           templateFfiTypeInvalid.withArguments(
               nativeType, currentLibrary.isNonNullableByDefault),
@@ -586,11 +743,13 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   bool _nativeTypeValid(DartType nativeType,
       {bool allowStructs: false,
       bool allowStructItself = false,
-      bool allowHandle = false}) {
+      bool allowHandle = false,
+      bool allowInlineArray = false}) {
     return convertNativeTypeToDartType(nativeType,
             allowStructs: allowStructs,
             allowStructItself: allowStructItself,
-            allowHandle: allowHandle) !=
+            allowHandle: allowHandle,
+            allowInlineArray: allowInlineArray) !=
         null;
   }
 
@@ -621,7 +780,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           : null;
     }
 
-    if (!nativeTypesClasses.contains(klass) && klass != cArrayClass) {
+    if (!nativeTypesClasses.contains(klass) && klass != arrayClass) {
       for (final parent in nativeTypesClasses) {
         if (hierarchy.isSubtypeOf(klass, parent)) {
           return parent;
