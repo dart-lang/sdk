@@ -11,6 +11,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utilities/mock_packages.dart';
 import 'cider_service.dart';
 
 void main() {
@@ -37,6 +38,12 @@ class CiderAssistsComputerTest extends CiderServiceTest {
     expect(resultContent, expected);
   }
 
+  @override
+  void setUp() {
+    super.setUp();
+    BazelMockPackages.instance.addFlutter(resourceProvider);
+  }
+
   Future<void> test_addReturnType() async {
     await _compute(r'''
 void m() {
@@ -51,6 +58,29 @@ void m() {
   String f() {
     return '';
   }
+}
+''');
+  }
+
+  Future<void> test_aroundText() async {
+    await _compute('''
+import 'package:flutter/widgets.dart';
+
+main() {
+  ^Text('a');
+}
+''');
+
+    assertHasAssist(DartAssistKind.FLUTTER_WRAP_STREAM_BUILDER, r'''
+import 'package:flutter/widgets.dart';
+
+main() {
+  StreamBuilder<Object>(
+    stream: null,
+    builder: (context, snapshot) {
+      return Text('a');
+    }
+  );
 }
 ''');
   }
