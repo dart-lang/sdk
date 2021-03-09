@@ -35,10 +35,8 @@ import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
-import 'package:analyzer_cli/src/context_cache.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/error_severity.dart';
-import 'package:analyzer_cli/src/has_context_mixin.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
@@ -60,11 +58,8 @@ bool containsLintRuleEntry(YamlMap options) {
   return linterNode is YamlMap && getValue(linterNode, 'rules') != null;
 }
 
-class Driver with HasContextMixin implements CommandLineStarter {
+class Driver implements CommandLineStarter {
   static final ByteStore analysisDriverMemoryByteStore = MemoryByteStore();
-
-  @override
-  ContextCache contextCache;
 
   _AnalysisContextProvider _analysisContextProvider;
   DriverBasedAnalysisContext analysisContext;
@@ -78,7 +73,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
   int _analyzedFileCount = 0;
 
   /// The resource provider used to access the file system.
-  @override
   final ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
 
   /// Collected analysis statistics.
@@ -400,9 +394,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
       await workerLoop.run();
       return ErrorSeverity.NONE;
     } else {
-      return await BuildMode(resourceProvider, options, stats,
-              ContextCache(resourceProvider, options, verbosePrint))
-          .analyze();
+      return await BuildMode(resourceProvider, options, stats).analyze();
     }
   }
 

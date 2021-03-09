@@ -6,15 +6,16 @@ import 'dart:io' as io;
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/analysis/context_locator.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/cache.dart';
+import 'package:analyzer/src/dart/analysis/context_root.dart' as api;
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'
     as api;
@@ -32,11 +33,12 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer_cli/src/context_cache.dart';
+import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/error_severity.dart';
-import 'package:analyzer_cli/src/has_context_mixin.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:collection/collection.dart';
@@ -81,7 +83,6 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
     var packageBundleProvider =
         WorkerPackageBundleProvider(packageBundleCache, inputs);
     var buildMode = BuildMode(resourceProvider, options, AnalysisStats(),
-        ContextCache(resourceProvider, options, Driver.verbosePrint),
         logger: logger, packageBundleProvider: packageBundleProvider);
     await buildMode.analyze();
     AnalysisEngine.instance.clearCaches();
@@ -154,16 +155,12 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
 }
 
 /// Analyzer used when the "--build-mode" option is supplied.
-class BuildMode with HasContextMixin {
-  @override
+class BuildMode {
   final ResourceProvider resourceProvider;
   final CommandLineOptions options;
   final AnalysisStats stats;
   final PerformanceLog logger;
   final PackageBundleProvider packageBundleProvider;
-
-  @override
-  final ContextCache contextCache;
 
   SummaryDataStore summaryDataStore;
   AnalysisOptionsImpl analysisOptions;
@@ -179,7 +176,7 @@ class BuildMode with HasContextMixin {
   // May be null.
   final DependencyTracker dependencyTracker;
 
-  BuildMode(this.resourceProvider, this.options, this.stats, this.contextCache,
+  BuildMode(this.resourceProvider, this.options, this.stats,
       {PerformanceLog logger, PackageBundleProvider packageBundleProvider})
       : logger = logger ?? PerformanceLog(null),
         packageBundleProvider = packageBundleProvider ??
@@ -279,6 +276,16 @@ class BuildMode with HasContextMixin {
 
       return severity;
     });
+  }
+
+  void _applyOptionsFile() {
+    analysisOptions = AnalysisOptionsImpl();
+
+    var path = options.contextBuilderOptions.defaultAnalysisOptionsFilePath;
+    var file = resourceProvider.getFile(path);
+    var provider = AnalysisOptionsProvider(sourceFactory);
+    var map = provider.getOptionsFromFile(file);
+    applyToAnalysisOptions(analysisOptions, map);
   }
 
   /// Use [elementFactory] filled with input summaries, and link libraries
@@ -394,8 +401,7 @@ class BuildMode with HasContextMixin {
       }
     });
 
-    var rootPath =
-        options.sourceFiles.isEmpty ? null : options.sourceFiles.first;
+    var rootPath = options.sourceFiles.first;
 
     var packages = _findPackages(rootPath);
 
@@ -407,8 +413,7 @@ class BuildMode with HasContextMixin {
       ExplicitSourceResolver(uriToFileMap)
     ]);
 
-    analysisOptions =
-        createAnalysisOptionsForCommandLineOptions(options, rootPath);
+    _applyOptionsFile();
 
     var scheduler = AnalysisDriverScheduler(logger);
     analysisDriver = AnalysisDriver(
@@ -524,25 +529,23 @@ class BuildMode with HasContextMixin {
   }
 
   void _setAnalysisDriverAnalysisContext(String rootPath) {
-    if (rootPath == null) {
-      return;
-    }
-
-    var apiContextRoots = api.ContextLocator(
-      resourceProvider: resourceProvider,
-    ).locateRoots(
-      includedPaths: [rootPath],
-      excludedPaths: [],
+    rootPath = file_paths.absoluteNormalized(
+      resourceProvider.pathContext,
+      rootPath,
     );
 
-    if (apiContextRoots.isEmpty) {
-      return;
-    }
+    var workspace = BazelWorkspace.find(resourceProvider, rootPath);
+
+    var contextRoot = api.ContextRootImpl(
+      resourceProvider,
+      resourceProvider.getFolder(workspace.root),
+      workspace,
+    );
 
     analysisDriver.configure(
       analysisContext: api.DriverBasedAnalysisContext(
         resourceProvider,
-        apiContextRoots.first,
+        contextRoot,
         analysisDriver,
       ),
     );
