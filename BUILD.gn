@@ -14,9 +14,6 @@ group("default") {
     testonly = true
   }
   deps = [ ":runtime" ]
-  if (defined(checkout_llvm) && checkout_llvm) {
-    deps += [ ":llvm_codegen" ]
-  }
 }
 
 group("most") {
@@ -115,21 +112,6 @@ group("dartfmt") {
 
 group("analysis_server") {
   deps = [ "utils/analysis_server" ]
-}
-
-group("check_llvm") {
-  if (defined(checkout_llvm) && checkout_llvm) {
-    deps = [ "runtime/llvm_codegen/test" ]
-  }
-}
-
-group("llvm_codegen") {
-  if (defined(checkout_llvm) && checkout_llvm) {
-    deps = [
-      "runtime/llvm_codegen/bit",
-      "runtime/llvm_codegen/codegen",
-    ]
-  }
 }
 
 # This is the target that is built on the dart2js build bots.

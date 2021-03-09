@@ -180,18 +180,10 @@ vars = {
   "chrome_tag": "84",
   "download_firefox": False,
   "firefox_tag": "67",
-
-  # An LLVM backend needs LLVM binaries and headers. To avoid build time
-  # increases we can use prebuilts. We don't want to download this on every
-  # CQ/CI bot nor do we want the average Dart developer to incur that cost.
-  # So by default we will not download prebuilts.
-  "checkout_llvm": False,
-  "llvm_revision": "fe8bd96ebd6c490ea0b5c1fb342db2d7c393a109"
 }
 
 gclient_gn_args_file = Var("dart_root") + '/build/config/gclient_args.gni'
 gclient_gn_args = [
-  'checkout_llvm'
 ]
 
 deps = {
@@ -613,16 +605,6 @@ deps = {
               "version": "ebF5aRXKDananlaN4Y8b0bbCNHT1MnkGbWqfpCpiND4C",
           },
       ],
-      "dep_type": "cipd",
-  },
-  Var("dart_root") + "/third_party/llvm": {
-      "packages": [
-          {
-              "package": "fuchsia/lib/llvm/${{platform}}",
-              "version": "git_revision:" + Var("llvm_revision"),
-          },
-      ],
-      "condition": "checkout_llvm",
       "dep_type": "cipd",
   },
   Var("dart_root") + "/third_party/browsers/chrome": {
