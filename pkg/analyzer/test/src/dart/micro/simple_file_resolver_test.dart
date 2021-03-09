@@ -438,6 +438,42 @@ var a = 4.2;
     expect(fileResolver.testView!.resolvedFiles, <Object>[]);
   }
 
+  test_getLibraryByUri() {
+    newFile('/workspace/dart/my/lib/a.dart', content: r'''
+class A {}
+''');
+
+    var element = fileResolver.getLibraryByUri(
+      uriStr: 'package:dart.my/a.dart',
+    );
+    expect(element.definingCompilationUnit.types, hasLength(1));
+  }
+
+  test_getLibraryByUri_notExistingFile() {
+    var element = fileResolver.getLibraryByUri(
+      uriStr: 'package:dart.my/a.dart',
+    );
+    expect(element.definingCompilationUnit.types, isEmpty);
+  }
+
+  test_getLibraryByUri_partOf() {
+    newFile('/workspace/dart/my/lib/a.dart', content: r'''
+part of 'b.dart';
+''');
+
+    expect(() {
+      fileResolver.getLibraryByUri(
+        uriStr: 'package:dart.my/a.dart',
+      );
+    }, throwsArgumentError);
+  }
+
+  test_getLibraryByUri_unresolvedUri() {
+    expect(() {
+      fileResolver.getLibraryByUri(uriStr: 'my:unresolved');
+    }, throwsArgumentError);
+  }
+
   test_hint() async {
     await assertErrorsInCode(r'''
 import 'dart:math';

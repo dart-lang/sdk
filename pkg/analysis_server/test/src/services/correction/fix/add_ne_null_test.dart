@@ -7,6 +7,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -17,13 +18,11 @@ void main() {
 }
 
 @reflectiveTest
-class AddNeNullMultiTest extends FixProcessorTest {
+class AddNeNullMultiTest extends FixProcessorTest with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.ADD_NE_NULL_MULTI;
 
-  // todo (pq): add null-safe aware tests
-  // see: https://dart-review.googlesource.com/c/sdk/+/188681
-  Future<void> test_nonBoolCondition_all() async {
+  Future<void> test_nonBoolCondition_all_nonNullable() async {
     await resolveTestCode('''
 f(String p, String q) {
   if (p) {
@@ -34,8 +33,22 @@ f(String p, String q) {
   }
 }
 ''');
+    await assertNoFixAllFix(CompileTimeErrorCode.NON_BOOL_CONDITION);
+  }
+
+  Future<void> test_nonBoolCondition_all_nullable() async {
+    await resolveTestCode('''
+f(String? p, String? q) {
+  if (p) {
+    print(p);
+  }
+  if (q) {
+    print(q);
+  }
+}
+''');
     await assertHasFixAllFix(CompileTimeErrorCode.NON_BOOL_CONDITION, '''
-f(String p, String q) {
+f(String? p, String? q) {
   if (p != null) {
     print(p);
   }
@@ -48,11 +61,11 @@ f(String p, String q) {
 }
 
 @reflectiveTest
-class AddNeNullTest extends FixProcessorTest {
+class AddNeNullTest extends FixProcessorTest with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.ADD_NE_NULL;
 
-  Future<void> test_nonBoolCondition() async {
+  Future<void> test_nonBoolCondition_nonNullable() async {
     await resolveTestCode('''
 f(String p) {
   if (p) {
@@ -60,8 +73,19 @@ f(String p) {
   }
 }
 ''');
+    await assertNoFix();
+  }
+
+  Future<void> test_nonBoolCondition_nullable() async {
+    await resolveTestCode('''
+f(String? p) {
+  if (p) {
+    print(p);
+  }
+}
+''');
     await assertHasFix('''
-f(String p) {
+f(String? p) {
   if (p != null) {
     print(p);
   }

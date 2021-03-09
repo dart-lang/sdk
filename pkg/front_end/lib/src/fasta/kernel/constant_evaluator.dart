@@ -991,7 +991,12 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
   Constant execute(Statement statement) {
     StatementConstantEvaluator statementEvaluator =
         new StatementConstantEvaluator(this);
-    return statement.accept(statementEvaluator);
+    ExecutionStatus status = statement.accept(statementEvaluator);
+    if (status is ReturnStatus) {
+      return status.value;
+    }
+    return createInvalidExpressionConstant(statement,
+        'No valid constant returned from the execution of $statement.');
   }
 
   /// Create an error-constant indicating that an error has been detected during
@@ -2377,15 +2382,21 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
     // TODO(kustermann): The heuristic of allowing all [VariableGet]s on [Let]
     // variables might allow more than it should.
     final VariableDeclaration variable = node.variable;
-    if (variable.parent is Let || _isFormalParameter(variable)) {
-      return env.lookupVariable(node.variable) ??
-          createErrorConstant(
-              node,
-              templateConstEvalNonConstantVariableGet
-                  .withArguments(variable.name));
-    }
-    if (variable.isConst) {
-      return _evaluateSubexpression(variable.initializer);
+    if (enableConstFunctions) {
+      return env.lookupVariable(variable) ??
+          createInvalidExpressionConstant(
+              node, 'Variable get of an unknown value.');
+    } else {
+      if (variable.parent is Let || _isFormalParameter(variable)) {
+        return env.lookupVariable(node.variable) ??
+            createErrorConstant(
+                node,
+                templateConstEvalNonConstantVariableGet
+                    .withArguments(variable.name));
+      }
+      if (variable.isConst) {
+        return _evaluateSubexpression(variable.initializer);
+      }
     }
     return createInvalidExpressionConstant(
         node, 'Variable get of a non-const variable.');
@@ -3189,7 +3200,7 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
   }
 }
 
-class StatementConstantEvaluator extends StatementVisitor<Constant> {
+class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   ConstantEvaluator exprEvaluator;
 
   StatementConstantEvaluator(this.exprEvaluator) {
@@ -3202,12 +3213,31 @@ class StatementConstantEvaluator extends StatementVisitor<Constant> {
   Constant evaluate(Expression expr) => expr.accept(exprEvaluator);
 
   @override
-  Constant defaultStatement(Statement node) => throw new UnsupportedError(
-      'Statement constant evaluation does not support ${node.runtimeType}.');
+  ExecutionStatus defaultStatement(Statement node) {
+    throw new UnsupportedError(
+        'Statement constant evaluation does not support ${node.runtimeType}.');
+  }
 
   @override
-  Constant visitReturnStatement(ReturnStatement node) =>
-      evaluate(node.expression);
+  ExecutionStatus visitBlock(Block node) {
+    for (Statement statement in node.statements) {
+      final ExecutionStatus status = statement.accept(this);
+      if (status is! ProceedStatus) return status;
+    }
+    return const ProceedStatus();
+  }
+
+  @override
+  ExecutionStatus visitReturnStatement(ReturnStatement node) =>
+      new ReturnStatus(evaluate(node.expression));
+
+  @override
+  ExecutionStatus visitVariableDeclaration(VariableDeclaration node) {
+    Constant value = evaluate(node.initializer);
+    if (value is AbortConstant) return new ReturnStatus(value);
+    exprEvaluator.env.updateVariableValue(node, value);
+    return const ProceedStatus();
+  }
 }
 
 class ConstantCoverage {
@@ -3343,6 +3373,22 @@ class EvaluationReference {
   Constant value;
 
   EvaluationReference(this.value);
+}
+
+/// Represents a status for statement execution.
+abstract class ExecutionStatus {
+  const ExecutionStatus();
+}
+
+/// Status that the statement completed execution successfully.
+class ProceedStatus extends ExecutionStatus {
+  const ProceedStatus();
+}
+
+/// Status that the statement returned a valid [Constant] value.
+class ReturnStatus extends ExecutionStatus {
+  final Constant value;
+  ReturnStatus(this.value);
 }
 
 /// An intermediate result that is used within the [ConstantEvaluator].
