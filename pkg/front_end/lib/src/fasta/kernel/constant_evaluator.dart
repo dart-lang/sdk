@@ -3188,7 +3188,11 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   T withNewEnvironment<T>(T fn()) {
     final EvaluationEnvironment oldEnv = env;
-    env = new EvaluationEnvironment();
+    if (enableConstFunctions) {
+      env = new EvaluationEnvironment.withParent(env);
+    } else {
+      env = new EvaluationEnvironment();
+    }
     T result = fn();
     env = oldEnv;
     return result;
@@ -3316,11 +3320,13 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
 
   @override
   ExecutionStatus visitBlock(Block node) {
-    for (Statement statement in node.statements) {
-      final ExecutionStatus status = statement.accept(this);
-      if (status is! ProceedStatus) return status;
-    }
-    return const ProceedStatus();
+    return exprEvaluator.withNewEnvironment(() {
+      for (Statement statement in node.statements) {
+        final ExecutionStatus status = statement.accept(this);
+        if (status is! ProceedStatus) return status;
+      }
+      return const ProceedStatus();
+    });
   }
 
   @override
@@ -3407,6 +3413,11 @@ class EvaluationEnvironment {
   final Set<VariableDeclaration> _unreadUnevaluatedVariables =
       new Set<VariableDeclaration>();
 
+  EvaluationEnvironment _parent;
+
+  EvaluationEnvironment();
+  EvaluationEnvironment.withParent(this._parent);
+
   /// Whether the current environment is empty.
   bool get isEmpty => _typeVariables.isEmpty && _variables.isEmpty;
 
@@ -3430,6 +3441,8 @@ class EvaluationEnvironment {
     Constant value = _variables[variable]?.value;
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.remove(variable);
+    } else if (value == null) {
+      return _parent?.lookupVariable(variable);
     }
     return value;
   }

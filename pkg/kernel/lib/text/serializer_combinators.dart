@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.serializer_combinators;
 
 import 'dart:convert' show json;
@@ -13,7 +11,7 @@ import '../canonical_name.dart' show CanonicalName;
 import 'text_serializer.dart' show Tagger;
 
 class DeserializationEnvironment<T extends Node> {
-  final DeserializationEnvironment<T> parent;
+  final DeserializationEnvironment<T>? parent;
 
   final Map<String, T> locals = <String, T>{};
 
@@ -23,7 +21,10 @@ class DeserializationEnvironment<T extends Node> {
 
   DeserializationEnvironment(this.parent);
 
-  T lookup(String name) => locals[name] ?? parent?.lookup(name);
+  T lookup(String name) =>
+      locals[name] ??
+      parent?.lookup(name) ??
+      (throw StateError("No local '${name}' found in this scope."));
 
   T addBinder(T node, String distinctName) {
     if (lookupDistinctName(node) != null) {
@@ -40,13 +41,13 @@ class DeserializationEnvironment<T extends Node> {
     binders.clear();
   }
 
-  String lookupDistinctName(T object) {
+  String? lookupDistinctName(T object) {
     return distinctNames[object] ?? parent?.lookupDistinctName(object);
   }
 }
 
 class SerializationEnvironment<T extends Node> {
-  final SerializationEnvironment<T> parent;
+  final SerializationEnvironment<T>? parent;
 
   final Map<T, String> locals = new Map<T, String>.identity();
 
@@ -58,9 +59,12 @@ class SerializationEnvironment<T extends Node> {
 
   SerializationEnvironment(this.parent) : nameCount = parent?.nameCount ?? 0;
 
-  String lookup(T node) => locals[node] ?? parent?.lookup(node);
+  String lookup(T node) =>
+      locals[node] ??
+      parent?.lookup(node) ??
+      (throw StateError("No name for ${node} found in this scope."));
 
-  String addBinder(T node, {String nameClue}) {
+  String addBinder(T node, {String? nameClue}) {
     final String separator = "^";
     final int codeOfZero = "0".codeUnitAt(0);
     final int codeOfNine = "9".codeUnitAt(0);
@@ -100,7 +104,7 @@ class SerializationEnvironment<T extends Node> {
     binders.clear();
   }
 
-  String lookupDistinctName(T object) {
+  String? lookupDistinctName(T object) {
     return distinctNames[object] ?? parent?.lookupDistinctName(object);
   }
 }
@@ -121,8 +125,8 @@ class SerializationState {
 abstract class TextSerializer<T> {
   const TextSerializer();
 
-  T readFrom(Iterator<Object> stream, DeserializationState state);
-  void writeTo(StringBuffer buffer, T object, SerializationState state);
+  T readFrom(Iterator<Object?> stream, DeserializationState? state);
+  void writeTo(StringBuffer buffer, T object, SerializationState? state);
 
   /// True if this serializer/deserializer writes/reads nothing.  This is true
   /// for the serializer [Nothing] and also some serializers derived from it.
@@ -132,9 +136,9 @@ abstract class TextSerializer<T> {
 class Nothing extends TextSerializer<void> {
   const Nothing();
 
-  void readFrom(Iterator<Object> stream, DeserializationState _) {}
+  void readFrom(Iterator<Object?> stream, DeserializationState? _) {}
 
-  void writeTo(StringBuffer buffer, void ignored, SerializationState _) {}
+  void writeTo(StringBuffer buffer, void ignored, SerializationState? _) {}
 
   bool get isEmpty => true;
 }
@@ -142,16 +146,17 @@ class Nothing extends TextSerializer<void> {
 class DartString extends TextSerializer<String> {
   const DartString();
 
-  String readFrom(Iterator<Object> stream, DeserializationState _) {
-    if (stream.current is! String) {
-      throw StateError("Expected an atom, found a list: '${stream.current}'.");
+  String readFrom(Iterator<Object?> stream, DeserializationState? _) {
+    Object? current = stream.current;
+    if (current is! String) {
+      throw StateError("Expected an atom, found a list: '${current}'.");
     }
-    String result = json.decode(stream.current);
+    String result = json.decode(current);
     stream.moveNext();
     return result;
   }
 
-  void writeTo(StringBuffer buffer, String object, SerializationState _) {
+  void writeTo(StringBuffer buffer, String object, SerializationState? _) {
     buffer.write(json.encode(object));
   }
 }
@@ -159,16 +164,17 @@ class DartString extends TextSerializer<String> {
 class DartInt extends TextSerializer<int> {
   const DartInt();
 
-  int readFrom(Iterator<Object> stream, DeserializationState _) {
-    if (stream.current is! String) {
-      throw StateError("Expected an atom, found a list: '${stream.current}'.");
+  int readFrom(Iterator<Object?> stream, DeserializationState? _) {
+    Object? current = stream.current;
+    if (current is! String) {
+      throw StateError("Expected an atom, found a list: '${current}'.");
     }
-    int result = int.parse(stream.current);
+    int result = int.parse(current);
     stream.moveNext();
     return result;
   }
 
-  void writeTo(StringBuffer buffer, int object, SerializationState _) {
+  void writeTo(StringBuffer buffer, int object, SerializationState? _) {
     buffer.write(object);
   }
 }
@@ -176,16 +182,17 @@ class DartInt extends TextSerializer<int> {
 class DartDouble extends TextSerializer<double> {
   const DartDouble();
 
-  double readFrom(Iterator<Object> stream, DeserializationState _) {
-    if (stream.current is! String) {
-      throw StateError("Expected an atom, found a list: '${stream.current}'.");
+  double readFrom(Iterator<Object?> stream, DeserializationState? _) {
+    Object? current = stream.current;
+    if (current is! String) {
+      throw StateError("Expected an atom, found a list: '${current}'.");
     }
-    double result = double.parse(stream.current);
+    double result = double.parse(current);
     stream.moveNext();
     return result;
   }
 
-  void writeTo(StringBuffer buffer, double object, SerializationState _) {
+  void writeTo(StringBuffer buffer, double object, SerializationState? _) {
     buffer.write(object);
   }
 }
@@ -193,23 +200,24 @@ class DartDouble extends TextSerializer<double> {
 class DartBool extends TextSerializer<bool> {
   const DartBool();
 
-  bool readFrom(Iterator<Object> stream, DeserializationState _) {
-    if (stream.current is! String) {
-      throw StateError("Expected an atom, found a list: '${stream.current}'.");
+  bool readFrom(Iterator<Object?> stream, DeserializationState? _) {
+    Object? current = stream.current;
+    if (current is! String) {
+      throw StateError("Expected an atom, found a list: '${current}'.");
     }
     bool result;
-    if (stream.current == "true") {
+    if (current == "true") {
       result = true;
-    } else if (stream.current == "false") {
+    } else if (current == "false") {
       result = false;
     } else {
-      throw StateError("Expected 'true' or 'false', found '${stream.current}'");
+      throw StateError("Expected 'true' or 'false', found '${current}'");
     }
     stream.moveNext();
     return result;
   }
 
-  void writeTo(StringBuffer buffer, bool object, SerializationState _) {
+  void writeTo(StringBuffer buffer, bool object, SerializationState? _) {
     buffer.write(object ? 'true' : 'false');
   }
 }
@@ -217,12 +225,12 @@ class DartBool extends TextSerializer<bool> {
 class UriSerializer extends TextSerializer<Uri> {
   const UriSerializer();
 
-  Uri readFrom(Iterator<Object> stream, DeserializationState state) {
+  Uri readFrom(Iterator<Object?> stream, DeserializationState? state) {
     String uriAsString = const DartString().readFrom(stream, state);
     return Uri.parse(uriAsString);
   }
 
-  void writeTo(StringBuffer buffer, Uri object, SerializationState state) {
+  void writeTo(StringBuffer buffer, Uri object, SerializationState? state) {
     const DartString().writeTo(buffer, object.toString(), state);
   }
 }
@@ -250,23 +258,24 @@ class Case<T> extends TextSerializer<T> {
     _serializers.addAll(tagsAndSerializers.values);
   }
 
-  T readFrom(Iterator<Object> stream, DeserializationState state) {
-    if (stream.current is! Iterator) {
-      throw StateError("Expected list, found atom: '${stream.current}'.");
+  T readFrom(Iterator<Object?> stream, DeserializationState? state) {
+    Object? iterator = stream.current;
+    if (iterator is! Iterator<Object?>) {
+      throw StateError("Expected list, found atom: '${iterator}'.");
     }
-    Iterator nested = stream.current;
-    nested.moveNext();
-    if (nested.current is! String) {
-      throw StateError("Expected atom, found list: '${nested.current}'.");
+    iterator.moveNext();
+    Object? element = iterator.current;
+    if (element is! String) {
+      throw StateError("Expected atom, found list: '${element}'.");
     }
-    String tag = nested.current;
+    String tag = element;
     for (int i = 0; i < _tags.length; ++i) {
       if (_tags[i] == tag) {
-        nested.moveNext();
-        T result = _serializers[i].readFrom(nested, state);
-        if (nested.moveNext()) {
+        iterator.moveNext();
+        T result = _serializers[i].readFrom(iterator, state);
+        if (iterator.moveNext()) {
           throw StateError(
-              "Extra data in tagged '${tag}': '${nested.current}'.");
+              "Extra data in tagged '${tag}': '${iterator.current}'.");
         }
         stream.moveNext();
         return result;
@@ -275,7 +284,7 @@ class Case<T> extends TextSerializer<T> {
     throw StateError("Unrecognized tag '${tag}'.");
   }
 
-  void writeTo(StringBuffer buffer, T object, SerializationState state) {
+  void writeTo(StringBuffer buffer, T object, SerializationState? state) {
     String tag = tagger.tag(object);
     for (int i = 0; i < _tags.length; ++i) {
       if (_tags[i] == tag) {
@@ -301,11 +310,11 @@ class Wrapped<S, K> extends TextSerializer<K> {
 
   const Wrapped(this.unwrap, this.wrap, this.contents);
 
-  K readFrom(Iterator<Object> stream, DeserializationState state) {
+  K readFrom(Iterator<Object?> stream, DeserializationState? state) {
     return wrap(contents.readFrom(stream, state));
   }
 
-  void writeTo(StringBuffer buffer, K object, SerializationState state) {
+  void writeTo(StringBuffer buffer, K object, SerializationState? state) {
     contents.writeTo(buffer, unwrap(object), state);
   }
 
@@ -317,11 +326,20 @@ class ScopedUse<T extends Node> extends TextSerializer<T> {
 
   const ScopedUse();
 
-  T readFrom(Iterator<Object> stream, DeserializationState state) {
-    return state.environment.lookup(stringSerializer.readFrom(stream, null));
+  T readFrom(Iterator<Object?> stream, DeserializationState? state) {
+    if (state == null) {
+      throw StateError(
+          "No deserialization state provided for ${runtimeType}.readFrom.");
+    }
+    return state.environment.lookup(stringSerializer.readFrom(stream, null))
+        as T;
   }
 
-  void writeTo(StringBuffer buffer, T object, SerializationState state) {
+  void writeTo(StringBuffer buffer, T object, SerializationState? state) {
+    if (state == null) {
+      throw StateError(
+          "No serialization state provided for ${runtimeType}.writeTo.");
+    }
     stringSerializer.writeTo(buffer, state.environment.lookup(object), null);
   }
 }
@@ -333,13 +351,14 @@ class Tuple2Serializer<T1, T2> extends TextSerializer<Tuple2<T1, T2>> {
 
   const Tuple2Serializer(this.first, this.second);
 
-  Tuple2<T1, T2> readFrom(Iterator<Object> stream, DeserializationState state) {
+  Tuple2<T1, T2> readFrom(
+      Iterator<Object?> stream, DeserializationState? state) {
     return new Tuple2(
         first.readFrom(stream, state), second.readFrom(stream, state));
   }
 
   void writeTo(
-      StringBuffer buffer, Tuple2<T1, T2> object, SerializationState state) {
+      StringBuffer buffer, Tuple2<T1, T2> object, SerializationState? state) {
     first.writeTo(buffer, object.first, state);
     if (!second.isEmpty) buffer.write(' ');
     second.writeTo(buffer, object.second, state);
@@ -361,13 +380,13 @@ class Tuple3Serializer<T1, T2, T3> extends TextSerializer<Tuple3<T1, T2, T3>> {
   const Tuple3Serializer(this.first, this.second, this.third);
 
   Tuple3<T1, T2, T3> readFrom(
-      Iterator<Object> stream, DeserializationState state) {
+      Iterator<Object?> stream, DeserializationState? state) {
     return new Tuple3(first.readFrom(stream, state),
         second.readFrom(stream, state), third.readFrom(stream, state));
   }
 
   void writeTo(StringBuffer buffer, Tuple3<T1, T2, T3> object,
-      SerializationState state) {
+      SerializationState? state) {
     first.writeTo(buffer, object.first, state);
     if (!second.isEmpty) buffer.write(' ');
     second.writeTo(buffer, object.second, state);
@@ -394,7 +413,7 @@ class Tuple4Serializer<T1, T2, T3, T4>
   const Tuple4Serializer(this.first, this.second, this.third, this.fourth);
 
   Tuple4<T1, T2, T3, T4> readFrom(
-      Iterator<Object> stream, DeserializationState state) {
+      Iterator<Object?> stream, DeserializationState? state) {
     return new Tuple4(
         first.readFrom(stream, state),
         second.readFrom(stream, state),
@@ -403,7 +422,7 @@ class Tuple4Serializer<T1, T2, T3, T4>
   }
 
   void writeTo(StringBuffer buffer, Tuple4<T1, T2, T3, T4> object,
-      SerializationState state) {
+      SerializationState? state) {
     first.writeTo(buffer, object.first, state);
     if (!second.isEmpty) buffer.write(' ');
     second.writeTo(buffer, object.second, state);
@@ -435,7 +454,7 @@ class Tuple5Serializer<T1, T2, T3, T4, T5>
       this.first, this.second, this.third, this.fourth, this.fifth);
 
   Tuple5<T1, T2, T3, T4, T5> readFrom(
-      Iterator<Object> stream, DeserializationState state) {
+      Iterator<Object?> stream, DeserializationState? state) {
     return new Tuple5(
         first.readFrom(stream, state),
         second.readFrom(stream, state),
@@ -445,7 +464,7 @@ class Tuple5Serializer<T1, T2, T3, T4, T5>
   }
 
   void writeTo(StringBuffer buffer, Tuple5<T1, T2, T3, T4, T5> object,
-      SerializationState state) {
+      SerializationState? state) {
     first.writeTo(buffer, object.first, state);
     if (!second.isEmpty) buffer.write(' ');
     second.writeTo(buffer, object.second, state);
@@ -481,7 +500,7 @@ class Tuple6Serializer<T1, T2, T3, T4, T5, T6>
       this.first, this.second, this.third, this.fourth, this.fifth, this.sixth);
 
   Tuple6<T1, T2, T3, T4, T5, T6> readFrom(
-      Iterator<Object> stream, DeserializationState state) {
+      Iterator<Object?> stream, DeserializationState? state) {
     return new Tuple6(
         first.readFrom(stream, state),
         second.readFrom(stream, state),
@@ -492,7 +511,7 @@ class Tuple6Serializer<T1, T2, T3, T4, T5, T6>
   }
 
   void writeTo(StringBuffer buffer, Tuple6<T1, T2, T3, T4, T5, T6> object,
-      SerializationState state) {
+      SerializationState? state) {
     first.writeTo(buffer, object.first, state);
     if (!second.isEmpty) buffer.write(' ');
     second.writeTo(buffer, object.second, state);
@@ -533,7 +552,7 @@ class Tuple7Serializer<T1, T2, T3, T4, T5, T6, T7>
       this.fifth, this.sixth, this.seventh);
 
   Tuple7<T1, T2, T3, T4, T5, T6, T7> readFrom(
-      Iterator<Object> stream, DeserializationState state) {
+      Iterator<Object?> stream, DeserializationState? state) {
     return new Tuple7(
         first.readFrom(stream, state),
         second.readFrom(stream, state),
@@ -545,7 +564,7 @@ class Tuple7Serializer<T1, T2, T3, T4, T5, T6, T7>
   }
 
   void writeTo(StringBuffer buffer, Tuple7<T1, T2, T3, T4, T5, T6, T7> object,
-      SerializationState state) {
+      SerializationState? state) {
     first.writeTo(buffer, object.first, state);
     if (!second.isEmpty) buffer.write(' ');
     second.writeTo(buffer, object.second, state);
@@ -581,21 +600,21 @@ class ListSerializer<T> extends TextSerializer<List<T>> {
 
   const ListSerializer(this.elements);
 
-  List<T> readFrom(Iterator<Object> stream, DeserializationState state) {
-    if (stream.current is! Iterator) {
-      throw StateError("Expected a list, found an atom: '${stream.current}'.");
+  List<T> readFrom(Iterator<Object?> stream, DeserializationState? state) {
+    Object? iterator = stream.current;
+    if (iterator is! Iterator<Object?>) {
+      throw StateError("Expected a list, found an atom: '${iterator}'.");
     }
-    Iterator<Object> list = stream.current;
-    list.moveNext();
+    iterator.moveNext();
     List<T> result = [];
-    while (list.current != null) {
-      result.add(elements.readFrom(list, state));
+    while (iterator.current != null) {
+      result.add(elements.readFrom(iterator, state));
     }
     stream.moveNext();
     return result;
   }
 
-  void writeTo(StringBuffer buffer, List<T> object, SerializationState state) {
+  void writeTo(StringBuffer buffer, List<T> object, SerializationState? state) {
     buffer.write('(');
     for (int i = 0; i < object.length; ++i) {
       if (i != 0) buffer.write(' ');
@@ -605,12 +624,12 @@ class ListSerializer<T> extends TextSerializer<List<T>> {
   }
 }
 
-class Optional<T> extends TextSerializer<T> {
+class Optional<T> extends TextSerializer<T?> {
   final TextSerializer<T> contents;
 
   const Optional(this.contents);
 
-  T readFrom(Iterator<Object> stream, DeserializationState state) {
+  T? readFrom(Iterator<Object?> stream, DeserializationState? state) {
     if (stream.current == '_') {
       stream.moveNext();
       return null;
@@ -618,7 +637,7 @@ class Optional<T> extends TextSerializer<T> {
     return contents.readFrom(stream, state);
   }
 
-  void writeTo(StringBuffer buffer, T object, SerializationState state) {
+  void writeTo(StringBuffer buffer, T? object, SerializationState? state) {
     if (object == null) {
       buffer.write('_');
     } else {
@@ -639,7 +658,11 @@ class Binder<T extends Node> extends TextSerializer<Tuple2<String, T>> {
       : namedContents = new Tuple2Serializer(const DartString(), contents);
 
   Tuple2<String, T> readFrom(
-      Iterator<Object> stream, DeserializationState state) {
+      Iterator<Object?> stream, DeserializationState? state) {
+    if (state == null) {
+      throw StateError(
+          "No deserialization state provided for ${runtimeType}.readFrom.");
+    }
     Tuple2<String, T> namedObject = namedContents.readFrom(stream, state);
     String name = namedObject.first;
     T object = namedObject.second;
@@ -648,7 +671,11 @@ class Binder<T extends Node> extends TextSerializer<Tuple2<String, T>> {
   }
 
   void writeTo(StringBuffer buffer, Tuple2<String, T> namedObject,
-      SerializationState state) {
+      SerializationState? state) {
+    if (state == null) {
+      throw StateError(
+          "No serialization state provided for ${runtimeType}.writeTo.");
+    }
     String nameClue = namedObject.first;
     T object = namedObject.second;
     String distinctName =
@@ -668,7 +695,11 @@ class Bind<P, T> extends TextSerializer<Tuple2<P, T>> {
 
   const Bind(this.pattern, this.term);
 
-  Tuple2<P, T> readFrom(Iterator<Object> stream, DeserializationState state) {
+  Tuple2<P, T> readFrom(Iterator<Object?> stream, DeserializationState? state) {
+    if (state == null) {
+      throw StateError(
+          "No deserialization state provided for ${runtimeType}.readFrom.");
+    }
     DeserializationState bindingState = new DeserializationState(
         new DeserializationEnvironment(state.environment), state.nameRoot);
     P first = pattern.readFrom(stream, bindingState);
@@ -678,7 +709,11 @@ class Bind<P, T> extends TextSerializer<Tuple2<P, T>> {
   }
 
   void writeTo(
-      StringBuffer buffer, Tuple2<P, T> tuple, SerializationState state) {
+      StringBuffer buffer, Tuple2<P, T> tuple, SerializationState? state) {
+    if (state == null) {
+      throw StateError(
+          "No serialization state provided for ${runtimeType}.writeTo.");
+    }
     SerializationState bindingState =
         new SerializationState(new SerializationEnvironment(state.environment));
     pattern.writeTo(buffer, tuple.first, bindingState);
@@ -699,7 +734,11 @@ class Rebind<P, T> extends TextSerializer<Tuple2<P, T>> {
 
   const Rebind(this.pattern1, this.pattern2);
 
-  Tuple2<P, T> readFrom(Iterator<Object> stream, DeserializationState state) {
+  Tuple2<P, T> readFrom(Iterator<Object?> stream, DeserializationState? state) {
+    if (state == null) {
+      throw StateError(
+          "No deserialization state provided for ${runtimeType}.readFrom.");
+    }
     P first = pattern1.readFrom(stream, state);
     DeserializationState closedState = new DeserializationState(
         new DeserializationEnvironment(state.environment)
@@ -712,7 +751,11 @@ class Rebind<P, T> extends TextSerializer<Tuple2<P, T>> {
   }
 
   void writeTo(
-      StringBuffer buffer, Tuple2<P, T> tuple, SerializationState state) {
+      StringBuffer buffer, Tuple2<P, T> tuple, SerializationState? state) {
+    if (state == null) {
+      throw StateError(
+          "No serialization state provided for ${runtimeType}.writeTo.");
+    }
     pattern1.writeTo(buffer, tuple.first, state);
     SerializationState closedState =
         new SerializationState(new SerializationEnvironment(state.environment)
@@ -731,24 +774,38 @@ class Zip<T, T1, T2> extends TextSerializer<List<T>> {
 
   const Zip(this.lists, this.zip, this.unzip);
 
-  List<T> readFrom(Iterator<Object> stream, DeserializationState state) {
+  List<T> readFrom(Iterator<Object?> stream, DeserializationState? state) {
     Tuple2<List<T1>, List<T2>> toZip = lists.readFrom(stream, state);
     List<T1> firsts = toZip.first;
-    List<T2> seconds = toZip.second;
-    List<T> zipped = new List<T>.filled(toZip.first.length, null);
-    for (int i = 0; i < zipped.length; ++i) {
-      zipped[i] = zip(firsts[i], seconds[i]);
+    List<T> zipped;
+    if (firsts.isEmpty) {
+      zipped = <T>[];
+    } else {
+      List<T2> seconds = toZip.second;
+      zipped =
+          new List<T>.filled(toZip.first.length, zip(firsts[0], seconds[0]));
+      for (int i = 1; i < zipped.length; ++i) {
+        zipped[i] = zip(firsts[i], seconds[i]);
+      }
     }
     return zipped;
   }
 
-  void writeTo(StringBuffer buffer, List<T> zipped, SerializationState state) {
-    List<T1> firsts = new List<T1>.filled(zipped.length, null);
-    List<T2> seconds = new List<T2>.filled(zipped.length, null);
-    for (int i = 0; i < zipped.length; ++i) {
-      Tuple2<T1, T2> tuple = unzip(zipped[i]);
-      firsts[i] = tuple.first;
-      seconds[i] = tuple.second;
+  void writeTo(StringBuffer buffer, List<T> zipped, SerializationState? state) {
+    List<T1> firsts;
+    List<T2> seconds;
+    if (zipped.isEmpty) {
+      firsts = <T1>[];
+      seconds = <T2>[];
+    } else {
+      Tuple2<T1, T2> initial = unzip(zipped[0]);
+      firsts = new List<T1>.filled(zipped.length, initial.first);
+      seconds = new List<T2>.filled(zipped.length, initial.second);
+      for (int i = 1; i < zipped.length; ++i) {
+        Tuple2<T1, T2> tuple = unzip(zipped[i]);
+        firsts[i] = tuple.first;
+        seconds[i] = tuple.second;
+      }
     }
     lists.writeTo(buffer, new Tuple2(firsts, seconds), state);
   }

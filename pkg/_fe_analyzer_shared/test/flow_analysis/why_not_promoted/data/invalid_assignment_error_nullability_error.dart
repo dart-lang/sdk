@@ -7,9 +7,6 @@
 // `InvalidAssignmentErrorPartNullability` errors, for which we wish to report
 // "why not promoted" context information.
 
-// TODO(paulberry): get this to work with the CFE and add additional test cases
-// if needed.
-
 class C1 {
   List<int>? bad;
 }
@@ -17,5 +14,5 @@ class C1 {
 test(C1 c) sync* {
   if (c.bad == null) return;
   yield* /*analyzer.notPromoted(propertyNotPromoted(target: member:C1.bad, type: List<int>?))*/ c
-      .bad;
+      . /*cfe.notPromoted(propertyNotPromoted(target: member:C1.bad, type: List<int>?))*/ bad;
 }

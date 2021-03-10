@@ -14,7 +14,7 @@ part of dart.async;
 /// `FutureOr`.
 ///
 /// # Examples
-/// ``` dart
+/// ```dart
 /// // The `Future<T>.then` function takes a callback [f] that returns either
 /// // an `S` or a `Future<S>`.
 /// Future<S> then<S>(FutureOr<S> f(T x), ...);
@@ -73,7 +73,7 @@ abstract class FutureOr<T> {
 /// corresponding callback.
 /// The successor is completed with an error if the invoked callback throws.
 /// For example:
-/// ```
+/// ```dart
 /// Future<int> successor = future.then((int value) {
 ///     // Invoked when the future is completed with a value.
 ///     return 42;  // The successor is completed with the value 42.
@@ -94,7 +94,7 @@ abstract class FutureOr<T> {
 /// However, it also means that error handlers should be installed early,
 /// so that they are present as soon as a future is completed with an error.
 /// The following example demonstrates this potential bug:
-/// ```
+/// ```dart
 /// var future = getFuture();
 /// Timer(const Duration(milliseconds: 5), () {
 ///   // The error-handler is not attached until 5 ms after the future has
@@ -116,7 +116,7 @@ abstract class FutureOr<T> {
 /// Using sequential handlers instead of parallel ones often leads to code that
 /// is easier to reason about.
 /// It also makes asynchronous code very similar to synchronous code:
-/// ```
+/// ```dart
 /// // Synchronous code.
 /// try {
 ///   int value = foo();
@@ -127,7 +127,7 @@ abstract class FutureOr<T> {
 /// ```
 ///
 /// Equivalent asynchronous code, based on futures:
-/// ```
+/// ```dart
 /// Future<int> future = Future(foo);  // Result of foo() as a future.
 /// future.then((int value) => bar(value))
 ///       .catchError((e) => 499);
@@ -796,13 +796,13 @@ class TimeoutException implements Exception {
 /// Most of the time, the simplest way to create a future is to just use
 /// one of the [Future] constructors to capture the result of a single
 /// asynchronous computation:
-/// ```
+/// ```dart
 /// Future(() { doSomething(); return result; });
 /// ```
 /// or, if the future represents the result of a sequence of asynchronous
 /// computations, they can be chained using [Future.then] or similar functions
 /// on [Future]:
-/// ```
+/// ```dart
 /// Future doStuff(){
 ///   return someAsyncOperation().then((result) {
 ///     return someOtherAsyncOperation(result);
@@ -812,7 +812,7 @@ class TimeoutException implements Exception {
 /// If you do need to create a Future from scratch — for example,
 /// when you're converting a callback-based API into a Future-based
 /// one — you can use a Completer as follows:
-/// ```
+/// ```dart
 /// class AsyncOperation {
 ///   final Completer _completer = new Completer();
 ///
@@ -845,7 +845,7 @@ abstract class Completer<T> {
   /// delayed until a later microtask.
   ///
   /// Example:
-  /// ```
+  /// ```dart
   /// var completer = new Completer();
   /// handOut(completer.future);
   /// later: {
@@ -935,11 +935,11 @@ abstract class Completer<T> {
   ///
   /// If `error` is a `Future`, the future itself is used as the error value.
   /// If you want to complete with the result of the future, you can use:
-  /// ```
+  /// ```dart
   /// thisCompleter.complete(theFuture)
   /// ```
   /// or if you only want to handle an error from the future:
-  /// ```
+  /// ```dart
   /// theFuture.catchError(thisCompleter.completeError);
   /// ```
   void completeError(Object error, [StackTrace? stackTrace]);

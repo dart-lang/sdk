@@ -604,7 +604,7 @@ abstract class Zone {
   /// different error handlers.
   ///
   /// Example:
-  /// ```
+  /// ```dart
   /// import 'dart:async';
   ///
   /// main() {
@@ -623,7 +623,7 @@ abstract class Zone {
   ///
   /// Note that errors cannot enter a child zone with a different error handler
   /// either:
-  /// ```
+  /// ```dart
   /// import 'dart:async';
   ///
   /// main() {
@@ -693,7 +693,7 @@ abstract class Zone {
   /// errors.
   ///
   /// This function is equivalent to:
-  /// ```
+  /// ```dart
   /// try {
   ///   this.run(action);
   /// } catch (e, s) {
@@ -864,7 +864,7 @@ abstract class Zone {
   /// function which makes it possible to intercept printing.
   ///
   /// Example:
-  /// ```
+  /// ```dart
   /// import 'dart:async';
   ///
   /// main() {

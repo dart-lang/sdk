@@ -1016,8 +1016,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (name.name.startsWith('@')) throw 'unexpected @';
 
     String libraryString(CanonicalName lib) {
-      if (lib.reference?.node != null) {
-        return getLibraryReference(lib.reference!.asLibrary);
+      if (lib.reference.node != null) {
+        return getLibraryReference(lib.reference.asLibrary);
       }
       return syntheticNames.nameCanonicalNameAsLibraryPrefix(
           lib.reference, lib);

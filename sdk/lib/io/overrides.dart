@@ -15,7 +15,7 @@ const _asyncRunZoned = runZoned;
 /// operations needed to construct mocks. The implementations in this base class
 /// default to the actual `dart:io` implementation. For example:
 ///
-/// ```
+/// ```dart
 /// class MyDirectory implements Directory {
 ///   ...
 ///   // An implementation of the Directory interface

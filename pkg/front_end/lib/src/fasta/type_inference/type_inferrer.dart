@@ -305,16 +305,19 @@ class TypeInferrerImpl implements TypeInferrer {
 
   /// Computes a list of context messages explaining why [receiver] was not
   /// promoted, to be used when reporting an error for a larger expression
-  /// containing [receiver].  [expression] is the containing expression.
-  List<LocatedMessage> getWhyNotPromotedContext(Expression receiver,
-      Map<DartType, NonPromotionReason> whyNotPromoted, Expression expression) {
+  /// containing [receiver].  [node] is the containing tree node.
+  List<LocatedMessage> getWhyNotPromotedContext(
+      Expression receiver,
+      Map<DartType, NonPromotionReason> whyNotPromoted,
+      TreeNode node,
+      bool Function(DartType) typeFilter) {
     List<LocatedMessage> context;
     if (whyNotPromoted != null && whyNotPromoted.isNotEmpty) {
       _WhyNotPromotedVisitor whyNotPromotedVisitor =
           new _WhyNotPromotedVisitor(this, receiver);
       for (core.MapEntry<DartType, NonPromotionReason> entry
           in whyNotPromoted.entries) {
-        if (entry.key.isPotentiallyNullable) continue;
+        if (!typeFilter(entry.key)) continue;
         LocatedMessage message = entry.value.accept(whyNotPromotedVisitor);
         if (dataForTesting != null) {
           String nonPromotionReasonText = entry.value.shortName;
@@ -331,7 +334,7 @@ class TypeInferrerImpl implements TypeInferrer {
           if (args.isNotEmpty) {
             nonPromotionReasonText += '(${args.join(', ')})';
           }
-          dataForTesting.flowAnalysisResult.nonPromotionReasons[expression] =
+          dataForTesting.flowAnalysisResult.nonPromotionReasons[node] =
               nonPromotionReasonText;
         }
         // Note: this will always pick the first viable reason (only).  I
@@ -626,10 +629,14 @@ class TypeInferrerImpl implements TypeInferrer {
                 expression,
                 expressionType,
                 contextType,
-                nullabilityErrorTemplate.withArguments(
-                    expressionType,
-                    declaredContextType ?? contextType,
-                    isNonNullableByDefault));
+                nullabilityErrorTemplate.withArguments(expressionType,
+                    declaredContextType ?? contextType, isNonNullableByDefault),
+                context: getWhyNotPromotedContext(
+                    expression,
+                    flowAnalysis?.whyNotPromoted(expression),
+                    expression,
+                    (type) => typeSchemaEnvironment.isSubtypeOf(type,
+                        contextType, SubtypeCheckMode.withNullabilities)));
           }
         } else {
           result = _wrapUnassignableExpression(
@@ -704,7 +711,8 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   Expression _wrapUnassignableExpression(Expression expression,
-      DartType expressionType, DartType contextType, Message message) {
+      DartType expressionType, DartType contextType, Message message,
+      {List<LocatedMessage> context}) {
     Expression errorNode = new AsExpression(
         expression,
         // TODO(ahe): The outline phase doesn't correctly remove invalid
@@ -719,7 +727,8 @@ class TypeInferrerImpl implements TypeInferrer {
       ..fileOffset = expression.fileOffset;
     if (contextType is! InvalidType && expressionType is! InvalidType) {
       errorNode = helper.wrapInProblem(
-          errorNode, message, errorNode.fileOffset, noLength);
+          errorNode, message, errorNode.fileOffset, noLength,
+          context: context);
     }
     return errorNode;
   }
@@ -2829,7 +2838,10 @@ class TypeInferrerImpl implements TypeInferrer {
         //     void Function() get call => () {};
         //   }
         List<LocatedMessage> context = getWhyNotPromotedContext(
-            receiver, flowAnalysis?.whyNotPromoted(receiver), staticInvocation);
+            receiver,
+            flowAnalysis?.whyNotPromoted(receiver),
+            staticInvocation,
+            (type) => !type.isPotentiallyNullable);
         result = wrapExpressionInferenceResultInProblem(
             result,
             templateNullableExpressionCallError.withArguments(
@@ -2857,7 +2869,10 @@ class TypeInferrerImpl implements TypeInferrer {
       Expression replacement = result.applyResult(staticInvocation);
       if (!isTopLevel && target.isNullable) {
         List<LocatedMessage> context = getWhyNotPromotedContext(
-            receiver, flowAnalysis?.whyNotPromoted(receiver), staticInvocation);
+            receiver,
+            flowAnalysis?.whyNotPromoted(receiver),
+            staticInvocation,
+            (type) => !type.isPotentiallyNullable);
         if (isImplicitCall) {
           // Handles cases like:
           //   int? i;
@@ -2953,7 +2968,10 @@ class TypeInferrerImpl implements TypeInferrer {
     Expression replacement = result.applyResult(expression);
     if (!isTopLevel && target.isNullableCallFunction) {
       List<LocatedMessage> context = getWhyNotPromotedContext(
-          receiver, flowAnalysis?.whyNotPromoted(receiver), expression);
+          receiver,
+          flowAnalysis?.whyNotPromoted(receiver),
+          expression,
+          (type) => !type.isPotentiallyNullable);
       if (isImplicitCall) {
         // Handles cases like:
         //   void Function()? f;
@@ -3125,7 +3143,10 @@ class TypeInferrerImpl implements TypeInferrer {
     replacement = result.applyResult(replacement);
     if (!isTopLevel && target.isNullable) {
       List<LocatedMessage> context = getWhyNotPromotedContext(
-          receiver, flowAnalysis?.whyNotPromoted(receiver), expression);
+          receiver,
+          flowAnalysis?.whyNotPromoted(receiver),
+          expression,
+          (type) => !type.isPotentiallyNullable);
       if (isImplicitCall) {
         // Handles cases like:
         //   C? c;
@@ -3282,8 +3303,11 @@ class TypeInferrerImpl implements TypeInferrer {
       //   class C {
       //     void Function() get foo => () {};
       //   }
-      List<LocatedMessage> context = getWhyNotPromotedContext(receiver,
-          flowAnalysis?.whyNotPromoted(receiver), invocationResult.expression);
+      List<LocatedMessage> context = getWhyNotPromotedContext(
+          receiver,
+          flowAnalysis?.whyNotPromoted(receiver),
+          invocationResult.expression,
+          (type) => !type.isPotentiallyNullable);
       invocationResult = wrapExpressionInferenceResultInProblem(
           invocationResult,
           templateNullableExpressionCallError.withArguments(
@@ -3477,7 +3501,10 @@ class TypeInferrerImpl implements TypeInferrer {
       // TODO(paulberry): would it be better to report NullableMethodCallError
       // in this scenario?
       List<LocatedMessage> context = getWhyNotPromotedContext(
-          receiver, whyNotPromotedInfo, invocationResult.expression);
+          receiver,
+          whyNotPromotedInfo,
+          invocationResult.expression,
+          (type) => !type.isPotentiallyNullable);
       invocationResult = wrapExpressionInferenceResultInProblem(
           invocationResult,
           templateNullableExpressionCallError.withArguments(

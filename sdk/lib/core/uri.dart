@@ -127,7 +127,7 @@ abstract class Uri {
   ///
   /// Examples:
   ///
-  /// ```
+  /// ```dart
   /// // http://example.org/path?q=dart.
   /// Uri.http("example.org", "/path", { "q" : "dart" });
   ///
@@ -198,7 +198,7 @@ abstract class Uri {
   ///
   /// Examples using non-Windows semantics:
   ///
-  /// ```
+  /// ```dart
   /// // xxx/yyy
   /// Uri.file("xxx/yyy", windows: false);
   ///
@@ -217,7 +217,7 @@ abstract class Uri {
   ///
   /// Examples using Windows semantics:
   ///
-  /// ```
+  /// ```dart
   /// // xxx/yyy
   /// Uri.file(r"xxx\yyy", windows: true);
   ///
@@ -3142,7 +3142,7 @@ class UriData {
   /// If there is a single separator left, it ends the "base64" marker.
   ///
   /// So the following separators are found for a text:
-  /// ```
+  /// ```plaintext
   /// data:text/plain;foo=bar;base64,ARGLEBARGLE=
   ///     ^          ^   ^   ^      ^
   /// ```
@@ -3318,7 +3318,7 @@ class UriData {
   ///
   /// The string must have the format:
   ///
-  /// ```
+  /// ```plaintext
   /// 'data:' (type '/' subtype)? (';' attribute '=' value)* (';base64')? ',' data
   /// ````
   ///

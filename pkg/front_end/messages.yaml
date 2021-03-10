@@ -214,7 +214,7 @@ ConstEvalExtension:
   analyzerCode: NOT_CONSTANT_EXPRESSION
 
 ConstEvalUnevaluated:
-  template: "Could not evaluate constant expression."
+  template: "Couldn't evaluate constant expression."
 
 NotConstantExpression:
   template: "#string is not a constant expression."
@@ -3232,7 +3232,7 @@ CantInferPackagesFromPackageUri:
   tip: "Try specifying the file explicitly with the --packages option."
 
 PackageNotFound:
-  template: "Could not resolve the package '#name' in '#uri'."
+  template: "Couldn't resolve the package '#name' in '#uri'."
 
 InvalidPackageUri:
   template: "Invalid package URI '#uri':\n  #string."
@@ -3622,7 +3622,7 @@ AmbiguousSupertypes:
   analyzerCode: AMBIGUOUS_SUPERTYPES
 
 MixinInferenceNoMatchingClass:
-  template: "Type parameters could not be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'."
+  template: "Type parameters couldn't be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'."
   analyzerCode: MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION
 
 ImplicitCallOfNonMethod:
@@ -4588,7 +4588,7 @@ VariableCouldBeNullDueToWrite:
   tip: "Try null checking the variable after the write."
 
 FieldNotPromoted:
-  template: "'#name' refers to a property so it could not be promoted."
+  template: "'#name' refers to a property so it couldn't be promoted."
 
 ThisNotPromoted:
   template: "'this' can't be promoted."

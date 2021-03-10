@@ -3639,7 +3639,7 @@ const Template<
             Message Function(String name, String name2, DartType _type,
                 bool isNonNullableByDefault)>(
         messageTemplate:
-            r"""Type parameters could not be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'.""",
+            r"""Type parameters couldn't be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'.""",
         withArguments: _withArgumentsMixinInferenceNoMatchingClass);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3663,7 +3663,7 @@ Message _withArgumentsMixinInferenceNoMatchingClass(
   String type = typeParts.join();
   return new Message(codeMixinInferenceNoMatchingClass,
       message:
-          """Type parameters could not be inferred for the mixin '${name}' because '${name2}' does not implement the mixin's supertype constraint '${type}'.""" +
+          """Type parameters couldn't be inferred for the mixin '${name}' because '${name2}' does not implement the mixin's supertype constraint '${type}'.""" +
               labeler.originMessages,
       arguments: {'name': name, 'name2': name2, 'type': _type});
 }

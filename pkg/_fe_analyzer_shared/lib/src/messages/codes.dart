@@ -166,7 +166,14 @@ class PlainAndColorizedString {
   final String plain;
   final String colorized;
 
+  @override
+  String toString() {
+    assert(false, "Called PlainAndColorizedString.toString: $plain");
+    return 'PlainAndColorizedString:$plain';
+  }
+
   const PlainAndColorizedString(this.plain, this.colorized);
+
   const PlainAndColorizedString.plainOnly(this.plain) : this.colorized = plain;
 }
 

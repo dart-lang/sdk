@@ -302,10 +302,10 @@ class UnitRenderer {
       case NullabilityFixKind.checkExpressionDueToHint:
         return '$count null check hint$s converted to null check$s';
       case NullabilityFixKind.compoundAssignmentHasBadCombinedType:
-        return '$count compound assignment$s could not be migrated (bad '
+        return "$count compound assignment$s couldn't be migrated (bad "
             'combined type)';
       case NullabilityFixKind.compoundAssignmentHasNullableSource:
-        return '$count compound assignment$s could not be migrated (nullable '
+        return "$count compound assignment$s couldn't be migrated (nullable "
             'source)';
       case NullabilityFixKind.conditionTrueInStrongMode:
         return '$count condition$s will be true in strong checking mode';
@@ -318,7 +318,7 @@ class UnitRenderer {
       case NullabilityFixKind.makeTypeNullableDueToHint:
         return '$count nullability hint$s converted to ?$s';
       case NullabilityFixKind.noValidMigrationForNull:
-        return '$count literal `null`$s could not be migrated';
+        return "$count literal `null`$s couldn't be migrated";
       case NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode:
         return '$count null-aware access$es will be unnecessary in strong '
             'checking mode';

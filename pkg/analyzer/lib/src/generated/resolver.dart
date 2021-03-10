@@ -3446,7 +3446,7 @@ class _WhyNotPromotedVisitor
     return DiagnosticMessageImpl(
         filePath: property.source.fullName,
         message:
-            "'$propertyName' refers to a property so it could not be promoted.",
+            "'$propertyName' refers to a property so it couldn't be promoted.",
         offset: property.nameOffset,
         length: property.nameLength);
   }

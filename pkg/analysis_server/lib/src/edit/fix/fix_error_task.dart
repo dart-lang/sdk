@@ -60,7 +60,7 @@ class FixErrorTask {
     } else {
       // TODO(danrubel): Determine why the fix could not be applied
       // and report that in the description.
-      listener.addRecommendation('Could not fix "${error.message}"', location);
+      listener.addRecommendation("Couldn't fix \"${error.message}\"", location);
     }
   }
 

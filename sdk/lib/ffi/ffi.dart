@@ -89,7 +89,7 @@ class Pointer<T extends NativeType> extends NativeType {
 class Array<T extends NativeType> extends NativeType {
   /// Const constructor to specify [Array] dimensions in [Struct]s.
   ///
-  /// ```
+  /// ```dart
   /// class MyStruct extends Struct {
   ///   @Array(8)
   ///   external Array<Uint8> inlineArray;
@@ -105,7 +105,7 @@ class Array<T extends NativeType> extends NativeType {
 
   /// Const constructor to specify [Array] dimensions in [Struct]s.
   ///
-  /// ```
+  /// ```dart
   /// class MyStruct extends Struct {
   ///   @Array.multi([2, 2, 2])
   ///   external Array<Array<Array<Uint8>>> threeDimensionalInlineArray;
@@ -724,7 +724,7 @@ abstract class NativeApi {
       get postCObject;
 
   /// A function pointer to
-  /// ```
+  /// ```c
   /// Dart_Port Dart_NewNativePort(const char* name,
   ///                              Dart_NativeMessageHandler handler,
   ///                              bool handle_concurrently)

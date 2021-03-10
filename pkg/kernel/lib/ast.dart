@@ -72,8 +72,8 @@ import 'dart:convert' show utf8;
 import 'visitor.dart';
 export 'visitor.dart';
 
-import 'canonical_name.dart' show CanonicalName;
-export 'canonical_name.dart' show CanonicalName;
+import 'canonical_name.dart' show CanonicalName, Reference;
+export 'canonical_name.dart' show CanonicalName, Reference;
 
 import 'default_language_version.dart' show defaultLanguageVersion;
 export 'default_language_version.dart' show defaultLanguageVersion;
@@ -217,8 +217,6 @@ abstract class NamedNode extends TreeNode {
     }
   }
 
-  CanonicalName? get canonicalName => reference.canonicalName;
-
   /// This is an advanced feature.
   ///
   /// See [Component.relink] for a comprehensive description.
@@ -238,162 +236,6 @@ abstract class FileUriNode extends TreeNode {
 abstract class Annotatable extends TreeNode {
   List<Expression> get annotations;
   void addAnnotation(Expression node);
-}
-
-/// Indirection between a reference and its definition.
-///
-/// There is only one reference object per [NamedNode].
-class Reference {
-  CanonicalName? canonicalName;
-
-  NamedNode? _node;
-
-  NamedNode? get node {
-    if (_node == null) {
-      // Either this is an unbound reference or it belongs to a lazy-loaded
-      // (and not yet loaded) class. If it belongs to a lazy-loaded class,
-      // load the class.
-
-      CanonicalName? canonicalNameParent = canonicalName?.parent;
-      while (canonicalNameParent != null) {
-        if (canonicalNameParent.name.startsWith("@")) {
-          break;
-        }
-        canonicalNameParent = canonicalNameParent.parent;
-      }
-      if (canonicalNameParent != null) {
-        NamedNode? parentNamedNode =
-            canonicalNameParent.parent?.reference?._node;
-        if (parentNamedNode is Class) {
-          Class parentClass = parentNamedNode;
-          if (parentClass.lazyBuilder != null) {
-            parentClass.ensureLoaded();
-          }
-        }
-      }
-    }
-    return _node;
-  }
-
-  void set node(NamedNode? node) {
-    _node = node;
-  }
-
-  String toString() {
-    return "Reference to ${toStringInternal()}";
-  }
-
-  String toStringInternal() {
-    if (canonicalName != null) {
-      return '${canonicalName!.toStringInternal()}';
-    }
-    if (node != null) {
-      return node!.toStringInternal();
-    }
-    return 'Unbound reference';
-  }
-
-  Library get asLibrary {
-    if (node == null) {
-      throw '$this is not bound to an AST node. A library was expected';
-    }
-    return node as Library;
-  }
-
-  Class get asClass {
-    if (node == null) {
-      throw '$this is not bound to an AST node. A class was expected';
-    }
-    return node as Class;
-  }
-
-  Member get asMember {
-    if (node == null) {
-      throw '$this is not bound to an AST node. A member was expected';
-    }
-    return node as Member;
-  }
-
-  Field get asField {
-    if (node == null) {
-      throw '$this is not bound to an AST node. A field was expected';
-    }
-    return node as Field;
-  }
-
-  Constructor get asConstructor {
-    if (node == null) {
-      throw '$this is not bound to an AST node. A constructor was expected';
-    }
-    return node as Constructor;
-  }
-
-  Procedure get asProcedure {
-    if (node == null) {
-      throw '$this is not bound to an AST node. A procedure was expected';
-    }
-    return node as Procedure;
-  }
-
-  Typedef get asTypedef {
-    if (node == null) {
-      throw '$this is not bound to an AST node. A typedef was expected';
-    }
-    return node as Typedef;
-  }
-
-  Extension get asExtension {
-    if (node == null) {
-      throw '$this is not bound to an AST node. An extension was expected';
-    }
-    return node as Extension;
-  }
-
-  bool get isConsistent {
-    NamedNode? node = _node;
-    if (node != null) {
-      if (node.reference != this &&
-          (node is! Field || node.setterReference != this)) {
-        // The reference of a [NamedNode] must point to this reference, or
-        // if the node is a [Field] the setter reference must point to this
-        // reference.
-        return false;
-      }
-    }
-    if (canonicalName != null && canonicalName!.reference != this) {
-      return false;
-    }
-    return true;
-  }
-
-  String getInconsistency() {
-    StringBuffer sb = new StringBuffer();
-    sb.write('Reference ${this} (${hashCode}):');
-    NamedNode? node = _node;
-    if (node != null) {
-      if (node is Field) {
-        if (node.getterReference != this && node.setterReference != this) {
-          sb.write(' _node=${node} (${node.runtimeType}:${node.hashCode})');
-          sb.write(' _node.getterReference='
-              '${node.getterReference} (${node.getterReference.hashCode})');
-          sb.write(' _node.setterReference='
-              '${node.setterReference} (${node.setterReference.hashCode})');
-        }
-      } else {
-        if (node.reference != this) {
-          sb.write(' _node=${node} (${node.runtimeType}:${node.hashCode})');
-          sb.write(' _node.reference='
-              '${node.reference} (${node.reference.hashCode})');
-        }
-      }
-    }
-    if (canonicalName != null && canonicalName!.reference != this) {
-      sb.write(' canonicalName=${canonicalName} (${canonicalName.hashCode})');
-      sb.write(' canonicalName.reference='
-          '${canonicalName!.reference} (${canonicalName!.reference.hashCode})');
-    }
-    return sb.toString();
-  }
 }
 
 // ------------------------------------------------------------------------
@@ -592,7 +434,7 @@ class Library extends NamedNode
   }
 
   void computeCanonicalNames() {
-    CanonicalName canonicalName = this.canonicalName!;
+    CanonicalName canonicalName = this.reference.canonicalName!;
     for (int i = 0; i < typedefs.length; ++i) {
       Typedef typedef_ = typedefs[i];
       canonicalName.getChildFromTypedef(typedef_).bindTo(typedef_.reference);
@@ -1317,7 +1159,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   }
 
   void computeCanonicalNames() {
-    CanonicalName canonicalName = this.canonicalName!;
+    CanonicalName canonicalName = this.reference.canonicalName!;
     if (!dirty) return;
     for (int i = 0; i < fields.length; ++i) {
       Field member = fields[i];
@@ -1885,14 +1727,6 @@ class Field extends Member {
   Reference get reference => super.reference;
 
   Reference get getterReference => super.reference;
-
-  @override
-  @Deprecated(
-      "Use the specific getterCanonicalName/setterCanonicalName instead")
-  CanonicalName? get canonicalName => reference.canonicalName;
-
-  CanonicalName? get getterCanonicalName => getterReference.canonicalName;
-  CanonicalName? get setterCanonicalName => setterReference?.canonicalName;
 
   Field.mutable(Name? name,
       {this.type: const DynamicType(),
@@ -4677,7 +4511,7 @@ class SuperPropertySet extends Expression {
 
   Reference? interfaceTargetReference;
 
-  SuperPropertySet(Name name, Expression value, Member interfaceTarget)
+  SuperPropertySet(Name name, Expression value, Member? interfaceTarget)
       : this.byReference(
             name, value, getMemberReferenceSetter(interfaceTarget));
 
@@ -13189,9 +13023,9 @@ Reference getNonNullableClassReference(Class class_) {
 CanonicalName getCanonicalNameOfMemberGetter(Member member) {
   CanonicalName? canonicalName;
   if (member is Field) {
-    canonicalName = member.getterCanonicalName;
+    canonicalName = member.getterReference.canonicalName;
   } else {
-    canonicalName = member.canonicalName;
+    canonicalName = member.reference.canonicalName;
   }
   if (canonicalName == null) {
     throw '$member has no canonical name';
@@ -13204,9 +13038,9 @@ CanonicalName getCanonicalNameOfMemberGetter(Member member) {
 CanonicalName getCanonicalNameOfMemberSetter(Member member) {
   CanonicalName? canonicalName;
   if (member is Field) {
-    canonicalName = member.setterCanonicalName;
+    canonicalName = member.setterReference!.canonicalName;
   } else {
-    canonicalName = member.canonicalName;
+    canonicalName = member.reference.canonicalName;
   }
   if (canonicalName == null) {
     throw '$member has no canonical name';
@@ -13217,28 +13051,28 @@ CanonicalName getCanonicalNameOfMemberSetter(Member member) {
 /// Returns the canonical name of [class_], or throws an exception if the
 /// class has not been assigned a canonical name yet.
 CanonicalName getCanonicalNameOfClass(Class class_) {
-  if (class_.canonicalName == null) {
+  if (class_.reference.canonicalName == null) {
     throw '$class_ has no canonical name';
   }
-  return class_.canonicalName!;
+  return class_.reference.canonicalName!;
 }
 
 /// Returns the canonical name of [extension], or throws an exception if the
 /// class has not been assigned a canonical name yet.
 CanonicalName getCanonicalNameOfExtension(Extension extension) {
-  if (extension.canonicalName == null) {
+  if (extension.reference.canonicalName == null) {
     throw '$extension has no canonical name';
   }
-  return extension.canonicalName!;
+  return extension.reference.canonicalName!;
 }
 
 /// Returns the canonical name of [library], or throws an exception if the
 /// library has not been assigned a canonical name yet.
 CanonicalName getCanonicalNameOfLibrary(Library library) {
-  if (library.canonicalName == null) {
+  if (library.reference.canonicalName == null) {
     throw '$library has no canonical name';
   }
-  return library.canonicalName!;
+  return library.reference.canonicalName!;
 }
 
 /// Murmur-inspired hashing, with a fall-back to Jenkins-inspired hashing when
@@ -13375,10 +13209,10 @@ bool mapEquals(Map a, Map b) {
 /// Returns the canonical name of [typedef_], or throws an exception if the
 /// typedef has not been assigned a canonical name yet.
 CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
-  if (typedef_.canonicalName == null) {
+  if (typedef_.reference.canonicalName == null) {
     throw '$typedef_ has no canonical name';
   }
-  return typedef_.canonicalName!;
+  return typedef_.reference.canonicalName!;
 }
 
 /// Annotation describing information which is not part of Dart semantics; in

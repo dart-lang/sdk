@@ -1473,8 +1473,14 @@ class InferenceVisitor
                 spreadType is! DynamicType &&
                 spreadType is! NullType &&
                 !element.isNullAware) {
+              Expression receiver = element.expression;
               replacement = inferrer.helper.buildProblem(
-                  messageNullableSpreadError, element.expression.fileOffset, 1);
+                  messageNullableSpreadError, receiver.fileOffset, 1,
+                  context: inferrer.getWhyNotPromotedContext(
+                      receiver,
+                      inferrer.flowAnalysis?.whyNotPromoted(receiver),
+                      element,
+                      (type) => !type.isPotentiallyNullable));
             }
 
             replacement = inferrer.helper.buildProblem(
@@ -1482,6 +1488,7 @@ class InferenceVisitor
                     spreadType, inferrer.isNonNullableByDefault),
                 element.expression.fileOffset,
                 1);
+            _copyNonPromotionReasonToReplacement(element, replacement);
           }
         } else if (spreadTypeBound is InterfaceType) {
           if (!inferrer.isAssignable(inferredTypeArgument, spreadElementType)) {
@@ -1536,8 +1543,15 @@ class InferenceVisitor
               spreadType is! DynamicType &&
               spreadType is! NullType &&
               !element.isNullAware) {
+            Expression receiver = element.expression;
             replacement = inferrer.helper.buildProblem(
-                messageNullableSpreadError, element.expression.fileOffset, 1);
+                messageNullableSpreadError, receiver.fileOffset, 1,
+                context: inferrer.getWhyNotPromotedContext(
+                    receiver,
+                    inferrer.flowAnalysis?.whyNotPromoted(receiver),
+                    element,
+                    (type) => !type.isPotentiallyNullable));
+            _copyNonPromotionReasonToReplacement(element, replacement);
           }
         }
       }
@@ -1713,6 +1727,17 @@ class InferenceVisitor
         replacement = result.expression;
       }
       return new ExpressionInferenceResult(result.inferredType, replacement);
+    }
+  }
+
+  void _copyNonPromotionReasonToReplacement(
+      TreeNode oldNode, TreeNode replacement) {
+    if (!identical(oldNode, replacement) &&
+        inferrer.dataForTesting?.flowAnalysisResult != null) {
+      inferrer.dataForTesting.flowAnalysisResult
+              .nonPromotionReasons[replacement] =
+          inferrer
+              .dataForTesting.flowAnalysisResult.nonPromotionReasons[oldNode];
     }
   }
 
@@ -1956,10 +1981,16 @@ class InferenceVisitor
                 spreadType is! DynamicType &&
                 spreadType is! NullType &&
                 !entry.isNullAware) {
-              replacement = new SpreadMapEntry(
-                  inferrer.helper.buildProblem(messageNullableSpreadError,
-                      entry.expression.fileOffset, 1),
-                  false)
+              Expression receiver = entry.expression;
+              Expression problem = inferrer.helper.buildProblem(
+                  messageNullableSpreadError, receiver.fileOffset, 1,
+                  context: inferrer.getWhyNotPromotedContext(
+                      receiver,
+                      inferrer.flowAnalysis?.whyNotPromoted(receiver),
+                      entry,
+                      (type) => !type.isPotentiallyNullable));
+              _copyNonPromotionReasonToReplacement(entry, problem);
+              replacement = new SpreadMapEntry(problem, false)
                 ..fileOffset = entry.fileOffset;
             }
 
@@ -1967,13 +1998,19 @@ class InferenceVisitor
             // error is reported in checkMapEntry if it's disambiguated as map.
             iterableSpreadType = spreadType;
           } else {
-            replacement = new MapEntry(
-                inferrer.helper.buildProblem(
-                    templateSpreadMapEntryTypeMismatch.withArguments(
-                        spreadType, inferrer.isNonNullableByDefault),
-                    entry.expression.fileOffset,
-                    1),
-                new NullLiteral())
+            Expression receiver = entry.expression;
+            Expression problem = inferrer.helper.buildProblem(
+                templateSpreadMapEntryTypeMismatch.withArguments(
+                    spreadType, inferrer.isNonNullableByDefault),
+                receiver.fileOffset,
+                1,
+                context: inferrer.getWhyNotPromotedContext(
+                    receiver,
+                    inferrer.flowAnalysis?.whyNotPromoted(receiver),
+                    entry,
+                    (type) => !type.isPotentiallyNullable));
+            _copyNonPromotionReasonToReplacement(entry, problem);
+            replacement = new MapEntry(problem, new NullLiteral())
               ..fileOffset = entry.fileOffset;
           }
         } else if (spreadTypeBound is InterfaceType) {
@@ -2075,8 +2112,15 @@ class InferenceVisitor
               spreadType is! DynamicType &&
               spreadType is! NullType &&
               !entry.isNullAware) {
+            Expression receiver = entry.expression;
             keyError = inferrer.helper.buildProblem(
-                messageNullableSpreadError, entry.expression.fileOffset, 1);
+                messageNullableSpreadError, receiver.fileOffset, 1,
+                context: inferrer.getWhyNotPromotedContext(
+                    receiver,
+                    inferrer.flowAnalysis?.whyNotPromoted(receiver),
+                    entry,
+                    (type) => !type.isPotentiallyNullable));
+            _copyNonPromotionReasonToReplacement(entry, keyError);
           }
           if (keyError != null || valueError != null) {
             keyError ??= new NullLiteral();
@@ -2343,7 +2387,8 @@ class InferenceVisitor
                   iterableSpreadType, inferrer.isNonNullableByDefault),
               iterableSpreadOffset,
               1),
-          new NullLiteral());
+          new NullLiteral())
+        ..fileOffset = iterableSpreadOffset;
     }
     if (entry is SpreadMapEntry) {
       DartType spreadType = inferredSpreadTypes[entry.expression];
@@ -4832,7 +4877,10 @@ class InferenceVisitor
           read.fileOffset,
           propertyName.text.length,
           context: inferrer.getWhyNotPromotedContext(
-              receiver, inferrer.flowAnalysis?.whyNotPromoted(receiver), read));
+              receiver,
+              inferrer.flowAnalysis?.whyNotPromoted(receiver),
+              read,
+              (type) => !type.isPotentiallyNullable));
     }
     return readResult;
   }
