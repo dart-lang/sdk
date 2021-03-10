@@ -6278,29 +6278,33 @@ DART_EXPORT void Dart_SetNativeServiceStreamCallback(
 #endif
 }
 
-DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
-                                                  const char* event_kind,
-                                                  const uint8_t* bytes,
-                                                  intptr_t bytes_length) {
+DART_EXPORT char* Dart_ServiceSendDataEvent(const char* stream_id,
+                                            const char* event_kind,
+                                            const uint8_t* bytes,
+                                            intptr_t bytes_length) {
 #if !defined(PRODUCT)
-  DARTSCOPE(Thread::Current());
-  Isolate* I = T->isolate();
   if (stream_id == NULL) {
-    RETURN_NULL_ERROR(stream_id);
+    return Utils::StrDup(
+        "Dart_ServiceSendDataEvent expects argument 'stream_id' to be "
+        "non-null.");
   }
   if (event_kind == NULL) {
-    RETURN_NULL_ERROR(event_kind);
+    return Utils::StrDup(
+        "Dart_ServiceSendDataEvent expects argument 'event_kind' to be "
+        "non-null.");
   }
   if (bytes == NULL) {
-    RETURN_NULL_ERROR(bytes);
+    return Utils::StrDup(
+        "Dart_ServiceSendDataEvent expects argument 'bytes' to be non-null.");
   }
   if (bytes_length < 0) {
-    return Api::NewError("%s expects argument 'bytes_length' to be >= 0.",
-                         CURRENT_FUNC);
+    return Utils::StrDup(
+        "Dart_ServiceSendDataEvent expects argument 'bytes_length' to be >= "
+        "0.");
   }
-  Service::SendEmbedderEvent(I, stream_id, event_kind, bytes, bytes_length);
+  Service::SendEmbedderEvent(stream_id, event_kind, bytes, bytes_length);
 #endif
-  return Api::Success();
+  return nullptr;
 }
 
 DART_EXPORT void Dart_SetGCEventCallback(Dart_GCEventCallback callback) {
