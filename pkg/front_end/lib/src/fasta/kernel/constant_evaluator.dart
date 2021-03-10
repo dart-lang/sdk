@@ -537,6 +537,21 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
+  Statement visitFunctionDeclaration(
+      FunctionDeclaration node, TreeNode removalSentinel) {
+    if (enableConstFunctions) {
+      if (node.function != null) {
+        node.function = transform(node.function)..parent = node;
+      }
+      constantEvaluator.env.updateVariableValue(
+          node.variable, new IntermediateValue(node.function));
+    } else {
+      return super.visitFunctionDeclaration(node, removalSentinel);
+    }
+    return node;
+  }
+
+  @override
   Statement visitVariableDeclaration(
       VariableDeclaration node, TreeNode removalSentinel) {
     transformAnnotations(node.annotations, node);
@@ -2101,19 +2116,17 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   @override
   Constant visitMethodInvocation(MethodInvocation node) {
     // We have no support for generic method invocation at the moment.
-    if (node.arguments.types.isNotEmpty) {
+    if (node.arguments.types.isNotEmpty && !enableConstFunctions) {
       return createInvalidExpressionConstant(node, "generic method invocation");
     }
 
     // We have no support for method invocation with named arguments at the
     // moment.
-    if (node.arguments.named.isNotEmpty) {
+    if (node.arguments.named.isNotEmpty && !enableConstFunctions) {
       return createInvalidExpressionConstant(
           node, "method invocation with named arguments");
     }
 
-    final Constant receiver = _evaluateSubexpression(node.receiver);
-    if (receiver is AbortConstant) return receiver;
     final List<Constant> arguments =
         _evaluatePositionalArguments(node.arguments);
 
@@ -2124,6 +2137,36 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     }
     assert(_gotError == null);
     assert(arguments != null);
+
+    final Constant receiver = _evaluateSubexpression(node.receiver);
+    if (receiver is AbortConstant) {
+      return receiver;
+    } else if (enableConstFunctions &&
+        receiver is IntermediateValue &&
+        receiver.value is FunctionNode) {
+      // Evaluate type arguments of the method invoked.
+      List<DartType> types = _evaluateTypeArguments(node, node.arguments);
+      if (types == null && _gotError != null) {
+        AbortConstant error = _gotError;
+        _gotError = null;
+        return error;
+      }
+      assert(_gotError == null);
+      assert(types != null);
+
+      // Evaluate named arguments of the method invoked.
+      final Map<String, Constant> named =
+          _evaluateNamedArguments(node.arguments);
+      if (named == null && _gotError != null) {
+        AbortConstant error = _gotError;
+        _gotError = null;
+        return error;
+      }
+      assert(_gotError == null);
+      assert(named != null);
+
+      return _handleFunctionInvocation(receiver.value, types, arguments, named);
+    }
 
     if (shouldBeUnevaluated) {
       return unevaluated(
@@ -2697,7 +2740,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     } else if (target.isExtensionMember) {
       return createErrorConstant(node, messageConstEvalExtension);
     } else if (enableConstFunctions && target.kind == ProcedureKind.Method) {
-      return _handleStaticInvocation(node, typeArguments, positionals, named);
+      return _handleFunctionInvocation(
+          node.target.function, typeArguments, positionals, named);
     }
 
     String name = target.name.text;
@@ -2711,14 +2755,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     return createInvalidExpressionConstant(node, "Invocation of $name");
   }
 
-  Constant _handleStaticInvocation(
-      StaticInvocation node,
+  Constant _handleFunctionInvocation(
+      FunctionNode function,
       List<DartType> typeArguments,
       List<Constant> positionalArguments,
       Map<String, Constant> namedArguments) {
     return withNewEnvironment(() {
-      final FunctionNode function = node.target.function;
-
       // Map arguments from caller to callee.
       for (int i = 0; i < function.typeParameters.length; i++) {
         env.addTypeParameterValue(function.typeParameters[i], typeArguments[i]);

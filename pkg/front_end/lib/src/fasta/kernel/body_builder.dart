@@ -2220,7 +2220,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       VariableBuilder variableBuilder = declaration;
       if (constantContext != ConstantContext.none &&
           !variableBuilder.isConst &&
-          !member.isConstructor) {
+          !member.isConstructor &&
+          !enableConstFunctionsInLibrary) {
         return new IncompleteErrorGenerator(
             this, token, fasta.messageNotAConstantExpression);
       }
