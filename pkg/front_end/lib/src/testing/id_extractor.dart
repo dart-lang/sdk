@@ -636,4 +636,10 @@ abstract class DataExtractor<T> extends Visitor<void>
     computeForNode(node, computeDefaultNodeId(node));
     return super.visitLogicalExpression(node);
   }
+
+  @override
+  visitInvalidExpression(InvalidExpression node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    return super.visitInvalidExpression(node);
+  }
 }
