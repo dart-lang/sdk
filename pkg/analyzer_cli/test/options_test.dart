@@ -4,12 +4,17 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/experiments_impl.dart'
     show overrideKnownFeatures;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
+import 'package:args/args.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -61,12 +66,14 @@ void main() {
         expect(options.disableCacheFlushing, isFalse);
         expect(options.disableHints, isFalse);
         expect(options.enabledExperiments, isEmpty);
-        expect(options.lints, isFalse);
+        expect(options.lints, isNull);
         expect(options.displayVersion, isFalse);
         expect(options.infosAreFatal, isFalse);
         expect(options.ignoreUnrecognizedFlags, isFalse);
+        expect(options.implicitCasts, isNull);
         expect(options.log, isFalse);
         expect(options.machineFormat, isFalse);
+        expect(options.noImplicitDynamic, isNull);
         expect(options.batchMode, isFalse);
         expect(options.showPackageWarnings, isFalse);
         expect(options.showSdkWarnings, isFalse);
@@ -293,6 +300,360 @@ class AbstractStatusTest {
     errorSink = savedErrorSink;
     exitCode = savedExitCode;
     exitHandler = savedExitHandler;
+  }
+}
+
+@reflectiveTest
+class ArgumentsTest with ResourceProviderMixin {
+  CommandLineOptions commandLineOptions;
+  String failureMessage;
+
+  void test_dartSdkSummaryPath() {
+    var expected = 'my_sdk.summary';
+    _parse(['--dart-sdk-summary=$expected', 'a.dart']);
+
+    var builderOptions = commandLineOptions.contextBuilderOptions;
+    expect(
+      builderOptions.dartSdkSummaryPath,
+      endsWith(expected),
+    );
+  }
+
+  void test_declaredVariables() {
+    _parse(['-Da=0', '-Db=', 'a.dart']);
+
+    var options = commandLineOptions.contextBuilderOptions;
+    var definedVariables = options.declaredVariables;
+
+    expect(definedVariables['a'], '0');
+    expect(definedVariables['b'], '');
+    expect(definedVariables['c'], isNull);
+  }
+
+  void test_defaultAnalysisOptionsFilePath() {
+    var expected = 'my_options.yaml';
+    _parse(['--options=$expected', 'a.dart']);
+
+    var builderOptions = commandLineOptions.contextBuilderOptions;
+    expect(
+      builderOptions.defaultAnalysisOptionsFilePath,
+      endsWith(expected),
+    );
+  }
+
+  void test_defaultPackageFilePath() {
+    var expected = 'my_package_config.json';
+    _parse(['--packages=$expected', 'a.dart']);
+
+    var builderOptions = commandLineOptions.contextBuilderOptions;
+    expect(
+      builderOptions.defaultPackageFilePath,
+      endsWith(expected),
+    );
+  }
+
+  void test_defaults() {
+    _parse(['a.dart']);
+    var builderOptions = commandLineOptions.contextBuilderOptions;
+    expect(builderOptions, isNotNull);
+    expect(builderOptions.dartSdkSummaryPath, isNull);
+    expect(builderOptions.declaredVariables, isEmpty);
+    expect(builderOptions.defaultAnalysisOptionsFilePath, isNull);
+    expect(builderOptions.defaultPackageFilePath, isNull);
+  }
+
+  void test_filterUnknownArguments() {
+    var args = ['--a', '--b', '--c=0', '--d=1', '-Da=b', '-e=2', '-f', 'bar'];
+    var parser = ArgParser();
+    parser.addFlag('a');
+    parser.addOption('c');
+    parser.addOption('ee', abbr: 'e');
+    parser.addFlag('ff', abbr: 'f');
+    var result = CommandLineOptions.filterUnknownArguments(args, parser);
+    expect(
+      result,
+      orderedEquals(['--a', '--c=0', '-Da=b', '-e=2', '-f', 'bar']),
+    );
+  }
+
+  void test_preprocessArgs_noReplacement() {
+    var original = <String>['--xx' '--yy' 'baz'];
+    var result = CommandLineOptions.preprocessArgs(resourceProvider, original);
+    expect(result, orderedEquals(original));
+    expect(identical(original, result), isFalse);
+  }
+
+  void test_preprocessArgs_replacement_exists() {
+    var filePath = convertPath('/args.txt');
+    newFile(filePath, content: '''
+-a
+--xx
+
+foo
+bar
+''');
+    var result = CommandLineOptions.preprocessArgs(
+        resourceProvider, ['--preserved', '@$filePath']);
+    expect(result, orderedEquals(['--preserved', '-a', '--xx', 'foo', 'bar']));
+  }
+
+  void test_preprocessArgs_replacement_nonexistent() {
+    var filePath = convertPath('/args.txt');
+    var args = <String>['ignored', '@$filePath'];
+    try {
+      CommandLineOptions.preprocessArgs(resourceProvider, args);
+      fail('Expect exception');
+    } on Exception catch (e) {
+      expect(e.toString(), contains('Failed to read file'));
+      expect(e.toString(), contains('@$filePath'));
+    }
+  }
+
+  void test_preprocessArgs_replacement_notLast() {
+    var filePath = convertPath('/args.txt');
+    var args = <String>['a', '@$filePath', 'b'];
+    var result = CommandLineOptions.preprocessArgs(resourceProvider, args);
+    expect(result, orderedEquals(args));
+  }
+
+  void test_updateAnalysisOptions_defaultLanguageVersion() {
+    _applyAnalysisOptions(
+      ['a.dart'],
+      (analysisOptions) {},
+      (analysisOptions) {
+        expect(
+          analysisOptions.nonPackageLanguageVersion,
+          ExperimentStatus.currentVersion,
+        );
+        var featureSet = analysisOptions.nonPackageFeatureSet;
+        expect(featureSet.isEnabled(Feature.non_nullable), isTrue);
+      },
+    );
+
+    _applyAnalysisOptions(
+      ['--default-language-version=2.7', 'a.dart'],
+      (analysisOptions) {},
+      (analysisOptions) {
+        expect(
+          analysisOptions.nonPackageLanguageVersion,
+          Version.parse('2.7.0'),
+        );
+        var featureSet = analysisOptions.nonPackageFeatureSet;
+        expect(featureSet.isEnabled(Feature.non_nullable), isFalse);
+      },
+    );
+  }
+
+  void test_updateAnalysisOptions_enableExperiment() {
+    var feature_a = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
+    );
+
+    var feature_b = ExperimentalFeature(
+      index: 1,
+      enableString: 'a',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
+    );
+
+    FeatureSet featuresWithExperiments(List<String> experiments) {
+      return FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.currentVersion,
+        flags: experiments,
+      );
+    }
+
+    overrideKnownFeatures({'a': feature_a, 'b': feature_b}, () {
+      // Replace.
+      _applyAnalysisOptions(
+        ['--enable-experiment=b', 'a.dart'],
+        (analysisOptions) {
+          analysisOptions.contextFeatures = featuresWithExperiments(['a']);
+        },
+        (analysisOptions) {
+          var featureSet = analysisOptions.contextFeatures;
+          expect(featureSet.isEnabled(feature_a), isFalse);
+          expect(featureSet.isEnabled(feature_b), isTrue);
+        },
+      );
+
+      // Don't change if not provided.
+      _applyAnalysisOptions(
+        ['a.dart'],
+        (analysisOptions) {
+          analysisOptions.contextFeatures = featuresWithExperiments(['a']);
+        },
+        (analysisOptions) {
+          var featureSet = analysisOptions.contextFeatures;
+          expect(featureSet.isEnabled(feature_a), isTrue);
+          expect(featureSet.isEnabled(feature_b), isFalse);
+        },
+      );
+    });
+  }
+
+  void test_updateAnalysisOptions_implicitCasts() {
+    // Turn on.
+    _applyAnalysisOptions(
+      ['--implicit-casts', 'a.dart'],
+      (analysisOptions) {
+        analysisOptions.implicitCasts = false;
+      },
+      (analysisOptions) {
+        expect(analysisOptions.implicitCasts, isTrue);
+      },
+    );
+
+    // Turn off.
+    _applyAnalysisOptions(
+      ['--no-implicit-casts', 'a.dart'],
+      (analysisOptions) {
+        analysisOptions.implicitCasts = true;
+      },
+      (analysisOptions) {
+        expect(analysisOptions.implicitCasts, isFalse);
+      },
+    );
+
+    // Don't change if not provided, false.
+    _applyAnalysisOptions(
+      ['a.dart'],
+      (analysisOptions) {
+        analysisOptions.implicitCasts = false;
+      },
+      (analysisOptions) {
+        expect(analysisOptions.implicitCasts, isFalse);
+      },
+    );
+
+    // Don't change if not provided, true.
+    _applyAnalysisOptions(
+      ['a.dart'],
+      (analysisOptions) {
+        analysisOptions.implicitCasts = true;
+      },
+      (analysisOptions) {
+        expect(analysisOptions.implicitCasts, isTrue);
+      },
+    );
+  }
+
+  void test_updateAnalysisOptions_lints() {
+    // Turn lints on.
+    _applyAnalysisOptions(
+      ['--lints', 'a.dart'],
+      (analysisOptions) {
+        analysisOptions.lint = false;
+      },
+      (analysisOptions) {
+        expect(analysisOptions.lint, isTrue);
+      },
+    );
+
+    // Turn lints off.
+    _applyAnalysisOptions(
+      ['--no-lints', 'a.dart'],
+      (analysisOptions) {
+        analysisOptions.lint = true;
+      },
+      (analysisOptions) {
+        expect(analysisOptions.lint, isFalse);
+      },
+    );
+
+    // Don't change if not provided, false.
+    _applyAnalysisOptions(
+      ['a.dart'],
+      (analysisOptions) {
+        analysisOptions.lint = false;
+      },
+      (analysisOptions) {
+        expect(analysisOptions.lint, isFalse);
+      },
+    );
+
+    // Don't change if not provided, true.
+    _applyAnalysisOptions(
+      ['a.dart'],
+      (analysisOptions) {
+        analysisOptions.lint = true;
+      },
+      (analysisOptions) {
+        expect(analysisOptions.lint, isTrue);
+      },
+    );
+  }
+
+  void test_updateAnalysisOptions_noImplicitDynamic() {
+    _applyAnalysisOptions(
+      ['--no-implicit-dynamic', 'a.dart'],
+      (analysisOptions) {
+        analysisOptions.implicitDynamic = true;
+      },
+      (analysisOptions) {
+        expect(analysisOptions.implicitDynamic, isFalse);
+      },
+    );
+
+    // Don't change if not provided, false.
+    _applyAnalysisOptions(
+      ['a.dart'],
+      (analysisOptions) {
+        analysisOptions.implicitDynamic = false;
+      },
+      (analysisOptions) {
+        expect(analysisOptions.implicitDynamic, isFalse);
+      },
+    );
+
+    // Don't change if not provided, true.
+    _applyAnalysisOptions(
+      ['a.dart'],
+      (analysisOptions) {
+        analysisOptions.implicitDynamic = true;
+      },
+      (analysisOptions) {
+        expect(analysisOptions.implicitDynamic, isTrue);
+      },
+    );
+  }
+
+  void _applyAnalysisOptions(
+    List<String> args,
+    void Function(AnalysisOptionsImpl) configureInitial,
+    void Function(AnalysisOptionsImpl) checkApplied,
+  ) {
+    _parse(args);
+    expect(commandLineOptions, isNotNull);
+
+    var analysisOptions = AnalysisOptionsImpl();
+    configureInitial(analysisOptions);
+
+    commandLineOptions.updateAnalysisOptions(analysisOptions);
+    checkApplied(analysisOptions);
+  }
+
+  void _parse(List<String> args, {bool ignoreUnrecognized = true}) {
+    var resourceProvider = PhysicalResourceProvider.INSTANCE;
+    commandLineOptions = CommandLineOptions.parse(
+      resourceProvider,
+      [
+        if (ignoreUnrecognized) '--ignore-unrecognized-flags',
+        ...args,
+      ],
+      printAndFail: (msg) {
+        failureMessage = msg;
+      },
+    );
   }
 }
 

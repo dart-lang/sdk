@@ -5,14 +5,11 @@
 import 'dart:io' as io;
 import 'dart:isolate';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/command_line/arguments.dart'
-    show applyAnalysisOptionFlags;
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -43,7 +40,6 @@ import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
 import 'package:linter/src/rules.dart' as linter;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
-import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 /// Shared IO sink for standard error reporting.
@@ -592,16 +588,6 @@ class _AnalysisContextProvider {
   }
 
   void _updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
-    var args = _commandLineOptions.contextBuilderOptions.argResults;
-    applyAnalysisOptionFlags(analysisOptions, args);
-
-    var defaultLanguageVersion = _commandLineOptions.defaultLanguageVersion;
-    if (defaultLanguageVersion != null) {
-      var nonPackageLanguageVersion =
-          Version.parse('$defaultLanguageVersion.0');
-      analysisOptions.nonPackageLanguageVersion = nonPackageLanguageVersion;
-      analysisOptions.nonPackageFeatureSet = FeatureSet.latestLanguageVersion()
-          .restrictToVersion(nonPackageLanguageVersion);
-    }
+    _commandLineOptions.updateAnalysisOptions(analysisOptions);
   }
 }
