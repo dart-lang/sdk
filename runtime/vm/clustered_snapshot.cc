@@ -483,7 +483,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
 // types in a special way). In this case subclass can set
 // kAllCanonicalObjectsAreIncludedIntoSet to |false| and override
 // IsInCanonicalSet filter.
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_COMPRESSED_POINTERS)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 template <typename SetType,
           typename HandleType,
           typename PointerType,
@@ -5732,7 +5732,7 @@ class ProgramSerializationRoots : public SerializationRoots {
         saved_canonical_type_arguments_(Array::Handle()),
         saved_canonical_type_parameters_(Array::Handle()) {
     saved_symbol_table_ = object_store->symbol_table();
-    if (Snapshot::IncludesCode(snapshot_kind)) {
+    if (Snapshot::IncludesStringsInROData(snapshot_kind)) {
       object_store->set_symbol_table(
           Array::Handle(HashTables::New<CanonicalStringSet>(4)));
     } else {
@@ -6634,7 +6634,8 @@ void Serializer::Trace(ObjectPtr object) {
     cid = object->GetClassId();
     is_canonical = object->untag()->IsCanonical();
   }
-  if (Snapshot::IncludesCode(kind_) && is_canonical && IsStringClassId(cid) &&
+  if (Snapshot::IncludesStringsInROData(kind_) && is_canonical &&
+      IsStringClassId(cid) &&
       current_loading_unit_id_ <= LoadingUnit::kRootId) {
     cid = kStringCid;
   }
@@ -7698,7 +7699,7 @@ ZoneGrowableArray<Object*>* FullSnapshotWriter::WriteVMSnapshot() {
   serializer.WriteVersionAndFeatures(true);
   VMSerializationRoots roots(
       Array::Handle(Dart::vm_isolate_group()->object_store()->symbol_table()),
-      /*should_write_symbols=*/!Snapshot::IncludesCode(kind_));
+      /*should_write_symbols=*/!Snapshot::IncludesStringsInROData(kind_));
   ZoneGrowableArray<Object*>* objects = serializer.Serialize(&roots);
   serializer.FillHeader(serializer.kind());
   clustered_vm_size_ = serializer.bytes_written();
