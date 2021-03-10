@@ -18,7 +18,6 @@
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_printer.h"
-#include "vm/compiler/backend/il_serializer.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/range_analysis.h"
@@ -86,17 +85,6 @@ DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
 DECLARE_FLAG(bool, print_instruction_stats);
-
-DEFINE_FLAG(charp,
-            serialize_flow_graphs_to,
-            nullptr,
-            "Serialize flow graphs to the given file");
-
-DEFINE_FLAG(bool,
-            populate_llvm_constant_pool,
-            false,
-            "Add constant pool entries from flow graphs to a special pool "
-            "serialized in AOT snapshots (with --serialize_flow_graphs_to)");
 
 Precompiler* Precompiler::singleton_ = nullptr;
 
@@ -234,8 +222,7 @@ Precompiler::Precompiler(Thread* thread)
       consts_to_retain_(),
       seen_table_selectors_(),
       error_(Error::Handle()),
-      get_runtime_type_is_unique_(false),
-      il_serialization_stream_(nullptr) {
+      get_runtime_type_is_unique_(false) {
   ASSERT(Precompiler::singleton_ == NULL);
   Precompiler::singleton_ = this;
 }
@@ -306,32 +293,6 @@ void Precompiler::DoCompileAll() {
 
       ClassFinalizer::ClearAllCode(
           /*including_nonchanging_cids=*/FLAG_use_bare_instructions);
-
-      // After this point, it should be safe to serialize flow graphs produced
-      // during compilation and add constants to the LLVM constant pool.
-      //
-      // Check that both the file open and write callbacks are available, though
-      // we only use the latter during IL processing.
-      if (FLAG_serialize_flow_graphs_to != nullptr &&
-          Dart::file_write_callback() != nullptr) {
-        if (auto file_open = Dart::file_open_callback()) {
-          auto file = file_open(FLAG_serialize_flow_graphs_to, /*write=*/true);
-          set_il_serialization_stream(file);
-        }
-        if (FLAG_populate_llvm_constant_pool) {
-          auto const object_store = IG->object_store();
-          auto& llvm_constants = GrowableObjectArray::Handle(
-              Z, GrowableObjectArray::New(16, Heap::kOld));
-          auto& llvm_functions = GrowableObjectArray::Handle(
-              Z, GrowableObjectArray::New(16, Heap::kOld));
-          auto& llvm_constant_hash_table = Array::Handle(
-              Z, HashTables::New<FlowGraphSerializer::LLVMPoolMap>(16,
-                                                                   Heap::kOld));
-          object_store->set_llvm_constant_pool(llvm_constants);
-          object_store->set_llvm_function_pool(llvm_functions);
-          object_store->set_llvm_constant_hash_table(llvm_constant_hash_table);
-        }
-      }
 
       tracer_ = PrecompilerTracer::StartTracingIfRequested(this);
 
@@ -409,45 +370,6 @@ void Precompiler::DoCompileAll() {
         if (FLAG_print_gop) {
           THR_Print("Global object pool:\n");
           pool.DebugPrint();
-        }
-      }
-
-      if (FLAG_serialize_flow_graphs_to != nullptr &&
-          Dart::file_write_callback() != nullptr) {
-        if (auto file_close = Dart::file_close_callback()) {
-          file_close(il_serialization_stream());
-        }
-        set_il_serialization_stream(nullptr);
-        if (FLAG_populate_llvm_constant_pool) {
-          // We don't want the Array backing for any mappings in the snapshot,
-          // only the pools themselves.
-          IG->object_store()->set_llvm_constant_hash_table(Array::null_array());
-
-          // Keep any functions, classes, etc. referenced from the LLVM pools,
-          // even if they could have been dropped due to not being otherwise
-          // needed at runtime.
-          const auto& constant_pool = GrowableObjectArray::Handle(
-              Z, IG->object_store()->llvm_constant_pool());
-          auto& object = Object::Handle(Z);
-          for (intptr_t i = 0; i < constant_pool.Length(); i++) {
-            object = constant_pool.At(i);
-            if (object.IsNull()) continue;
-            if (object.IsInstance()) {
-              AddConstObject(Instance::Cast(object));
-            } else if (object.IsField()) {
-              AddField(Field::Cast(object));
-            } else if (object.IsFunction()) {
-              AddFunction(Function::Cast(object), RetainReasons::kLLVMPool);
-            }
-          }
-
-          const auto& function_pool = GrowableObjectArray::Handle(
-              Z, IG->object_store()->llvm_function_pool());
-          auto& function = Function::Handle(Z);
-          for (intptr_t i = 0; i < function_pool.Length(); i++) {
-            function ^= function_pool.At(i);
-            AddFunction(function, RetainReasons::kLLVMPool);
-          }
         }
       }
 

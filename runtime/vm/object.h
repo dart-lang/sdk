@@ -2256,8 +2256,6 @@ class ICData : public CallSiteData {
   }
 
  private:
-  friend class FlowGraphSerializer;  // For is_megamorphic()
-
   static ICDataPtr New();
 
   // Grows the array and also sets the argument to the index that should be used

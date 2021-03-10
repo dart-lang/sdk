@@ -44,9 +44,7 @@ namespace dart {
   V(OptimizeTypedDataAccesses)                                                 \
   V(RangeAnalysis)                                                             \
   V(ReorderBlocks)                                                             \
-  V(RoundTripSerialization)                                                    \
   V(SelectRepresentations)                                                     \
-  V(SerializeGraph)                                                            \
   V(SetOuterInliningId)                                                        \
   V(TryCatchOptimization)                                                      \
   V(TryOptimizePatterns)                                                       \
