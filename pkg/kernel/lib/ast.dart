@@ -4677,7 +4677,7 @@ class SuperPropertySet extends Expression {
 
   Reference? interfaceTargetReference;
 
-  SuperPropertySet(Name name, Expression value, Member interfaceTarget)
+  SuperPropertySet(Name name, Expression value, Member? interfaceTarget)
       : this.byReference(
             name, value, getMemberReferenceSetter(interfaceTarget));
 

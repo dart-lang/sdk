@@ -6,11 +6,7 @@
 
 library fasta.test.text_serialization_test;
 
-import 'dart:io' show Platform;
-
 import 'testing/suite.dart';
-
-const int shardCount = 4;
 
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
@@ -26,8 +22,5 @@ main(List<String> arguments) {
 internalMain(
     {List<String> arguments = const [], int shards = 1, int shard = 0}) {
   runMe(arguments, createContext,
-      configurationPath: "../../testing.json",
-      me: Platform.script.resolve('text_serialization_tester.dart'),
-      shards: shards,
-      shard: shard);
+      configurationPath: "../../testing.json", shards: shards, shard: shard);
 }

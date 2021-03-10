@@ -23,7 +23,7 @@ import 'fasta/incremental_dartino_suite.dart' as incremental_dartino
 import 'fasta/messages_suite.dart' as messages show createContext;
 import 'fasta/outline_suite.dart' as outline show createContext;
 import 'fasta/strong_suite.dart' as strong show createContext;
-import 'fasta/text_serialization_tester.dart' as text_serialization
+import 'fasta/text_serialization_suite.dart' as text_serialization
     show createContext;
 import 'fasta/textual_outline_suite.dart' as textual_outline show createContext;
 import 'fasta/weak_suite.dart' as weak show createContext;
@@ -349,7 +349,7 @@ const List<Suite> suites = [
     "fasta/text_serialization",
     text_serialization.createContext,
     "../../testing.json",
-    path: "fasta/text_serialization_tester.dart",
+    path: "fasta/text_serialization_suite.dart",
     shardCount: 10,
   ),
   const Suite(
