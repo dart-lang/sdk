@@ -568,7 +568,7 @@ import 'a.dart';
   }
 
   test_removeFilesNotNecessaryForAnalysisOf_multiple() async {
-    var bPath = '/workspace/dart/aaa/lib/b.dart';
+    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
     var dPath = convertPath('/workspace/dart/aaa/lib/d.dart');
     var ePath = convertPath('/workspace/dart/aaa/lib/e.dart');
     var fPath = convertPath('/workspace/dart/aaa/lib/f.dart');
