@@ -1314,7 +1314,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             sourceFactory,
             libraryContext.isLibraryUri,
             libraryContext.analysisContext,
-            libraryContext.elementFactory,
+            libraryContext.elementFactory.libraryOfUri2(library.uriStr),
             libraryContext.analysisSession.inheritanceManager,
             library,
             testingData: testingData);
@@ -1404,7 +1404,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           sourceFactory,
           libraryContext.isLibraryUri,
           libraryContext.analysisContext,
-          libraryContext.elementFactory,
+          libraryContext.elementFactory.libraryOfUri2(library.uriStr),
           libraryContext.analysisSession.inheritanceManager,
           library,
           testingData: testingData);
