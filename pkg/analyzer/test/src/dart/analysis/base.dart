@@ -39,7 +39,6 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   final List<ExceptionResult> allExceptions = <ExceptionResult>[];
 
   late final String testProject;
-  late final String testProject2;
   late final String testFile;
   late final String testCode;
 
@@ -139,7 +138,6 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   void setUp() {
     sdk = MockSdk(resourceProvider: resourceProvider);
     testProject = convertPath('/test');
-    testProject2 = convertPath('/test/lib');
     testFile = convertPath('/test/lib/test.dart');
     logger = PerformanceLog(logBuffer);
     scheduler = AnalysisDriverScheduler(logger);
