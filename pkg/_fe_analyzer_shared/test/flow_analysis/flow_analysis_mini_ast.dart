@@ -1640,7 +1640,6 @@ class _TryFinally extends Statement {
   final List<Statement> body;
   final List<Statement> finally_;
   final Node _bodyNode = Node._();
-  final Node _finallyNode = Node._();
 
   _TryFinally(this.body, this.finally_) : super._();
 
@@ -1662,7 +1661,7 @@ class _TryFinally extends Statement {
     body._visit(h, flow);
     flow.tryFinallyStatement_finallyBegin(_bodyNode);
     finally_._visit(h, flow);
-    flow.tryFinallyStatement_end(_finallyNode);
+    flow.tryFinallyStatement_end();
   }
 }
 

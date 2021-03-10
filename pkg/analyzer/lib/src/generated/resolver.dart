@@ -2055,7 +2055,7 @@ class ResolverVisitor extends ScopedVisitor {
       flow.tryFinallyStatement_finallyBegin(
           catchClauses.isNotEmpty ? node : body);
       finallyBlock.accept(this);
-      flow.tryFinallyStatement_end(finallyBlock);
+      flow.tryFinallyStatement_end();
     }
   }
 
