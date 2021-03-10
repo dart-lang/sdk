@@ -232,11 +232,6 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
             '{${_info.keys.map((k) => '$k (${k.hashCode})').join(',')}}'));
   }
 
-  /// Indicates whether information is stored for the given [node].
-  bool _hasInfoForNode(Node node) {
-    return _info[node] != null;
-  }
-
   void _printOn(StringBuffer sb) {
     sb.write('_info=$_info,');
     sb.write('_stack=$_stack,');
@@ -894,11 +889,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Call this method just after visiting a "try/finally" statement.
   /// See [tryFinallyStatement_bodyBegin] for details.
-  ///
-  /// [finallyBlock] should be the same node that was passed to
-  /// [AssignedVariables.endNode] for the "finally" part of the try/finally
-  /// statement.
-  void tryFinallyStatement_end(Node finallyBlock);
+  void tryFinallyStatement_end();
 
   /// Call this method just before visiting the finally block of a "try/finally"
   /// statement.  See [tryFinallyStatement_bodyBegin] for details.
@@ -1439,9 +1430,9 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void tryFinallyStatement_end(Node finallyBlock) {
-    return _wrap('tryFinallyStatement_end($finallyBlock)',
-        () => _wrapped.tryFinallyStatement_end(finallyBlock));
+  void tryFinallyStatement_end() {
+    return _wrap(
+        'tryFinallyStatement_end()', () => _wrapped.tryFinallyStatement_end());
   }
 
   @override
@@ -4095,10 +4086,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void tryFinallyStatement_end(Node finallyBlock) {
-    // We used to need info for `finally` blocks but we don't anymore.
-    assert(!_assignedVariables._hasInfoForNode(finallyBlock),
-        'No assigned variables info should have been stored for $finallyBlock');
+  void tryFinallyStatement_end() {
     _TryFinallyContext<Variable, Type> context =
         _stack.removeLast() as _TryFinallyContext<Variable, Type>;
     _current = context._afterBodyAndCatches!
@@ -4741,7 +4729,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void tryFinallyStatement_bodyBegin() {}
 
   @override
-  void tryFinallyStatement_end(Node finallyBlock) {}
+  void tryFinallyStatement_end() {}
 
   @override
   void tryFinallyStatement_finallyBegin(Node body) {}

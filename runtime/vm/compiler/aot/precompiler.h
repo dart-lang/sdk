@@ -250,8 +250,6 @@ class Precompiler : public ValueObject {
     return dispatch_table_generator_->selector_map();
   }
 
-  void* il_serialization_stream() const { return il_serialization_stream_; }
-
   static Precompiler* Instance() { return singleton_; }
 
   void AddField(const Field& field);
@@ -348,10 +346,6 @@ class Precompiler : public ValueObject {
 
   void FinalizeAllClasses();
 
-  void set_il_serialization_stream(void* file) {
-    il_serialization_stream_ = file;
-  }
-
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
   Isolate* isolate() const { return isolate_; }
@@ -431,7 +425,6 @@ class Precompiler : public ValueObject {
   compiler::DispatchTableGenerator* dispatch_table_generator_;
 
   bool get_runtime_type_is_unique_;
-  void* il_serialization_stream_;
 
   Phase phase_ = Phase::kPreparation;
   PrecompilerTracer* tracer_ = nullptr;

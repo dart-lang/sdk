@@ -6325,7 +6325,7 @@ class InferenceVisitor
       inferrer.flowAnalysis.tryFinallyStatement_finallyBegin(
           node.catchBlocks.isNotEmpty ? node : tryBodyWithAssignedInfo);
       finalizerResult = inferrer.inferStatement(node.finallyBlock);
-      inferrer.flowAnalysis.tryFinallyStatement_end(node.finallyBlock);
+      inferrer.flowAnalysis.tryFinallyStatement_end();
     }
     Statement result =
         tryBlockResult.hasChanged ? tryBlockResult.statement : node.tryBlock;
