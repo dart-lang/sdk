@@ -102,6 +102,52 @@ Precompiler* Precompiler::singleton_ = nullptr;
 
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
+// Reasons for retaining a given object.
+struct RetainReasons : public AllStatic {
+  // The LLVM pools are active and the object appears in one of them.
+  static constexpr const char* kLLVMPool = "llvm pool";
+  // The object is an invoke field dispatcher.
+  static constexpr const char* kInvokeFieldDispatcher =
+      "invoke field dispatcher";
+  // The object is a dynamic invocation forwarder.
+  static constexpr const char* kDynamicInvocationForwarder =
+      "dynamic invocation forwarder";
+  // The object is a method extractor.
+  static constexpr const char* kMethodExtractor = "method extractor";
+  // The object is for a compiled implicit closure.
+  static constexpr const char* kImplicitClosure = "implicit closure";
+  // The object is a local closure.
+  static constexpr const char* kLocalClosure = "local closure";
+  // The object is the initializer for a static field.
+  static constexpr const char* kStaticFieldInitializer =
+      "static field initializer";
+  // The object is the initializer for a late field.
+  static constexpr const char* kLateFieldInitializer = "late field initializer";
+  // The object is an implicit getter.
+  static constexpr const char* kImplicitGetter = "implicit getter";
+  // The object is an implicit setter.
+  static constexpr const char* kImplicitSetter = "implicit setter";
+  // The object is an implicit static getter.
+  static constexpr const char* kImplicitStaticGetter = "implicit static getter";
+  // The object is a function that is called through a getter method.
+  static constexpr const char* kCalledThroughGetter = "called through getter";
+  // The object is a function that is called via selector.
+  static constexpr const char* kCalledViaSelector = "called via selector";
+  // The object is a function and the flag --retain-function-objects is enabled.
+  static constexpr const char* kForcedRetain = "forced via flag";
+  // The object is a function and symbolic stack traces are enabled.
+  static constexpr const char* kSymbolicStackTraces =
+      "needed for symbolic stack traces";
+  // The object is a function that is only used via its implicit closure
+  // function, into which it was inlined.
+  static constexpr const char* kInlinedIntoICF =
+      "inlined into implicit closure function";
+  // The object is a parent function function of a non-inlined local function.
+  static constexpr const char* kLocalParent = "parent of a local function";
+  // The object has an entry point pragma that requires it be retained.
+  static constexpr const char* kEntryPointPragma = "entry point pragma";
+};
+
 class PrecompileParsedFunctionHelper : public ValueObject {
  public:
   PrecompileParsedFunctionHelper(Precompiler* precompiler,
@@ -210,6 +256,12 @@ void Precompiler::DoCompileAll() {
   {
     StackZone stack_zone(T);
     zone_ = stack_zone.GetZone();
+
+    if (FLAG_trace_precompiler) {
+      // Set up the retained reasons map now that the precompiler has an
+      // appropriate zone.
+      retained_reasons_map_ = new (Z) RetainedReasonsMap(Z);
+    }
 
     if (FLAG_use_bare_instructions) {
       // Since we keep the object pool until the end of AOT compilation, it
@@ -385,7 +437,7 @@ void Precompiler::DoCompileAll() {
             } else if (object.IsField()) {
               AddField(Field::Cast(object));
             } else if (object.IsFunction()) {
-              AddFunction(Function::Cast(object));
+              AddFunction(Function::Cast(object), RetainReasons::kLLVMPool);
             }
           }
 
@@ -394,7 +446,7 @@ void Precompiler::DoCompileAll() {
           auto& function = Function::Handle(Z);
           for (intptr_t i = 0; i < function_pool.Length(); i++) {
             function ^= function_pool.At(i);
-            AddFunction(function);
+            AddFunction(function, RetainReasons::kLLVMPool);
           }
         }
       }
@@ -627,7 +679,7 @@ void Precompiler::CollectCallbackFields() {
                 THR_Print("Added invoke-field-dispatcher for %s to %s\n",
                           field_name.ToCString(), subcls.ToCString());
               }
-              AddFunction(dispatcher);
+              AddFunction(dispatcher, RetainReasons::kInvokeFieldDispatcher);
             }
           }
         }
@@ -680,7 +732,9 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
   for (auto& view : static_calls) {
     entry = view.Get<Code::kSCallTableFunctionTarget>();
     if (entry.IsFunction()) {
-      AddFunction(Function::Cast(entry), FLAG_retain_function_objects);
+      AddFunction(Function::Cast(entry), FLAG_retain_function_objects
+                                             ? RetainReasons::kForcedRetain
+                                             : nullptr);
       ASSERT(view.Get<Code::kSCallTableCodeOrTypeTarget>() == Code::null());
       continue;
     }
@@ -726,7 +780,7 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
         Array::Handle(Z, code.inlined_id_to_function());
     for (intptr_t i = 0; i < inlined_functions.Length(); i++) {
       target ^= inlined_functions.At(i);
-      AddTypesOf(target);
+      AddFunction(target, RetainReasons::kSymbolicStackTraces);
     }
   }
 }
@@ -770,7 +824,7 @@ void Precompiler::AddCalleesOfHelper(const Object& entry,
   } else if (entry.IsFunction()) {
     // Local closure function.
     const auto& target = Function::Cast(entry);
-    AddFunction(target);
+    AddFunction(target, RetainReasons::kLocalClosure);
   } else if (entry.IsCode()) {
     const auto& target_code = Code::Cast(entry);
     if (target_code.IsAllocationStubCode()) {
@@ -798,8 +852,26 @@ void Precompiler::AddTypesOf(const Class& cls) {
   AddType(type);
 }
 
+void Precompiler::AddRetainReason(const Object& obj, const char* reason) {
+  if (!FLAG_trace_precompiler) return;
+  if (auto const kv = retained_reasons_map_->Lookup(&obj)) {
+    if (kv->value->Lookup(reason) == nullptr) {
+      kv->value->Insert(reason);
+    }
+    return;
+  }
+  auto const key = &Object::ZoneHandle(Z, obj.ptr());
+  auto const value = new (Z) ZoneCStringSet(Z);
+  value->Insert(reason);
+  retained_reasons_map_->Insert(RetainedReasonsTrait::Pair(key, value));
+}
+
 void Precompiler::AddTypesOf(const Function& function) {
   if (function.IsNull()) return;
+  if (FLAG_trace_precompiler &&
+      retained_reasons_map_->Lookup(&function) == nullptr) {
+    FATAL("no retaining reasons given");
+  }
   if (functions_to_retain_.ContainsKey(function)) return;
   functions_to_retain_.Insert(function);
 
@@ -838,6 +910,7 @@ void Precompiler::AddTypesOf(const Function& function) {
   // remain.
   const Function& parent = Function::Handle(Z, function.parent_function());
   if (!parent.IsNull()) {
+    AddRetainReason(parent, RetainReasons::kLocalParent);
     AddTypesOf(parent);
   }
   // A class may have all functions inlined except a local function.
@@ -930,7 +1003,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
     const Function& func =
         Function::Handle(Z, Closure::Cast(instance).function());
     ASSERT(func.is_static());
-    AddFunction(func);
+    AddFunction(func, RetainReasons::kImplicitClosure);
     AddTypeArguments(TypeArguments::Handle(
         Z, Closure::Cast(instance).instantiator_type_arguments()));
     AddTypeArguments(TypeArguments::Handle(
@@ -1014,7 +1087,7 @@ void Precompiler::AddClosureCall(const String& call_selector,
                               call_selector, arguments_descriptor,
                               UntaggedFunction::kInvokeFieldDispatcher,
                               true /* create_if_absent */));
-  AddFunction(dispatcher);
+  AddFunction(dispatcher, RetainReasons::kInvokeFieldDispatcher);
 }
 
 void Precompiler::AddField(const Field& field) {
@@ -1043,11 +1116,14 @@ void Precompiler::AddField(const Field& field) {
       (field.is_static() || field.is_late())) {
     const Function& initializer =
         Function::ZoneHandle(Z, field.EnsureInitializerFunction());
-    AddFunction(initializer);
+    const char* const reason = field.is_static()
+                                   ? RetainReasons::kStaticFieldInitializer
+                                   : RetainReasons::kLateFieldInitializer;
+    AddFunction(initializer, reason);
   }
 }
 
-bool Precompiler::MustRetainFunction(const Function& function) {
+const char* Precompiler::MustRetainFunction(const Function& function) {
   // There are some cases where we must retain, even if there are no directly
   // observable need for function objects at runtime. Here, we check for cases
   // where the function is not marked with the vm:entry-point pragma, which also
@@ -1057,42 +1133,57 @@ bool Precompiler::MustRetainFunction(const Function& function) {
   // * Selector matches a symbol used in Resolver::ResolveDynamic calls
   //   in dart_entry.cc or dart_api_impl.cc.
   // * _Closure.call (used in async stack handling)
-  if (function.is_native()) return true;
+  if (function.is_native()) {
+    return "native function";
+  }
 
   // Resolver::ResolveDynamic uses.
   const auto& selector = String::Handle(Z, function.name());
-  if (selector.ptr() == Symbols::toString().ptr()) return true;
-  if (selector.ptr() == Symbols::AssignIndexToken().ptr()) return true;
-  if (selector.ptr() == Symbols::IndexToken().ptr()) return true;
-  if (selector.ptr() == Symbols::hashCode().ptr()) return true;
-  if (selector.ptr() == Symbols::NoSuchMethod().ptr()) return true;
-  if (selector.ptr() == Symbols::EqualOperator().ptr()) return true;
+  if (selector.ptr() == Symbols::toString().ptr() ||
+      selector.ptr() == Symbols::AssignIndexToken().ptr() ||
+      selector.ptr() == Symbols::IndexToken().ptr() ||
+      selector.ptr() == Symbols::hashCode().ptr() ||
+      selector.ptr() == Symbols::NoSuchMethod().ptr() ||
+      selector.ptr() == Symbols::EqualOperator().ptr()) {
+    return "used by VM in Resolver::ResolveDynamic call";
+  }
 
   // Use the same check for _Closure.call as in stack_trace.{h|cc}.
   if (selector.ptr() == Symbols::Call().ptr()) {
     const auto& name = String::Handle(Z, function.QualifiedScrubbedName());
-    if (name.Equals(Symbols::_ClosureCall())) return true;
+    if (name.Equals(Symbols::_ClosureCall())) {
+      return "_Closure.call";
+    }
   }
 
   // We have to retain functions which can be a target of a SwitchableCall
   // at AOT runtime, since the AOT runtime needs to be able to find the
   // function object in the class.
-  if (function.NeedsMonomorphicCheckedEntry(Z) ||
-      Function::IsDynamicInvocationForwarderName(function.name())) {
-    return true;
+  if (function.NeedsMonomorphicCheckedEntry(Z)) {
+    return "needs monomorphic checked entry";
+  }
+  if (Function::IsDynamicInvocationForwarderName(function.name())) {
+    return "dynamic invocation forwarder";
   }
 
-  return false;
+  return nullptr;
 }
 
-void Precompiler::AddFunction(const Function& function, bool retain) {
+void Precompiler::AddFunction(const Function& function,
+                              const char* retain_reason) {
   if (is_tracing()) {
     tracer_->WriteFunctionRef(function);
   }
 
-  if (possibly_retained_functions_.ContainsKey(function)) return;
+  if (retain_reason == nullptr) {
+    retain_reason = MustRetainFunction(function);
+  }
+  if (retain_reason != nullptr) {
+    AddRetainReason(function, retain_reason);
+  }
 
-  if (retain || MustRetainFunction(function)) {
+  if (possibly_retained_functions_.ContainsKey(function)) return;
+  if (retain_reason != nullptr) {
     possibly_retained_functions_.Insert(function);
   }
 
@@ -1251,7 +1342,7 @@ void Precompiler::AddAnnotatedRoots() {
 
           if (type == EntryPointPragma::kAlways ||
               type == EntryPointPragma::kCallOnly) {
-            AddFunction(function);
+            AddFunction(function, RetainReasons::kEntryPointPragma);
             entry_point_functions_.Insert(function);
           }
 
@@ -1260,7 +1351,7 @@ void Precompiler::AddAnnotatedRoots() {
               function.kind() != UntaggedFunction::kConstructor &&
               !function.IsSetterFunction()) {
             function2 = function.ImplicitClosureFunction();
-            AddFunction(function2);
+            AddFunction(function2, RetainReasons::kEntryPointPragma);
             entry_point_functions_.Insert(function2);
           }
 
@@ -1274,7 +1365,7 @@ void Precompiler::AddAnnotatedRoots() {
           for (intptr_t i = 0; i < implicit_getters.Length(); ++i) {
             field ^= implicit_getters.At(i);
             if (function.accessor_field() == field.ptr()) {
-              AddFunction(function);
+              AddFunction(function, RetainReasons::kImplicitGetter);
               entry_point_functions_.Insert(function);
             }
           }
@@ -1284,7 +1375,7 @@ void Precompiler::AddAnnotatedRoots() {
           for (intptr_t i = 0; i < implicit_setters.Length(); ++i) {
             field ^= implicit_setters.At(i);
             if (function.accessor_field() == field.ptr()) {
-              AddFunction(function);
+              AddFunction(function, RetainReasons::kImplicitSetter);
               entry_point_functions_.Insert(function);
             }
           }
@@ -1294,7 +1385,7 @@ void Precompiler::AddAnnotatedRoots() {
           for (intptr_t i = 0; i < implicit_static_getters.Length(); ++i) {
             field ^= implicit_static_getters.At(i);
             if (function.accessor_field() == field.ptr()) {
-              AddFunction(function);
+              AddFunction(function, RetainReasons::kImplicitStaticGetter);
               entry_point_functions_.Insert(function);
             }
           }
@@ -1339,10 +1430,12 @@ void Precompiler::CheckForNewDynamicFunctions() {
 
         selector = function.name();
         if (IsSent(selector)) {
-          AddFunction(function);
+          AddFunction(function, RetainReasons::kCalledViaSelector);
         }
         if (IsHitByTableSelector(function)) {
-          AddFunction(function, FLAG_retain_function_objects);
+          AddFunction(function, FLAG_retain_function_objects
+                                    ? RetainReasons::kForcedRetain
+                                    : nullptr);
         }
 
         bool found_metadata = false;
@@ -1359,14 +1452,14 @@ void Precompiler::CheckForNewDynamicFunctions() {
           // method foo first.
           selector2 = Field::NameFromGetter(selector);
           if (IsSent(selector2)) {
-            AddFunction(function);
+            AddFunction(function, RetainReasons::kCalledThroughGetter);
           }
           selector2 = Function::CreateDynamicInvocationForwarderName(selector2);
           if (IsSent(selector2)) {
             selector2 =
                 Function::CreateDynamicInvocationForwarderName(selector);
             function2 = function.GetDynamicInvocationForwarder(selector2);
-            AddFunction(function2);
+            AddFunction(function2, RetainReasons::kDynamicInvocationForwarder);
           }
         } else if (function.kind() == UntaggedFunction::kRegularFunction) {
           selector2 = Field::LookupGetterSymbol(selector);
@@ -1383,11 +1476,11 @@ void Precompiler::CheckForNewDynamicFunctions() {
               // Closurization.
               // Function is foo and somewhere get:foo is called.
               function2 = function.ImplicitClosureFunction();
-              AddFunction(function2);
+              AddFunction(function2, RetainReasons::kImplicitClosure);
 
               // Add corresponding method extractor.
               function2 = function.GetMethodExtractor(selector2);
-              AddFunction(function2);
+              AddFunction(function2, RetainReasons::kMethodExtractor);
             }
           }
         }
@@ -1414,12 +1507,14 @@ void Precompiler::CheckForNewDynamicFunctions() {
             if (is_getter) {
               if (metadata.getter_called_dynamically) {
                 function2 = function.GetDynamicInvocationForwarder(selector2);
-                AddFunction(function2);
+                AddFunction(function2,
+                            RetainReasons::kDynamicInvocationForwarder);
               }
             } else {
               if (metadata.method_or_setter_called_dynamically) {
                 function2 = function.GetDynamicInvocationForwarder(selector2);
-                AddFunction(function2);
+                AddFunction(function2,
+                            RetainReasons::kDynamicInvocationForwarder);
               }
             }
           }
@@ -1606,6 +1701,9 @@ void Precompiler::TraceForRetainedFunctions() {
           // static calls, etc.
           function2 = function.ImplicitClosureFunction();
           retain = function2.HasCode();
+          if (retain) {
+            AddRetainReason(function, RetainReasons::kInlinedIntoICF);
+          }
         }
         if (retain) {
           function.DropUncompiledImplicitClosureFunction();
@@ -1642,6 +1740,7 @@ void Precompiler::TraceForRetainedFunctions() {
       // parents and their enclosing classes and libraries.
       parent_function = function.parent_function();
       while (!parent_function.IsNull()) {
+        AddRetainReason(parent_function, RetainReasons::kLocalParent);
         AddTypesOf(parent_function);
         parent_function = parent_function.parent_function();
       }
@@ -1772,6 +1871,38 @@ void Precompiler::DropFunctions() {
   Code& code = Code::Handle(Z);
   Object& owner = Object::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
+  JSONWriter json;
+
+  if (FLAG_trace_precompiler) {
+    json.OpenArray();
+  }
+
+  auto retain_function = [&](const Function& function) {
+    if (FLAG_trace_precompiler) {
+      auto const name = function.ToLibNamePrefixedQualifiedCString();
+      auto const kind = UntaggedFunction::KindToCString(function.kind());
+      json.OpenObject();
+      json.PrintProperty("name", name);
+      json.PrintProperty("kind", kind);
+      json.PrintPropertyBool("retained", true);
+      LogBlock lb;
+      THR_Print("Retaining %s function %s\n", kind, name);
+      json.OpenArray("reasons");
+      if (auto const kv = retained_reasons_map_->Lookup(&function)) {
+        auto it = kv->value->GetIterator();
+        for (auto cstrp = it.Next(); cstrp != nullptr; cstrp = it.Next()) {
+          ASSERT(*cstrp != nullptr);
+          json.PrintValue(*cstrp);
+          THR_Print("Reason: %s\n", *cstrp);
+        }
+      } else {
+        THR_Print("No reasons recorded\n");
+      }
+      json.CloseArray();
+      json.CloseObject();
+    }
+    retained_functions.Add(function);
+  };
 
   auto drop_function = [&](const Function& function) {
     if (function.HasCode()) {
@@ -1786,8 +1917,14 @@ void Precompiler::DropFunctions() {
     }
     dropped_function_count_++;
     if (FLAG_trace_precompiler) {
-      THR_Print("Dropping function %s\n",
-                function.ToLibNamePrefixedQualifiedCString());
+      auto const name = function.ToLibNamePrefixedQualifiedCString();
+      auto const kind = UntaggedFunction::KindToCString(function.kind());
+      json.OpenObject();
+      json.PrintProperty("name", name);
+      json.PrintProperty("kind", kind);
+      json.PrintPropertyBool("retained", false);
+      json.CloseObject();
+      THR_Print("Dropping %s function %s\n", kind, name);
     }
   };
 
@@ -1806,7 +1943,7 @@ void Precompiler::DropFunctions() {
         function ^= functions.At(j);
         function.DropUncompiledImplicitClosureFunction();
         if (functions_to_retain_.ContainsKey(function)) {
-          retained_functions.Add(function);
+          retain_function(function);
         } else {
           drop_function(function);
         }
@@ -1831,7 +1968,7 @@ void Precompiler::DropFunctions() {
           if (functions_to_retain_.ContainsKey(function)) {
             retained_functions.Add(name);
             retained_functions.Add(desc);
-            retained_functions.Add(function);
+            retain_function(function);
           } else {
             drop_function(function);
           }
@@ -1853,13 +1990,18 @@ void Precompiler::DropFunctions() {
   retained_functions = GrowableObjectArray::New();
   ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& function) {
     if (functions_to_retain_.ContainsKey(function)) {
-      retained_functions.Add(function);
+      retain_function(function);
     } else {
       drop_function(function);
     }
     return true;  // Continue iteration.
   });
   IG->object_store()->set_closure_functions(retained_functions);
+
+  if (FLAG_trace_precompiler) {
+    json.CloseArray();
+    THR_Print("JSON for function decisions: %s\n", json.ToCString());
+  }
 }
 
 void Precompiler::DropFields() {
@@ -1867,6 +2009,7 @@ void Precompiler::DropFields() {
   Class& cls = Class::Handle(Z);
   Array& fields = Array::Handle(Z);
   Field& field = Field::Handle(Z);
+  Function& function = Function::Handle(Z);
   GrowableObjectArray& retained_fields = GrowableObjectArray::Handle(Z);
   AbstractType& type = AbstractType::Handle(Z);
 
@@ -1888,13 +2031,32 @@ void Precompiler::DropFields() {
         }
 #endif
         if (retain) {
+          if (FLAG_trace_precompiler) {
+            function = field.InitializerFunction();
+            if (!function.IsNull()) {
+              THR_Print("Retaining initializer function for %s field %s\n",
+                        field.is_static() ? "static" : "instance",
+                        function.ToLibNamePrefixedQualifiedCString());
+            }
+            THR_Print("Retaining %s field %s\n",
+                      field.is_static() ? "static" : "instance",
+                      field.ToCString());
+          }
           retained_fields.Add(field);
           type = field.type();
           AddType(type);
         } else {
           dropped_field_count_++;
           if (FLAG_trace_precompiler) {
-            THR_Print("Dropping field %s\n", field.ToCString());
+            function = field.InitializerFunction();
+            if (!function.IsNull()) {
+              THR_Print("Dropping initializer function for %s field %s\n",
+                        field.is_static() ? "static" : "instance",
+                        function.ToLibNamePrefixedQualifiedCString());
+            }
+            THR_Print("Dropping %s field %s\n",
+                      field.is_static() ? "static" : "instance",
+                      field.ToCString());
           }
 
           // This cleans up references to field current and initial values.

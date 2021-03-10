@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_HASH_MAP_H_
 #define RUNTIME_VM_HASH_MAP_H_
 
+#include "platform/utils.h"
 #include "vm/growable_array.h"  // For Malloc, EmptyBase
 #include "vm/hash.h"
 #include "vm/zone.h"
@@ -439,6 +440,20 @@ class MallocDirectChainedHashMap
   void operator=(const MallocDirectChainedHashMap& other) = delete;
 };
 
+template <typename KeyValueTrait>
+class ZoneDirectChainedHashMap
+    : public BaseDirectChainedHashMap<KeyValueTrait, ZoneAllocated, Zone> {
+ public:
+  ZoneDirectChainedHashMap()
+      : BaseDirectChainedHashMap<KeyValueTrait, ZoneAllocated, Zone>(
+            ThreadState::Current()->zone()) {}
+  explicit ZoneDirectChainedHashMap(Zone* zone)
+      : BaseDirectChainedHashMap<KeyValueTrait, ZoneAllocated, Zone>(zone) {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ZoneDirectChainedHashMap);
+};
+
 template <typename T>
 class PointerKeyValueTrait {
  public:
@@ -489,8 +504,47 @@ class RawPointerKeyValueTrait {
   static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
 };
 
+class CStringSetKeyValueTrait : public PointerKeyValueTrait<const char> {
+ public:
+  using Key = PointerKeyValueTrait<const char>::Key;
+  using Value = PointerKeyValueTrait<const char>::Value;
+  using Pair = PointerKeyValueTrait<const char>::Pair;
+
+  static intptr_t Hashcode(Key key) {
+    ASSERT(key != nullptr);
+    return Utils::StringHash(key, strlen(key));
+  }
+  static bool IsKeyEqual(Pair kv, Key key) {
+    ASSERT(kv != nullptr && key != nullptr);
+    return kv == key || strcmp(kv, key) == 0;
+  }
+};
+
+template <typename B, typename Allocator>
+class BaseCStringSet
+    : public BaseDirectChainedHashMap<CStringSetKeyValueTrait, B, Allocator> {
+ public:
+  explicit BaseCStringSet(Allocator* allocator)
+      : BaseDirectChainedHashMap<CStringSetKeyValueTrait, B, Allocator>(
+            allocator) {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BaseCStringSet);
+};
+
+class ZoneCStringSet : public BaseCStringSet<ZoneAllocated, Zone> {
+ public:
+  ZoneCStringSet()
+      : BaseCStringSet<ZoneAllocated, Zone>(ThreadState::Current()->zone()) {}
+  explicit ZoneCStringSet(Zone* zone)
+      : BaseCStringSet<ZoneAllocated, Zone>(zone) {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ZoneCStringSet);
+};
+
 template <typename V>
-class CStringKeyValueTrait : public RawPointerKeyValueTrait<const char, V> {
+class CStringMapKeyValueTrait : public RawPointerKeyValueTrait<const char, V> {
  public:
   typedef typename RawPointerKeyValueTrait<const char, V>::Key Key;
   typedef typename RawPointerKeyValueTrait<const char, V>::Value Value;
@@ -498,11 +552,7 @@ class CStringKeyValueTrait : public RawPointerKeyValueTrait<const char, V> {
 
   static intptr_t Hashcode(Key key) {
     ASSERT(key != nullptr);
-    intptr_t hash = 0;
-    for (size_t i = 0; i < strlen(key); i++) {
-      hash = CombineHashes(hash, key[i]);
-    }
-    return FinalizeHash(hash, kBitsPerWord - 1);
+    return Utils::StringHash(key, strlen(key));
   }
   static bool IsKeyEqual(Pair kv, Key key) {
     ASSERT(kv.key != nullptr && key != nullptr);
@@ -510,12 +560,27 @@ class CStringKeyValueTrait : public RawPointerKeyValueTrait<const char, V> {
   }
 };
 
-template <typename V>
-class CStringMap : public DirectChainedHashMap<CStringKeyValueTrait<V>> {
+template <typename V, typename B, typename Allocator>
+class BaseCStringMap
+    : public BaseDirectChainedHashMap<CStringMapKeyValueTrait<V>,
+                                      B,
+                                      Allocator> {
  public:
-  CStringMap() : DirectChainedHashMap<CStringKeyValueTrait<V>>() {}
+  explicit BaseCStringMap(Allocator* allocator)
+      : BaseDirectChainedHashMap<CStringMapKeyValueTrait<V>, B, Allocator>(
+            allocator) {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BaseCStringMap);
+};
+
+template <typename V>
+class CStringMap : public BaseCStringMap<V, ValueObject, Zone> {
+ public:
+  CStringMap()
+      : BaseCStringMap<V, ValueObject, Zone>(ThreadState::Current()->zone()) {}
   explicit CStringMap(Zone* zone)
-      : DirectChainedHashMap<CStringKeyValueTrait<V>>(zone) {}
+      : BaseCStringMap<V, ValueObject, Zone>(zone) {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CStringMap);
