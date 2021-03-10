@@ -136,12 +136,12 @@ abstract class String implements Comparable<String>, Pattern {
   /// [defaultValue].
   ///
   /// Example of getting a value:
-  /// ```
+  /// ```dart
   /// const String.fromEnvironment("defaultFloo", defaultValue: "no floo")
   /// ```
   /// In order to check whether a declaration is there at all, use
   /// [bool.hasEnvironment]. Example:
-  /// ```
+  /// ```dart
   /// const maybeDeclared = bool.hasEnvironment("maybeDeclared")
   ///     ? String.fromEnvironment("maybeDeclared")
   ///     : null;
@@ -333,7 +333,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// version 6.2 or later) and the BOM character, 0xFEFF.
   ///
   /// Here is the list of trimmed characters according to Unicode version 6.3:
-  /// ```
+  /// ```plaintext
   ///     0009..000D    ; White_Space # Cc   <control-0009>..<control-000D>
   ///     0020          ; White_Space # Zs   SPACE
   ///     0085          ; White_Space # Cc   <control-0085>

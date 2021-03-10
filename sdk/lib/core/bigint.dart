@@ -73,7 +73,7 @@ abstract class BigInt implements Comparable<BigInt> {
   /// The remainder can be computed using the [remainder] method.
   ///
   /// Examples:
-  /// ```
+  /// ```dart
   /// var seven = BigInt.from(7);
   /// var three = BigInt.from(3);
   /// seven ~/ three;    // => 2
@@ -189,7 +189,7 @@ abstract class BigInt implements Comparable<BigInt> {
   /// To find the number of bits needed to store the value as a signed value,
   /// add one, i.e. use `x.bitLength + 1`.
   ///
-  /// ```
+  /// ```dart
   /// x.bitLength == (-x-1).bitLength
   ///
   /// BigInt.from(3).bitLength == 2;   // 00000011
@@ -260,14 +260,14 @@ abstract class BigInt implements Comparable<BigInt> {
   /// non-negative number (i.e. unsigned representation).  The returned value has
   /// zeros in all bit positions higher than [width].
   ///
-  /// ```
+  /// ```dart
   /// BigInt.from(-1).toUnsigned(5) == 31   // 11111111  ->  00011111
   /// ```
   ///
   /// This operation can be used to simulate arithmetic from low level languages.
   /// For example, to increment an 8 bit quantity:
   ///
-  /// ```
+  /// ```dart
   /// q = (q + 1).toUnsigned(8);
   /// ```
   ///
@@ -277,7 +277,7 @@ abstract class BigInt implements Comparable<BigInt> {
   /// same as the input.  The minimum width needed to avoid truncation of `x` is
   /// given by `x.bitLength`, i.e.
   ///
-  /// ```
+  /// ```dart
   /// x == x.toUnsigned(x.bitLength);
   /// ```
   BigInt toUnsigned(int width);
@@ -287,7 +287,7 @@ abstract class BigInt implements Comparable<BigInt> {
   /// to fit in [width] bits using an signed 2-s complement representation.  The
   /// returned value has the same bit value in all positions higher than [width].
   ///
-  /// ```
+  /// ```dart
   /// var big15 = BigInt.from(15);
   /// var big16 = BigInt.from(16);
   /// var big239 = BigInt.from(239);
@@ -300,7 +300,7 @@ abstract class BigInt implements Comparable<BigInt> {
   /// This operation can be used to simulate arithmetic from low level languages.
   /// For example, to increment an 8 bit signed quantity:
   ///
-  /// ```
+  /// ```dart
   /// q = (q + 1).toSigned(8);
   /// ```
   ///
@@ -311,7 +311,7 @@ abstract class BigInt implements Comparable<BigInt> {
   /// the same as the input.  The minimum width needed to avoid truncation of `x`
   /// is `x.bitLength + 1`, i.e.
   ///
-  /// ```
+  /// ```dart
   /// x == x.toSigned(x.bitLength + 1);
   /// ```
   BigInt toSigned(int width);

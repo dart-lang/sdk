@@ -17,7 +17,7 @@ part of dart.ffi;
 /// type [int] or [float] and be annotated with a [NativeType] representing the
 /// native type, or must be of type [Pointer]. For example:
 ///
-/// ```
+/// ```c
 /// typedef struct {
 ///  int a;
 ///  float b;
@@ -25,7 +25,7 @@ part of dart.ffi;
 /// } my_struct;
 /// ```
 ///
-/// ```
+/// ```dart
 /// class MyStruct extends Struct {
 ///   @Int32()
 ///   external int a;

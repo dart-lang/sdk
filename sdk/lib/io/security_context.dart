@@ -85,7 +85,7 @@ abstract class SecurityContext {
   /// encoded X509 certificate. It may be called multiple times to add
   /// multiple trusted certificates to the context. A DER encoded certificate
   /// can be obtained from a PEM encoded certificate by using the openssl tool:
-  /// ```
+  /// ```bash
   /// $ openssl x509 -outform der -in cert.pem -out cert.der
   /// ```
   void setTrustedCertificates(String file, {String? password});
@@ -167,7 +167,7 @@ abstract class SecurityContext {
   ///
   /// See RFC 7301 (https://tools.ietf.org/html/rfc7301) for the encoding of
   /// `List<String> protocols`:
-  /// ```
+  /// ```plaintext
   /// opaque ProtocolName<1..2^8-1>;
   ///
   /// struct {
