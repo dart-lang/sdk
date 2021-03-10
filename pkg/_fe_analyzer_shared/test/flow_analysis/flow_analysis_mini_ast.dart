@@ -9,6 +9,8 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:test/test.dart';
 
+import '../mini_types.dart';
+
 Expression get nullLiteral => new _NullLiteral();
 
 Statement assert_(Expression condition, [Expression? message]) =>
@@ -621,40 +623,6 @@ class SwitchCase implements _Visitable<void> {
     flow.switchStatement_beginCase(_hasLabel, h._currentSwitch!);
     _body._visit(h, flow);
   }
-}
-
-/// Representation of a type in the pseudo-Dart language used for flow analysis
-/// testing.  This is essentially a thin wrapper around a string representation
-/// of the type.
-class Type {
-  static bool _allowComparisons = false;
-
-  final String type;
-
-  Type(this.type);
-
-  @override
-  int get hashCode {
-    if (!_allowComparisons) {
-      // The flow analysis engine should not hash types using hashCode.  It
-      // should compare them using TypeOperations.
-      fail('Unexpected use of operator== on types');
-    }
-    return type.hashCode;
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (!_allowComparisons) {
-      // The flow analysis engine should not compare types using operator==.  It
-      // should compare them using TypeOperations.
-      fail('Unexpected use of operator== on types');
-    }
-    return other is Type && this.type == other.type;
-  }
-
-  @override
-  String toString() => type;
 }
 
 /// Representation of a local variable in the pseudo-Dart language used for flow
@@ -1744,13 +1712,9 @@ class _WhyNotPromoted extends Expression {
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     var type = target._visit(h, flow);
     flow.forwardExpression(this, target);
-    assert(!Type._allowComparisons);
-    Type._allowComparisons = true;
-    try {
+    Type.withComparisonsAllowed(() {
       callback(flow.whyNotPromoted(this));
-    } finally {
-      Type._allowComparisons = false;
-    }
+    });
     return type;
   }
 }
@@ -1771,13 +1735,9 @@ class _WhyNotPromoted_ImplicitThis extends Statement {
   @override
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    assert(!Type._allowComparisons);
-    Type._allowComparisons = true;
-    try {
+    Type.withComparisonsAllowed(() {
       callback(flow.whyNotPromotedImplicitThis(staticType));
-    } finally {
-      Type._allowComparisons = false;
-    }
+    });
   }
 }
 
