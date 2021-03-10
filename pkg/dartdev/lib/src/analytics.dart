@@ -14,11 +14,11 @@ import 'package:usage/usage_io.dart';
 
 const String analyticsNoticeOnFirstRunMessage = '''
   ╔════════════════════════════════════════════════════════════════════════════╗
-  ║ The Dart tool uses Google Analytics to anonymously report feature usage    ║
-  ║ statistics and to send basic crash reports. This data is used to help      ║
-  ║ improve the Dart platform and tools over time.                             ║
+  ║ The Dart tool uses Google Analytics to report feature usage statistics     ║
+  ║ and to send basic crash reports. This data is used to help improve the     ║
+  ║ Dart platform and tools over time.                                         ║
   ║                                                                            ║
-  ║ To disable reporting of anonymous analytics, run:                          ║
+  ║ To disable reporting of analytics, run:                                    ║
   ║                                                                            ║
   ║   dart --disable-analytics                                                 ║
   ║                                                                            ║
@@ -26,7 +26,7 @@ const String analyticsNoticeOnFirstRunMessage = '''
 ''';
 const String analyticsDisabledNoticeMessage = '''
   ╔════════════════════════════════════════════════════════════════════════════╗
-  ║ Anonymous analytics reporting disabled. In order to enable it, run:        ║
+  ║ Analytics reporting disabled. In order to enable it, run:                  ║
   ║                                                                            ║
   ║   dart --enable-analytics                                                  ║
   ║                                                                            ║

@@ -45,7 +45,7 @@ Future<void> main() async {
     var result = p.runSync(['--disable-analytics']);
     expect(result.stdout, contains('''
   ╔════════════════════════════════════════════════════════════════════════════╗
-  ║ Anonymous analytics reporting disabled. In order to enable it, run:        ║
+  ║ Analytics reporting disabled. In order to enable it, run:                  ║
   ║                                                                            ║
   ║   dart --enable-analytics                                                  ║
   ║                                                                            ║
@@ -55,11 +55,11 @@ Future<void> main() async {
     result = p.runSync(['--enable-analytics']);
     expect(result.stdout, contains('''
   ╔════════════════════════════════════════════════════════════════════════════╗
-  ║ The Dart tool uses Google Analytics to anonymously report feature usage    ║
-  ║ statistics and to send basic crash reports. This data is used to help      ║
-  ║ improve the Dart platform and tools over time.                             ║
+  ║ The Dart tool uses Google Analytics to report feature usage statistics     ║
+  ║ and to send basic crash reports. This data is used to help improve the     ║
+  ║ Dart platform and tools over time.                                         ║
   ║                                                                            ║
-  ║ To disable reporting of anonymous analytics, run:                          ║
+  ║ To disable reporting of analytics, run:                                    ║
   ║                                                                            ║
   ║   dart --disable-analytics                                                 ║
   ║                                                                            ║
