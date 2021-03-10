@@ -20,7 +20,17 @@ Updated the Linter to `1.0.0`, which includes:
 - new lint: `use_named_constants`.
 - deprecation of `avoid_as`.
 
-## 2.12.0
+## 2.12.1 - 2021-03-10
+
+This is a patch release that fixes:
+
+* an unhandled exception in HTTPS connections (issue [#45047][]).
+* a typing issue in the typed_data `+` operator (issue [#45140][]).
+
+[#45047]: https://github.com/dart-lang/sdk/issues/45047
+[#45140]: https://github.com/dart-lang/sdk/issues/45140
+
+## 2.12.0 - 2021-03-03
 
 ### Language
 
@@ -318,7 +328,7 @@ Updated the Linter to `0.1.129`, which includes:
 [#44072]: https://github.com/dart-lang/sdk/issues/44072
 [dart tool]: https://dart.dev/tools/dart-tool
 
-## 2.10.5 - 2020-01-21
+## 2.10.5 - 2021-01-21
 
 This is a patch release that fixes a crash in the Dart VM. (issue [#44563][]).
 

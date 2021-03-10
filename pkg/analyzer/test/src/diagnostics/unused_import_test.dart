@@ -138,6 +138,19 @@ class A {
 ''');
   }
 
+  test_as_systemLibrary() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class File {}
+''');
+    await assertErrorsInCode(r'''
+import 'dart:io' as prefix;
+import 'a.dart' as prefix;
+prefix.File? f;
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 9),
+    ]);
+  }
+
   test_core_library() async {
     await assertNoErrorsInCode(r'''
 import 'dart:core';
@@ -426,6 +439,19 @@ import 'lib1.dart' show B;
 A a = A();
 ''', [
       error(HintCode.UNUSED_IMPORT, 34, 11),
+    ]);
+  }
+
+  test_systemLibrary() async {
+    newFile('$testPackageLibPath/lib1.dart', content: '''
+class File {}
+''');
+    await assertErrorsInCode(r'''
+import 'dart:io';
+import 'lib1.dart';
+File? f;
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 9),
     ]);
   }
 

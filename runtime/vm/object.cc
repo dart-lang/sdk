@@ -569,6 +569,9 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   ASSERT((static_cast<uword>(false_) & kBoolValueMask) != 0);
   ASSERT(static_cast<uword>(false_) ==
          (static_cast<uword>(true_) | kBoolValueMask));
+  ASSERT((static_cast<uword>(null_) & kBoolVsNullMask) == 0);
+  ASSERT((static_cast<uword>(true_) & kBoolVsNullMask) != 0);
+  ASSERT((static_cast<uword>(false_) & kBoolVsNullMask) != 0);
 }
 
 void Object::InitVtables() {
@@ -23579,23 +23582,6 @@ ExternalTwoByteStringPtr ExternalTwoByteString::New(
   }
   AddFinalizer(result, peer, callback, external_allocation_size);
   return ExternalTwoByteString::raw(result);
-}
-
-BoolPtr Bool::New(bool value) {
-  ASSERT(IsolateGroup::Current()->object_store()->bool_class() !=
-         Class::null());
-  Bool& result = Bool::Handle();
-  {
-    // Since the two boolean instances are singletons we allocate them straight
-    // in the old generation.
-    ObjectPtr raw =
-        Object::Allocate(Bool::kClassId, Bool::InstanceSize(), Heap::kOld);
-    NoSafepointScope no_safepoint;
-    result ^= raw;
-  }
-  result.set_value(value);
-  result.SetCanonical();
-  return result.ptr();
 }
 
 const char* Bool::ToCString() const {

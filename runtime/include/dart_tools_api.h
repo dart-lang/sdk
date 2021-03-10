@@ -260,13 +260,13 @@ DART_EXPORT void Dart_SetNativeServiceStreamCallback(
  *
  * \param bytes_length The length of the byte array.
  *
- * \return Success if the arguments are well formed.  Otherwise, returns an
- *   error handle.
+ * \return NULL if the arguments are well formed.  Otherwise, returns an
+ *   error string. The caller is responsible for freeing the error message.
  */
-DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
-                                                  const char* event_kind,
-                                                  const uint8_t* bytes,
-                                                  intptr_t bytes_length);
+DART_EXPORT char* Dart_ServiceSendDataEvent(const char* stream_id,
+                                            const char* event_kind,
+                                            const uint8_t* bytes,
+                                            intptr_t bytes_length);
 
 /**
  * Usage statistics for a space/generation at a particular moment in time.

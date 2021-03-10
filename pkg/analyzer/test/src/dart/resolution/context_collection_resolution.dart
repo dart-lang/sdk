@@ -21,7 +21,7 @@ import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-// import 'package:linter/src/rules.dart';
+import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
@@ -189,7 +189,7 @@ abstract class ContextResolutionTest
   @mustCallSuper
   void setUp() {
     if (!_lintRulesAreRegistered) {
-      // registerLintRules();
+      registerLintRules();
       _lintRulesAreRegistered = true;
     }
 

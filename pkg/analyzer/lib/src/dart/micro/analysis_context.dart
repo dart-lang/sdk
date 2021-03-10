@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -40,6 +42,7 @@ MicroContextObjects createMicroContextObjects({
   );
 
   var analysisSession = _MicroAnalysisSessionImpl(
+    fileResolver,
     declaredVariables,
     sourceFactory,
   );
@@ -90,6 +93,19 @@ class MicroContextObjects {
 }
 
 class _FakeAnalysisDriver implements AnalysisDriver {
+  final FileResolver fileResolver;
+
+  late _MicroAnalysisSessionImpl _currentSession;
+
+  _FakeAnalysisDriver(this.fileResolver);
+
+  @override
+  AnalysisSessionImpl get currentSession {
+    _currentSession = fileResolver.contextObjects?.analysisSession
+        as _MicroAnalysisSessionImpl;
+    return _currentSession;
+  }
+
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -138,6 +154,8 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
 }
 
 class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
+  final FileResolver fileResolver;
+
   @override
   final DeclaredVariables declaredVariables;
 
@@ -147,9 +165,10 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
   late _MicroAnalysisContextImpl analysisContext;
 
   _MicroAnalysisSessionImpl(
+    this.fileResolver,
     this.declaredVariables,
     this.sourceFactory,
-  ) : super(_FakeAnalysisDriver());
+  ) : super(_FakeAnalysisDriver(fileResolver));
 
   @override
   ResourceProvider get resourceProvider =>

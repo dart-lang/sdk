@@ -136,7 +136,7 @@ class _B extends A {
     "kind": "CLASS",
     "name": "A",
     "location": {
-      "file": "/home/test/lib/a.dart",
+      "file": ${jsonOfPath(path)},
       "offset": 15,
       "length": 0,
       "startLine": 1,
@@ -159,7 +159,7 @@ class _B extends A {
     "kind": "CONSTRUCTOR",
     "name": "b",
     "location": {
-      "file": "/home/test/lib/a.dart",
+      "file": ${jsonOfPath(path)},
       "offset": 40,
       "length": 0,
       "startLine": 3,

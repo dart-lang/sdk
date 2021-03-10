@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../completion_test_support.dart';
@@ -9,6 +10,7 @@ import '../../../../completion_test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstructorCompletionTest);
+    defineReflectiveTests(PropertyAccessorCompletionTest);
   });
 }
 
@@ -24,6 +26,26 @@ abstract class C {
   C.c();
 }
 ''');
+    await getSuggestions();
     assertHasNoCompletion('C.c');
+  }
+}
+
+@reflectiveTest
+class PropertyAccessorCompletionTest extends CompletionTestCase {
+  Future<void> test_constructor_abstract() async {
+    addTestFile('''
+void f(C c) {
+  c.^;
+}
+class C {
+  int get x => 0;
+  @deprecated
+  set x(int x) {}
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('x',
+        elementKind: ElementKind.GETTER, isDeprecated: false);
   }
 }

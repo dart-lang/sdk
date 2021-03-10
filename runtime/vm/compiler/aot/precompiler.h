@@ -295,6 +295,7 @@ class Precompiler : public ValueObject {
   void AddAnnotatedRoots();
   void Iterate();
 
+  void AddRetainReason(const Object& obj, const char* reason);
   void AddType(const AbstractType& type);
   void AddTypesOf(const Class& cls);
   void AddTypesOf(const Function& function);
@@ -306,12 +307,13 @@ class Precompiler : public ValueObject {
   void AddConstObject(const class Instance& instance);
   void AddClosureCall(const String& selector,
                       const Array& arguments_descriptor);
-  void AddFunction(const Function& function, bool retain = true);
+  void AddFunction(const Function& function, const char* retain_reason);
   void AddInstantiatedClass(const Class& cls);
   void AddSelector(const String& selector);
   bool IsSent(const String& selector);
   bool IsHitByTableSelector(const Function& function);
-  bool MustRetainFunction(const Function& function);
+  // Returns the reason if the function must be retained, otherwise nullptr.
+  const char* MustRetainFunction(const Function& function);
 
   void ProcessFunction(const Function& function);
   void CheckForNewDynamicFunctions();
@@ -355,6 +357,39 @@ class Precompiler : public ValueObject {
   Isolate* isolate() const { return isolate_; }
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
 
+  struct RetainedReasonsTrait {
+    using Key = const Object*;
+    using Value = ZoneCStringSet*;
+
+    struct Pair {
+      Key key;
+      Value value;
+
+      Pair() : key(nullptr), value(nullptr) {}
+      Pair(Key key, Value value) : key(key), value(value) {}
+    };
+
+    static Key KeyOf(Pair kv) { return kv.key; }
+
+    static Value ValueOf(Pair kv) { return kv.value; }
+
+    static inline intptr_t Hashcode(Key key) {
+      if (key->IsFunction()) {
+        return Function::Cast(*key).Hash();
+      }
+      if (key->IsClass()) {
+        return Utils::WordHash(Class::Cast(*key).id());
+      }
+      return Utils::WordHash(key->GetClassId());
+    }
+
+    static inline bool IsKeyEqual(Pair pair, Key key) {
+      return pair.key->ptr() == key->ptr();
+    }
+  };
+
+  using RetainedReasonsMap = ZoneDirectChainedHashMap<RetainedReasonsTrait>;
+
   Thread* thread_;
   Zone* zone_;
   Isolate* isolate_;
@@ -383,6 +418,7 @@ class Precompiler : public ValueObject {
   FunctionSet possibly_retained_functions_;
   FieldSet fields_to_retain_;
   FunctionSet functions_to_retain_;
+  RetainedReasonsMap* retained_reasons_map_ = nullptr;
   ClassSet classes_to_retain_;
   TypeArgumentsSet typeargs_to_retain_;
   AbstractTypeSet types_to_retain_;

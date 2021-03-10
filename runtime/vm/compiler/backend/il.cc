@@ -4504,23 +4504,6 @@ LocationSummary* AssertBooleanInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Check that the type of the value is allowed in conditional context.
-  ASSERT(locs()->always_calls());
-
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& assert_boolean_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->assert_boolean_stub());
-
-  compiler::Label done;
-  __ CompareObject(AssertBooleanABI::kObjectReg, Object::null_instance());
-  __ BranchIf(NOT_EQUAL, &done);
-  compiler->GenerateStubCall(source(), assert_boolean_stub,
-                             /*kind=*/UntaggedPcDescriptors::kOther, locs(),
-                             deopt_id());
-  __ Bind(&done);
-}
-
 LocationSummary* PhiInstr::MakeLocationSummary(Zone* zone,
                                                bool optimizing) const {
   UNREACHABLE();

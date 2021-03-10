@@ -7,6 +7,71 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 
+void _cacheFiles(Map<String, String> cachedFiles) {
+  var resourceProvider = PhysicalResourceProvider.INSTANCE;
+  var pathContext = resourceProvider.pathContext;
+  var packageRoot = pathContext.normalize(package_root.packageRoot);
+  var mockPath = pathContext.join(
+    packageRoot,
+    'analysis_server',
+    'test',
+    'mock_packages',
+  );
+
+  void addFiles(Resource resource) {
+    if (resource is Folder) {
+      resource.getChildren().forEach(addFiles);
+    } else if (resource is File) {
+      var relativePath = pathContext.relative(
+        resource.path,
+        from: mockPath,
+      );
+      var relativePathComponents = pathContext.split(relativePath);
+      var relativePosixPath = relativePathComponents.join('/');
+      cachedFiles[relativePosixPath] = resource.readAsStringSync();
+    }
+  }
+
+  addFiles(
+    resourceProvider.getFolder(mockPath),
+  );
+}
+
+/// Helper for copying files from "tests/mock_packages" to memory file system
+/// for Bazel.
+class BazelMockPackages {
+  static final BazelMockPackages instance = BazelMockPackages._();
+
+  /// The mapping from relative Posix paths of files to the file contents.
+  final Map<String, String> _cachedFiles = {};
+
+  BazelMockPackages._() {
+    _cacheFiles(_cachedFiles);
+  }
+
+  void addFlutter(MemoryResourceProvider provider) {
+    _addFiles(provider, 'flutter');
+  }
+
+  /// Add files of the given [packageName] to the [provider].
+  Folder _addFiles(MemoryResourceProvider provider, String packageName) {
+    var packagesPath = provider.convertPath('/workspace/third_party/dart');
+
+    for (var relativePosixPath in _cachedFiles.keys) {
+      var relativePathComponents = relativePosixPath.split('/');
+      if (relativePathComponents[0] == packageName) {
+        var relativePath = provider.pathContext.joinAll(relativePathComponents);
+        var path = provider.pathContext.join(packagesPath, relativePath);
+        var content = _cachedFiles[relativePosixPath];
+        provider.newFile(path, content);
+      }
+    }
+
+    var packagesFolder = provider.getFolder(packagesPath);
+    return packagesFolder.getChildAssumingFolder(packageName);
+  }
+}
+
 /// Helper for copying files from "tests/mock_packages" to memory file system.
 class MockPackages {
   static final MockPackages instance = MockPackages._();
@@ -15,7 +80,7 @@ class MockPackages {
   final Map<String, String> _cachedFiles = {};
 
   MockPackages._() {
-    _cacheFiles();
+    _cacheFiles(_cachedFiles);
   }
 
   Folder addFlutter(MemoryResourceProvider provider) {
@@ -59,35 +124,5 @@ class MockPackages {
 
     var packagesFolder = provider.getFolder(packagesPath);
     return packagesFolder.getChildAssumingFolder(packageName);
-  }
-
-  void _cacheFiles() {
-    var resourceProvider = PhysicalResourceProvider.INSTANCE;
-    var pathContext = resourceProvider.pathContext;
-    var packageRoot = pathContext.normalize(package_root.packageRoot);
-    var mockPath = pathContext.join(
-      packageRoot,
-      'analysis_server',
-      'test',
-      'mock_packages',
-    );
-
-    void addFiles(Resource resource) {
-      if (resource is Folder) {
-        resource.getChildren().forEach(addFiles);
-      } else if (resource is File) {
-        var relativePath = pathContext.relative(
-          resource.path,
-          from: mockPath,
-        );
-        var relativePathComponents = pathContext.split(relativePath);
-        var relativePosixPath = relativePathComponents.join('/');
-        _cachedFiles[relativePosixPath] = resource.readAsStringSync();
-      }
-    }
-
-    addFiles(
-      resourceProvider.getFolder(mockPath),
-    );
   }
 }

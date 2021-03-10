@@ -8,8 +8,6 @@ import 'dart:core';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/command_line/arguments.dart'
-    show applyAnalysisOptionFlags;
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -25,14 +23,12 @@ import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:args/args.dart';
 import 'package:yaml/yaml.dart';
 
 /// A utility class used to build an analysis context for a given directory.
@@ -143,15 +139,6 @@ class ContextBuilder {
 
     declareVariablesInDriver(driver);
     return driver;
-  }
-
-  /// Return an analysis options object containing the default option values.
-  AnalysisOptionsImpl createDefaultOptions() {
-    AnalysisOptions? defaultOptions = builderOptions.defaultOptions;
-    if (defaultOptions == null) {
-      return AnalysisOptionsImpl();
-    }
-    return AnalysisOptionsImpl.from(defaultOptions);
   }
 
 //  void _processAnalysisOptions(
@@ -266,29 +253,19 @@ class ContextBuilder {
     AnalysisOptionsProvider optionsProvider =
         AnalysisOptionsProvider(sourceFactory);
 
-    AnalysisOptionsImpl options = createDefaultOptions();
-    File? optionsFile = getOptionsFile(path);
-    YamlMap? optionMap;
+    AnalysisOptionsImpl options = AnalysisOptionsImpl();
 
-    if (optionsFile != null) {
+    var optionsPath = builderOptions.defaultAnalysisOptionsFilePath;
+    if (optionsPath != null) {
+      var optionsFile = resourceProvider.getFile(optionsPath);
       try {
-        optionMap = optionsProvider.getOptionsFromFile(optionsFile);
-        if (contextRoot != null) {
-          contextRoot.optionsFilePath = optionsFile.path;
-        }
+        contextRoot?.optionsFilePath = optionsFile.path;
+        var optionsMap = optionsProvider.getOptionsFromFile(optionsFile);
+        applyToAnalysisOptions(options, optionsMap);
         verbose('Loaded analysis options from ${optionsFile.path}');
       } catch (e) {
         // Ignore exceptions thrown while trying to load the options file.
         verbose('Exception: $e\n  when loading ${optionsFile.path}');
-      }
-    }
-
-    if (optionMap != null) {
-      applyToAnalysisOptions(options, optionMap);
-      var argResults = builderOptions.argResults;
-      if (argResults != null) {
-        applyAnalysisOptionFlags(options, argResults,
-            verbosePrint: verbosePrint);
       }
     } else {
       verbose('Using default analysis options');
@@ -304,29 +281,6 @@ class ContextBuilder {
     }
 
     return options;
-  }
-
-  /// Return the analysis options file that should be used when analyzing code in
-  /// the directory with the given [path].
-  ///
-  /// If [forceSearch] is true, then don't return the default analysis options
-  /// path. This allows cli to locate what *would* have been the analysis options
-  /// file path, and super-impose the defaults over it in-place.
-  File? getOptionsFile(String path, {bool forceSearch = false}) {
-    if (!forceSearch) {
-      String? filePath = builderOptions.defaultAnalysisOptionsFilePath;
-      if (filePath != null) {
-        return resourceProvider.getFile(filePath);
-      }
-    }
-
-    var folder = resourceProvider.getFolder(path);
-    for (var current in folder.withAncestors) {
-      var file = current.getChildAssumingFile(file_paths.analysisOptionsYaml);
-      if (file.exists) {
-        return file;
-      }
-    }
   }
 
   /// Return the `pubspec.yaml` file that should be used when analyzing code in
@@ -411,10 +365,6 @@ class ContextBuilder {
 
 /// Options used by a [ContextBuilder].
 class ContextBuilderOptions {
-  /// The results of parsing the command line arguments as defined by
-  /// [defineAnalysisArguments] or `null` if none.
-  ArgResults? argResults;
-
   /// The file path of the file containing the summary of the SDK that should be
   /// used to "analyze" the SDK. This option should only be specified by
   /// command-line tools such as 'dartanalyzer' or 'ddc'.
@@ -427,11 +377,6 @@ class ContextBuilderOptions {
 
   /// A table mapping variable names to values for the declared variables.
   Map<String, String> declaredVariables = {};
-
-  /// The default analysis options that should be used unless some or all of them
-  /// are overridden in the analysis options file, or `null` if the default
-  /// defaults should be used.
-  AnalysisOptions? defaultOptions;
 
   /// The file path of the .packages file that should be used in place of any
   /// file found using the normal (Package Specification DEP) lookup mechanism,

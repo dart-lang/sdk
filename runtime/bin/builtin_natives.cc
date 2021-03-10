@@ -99,8 +99,12 @@ void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
   if (ShouldCaptureStdout()) {
     // For now we report print output on the Stdout stream.
     uint8_t newline[] = {'\n'};
-    Dart_ServiceSendDataEvent("Stdout", "WriteEvent", chars, length);
-    Dart_ServiceSendDataEvent("Stdout", "WriteEvent", newline, sizeof(newline));
+    const char* res =
+        Dart_ServiceSendDataEvent("Stdout", "WriteEvent", chars, length);
+    ASSERT(res == nullptr);
+    res = Dart_ServiceSendDataEvent("Stdout", "WriteEvent", newline,
+                                    sizeof(newline));
+    ASSERT(res == nullptr);
   }
 }
 

@@ -4,18 +4,32 @@
 
 import 'dart:io' as io;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:args/args.dart';
+import 'package:pub_semver/pub_semver.dart';
 
+const _analysisOptionsFileOption = 'options';
 const _binaryName = 'dartanalyzer';
+const _defaultLanguageVersionOption = 'default-language-version';
+const _defineVariableOption = 'D';
+const _enableExperimentOption = 'enable-experiment';
+const _enableInitializingFormalAccessFlag = 'initializing-formal-access';
+const _ignoreUnrecognizedFlagsFlag = 'ignore-unrecognized-flags';
+const _implicitCastsFlag = 'implicit-casts';
+const _lintsFlag = 'lints';
+const _noImplicitDynamicFlag = 'no-implicit-dynamic';
+const _packagesOption = 'packages';
+const _sdkPathOption = 'dart-sdk';
+const _sdkSummaryPathOption = 'dart-sdk-summary';
 
 /// Shared exit handler.
 ///
@@ -37,6 +51,8 @@ typedef ExitHandler = void Function(int code);
 
 /// Analyzer commandline configuration options.
 class CommandLineOptions {
+  final ArgResults _argResults;
+
   /// The path to output analysis results when in build mode.
   final String buildAnalysisOutput;
 
@@ -71,10 +87,6 @@ class CommandLineOptions {
   /// The path to the dart SDK summary file.
   final String dartSdkSummaryPath;
 
-  /// The default language version for files that are not in a package.
-  /// (Or null if no default language version to force.)
-  final String defaultLanguageVersion;
-
   /// Whether to disable cache flushing. This option can improve analysis
   /// speed at the expense of memory usage. It may also be useful for working
   /// around bugs.
@@ -86,14 +98,8 @@ class CommandLineOptions {
   /// Whether to display version information
   final bool displayVersion;
 
-  /// A list of the names of the experiments that are to be enabled.
-  final List<String> enabledExperiments;
-
   /// Whether to ignore unrecognized flags
   final bool ignoreUnrecognizedFlags;
-
-  /// Whether to report lints
-  final bool lints;
 
   /// Whether to log additional analysis messages and exceptions
   final bool log;
@@ -148,7 +154,8 @@ class CommandLineOptions {
   CommandLineOptions._fromArgs(
     ResourceProvider resourceProvider,
     ArgResults args,
-  )   : buildAnalysisOutput = cast(args['build-analysis-output']),
+  )   : _argResults = args,
+        buildAnalysisOutput = cast(args['build-analysis-output']),
         buildMode = cast(args['build-mode']),
         buildModePersistentWorker = cast(args['persistent_worker']),
         buildSummaryInputs =
@@ -158,20 +165,16 @@ class CommandLineOptions {
         buildSummaryOutputSemantic =
             cast(args['build-summary-output-semantic']),
         buildSuppressExitCode = cast(args['build-suppress-exit-code']),
-        contextBuilderOptions = createContextBuilderOptions(
+        contextBuilderOptions = _createContextBuilderOptions(
           resourceProvider,
           args,
         ),
-        dartSdkPath = cast(args['dart-sdk']),
-        dartSdkSummaryPath = cast(args['dart-sdk-summary']),
-        defaultLanguageVersion = cast(args['default-language-version']),
+        dartSdkPath = cast(args[_sdkPathOption]),
+        dartSdkSummaryPath = cast(args[_sdkSummaryPathOption]),
         disableCacheFlushing = cast(args['disable-cache-flushing']),
         disableHints = cast(args['no-hints']),
         displayVersion = cast(args['version']),
-        enabledExperiments =
-            cast(args['enable-experiment'] ?? const <String>[]),
-        ignoreUnrecognizedFlags = cast(args['ignore-unrecognized-flags']),
-        lints = cast(args[lintsFlag]),
+        ignoreUnrecognizedFlags = cast(args[_ignoreUnrecognizedFlagsFlag]),
         log = cast(args['log']),
         machineFormat = args['format'] == 'machine',
         perfReport = cast(args['x-perf-report']),
@@ -194,9 +197,26 @@ class CommandLineOptions {
   String get analysisOptionsFile =>
       contextBuilderOptions.defaultAnalysisOptionsFilePath;
 
+  /// The default language version for files that are not in a package.
+  /// (Or null if no default language version to force.)
+  String get defaultLanguageVersion {
+    return cast(_argResults[_defaultLanguageVersionOption]);
+  }
+
   /// A table mapping the names of defined variables to their values.
   Map<String, String> get definedVariables =>
       contextBuilderOptions.declaredVariables;
+
+  /// A list of the names of the experiments that are to be enabled.
+  List<String> get enabledExperiments {
+    return cast(_argResults[_enableExperimentOption]);
+  }
+
+  bool get implicitCasts => _argResults[_implicitCastsFlag] as bool;
+
+  bool get lints => _argResults[_lintsFlag] as bool;
+
+  bool get noImplicitDynamic => _argResults[_noImplicitDynamicFlag] as bool;
 
   /// The path to a `.packages` configuration file
   String get packageConfigPath => contextBuilderOptions.defaultPackageFilePath;
@@ -207,6 +227,99 @@ class CommandLineOptions {
   /// Replace the sourceFiles parsed from the command line.
   void rewriteSourceFiles(List<String> newSourceFiles) {
     _sourceFiles = newSourceFiles;
+  }
+
+  /// Update the [analysisOptions] with flags that the user specified
+  /// explicitly. The [analysisOptions] are usually loaded from one of
+  /// `analysis_options.yaml` files, possibly with includes. We consider
+  /// flags that the user specified as command line options more important,
+  /// so override the corresponding options.
+  void updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
+    var defaultLanguageVersion = this.defaultLanguageVersion;
+    if (defaultLanguageVersion != null) {
+      var nonPackageLanguageVersion =
+          Version.parse('$defaultLanguageVersion.0');
+      analysisOptions.nonPackageLanguageVersion = nonPackageLanguageVersion;
+      analysisOptions.nonPackageFeatureSet = FeatureSet.latestLanguageVersion()
+          .restrictToVersion(nonPackageLanguageVersion);
+    }
+
+    var enabledExperiments = this.enabledExperiments;
+    if (enabledExperiments.isNotEmpty) {
+      analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.currentVersion,
+        flags: enabledExperiments,
+      );
+    }
+
+    var implicitCasts = this.implicitCasts;
+    if (implicitCasts != null) {
+      analysisOptions.implicitCasts = implicitCasts;
+    }
+
+    var lints = this.lints;
+    if (lints != null) {
+      analysisOptions.lint = lints;
+    }
+
+    var noImplicitDynamic = this.noImplicitDynamic;
+    if (noImplicitDynamic != null) {
+      analysisOptions.implicitDynamic = !noImplicitDynamic;
+    }
+  }
+
+  /// Return a list of command-line arguments containing all of the given [args]
+  /// that are defined by the given [parser]. An argument is considered to be
+  /// defined by the parser if
+  /// - it starts with '--' and the rest of the argument (minus any value
+  ///   introduced by '=') is the name of a known option,
+  /// - it starts with '-' and the rest of the argument (minus any value
+  ///   introduced by '=') is the name of a known abbreviation, or
+  /// - it starts with something other than '--' or '-'.
+  ///
+  /// This function allows command-line tools to implement the
+  /// '--ignore-unrecognized-flags' option.
+  static List<String> filterUnknownArguments(
+      List<String> args, ArgParser parser) {
+    var knownOptions = <String>{};
+    var knownAbbreviations = <String>{};
+    parser.options.forEach((String name, Option option) {
+      knownOptions.add(name);
+      var abbreviation = option.abbr;
+      if (abbreviation != null) {
+        knownAbbreviations.add(abbreviation);
+      }
+      if (option.negatable ?? false) {
+        knownOptions.add('no-$name');
+      }
+    });
+    String optionName(int prefixLength, String argument) {
+      var equalsOffset = argument.lastIndexOf('=');
+      if (equalsOffset < 0) {
+        return argument.substring(prefixLength);
+      }
+      return argument.substring(prefixLength, equalsOffset);
+    }
+
+    var filtered = <String>[];
+    for (var i = 0; i < args.length; i++) {
+      var argument = args[i];
+      if (argument.startsWith('--') && argument.length > 2) {
+        if (knownOptions.contains(optionName(2, argument))) {
+          filtered.add(argument);
+        }
+      } else if (argument.startsWith('-D') && argument.indexOf('=') > 0) {
+        filtered.add(argument);
+      }
+      if (argument.startsWith('-') && argument.length > 1) {
+        if (knownAbbreviations.contains(optionName(1, argument))) {
+          filtered.add(argument);
+        }
+      } else {
+        filtered.add(argument);
+      }
+    }
+    return filtered;
   }
 
   /// Parse [args] into [CommandLineOptions] describing the specified
@@ -267,6 +380,156 @@ class CommandLineOptions {
     return options;
   }
 
+  /// Preprocess the given list of command line [args].
+  /// If the final arg is `@file_path` (Bazel worker mode),
+  /// then read in all the lines of that file and add those as args.
+  /// Always returns a new modifiable list.
+  static List<String> preprocessArgs(
+      ResourceProvider provider, List<String> args) {
+    args = List.from(args);
+    if (args.isEmpty) {
+      return args;
+    }
+    var lastArg = args.last;
+    if (lastArg.startsWith('@')) {
+      var argsFile = provider.getFile(lastArg.substring(1));
+      try {
+        args.removeLast();
+        args.addAll(argsFile
+            .readAsStringSync()
+            .replaceAll('\r\n', '\n')
+            .replaceAll('\r', '\n')
+            .split('\n')
+            .where((String line) => line.isNotEmpty));
+      } on FileSystemException catch (e) {
+        throw Exception('Failed to read file specified by $lastArg : $e');
+      }
+    }
+    return args;
+  }
+
+  /// Use the command-line [args] to create a context builder options.
+  static ContextBuilderOptions _createContextBuilderOptions(
+    ResourceProvider resourceProvider,
+    ArgResults args,
+  ) {
+    String absoluteNormalizedPath(String path) {
+      if (path == null) {
+        return null;
+      }
+      var pathContext = resourceProvider.pathContext;
+      return pathContext.normalize(
+        pathContext.absolute(path),
+      );
+    }
+
+    var builderOptions = ContextBuilderOptions();
+
+    //
+    // File locations.
+    //
+    builderOptions.dartSdkSummaryPath = absoluteNormalizedPath(
+      cast(args[_sdkSummaryPathOption]),
+    );
+    builderOptions.defaultAnalysisOptionsFilePath = absoluteNormalizedPath(
+      cast(args[_analysisOptionsFileOption]),
+    );
+    builderOptions.defaultPackageFilePath = absoluteNormalizedPath(
+      cast(args[_packagesOption]),
+    );
+    //
+    // Declared variables.
+    //
+    var declaredVariables = <String, String>{};
+    var variables = (args[_defineVariableOption] as List).cast<String>();
+    for (var variable in variables) {
+      var index = variable.indexOf('=');
+      if (index < 0) {
+        // TODO (brianwilkerson) Decide the semantics we want in this case.
+        // The VM prints "No value given to -D option", then tries to load '-Dfoo'
+        // as a file and dies. Unless there was nothing after the '-D', in which
+        // case it prints the warning and ignores the option.
+      } else {
+        var name = variable.substring(0, index);
+        if (name.isNotEmpty) {
+          // TODO (brianwilkerson) Decide the semantics we want in the case where
+          // there is no name. If there is no name, the VM tries to load a file
+          // named '-D' and dies.
+          declaredVariables[name] = variable.substring(index + 1);
+        }
+      }
+    }
+    builderOptions.declaredVariables = declaredVariables;
+
+    return builderOptions;
+  }
+
+  /// Add the standard flags and options to the given [parser]. The standard flags
+  /// are those that are typically used to control the way in which the code is
+  /// analyzed.
+  ///
+  /// TODO(danrubel) Update DDC to support all the options defined in this method
+  /// then remove the [ddc] named argument from this method.
+  static void _defineAnalysisArguments(ArgParser parser,
+      {bool hide = true, bool ddc = false}) {
+    parser.addOption(_sdkPathOption,
+        help: 'The path to the Dart SDK.', hide: ddc && hide);
+    parser.addOption(_analysisOptionsFileOption,
+        help: 'Path to an analysis options file.', hide: ddc && hide);
+    parser.addFlag('strong',
+        help: 'Enable strong mode (deprecated); this option is now ignored.',
+        defaultsTo: true,
+        hide: true,
+        negatable: true);
+    parser.addFlag('declaration-casts',
+        negatable: true,
+        help:
+            'Disable declaration casts in strong mode (https://goo.gl/cTLz40)\n'
+            'This option is now ignored and will be removed in a future release.',
+        hide: ddc && hide);
+    parser.addMultiOption(_enableExperimentOption,
+        help: 'Enable one or more experimental features. If multiple features '
+            'are being added, they should be comma separated.',
+        splitCommas: true);
+    parser.addFlag(_implicitCastsFlag,
+        negatable: true,
+        help: 'Disable implicit casts in strong mode (https://goo.gl/cTLz40).',
+        defaultsTo: null,
+        hide: ddc && hide);
+    parser.addFlag(_noImplicitDynamicFlag,
+        defaultsTo: null,
+        negatable: false,
+        help: 'Disable implicit dynamic (https://goo.gl/m0UgXD).',
+        hide: ddc && hide);
+
+    //
+    // Hidden flags and options.
+    //
+    parser.addMultiOption(_defineVariableOption,
+        abbr: 'D',
+        help:
+            'Define an environment declaration. For example, "-Dfoo=bar" defines '
+            'an environment declaration named "foo" whose value is "bar".',
+        hide: hide);
+    parser.addOption(_packagesOption,
+        help: 'The path to the package resolution configuration file, which '
+            'supplies a mapping of package names\nto paths.',
+        hide: ddc);
+    parser.addOption(_sdkSummaryPathOption,
+        help: 'The path to the Dart SDK summary file.', hide: hide);
+    parser.addFlag(_enableInitializingFormalAccessFlag,
+        help:
+            'Enable support for allowing access to field formal parameters in a '
+            'constructor\'s initializer list (deprecated).',
+        defaultsTo: false,
+        negatable: false,
+        hide: hide || ddc);
+    if (!ddc) {
+      parser.addFlag(_lintsFlag,
+          help: 'Show lint results.', defaultsTo: null, negatable: true);
+    }
+  }
+
   static String _getVersion() {
     try {
       // This is relative to bin/snapshot, so ../..
@@ -298,7 +561,7 @@ class CommandLineOptions {
     // TODO(devoncarew): This defines some hidden flags, which would be better
     // defined with the rest of the hidden flags below (to group well with the
     // other flags).
-    defineAnalysisArguments(parser, hide: hide);
+    _defineAnalysisArguments(parser, hide: hide);
 
     parser
       ..addOption('format',
@@ -392,12 +655,12 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addFlag(ignoreUnrecognizedFlagsFlag,
+      ..addFlag(_ignoreUnrecognizedFlagsFlag,
           help: 'Ignore unrecognized command line flags.',
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addOption('default-language-version',
+      ..addOption(_defaultLanguageVersionOption,
           help: 'The default language version when it is not specified via '
               'other ways (internal, tests only).',
           hide: false)
@@ -468,7 +731,7 @@ class CommandLineOptions {
           negatable: false);
 
     try {
-      if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {
+      if (args.contains('--$_ignoreUnrecognizedFlagsFlag')) {
         args = filterUnknownArguments(args, parser);
       }
       var results = parser.parse(args);
@@ -528,9 +791,9 @@ class CommandLineOptions {
             'Note: the --strong flag is deprecated and will be removed in an '
             'future release.\n');
       }
-      if (results.wasParsed('enable-experiment')) {
+      if (results.wasParsed(_enableExperimentOption)) {
         var names =
-            (results['enable-experiment'] as List).cast<String>().toList();
+            (results[_enableExperimentOption] as List).cast<String>().toList();
         var errorFound = false;
         for (var validationResult in validateFlags(names)) {
           if (validationResult.isError) {

@@ -71,15 +71,17 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
   }
   if (capture_stdout || capture_stderr) {
     intptr_t fd = GetFD();
+    const char* result = nullptr;
     if ((fd == STDOUT_FILENO) && capture_stdout) {
-      Dart_ServiceSendDataEvent("Stdout", "WriteEvent",
-                                reinterpret_cast<const uint8_t*>(buffer),
-                                num_bytes);
+      result = Dart_ServiceSendDataEvent(
+          "Stdout", "WriteEvent", reinterpret_cast<const uint8_t*>(buffer),
+          num_bytes);
     } else if ((fd == STDERR_FILENO) && capture_stderr) {
-      Dart_ServiceSendDataEvent("Stderr", "WriteEvent",
-                                reinterpret_cast<const uint8_t*>(buffer),
-                                num_bytes);
+      result = Dart_ServiceSendDataEvent(
+          "Stderr", "WriteEvent", reinterpret_cast<const uint8_t*>(buffer),
+          num_bytes);
     }
+    ASSERT(result == nullptr);
   }
   return true;
 }

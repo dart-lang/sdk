@@ -139,6 +139,14 @@ class Snapshot {
     return (kind == kFullJIT) || (kind == kFullAOT);
   }
 
+  static bool IncludesStringsInROData(Kind kind) {
+#if !defined(DART_COMPRESSED_POINTERS)
+    return IncludesCode(kind);
+#else
+    return false;
+#endif
+  }
+
   const uint8_t* Addr() const { return reinterpret_cast<const uint8_t*>(this); }
 
   const uint8_t* DataImage() const {
