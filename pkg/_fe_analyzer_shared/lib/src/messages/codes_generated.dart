@@ -1514,7 +1514,7 @@ const Code<Null> codeConstEvalUnevaluated = messageConstEvalUnevaluated;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstEvalUnevaluated = const MessageCode(
     "ConstEvalUnevaluated",
-    message: r"""Could not evaluate constant expression.""");
+    message: r"""Couldn't evaluate constant expression.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -4051,7 +4051,7 @@ const MessageCode messageFieldInitializerOutsideConstructor = const MessageCode(
 const Template<Message Function(String name)> templateFieldNotPromoted =
     const Template<Message Function(String name)>(
         messageTemplate:
-            r"""'#name' refers to a property so it could not be promoted.""",
+            r"""'#name' refers to a property so it couldn't be promoted.""",
         withArguments: _withArgumentsFieldNotPromoted);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4065,8 +4065,7 @@ Message _withArgumentsFieldNotPromoted(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   return new Message(codeFieldNotPromoted,
-      message:
-          """'${name}' refers to a property so it could not be promoted.""",
+      message: """'${name}' refers to a property so it couldn't be promoted.""",
       arguments: {'name': name});
 }
 
@@ -7710,11 +7709,10 @@ Message _withArgumentsOverrideTypeVariablesMismatch(String name, String name2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(String name, Uri uri_)> templatePackageNotFound =
+const Template<Message Function(String name, Uri uri_)>
+    templatePackageNotFound =
     const Template<Message Function(String name, Uri uri_)>(
-        messageTemplate:
-            r"""Could not resolve the package '#name' in '#uri'.""",
+        messageTemplate: r"""Couldn't resolve the package '#name' in '#uri'.""",
         withArguments: _withArgumentsPackageNotFound);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7729,7 +7727,7 @@ Message _withArgumentsPackageNotFound(String name, Uri uri_) {
   name = demangleMixinApplicationName(name);
   String? uri = relativizeUri(uri_);
   return new Message(codePackageNotFound,
-      message: """Could not resolve the package '${name}' in '${uri}'.""",
+      message: """Couldn't resolve the package '${name}' in '${uri}'.""",
       arguments: {'name': name, 'uri': uri_});
 }
 

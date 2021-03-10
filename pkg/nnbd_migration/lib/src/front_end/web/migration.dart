@@ -50,7 +50,7 @@ void main() {
             ..remove('proposed')
             ..add('applied');
         }).catchError((e, st) {
-          handleError('Could not apply migration', e, st);
+          handleError("Couldn't apply migration", e, st);
         });
       }
     });
@@ -323,7 +323,7 @@ void handleAddHintLinkClick(MouseEvent event) async {
     await loadFile(window.location.pathname, null, null, false);
     _scrollContentTo(previousScrollPosition);
   } catch (e, st) {
-    handleError('Could not add/remove hint', e, st);
+    handleError("couldn't add/remove hint", e, st);
   }
 }
 
@@ -403,7 +403,7 @@ void loadAndPopulateEditDetails(String path, int offset, int line) async {
     pushState(path, offset, line);
     addClickHandlers('.edit-panel .panel-content', false);
   } catch (e, st) {
-    handleError('Could not load edit details', e, st);
+    handleError("couldn't load edit details", e, st);
   }
 }
 
@@ -439,7 +439,7 @@ Future<void> loadFile(
       callback();
     }
   } catch (e, st) {
-    handleError('Could not load dart file $path', e, st);
+    handleError("couldn't load dart file $path", e, st);
   }
 }
 
@@ -456,7 +456,7 @@ void loadNavigationTree() async {
     writeNavigationSubtree(navTree, navigationTree,
         enablePartialMigration: true);
   } catch (e, st) {
-    handleError('Could not load navigation tree', e, st);
+    handleError("couldn't load navigation tree", e, st);
   }
 }
 
@@ -939,7 +939,7 @@ void _addHintAction(HintAction hintAction, Node drawer, TargetLink link) {
         document.body.classes.add('needs-rerun');
         _scrollContentTo(previousScrollPosition);
       } catch (e, st) {
-        handleError('Could not apply hint', e, st);
+        handleError("couldn't apply hint", e, st);
       }
     })
     ..appendText(hintAction.kind.description));

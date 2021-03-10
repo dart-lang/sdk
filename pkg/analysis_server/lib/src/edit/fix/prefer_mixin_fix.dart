@@ -54,7 +54,7 @@ class PreferMixinFix extends FixLintTask implements FixCodeTask {
           // TODO(danrubel): If assists is empty, then determine why
           // assist could not be performed and report that in the description.
           listener.addRecommendation(
-              'Could not convert ${elem.displayName} to a mixin'
+              "Couldn't convert ${elem.displayName} to a mixin"
               ' because the class contains a constructor',
               location);
         }
