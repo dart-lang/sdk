@@ -804,6 +804,7 @@ ordered
 orders
 ordinal
 org
+orphancy
 orphans
 ors
 os
@@ -994,6 +995,7 @@ replaces
 replicated
 repo
 repositories
+repurposed
 requirement
 res
 residue

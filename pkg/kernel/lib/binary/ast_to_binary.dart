@@ -251,7 +251,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       }
     } else if (constant is TearOffConstant) {
       writeByte(ConstantTag.TearOffConstant);
-      writeNonNullCanonicalNameReference(constant.procedure.canonicalName!);
+      writeNonNullCanonicalNameReference(
+          constant.procedure.reference.canonicalName!);
     } else if (constant is TypeLiteralConstant) {
       writeByte(ConstantTag.TypeLiteralConstant);
       writeDartType(constant.type);
@@ -503,8 +504,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     for (int i = 0; i < component.libraries.length; ++i) {
       Library library = component.libraries[i];
       if (libraryFilter == null || libraryFilter!(library)) {
-        _indexLinkTableInternal(library.canonicalName!);
-        _knownCanonicalNameNonRootTops.add(library.canonicalName!);
+        _indexLinkTableInternal(library.reference.canonicalName!);
+        _knownCanonicalNameNonRootTops.add(library.reference.canonicalName!);
       }
     }
   }
@@ -940,11 +941,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeLibraryReference(Library node, {bool allowNull: false}) {
-    if (node.canonicalName == null && !allowNull) {
+    if (node.reference.canonicalName == null && !allowNull) {
       throw new ArgumentError(
           'Expected a library reference to be valid but was `null`.');
     }
-    writeNullAllowedCanonicalNameReference(node.canonicalName);
+    writeNullAllowedCanonicalNameReference(node.reference.canonicalName);
   }
 
   writeOffset(int offset) {
@@ -1149,7 +1150,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     if (node.isAnonymousMixin) _currentlyInNonimplementation = true;
 
-    if (node.canonicalName == null) {
+    if (node.reference.canonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }
     writeByte(Tag.Class);
@@ -1192,7 +1193,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitConstructor(Constructor node) {
-    if (node.canonicalName == null) {
+    if (node.reference.canonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }
     enterScope(memberScope: true);
@@ -1233,24 +1234,23 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     procedureOffsets.add(getBufferOffset());
 
-    if (node.canonicalName == null) {
+    CanonicalName? canonicalName = node.reference.canonicalName;
+    if (canonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }
-    if (node.reference.node != node) {
+    String? orphancy = node.reference.getOrphancyDescription(node);
+    if (orphancy != null) {
       throw new ArgumentError(
           'Trying to serialize orphaned procedure reference.\n'
           'Orphaned procedure ${node} (${node.runtimeType}:${node.hashCode})\n'
-          'Linked node ${node.reference.node} '
-          '(${node.reference.node.runtimeType}:'
-          '${node.reference.node.hashCode})');
+          '${orphancy}');
     }
-    if (node.canonicalName!.reference?.node != node) {
+    orphancy = canonicalName.getOrphancyDescription(node, node.reference);
+    if (orphancy != null) {
       throw new ArgumentError(
           'Trying to serialize orphaned procedure canonical name.\n'
           'Orphaned procedure ${node} (${node.runtimeType}:${node.hashCode})\n'
-          'Linked node ${node.canonicalName!.reference?.node} '
-          '(${node.canonicalName!.reference?.node.runtimeType}:'
-          '${node.canonicalName!.reference?.node.hashCode})');
+          '${orphancy}');
     }
 
     final bool currentlyInNonimplementationSaved =
@@ -1284,54 +1284,49 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitField(Field node) {
-    if (node.getterCanonicalName == null) {
+    CanonicalName? getterCanonicalName = node.getterReference.canonicalName;
+    if (getterCanonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }
-    if (node.getterReference.node != node) {
+    String? getterOrphancy = node.getterReference.getOrphancyDescription(node);
+    if (getterOrphancy != null) {
       throw new ArgumentError('Trying to serialize orphaned getter reference.\n'
-          'Orphaned getter ${node} (${node.runtimeType}:${node.hashCode})\n'
-          'Linked node ${node.getterReference.node} '
-          '(${node.getterReference.node.runtimeType}:'
-          '${node.getterReference.node.hashCode})');
+          '${getterOrphancy}');
     }
-    if (node.getterCanonicalName!.reference?.node != node) {
+    getterOrphancy =
+        getterCanonicalName.getOrphancyDescription(node, node.getterReference);
+    if (getterOrphancy != null) {
       throw new ArgumentError(
           'Trying to serialize orphaned getter canonical name.\n'
-          'Orphaned getter ${node} '
           '(${node.runtimeType}:${node.hashCode})\n'
-          'Linked node ${node.getterCanonicalName!.reference?.node} '
-          '(${node.getterCanonicalName!.reference?.node.runtimeType}:'
-          '${node.getterCanonicalName!.reference?.node.hashCode})');
+          '${getterOrphancy}');
     }
+
+    CanonicalName? setterCanonicalName;
     if (node.hasSetter) {
-      if (node.setterCanonicalName == null) {
+      Reference setterReference = node.setterReference!;
+      setterCanonicalName = setterReference.canonicalName;
+      if (setterCanonicalName == null) {
         throw new ArgumentError('Missing canonical name for $node');
       }
-      if (node.setterReference?.node != node) {
+      String? setterOrphancy = setterReference.getOrphancyDescription(node);
+      if (setterOrphancy != null) {
         throw new ArgumentError(
             'Trying to serialize orphaned setter reference.\n'
-            'Orphaned setter ${node} (${node.runtimeType}:${node.hashCode})\n'
-            'Linked node ${node.setterReference?.node}'
-            '(${node.setterReference?.node.runtimeType}:'
-            '${node.setterReference?.node.hashCode})');
+            '${setterOrphancy}');
       }
-      if (node.setterCanonicalName!.reference?.node != node) {
+      setterOrphancy =
+          setterCanonicalName.getOrphancyDescription(node, setterReference);
+      if (setterOrphancy != null) {
         throw new ArgumentError(
             'Trying to serialize orphaned setter canonical name.\n'
-            'Orphaned setter ${node} (${node.runtimeType}:${node.hashCode})\n'
-            'Linked node ${node.setterCanonicalName!.reference?.node} '
-            '(${node.setterCanonicalName!.reference?.node.runtimeType}:'
-            '${node.setterCanonicalName!.reference?.node.hashCode})');
+            '${setterOrphancy}');
       }
     }
     enterScope(memberScope: true);
     writeByte(Tag.Field);
-    writeNonNullCanonicalNameReference(getCanonicalNameOfMemberGetter(node));
-    if (node.hasSetter) {
-      writeNonNullCanonicalNameReference(getCanonicalNameOfMemberSetter(node));
-    } else {
-      writeNullAllowedReference(null);
-    }
+    writeNonNullCanonicalNameReference(getterCanonicalName);
+    writeNullAllowedCanonicalNameReference(setterCanonicalName);
     writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
@@ -1345,7 +1340,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
-    if (node.canonicalName == null) {
+    if (node.reference.canonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }
     writeByte(Tag.RedirectingFactoryConstructor);
@@ -2413,7 +2408,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitExtension(Extension node) {
-    if (node.canonicalName == null) {
+    if (node.reference.canonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }
     writeByte(Tag.Extension);

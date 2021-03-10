@@ -19,8 +19,6 @@ import 'package:front_end/src/fasta/source/source_loader.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
-        CanonicalNameError,
-        CanonicalNameSdkError,
         CompilationModeError,
         InvalidKernelSdkVersionError,
         InvalidKernelVersionError,
@@ -51,6 +49,9 @@ import 'package:kernel/kernel.dart'
         Supertype,
         TreeNode,
         TypeParameter;
+
+import 'package:kernel/canonical_name.dart'
+    show CanonicalNameError, CanonicalNameSdkError;
 
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 

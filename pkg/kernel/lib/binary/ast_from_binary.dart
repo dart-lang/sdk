@@ -60,20 +60,6 @@ class CompilationModeError {
   String toString() => "CompilationModeError[$message]";
 }
 
-class CanonicalNameError {
-  final String message;
-
-  CanonicalNameError(this.message);
-
-  String toString() => 'CanonicalNameError: $message';
-}
-
-class CanonicalNameSdkError extends CanonicalNameError {
-  CanonicalNameSdkError(String message) : super(message);
-
-  String toString() => 'CanonicalNameSdkError: $message';
-}
-
 class _ComponentIndex {
   static const int numberOfFixedFields = 10;
 
@@ -441,8 +427,7 @@ class BinaryBuilder {
     final int fieldValueCount = readUInt30();
     final Map<Reference, Constant> fieldValues = <Reference, Constant>{};
     for (int i = 0; i < fieldValueCount; i++) {
-      final Reference fieldRef =
-          readNonNullCanonicalNameReference().getReference();
+      final Reference fieldRef = readNonNullCanonicalNameReference().reference;
       final Constant constant = readConstantReference();
       fieldValues[fieldRef] = constant;
     }
@@ -457,8 +442,7 @@ class BinaryBuilder {
   }
 
   Constant _readTearOffConstant() {
-    final Reference reference =
-        readNonNullCanonicalNameReference().getReference();
+    final Reference reference = readNonNullCanonicalNameReference().reference;
     return new TearOffConstant.byReference(reference);
   }
 
@@ -656,7 +640,7 @@ class BinaryBuilder {
       }
 
       if (checkCanonicalNames) {
-        _checkCanonicalNameChildren(component.root);
+        component.root.checkCanonicalNameChildren();
       }
       return views;
     });
@@ -706,59 +690,8 @@ class BinaryBuilder {
     }
 
     if (checkCanonicalNames) {
-      _checkCanonicalNameChildren(component.root);
+      component.root.checkCanonicalNameChildren();
     }
-  }
-
-  void _checkCanonicalNameChildren(CanonicalName parent) {
-    Iterable<CanonicalName>? parentChildren = parent.childrenOrNull;
-    if (parentChildren != null) {
-      for (CanonicalName child in parentChildren) {
-        if (child.name != '@methods' &&
-            child.name != '@typedefs' &&
-            child.name != '@getters' &&
-            child.name != '@setters' &&
-            child.name != '@factories' &&
-            child.name != '@constructors') {
-          bool checkReferenceNode = true;
-          if (child.reference == null) {
-            // OK for "if private: URI of library" part of "Qualified name"...
-            // TODO(johnniwinther): This wrongfully skips checking of variable
-            // synthesized by the VM transformations. The kind of canonical
-            // name types maybe should be directly available.
-            if (parent.parent != null && child.name.contains(':')) {
-              // OK then.
-              checkReferenceNode = false;
-            } else {
-              throw buildCanonicalNameError(
-                  "Null reference (${child.name}) ($child).", child);
-            }
-          }
-          if (checkReferenceNode) {
-            if (child.reference!.canonicalName != child) {
-              throw new CanonicalNameError(
-                  "Canonical name and reference doesn't agree.");
-            }
-            if (child.reference!.node == null) {
-              throw buildCanonicalNameError(
-                  "Reference is null (${child.name}) ($child).", child);
-            }
-          }
-        }
-        _checkCanonicalNameChildren(child);
-      }
-    }
-  }
-
-  CanonicalNameError buildCanonicalNameError(
-      String message, CanonicalName problemNode) {
-    // Special-case missing sdk entries as that is probably a change to the
-    // platform - that's something we might want to react differently to.
-    String libraryUri = problemNode.nonRootTop?.name ?? "";
-    if (libraryUri.startsWith("dart:")) {
-      return new CanonicalNameSdkError(message);
-    }
-    return new CanonicalNameError(message);
   }
 
   _ComponentIndex _readComponentIndex(int componentFileSize) {
@@ -1057,12 +990,12 @@ class BinaryBuilder {
 
   Reference? readNullableLibraryReference() {
     CanonicalName? canonicalName = readNullableCanonicalNameReference();
-    return canonicalName?.getReference();
+    return canonicalName?.reference;
   }
 
   Reference readNonNullLibraryReference() {
     CanonicalName? canonicalName = readNullableCanonicalNameReference();
-    if (canonicalName != null) return canonicalName.getReference();
+    if (canonicalName != null) return canonicalName.reference;
     throw 'Expected a library reference to be valid but was `null`.';
   }
 
@@ -1073,7 +1006,7 @@ class BinaryBuilder {
 
   Reference? readNullableClassReference() {
     CanonicalName? name = readNullableCanonicalNameReference();
-    return name?.getReference();
+    return name?.reference;
   }
 
   Reference readNonNullClassReference() {
@@ -1081,7 +1014,7 @@ class BinaryBuilder {
     if (name == null) {
       throw 'Expected a class reference to be valid but was `null`.';
     }
-    return name.getReference();
+    return name.reference;
   }
 
   void skipMemberReference() {
@@ -1090,7 +1023,7 @@ class BinaryBuilder {
 
   Reference? readNullableMemberReference() {
     CanonicalName? name = readNullableCanonicalNameReference();
-    return name?.getReference();
+    return name?.reference;
   }
 
   Reference readNonNullMemberReference() {
@@ -1098,7 +1031,7 @@ class BinaryBuilder {
     if (name == null) {
       throw 'Expected a member reference to be valid but was `null`.';
     }
-    return name.getReference();
+    return name.reference;
   }
 
   Reference? readNullableInstanceMemberReference() {
@@ -1114,15 +1047,15 @@ class BinaryBuilder {
   }
 
   Reference? getNullableMemberReferenceFromInt(int index) {
-    return getNullableCanonicalNameReferenceFromInt(index)?.getReference();
+    return getNullableCanonicalNameReferenceFromInt(index)?.reference;
   }
 
   Reference? readNullableTypedefReference() {
-    return readNullableCanonicalNameReference()?.getReference();
+    return readNullableCanonicalNameReference()?.reference;
   }
 
   Reference readNonNullTypedefReference() {
-    return readNonNullCanonicalNameReference().getReference();
+    return readNonNullCanonicalNameReference().reference;
   }
 
   Name readName() {
@@ -1175,7 +1108,7 @@ class BinaryBuilder {
     int languageVersionMinor = readUInt30();
 
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
-    Reference reference = canonicalName.getReference();
+    Reference reference = canonicalName.reference;
     Library? library = reference.node as Library?;
     if (alwaysCreateNewNamedNodes) {
       library = null;
@@ -1268,7 +1201,7 @@ class BinaryBuilder {
       library.additionalExports.clear();
       for (int i = 0; i < numExportedReference; i++) {
         CanonicalName exportedName = readNonNullCanonicalNameReference();
-        Reference reference = exportedName.getReference();
+        Reference reference = exportedName.reference;
         library.additionalExports.add(reference);
       }
     }
@@ -1307,7 +1240,7 @@ class BinaryBuilder {
 
   Typedef readTypedef() {
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
-    Reference reference = canonicalName.getReference();
+    Reference reference = canonicalName.reference;
     Typedef? node = reference.node as Typedef?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
@@ -1355,7 +1288,7 @@ class BinaryBuilder {
     _byteOffset = savedByteOffset;
 
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
-    Reference reference = canonicalName.getReference();
+    Reference reference = canonicalName.reference;
     Class? node = reference.node as Class?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
@@ -1411,7 +1344,7 @@ class BinaryBuilder {
     assert(tag == Tag.Extension);
 
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
-    Reference reference = canonicalName.getReference();
+    Reference reference = canonicalName.reference;
     Extension? node = reference.node as Extension?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
@@ -1447,7 +1380,7 @@ class BinaryBuilder {
       node.members[i] = new ExtensionMemberDescriptor(
           name: name,
           kind: ExtensionMemberKind.values[kind],
-          member: canonicalName.getReference())
+          member: canonicalName.reference)
         ..flags = flags;
     }
     return node;
@@ -1501,9 +1434,9 @@ class BinaryBuilder {
     int tag = readByte();
     assert(tag == Tag.Field);
     CanonicalName getterCanonicalName = readNonNullCanonicalNameReference();
-    Reference getterReference = getterCanonicalName.getReference();
+    Reference getterReference = getterCanonicalName.reference;
     CanonicalName? setterCanonicalName = readNullableCanonicalNameReference();
-    Reference? setterReference = setterCanonicalName?.getReference();
+    Reference? setterReference = setterCanonicalName?.reference;
     Field? node = getterReference.node as Field?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
@@ -1547,7 +1480,7 @@ class BinaryBuilder {
     int tag = readByte();
     assert(tag == Tag.Constructor);
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
-    Reference reference = canonicalName.getReference();
+    Reference reference = canonicalName.reference;
     Constructor? node = reference.node as Constructor?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
@@ -1589,7 +1522,7 @@ class BinaryBuilder {
     int tag = readByte();
     assert(tag == Tag.Procedure);
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
-    Reference reference = canonicalName.getReference();
+    Reference reference = canonicalName.reference;
     Procedure? node = reference.node as Procedure?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
@@ -1648,7 +1581,7 @@ class BinaryBuilder {
     int tag = readByte();
     assert(tag == Tag.RedirectingFactoryConstructor);
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
-    Reference reference = canonicalName.getReference();
+    Reference reference = canonicalName.reference;
     RedirectingFactoryConstructor? node =
         reference.node as RedirectingFactoryConstructor?;
     if (alwaysCreateNewNamedNodes) {
@@ -2354,8 +2287,7 @@ class BinaryBuilder {
     int fieldValueCount = readUInt30();
     Map<Reference, Expression> fieldValues = <Reference, Expression>{};
     for (int i = 0; i < fieldValueCount; i++) {
-      final Reference fieldRef =
-          readNonNullCanonicalNameReference().getReference();
+      final Reference fieldRef = readNonNullCanonicalNameReference().reference;
       final Expression value = readExpression();
       fieldValues[fieldRef] = value;
     }

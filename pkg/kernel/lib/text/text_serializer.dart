@@ -24,8 +24,8 @@ TextSerializer<Name> publicName =
     Wrapped<String, Name>((w) => w.text, (u) => Name(u), const DartString());
 
 TextSerializer<Name> privateName = Wrapped<Tuple2<String, CanonicalName>, Name>(
-    (w) => Tuple2(w.text, w.library!.canonicalName!),
-    (u) => Name.byReference(u.first, u.second.getReference()),
+    (w) => Tuple2(w.text, w.library!.reference.canonicalName!),
+    (u) => Name.byReference(u.first, u.second.reference),
     Tuple2Serializer(DartString(), CanonicalNameSerializer()));
 
 TextSerializer<Name> nameSerializer = new Case(
@@ -464,7 +464,7 @@ InstanceGet wrapInstanceGet(
     Tuple5<InstanceAccessKind, Expression, Name, CanonicalName, DartType>
         tuple) {
   return new InstanceGet.byReference(tuple.first, tuple.second, tuple.third,
-      interfaceTargetReference: tuple.fourth.getReference(),
+      interfaceTargetReference: tuple.fourth.reference,
       resultType: tuple.fifth);
 }
 
@@ -487,7 +487,7 @@ InstanceSet wrapInstanceSet(
         tuple) {
   return new InstanceSet.byReference(
       tuple.first, tuple.second, tuple.third, tuple.fourth,
-      interfaceTargetReference: tuple.fifth.getReference());
+      interfaceTargetReference: tuple.fifth.reference);
 }
 
 TextSerializer<DynamicGet> dynamicGetSerializer =
@@ -546,7 +546,7 @@ InstanceTearOff wrapInstanceTearOff(
     Tuple5<InstanceAccessKind, Expression, Name, CanonicalName, DartType>
         tuple) {
   return new InstanceTearOff.byReference(tuple.first, tuple.second, tuple.third,
-      interfaceTargetReference: tuple.fourth.getReference(),
+      interfaceTargetReference: tuple.fourth.reference,
       resultType: tuple.fifth);
 }
 
@@ -652,7 +652,7 @@ InstanceInvocation wrapInstanceInvocation(
         tuple) {
   return new InstanceInvocation.byReference(
       tuple.first, tuple.second, tuple.third, tuple.fourth,
-      interfaceTargetReference: tuple.fifth.getReference(),
+      interfaceTargetReference: tuple.fifth.reference,
       functionType: tuple.sixth as FunctionType);
 }
 
@@ -785,7 +785,7 @@ Tuple4<Expression, Expression, CanonicalName, DartType> unwrapEqualsCall(
 EqualsCall wrapEqualsCall(
     Tuple4<Expression, Expression, CanonicalName, DartType> tuple) {
   return new EqualsCall.byReference(tuple.first, tuple.second,
-      interfaceTargetReference: tuple.third.getReference(),
+      interfaceTargetReference: tuple.third.reference,
       functionType: tuple.fourth as FunctionType);
 }
 
@@ -880,7 +880,7 @@ CanonicalName unwrapStaticGet(StaticGet expression) {
 }
 
 StaticGet wrapStaticGet(CanonicalName name) {
-  return new StaticGet.byReference(name.getReference());
+  return new StaticGet.byReference(name.reference);
 }
 
 const TextSerializer<StaticTearOff> staticTearOffSerializer = const Wrapped(
@@ -891,7 +891,7 @@ CanonicalName unwrapStaticTearOff(StaticTearOff expression) {
 }
 
 StaticTearOff wrapStaticTearOff(CanonicalName name) {
-  return new StaticTearOff.byReference(name.getReference());
+  return new StaticTearOff.byReference(name.reference);
 }
 
 TextSerializer<StaticSet> staticSetSerializer = new Wrapped(
@@ -905,7 +905,7 @@ Tuple2<CanonicalName, Expression> unwrapStaticSet(StaticSet expression) {
 }
 
 StaticSet wrapStaticSet(Tuple2<CanonicalName, Expression> tuple) {
-  return new StaticSet.byReference(tuple.first.getReference(), tuple.second);
+  return new StaticSet.byReference(tuple.first.reference, tuple.second);
 }
 
 TextSerializer<StaticInvocation> staticInvocationSerializer = new Wrapped(
@@ -920,8 +920,7 @@ Tuple2<CanonicalName, Arguments> unwrapStaticInvocation(
 }
 
 StaticInvocation wrapStaticInvocation(Tuple2<CanonicalName, Arguments> tuple) {
-  return new StaticInvocation.byReference(
-      tuple.first.getReference(), tuple.second,
+  return new StaticInvocation.byReference(tuple.first.reference, tuple.second,
       isConst: false);
 }
 
@@ -932,8 +931,7 @@ TextSerializer<StaticInvocation> constStaticInvocationSerializer = new Wrapped(
 
 StaticInvocation wrapConstStaticInvocation(
     Tuple2<CanonicalName, Arguments> tuple) {
-  return new StaticInvocation.byReference(
-      tuple.first.getReference(), tuple.second,
+  return new StaticInvocation.byReference(tuple.first.reference, tuple.second,
       isConst: true);
 }
 
@@ -950,7 +948,7 @@ Tuple2<CanonicalName, Arguments> unwrapConstructorInvocation(
 ConstructorInvocation wrapConstructorInvocation(
     Tuple2<CanonicalName, Arguments> tuple) {
   return new ConstructorInvocation.byReference(
-      tuple.first.getReference(), tuple.second,
+      tuple.first.reference, tuple.second,
       isConst: false);
 }
 
@@ -961,7 +959,7 @@ TextSerializer<ConstructorInvocation> constConstructorInvocationSerializer =
 ConstructorInvocation wrapConstConstructorInvocation(
     Tuple2<CanonicalName, Arguments> tuple) {
   return new ConstructorInvocation.byReference(
-      tuple.first.getReference(), tuple.second,
+      tuple.first.reference, tuple.second,
       isConst: true);
 }
 
@@ -1045,9 +1043,9 @@ TextSerializer<InstanceCreation> instanceCreationSerializer = Wrapped<
         ic.asserts,
         ic.unusedArguments),
     (t) => InstanceCreation(
-        t.first.getReference(),
+        t.first.reference,
         t.second,
-        Map.fromIterables(t.third.map((cn) => cn.getReference()), t.fourth),
+        Map.fromIterables(t.third.map((cn) => cn.reference), t.fourth),
         t.fifth,
         t.sixth),
     Tuple6Serializer(
@@ -1301,7 +1299,7 @@ Tuple2<CanonicalName, List<DartType>> unwrapInterfaceType(InterfaceType node) {
 
 InterfaceType wrapInterfaceType(Tuple2<CanonicalName, List<DartType>> tuple) {
   return new InterfaceType.byReference(
-      tuple.first.getReference(), Nullability.legacy, tuple.second);
+      tuple.first.reference, Nullability.legacy, tuple.second);
 }
 
 TextSerializer<TypedefType> typedefTypeSerializer = new Wrapped(
@@ -1316,7 +1314,7 @@ Tuple2<CanonicalName, List<DartType>> unwrapTypedefType(TypedefType node) {
 
 TypedefType wrapTypedefType(Tuple2<CanonicalName, List<DartType>> tuple) {
   return new TypedefType.byReference(
-      tuple.first.reference!, Nullability.legacy, tuple.second);
+      tuple.first.reference, Nullability.legacy, tuple.second);
 }
 
 TextSerializer<FutureOrType> futureOrTypeSerializer =
@@ -2133,7 +2131,7 @@ TextSerializer<LibraryDependency> libraryDependencySerializer = Wrapped<
     (ld) => Tuple5(ld.importedLibraryReference.canonicalName!, ld.name,
         ld.combinators, ld.flags, ld.annotations),
     (t) => LibraryDependency.byReference(
-        t.fourth, t.fifth, t.first.getReference(), t.second, t.third),
+        t.fourth, t.fifth, t.first.reference, t.second, t.third),
     Tuple5Serializer(
         CanonicalNameSerializer(),
         Optional(DartString()),
@@ -2227,13 +2225,13 @@ TextSerializer<StringConstant> stringConstantSerializer =
 TextSerializer<SymbolConstant> symbolConstantSerializer =
     Wrapped<Tuple2<String, CanonicalName?>, SymbolConstant>(
         (w) => Tuple2(w.name, w.libraryReference?.canonicalName),
-        (u) => SymbolConstant(u.first, u.second?.getReference()),
+        (u) => SymbolConstant(u.first, u.second?.reference),
         Tuple2Serializer(DartString(), Optional(CanonicalNameSerializer())));
 
 TextSerializer<TearOffConstant> tearOffConstantSerializer =
     Wrapped<CanonicalName, TearOffConstant>(
         (w) => w.procedureReference.canonicalName!,
-        (u) => TearOffConstant.byReference(u.getReference()),
+        (u) => TearOffConstant.byReference(u.reference),
         CanonicalNameSerializer());
 
 TextSerializer<TypeLiteralConstant> typeLiteralConstantSerializer =
@@ -2254,8 +2252,8 @@ TextSerializer<InstanceConstant> instanceConstantSerializer =
             w.typeArguments,
             w.fieldValues.keys.map((r) => r.canonicalName!).toList(),
             w.fieldValues.values.toList()),
-        (u) => InstanceConstant(u.first.getReference(), u.second,
-            Map.fromIterables(u.third.map((c) => c.getReference()), u.fourth)),
+        (u) => InstanceConstant(u.first.reference, u.second,
+            Map.fromIterables(u.third.map((c) => c.reference), u.fourth)),
         Tuple4Serializer(
             CanonicalNameSerializer(),
             ListSerializer(dartTypeSerializer),
@@ -2293,7 +2291,7 @@ TextSerializer<AssertInitializer> assertInitializerSerializer =
 TextSerializer<FieldInitializer> fieldInitializerSerializer =
     Wrapped<Tuple2<CanonicalName, Expression>, FieldInitializer>(
         (w) => Tuple2(w.fieldReference.canonicalName!, w.value),
-        (u) => FieldInitializer.byReference(u.first.getReference(), u.second),
+        (u) => FieldInitializer.byReference(u.first.reference, u.second),
         Tuple2Serializer(CanonicalNameSerializer(), expressionSerializer));
 
 TextSerializer<InvalidInitializer> invalidInitializerSerializer =
@@ -2307,14 +2305,13 @@ TextSerializer<LocalInitializer> localInitializerSerializer =
 TextSerializer<RedirectingInitializer> redirectingInitializerSerializer =
     Wrapped<Tuple2<CanonicalName, Arguments>, RedirectingInitializer>(
         (w) => Tuple2(w.targetReference.canonicalName!, w.arguments),
-        (u) => RedirectingInitializer.byReference(
-            u.first.getReference(), u.second),
+        (u) => RedirectingInitializer.byReference(u.first.reference, u.second),
         Tuple2Serializer(CanonicalNameSerializer(), argumentsSerializer));
 
 TextSerializer<SuperInitializer> superInitializerSerializer =
     Wrapped<Tuple2<CanonicalName, Arguments>, SuperInitializer>(
         (w) => Tuple2(w.targetReference.canonicalName!, w.arguments),
-        (u) => SuperInitializer.byReference(u.first.getReference(), u.second),
+        (u) => SuperInitializer.byReference(u.first.reference, u.second),
         Tuple2Serializer(CanonicalNameSerializer(), argumentsSerializer));
 
 Case<Initializer> initializerSerializer =
@@ -2323,7 +2320,7 @@ Case<Initializer> initializerSerializer =
 TextSerializer<Supertype> supertypeSerializer =
     Wrapped<Tuple2<CanonicalName, List<DartType>>, Supertype>(
         (w) => Tuple2(w.className.canonicalName!, w.typeArguments),
-        (u) => Supertype.byReference(u.first.getReference(), u.second),
+        (u) => Supertype.byReference(u.first.reference, u.second),
         Tuple2Serializer(
             CanonicalNameSerializer(), ListSerializer(dartTypeSerializer)));
 
@@ -2453,7 +2450,7 @@ TextSerializer<ExtensionMemberDescriptor> extensionMemberDescriptorSerializer =
             ExtensionMemberDescriptor>(
         (w) => Tuple4(w.name, w.kind, w.flags, w.member.canonicalName!),
         (u) => ExtensionMemberDescriptor(
-            name: u.first, kind: u.second, member: u.fourth.getReference())
+            name: u.first, kind: u.second, member: u.fourth.reference)
           ..flags = u.third,
         Tuple4Serializer(
             nameSerializer,

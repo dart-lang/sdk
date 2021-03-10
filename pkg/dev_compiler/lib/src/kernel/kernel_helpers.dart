@@ -53,7 +53,7 @@ String getTopLevelName(NamedNode n) {
   if (n is Class) return n.name;
   if (n is Typedef) return n.name;
   if (n is Field) return n.name.text;
-  return n.canonicalName?.name;
+  return n.reference.canonicalName?.name;
 }
 
 /// Given an annotated [node] and a [test] function, returns the first matching
