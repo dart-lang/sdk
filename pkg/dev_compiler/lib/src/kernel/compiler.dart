@@ -26,7 +26,7 @@ import '../compiler/module_containers.dart' show ModuleItemContainer;
 import '../compiler/shared_command.dart' show SharedCompilerOptions;
 import '../compiler/shared_compiler.dart';
 import '../js_ast/js_ast.dart' as js_ast;
-import '../js_ast/js_ast.dart' show js;
+import '../js_ast/js_ast.dart' show ModuleItem, js;
 import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan, HoverComment;
 import 'constants.dart';
 import 'js_interop.dart';
@@ -77,7 +77,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final _constLazyAccessors = <js_ast.Method>[];
 
   /// Container for holding the results of lazily-evaluated constants.
-  final _constTableCache = ModuleItemContainer<String>.asArray('C');
+  var _constTableCache = ModuleItemContainer<String>.asArray('C');
 
   /// Tracks the index in [moduleItems] where the const table must be inserted.
   /// Required for SDK builds due to internal circular dependencies.
@@ -221,7 +221,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final constAliasCache = HashMap<Constant, js_ast.Expression>();
 
   /// Maps uri strings in asserts and elsewhere to hoisted identifiers.
-  final _uriContainer = ModuleItemContainer<String>.asArray('I');
+  var _uriContainer = ModuleItemContainer<String>.asArray('I');
 
   final Class _jsArrayClass;
   final Class _privateSymbolClass;
@@ -241,6 +241,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final DevCompilerConstants _constants;
 
   final NullableInference _nullableInference;
+
+  bool _moduleEmitted = false;
 
   factory ProgramCompiler(
       Component component,
@@ -320,8 +322,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   InterfaceType get internalSymbolType =>
       _coreTypes.legacyRawType(_coreTypes.internalSymbolClass);
 
+  /// Module can be emitted only once, and the compiler can be reused after
+  /// only in incremental mode, for expression compilation only.
   js_ast.Program emitModule(Component component) {
-    if (moduleItems.isNotEmpty) {
+    if (_moduleEmitted) {
       throw StateError('Can only call emitModule once.');
     }
     _component = component;
@@ -443,7 +447,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Emit the hoisted type table cache variables
     items.addAll(_typeTable.dischargeBoundTypes());
 
-    return finishModule(items, _options.moduleName);
+    var module = finishModule(items, _options.moduleName);
+
+    // Mark as finished for incremental mode, so it is safe to
+    // switch to the incremental mode for expression compilation.
+    _moduleEmitted = true;
+    return module;
   }
 
   @override
@@ -2530,8 +2539,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return libraryJSName != null ? '$libraryJSName.$jsName' : jsName;
   }
 
+  String _emitJsNameWithoutGlobal(NamedNode n) {
+    if (!usesJSInterop(n)) return null;
+    setEmitIfIncrementalLibrary(getLibrary(n));
+    return _jsNameWithoutGlobal(n);
+  }
+
   js_ast.PropertyAccess _emitJSInterop(NamedNode n) {
-    var jsName = _jsNameWithoutGlobal(n);
+    var jsName = _emitJsNameWithoutGlobal(n);
     if (jsName == null) return null;
     return _emitJSInteropForGlobal(jsName);
   }
@@ -2762,7 +2777,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       typeRep = runtimeCall(
           'anonymousJSType(#)', [js.escapedString(getLocalClassName(c))]);
     } else {
-      var jsName = _jsNameWithoutGlobal(c);
+      var jsName = _emitJsNameWithoutGlobal(c);
       if (jsName != null) {
         typeRep = runtimeCall('lazyJSType(() => #, #)',
             [_emitJSInteropForGlobal(jsName), js.escapedString(jsName)]);
@@ -3072,6 +3087,30 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitTypedefType(TypedefType type) =>
       visitFunctionType(type.unalias as FunctionType);
 
+  /// Set incremental mode for expression compilation.
+  ///
+  /// Called for each expression compilation to set the intremental mode
+  /// and clear referenced items.
+  ///
+  /// The compiler cannot revert to non-incremental mode, and requires the
+  /// original module to be already emitted by the same compiler instance.
+  @override
+  void setIncrementalMode() {
+    if (!_moduleEmitted) {
+      throw StateError(
+          'Cannot run in incremental mode before module completion');
+    }
+    super.setIncrementalMode();
+
+    _constTableCache = ModuleItemContainer<String>.asArray('C');
+    _constLazyAccessors.clear();
+    constAliasCache.clear();
+
+    _uriContainer = ModuleItemContainer<String>.asArray('I');
+
+    _typeTable.typeContainer.setIncrementalMode();
+  }
+
   /// Emits function after initial compilation.
   ///
   /// Emits function from kernel [functionNode] with name [name] in the context
@@ -3079,68 +3118,67 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// finished. For example, this happens in expression compilation during
   /// expression evaluation initiated by the user from the IDE and coordinated
   /// by the debugger.
-  js_ast.Fun emitFunctionIncremental(
-      Library library, Class cls, FunctionNode functionNode, String name) {
-    // setup context
+  /// Triggers incremental mode, which only emits symbols, types, constants,
+  /// libraries, and uris referenced in the expression compilation result.
+  js_ast.Fun emitFunctionIncremental(List<ModuleItem> items, Library library,
+      Class cls, FunctionNode functionNode, String name) {
+    // Setup context.
     _currentLibrary = library;
     _staticTypeContext.enterLibrary(_currentLibrary);
     _currentClass = cls;
 
+    // Keep all symbols in containers.
+    containerizeSymbols = true;
+
+    // Set all tables to incremental mode, so we can only emit elements that
+    // were referenced the compiled code for the expression.
+    setIncrementalMode();
+
     // Do not add formal parameter checks for the top-level synthetic function
     // generated for expression evaluation, as those parameters are a set of
-    // variables from the current scope, and should alredy be checked in the
+    // variables from the current scope, and should already be checked in the
     // original code.
     _checkParameters = false;
 
-    // Set module item containers to incremental mode.
-    setSymbolContainerIncrementalMode(true);
-    _typeTable.typeContainer.incrementalMode = true;
-    _constTableCache.incrementalMode = true;
-
-    // Emit function with additional information, such as types that are used
-    // in the expression.
+    // Emit function while recoding elements accessed from tables.
     var fun = _emitFunction(functionNode, name);
 
-    var types = _typeTable.dischargeBoundTypes();
-    var constants = _dischargeConstTable();
+    var extensionSymbols = <js_ast.Statement>[];
+    emitExtensionSymbols(extensionSymbols);
 
-    var body = js_ast.Block([...?types, ...?constants, ...fun.body.statements]);
+    // Add all elements from tables accessed in the function
+    var body = js_ast.Block([
+      ...extensionSymbols,
+      ..._typeTable.dischargeBoundTypes(),
+      ...symbolContainer.emit(),
+      ..._emitConstTable(),
+      ..._uriContainer.emit(),
+      ...fun.body.statements
+    ]);
+
+    // Import all necessary libraries, including libraries accessed from the
+    // current module and libraries accessed from the type table.
+    for (var library in _typeTable.incrementalLibraries()) {
+      setEmitIfIncrementalLibrary(library);
+    }
+    emitImports(items);
+    emitExportsAsImports(items, _currentLibrary);
+
     return js_ast.Fun(fun.params, body);
   }
 
-  /// Emit all collected const symbols
-  ///
-  /// This is similar to how constants are emitted during
-  /// initial compilation in emitModule
-  ///
-  /// TODO: unify the code with emitModule.
-  List<js_ast.Statement> _dischargeConstTable() {
-    var items = <js_ast.Statement>[];
-
+  List<js_ast.Statement> _emitConstTable() {
+    var constTable = <js_ast.Statement>[];
     if (_constLazyAccessors.isNotEmpty) {
-      var constTableBody = runtimeStatement(
-          'defineLazy(#, { # }, false)', [_constTable, _constLazyAccessors]);
-      items.add(constTableBody);
-      _constLazyAccessors.clear();
-    }
+      constTable
+          .add(js.statement('const # = Object.create(null);', [_constTable]));
 
-    _copyAndFlattenBlocks(items, moduleItems);
-    moduleItems.clear();
-    return items;
-  }
+      constTable.add(runtimeStatement(
+          'defineLazy(#, { # }, false)', [_constTable, _constLazyAccessors]));
 
-  /// Flattens blocks in [items] to a single list.
-  ///
-  /// This will not flatten blocks that are marked as being scopes.
-  void _copyAndFlattenBlocks(
-      List<js_ast.Statement> result, Iterable<js_ast.ModuleItem> items) {
-    for (var item in items) {
-      if (item is js_ast.Block && !item.isScope) {
-        _copyAndFlattenBlocks(result, item.statements);
-      } else {
-        result.add(item as js_ast.Statement);
-      }
+      constTable.addAll(_constTableCache.emit());
     }
+    return constTable;
   }
 
   js_ast.Fun _emitFunction(FunctionNode f, String name) {
@@ -3729,6 +3767,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (!_uriContainer.contains(uri)) {
       _uriContainer[uri] = js_ast.LiteralString('"$uri"');
     }
+    _uriContainer.setEmitIfIncremental(uri);
     return _uriContainer.access(uri);
   }
 

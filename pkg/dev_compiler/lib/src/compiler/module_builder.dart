@@ -96,6 +96,27 @@ Program transformModuleFormat(ModuleFormat format, Program module) {
   }
 }
 
+/// Transforms an ES6 [function] into a given module [format].
+///
+/// If the format is [ModuleFormat.es6] this will return [function] unchanged.
+///
+/// Because JS ASTs are immutable the resulting function will share as much
+/// structure as possible with the original. The transformation is a shallow one
+/// that affects the [ImportDeclaration]s from [items].
+///
+/// Returns a new function that combines all statements from tranformed imports
+/// from [items] and the body of the [function].
+Fun transformFunctionModuleFormat(
+    List<ModuleItem> items, Fun function, ModuleFormat format) {
+  switch (format) {
+    case ModuleFormat.amd:
+      return AmdModuleBuilder().buildFunctionWithImports(items, function);
+    default:
+      throw UnsupportedError(
+          'Incremental build does not support $format module format');
+  }
+}
+
 /// Base class for compiling ES6 modules into various ES5 module patterns.
 ///
 /// This is a helper class for utilities and state that is shared by several
@@ -107,11 +128,16 @@ abstract class _ModuleBuilder {
   final statements = <Statement>[];
 
   /// Collect [imports], [exports] and [statements] from the ES6 [module].
+  void visitProgram(Program module) {
+    visitModuleItems(module.body);
+  }
+
+  /// Collect [imports], [exports] and [statements] from the ES6 [items].
   ///
   /// For exports, this will also add their body to [statements] in the
   /// appropriate position.
-  void visitProgram(Program module) {
-    for (var item in module.body) {
+  void visitModuleItems(List<ModuleItem> items) {
+    for (var item in items) {
       if (item is ImportDeclaration) {
         visitImportDeclaration(item);
       } else if (item is ExportDeclaration) {
@@ -136,6 +162,12 @@ abstract class _ModuleBuilder {
 
   void visitStatement(Statement node) {
     statements.add(node);
+  }
+
+  void clear() {
+    imports.clear();
+    exports.clear();
+    statements.clear();
   }
 }
 
@@ -260,31 +292,43 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
 class AmdModuleBuilder extends _ModuleBuilder {
   AmdModuleBuilder();
 
-  Program build(Program module) {
-    var importStatements = <Statement>[];
+  /// Build a module variable definition for [import].
+  static Statement buildLoadModule(
+          Identifier moduleVar, ImportDeclaration import) =>
+      js.statement('const # = require(#);', [moduleVar, import.from]);
 
-    // Collect imports/exports/statements.
-    visitProgram(module);
+  /// Build library variable definitions for all libraries from [import].
+  static List<Statement> buildImports(
+      Identifier moduleVar, ImportDeclaration import) {
+    var items = <Statement>[];
 
-    var dependencies = <LiteralString>[];
-    var fnParams = <Parameter>[];
+    for (var importName in import.namedImports) {
+      // import * is not emitted by the compiler, so we don't handle it here.
+      assert(!importName.isStar);
+      var asName = importName.asName ?? importName.name;
+      items.add(js.statement(
+          'const # = #.#', [asName, moduleVar, importName.name.name]));
+    }
+    return items;
+  }
+
+  /// Group libraries from [imports] by modules.
+  static Map<Identifier, ImportDeclaration> _collectModuleImports(
+      List<ImportDeclaration> imports) {
+    var result = <Identifier, ImportDeclaration>{};
     for (var import in imports) {
       // TODO(jmesserly): we could use destructuring once Atom supports it.
       var moduleVar =
           TemporaryId(pathToJSIdentifier(import.from.valueWithoutQuotes));
-      fnParams.add(moduleVar);
-      dependencies.add(import.from);
 
-      // TODO(jmesserly): optimize for the common case of a single import.
-      for (var importName in import.namedImports) {
-        // import * is not emitted by the compiler, so we don't handle it here.
-        assert(!importName.isStar);
-        var asName = importName.asName ?? importName.name;
-        importStatements.add(js.statement(
-            'const # = #.#', [asName, moduleVar, importName.name.name]));
-      }
+      result[moduleVar] = import;
     }
-    statements.insertAll(0, importStatements);
+    return result;
+  }
+
+  /// Build statements for [exports].
+  static List<Statement> buildExports(List<ExportDeclaration> exports) {
+    var items = <Statement>[];
 
     if (exports.isNotEmpty) {
       var exportedProps = <Property>[];
@@ -297,9 +341,59 @@ class AmdModuleBuilder extends _ModuleBuilder {
           exportedProps.add(Property(js.string(alias.name), name.name));
         }
       }
-      statements.add(js.comment('Exports:'));
-      statements.add(Return(ObjectInitializer(exportedProps, multiline: true)));
+      items.add(js.comment('Exports:'));
+      items.add(Return(ObjectInitializer(exportedProps, multiline: true)));
     }
+    return items;
+  }
+
+  /// Build function body with all necessary imports included.
+  ///
+  /// Used for the top level syntetic function generated during expression
+  /// compilation, in order to include all the context needed for evaluation
+  /// inside it.
+  ///
+  /// Returns a new function that combines all statements from tranformed
+  /// imports from [items] and the body of the [function].
+  Fun buildFunctionWithImports(List<ModuleItem> items, Fun function) {
+    clear();
+    visitModuleItems(items);
+
+    var moduleImports = _collectModuleImports(imports);
+    var importStatements = <Statement>[];
+
+    moduleImports.forEach((moduleVar, import) {
+      importStatements.add(buildLoadModule(moduleVar, import));
+      importStatements.addAll(buildImports(moduleVar, import));
+    });
+
+    return Fun(
+      function.params,
+      Block([...importStatements, ...statements, ...function.body.statements]),
+    );
+  }
+
+  Program build(Program module) {
+    // Collect imports/exports/statements.
+    visitProgram(module);
+
+    var moduleImports = _collectModuleImports(imports);
+    var importStatements = <Statement>[];
+
+    var fnParams = moduleImports.keys.toList();
+    var dependencies =
+        moduleImports.values.map((import) => import.from).toList();
+
+    moduleImports.forEach((moduleVar, import) {
+      importStatements.addAll(buildImports(moduleVar, import));
+    });
+
+    // Prepend import statetements.
+    statements.insertAll(0, importStatements);
+
+    // Append export statements.
+    statements.addAll(buildExports(exports));
+
     var resultModule = NamedFunction(
         loadFunctionIdentifier(module.name),
         js.fun("function(#) { 'use strict'; #; }", [fnParams, statements]),

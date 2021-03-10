@@ -413,6 +413,7 @@ import 'package:b/b.dart';
   Future<void> _withTempDir(Future<void> Function() f) async {
     await withTempDirAsync((tempDir) async {
       this.tempDir = tempDir;
+      File(path.join(tempDir, 'WORKSPACE')).writeAsStringSync('');
       await f();
     });
   }
@@ -422,20 +423,27 @@ import 'package:b/b.dart';
 class BuildModeTest extends AbstractBuildModeTest {
   Future<void> test_buildLinked() async {
     await withTempDirAsync((tempDir) async {
+      File(path.join(tempDir, 'WORKSPACE')).writeAsStringSync('');
+
+      var inputUri = 'package:dart.my/a.dart';
+      var inputPath = path.join(tempDir, 'dart', 'my', 'lib', 'a.dart');
+      (File(inputPath)..parent.createSync(recursive: true))
+          .writeAsStringSync('');
+
       var outputPath = path.join(tempDir, 'test_file.dart.sum');
-      await _doDrive(path.join('data', 'test_file.dart'), additionalArgs: [
+      await _doDrive(inputPath, fileUri: inputUri, additionalArgs: [
         '--build-summary-only',
         '--build-summary-output=$outputPath'
       ]);
+
       var output = File(outputPath);
       expect(output.existsSync(), isTrue);
       var bundle = PackageBundleReader(await output.readAsBytes());
-      var testFileUri = 'file:///test_file.dart';
 
-      expect(_linkedLibraryUriList(bundle), [testFileUri]);
+      expect(_linkedLibraryUriList(bundle), [inputUri]);
       expect(
-        _linkedLibraryUnitUriList(bundle, testFileUri),
-        [testFileUri],
+        _linkedLibraryUnitUriList(bundle, inputUri),
+        [inputUri],
       );
 
       expect(exitCode, 0);
@@ -444,6 +452,7 @@ class BuildModeTest extends AbstractBuildModeTest {
 
   Future<void> test_buildLinked_invalidPartUri() async {
     await withTempDirAsync((tempDir) async {
+      File(path.join(tempDir, 'WORKSPACE')).writeAsStringSync('');
       var aDart = path.join(tempDir, 'a.dart');
 
       var aUri = 'package:aaa/a.dart';
@@ -465,19 +474,35 @@ part '[invalid]';
   }
 
   Future<void> test_buildSuppressExitCode_fail_whenFileNotFound() async {
-    await _doDrive(path.join('data', 'non_existent_file.dart'),
-        additionalArgs: ['--build-suppress-exit-code']);
-    expect(exitCode, isNot(0));
+    await withTempDirAsync((tempDir) async {
+      File(path.join(tempDir, 'WORKSPACE')).writeAsStringSync('');
+
+      await _doDrive(path.join(tempDir, 'non_existent_file.dart'),
+          additionalArgs: ['--build-suppress-exit-code']);
+      expect(exitCode, isNot(0));
+    });
   }
 
   Future<void> test_buildSuppressExitCode_success_evenIfHasError() async {
-    await _doDrive(path.join('data', 'file_with_error.dart'),
-        additionalArgs: ['--build-suppress-exit-code']);
-    expect(exitCode, 0);
+    await withTempDirAsync((tempDir) async {
+      File(path.join(tempDir, 'WORKSPACE')).writeAsStringSync('');
+
+      var inputUri = 'package:dart.my/a.dart';
+      var inputPath = path.join(tempDir, 'dart', 'my', 'lib', 'a.dart');
+      (File(inputPath)..parent.createSync(recursive: true))
+          .writeAsStringSync('error');
+
+      await _doDrive(inputPath, fileUri: inputUri, additionalArgs: [
+        '--build-suppress-exit-code',
+      ]);
+      expect(exitCode, 0);
+    });
   }
 
   Future<void> test_consumeLinked() async {
     await withTempDirAsync((tempDir) async {
+      File(path.join(tempDir, 'WORKSPACE')).writeAsStringSync('');
+
       var aDart = path.join(tempDir, 'a.dart');
       var bDart = path.join(tempDir, 'b.dart');
       var cDart = path.join(tempDir, 'c.dart');
@@ -542,6 +567,8 @@ var b = new B();
 
   Future<void> test_error_notUriPipePath() async {
     await withTempDirAsync((tempDir) async {
+      File(path.join(tempDir, 'WORKSPACE')).writeAsStringSync('');
+
       var testDart = path.join(tempDir, 'test.dart');
       File(testDart).writeAsStringSync('var v = 42;');
 
@@ -556,10 +583,20 @@ var b = new B();
   }
 
   Future<void> test_fail_whenHasError() async {
-    await _doDrive(path.join('data', 'file_with_error.dart'));
-    expect(exitCode, isNot(0));
+    await withTempDirAsync((tempDir) async {
+      File(path.join(tempDir, 'WORKSPACE')).writeAsStringSync('');
+
+      var inputUri = 'package:my/with_error.dart';
+      var inputPath = path.join(tempDir, 'my', 'lib', 'with_error.dart');
+      (File(inputPath)..parent.createSync(recursive: true))
+          .writeAsStringSync('error');
+
+      await _doDrive(inputPath, fileUri: inputUri);
+      expect(exitCode, isNot(0));
+    });
   }
 
+  @FailingTest(reason: 'Why do we support this case?')
   Future<void> test_noInputs() async {
     await withTempDirAsync((tempDir) async {
       var outputPath = path.join(tempDir, 'test.sum');
@@ -580,15 +617,27 @@ var b = new B();
   }
 
   Future<void> test_noStatistics() async {
-    await _doDrive(path.join('data', 'test_file.dart'));
-    // Should not print statistics summary.
-    expect(outSink.toString(), isEmpty);
-    expect(errorSink.toString(), isEmpty);
-    expect(exitCode, 0);
+    await withTempDirAsync((tempDir) async {
+      File(path.join(tempDir, 'WORKSPACE')).writeAsStringSync('');
+
+      var inputUri = 'package:my/a.dart';
+      var inputPath = path.join(tempDir, 'my', 'lib', 'a.dart');
+      (File(inputPath)..parent.createSync(recursive: true))
+          .writeAsStringSync('class A {}');
+
+      await _doDrive(inputPath, fileUri: inputUri);
+
+      // Should not print statistics summary.
+      expect(outSink.toString(), isEmpty);
+      expect(errorSink.toString(), isEmpty);
+      expect(exitCode, 0);
+    });
   }
 
   Future<void> test_onlyErrors_partFirst() async {
     await withTempDirAsync((tempDir) async {
+      File(path.join(tempDir, 'WORKSPACE')).writeAsStringSync('');
+
       var aDart = path.join(tempDir, 'a.dart');
       var bDart = path.join(tempDir, 'b.dart');
 
@@ -616,6 +665,8 @@ var b = new B();
 
   Future<void> test_packageConfig_packagesOptions() async {
     await withTempDirAsync((tempDir) async {
+      File(path.join(tempDir, 'WORKSPACE')).writeAsStringSync('');
+
       var packagesPath = path.join(tempDir, 'aaa.packages');
 
       var aaaRoot = path.join(tempDir, 'packages', 'aaa');
@@ -658,6 +709,8 @@ extension E on int {}
 
   Future<void> test_packageConfig_relativeToFile() async {
     await withTempDirAsync((tempDir) async {
+      File(path.join(tempDir, 'WORKSPACE')).writeAsStringSync('');
+
       var packagesPath = path.join(tempDir, '.dart_tool/package_config.json');
 
       var aaaRoot = path.join(tempDir, 'packages', 'aaa');
