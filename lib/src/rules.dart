@@ -26,6 +26,7 @@ import 'rules/avoid_function_literals_in_foreach_calls.dart';
 import 'rules/avoid_implementing_value_types.dart';
 import 'rules/avoid_init_to_null.dart';
 import 'rules/avoid_js_rounded_ints.dart';
+import 'rules/avoid_multiple_declarations_per_line.dart';
 import 'rules/avoid_null_checks_in_equality_operators.dart';
 import 'rules/avoid_positional_boolean_parameters.dart';
 import 'rules/avoid_print.dart';
@@ -213,6 +214,7 @@ void registerLintRules() {
     ..register(AvoidImplementingValueTypes())
     ..register(AvoidInitToNull())
     ..register(AvoidJsRoundedInts())
+    ..register(AvoidMultipleDeclarationsPerLine())
     ..register(AvoidNullChecksInEqualityOperators())
     ..register(AvoidOperatorEqualsOnMutableClasses())
     ..register(AvoidPositionalBooleanParameters())
