@@ -38,6 +38,8 @@ class TestProject {
 
   String get dirPath => dir.path;
 
+  String get mainPath => path.join(dirPath, relativeFilePath);
+
   final String name;
 
   String get relativeFilePath => 'lib/main.dart';
