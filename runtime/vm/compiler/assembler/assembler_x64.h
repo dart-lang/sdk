@@ -286,6 +286,12 @@ class FieldAddress : public Address {
   }
 };
 
+#if !defined(DART_COMPRESSED_POINTERS)
+#define OBJ(op) op##q
+#else
+#define OBJ(op) op##l
+#endif
+
 class Assembler : public AssemblerBase {
  public:
   explicit Assembler(ObjectPoolBuilder* object_pool_builder,
@@ -544,10 +550,16 @@ class Assembler : public AssemblerBase {
   };
   void roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode);
 
-  void CompareImmediate(Register reg, const Immediate& imm);
-  void CompareImmediate(const Address& address, const Immediate& imm);
-  void CompareImmediate(Register reg, int32_t immediate) {
-    return CompareImmediate(reg, Immediate(immediate));
+  void CompareImmediate(Register reg,
+                        const Immediate& imm,
+                        OperandSize width = kEightBytes);
+  void CompareImmediate(const Address& address,
+                        const Immediate& imm,
+                        OperandSize width = kEightBytes);
+  void CompareImmediate(Register reg,
+                        int32_t immediate,
+                        OperandSize width = kEightBytes) {
+    return CompareImmediate(reg, Immediate(immediate), width);
   }
 
   void testl(Register reg, const Immediate& imm) { testq(reg, imm); }
@@ -555,7 +567,9 @@ class Assembler : public AssemblerBase {
   void testb(const Address& address, Register reg);
 
   void testq(Register reg, const Immediate& imm);
-  void TestImmediate(Register dst, const Immediate& imm);
+  void TestImmediate(Register dst,
+                     const Immediate& imm,
+                     OperandSize width = kEightBytes);
 
   void AndImmediate(Register dst, const Immediate& imm);
   void OrImmediate(Register dst, const Immediate& imm);
@@ -678,6 +692,7 @@ class Assembler : public AssemblerBase {
   // Methods for High-level operations and implemented on all architectures.
   void Ret() { ret(); }
   void CompareRegisters(Register a, Register b);
+  void CompareObjectRegisters(Register a, Register b) { OBJ(cmp)(a, b); }
   void BranchIf(Condition condition,
                 Label* label,
                 JumpDistance distance = kFarJump) {
@@ -864,9 +879,21 @@ class Assembler : public AssemblerBase {
   void SmiUntagOrCheckClass(Register object, intptr_t class_id, Label* smi);
 
   // Misc. functionality.
-  void SmiTag(Register reg) { addq(reg, reg); }
+  void SmiTag(Register reg) { OBJ(add)(reg, reg); }
 
-  void SmiUntag(Register reg) { sarq(reg, Immediate(kSmiTagSize)); }
+  void SmiUntag(Register reg) { OBJ(sar)(reg, Immediate(kSmiTagSize)); }
+
+  void SmiUntagAndSignExtend(Register reg) {
+#if !defined(DART_COMPRESSED_POINTERS)
+    sarq(reg, Immediate(kSmiTagSize));
+#else
+    // This is shorter than
+    // shlq reg, 32
+    // sraq reg, 33
+    sarl(reg, Immediate(1));
+    movsxd(reg, reg);
+#endif
+  }
 
   void BranchIfNotSmi(Register reg,
                       Label* label,
@@ -950,7 +977,7 @@ class Assembler : public AssemblerBase {
   }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
-    cmpq(value, address);
+    OBJ(cmp)(value, address);
   }
 
   void CompareTypeNullabilityWith(Register type, int8_t value) {

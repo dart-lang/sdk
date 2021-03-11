@@ -1128,7 +1128,14 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(ObjectPtr rawobj) {
 
   // First check if it is a Smi (i.e not a heap object).
   if (!rawobj->IsHeapObject()) {
+#if !defined(DART_COMPRESSED_POINTERS)
     Write<int64_t>(static_cast<intptr_t>(rawobj));
+#else
+    // One might expect this to be unnecessary because the reader will just
+    // ignore the upper bits, but the upper bits affect the variable-length
+    // encoding and can change lower bits in the variable-length reader.
+    Write<int64_t>(static_cast<intptr_t>(rawobj) << 32 >> 32);
+#endif
     return true;
   }
 

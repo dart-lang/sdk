@@ -1067,7 +1067,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // Check length >= 0 && length <= kMaxNewSpaceElements
     const Immediate& max_len =
         Immediate(target::ToRawSmi(target::Array::kMaxNewSpaceElements));
-    __ cmpq(RDI, max_len);
+    __ OBJ(cmp)(RDI, max_len);
     __ j(ABOVE, &slow_case);
 
     // Check for allocation tracing.
@@ -1078,7 +1078,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
         target::Array::header_size() +
         target::ObjectAlignment::kObjectAlignment - 1;
     // RDI is a Smi.
-    __ leaq(RDI, Address(RDI, TIMES_4, fixed_size_plus_alignment_padding));
+    __ OBJ(lea)(RDI, Address(RDI, TIMES_4, fixed_size_plus_alignment_padding));
     ASSERT(kSmiTagShift == 1);
     __ andq(RDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
 
@@ -2106,18 +2106,12 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ j(NOT_ZERO, not_smi_or_overflow);
   switch (kind) {
     case Token::kADD: {
-#if !defined(DART_COMPRESSED_POINTERS)
-      __ addq(RAX, RCX);
+      __ OBJ(add)(RAX, RCX);
       __ j(OVERFLOW, not_smi_or_overflow);
-#else
-      __ addl(RAX, RCX);
-      __ j(OVERFLOW, not_smi_or_overflow);
-      __ movsxd(RAX, RAX);
-#endif
       break;
     }
     case Token::kLT: {
-      __ cmpq(RAX, RCX);
+      __ OBJ(cmp)(RAX, RCX);
       __ setcc(GREATER_EQUAL, ByteRegisterOf(RAX));
       __ movzxb(RAX, RAX);  // RAX := RAX < RCX ? 0 : 1
       __ movq(RAX,
@@ -2127,7 +2121,7 @@ static void EmitFastSmiOp(Assembler* assembler,
       break;
     }
     case Token::kEQ: {
-      __ cmpq(RAX, RCX);
+      __ OBJ(cmp)(RAX, RCX);
       __ setcc(NOT_EQUAL, ByteRegisterOf(RAX));
       __ movzxb(RAX, RAX);  // RAX := RAX == RCX ? 0 : 1
       __ movq(RAX,
@@ -3102,7 +3096,7 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ jmp(&done, Assembler::kFarJump);
 
   __ Bind(&reference_compare);
-  __ cmpq(left, right);
+  __ CompareObjectRegisters(left, right);
   __ Bind(&done);
 }
 

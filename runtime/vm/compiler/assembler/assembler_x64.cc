@@ -533,22 +533,36 @@ void Assembler::ffree(intptr_t value) {
   EmitSimple(0xDD, 0xC0 + value);
 }
 
-void Assembler::CompareImmediate(Register reg, const Immediate& imm) {
-  if (imm.is_int32()) {
-    cmpq(reg, imm);
+void Assembler::CompareImmediate(Register reg,
+                                 const Immediate& imm,
+                                 OperandSize width) {
+  if (width == kEightBytes) {
+    if (imm.is_int32()) {
+      cmpq(reg, imm);
+    } else {
+      ASSERT(reg != TMP);
+      LoadImmediate(TMP, imm);
+      cmpq(reg, TMP);
+    }
   } else {
-    ASSERT(reg != TMP);
-    LoadImmediate(TMP, imm);
-    cmpq(reg, TMP);
+    ASSERT(width == kFourBytes);
+    cmpl(reg, imm);
   }
 }
 
-void Assembler::CompareImmediate(const Address& address, const Immediate& imm) {
-  if (imm.is_int32()) {
-    cmpq(address, imm);
+void Assembler::CompareImmediate(const Address& address,
+                                 const Immediate& imm,
+                                 OperandSize width) {
+  if (width == kEightBytes) {
+    if (imm.is_int32()) {
+      cmpq(address, imm);
+    } else {
+      LoadImmediate(TMP, imm);
+      cmpq(address, TMP);
+    }
   } else {
-    LoadImmediate(TMP, imm);
-    cmpq(address, TMP);
+    ASSERT(width == kFourBytes);
+    cmpl(address, imm);
   }
 }
 
@@ -607,13 +621,20 @@ void Assembler::testq(Register reg, const Immediate& imm) {
   }
 }
 
-void Assembler::TestImmediate(Register dst, const Immediate& imm) {
-  if (imm.is_int32() || imm.is_uint32()) {
-    testq(dst, imm);
+void Assembler::TestImmediate(Register dst,
+                              const Immediate& imm,
+                              OperandSize width) {
+  if (width == kEightBytes) {
+    if (imm.is_int32() || imm.is_uint32()) {
+      testq(dst, imm);
+    } else {
+      ASSERT(dst != TMP);
+      LoadImmediate(TMP, imm);
+      testq(dst, TMP);
+    }
   } else {
-    ASSERT(dst != TMP);
-    LoadImmediate(TMP, imm);
-    testq(dst, TMP);
+    ASSERT(width == kFourBytes);
+    testl(dst, imm);
   }
 }
 
@@ -1303,15 +1324,15 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 
   intptr_t offset_from_thread;
   if (target::CanLoadFromThread(object, &offset_from_thread)) {
-    cmpq(reg, Address(THR, offset_from_thread));
+    OBJ(cmp)(reg, Address(THR, offset_from_thread));
   } else if (CanLoadFromObjectPool(object)) {
     const intptr_t idx = object_pool_builder().FindObject(
         object, ObjectPoolBuilderEntry::kNotPatchable);
     const int32_t offset = target::ObjectPool::element_offset(idx);
-    cmpq(reg, Address(PP, offset - kHeapObjectTag));
+    OBJ(cmp)(reg, Address(PP, offset - kHeapObjectTag));
   } else {
     ASSERT(target::IsSmi(object));
-    CompareImmediate(reg, Immediate(target::ToRawSmi(object)));
+    CompareImmediate(reg, Immediate(target::ToRawSmi(object)), kObjectBytes);
   }
 }
 
@@ -1345,17 +1366,8 @@ void Assembler::LoadCompressed(Register dest,
 #if !defined(DART_COMPRESSED_POINTERS)
   movq(dest, slot);
 #else
-  Label done;
-  movsxd(dest, slot);  // (movslq) Sign-extension.
-  if (can_value_be_smi == kValueCanBeSmi) {
-    BranchIfSmi(dest, &done, kNearJump);
-  }
+  movl(dest, slot);  // Zero-extension.
   addq(dest, Address(THR, target::Thread::heap_base_offset()));
-  Bind(&done);
-
-  // After further Smi changes:
-  // movl(dest, slot);  // Zero-extension.
-  // addq(dest, Address(THR, target::Thread::heap_base_offset());
 #endif
 }
 
@@ -1888,7 +1900,11 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   j(NOT_EQUAL, &miss, Assembler::kNearJump);
   addl(FieldAddress(RBX, count_offset), Immediate(target::ToRawSmi(1)));
   xorq(R10, R10);  // GC-safe for OptimizeInvokedFunction.
+#if !defined(DART_COMPRESSED_POINTERS)
   nop(1);
+#else
+  nop(2);
+#endif
 
   // Fall through to unchecked entry.
   ASSERT_EQUAL(CodeSize() - start,
@@ -1921,7 +1937,11 @@ void Assembler::MonomorphicCheckedEntryAOT() {
 
   // Ensure the unchecked entry is 2-byte aligned (so GC can see them if we
   // store them in ICData / MegamorphicCache arrays).
+#if !defined(DART_COMPRESSED_POINTERS)
   nop(1);
+#else
+  nop(2);
+#endif
 
   // Fall through to unchecked entry.
   ASSERT_EQUAL(CodeSize() - start,
@@ -2230,6 +2250,7 @@ void Assembler::CompareClassId(Register object,
 void Assembler::SmiUntagOrCheckClass(Register object,
                                      intptr_t class_id,
                                      Label* is_smi) {
+#if !defined(DART_COMPRESSED_POINTERS)
   ASSERT(kSmiTagShift == 1);
   ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
   ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
@@ -2244,6 +2265,11 @@ void Assembler::SmiUntagOrCheckClass(Register object,
   // factor in the addressing mode to compensate for this.
   movzxw(TMP, Address(object, TIMES_2, class_id_offset));
   cmpl(TMP, Immediate(class_id));
+#else
+  // Cannot speculatively untag compressed Smis because it erases upper address
+  // bits.
+  UNREACHABLE();
+#endif
 }
 
 void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {

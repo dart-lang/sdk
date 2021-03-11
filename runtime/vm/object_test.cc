@@ -2878,7 +2878,7 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiInCode) {
   EXPECT(Smi::Cast(result).Value() == kSmiTestValue);
 }
 
-#if defined(ARCH_IS_64_BIT)
+#if defined(ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
 // Test for Embedded Smi object in the instructions.
 ISOLATE_UNIT_TEST_CASE(EmbedSmiIn64BitCode) {
   extern void GenerateEmbedSmiInCode(compiler::Assembler * assembler,
@@ -2898,7 +2898,7 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiIn64BitCode) {
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
   EXPECT(Smi::Cast(result).Value() == kSmiTestValue);
 }
-#endif  // ARCH_IS_64_BIT
+#endif  // ARCH_IS_64_BIT && !DART_COMPRESSED_POINTERS
 
 ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
   const int kNumEntries = 4;

@@ -833,7 +833,7 @@ compiler.''',
       // Expand architectures.
       var architectures = data["arch"] as String;
       if (architectures == "all") {
-        architectures = "ia32,x64,simarm,simarm64";
+        architectures = "ia32,x64,x64c,simarm,simarm64,simarm64c";
       }
 
       for (var architectureName in architectures.split(",")) {
