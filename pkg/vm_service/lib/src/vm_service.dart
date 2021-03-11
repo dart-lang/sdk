@@ -2703,7 +2703,7 @@ class BoundField {
   FieldRef? decl;
 
   /// [value] can be one of [InstanceRef] or [Sentinel].
-  dynamic? value;
+  dynamic value;
 
   BoundField({
     required this.decl,
@@ -2747,7 +2747,7 @@ class BoundVariable extends Response {
   String? name;
 
   /// [value] can be one of [InstanceRef], [TypeArgumentsRef] or [Sentinel].
-  dynamic? value;
+  dynamic value;
 
   /// The token position where this variable was declared.
   int? declarationTokenPos;
@@ -2822,7 +2822,7 @@ class Breakpoint extends Obj {
   /// a breakpoint is not resolved.
   ///
   /// [location] can be one of [SourceLocation] or [UnresolvedSourceLocation].
-  dynamic? location;
+  dynamic location;
 
   Breakpoint({
     required this.breakpointNumber,
@@ -3331,7 +3331,7 @@ class ContextElement {
       json == null ? null : ContextElement._fromJson(json);
 
   /// [value] can be one of [InstanceRef] or [Sentinel].
-  dynamic? value;
+  dynamic value;
 
   ContextElement({
     required this.value,
@@ -4052,7 +4052,7 @@ class Field extends Obj implements FieldRef {
   ///
   /// [staticValue] can be one of [InstanceRef] or [Sentinel].
   @optional
-  dynamic? staticValue;
+  dynamic staticValue;
 
   /// The location of this field in the source code.
   @optional
@@ -4082,7 +4082,7 @@ class Field extends Obj implements FieldRef {
     isFinal = json['final'] ?? false;
     isStatic = json['static'] ?? false;
     staticValue = createServiceObject(
-        json['staticValue'], const ['InstanceRef', 'Sentinel']) as dynamic?;
+        json['staticValue'], const ['InstanceRef', 'Sentinel']) as dynamic;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
   }
@@ -4276,7 +4276,7 @@ class FuncRef extends ObjRef {
   /// The owner of this function, which can be a Library, Class, or a Function.
   ///
   /// [owner] can be one of [LibraryRef], [ClassRef] or [FuncRef].
-  dynamic? owner;
+  dynamic owner;
 
   /// Is this function static?
   bool? isStatic;
@@ -4338,7 +4338,7 @@ class Func extends Obj implements FuncRef {
   /// The owner of this function, which can be a Library, Class, or a Function.
   ///
   /// [owner] can be one of [LibraryRef], [ClassRef] or [FuncRef].
-  dynamic? owner;
+  dynamic owner;
 
   /// Is this function static?
   bool? isStatic;
@@ -5788,10 +5788,10 @@ class MapAssociation {
       json == null ? null : MapAssociation._fromJson(json);
 
   /// [key] can be one of [InstanceRef] or [Sentinel].
-  dynamic? key;
+  dynamic key;
 
   /// [value] can be one of [InstanceRef] or [Sentinel].
-  dynamic? value;
+  dynamic value;
 
   MapAssociation({
     required this.key,
@@ -6241,7 +6241,7 @@ class ProfileFunction {
   String? resolvedUrl;
 
   /// The function captured during profiling.
-  dynamic? function;
+  dynamic function;
 
   ProfileFunction({
     required this.kind,
