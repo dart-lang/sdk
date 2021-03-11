@@ -1,3 +1,8 @@
+## 1.3.1
+
+* Introduce `.unawaited` extension on `Future` used to indicates to tools that
+  the future is intentionally not `await`-ed.
+
 ## 1.3.0
 
 * Stable release for null safety.
