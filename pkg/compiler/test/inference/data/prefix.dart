@@ -26,7 +26,7 @@ localPrefixInc() {
   if (local == null) {
     local = 0;
   }
-  return /*invoke: [null|exact=JSUInt31]*/ ++local;
+  return /*invoke: [exact=JSUInt31]*/ ++local;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ localPrefixDec() {
   if (local == null) {
     local = 0;
   }
-  return /*invoke: [null|exact=JSUInt31]*/ --local;
+  return /*invoke: [exact=JSUInt31]*/ --local;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
