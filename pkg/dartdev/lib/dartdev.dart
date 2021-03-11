@@ -79,9 +79,9 @@ class DartdevRunner extends CommandRunner<int> {
     argParser.addFlag('version',
         negatable: false, help: 'Print the Dart SDK version.');
     argParser.addFlag('enable-analytics',
-        negatable: false, help: 'Enable anonymous analytics.');
+        negatable: false, help: 'Enable analytics.');
     argParser.addFlag('disable-analytics',
-        negatable: false, help: 'Disable anonymous analytics.');
+        negatable: false, help: 'Disable analytics.');
 
     argParser.addFlag('diagnostics',
         negatable: false, help: 'Show tool diagnostic output.', hide: !verbose);
@@ -89,7 +89,7 @@ class DartdevRunner extends CommandRunner<int> {
     argParser.addFlag(
       'analytics',
       negatable: true,
-      help: 'Disable anonymous analytics for this `dart *` run',
+      help: 'Disable analytics for this `dart *` run',
       hide: true,
     );
 
@@ -152,7 +152,7 @@ class DartdevRunner extends CommandRunner<int> {
     } else if (topLevelResults['enable-analytics']) {
       analytics.enabled = true;
 
-      // Alert the user again that anonymous data will be collected.
+      // Alert the user again that data will be collected.
       print(analyticsNoticeOnFirstRunMessage);
       return 0;
     }

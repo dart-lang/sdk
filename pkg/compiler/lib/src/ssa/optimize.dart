@@ -18,7 +18,6 @@ import '../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
 import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/native_data.dart' show NativeData;
-import '../js_backend/runtime_types_codegen.dart';
 import '../js_model/type_recipe.dart'
     show
         TypeRecipe,
@@ -89,14 +88,8 @@ class SsaOptimizerTask extends CompilerTask {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
-        new SsaInstructionSimplifier(
-            globalInferenceResults,
-            _options,
-            codegen.rtiSubstitutions,
-            closedWorld,
-            typeRecipeDomain,
-            registry,
-            log),
+        new SsaInstructionSimplifier(globalInferenceResults, _options,
+            closedWorld, typeRecipeDomain, registry, log),
         new SsaTypeConversionInserter(closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
@@ -104,22 +97,10 @@ class SsaOptimizerTask extends CompilerTask {
             closedWorld.commonElements, closedWorld, log),
         // After type propagation, more instructions can be
         // simplified.
-        new SsaInstructionSimplifier(
-            globalInferenceResults,
-            _options,
-            codegen.rtiSubstitutions,
-            closedWorld,
-            typeRecipeDomain,
-            registry,
-            log),
-        new SsaInstructionSimplifier(
-            globalInferenceResults,
-            _options,
-            codegen.rtiSubstitutions,
-            closedWorld,
-            typeRecipeDomain,
-            registry,
-            log),
+        new SsaInstructionSimplifier(globalInferenceResults, _options,
+            closedWorld, typeRecipeDomain, registry, log),
+        new SsaInstructionSimplifier(globalInferenceResults, _options,
+            closedWorld, typeRecipeDomain, registry, log),
         new SsaTypePropagator(globalInferenceResults,
             closedWorld.commonElements, closedWorld, log),
         // Run a dead code eliminator before LICM because dead
@@ -143,14 +124,8 @@ class SsaOptimizerTask extends CompilerTask {
         new SsaValueRangeAnalyzer(closedWorld, this),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
-        new SsaInstructionSimplifier(
-            globalInferenceResults,
-            _options,
-            codegen.rtiSubstitutions,
-            closedWorld,
-            typeRecipeDomain,
-            registry,
-            log),
+        new SsaInstructionSimplifier(globalInferenceResults, _options,
+            closedWorld, typeRecipeDomain, registry, log),
       ];
       phases.forEach(runPhase);
 
@@ -171,14 +146,8 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
           new SsaCodeMotion(closedWorld.abstractValueDomain),
           new SsaValueRangeAnalyzer(closedWorld, this),
-          new SsaInstructionSimplifier(
-              globalInferenceResults,
-              _options,
-              codegen.rtiSubstitutions,
-              closedWorld,
-              typeRecipeDomain,
-              registry,
-              log),
+          new SsaInstructionSimplifier(globalInferenceResults, _options,
+              closedWorld, typeRecipeDomain, registry, log),
           new SsaSimplifyInterceptors(closedWorld, member.enclosingClass),
           new SsaDeadCodeEliminator(closedWorld, this),
         ];
@@ -188,14 +157,8 @@ class SsaOptimizerTask extends CompilerTask {
               closedWorld.commonElements, closedWorld, log),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
-          new SsaInstructionSimplifier(
-              globalInferenceResults,
-              _options,
-              codegen.rtiSubstitutions,
-              closedWorld,
-              typeRecipeDomain,
-              registry,
-              log),
+          new SsaInstructionSimplifier(globalInferenceResults, _options,
+              closedWorld, typeRecipeDomain, registry, log),
         ];
       }
       phases.forEach(runPhase);
@@ -250,21 +213,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
   final String name = "SsaInstructionSimplifier";
   final GlobalTypeInferenceResults _globalInferenceResults;
   final CompilerOptions _options;
-  final RuntimeTypesSubstitutions _rtiSubstitutions;
   final JClosedWorld _closedWorld;
   final TypeRecipeDomain _typeRecipeDomain;
   final CodegenRegistry _registry;
   final OptimizationTestLog _log;
   HGraph _graph;
 
-  SsaInstructionSimplifier(
-      this._globalInferenceResults,
-      this._options,
-      this._rtiSubstitutions,
-      this._closedWorld,
-      this._typeRecipeDomain,
-      this._registry,
-      this._log);
+  SsaInstructionSimplifier(this._globalInferenceResults, this._options,
+      this._closedWorld, this._typeRecipeDomain, this._registry, this._log);
 
   JCommonElements get commonElements => _closedWorld.commonElements;
 
@@ -1880,15 +1836,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   @override
   HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
     return handleInterceptedCall(node);
-  }
-
-  bool needsSubstitutionForTypeVariableAccess(ClassEntity cls) {
-    if (_closedWorld.isUsedAsMixin(cls)) return true;
-
-    return _closedWorld.classHierarchy.anyStrictSubclassOf(cls,
-        (ClassEntity subclass) {
-      return !_rtiSubstitutions.isTrivialSubstitution(subclass, cls);
-    });
   }
 
   @override
