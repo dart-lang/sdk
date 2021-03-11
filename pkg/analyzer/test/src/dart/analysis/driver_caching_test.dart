@@ -39,6 +39,22 @@ class A {
 ''');
   }
 
+  test_change_field_outOfOrderStaticConst() async {
+    await resolveTestCode(r'''
+class A {
+  static f = Object();
+}
+''');
+
+    driverFor(testFilePath).changeFile(testFilePath);
+    await resolveTestCode(r'''
+class A {
+  const
+  static f = Object();
+}
+''');
+  }
+
   test_change_field_staticFinal_hasConstConstructor_changeInitializer() async {
     useEmptyByteStore();
 

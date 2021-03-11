@@ -20,11 +20,38 @@ class _UnitApiSignatureComputer {
   static const int _kindConstructorDeclaration = 1;
   static const int _kindFieldDeclaration = 2;
   static const int _kindMethodDeclaration = 3;
+  static const int _nullNode = 0;
+  static const int _nullToken = 0;
 
   final ApiSignature signature = ApiSignature();
 
-  void addClassOrMixin(ClassOrMixinDeclaration node) {
-    addTokens(node.beginToken, node.leftBracket);
+  void compute(CompilationUnit unit) {
+    signature.addFeatureSet(unit.featureSet);
+
+    signature.addInt(unit.directives.length);
+    unit.directives.forEach(_addNode);
+
+    signature.addInt(unit.declarations.length);
+    for (var declaration in unit.declarations) {
+      if (declaration is ClassOrMixinDeclaration) {
+        _addClassOrMixin(declaration);
+      } else if (declaration is FunctionDeclaration) {
+        var functionExpression = declaration.functionExpression;
+        _addTokens(
+          declaration.beginToken,
+          (functionExpression.parameters ?? declaration.name).endToken,
+        );
+        _addFunctionBodyModifiers(functionExpression.body);
+      } else if (declaration is TopLevelVariableDeclaration) {
+        _topLevelVariableDeclaration(declaration);
+      } else {
+        _addNode(declaration);
+      }
+    }
+  }
+
+  void _addClassOrMixin(ClassOrMixinDeclaration node) {
+    _addTokens(node.beginToken, node.leftBracket);
 
     bool hasConstConstructor = node.members
         .any((m) => m is ConstructorDeclaration && m.constKeyword != null);
@@ -33,67 +60,68 @@ class _UnitApiSignatureComputer {
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
         signature.addInt(_kindConstructorDeclaration);
-        addTokens(member.beginToken, member.parameters.endToken);
+        _addTokens(member.beginToken, member.parameters.endToken);
         if (member.constKeyword != null) {
-          addNodeList(member.initializers);
+          _addNodeList(member.initializers);
         }
-        addNode(member.redirectedConstructor);
+        _addNode(member.redirectedConstructor);
       } else if (member is FieldDeclaration) {
         signature.addInt(_kindFieldDeclaration);
-        var variableList = member.fields;
-        addVariables(
-          member,
-          variableList,
-          !member.isStatic && variableList.isFinal && hasConstConstructor,
-        );
+        _fieldDeclaration(member, hasConstConstructor);
       } else if (member is MethodDeclaration) {
         signature.addInt(_kindMethodDeclaration);
-        addTokens(
+        _addTokens(
           member.beginToken,
           (member.parameters ?? member.name).endToken,
         );
         signature.addBool(member.body is EmptyFunctionBody);
-        addFunctionBodyModifiers(member.body);
+        _addFunctionBodyModifiers(member.body);
       } else {
         throw UnimplementedError('(${member.runtimeType}) $member');
       }
     }
 
-    addToken(node.rightBracket);
+    _addToken(node.rightBracket);
   }
 
-  void addFunctionBodyModifiers(FunctionBody? node) {
+  void _addFunctionBodyModifiers(FunctionBody? node) {
     if (node != null) {
       signature.addBool(node.isSynchronous);
       signature.addBool(node.isGenerator);
     }
   }
 
-  void addNode(AstNode? node) {
+  void _addNode(AstNode? node) {
     if (node != null) {
-      addTokens(node.beginToken, node.endToken);
+      _addTokens(node.beginToken, node.endToken);
+    } else {
+      signature.addInt(_nullNode);
     }
   }
 
-  void addNodeList(List<AstNode> nodes) {
+  void _addNodeList(List<AstNode> nodes) {
     for (var node in nodes) {
-      addNode(node);
+      _addNode(node);
     }
   }
 
-  void addToken(Token token) {
-    signature.addString(token.lexeme);
+  void _addToken(Token? token) {
+    if (token != null) {
+      signature.addString(token.lexeme);
+    } else {
+      signature.addInt(_nullToken);
+    }
   }
 
   /// Appends tokens from [begin] (including), to [end] (also including).
-  void addTokens(Token begin, Token end) {
+  void _addTokens(Token begin, Token end) {
     if (begin is CommentToken) {
       begin = begin.parent!;
     }
 
     Token? token = begin;
     while (token != null) {
-      addToken(token);
+      _addToken(token);
 
       if (token == end) {
         break;
@@ -110,48 +138,42 @@ class _UnitApiSignatureComputer {
     }
   }
 
-  void addVariables(
-    AstNode node,
-    VariableDeclarationList variableList,
-    bool includeInitializers,
-  ) {
-    if (variableList.type == null ||
-        variableList.isConst ||
-        includeInitializers) {
-      addTokens(node.beginToken, node.endToken);
-    } else {
-      addTokens(node.beginToken, variableList.type!.endToken);
+  void _fieldDeclaration(FieldDeclaration node, bool hasConstConstructor) {
+    _addToken(node.abstractKeyword);
+    _addToken(node.covariantKeyword);
+    _addToken(node.externalKeyword);
+    _addToken(node.staticKeyword);
+    _addNodeList(node.metadata);
 
-      signature.addInt(variableList.variables.length);
-      for (var variable in variableList.variables) {
-        addTokens(variable.beginToken, variable.name.endToken);
-        signature.addBool(variable.initializer != null);
-        addToken(variable.endToken.next!); // `,` or `;`
-      }
-    }
+    var variableList = node.fields;
+    var includeInitializers = variableList.type == null ||
+        variableList.isConst ||
+        hasConstConstructor && !node.isStatic && variableList.isFinal;
+    _variableList(variableList, includeInitializers);
   }
 
-  void compute(CompilationUnit unit) {
-    signature.addFeatureSet(unit.featureSet);
+  void _topLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    _addToken(node.externalKeyword);
+    _addNodeList(node.metadata);
 
-    signature.addInt(unit.directives.length);
-    unit.directives.forEach(addNode);
+    var variableList = node.variables;
+    var includeInitializers = variableList.type == null || variableList.isConst;
+    _variableList(variableList, includeInitializers);
+  }
 
-    signature.addInt(unit.declarations.length);
-    for (var declaration in unit.declarations) {
-      if (declaration is ClassOrMixinDeclaration) {
-        addClassOrMixin(declaration);
-      } else if (declaration is FunctionDeclaration) {
-        var functionExpression = declaration.functionExpression;
-        addTokens(
-          declaration.beginToken,
-          (functionExpression.parameters ?? declaration.name).endToken,
-        );
-        addFunctionBodyModifiers(functionExpression.body);
-      } else if (declaration is TopLevelVariableDeclaration) {
-        addVariables(declaration, declaration.variables, false);
-      } else {
-        addNode(declaration);
+  void _variableList(VariableDeclarationList node, bool includeInitializers) {
+    _addToken(node.keyword);
+    _addToken(node.lateKeyword);
+    _addNode(node.type);
+
+    var variables = node.variables;
+    signature.addInt(variables.length);
+
+    for (var variable in variables) {
+      _addNode(variable.name);
+      signature.addBool(variable.initializer != null);
+      if (includeInitializers) {
+        _addNode(variable.initializer);
       }
     }
   }
