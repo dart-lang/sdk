@@ -175,7 +175,7 @@ class TypeArgumentsVerifier {
       return;
     }
     if (_isMissingTypeArguments(
-        node, node.type!, node.name.staticElement, null)) {
+        node, node.typeOrThrow, node.name.staticElement, null)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
       if (unwrappedParent is AsExpression || unwrappedParent is IsExpression) {
         // Do not report a "Strict raw type" error in this case; too noisy.
@@ -190,7 +190,7 @@ class TypeArgumentsVerifier {
   /// Verify that the type arguments in the given [typeName] are all within
   /// their bounds.
   void _checkForTypeArgumentNotMatchingBounds(TypeName typeName) {
-    var type = typeName.type!;
+    var type = typeName.typeOrThrow;
 
     List<TypeParameterElement> typeParameters;
     List<DartType> typeArguments;
@@ -336,7 +336,7 @@ class TypeArgumentsVerifier {
     var instantiatedType = node.staticInvokeType;
     if (genericType is FunctionType && instantiatedType is FunctionType) {
       var fnTypeParams = genericType.typeFormals;
-      var typeArgs = typeArgumentList.map((t) => t.type!).toList();
+      var typeArgs = typeArgumentList.map((t) => t.typeOrThrow).toList();
 
       // If the amount mismatches, clean up the lists to be substitutable. The
       // mismatch in size is reported elsewhere, but we must successfully

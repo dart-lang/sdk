@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -615,7 +616,7 @@ f(F a) {}
     assertTypeName(typeName, element, 'int* Function(bool*)*');
 
     assertTypeAlias(
-      typeName.type!,
+      typeName.typeOrThrow,
       element: element,
       typeArguments: [],
     );
@@ -639,7 +640,7 @@ f(F a) {}
     assertTypeName(typeName, element, 'dynamic Function(bool*)*');
 
     assertTypeAlias(
-      typeName.type!,
+      typeName.typeOrThrow,
       element: element,
       typeArguments: ['dynamic'],
     );
@@ -663,7 +664,7 @@ f(F a) {}
     assertTypeName(typeName, element, 'num* Function(bool*)*');
 
     assertTypeAlias(
-      typeName.type!,
+      typeName.typeOrThrow,
       element: element,
       typeArguments: ['num*'],
     );
@@ -687,7 +688,7 @@ f(F<int> a) {}
     assertTypeName(typeName, element, 'int* Function(bool*)*');
 
     assertTypeAlias(
-      typeName.type!,
+      typeName.typeOrThrow,
       element: element,
       typeArguments: ['int*'],
     );

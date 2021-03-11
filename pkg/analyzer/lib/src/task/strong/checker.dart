@@ -376,7 +376,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (typeArgumentList != null) {
       var typeArguments = typeArgumentList.arguments;
       if (typeArguments.isNotEmpty) {
-        type = typeArguments[0].type!;
+        type = typeArguments[0].typeOrThrow;
       }
     } else {
       DartType staticType = node.typeOrThrow;
@@ -447,10 +447,10 @@ class CodeChecker extends RecursiveAstVisitor {
       if (typeArgumentsList != null) {
         NodeList<TypeAnnotation> typeArguments = typeArgumentsList.arguments;
         if (typeArguments.isNotEmpty) {
-          keyType = typeArguments[0].type!;
+          keyType = typeArguments[0].typeOrThrow;
         }
         if (typeArguments.length > 1) {
-          valueType = typeArguments[1].type!;
+          valueType = typeArguments[1].typeOrThrow;
         }
       } else {
         DartType staticType = node.typeOrThrow;
@@ -467,7 +467,7 @@ class CodeChecker extends RecursiveAstVisitor {
       if (typeArgumentsList != null) {
         NodeList<TypeAnnotation> typeArguments = typeArgumentsList.arguments;
         if (typeArguments.isNotEmpty) {
-          type = typeArguments[0].type!;
+          type = typeArguments[0].typeOrThrow;
         }
       } else {
         DartType staticType = node.typeOrThrow;
@@ -525,7 +525,7 @@ class CodeChecker extends RecursiveAstVisitor {
         var initializer = variable.initializer;
         if (initializer != null) {
           checkForCast(initializer,
-              from: initializer.typeOrThrow, to: type.type!);
+              from: initializer.typeOrThrow, to: type.typeOrThrow);
         }
       }
     }

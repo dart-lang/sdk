@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -1404,7 +1405,7 @@ class B {}
 
     var f = result.unit!.declarations[0] as FunctionDeclaration;
     assertType(f.declaredElement!.type, 'int Function()');
-    assertType(f.returnType!.type!, 'int');
+    assertType(f.returnType!.typeOrThrow, 'int');
 
     // The same result is also received through the stream.
     await waitForIdleWithoutExceptions();
@@ -3131,7 +3132,7 @@ class F extends X {}
 
     var f = result.unit!.declarations[0] as FunctionDeclaration;
     assertType(f.declaredElement!.type, 'int Function()');
-    assertType(f.returnType!.type!, 'int');
+    assertType(f.returnType!.typeOrThrow, 'int');
   }
 
   test_results_priorityFirst() async {

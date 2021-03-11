@@ -198,7 +198,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void visitInstanceCreationExpression(
       covariant InstanceCreationExpressionImpl node) {
     _inferInstanceCreationExpression(node);
-    recordStaticType(node, node.constructorName.type.type!);
+    recordStaticType(node, node.constructorName.type.typeOrThrow);
   }
 
   /// <blockquote>

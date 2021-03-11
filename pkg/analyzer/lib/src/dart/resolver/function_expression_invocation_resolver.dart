@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -153,7 +154,7 @@ class FunctionExpressionInvocationResolver {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
       node.typeArgumentTypes = typeArguments.arguments
-          .map((typeArgument) => typeArgument.type!)
+          .map((typeArgument) => typeArgument.typeOrThrow)
           .toList();
     } else {
       node.typeArgumentTypes = const <DartType>[];

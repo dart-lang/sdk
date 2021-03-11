@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -180,7 +181,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           element.type = type;
           exceptionNode.staticType = type;
         } else {
-          element.type = exceptionTypeNode.type!;
+          element.type = exceptionTypeNode.typeOrThrow;
           exceptionNode.staticType = exceptionTypeNode.type;
         }
 
@@ -321,7 +322,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       element.type = _dynamicType;
     } else {
       node.type!.accept(this);
-      element.type = node.type!.type!;
+      element.type = node.type!.typeOrThrow;
     }
 
     _setCodeRange(element, node);
@@ -1192,7 +1193,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     visitTypeName(typeName);
     _typeNameResolver.classHierarchy_typeName = null;
 
-    DartType type = typeName.type!;
+    DartType type = typeName.typeOrThrow;
     if (type is InterfaceType) {
       ClassElement element = type.element;
       if (element.isEnum || element.isMixin && asClass) {

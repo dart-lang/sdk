@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
@@ -245,7 +246,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorName(covariant ConstructorNameImpl node) {
-    DartType type = node.type.type!;
+    DartType type = node.type.typeOrThrow;
     if (type.isDynamic) {
       // Nothing to do.
     } else if (type is InterfaceType) {

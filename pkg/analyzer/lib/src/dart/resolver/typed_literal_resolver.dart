@@ -79,7 +79,7 @@ class TypedLiteralResolver {
     var typeArguments = node.typeArguments?.arguments;
     if (typeArguments != null) {
       if (typeArguments.length == 1) {
-        DartType elementType = typeArguments[0].type!;
+        DartType elementType = typeArguments[0].typeOrThrow;
         if (!elementType.isDynamic) {
           listType = _typeProvider.listType(elementType);
         }
@@ -109,7 +109,7 @@ class TypedLiteralResolver {
     var literalResolution = _computeSetOrMapResolution(node);
     if (literalResolution.kind == _LiteralResolutionKind.set) {
       if (typeArguments != null && typeArguments.length == 1) {
-        var elementType = typeArguments[0].type!;
+        var elementType = typeArguments[0].typeOrThrow;
         literalType = _typeProvider.setType(elementType);
       } else {
         literalType =
@@ -117,8 +117,8 @@ class TypedLiteralResolver {
       }
     } else if (literalResolution.kind == _LiteralResolutionKind.map) {
       if (typeArguments != null && typeArguments.length == 2) {
-        var keyType = typeArguments[0].type!;
-        var valueType = typeArguments[1].type!;
+        var keyType = typeArguments[0].typeOrThrow;
+        var valueType = typeArguments[1].typeOrThrow;
         literalType = _typeProvider.mapType(keyType, valueType);
       } else {
         literalType =
@@ -313,10 +313,12 @@ class TypedLiteralResolver {
     if (arguments != null) {
       if (arguments.length == 1) {
         return _LiteralResolution(_LiteralResolutionKind.set,
-            _typeProvider.setType(arguments[0].type!));
+            _typeProvider.setType(arguments[0].typeOrThrow));
       } else if (arguments.length == 2) {
-        return _LiteralResolution(_LiteralResolutionKind.map,
-            _typeProvider.mapType(arguments[0].type!, arguments[1].type!));
+        return _LiteralResolution(
+            _LiteralResolutionKind.map,
+            _typeProvider.mapType(
+                arguments[0].typeOrThrow, arguments[1].typeOrThrow));
       }
     }
     return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
@@ -669,7 +671,7 @@ class TypedLiteralResolver {
     if (typeArguments != null) {
       DartType elementType = _dynamicType;
       if (typeArguments.length == 1) {
-        elementType = typeArguments[0].type!;
+        elementType = typeArguments[0].typeOrThrow;
       }
       _recordStaticType(
         node,
@@ -706,7 +708,7 @@ class TypedLiteralResolver {
     if (typeArguments != null) {
       if (typeArguments.length == 1) {
         node.becomeSet();
-        var elementType = typeArguments[0].type!;
+        var elementType = typeArguments[0].typeOrThrow;
         _recordStaticType(
           node,
           _typeProvider.setElement.instantiate(
@@ -717,8 +719,8 @@ class TypedLiteralResolver {
         return;
       } else if (typeArguments.length == 2) {
         node.becomeMap();
-        var keyType = typeArguments[0].type!;
-        var valueType = typeArguments[1].type!;
+        var keyType = typeArguments[0].typeOrThrow;
+        var valueType = typeArguments[1].typeOrThrow;
         _recordStaticType(
           node,
           _typeProvider.mapElement.instantiate(
