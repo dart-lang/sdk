@@ -74,7 +74,7 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
   for (var score in scorecard.scores) {
     for (var ruleSet in score.ruleSets) {
       var hasFixOrAssist = score.hasFix || score.hasAssist;
-      if (ruleSet == 'score') {
+      if (ruleSet == 'core') {
         ++scoreLintCount;
         if (hasFixOrAssist) {
           ++scoreFixCount;
@@ -118,10 +118,10 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
 }
 
 int _compareRuleSets(List<String> s1, List<String> s2) {
-  if (s1.contains('score')) {
-    return s2.contains('score') ? 0 : -1;
+  if (s1.contains('core')) {
+    return s2.contains('core') ? 0 : -1;
   }
-  if (s2.contains('score')) {
+  if (s2.contains('core')) {
     return 1;
   }
   return 0;
@@ -148,7 +148,7 @@ class Detail {
   static const Detail rule = Detail('name', header: Header.left);
   static const Detail fix = Detail('fix');
   static const Detail status = Detail('status');
-  static const Detail score = Detail('score');
+  static const Detail score = Detail('core');
   static const Detail recommend = Detail('recommend');
   static const Detail bugs = Detail('bug refs', header: Header.left);
   final String name;
@@ -204,7 +204,7 @@ class LintScore {
           sb.write('${maturity != 'stable' ? ' **$maturity** ' : ""} |');
           break;
         case Detail.score:
-          sb.write('${ruleSets.contains('score') ? " $checkMark" : ""} |');
+          sb.write('${ruleSets.contains('core') ? " $checkMark" : ""} |');
           break;
         case Detail.recommend:
           sb.write('${ruleSets.contains('recommend') ? " $checkMark" : ""} |');
@@ -264,14 +264,14 @@ class ScoreCard {
     // var bugs = issues.where(_isBug).toList();
     var bugs = <Issue>[];
 
-    var scoreRuleset = _readScoreLints();
+    var coreRuleset = _readCoreLints();
     var recommendRuleset = _readRecommendLints();
 
     var scorecard = ScoreCard();
     for (var lint in registeredLints!) {
       var ruleSets = <String>[];
-      if (scoreRuleset.contains(lint.name)) {
-        ruleSets.add('score');
+      if (coreRuleset.contains(lint.name)) {
+        ruleSets.add('core');
       }
       if (recommendRuleset.contains(lint.name)) {
         ruleSets.add('recommend');
@@ -371,8 +371,8 @@ class ScoreCard {
   static List<String> _readRecommendLints() =>
       _readLints(path.join('tool', 'canonical', 'recommend.yaml'));
 
-  static List<String> _readScoreLints() =>
-      _readLints(path.join('tool', 'canonical', 'score.yaml'));
+  static List<String> _readCoreLints() =>
+      _readLints(path.join('tool', 'canonical', 'core.yaml'));
 }
 
 class _BulkFixCollector extends _LintNameCollector {
