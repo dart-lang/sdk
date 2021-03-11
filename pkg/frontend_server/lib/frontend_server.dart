@@ -10,7 +10,11 @@ import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
 import 'package:dev_compiler/dev_compiler.dart'
-    show DevCompilerTarget, ExpressionCompiler, parseModuleFormat;
+    show
+        DevCompilerTarget,
+        ExpressionCompiler,
+        parseModuleFormat,
+        ProgramCompiler;
 
 // front_end/src imports below that require lint `ignore_for_file`
 // are a temporary state of things until frontend team builds better api
@@ -631,7 +635,7 @@ class FrontendCompiler implements CompilerInterface {
     final sourceMapsFileSink = sourceMapsFile.openWrite();
     final metadataFileSink =
         emitDebugMetadata ? metadataFile.openWrite() : null;
-    await _bundler.compile(
+    final kernel2JsCompilers = await _bundler.compile(
         results.classHierarchy,
         results.coreTypes,
         results.loadedLibraries,
@@ -639,6 +643,7 @@ class FrontendCompiler implements CompilerInterface {
         manifestFileSink,
         sourceMapsFileSink,
         metadataFileSink);
+    cachedProgramCompilers.addAll(kernel2JsCompilers);
     await Future.wait([
       sourceFileSink.close(),
       manifestFileSink.close(),
@@ -806,6 +811,12 @@ class FrontendCompiler implements CompilerInterface {
     }
   }
 
+  /// Program compilers per module.
+  ///
+  /// Produced suring initial compilation of the module to JavaScript,
+  /// cached to be used for expression compilation in [compileExpressionToJs].
+  final Map<String, ProgramCompiler> cachedProgramCompilers = {};
+
   @override
   Future<Null> compileExpressionToJs(
       String libraryUri,
@@ -822,7 +833,7 @@ class FrontendCompiler implements CompilerInterface {
       reportError('JavaScript bundler is null');
       return;
     }
-    if (!_bundler.compilers.containsKey(moduleName)) {
+    if (!cachedProgramCompilers.containsKey(moduleName)) {
       reportError('Cannot find kernel2js compiler for $moduleName.');
       return;
     }
@@ -833,13 +844,13 @@ class FrontendCompiler implements CompilerInterface {
     _processedOptions.ticker
         .logMs('Compiling expression to JavaScript in $moduleName');
 
-    var kernel2jsCompiler = _bundler.compilers[moduleName];
+    final kernel2jsCompiler = cachedProgramCompilers[moduleName];
     Component component = _generator.lastKnownGoodComponent;
     component.computeCanonicalNames();
 
     _processedOptions.ticker.logMs('Computed component');
 
-    var expressionCompiler = new ExpressionCompiler(
+    final expressionCompiler = new ExpressionCompiler(
       _compilerOptions,
       parseModuleFormat(_options['dartdevc-module-format'] as String),
       errors,
@@ -848,10 +859,10 @@ class FrontendCompiler implements CompilerInterface {
       component,
     );
 
-    var procedure = await expressionCompiler.compileExpressionToJs(
+    final procedure = await expressionCompiler.compileExpressionToJs(
         libraryUri, line, column, jsFrameValues, expression);
 
-    var result = errors.length > 0 ? errors[0] : procedure;
+    final result = errors.length > 0 ? errors[0] : procedure;
 
     // TODO(annagrin): kernelBinaryFilename is too specific
     // rename to _outputFileName?
