@@ -44,12 +44,6 @@ import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:meta/meta.dart';
 
-/// TODO(scheglov) We could use generalized Function in
-/// [AnalysisDriverTestView], but this breaks `AnalysisContext` and code
-/// generation. So, for now let's work around them, and rewrite generators to
-/// [AnalysisDriver].
-typedef WorkToWaitAfterComputingResult = Future<void> Function(String path);
-
 /// This class computes [AnalysisResult]s for Dart files.
 ///
 /// Let the set of "explicitly analyzed files" denote the set of paths that have
