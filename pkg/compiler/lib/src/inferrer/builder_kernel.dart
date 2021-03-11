@@ -919,18 +919,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
         node, node.variable.parent, node.arguments, selector);
   }
 
-  TypeInformation _handleEqualsNull(ir.Expression node, ir.Expression operand) {
-    _potentiallyAddNullCheck(node, operand);
-    return _types.boolType;
-  }
-
   @override
   TypeInformation visitEqualsNull(ir.EqualsNull node) {
     // TODO(johnniwinther). This triggers the computation of the mask for the
     // receiver of the call to `==`, which doesn't happen in this case. Remove
     // this when the ssa builder recognized `== null` directly.
     _typeOfReceiver(node, node.expression);
-    return _handleEqualsNull(node, node.expression);
+    _potentiallyAddNullCheck(node, node.expression);
+    return _types.boolType;
   }
 
   TypeInformation _handleMethodInvocation(
@@ -983,12 +979,20 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     // receiver of the call to `==`, which might not happen in this case. Remove
     // this when the ssa builder recognized `== null` directly.
     _typeOfReceiver(node, left);
-    if (_types.isNull(leftType)) {
-      // null == o
-      return _handleEqualsNull(node, right);
-    } else if (_types.isNull(rightType)) {
-      // o == null
-      return _handleEqualsNull(node, left);
+    bool leftIsNull = _types.isNull(leftType);
+    bool rightIsNull = _types.isNull(rightType);
+    if (leftIsNull) {
+      // [right] is `null` if [node] evaluates to `true`.
+      _potentiallyAddNullCheck(node, right);
+    }
+    if (rightIsNull) {
+      // [left] is `null` if [node] evaluates to `true`.
+      _potentiallyAddNullCheck(node, left);
+    }
+    if (leftIsNull || rightIsNull) {
+      // `left == right` where `left` and/or `right` is known to have type
+      // `Null` so we have no invocation to register.
+      return _types.boolType;
     }
     Selector selector = Selector.binaryOperator('==');
     ArgumentsTypes arguments = ArgumentsTypes([rightType], null);

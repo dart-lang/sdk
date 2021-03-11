@@ -46,8 +46,7 @@ nonNullInstanceField2() {
   return new Class2(). /*invoke: [exact=Class2]*/ method();
 }
 
-// TODO(johnniwinther): We should infer that the returned value cannot be null.
-/*member: nonNullLocal:[null|exact=JSUInt31]*/
+/*member: nonNullLocal:[exact=JSUInt31]*/
 nonNullLocal() {
   var local = null;
   return local ??= 42;
