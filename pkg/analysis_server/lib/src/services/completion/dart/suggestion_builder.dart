@@ -223,7 +223,8 @@ class SuggestionBuilder {
       var featureComputer = request.featureComputer;
       var contextType =
           featureComputer.contextTypeFeature(request.contextType, type);
-      var elementKind = _computeElementKind(accessor);
+      var elementKind =
+          _computeElementKind(accessor, distance: inheritanceDistance);
       var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
       var isConstant = request.inConstantContext
           ? featureComputer.isConstantFeature(accessor)
@@ -236,7 +237,6 @@ class SuggestionBuilder {
           contextType: contextType,
           elementKind: elementKind,
           hasDeprecated: hasDeprecated,
-          inheritanceDistance: inheritanceDistance,
           isConstant: isConstant,
           startsWithDollar: startsWithDollar,
           superMatches: superMatches);
@@ -437,7 +437,7 @@ class SuggestionBuilder {
     var featureComputer = request.featureComputer;
     var contextType =
         featureComputer.contextTypeFeature(request.contextType, field.type);
-    var elementKind = _computeElementKind(field);
+    var elementKind = _computeElementKind(field, distance: inheritanceDistance);
     var hasDeprecated = featureComputer.hasDeprecatedFeature(field);
     var isConstant = request.inConstantContext
         ? featureComputer.isConstantFeature(field)
@@ -449,7 +449,6 @@ class SuggestionBuilder {
         contextType: contextType,
         elementKind: elementKind,
         hasDeprecated: hasDeprecated,
-        inheritanceDistance: inheritanceDistance,
         isConstant: isConstant,
         startsWithDollar: startsWithDollar,
         superMatches: superMatches);
@@ -552,17 +551,17 @@ class SuggestionBuilder {
     var node = entity is AstNode ? entity : target.containingNode;
     var contextType = request.featureComputer
         .contextTypeFeature(request.contextType, variableType);
-    var elementKind = _computeElementKind(variable);
+    var localVariableDistance =
+        request.featureComputer.localVariableDistanceFeature(node, variable);
+    var elementKind =
+        _computeElementKind(variable, distance: localVariableDistance);
     var isConstant = request.inConstantContext
         ? request.featureComputer.isConstantFeature(variable)
         : 0.0;
-    var localVariableDistance =
-        request.featureComputer.localVariableDistanceFeature(node, variable);
     var score = weightedAverage(
         contextType: contextType,
         elementKind: elementKind,
-        isConstant: isConstant,
-        localVariableDistance: localVariableDistance);
+        isConstant: isConstant);
     var relevance = toRelevance(score);
     listener?.computedFeatures(
         contextType: contextType,
@@ -585,7 +584,8 @@ class SuggestionBuilder {
     var featureComputer = request.featureComputer;
     var contextType = featureComputer.contextTypeFeature(
         request.contextType, method.returnType);
-    var elementKind = _computeElementKind(method);
+    var elementKind =
+        _computeElementKind(method, distance: inheritanceDistance);
     var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
     var isConstant = request.inConstantContext
         ? featureComputer.isConstantFeature(method)
@@ -599,7 +599,6 @@ class SuggestionBuilder {
         contextType: contextType,
         elementKind: elementKind,
         hasDeprecated: hasDeprecated,
-        inheritanceDistance: inheritanceDistance,
         isConstant: isConstant,
         isNoSuchMethod: isNoSuchMethod,
         startsWithDollar: startsWithDollar,
@@ -857,7 +856,6 @@ class SuggestionBuilder {
           featureComputer.contextTypeFeature(request.contextType, type);
       var elementKind = _computeElementKind(accessor);
       var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
-      var inheritanceDistance = 0.0;
       var isConstant = request.inConstantContext
           ? featureComputer.isConstantFeature(accessor)
           : 0.0;
@@ -868,7 +866,6 @@ class SuggestionBuilder {
           contextType: contextType,
           elementKind: elementKind,
           hasDeprecated: hasDeprecated,
-          inheritanceDistance: inheritanceDistance,
           isConstant: isConstant,
           startsWithDollar: startsWithDollar,
           superMatches: superMatches);
@@ -876,7 +873,6 @@ class SuggestionBuilder {
           contextType: contextType,
           elementKind: elementKind,
           hasDeprecated: hasDeprecated,
-          inheritanceDistance: inheritanceDistance,
           isConstant: isConstant,
           startsWithDollar: startsWithDollar,
           superMatches: superMatches);
@@ -951,10 +947,10 @@ class SuggestionBuilder {
 
   /// Compute the value of the _element kind_ feature for the given [element] in
   /// the completion context.
-  double _computeElementKind(Element element) {
+  double _computeElementKind(Element element, {double distance}) {
     var location = request.opType.completionLocation;
-    var elementKind =
-        request.featureComputer.elementKindFeature(element, location);
+    var elementKind = request.featureComputer
+        .elementKindFeature(element, location, distance: distance);
     if (elementKind < 0.0) {
       if (location == null) {
         listener?.missingCompletionLocationAt(
@@ -971,7 +967,6 @@ class SuggestionBuilder {
       {@required double contextType,
       @required double elementKind,
       @required double hasDeprecated,
-      @required double inheritanceDistance,
       @required double isConstant,
       double isNoSuchMethod = 0.0,
       @required double startsWithDollar,
@@ -980,7 +975,6 @@ class SuggestionBuilder {
         contextType: contextType,
         elementKind: elementKind,
         hasDeprecated: hasDeprecated,
-        inheritanceDistance: inheritanceDistance,
         isConstant: isConstant,
         isNoSuchMethod: isNoSuchMethod,
         startsWithDollar: startsWithDollar,
