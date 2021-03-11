@@ -572,6 +572,8 @@ class CanonicalSetSerializationCluster : public SerializationCluster {
       for (auto gap : gaps_) {
         s->WriteUnsigned(gap);
       }
+      target_memory_size_ +=
+          compiler::target::Array::InstanceSize(table_length_);
     }
   }
 
