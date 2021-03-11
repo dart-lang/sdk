@@ -21,8 +21,11 @@ Future<String> readGcloudAuthToken(String path) async {
 /// tools/bots.
 class FirestoreDatabase {
   final http.Client _client = http.Client();
-  final String _authToken;
-  final String _project;
+  final Map<String, String> _headers;
+  final Uri _documentsUrl;
+  final Uri _queryUrl;
+  final Uri _beginTransactionUrl;
+  final Uri _commitUrl;
 
   /// The current transaction ID in base64 (or `null`)
   String _currentTransaction;
@@ -34,27 +37,30 @@ class FirestoreDatabase {
         .replaceAll("+", "%2B");
   }
 
-  FirestoreDatabase(this._project, this._authToken);
+  FirestoreDatabase._(this._headers, this._documentsUrl, this._queryUrl,
+      this._beginTransactionUrl, this._commitUrl);
 
-  static const apiUrl = 'https://firestore.googleapis.com/v1beta1';
-
-  String get projectUrl => '$apiUrl/projects/$_project';
-
-  String get documentsUrl => '$projectUrl/databases/(default)/documents';
-
-  String get queryUrl => '$documentsUrl:runQuery';
-
-  Map<String, String> get _headers {
-    return {
-      'Authorization': 'Bearer $_authToken',
+  factory FirestoreDatabase(String project, String authToken) {
+    var databaseUrl = _apiUrl.resolve('projects/$project/databases/(default)/');
+    var documentsUrl = databaseUrl.resolve('documents/');
+    var queryUrl = databaseUrl.resolveUri(Uri(path: 'documents:runQuery'));
+    var beginTransactionUrl =
+        databaseUrl.resolveUri(Uri(path: 'documents:beginTransaction'));
+    var commitUrl = databaseUrl.resolveUri(Uri(path: 'documents:commit'));
+    var headers = {
+      'Authorization': 'Bearer $authToken',
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     };
+    return FirestoreDatabase._(
+        headers, documentsUrl, queryUrl, beginTransactionUrl, commitUrl);
   }
+
+  static final _apiUrl = Uri.https('firestore.googleapis.com', 'v1beta1/');
 
   Future<List /*!*/ > runQuery(Query query) async {
     var body = jsonEncode(query.data);
-    var response = await _client.post(queryUrl, headers: _headers, body: body);
+    var response = await _client.post(_queryUrl, headers: _headers, body: body);
     if (response.statusCode == HttpStatus.ok) {
       return jsonDecode(response.body);
     } else {
@@ -63,10 +69,11 @@ class FirestoreDatabase {
   }
 
   Future<Map> getDocument(String collectionName, String documentName) async {
-    var url = '$documentsUrl/$collectionName/$documentName';
-    if (_currentTransaction != null) {
-      url = '$url?transaction=${_escapedCurrentTransaction}';
-    }
+    var url = _documentsUrl.resolveUri(Uri(
+        path: '$collectionName/$documentName',
+        query: _currentTransaction == null
+            ? null
+            : 'transaction=${_escapedCurrentTransaction}'));
     var response = await _client.get(url, headers: _headers);
     if (response.statusCode == HttpStatus.ok) {
       var document = jsonDecode(response.body);
@@ -80,7 +87,8 @@ class FirestoreDatabase {
   }
 
   Future<Object> updateField(Map document, String field) async {
-    var url = '$apiUrl/${document["name"]}?updateMask.fieldPaths=$field';
+    var url =
+        _apiUrl.resolve('${document["name"]}?updateMask.fieldPaths=$field');
     var response =
         await _client.patch(url, headers: _headers, body: jsonEncode(document));
     if (response.statusCode == HttpStatus.ok) {
@@ -94,9 +102,9 @@ class FirestoreDatabase {
     if (_currentTransaction != null) {
       throw Exception('Error: nested transactions');
     }
-    var url = '$documentsUrl:beginTransaction';
     var body = '{"options": {}}';
-    var response = await _client.post(url, headers: _headers, body: body);
+    var response =
+        await _client.post(_beginTransactionUrl, headers: _headers, body: body);
     if (response.statusCode == HttpStatus.ok) {
       var result = jsonDecode(response.body);
       _currentTransaction = result['transaction'] as String;
@@ -116,8 +124,8 @@ class FirestoreDatabase {
       "writes": writes.map((write) => write.data).toList(),
       "transaction": "$_currentTransaction"
     });
-    var url = '$documentsUrl:commit';
-    var response = await _client.post(url, headers: _headers, body: body);
+    var response =
+        await _client.post(_commitUrl, headers: _headers, body: body);
     _currentTransaction = null;
     if (response.statusCode == HttpStatus.conflict) {
       // This HTTP status code corresponds to the ABORTED error code, see
