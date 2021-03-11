@@ -261,6 +261,32 @@ class A {
 ''');
   }
 
+  test_class_field_const_add_outOfOrder() {
+    assertNotSameSignature(r'''
+class A {
+  static f = Object();
+}
+''', r'''
+class A {
+  const
+  static f = Object();
+}
+''');
+  }
+
+  test_class_field_const_add_outOfOrder_hasFinal() {
+    assertNotSameSignature(r'''
+class A {
+  static final f = Object();
+}
+''', r'''
+class A {
+  const
+  static final f = Object();
+}
+''');
+  }
+
   test_class_field_final_add() {
     assertNotSameSignature(r'''
 class C {
