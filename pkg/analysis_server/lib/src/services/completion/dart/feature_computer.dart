@@ -78,32 +78,26 @@ double weightedAverage(
     {double contextType = 0.0,
     double elementKind = 0.0,
     double hasDeprecated = 0.0,
-    double inheritanceDistance = 0.0,
     double isConstant = 0.0,
     double isNoSuchMethod = 0.0,
     double keyword = 0.0,
-    double localVariableDistance = 0.0,
     double startsWithDollar = 0.0,
     double superMatches = 0.0}) {
   assert(contextType.between(0.0, 1.0));
   assert(elementKind.between(0.0, 1.0));
   assert(hasDeprecated.between(-1.0, 0.0));
-  assert(inheritanceDistance.between(0.0, 1.0));
   assert(isConstant.between(0.0, 1.0));
   assert(isNoSuchMethod.between(-1.0, 0.0));
   assert(keyword.between(0.0, 1.0));
-  assert(localVariableDistance.between(0.0, 1.0));
   assert(startsWithDollar.between(-1.0, 0.0));
   assert(superMatches.between(0.0, 1.0));
   var average = _weightedAverage([
     contextType,
     elementKind,
     hasDeprecated,
-    inheritanceDistance,
     isConstant,
     isNoSuchMethod,
     keyword,
-    localVariableDistance,
     startsWithDollar,
     superMatches,
   ], FeatureComputer.featureWeights);
@@ -150,11 +144,9 @@ class FeatureComputer {
     1.00, // contextType
     1.00, // elementKind
     0.50, // hasDeprecated
-    1.00, // inheritanceDistance
     1.00, // isConstant
     1.00, // isNoSuchMethod
     1.00, // keyword
-    1.00, // localVariableDistance
     0.50, // startsWithDollar
     1.00, // superMatches
   ];
@@ -257,7 +249,7 @@ class FeatureComputer {
   /// completing at the given [completionLocation]. If a [distance] is given it
   /// will be used to provide finer-grained relevance scores.
   double elementKindFeature(Element element, String completionLocation,
-      {int distance}) {
+      {double distance}) {
     if (completionLocation == null) {
       return 0.0;
     }
@@ -270,9 +262,9 @@ class FeatureComputer {
       return 0.0;
     }
     if (distance == null) {
-      return range.upper;
+      return range.middle;
     }
-    return range.conditionalProbability(_distanceToPercent(distance));
+    return range.conditionalProbability(distance);
   }
 
   /// Return the value of the _has deprecated_ feature for the given [element].
@@ -455,7 +447,7 @@ class FeatureComputer {
     if (distance < 0) {
       return 0.0;
     }
-    return math.pow(0.98, distance);
+    return math.pow(0.9, distance);
   }
 
   /// Return the inheritance distance between the [subclass] and the
