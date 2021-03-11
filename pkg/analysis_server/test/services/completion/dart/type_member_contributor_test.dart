@@ -3067,6 +3067,21 @@ void main() {new C().^}''');
     assertNotSuggested('==');
   }
 
+  Future<void> test_methodInvocation_typeParameter() async {
+    addTestSource('''
+class A {
+  void a() {}
+}
+class C<T extends A> {
+  void c(T t) {
+    t.^;
+  }
+}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('a', 'A', 'void');
+  }
+
   Future<void> test_mixin() async {
     addTestSource(r'''
 class A {
