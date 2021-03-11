@@ -702,7 +702,8 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
         Array::Handle(Z, code.inlined_id_to_function());
     for (intptr_t i = 0; i < inlined_functions.Length(); i++) {
       target ^= inlined_functions.At(i);
-      AddFunction(target, RetainReasons::kSymbolicStackTraces);
+      AddRetainReason(target, RetainReasons::kSymbolicStackTraces);
+      AddTypesOf(target);
     }
   }
 }
@@ -775,7 +776,7 @@ void Precompiler::AddTypesOf(const Class& cls) {
 }
 
 void Precompiler::AddRetainReason(const Object& obj, const char* reason) {
-  if (!FLAG_trace_precompiler) return;
+  if (!FLAG_trace_precompiler || reason == nullptr) return;
   if (auto const kv = retained_reasons_map_->Lookup(&obj)) {
     if (kv->value->Lookup(reason) == nullptr) {
       kv->value->Insert(reason);
@@ -1100,9 +1101,9 @@ void Precompiler::AddFunction(const Function& function,
   if (retain_reason == nullptr) {
     retain_reason = MustRetainFunction(function);
   }
-  if (retain_reason != nullptr) {
-    AddRetainReason(function, retain_reason);
-  }
+  // Add even if we've already marked this function as possibly retained
+  // because this could be an additional reason for doing so.
+  AddRetainReason(function, retain_reason);
 
   if (possibly_retained_functions_.ContainsKey(function)) return;
   if (retain_reason != nullptr) {
