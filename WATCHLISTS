@@ -73,7 +73,6 @@
   },
 
   'WATCHLISTS': {
-    'build': [ 'keertip@google.com' ],
     'dart2js': [ 'dart2js-team+reviews@google.com' ],
     'dartdevc': [ 'dart-dc-team+reviews@google.com' ],
     'front_end': [ 'dart-fe-team+reviews@google.com' ],
