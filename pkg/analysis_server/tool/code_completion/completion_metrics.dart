@@ -1349,13 +1349,13 @@ class CompletionMetricsComputer {
           'contextType',
           'elementKind',
           'hasDeprecated',
-          'inheritanceDistance',
           'isConstant',
           'isNoSuchMethod',
           'keyword',
-          'localVariableDistance',
           'startsWithDollar',
-          'superMatches'
+          'superMatches',
+          'inheritanceDistance',
+          'localVariableDistance',
         ]
       ];
       for (var i = 0; i < topSuggestionCount; i++) {
@@ -1738,24 +1738,26 @@ class MetricsSuggestionListener implements SuggestionListener {
       {double contextType = 0.0,
       double elementKind = 0.0,
       double hasDeprecated = 0.0,
-      double inheritanceDistance = 0.0,
       double isConstant = 0.0,
       double isNoSuchMethod = 0.0,
       double keyword = 0.0,
-      double localVariableDistance = 0.0,
       double startsWithDollar = 0.0,
-      double superMatches = 0.0}) {
+      double superMatches = 0.0,
+      // Dependent features
+      double inheritanceDistance = 0.0,
+      double localVariableDistance = 0.0}) {
     cachedFeatures = [
       contextType,
       elementKind,
       hasDeprecated,
-      inheritanceDistance,
       isConstant,
       isNoSuchMethod,
       keyword,
-      localVariableDistance,
       startsWithDollar,
-      superMatches
+      superMatches,
+      // Dependent features
+      inheritanceDistance,
+      localVariableDistance,
     ];
   }
 
