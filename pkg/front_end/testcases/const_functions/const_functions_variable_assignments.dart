@@ -4,8 +4,6 @@
 
 // Tests variable assignments for const functions.
 
-// SharedOptions=--enable-experiment=const-functions
-
 import "package:expect/expect.dart";
 
 const var1 = varAssignmentTest(1);

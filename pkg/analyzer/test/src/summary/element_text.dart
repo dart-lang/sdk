@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:test/test.dart';
 
@@ -47,6 +48,7 @@ void applyCheckElementTextReplacements() {
 void checkElementText(
   LibraryElement library,
   String expected, {
+  bool withAliasElementArguments = false,
   bool withCodeRanges = false,
   bool withConstElements = true,
   bool withExportScope = false,
@@ -59,6 +61,7 @@ void checkElementText(
 }) {
   var writer = _ElementWriter(
     selfUriStr: '${library.source.uri}',
+    withAliasElementArguments: withAliasElementArguments,
     withCodeRanges: withCodeRanges,
     withConstElements: withConstElements,
     withExportScope: withExportScope,
@@ -129,6 +132,7 @@ void checkElementText(
 /// Writes the canonical text presentation of elements.
 class _ElementWriter {
   final String? selfUriStr;
+  final bool withAliasElementArguments;
   final bool withCodeRanges;
   final bool withExportScope;
   final bool withFullyResolvedAst;
@@ -144,6 +148,7 @@ class _ElementWriter {
 
   _ElementWriter({
     this.selfUriStr,
+    this.withAliasElementArguments = false,
     this.withCodeRanges = false,
     this.withConstElements = true,
     this.withExportScope = false,
@@ -1011,6 +1016,17 @@ class _ElementWriter {
   void writeType(DartType type) {
     var typeStr = _typeStr(type);
     buffer.write(typeStr);
+
+    if (withAliasElementArguments) {
+      var aliasElement = type.aliasElement;
+      if (aliasElement is TypeAliasElementImpl) {
+        buffer.write('<aliasElement: ');
+        buffer.write(_referenceToString(aliasElement.reference!));
+        var typeArguments = type.aliasArguments!;
+        writeList(', aliasArguments: [', ']', typeArguments, ', ', writeType);
+        buffer.write('>');
+      }
+    }
   }
 
   void writeType2(DartType type) {
@@ -1173,6 +1189,25 @@ class _ElementWriter {
       }
     }
     return components.join(';');
+  }
+
+  String _referenceToString(Reference reference) {
+    var parent = reference.parent!;
+    if (parent.parent == null) {
+      var libraryUriStr = reference.name;
+      if (libraryUriStr == selfUriStr) {
+        return 'self';
+      }
+      return libraryUriStr;
+    }
+
+    // Ignore the unit, skip to the library.
+    if (parent.name == '@unit') {
+      return _referenceToString(parent.parent!);
+    }
+
+    var name = reference.name;
+    return _referenceToString(parent) + '::$name';
   }
 
   String? _typeStr(DartType? type) {

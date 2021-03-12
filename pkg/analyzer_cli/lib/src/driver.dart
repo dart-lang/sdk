@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' as io;
-import 'dart:isolate';
 
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/error/error.dart';
@@ -31,7 +30,6 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
-import 'package:analyzer_cli/src/build_mode.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/error_severity.dart';
 import 'package:analyzer_cli/src/options.dart';
@@ -89,7 +87,7 @@ class Driver implements CommandLineStarter {
   }
 
   @override
-  Future<void> start(List<String> args, {SendPort sendPort}) async {
+  Future<void> start(List<String> args) async {
     if (analysisDriver != null) {
       throw StateError('start() can only be called once');
     }
@@ -105,13 +103,7 @@ class Driver implements CommandLineStarter {
     _analysisContextProvider = _AnalysisContextProvider(resourceProvider);
 
     // Do analysis.
-    if (options.buildMode) {
-      var severity = await _buildModeAnalyze(options, sendPort);
-      // Propagate issues to the exit code.
-      if (_shouldBeFatal(severity, options)) {
-        io.exitCode = severity.ordinal;
-      }
-    } else if (options.batchMode) {
+    if (options.batchMode) {
       var batchRunner = BatchRunner(outSink, errorSink);
       batchRunner.runAsBatch(args, (List<String> args) async {
         var options = CommandLineOptions.parse(resourceProvider, args);
@@ -375,25 +367,6 @@ class Driver implements CommandLineStarter {
     return allResult;
   }
 
-  /// Perform analysis in build mode according to the given [options].
-  ///
-  /// If [sendPort] is provided it is used for bazel worker communication
-  /// instead of stdin/stdout.
-  Future<ErrorSeverity> _buildModeAnalyze(
-      CommandLineOptions options, SendPort sendPort) async {
-    if (options.buildModePersistentWorker) {
-      var workerLoop = sendPort == null
-          ? AnalyzerWorkerLoop.std(resourceProvider,
-              dartSdkPath: options.dartSdkPath)
-          : AnalyzerWorkerLoop.sendPort(resourceProvider, sendPort,
-              dartSdkPath: options.dartSdkPath);
-      await workerLoop.run();
-      return ErrorSeverity.NONE;
-    } else {
-      return await BuildMode(resourceProvider, options, stats).analyze();
-    }
-  }
-
   /// Collect all analyzable files at [filePath], recursively if it's a
   /// directory, ignoring links.
   Iterable<io.File> _collectFiles(String filePath, AnalysisOptions options) {
@@ -475,8 +448,6 @@ class Driver implements CommandLineStarter {
             previous.showPackageWarningsPrefix &&
         newOptions.showSdkWarnings == previous.showSdkWarnings &&
         newOptions.lints == previous.lints &&
-        _equalLists(
-            newOptions.buildSummaryInputs, previous.buildSummaryInputs) &&
         newOptions.defaultLanguageVersion == previous.defaultLanguageVersion &&
         newOptions.disableCacheFlushing == previous.disableCacheFlushing &&
         _equalLists(newOptions.enabledExperiments, previous.enabledExperiments);

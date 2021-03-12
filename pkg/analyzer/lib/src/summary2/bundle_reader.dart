@@ -630,51 +630,60 @@ class LinkedResolutionReader {
     if (tag == Tag.NullType) {
       return null;
     } else if (tag == Tag.DynamicType) {
-      return DynamicTypeImpl.instance;
+      var type = DynamicTypeImpl.instance;
+      return _readAliasElementArguments(type);
     } else if (tag == Tag.FunctionType) {
-      return _readFunctionType();
+      var type = _readFunctionType();
+      return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType) {
       var element = nextElement() as ClassElement;
       var typeArguments = _readTypeList();
       var nullability = _readNullability();
-      return InterfaceTypeImpl(
+      var type = InterfaceTypeImpl(
         element: element,
         typeArguments: typeArguments,
         nullabilitySuffix: nullability,
       );
+      return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
       var element = nextElement() as ClassElement;
-      return InterfaceTypeImpl(
+      var type = InterfaceTypeImpl(
         element: element,
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.none,
       );
+      return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
       var element = nextElement() as ClassElement;
-      return InterfaceTypeImpl(
+      var type = InterfaceTypeImpl(
         element: element,
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.question,
       );
+      return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_star) {
       var element = nextElement() as ClassElement;
-      return InterfaceTypeImpl(
+      var type = InterfaceTypeImpl(
         element: element,
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.star,
       );
+      return _readAliasElementArguments(type);
     } else if (tag == Tag.NeverType) {
       var nullability = _readNullability();
-      return NeverTypeImpl.instance.withNullability(nullability);
+      var type = NeverTypeImpl.instance.withNullability(nullability);
+      return _readAliasElementArguments(type);
     } else if (tag == Tag.TypeParameterType) {
       var element = nextElement() as TypeParameterElement;
       var nullability = _readNullability();
-      return TypeParameterTypeImpl(
+      var type = TypeParameterTypeImpl(
         element: element,
         nullabilitySuffix: nullability,
       );
+      return _readAliasElementArguments(type);
     } else if (tag == Tag.VoidType) {
-      return VoidTypeImpl.instance;
+      var type = VoidTypeImpl.instance;
+      return _readAliasElementArguments(type);
     } else {
       throw UnimplementedError('$tag');
     }
@@ -711,6 +720,40 @@ class LinkedResolutionReader {
     }
   }
 
+  DartType _readAliasElementArguments(DartType type) {
+    var aliasElement = _readRawElement();
+    if (aliasElement is TypeAliasElement) {
+      var aliasArguments = _readTypeList();
+      if (type is DynamicType) {
+        // TODO(scheglov) add support for `dynamic` aliasing
+        return type;
+      } else if (type is FunctionType) {
+        return FunctionTypeImpl(
+          typeFormals: type.typeFormals,
+          parameters: type.parameters,
+          returnType: type.returnType,
+          nullabilitySuffix: type.nullabilitySuffix,
+          aliasElement: aliasElement,
+          aliasArguments: aliasArguments,
+        );
+      } else if (type is InterfaceType) {
+        return InterfaceTypeImpl(
+          element: type.element,
+          typeArguments: type.typeArguments,
+          nullabilitySuffix: type.nullabilitySuffix,
+          aliasElement: aliasElement,
+          aliasArguments: aliasArguments,
+        );
+      } else if (type is VoidType) {
+        // TODO(scheglov) add support for `void` aliasing
+        return type;
+      } else {
+        throw UnimplementedError('${type.runtimeType}');
+      }
+    }
+    return type;
+  }
+
   /// TODO(scheglov) Optimize for write/read of types without type parameters.
   FunctionType _readFunctionType() {
     var typeParameters = <TypeParameterElement>[];
@@ -726,9 +769,6 @@ class LinkedResolutionReader {
       var bound = nextType();
       element.bound = bound;
     }
-
-    var aliasElement = nextElement() as TypeAliasElement?;
-    var aliasArguments = aliasElement != null ? _readTypeList() : null;
 
     var returnType = nextType()!;
 
@@ -756,8 +796,6 @@ class LinkedResolutionReader {
       parameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: nullability,
-      aliasElement: aliasElement,
-      aliasArguments: aliasArguments,
     );
   }
 

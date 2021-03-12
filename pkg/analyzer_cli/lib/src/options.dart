@@ -6,7 +6,6 @@ import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
@@ -29,7 +28,6 @@ const _lintsFlag = 'lints';
 const _noImplicitDynamicFlag = 'no-implicit-dynamic';
 const _packagesOption = 'packages';
 const _sdkPathOption = 'dart-sdk';
-const _sdkSummaryPathOption = 'dart-sdk-summary';
 
 /// Shared exit handler.
 ///
@@ -53,39 +51,11 @@ typedef ExitHandler = void Function(int code);
 class CommandLineOptions {
   final ArgResults _argResults;
 
-  /// The path to output analysis results when in build mode.
-  final String buildAnalysisOutput;
-
-  /// Whether to use build mode.
-  final bool buildMode;
-
-  /// Whether to use build mode as a Bazel persistent worker.
-  final bool buildModePersistentWorker;
-
-  /// List of summary file paths to use in build mode.
-  final List<String> buildSummaryInputs;
-
-  /// Whether to skip analysis when creating summaries in build mode.
-  final bool buildSummaryOnly;
-
-  /// The path to output the summary when creating summaries in build mode.
-  final String buildSummaryOutput;
-
-  /// The path to output the semantic-only summary when creating summaries in
-  /// build mode.
-  final String buildSummaryOutputSemantic;
-
-  /// Whether to suppress a nonzero exit code in build mode.
-  final bool buildSuppressExitCode;
-
   /// The options defining the context in which analysis is performed.
   final ContextBuilderOptions contextBuilderOptions;
 
   /// The path to the dart SDK.
   String dartSdkPath;
-
-  /// The path to the dart SDK summary file.
-  final String dartSdkSummaryPath;
 
   /// Whether to disable cache flushing. This option can improve analysis
   /// speed at the expense of memory usage. It may also be useful for working
@@ -124,7 +94,7 @@ class CommandLineOptions {
   final bool showSdkWarnings;
 
   /// The source files to analyze
-  List<String> _sourceFiles;
+  final List<String> sourceFiles;
 
   /// Whether to treat warnings as fatal
   final bool warningsAreFatal;
@@ -146,31 +116,16 @@ class CommandLineOptions {
   /// Dart analyzer snapshot.
   final bool trainSnapshot;
 
-  /// Path to a file to dump summary dependency information to for any given
-  /// build.
-  final String summaryDepsOutput;
-
   /// Initialize options from the given parsed [args].
   CommandLineOptions._fromArgs(
     ResourceProvider resourceProvider,
     ArgResults args,
   )   : _argResults = args,
-        buildAnalysisOutput = cast(args['build-analysis-output']),
-        buildMode = cast(args['build-mode']),
-        buildModePersistentWorker = cast(args['persistent_worker']),
-        buildSummaryInputs =
-            (args['build-summary-input'] as List).cast<String>(),
-        buildSummaryOnly = cast(args['build-summary-only']),
-        buildSummaryOutput = cast(args['build-summary-output']),
-        buildSummaryOutputSemantic =
-            cast(args['build-summary-output-semantic']),
-        buildSuppressExitCode = cast(args['build-suppress-exit-code']),
         contextBuilderOptions = _createContextBuilderOptions(
           resourceProvider,
           args,
         ),
         dartSdkPath = cast(args[_sdkPathOption]),
-        dartSdkSummaryPath = cast(args[_sdkSummaryPathOption]),
         disableCacheFlushing = cast(args['disable-cache-flushing']),
         disableHints = cast(args['no-hints']),
         displayVersion = cast(args['version']),
@@ -184,14 +139,13 @@ class CommandLineOptions {
             args['x-package-warnings-prefix'] != null,
         showPackageWarningsPrefix = cast(args['x-package-warnings-prefix']),
         showSdkWarnings = cast(args['sdk-warnings']),
-        _sourceFiles = args.rest,
+        sourceFiles = args.rest,
         infosAreFatal = cast(args['fatal-infos']) || cast(args['fatal-hints']),
         warningsAreFatal = cast(args['fatal-warnings']),
         lintsAreFatal = cast(args['fatal-lints']),
         trainSnapshot = cast(args['train-snapshot']),
         verbose = cast(args['verbose']),
-        color = cast(args['color']),
-        summaryDepsOutput = cast(args['summary-deps-output']);
+        color = cast(args['color']);
 
   /// The path to an analysis options file
   String get analysisOptionsFile =>
@@ -220,14 +174,6 @@ class CommandLineOptions {
 
   /// The path to a `.packages` configuration file
   String get packageConfigPath => contextBuilderOptions.defaultPackageFilePath;
-
-  /// The source files to analyze
-  List<String> get sourceFiles => _sourceFiles;
-
-  /// Replace the sourceFiles parsed from the command line.
-  void rewriteSourceFiles(List<String> newSourceFiles) {
-    _sourceFiles = newSourceFiles;
-  }
 
   /// Update the [analysisOptions] with flags that the user specified
   /// explicitly. The [analysisOptions] are usually loaded from one of
@@ -336,7 +282,7 @@ class CommandLineOptions {
     }
 
     // Check SDK.
-    if (!options.buildModePersistentWorker) {
+    {
       var sdkPath = options.dartSdkPath;
 
       // Check that SDK is existing directory.
@@ -354,58 +300,7 @@ class CommandLineOptions {
       options.dartSdkPath = file_paths.absoluteNormalized(pathContext, sdkPath);
     }
 
-    // Build mode.
-    if (options.buildMode) {
-      if (options.dartSdkSummaryPath == null) {
-        // It is OK to not specify when persistent worker.
-        // We will be given another set of options with each request.
-        if (!options.buildModePersistentWorker) {
-          printAndFail(
-            'The option --build-mode also requires --dart-sdk-summary '
-            'to be specified.',
-          );
-          return null; // Only reachable in testing.
-        }
-      }
-    } else {
-      if (options.buildModePersistentWorker) {
-        printAndFail(
-          'The option --persistent_worker can be used only '
-          'together with --build-mode.',
-        );
-        return null; // Only reachable in testing.
-      }
-    }
-
     return options;
-  }
-
-  /// Preprocess the given list of command line [args].
-  /// If the final arg is `@file_path` (Bazel worker mode),
-  /// then read in all the lines of that file and add those as args.
-  /// Always returns a new modifiable list.
-  static List<String> preprocessArgs(
-      ResourceProvider provider, List<String> args) {
-    args = List.from(args);
-    if (args.isEmpty) {
-      return args;
-    }
-    var lastArg = args.last;
-    if (lastArg.startsWith('@')) {
-      var argsFile = provider.getFile(lastArg.substring(1));
-      try {
-        args.removeLast();
-        args.addAll(argsFile
-            .readAsStringSync()
-            .replaceAll('\r\n', '\n')
-            .replaceAll('\r', '\n')
-            .split('\n')
-            .where((String line) => line.isNotEmpty));
-      } on FileSystemException catch (e) {
-        throw Exception('Failed to read file specified by $lastArg : $e');
-      }
-    }
-    return args;
   }
 
   /// Use the command-line [args] to create a context builder options.
@@ -428,9 +323,6 @@ class CommandLineOptions {
     //
     // File locations.
     //
-    builderOptions.dartSdkSummaryPath = absoluteNormalizedPath(
-      cast(args[_sdkSummaryPathOption]),
-    );
     builderOptions.defaultAnalysisOptionsFilePath = absoluteNormalizedPath(
       cast(args[_analysisOptionsFileOption]),
     );
@@ -515,8 +407,6 @@ class CommandLineOptions {
         help: 'The path to the package resolution configuration file, which '
             'supplies a mapping of package names\nto paths.',
         hide: ddc);
-    parser.addOption(_sdkSummaryPathOption,
-        help: 'The path to the Dart SDK summary file.', hide: hide);
     parser.addFlag(_enableInitializingFormalAccessFlag,
         help:
             'Enable support for allowing access to field formal parameters in a '
@@ -547,8 +437,6 @@ class CommandLineOptions {
     ResourceProvider resourceProvider,
     List<String> args,
   ) {
-    args = preprocessArgs(PhysicalResourceProvider.INSTANCE, args);
-
     var verbose = args.contains('-v') || args.contains('--verbose');
     var hide = !verbose;
 
@@ -593,56 +481,10 @@ class CommandLineOptions {
           help: 'Verbose output.',
           negatable: false);
 
-    // Build mode options.
-    if (!hide) {
-      parser.addSeparator('Build mode flags:');
-    }
-
-    parser
-      ..addFlag('persistent_worker',
-          help: 'Enable Bazel persistent worker mode.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addOption('build-analysis-output',
-          help: 'Specifies the path to the file where analysis results should '
-              'be written.',
-          hide: hide)
-      ..addFlag('build-mode',
-          help: 'Run in build mode; '
-              'this is used to generate analyzer summaries for build systems.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addMultiOption('build-summary-input',
-          help: 'Path to a linked summary file that contains information from '
-              'a previous analysis run; may be specified multiple times.',
-          hide: hide)
-      ..addOption('build-summary-output',
-          help: 'Specifies the path to the file where the full summary '
-              'information should be written.',
-          hide: hide)
-      ..addOption('build-summary-output-semantic',
-          help: 'Specifies the path to the file where the semantic summary '
-              'information should be written.',
-          hide: hide)
-      ..addFlag('build-summary-only',
-          help: 'Disable analysis (only generate summaries).',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('build-suppress-exit-code',
-          help: 'Exit with code 0 even if errors are found.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('color',
-          help: 'Use ansi colors when printing messages.',
-          defaultsTo: ansi.terminalSupportsAnsi(),
-          hide: hide)
-      ..addOption('summary-deps-output',
-          help: 'Path to a file to dump summary dependency info to.',
-          hide: hide);
+    parser.addFlag('color',
+        help: 'Use ansi colors when printing messages.',
+        defaultsTo: ansi.terminalSupportsAnsi(),
+        hide: hide);
 
     // Hidden flags.
     if (!hide) {
@@ -736,21 +578,6 @@ class CommandLineOptions {
       }
       var results = parser.parse(args);
 
-      // Persistent worker.
-      if (args.contains('--persistent_worker')) {
-        var hasBuildMode = args.contains('--build-mode');
-        var onlyDartSdkArg = args.length == 2 ||
-            (args.length == 3 && args.any((a) => a.startsWith('--dart-sdk'))) ||
-            (args.length == 4 && args.contains('--dart-sdk'));
-        if (!(hasBuildMode && onlyDartSdkArg)) {
-          printAndFail('The --persistent_worker flag should be used with and '
-              'only with the --build-mode flag, and possibly the --dart-sdk '
-              'option. Got: $args');
-          return null; // Only reachable in testing.
-        }
-        return CommandLineOptions._fromArgs(resourceProvider, results);
-      }
-
       // Help requests.
       if (cast(results['help'])) {
         _showUsage(parser, fromHelp: true);
@@ -766,20 +593,12 @@ class CommandLineOptions {
           exitHandler(15);
           return null; // Only reachable in testing.
         }
-      } else if (cast(results['persistent_worker'])) {
-        if (results.rest.isNotEmpty) {
-          errorSink.writeln(
-              'No source files expected in the persistent worker mode.');
-          _showUsage(parser);
-          exitHandler(15);
-          return null; // Only reachable in testing.
-        }
       } else if (cast(results['version'])) {
         outSink.writeln('$_binaryName version ${_getVersion()}');
         exitHandler(0);
         return null; // Only reachable in testing.
       } else {
-        if (results.rest.isEmpty && !cast<bool>(results['build-mode'])) {
+        if (results.rest.isEmpty) {
           _showUsage(parser, fromHelp: true);
           exitHandler(15);
           return null; // Only reachable in testing.

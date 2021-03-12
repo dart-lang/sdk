@@ -157,7 +157,7 @@ class PubspecValidator {
     }
 
     for (var dependency in declaredDevDependencies.entries) {
-      var packageName = dependency.key;
+      var packageName = dependency.key as YamlNode;
       if (declaredDependencies.containsKey(packageName)) {
         _reportErrorForNode(reporter, packageName,
             PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY, [packageName.value]);
