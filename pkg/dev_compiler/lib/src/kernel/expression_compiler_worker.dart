@@ -684,7 +684,7 @@ final argParser = ArgParser()
   ..addOption('sdk-root')
   ..addOption('asset-server-address')
   ..addOption('asset-server-port')
-  ..addOption('module-format')
+  ..addOption('module-format', defaultsTo: 'amd')
   ..addFlag('track-widget-creation', defaultsTo: false)
   ..addFlag('sound-null-safety', defaultsTo: false)
   ..addFlag('verbose', defaultsTo: false);
