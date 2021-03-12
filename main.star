@@ -385,6 +385,12 @@ luci.notifier(
 )
 
 luci.notifier(
+    name = "dart-vm-team",
+    on_new_failure = True,
+    notify_emails = ["dart-vm-team-breakages@google.com"],
+)
+
+luci.notifier(
     name = "nightly",
     on_new_failure = True,
     notify_emails = ["karlklose@google.com", "athom@google.com"],
@@ -392,9 +398,9 @@ luci.notifier(
 
 luci.notifier(
     name = "dart-fuzz-testing",
-    on_success = True,
+    on_success = False,
     on_failure = True,
-    notify_emails = ["ajcbik@google.com", "athom@google.com"],
+    notify_emails = ["bkonyi@google.com"],
 )
 
 luci.notifier(
@@ -632,7 +638,7 @@ def dart_builder(
     if lkgr:
         lkgr_builders.append({"project": "dart", "bucket": bucket, "builder": name})
 
-    def builder(channel, triggered_by):
+    def builder(channel, notifies, triggered_by):
         if channel == "try":
             dart_try_builder(
                 name,
@@ -665,6 +671,8 @@ def dart_builder(
                         trigger.replace("dart-vm-", "dart-")
                         for trigger in triggered_by
                     ]
+
+            notifies = [notifies] if type(notifies) == type("") else notifies
             luci.builder(
                 name = builder,
                 build_numbers = True,
@@ -676,7 +684,7 @@ def dart_builder(
                 expiration_timeout = expiration_timeout,
                 priority = priority,
                 properties = builder_properties,
-                notifies = [notifies] if notifies and not channel and enabled else None,
+                notifies = notifies if enabled else None,
                 schedule = schedule if enabled else None,
                 service_account = service_account,
                 swarming_tags = ["vpython:native-python-wrapper"],
@@ -708,10 +716,10 @@ def dart_builder(
                             console_view = "alt",
                         )
 
-    builder(None, triggered_by = triggered_by)
+    builder(None, notifies = notifies, triggered_by = triggered_by)
     for channel in channels:
         if enabled:
-            builder(channel, triggered_by = triggered_by)
+            builder(channel, notifies = None, triggered_by = triggered_by)
 
 def dart_ci_builder(name, bucket = "ci", dimensions = {}, **kwargs):
     dimensions.setdefault("pool", "luci.dart.ci")
@@ -771,6 +779,9 @@ def dart_vm_low_priority_builder(name, **kwargs):
         expiration_timeout = time.day,
         **kwargs
     )
+
+def dart_vm_nightly_builder(name, **kwargs):
+    nightly_builder(name, notifies = "dart-vm-team", **kwargs)
 
 # These lists are used to collect all nightly/weekly builders to give them as
 # properties to the "nightly"/"weekly" builder defined below, which triggers
@@ -900,51 +911,51 @@ dart_vm_extra_builder(
     category = "vm|nnbd|jit|r",
     on_cq = True,
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-nnbd-linux-debug-ia32",
     category = "vm|nnbd|jit|d3",
     channels = ["try"],
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-nnbd-linux-release-ia32",
     category = "vm|nnbd|jit|r3",
     channels = ["try"],
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-nnbd-linux-release-simarm",
     category = "vm|nnbd|jit|ra",
     channels = ["try"],
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-nnbd-linux-release-simarm64",
     category = "vm|nnbd|jit|ra6",
     channels = ["try"],
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-nnbd-mac-debug-x64",
     category = "vm|nnbd|jit|md",
     channels = ["try"],
     dimensions = mac(),
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-nnbd-mac-release-x64",
     category = "vm|nnbd|jit|mr",
     channels = ["try"],
     dimensions = mac(),
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-nnbd-win-release-ia32",
     category = "vm|nnbd|jit|wr3",
     channels = ["try"],
     dimensions = windows(),
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-nnbd-win-debug-x64",
     category = "vm|nnbd|jit|wd",
     channels = ["try"],
     dimensions = windows(),
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-nnbd-win-release-x64",
     category = "vm|nnbd|jit|wr",
     channels = ["try"],
@@ -995,7 +1006,7 @@ dart_vm_extra_builder(
     "app-kernel-linux-debug-x64",
     category = "vm|app-kernel|d64",
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "app-kernel-linux-product-x64",
     category = "vm|app-kernel|p64",
     channels = ["try"],
@@ -1020,7 +1031,7 @@ dart_vm_extra_builder(
     "vm-kernel-linux-release-simarm64",
     category = "vm|kernel|a64",
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-linux-release-ia32",
     category = "vm|kernel|r32",
     channels = ["try"],
@@ -1034,7 +1045,7 @@ dart_vm_extra_builder(
     "vm-kernel-checked-linux-release-x64",
     category = "vm|kernel|rc",
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-linux-debug-ia32",
     category = "vm|kernel|d32",
     channels = ["try"],
@@ -1051,7 +1062,7 @@ dart_ci_sandbox_builder(
     on_cq = True,
     experiment_percentage = 5,
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-win-debug-ia32",
     category = "vm|kernel|wd3",
     channels = ["try"],
@@ -1062,7 +1073,7 @@ dart_ci_sandbox_builder(
     category = "vm|kernel|wd",
     dimensions = windows(),
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-win-release-ia32",
     category = "vm|kernel|wr3",
     channels = ["try"],
@@ -1124,13 +1135,13 @@ dart_vm_extra_builder(
     category = "vm|kernel-precomp|wr",
     dimensions = windows(),
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "cross-vm-precomp-linux-release-arm64",
     category = "vm|kernel-precomp|cra",
     channels = [],
     properties = {"shard_timeout": (90 * time.minute) // time.second},
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-precomp-dwarf-linux-product-x64",
     category = "vm|kernel-precomp|dw",
     channels = ["try"],
@@ -1149,18 +1160,18 @@ dart_vm_extra_builder(
 )
 
 # vm|product
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-linux-product-x64",
     category = "vm|product|l",
     channels = ["try"],
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-mac-product-x64",
     category = "vm|product|m",
     channels = ["try"],
     dimensions = mac(),
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-win-product-x64",
     category = "vm|product|w",
     channels = ["try"],
@@ -1168,7 +1179,7 @@ nightly_builder(
 )
 
 # vm|misc
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-optcounter-threshold-linux-release-ia32",
     category = "vm|misc|o32",
     channels = ["try"],
@@ -1220,42 +1231,42 @@ dart_vm_sanitizer_builder(
     category = "vm|misc|aot|u",
     goma = False,
 )  # ubsan is not compatible with our sysroot.
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-reload-linux-debug-x64",
     category = "vm|misc|reload|d",
     channels = ["try"],
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-reload-linux-release-x64",
     category = "vm|misc|reload|r",
     channels = ["try"],
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-reload-rollback-linux-debug-x64",
     category = "vm|misc|reload|drb",
     channels = ["try"],
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-reload-rollback-linux-release-x64",
     category = "vm|misc|reload|rrb",
     channels = ["try"],
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-linux-debug-x64c",
     category = "vm|misc|compressed|ji",
     channels = ["try"],
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-linux-debug-simarm64c",
     category = "vm|misc|compressed|ja",
     channels = ["try"],
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-precomp-linux-debug-x64c",
     category = "vm|misc|compressed|ai",
     channels = ["try"],
 )
-nightly_builder(
+dart_vm_nightly_builder(
     "vm-kernel-precomp-linux-debug-simarm64c",
     category = "vm|misc|compressed|aa",
     channels = ["try"],
