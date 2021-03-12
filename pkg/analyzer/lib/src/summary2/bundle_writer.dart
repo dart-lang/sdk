@@ -427,8 +427,10 @@ class ResolutionSink {
       writeByte(Tag.NullType);
     } else if (type is DynamicType) {
       writeByte(Tag.DynamicType);
+      _writeTypeAliasElementArguments(type);
     } else if (type is FunctionType) {
       _writeFunctionType(type);
+      _writeTypeAliasElementArguments(type);
     } else if (type is InterfaceType) {
       var typeArguments = type.typeArguments;
       var nullabilitySuffix = type.nullabilitySuffix;
@@ -452,17 +454,20 @@ class ResolutionSink {
         }
         _writeNullabilitySuffix(nullabilitySuffix);
       }
+      _writeTypeAliasElementArguments(type);
     } else if (type is NeverType) {
       writeByte(Tag.NeverType);
       _writeNullabilitySuffix(type.nullabilitySuffix);
+      _writeTypeAliasElementArguments(type);
     } else if (type is TypeParameterType) {
       writeByte(Tag.TypeParameterType);
       writeElement(type.element);
       _writeNullabilitySuffix(type.nullabilitySuffix);
+      _writeTypeAliasElementArguments(type);
     } else if (type is VoidType) {
       writeByte(Tag.VoidType);
+      _writeTypeAliasElementArguments(type);
     } else {
-      // TODO
       throw UnimplementedError('${type.runtimeType}');
     }
   }
@@ -530,12 +535,6 @@ class ResolutionSink {
       writeType(typeParameter.bound);
     }
 
-    var aliasElement = type.aliasElement;
-    writeElement(aliasElement);
-    if (aliasElement != null) {
-      _writeTypeList(type.aliasArguments!);
-    }
-
     writeType(type.returnType);
 
     var parameters = type.parameters;
@@ -559,6 +558,14 @@ class ResolutionSink {
   void _writeStringReference(String string) {
     var index = _stringIndexer[string];
     _sink.writeUInt30(index);
+  }
+
+  void _writeTypeAliasElementArguments(DartType type) {
+    var aliasElement = type.aliasElement;
+    writeElement0(aliasElement);
+    if (aliasElement != null) {
+      _writeTypeList(type.aliasArguments!);
+    }
   }
 
   void _writeTypeList(List<DartType> types) {

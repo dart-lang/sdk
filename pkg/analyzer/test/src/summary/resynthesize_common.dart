@@ -12425,6 +12425,130 @@ dynamic Function() f;
 ''');
   }
 
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/45291',
+    reason: 'Type dynamic is special, no support for its aliases yet',
+  )
+  test_typedef_nonFunction_aliasElement_dynamic() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A = dynamic;
+void f(A a) {}
+''');
+
+    checkElementText(
+        library,
+        r'''
+typedef A = dynamic;
+void f(dynamic<aliasElement: self::@typeAlias::A> a) {}
+''',
+        withAliasElementArguments: true);
+  }
+
+  test_typedef_nonFunction_aliasElement_functionType() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A1 = void Function();
+typedef A2<R> = R Function();
+void f1(A1 a) {}
+void f2(A2<int> a) {}
+''');
+
+    checkElementText(
+        library,
+        r'''
+typedef A1 = void Function();
+typedef A2<R> = R Function();
+void f1(void Function()<aliasElement: self::@typeAlias::A1> a) {}
+void f2(int Function()<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
+''',
+        withAliasElementArguments: true);
+  }
+
+  test_typedef_nonFunction_aliasElement_interfaceType() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A1 = List<int>;
+typedef A2<T, U> = Map<T, U>;
+void f1(A1 a) {}
+void f2(A2<int, String> a) {}
+''');
+
+    checkElementText(
+        library,
+        r'''
+typedef A1 = List<int>;
+typedef A2<T, U> = Map<T, U>;
+void f1(List<int><aliasElement: self::@typeAlias::A1> a) {}
+void f2(Map<int, String><aliasElement: self::@typeAlias::A2, aliasArguments: [int, String]> a) {}
+''',
+        withAliasElementArguments: true);
+  }
+
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/45291',
+    reason: 'Type Never is special, no support for its aliases yet',
+  )
+  test_typedef_nonFunction_aliasElement_never() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A1 = Never;
+typedef A2<T> = Never?;
+void f1(A1 a) {}
+void f2(A2<int> a) {}
+''');
+
+    checkElementText(
+        library,
+        r'''
+typedef A1 = Never;
+typedef A2<T> = Never?;
+void f1(Never<aliasElement: self::@typeAlias::A1> a) {}
+void f2(Never?<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
+''',
+        withAliasElementArguments: true);
+  }
+
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/45291',
+    reason: 'Must be implemented',
+  )
+  test_typedef_nonFunction_aliasElement_typeParameterType() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A<T> = T;
+void f<U>(A<U> a) {}
+''');
+
+    checkElementText(
+        library,
+        r'''
+typedef A<T> = T;
+void f<U>(U<aliasElement: self::@typeAlias::A, aliasArguments: [U]> a) {}
+''',
+        withAliasElementArguments: true);
+  }
+
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/45291',
+    reason: 'Type void is special, no support for its aliases yet',
+  )
+  test_typedef_nonFunction_aliasElement_void() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A = void;
+void f(A a) {}
+''');
+
+    checkElementText(
+        library,
+        r'''
+typedef A = void;
+void f(void<aliasElement: self::@typeAlias::A> a) {}
+''',
+        withAliasElementArguments: true);
+  }
+
   test_typedef_nonFunction_asInterfaceType_interfaceType_none() async {
     featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
