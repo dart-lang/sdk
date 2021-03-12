@@ -12509,10 +12509,6 @@ void f2(Never?<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
         withAliasElementArguments: true);
   }
 
-  @FailingTest(
-    issue: 'https://github.com/dart-lang/sdk/issues/45291',
-    reason: 'Must be implemented',
-  )
   test_typedef_nonFunction_aliasElement_typeParameterType() async {
     featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''

@@ -135,6 +135,8 @@ class ReplacementVisitor
       element: type.element,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
       promotedBound: newPromotedBound ?? promotedBound,
+      aliasElement: type.aliasElement,
+      aliasArguments: type.aliasArguments,
     );
   }
 
@@ -149,6 +151,8 @@ class ReplacementVisitor
     return TypeParameterTypeImpl(
       element: type.element,
       nullabilitySuffix: newNullability,
+      aliasElement: type.aliasElement,
+      aliasArguments: type.aliasArguments,
     );
   }
 

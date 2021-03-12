@@ -7152,6 +7152,13 @@ class TypeAliasElementImpl extends _ExistingElementImpl
         aliasElement: this,
         aliasArguments: typeArguments,
       );
+    } else if (type is TypeParameterType) {
+      return TypeParameterTypeImpl(
+        element: type.element,
+        nullabilitySuffix: resultNullability,
+        aliasElement: this,
+        aliasArguments: typeArguments,
+      );
     } else {
       return (type as TypeImpl).withNullability(resultNullability);
     }
