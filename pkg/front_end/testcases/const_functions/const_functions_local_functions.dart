@@ -4,8 +4,6 @@
 
 // Tests local function usage, some having references to other constant values.
 
-// SharedOptions=--enable-experiment=const-functions
-
 import "package:expect/expect.dart";
 
 int function1() {

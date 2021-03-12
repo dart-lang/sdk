@@ -4,8 +4,6 @@
 
 // Tests creating new local variables within const functions.
 
-// SharedOptions=--enable-experiment=const-functions
-
 import "package:expect/expect.dart";
 
 const var1 = function1(1, 2);

@@ -4,8 +4,6 @@
 
 // Tests blocks and scope with const functions.
 
-// SharedOptions=--enable-experiment=const-functions
-
 import "package:expect/expect.dart";
 
 void blockTest() {

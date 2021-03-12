@@ -48,5 +48,5 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: MethodInvocation @ org-dartlang-testcase:///const_functions_variable_declarations.dart:48:23 -> IntConstant(-2)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///const_functions_variable_declarations.dart:46:23 -> IntConstant(-2)
 Extra constant evaluation: evaluated: 20, effectively constant: 1
