@@ -1885,8 +1885,9 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   @override
   DartType resolveToBound(DartType objectType) {
+    var promotedBound = this.promotedBound;
     if (promotedBound != null) {
-      return promotedBound!;
+      return promotedBound.resolveToBound(objectType);
     }
 
     var bound = element.bound;

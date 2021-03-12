@@ -6,10 +6,10 @@
 
 main() {
   new List<int>[1, 2];
-  //          ^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected '(' after this.
-  //             ^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected ']' before this.
+//^^^
+// [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
+// [cfe] Unexpected token 'new'.
+  //  ^^^^
+  // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
+  // [cfe] Unexpected token 'List'.
 }
