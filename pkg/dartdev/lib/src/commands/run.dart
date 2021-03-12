@@ -243,12 +243,17 @@ String maybeUriToFilename(String maybeUri) {
 class _DebuggingSession {
   Future<bool> start(
       String host, String port, bool disableServiceAuthCodes) async {
-    final serviceInfo = await Service.getInfo();
     final ddsSnapshot = (dirname(sdk.dart).endsWith('bin'))
         ? sdk.ddsSnapshot
         : absolute(dirname(sdk.dart), 'gen', 'dds.dart.snapshot');
     if (!Sdk.checkArtifactExists(ddsSnapshot)) {
       return false;
+    }
+    ServiceProtocolInfo serviceInfo = await Service.getInfo();
+    // Wait for VM service to publish its connection info.
+    while (serviceInfo.serverUri == null) {
+      await Future.delayed(Duration(milliseconds: 10));
+      serviceInfo = await Service.getInfo();
     }
     final process = await Process.start(
         sdk.dart,
