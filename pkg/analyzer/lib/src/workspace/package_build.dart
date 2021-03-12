@@ -287,7 +287,7 @@ class PackageBuildWorkspace extends Workspace {
       // pubspec, to know the package name that package:build will assume.
       if (dartToolBuildDir.exists && pubspec.exists) {
         try {
-          final yaml = loadYaml(pubspec.readAsStringSync());
+          final yaml = loadYaml(pubspec.readAsStringSync()) as YamlMap;
           final packageName = yaml['name'] as String;
           final generatedRootPath = provider.pathContext
               .joinAll([folder.path, ..._generatedPathParts]);

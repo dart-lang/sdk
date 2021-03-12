@@ -118,8 +118,12 @@ class Merger {
       merged[k] = v;
     });
     m2.nodes.forEach((k, v) {
+      // TODO(srawlins): The key should always be a [YamlNode], but is not (see
+      // https://pub.dev/documentation/yaml/latest/yaml/YamlMap/nodes.html).
+      // We could write an extension method which does this cast for us.
+      var value = (k as YamlNode).value;
       var mergedKey =
-          merged.keys.firstWhere((key) => key.value == k.value, orElse: () => k)
+          merged.keys.firstWhere((key) => key.value == value, orElse: () => k)
               as YamlScalar;
       var o1 = merged[mergedKey];
       if (o1 != null) {

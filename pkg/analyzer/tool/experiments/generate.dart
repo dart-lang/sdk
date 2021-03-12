@@ -68,7 +68,7 @@ part of 'experiments.dart';
     features = <String, dynamic>{};
     Map yamlFeatures = experimentsYaml['features'];
     for (MapEntry entry in yamlFeatures.entries) {
-      String category = entry.value['category'] ?? 'language';
+      String category = (entry.value as YamlMap)['category'] ?? 'language';
       if (category != "language") {
         // Skip a feature with a category that's not language. In the future
         // possibly allow e.g. 'analyzer' etc.
