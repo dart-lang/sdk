@@ -1466,6 +1466,8 @@ class Extension extends NamedNode implements FileUriNode {
   @override
   R accept1<R, A>(TreeVisitor1<R, A> v, A arg) => v.visitExtension(this, arg);
 
+  R acceptReference<R>(Visitor<R> v) => v.visitExtensionReference(this);
+
   @override
   void visitChildren(Visitor v) {
     visitList(typeParameters, v);
@@ -11146,6 +11148,123 @@ class FutureOrType extends DartType {
     printer.write("FutureOr<");
     printer.writeType(typeArgument);
     printer.write(">");
+    printer.write(nullabilityToString(declaredNullability));
+  }
+}
+
+class ExtensionType extends DartType {
+  final Reference extensionReference;
+
+  @override
+  final Nullability declaredNullability;
+
+  final List<DartType> typeArguments;
+
+  final DartType onType;
+
+  ExtensionType(Extension extensionNode, Nullability declaredNullability,
+      [List<DartType>? typeArguments])
+      : this.byReference(extensionNode.reference, declaredNullability,
+            typeArguments ?? _defaultTypeArguments(extensionNode));
+
+  ExtensionType.byReference(
+      this.extensionReference, this.declaredNullability, this.typeArguments)
+      // ignore: unnecessary_null_comparison
+      : assert(declaredNullability != null),
+        onType = _computeOnType(extensionReference, typeArguments);
+
+  Extension get extension => extensionReference.asExtension;
+
+  @override
+  Nullability get nullability {
+    return uniteNullabilities(
+        declaredNullability, extension.onType.nullability);
+  }
+
+  static List<DartType> _defaultTypeArguments(Extension extensionNode) {
+    if (extensionNode.typeParameters.length == 0) {
+      // Avoid allocating a list in this very common case.
+      return const <DartType>[];
+    } else {
+      return new List<DartType>.filled(
+          extensionNode.typeParameters.length, const DynamicType());
+    }
+  }
+
+  static DartType _computeOnType(
+      Reference extensionName, List<DartType> typeArguments) {
+    Extension extensionNode = extensionName.asExtension;
+    if (extensionNode.typeParameters.isEmpty) {
+      return extensionNode.onType;
+    } else {
+      assert(extensionNode.typeParameters.length == typeArguments.length);
+      return Substitution.fromPairs(extensionNode.typeParameters, typeArguments)
+          .substituteType(extensionNode.onType);
+    }
+  }
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) {
+    return v.visitExtensionType(this);
+  }
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    return v.visitExtensionType(this, arg);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    extension.acceptReference(v);
+    visitList(typeArguments, v);
+  }
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    if (identical(this, other)) return true;
+    if (other is ExtensionType) {
+      if (nullability != other.nullability) return false;
+      if (extensionReference != other.extensionReference) return false;
+      if (typeArguments.length != other.typeArguments.length) return false;
+      for (int i = 0; i < typeArguments.length; ++i) {
+        if (!typeArguments[i].equals(other.typeArguments[i], assumptions)) {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0x3fffffff & extensionReference.hashCode;
+    for (int i = 0; i < typeArguments.length; ++i) {
+      hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
+    }
+    int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
+    return hash;
+  }
+
+  @override
+  ExtensionType withDeclaredNullability(Nullability declaredNullability) {
+    return declaredNullability == this.declaredNullability
+        ? this
+        : new ExtensionType.byReference(
+            extensionReference, declaredNullability, typeArguments);
+  }
+
+  @override
+  String toString() {
+    return "ExtensionType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExtensionName(extensionReference);
+    printer.writeTypeArguments(typeArguments);
     printer.write(nullabilityToString(declaredNullability));
   }
 }

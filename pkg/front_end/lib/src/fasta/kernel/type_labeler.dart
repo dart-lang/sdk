@@ -6,43 +6,7 @@
 
 import 'dart:convert' show json;
 
-import 'package:kernel/ast.dart'
-    show
-        BoolConstant,
-        Class,
-        Constant,
-        ConstantMapEntry,
-        DartType,
-        DoubleConstant,
-        DynamicType,
-        Field,
-        FunctionType,
-        FutureOrType,
-        InvalidType,
-        InstanceConstant,
-        IntConstant,
-        InterfaceType,
-        Library,
-        ListConstant,
-        MapConstant,
-        NeverType,
-        NullConstant,
-        NullType,
-        Nullability,
-        PartialInstantiationConstant,
-        Procedure,
-        SetConstant,
-        StringConstant,
-        SymbolConstant,
-        TearOffConstant,
-        TreeNode,
-        Typedef,
-        TypedefType,
-        TypeLiteralConstant,
-        TypeParameter,
-        TypeParameterType,
-        UnevaluatedConstant,
-        VoidType;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/visitor.dart' show ConstantVisitor, DartTypeVisitor;
 
@@ -283,6 +247,25 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add("FutureOr<");
     node.typeArgument.accept(this);
     result.add(">");
+    addNullability(node.declaredNullability);
+  }
+
+  void visitExtensionType(ExtensionType node) {
+    result.add(nameForEntity(
+        node.extension,
+        node.extension.name,
+        node.extension.enclosingLibrary.importUri,
+        node.extension.enclosingLibrary.fileUri));
+    if (node.typeArguments.isNotEmpty) {
+      result.add("<");
+      bool first = true;
+      for (DartType typeArg in node.typeArguments) {
+        if (!first) result.add(", ");
+        typeArg.accept(this);
+        first = false;
+      }
+      result.add(">");
+    }
     addNullability(node.declaredNullability);
   }
 

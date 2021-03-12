@@ -4,23 +4,7 @@
 
 // @dart = 2.9
 
-import 'package:kernel/ast.dart'
-    show
-        DartType,
-        DartTypeVisitor,
-        DynamicType,
-        FunctionType,
-        FutureOrType,
-        InterfaceType,
-        InvalidType,
-        NamedType,
-        NeverType,
-        NullType,
-        TypeParameter,
-        TypeParameterType,
-        TypedefType,
-        Variance,
-        VoidType;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable;
 
@@ -1029,24 +1013,37 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
     return false;
   }
 
+  @override
   bool visitInvalidType(InvalidType node) => false;
 
+  @override
   bool visitDynamicType(DynamicType node) => false;
 
+  @override
   bool visitVoidType(VoidType node) => false;
 
+  @override
   bool visitNeverType(NeverType node) => false;
 
+  @override
   bool visitNullType(NullType node) => false;
 
+  @override
   bool visitInterfaceType(InterfaceType node) {
     return anyTypeVariables(node.typeArguments);
   }
 
+  @override
+  bool visitExtensionType(ExtensionType node) {
+    return anyTypeVariables(node.typeArguments);
+  }
+
+  @override
   bool visitFutureOrType(FutureOrType node) {
     return node.typeArgument.accept(this);
   }
 
+  @override
   bool visitFunctionType(FunctionType node) {
     if (anyTypeVariables(node.positionalParameters)) return true;
     for (TypeParameter variable in node.typeParameters) {
@@ -1058,8 +1055,10 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
     return false;
   }
 
+  @override
   bool visitTypeParameterType(TypeParameterType node) => true;
 
+  @override
   bool visitTypedefType(TypedefType node) {
     return anyTypeVariables(node.typeArguments);
   }

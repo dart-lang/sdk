@@ -53,6 +53,14 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
   }
 
   @override
+  DartType? visitExtensionType(ExtensionType node) {
+    if (node.declaredNullability == Nullability.nonNullable) {
+      return null;
+    }
+    return node.withDeclaredNullability(Nullability.nonNullable);
+  }
+
+  @override
   DartType? visitInvalidType(InvalidType node) => null;
 
   @override
