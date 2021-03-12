@@ -528,9 +528,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   Future<void> test_anonymous_function_async7() async {
     addTestSource('main() {foo("bar", () as^ => null');
     await computeSuggestions();
-    assertSuggestKeywords([],
-        pseudoKeywords:
-            usingFastaParser ? ['async'] : ['async', 'async*', 'sync*']);
+    assertSuggestKeywords([], pseudoKeywords: ['async']);
   }
 
   Future<void> test_anonymous_function_async8() async {
@@ -916,17 +914,13 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   Future<void> test_class_implements2() async {
     addTestSource('class A e^ implements foo');
     await computeSuggestions();
-    assertSuggestKeywords(usingFastaParser
-        ? [Keyword.EXTENDS]
-        : [Keyword.EXTENDS, Keyword.IMPLEMENTS]);
+    assertSuggestKeywords([Keyword.EXTENDS]);
   }
 
   Future<void> test_class_implements3() async {
     addTestSource('class A e^ implements foo { }');
     await computeSuggestions();
-    assertSuggestKeywords(usingFastaParser
-        ? [Keyword.EXTENDS]
-        : [Keyword.EXTENDS, Keyword.IMPLEMENTS]);
+    assertSuggestKeywords([Keyword.EXTENDS]);
   }
 
   Future<void> test_class_implements_name() async {

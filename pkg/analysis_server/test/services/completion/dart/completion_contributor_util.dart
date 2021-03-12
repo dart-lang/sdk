@@ -96,8 +96,6 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest
   /// where there is no `new` or `const` keyword.
   bool get suggestConstructorsWithoutNew => true;
 
-  bool get usingFastaParser => true;
-
   void addTestSource(String content) {
     expect(completionOffset, isNull, reason: 'Call addTestUnit exactly once');
     completionOffset = content.indexOf('^');
