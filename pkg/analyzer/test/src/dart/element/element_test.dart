@@ -2242,6 +2242,27 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
     expect(typeF.resolveToBound(objectNone), interfaceTypeStar(classS));
   }
 
+  void test_resolveToBound_promotedBound_interfaceType() {
+    var A = class_(name: 'A');
+    var A_none = interfaceTypeNone(A);
+
+    var T = typeParameter('T');
+    var T_A = typeParameterTypeNone(T, promotedBound: A_none);
+    expect(T_A.resolveToBound(objectQuestion), A_none);
+  }
+
+  void test_resolveToBound_promotedBound_typeParameterType_interfaceType() {
+    var A = class_(name: 'A');
+    var A_none = interfaceTypeNone(A);
+
+    var T = typeParameter('T', bound: A_none);
+    var T_none = typeParameterTypeNone(T);
+
+    var U = typeParameter('U');
+    var U_T = typeParameterTypeNone(U, promotedBound: T_none);
+    expect(U_T.resolveToBound(objectQuestion), A_none);
+  }
+
   void test_resolveToBound_unbound() {
     TypeParameterTypeImpl type =
         typeParameterTypeStar(TypeParameterElementImpl('E', -1));

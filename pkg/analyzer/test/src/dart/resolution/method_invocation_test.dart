@@ -2772,6 +2772,30 @@ void f<T>(T? t) {
     );
   }
 
+  test_hasReceiver_typeParameter_promotedToOtherTypeParameter() async {
+    await assertNoErrorsInCode('''
+abstract class A {}
+
+abstract class B extends A {
+  void foo();
+}
+
+void f<T extends A, U extends B>(T a) {
+  if (a is U) {
+    a.foo();
+  }
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: findElement.method('foo'),
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
+    );
+  }
+
   test_nullShorting_cascade_firstMethodInvocation() async {
     await assertNoErrorsInCode(r'''
 class A {
