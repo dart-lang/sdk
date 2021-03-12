@@ -21,8 +21,6 @@
 
 namespace dart {
 
-Definition* const FlowGraphBuilderHelper::kPhiSelfReference = nullptr;
-
 LibraryPtr LoadTestScript(const char* script,
                           Dart_NativeEntryResolver resolver,
                           const char* lib_uri) {

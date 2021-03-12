@@ -1200,7 +1200,7 @@ class Method extends Member {
     gen.write('Future<${returnType.name}> ${name}(');
     bool startedOptional = false;
     gen.write(args.map((MethodArg arg) {
-      String? typeName;
+      String typeName;
       if (api.isEnumName(arg.type.name)) {
         if (arg.type.isArray) {
           typeName = typeName = '/*${arg.type}*/ List<String>';
@@ -1268,7 +1268,7 @@ class MemberType extends Member {
     }
   }
 
-  String? get name {
+  String get name {
     if (types.isEmpty) return '';
     if (types.length == 1) return types.first.ref;
     if (isReturnType) return 'Response';
@@ -1286,7 +1286,7 @@ class MemberType extends Member {
 
   bool get isArray => types.length == 1 && types.first.isArray;
 
-  void generate(DartGenerator gen) => gen.write(name!);
+  void generate(DartGenerator gen) => gen.write(name);
 }
 
 class TypeRef {
@@ -1296,7 +1296,7 @@ class TypeRef {
 
   TypeRef(this.name);
 
-  String? get ref {
+  String get ref {
     if (arrayDepth == 2) {
       return 'List<List<${name}>>';
     } else if (arrayDepth == 1) {
@@ -1304,7 +1304,7 @@ class TypeRef {
     } else if (genericTypes != null) {
       return '$name<${genericTypes!.join(', ')}>';
     } else {
-      return name!.startsWith('_') ? name!.substring(1) : name;
+      return name!.startsWith('_') ? name!.substring(1) : name!;
     }
   }
 
@@ -1340,7 +1340,7 @@ class TypeRef {
           name == 'double' ||
           name == 'ByteData');
 
-  String toString() => ref!;
+  String toString() => ref;
 }
 
 class MethodArg extends Member {
@@ -1639,9 +1639,11 @@ class Type extends Member {
         }
       } else {
         String typesList = _typeRefListToString(field.type.types);
+        String nullable =
+            field.optional && field.type.name != 'dynamic' ? '?' : '';
         gen.writeln("${field.generatableName} = "
             "createServiceObject(json['${field.name}']${field.optional ? '' : '!'}, "
-            "$typesList) as ${field.type.name}${field.optional ? '?' : ''};");
+            "$typesList) as ${field.type.name}$nullable;");
       }
     });
     if (fields.isNotEmpty) {
@@ -1851,8 +1853,8 @@ void _parseTokenPosTable() {
           gen.writeln('}');
         } else {
           String assertMethodName = 'assert' +
-              type.name!.substring(0, 1).toUpperCase() +
-              type.name!.substring(1);
+              type.name.substring(0, 1).toUpperCase() +
+              type.name.substring(1);
           gen.writeln('$assertMethodName(obj.${field.generatableName}!);');
         }
       }
@@ -1943,7 +1945,9 @@ class TypeField extends Member {
     {
       String? typeName =
           api.isEnumName(type.name) ? '/*${type.name}*/ String' : type.name;
-      typeName = '$typeName?';
+      if (typeName != 'dynamic') {
+        typeName = '$typeName?';
+      }
       gen.writeStatement('${typeName} ${generatableName};');
       if (parent.fields.any((field) => field.hasDocs)) gen.writeln();
     }

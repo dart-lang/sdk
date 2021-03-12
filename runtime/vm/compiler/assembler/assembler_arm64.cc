@@ -529,16 +529,16 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   ASSERT(IsOriginalObject(object));
   word offset = 0;
   if (IsSameObject(compiler::NullObject(), object)) {
-    CompareRegisters(reg, NULL_REG);
+    CompareObjectRegisters(reg, NULL_REG);
   } else if (target::CanLoadFromThread(object, &offset)) {
     ldr(TMP, Address(THR, offset));
-    CompareRegisters(reg, TMP);
+    CompareObjectRegisters(reg, TMP);
   } else if (CanLoadFromObjectPool(object)) {
     LoadObject(TMP, object);
-    CompareRegisters(reg, TMP);
+    CompareObjectRegisters(reg, TMP);
   } else {
     ASSERT(target::IsSmi(object));
-    CompareImmediate(reg, target::ToRawSmi(object));
+    CompareImmediate(reg, target::ToRawSmi(object), kObjectBytes);
   }
 }
 
@@ -667,7 +667,12 @@ void Assembler::BranchLinkWithEquivalence(const Code& target,
   Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
 
-void Assembler::AddImmediate(Register dest, Register rn, int64_t imm) {
+void Assembler::AddImmediate(Register dest,
+                             Register rn,
+                             int64_t imm,
+                             OperandSize sz) {
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
   Operand op;
   if (imm == 0) {
     if (dest != rn) {
@@ -675,16 +680,15 @@ void Assembler::AddImmediate(Register dest, Register rn, int64_t imm) {
     }
     return;
   }
-  if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
-    add(dest, rn, op);
-  } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
-             Operand::Immediate) {
-    sub(dest, rn, op);
+  if (Operand::CanHold(imm, width, &op) == Operand::Immediate) {
+    add(dest, rn, op, sz);
+  } else if (Operand::CanHold(-imm, width, &op) == Operand::Immediate) {
+    sub(dest, rn, op, sz);
   } else {
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    add(dest, rn, Operand(TMP2));
+    add(dest, rn, Operand(TMP2), sz);
   }
 }
 
@@ -783,7 +787,7 @@ void Assembler::TestImmediate(Register rn, int64_t imm, OperandSize sz) {
     tsti(rn, Immediate(imm), sz);
   } else {
     LoadImmediate(TMP, imm);
-    tst(rn, Operand(TMP));
+    tst(rn, Operand(TMP), sz);
   }
 }
 
@@ -926,17 +930,8 @@ void Assembler::LoadCompressed(Register dest,
 #if !defined(DART_COMPRESSED_POINTERS)
   ldr(dest, slot);
 #else
-  Label done;
-  ldr(dest, slot, kFourBytes);  // Sign-extension.
-  if (can_value_be_smi == kValueCanBeSmi) {
-    BranchIfSmi(dest, &done);
-  }
+  ldr(dest, slot, kUnsignedFourBytes);  // Zero-extension.
   add(dest, dest, Operand(HEAP_BASE));
-  Bind(&done);
-
-  // After further Smi changes:
-  // ldr(dest, slot, kUnsignedFourBytes);  // Zero-extension.
-  // add(dest, dest, Operand(HEAP_BASE));
 #endif
 }
 
@@ -1899,15 +1894,33 @@ Address Assembler::ElementAddressForRegIndexWithSize(bool is_external,
   const intptr_t boxing_shift = index_unboxed ? 0 : -kSmiTagShift;
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) + boxing_shift;
   const int32_t offset = HeapDataOffset(is_external, cid);
+#if !defined(DART_COMPRESSED_POINTERS)
+  const bool index_is_32bit = false;
+#else
+  const bool index_is_32bit = !index_unboxed;
+#endif
   ASSERT(array != temp);
   ASSERT(index != temp);
   if ((offset == 0) && (shift == 0)) {
-    return Address(array, index, UXTX, Address::Unscaled);
+    if (index_is_32bit) {
+      return Address(array, index, SXTW, Address::Unscaled);
+    } else {
+      return Address(array, index, UXTX, Address::Unscaled);
+    }
   } else if (shift < 0) {
     ASSERT(shift == -1);
-    add(temp, array, Operand(index, ASR, 1));
+    if (index_is_32bit) {
+      AsrImmediate(temp, index, 1, kFourBytes);
+      add(temp, array, Operand(temp, SXTW, 0));
+    } else {
+      add(temp, array, Operand(index, ASR, 1));
+    }
   } else {
-    add(temp, array, Operand(index, LSL, shift));
+    if (index_is_32bit) {
+      add(temp, array, Operand(index, SXTW, shift));
+    } else {
+      add(temp, array, Operand(index, LSL, shift));
+    }
   }
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
   return Address(temp, offset, Address::Offset, size);
@@ -1924,13 +1937,31 @@ void Assembler::ComputeElementAddressForRegIndex(Register address,
   const intptr_t boxing_shift = index_unboxed ? 0 : -kSmiTagShift;
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) + boxing_shift;
   const int32_t offset = HeapDataOffset(is_external, cid);
+#if !defined(DART_COMPRESSED_POINTERS)
+  const bool index_is_32bit = false;
+#else
+  const bool index_is_32bit = !index_unboxed;
+#endif
   if (shift == 0) {
-    add(address, array, Operand(index));
+    if (index_is_32bit) {
+      add(address, array, Operand(index, SXTW, 0));
+    } else {
+      add(address, array, Operand(index));
+    }
   } else if (shift < 0) {
     ASSERT(shift == -1);
-    add(address, array, Operand(index, ASR, 1));
+    if (index_is_32bit) {
+      sxtw(index, index);
+      add(address, array, Operand(index, ASR, 1));
+    } else {
+      add(address, array, Operand(index, ASR, 1));
+    }
   } else {
-    add(address, array, Operand(index, LSL, shift));
+    if (index_is_32bit) {
+      add(address, array, Operand(index, SXTW, shift));
+    } else {
+      add(address, array, Operand(index, LSL, shift));
+    }
   }
   if (offset != 0) {
     AddImmediate(address, offset);
@@ -2046,7 +2077,7 @@ void Assembler::PopNativeCalleeSavedRegisters() {
   }
 }
 
-bool Assembler::CanGenerateXCbzTbz(Register rn, Condition cond) {
+bool Assembler::CanGenerateCbzTbz(Register rn, Condition cond) {
   if (rn == CSP) {
     return false;
   }
@@ -2063,9 +2094,12 @@ bool Assembler::CanGenerateXCbzTbz(Register rn, Condition cond) {
   }
 }
 
-void Assembler::GenerateXCbzTbz(Register rn, Condition cond, Label* label) {
-  constexpr int32_t bit_no = 63;
-  constexpr OperandSize sz = kEightBytes;
+void Assembler::GenerateCbzTbz(Register rn,
+                               Condition cond,
+                               Label* label,
+                               OperandSize sz) {
+  ASSERT((sz == kEightBytes) || (sz == kFourBytes));
+  const int32_t sign_bit = sz == kEightBytes ? 63 : 31;
   ASSERT(rn != CSP);
   switch (cond) {
     case EQ:  // equal
@@ -2076,11 +2110,11 @@ void Assembler::GenerateXCbzTbz(Register rn, Condition cond, Label* label) {
       return;
     case MI:  // minus/negative
     case LT:  // signed less than
-      tbnz(label, rn, bit_no);
+      tbnz(label, rn, sign_bit);
       return;
     case PL:  // plus/positive or zero
     case GE:  // signed greater than or equal
-      tbz(label, rn, bit_no);
+      tbz(label, rn, sign_bit);
       return;
     default:
       // Only conditions above allow single instruction emission.

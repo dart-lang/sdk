@@ -789,7 +789,8 @@ class MethodInvocationResolver {
     var typeArgumentList = _invocation!.typeArguments;
     if (typeArgumentList != null) {
       var arguments = typeArgumentList.arguments;
-      _invocation!.typeArgumentTypes = arguments.map((n) => n.type!).toList();
+      _invocation!.typeArgumentTypes =
+          arguments.map((n) => n.typeOrThrow).toList();
     } else {
       _invocation!.typeArgumentTypes = [];
     }

@@ -870,7 +870,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorName constructorName = node.constructorName;
     TypeName typeName = constructorName.type;
-    DartType type = typeName.type!;
+    DartType type = typeName.typeOrThrow;
     if (type is InterfaceType) {
       _checkForConstOrNewWithAbstractClass(node, typeName, type);
       _checkForConstOrNewWithEnum(node, typeName, type);
@@ -1400,7 +1400,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         mixinNameIndex < withClause.mixinTypes.length;
         mixinNameIndex++) {
       TypeName mixinName = withClause.mixinTypes[mixinNameIndex];
-      DartType mixinType = mixinName.type!;
+      DartType mixinType = mixinName.typeOrThrow;
       if (mixinType is InterfaceType) {
         mixinTypeIndex++;
         if (_checkForExtendsOrImplementsDisallowedClass(
@@ -1450,7 +1450,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       // If the element is null, we check for the
       // REDIRECT_TO_MISSING_CONSTRUCTOR case
       TypeName constructorTypeName = redirectedConstructor.type;
-      DartType redirectedType = constructorTypeName.type!;
+      DartType redirectedType = constructorTypeName.typeOrThrow;
       if (redirectedType.element != null && !redirectedType.isDynamic) {
         // Prepare the constructor name
         String constructorStrName = constructorTypeName.name.name;
@@ -2199,7 +2199,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (constructorName.staticElement != null) {
       return;
     }
-    DartType type = typeName.type!;
+    DartType type = typeName.typeOrThrow;
     if (type is InterfaceType) {
       ClassElement element = type.element;
       if (element.isEnum) {
@@ -2492,7 +2492,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
     return typeName.type is InterfaceType &&
-        _typeProvider.nonSubtypableClasses.contains(typeName.type!.element);
+        _typeProvider.nonSubtypableClasses
+            .contains(typeName.typeOrThrow.element);
   }
 
   void _checkForExtensionDeclaresMemberOfObject(MethodDeclaration node) {
@@ -2687,7 +2688,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_featureSet?.isEnabled(Feature.generic_metadata) ?? false) {
       return;
     }
-    DartType type = node.type!;
+    DartType type = node.typeOrThrow;
     if (type is FunctionType && type.typeFormals.isNotEmpty) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
@@ -2758,7 +2759,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         (node is TypeName && node.typeArguments != null)) {
       return;
     }
-    DartType type = node.type!;
+    DartType type = node.typeOrThrow;
     if (type is ParameterizedType &&
         type.typeArguments.isNotEmpty &&
         type.typeArguments.any((t) => t.isDynamic)) {
@@ -3419,7 +3420,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     for (TypeName mixinType in withClause.mixinTypes) {
-      DartType type = mixinType.type!;
+      DartType type = mixinType.typeOrThrow;
       if (type is InterfaceType) {
         LibraryElement library = type.element.library;
         if (library != _currentLibrary) {
@@ -3486,7 +3487,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (constructorName.staticElement != null) {
       return;
     }
-    DartType type = typeName.type!;
+    DartType type = typeName.typeOrThrow;
     if (type is InterfaceType) {
       ClassElement element = type.element;
       if (element.isEnum || element.isMixin) {
@@ -3632,7 +3633,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // check return type
     var annotation = declaration.returnType;
     if (annotation != null) {
-      DartType type = annotation.type!;
+      DartType type = annotation.typeOrThrow;
       if (!type.isVoid) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR, annotation);
@@ -3646,7 +3647,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// See [StaticWarningCode.NON_VOID_RETURN_FOR_SETTER].
   void _checkForNonVoidReturnTypeForSetter(TypeAnnotation? typeName) {
     if (typeName != null) {
-      DartType type = typeName.type!;
+      DartType type = typeName.typeOrThrow;
       if (!type.isVoid) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, typeName);
@@ -3720,7 +3721,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (node.type == null) {
       return;
     }
-    var type = node.type!.type!;
+    var type = node.type!.typeOrThrow;
 
     if (!_typeSystem.isPotentiallyNonNullable(type)) {
       return;
@@ -3747,7 +3748,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     bool problemReported = false;
     for (TypeName typeName in onClause.superclassConstraints) {
-      DartType type = typeName.type!;
+      DartType type = typeName.typeOrThrow;
       if (type is InterfaceType) {
         if (_checkForExtendsOrImplementsDisallowedClass(
             typeName,
@@ -4723,7 +4724,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             continue;
           }
           var methodTypeParameterVariance = Variance.invariant.combine(
-            Variance(typeParameter, methodTypeParameter.bound!.type!),
+            Variance(typeParameter, methodTypeParameter.bound!.typeOrThrow),
           );
           _checkForWrongVariancePosition(
               methodTypeParameterVariance, typeParameter, methodTypeParameter);
@@ -4748,7 +4749,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       var returnType = method.returnType;
       if (returnType != null) {
         var methodReturnTypeVariance =
-            Variance(typeParameter, returnType.type!);
+            Variance(typeParameter, returnType.typeOrThrow);
         _checkForWrongVariancePosition(
             methodReturnTypeVariance, typeParameter, returnType);
       }

@@ -8552,9 +8552,8 @@ class Integer : public Number {
                      Heap::Space space = Heap::kNew) const;
 
   static int64_t GetInt64Value(const IntegerPtr obj) {
-    intptr_t raw_value = static_cast<intptr_t>(obj);
-    if ((raw_value & kSmiTagMask) == kSmiTag) {
-      return (raw_value >> kSmiTagShift);
+    if (obj->IsSmi()) {
+      return RawSmiValue(static_cast<const SmiPtr>(obj));
     } else {
       ASSERT(obj->IsMint());
       return static_cast<const MintPtr>(obj)->untag()->value_;

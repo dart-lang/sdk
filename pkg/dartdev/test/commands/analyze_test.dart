@@ -78,7 +78,7 @@ void defineAnalyze() {
 
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);
-    expect(result.stderr, contains('Only one directory is expected.'));
+    expect(result.stderr, contains('Only one directory or file is expected.'));
     expect(result.stderr, contains(_analyzeUsageText));
   });
 
@@ -88,7 +88,8 @@ void defineAnalyze() {
 
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);
-    expect(result.stderr, contains("Directory doesn't exist: /no/such/dir1/"));
+    expect(result.stderr,
+        contains("Directory or file doesn't exist: /no/such/dir1/"));
     expect(result.stderr, contains(_analyzeUsageText));
   });
 
@@ -102,34 +103,59 @@ void defineAnalyze() {
     expect(result.stdout, contains('No issues found!'));
   });
 
-  test('no errors', () {
-    p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync(['analyze', p.dirPath]);
+  group('single directory', () {
+    test('no errors', () {
+      p = project(mainSrc: 'int get foo => 1;\n');
+      var result = p.runSync(['analyze', p.dirPath]);
 
-    expect(result.exitCode, 0);
-    expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('No issues found!'));
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('No issues found!'));
+    });
+
+    test('one error', () {
+      p = project(mainSrc: "int get foo => 'str';\n");
+      var result = p.runSync(['analyze', p.dirPath]);
+
+      expect(result.exitCode, 3);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('A value of type '));
+      expect(result.stdout, contains('lib/main.dart:1:16 '));
+      expect(result.stdout, contains('return_of_invalid_type'));
+      expect(result.stdout, contains('1 issue found.'));
+    });
+
+    test('two errors', () {
+      p = project(mainSrc: "int get foo => 'str';\nint get bar => 'str';\n");
+      var result = p.runSync(['analyze', p.dirPath]);
+
+      expect(result.exitCode, 3);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('2 issues found.'));
+    });
   });
 
-  test('one error', () {
-    p = project(mainSrc: "int get foo => 'str';\n");
-    var result = p.runSync(['analyze', p.dirPath]);
+  group('single file', () {
+    test('no errors', () {
+      p = project(mainSrc: 'int get foo => 1;\n');
+      var result = p.runSync(['analyze', p.mainPath]);
 
-    expect(result.exitCode, 3);
-    expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('A value of type '));
-    expect(result.stdout, contains('lib/main.dart:1:16 '));
-    expect(result.stdout, contains('return_of_invalid_type'));
-    expect(result.stdout, contains('1 issue found.'));
-  });
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('No issues found!'));
+    });
 
-  test('two errors', () {
-    p = project(mainSrc: "int get foo => 'str';\nint get bar => 'str';\n");
-    var result = p.runSync(['analyze', p.dirPath]);
+    test('one error', () {
+      p = project(mainSrc: "int get foo => 'str';\n");
+      var result = p.runSync(['analyze', p.mainPath]);
 
-    expect(result.exitCode, 3);
-    expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('2 issues found.'));
+      expect(result.exitCode, 3);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('A value of type '));
+      expect(result.stdout, contains('main.dart:1:16 '));
+      expect(result.stdout, contains('return_of_invalid_type'));
+      expect(result.stdout, contains('1 issue found.'));
+    });
   });
 
   test('warning --fatal-warnings', () {

@@ -708,7 +708,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
 
   if (obj.IsSmi() && (Smi::Cast(obj).Value() == 0)) {
     ASSERT(!needs_number_check);
-    __ testq(reg, reg);
+    __ OBJ(test)(reg, reg);
     return EQUAL;
   }
 

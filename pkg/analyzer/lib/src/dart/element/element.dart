@@ -17,6 +17,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -3873,7 +3874,7 @@ class ExtensionElementImpl extends _ExistingElementImpl
     if (linkedNode != null) {
       var linkedNode = this.linkedNode as ExtensionDeclaration;
       linkedContext!.applyResolution(linkedNode);
-      return _extendedType = linkedNode.extendedType.type!;
+      return _extendedType = linkedNode.extendedType.typeOrThrow;
     }
 
     return _extendedType!;

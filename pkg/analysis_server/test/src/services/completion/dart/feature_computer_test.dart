@@ -357,6 +357,31 @@ void g() {
 ''', 'String');
   }
 
+  Future<void> test_argumentList_typeParameter_resolved() async {
+    await assertContextType('''
+class A {}
+class B {}
+class C<T extends A> {
+  void m(T t) {}
+}
+void f(C<B> c) {
+  c.m(^);
+}
+''', 'B');
+  }
+
+  Future<void> test_argumentList_typeParameter_unresolved() async {
+    await assertContextType('''
+class A {}
+class C<T extends A> {
+  void m1(T t) {}
+  void m2() {
+    m1(^);
+  }
+}
+''', 'A');
+  }
+
   Future<void> test_assertInitializer_with_identifier() async {
     await assertContextType('''
 class C {

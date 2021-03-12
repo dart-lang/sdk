@@ -16,10 +16,10 @@ import 'utils.dart';
 
 /// A class to provide an API wrapper around an analysis server process.
 class AnalysisServer {
-  AnalysisServer(this.sdkPath, this.directory);
+  AnalysisServer(this.sdkPath, this.analysisRoot);
 
   final Directory sdkPath;
-  final Directory directory;
+  final FileSystemEntity analysisRoot;
 
   Process _process;
 
@@ -98,8 +98,8 @@ class AnalysisServer {
     //
     // The call to absolute.resolveSymbolicLinksSync() canonicalizes the path to
     // be passed to the analysis server.
-    var dirPath = trimEnd(
-      directory.absolute.resolveSymbolicLinksSync(),
+    var analysisRootPath = trimEnd(
+      analysisRoot.absolute.resolveSymbolicLinksSync(),
       path.context.separator,
     );
 
@@ -115,7 +115,7 @@ class AnalysisServer {
 
     // ignore: unawaited_futures
     _sendCommand('analysis.setAnalysisRoots', params: <String, dynamic>{
-      'included': [dirPath],
+      'included': [analysisRootPath],
       'excluded': <String>[]
     });
   }

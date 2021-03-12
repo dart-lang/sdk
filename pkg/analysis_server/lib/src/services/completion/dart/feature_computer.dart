@@ -164,7 +164,9 @@ class FeatureComputer {
   /// offset is within the given [node], or `null` if the context does not
   /// impose any type.
   DartType computeContextType(AstNode node, int offset) {
-    var type = node.accept(_ContextTypeVisitor(typeProvider, offset));
+    var type = node
+        .accept(_ContextTypeVisitor(typeProvider, offset))
+        ?.resolveToBound(typeProvider.objectType);
     if (type == null || type.isDynamic) {
       return null;
     }

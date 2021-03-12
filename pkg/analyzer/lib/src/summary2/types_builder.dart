@@ -264,7 +264,7 @@ class _MixinInference {
   }
 
   InterfaceType _inferSingle(TypeNameImpl mixinNode) {
-    var mixinType = _interfaceType(mixinNode.type!);
+    var mixinType = _interfaceType(mixinNode.typeOrThrow);
 
     if (mixinNode.typeArguments != null) {
       return mixinType;

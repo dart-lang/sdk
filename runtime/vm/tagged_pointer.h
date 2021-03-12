@@ -349,7 +349,12 @@ DEFINE_TAGGED_POINTER(FutureOr, Instance)
 #undef DEFINE_TAGGED_POINTER
 
 inline intptr_t RawSmiValue(const SmiPtr raw_value) {
+#if !defined(DART_COMPRESSED_POINTERS)
   const intptr_t value = static_cast<intptr_t>(raw_value);
+#else
+  const intptr_t value = static_cast<intptr_t>(static_cast<int32_t>(
+      static_cast<uint32_t>(static_cast<uintptr_t>(raw_value))));
+#endif
   ASSERT((value & kSmiTagMask) == kSmiTag);
   return (value >> kSmiTagShift);
 }

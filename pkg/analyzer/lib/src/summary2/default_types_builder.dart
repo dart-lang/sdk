@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -73,7 +74,7 @@ class DefaultTypesBuilder {
 
       var cycles = _findRawTypePathsToDeclaration(
         parameter,
-        boundNode.type!,
+        boundNode.typeOrThrow,
         declarationElement,
         Set<Element>.identity(),
       );
@@ -244,7 +245,7 @@ class DefaultTypesBuilder {
               if (bound != null) {
                 var tails = _findRawTypePathsToDeclaration(
                   parameterNode,
-                  bound.type!,
+                  bound.typeOrThrow,
                   end,
                   visited,
                 );

@@ -68,15 +68,26 @@ class AnalyzeCommand extends DartdevCommand {
   @override
   FutureOr<int> run() async {
     if (argResults.rest.length > 1) {
-      usageException('Only one directory is expected.');
+      usageException('Only one directory or file is expected.');
     }
 
-    // find directory from argResults.rest
-    var dir = argResults.rest.isEmpty
-        ? io.Directory.current
-        : io.Directory(argResults.rest.single);
-    if (!dir.existsSync()) {
-      usageException("Directory doesn't exist: ${dir.path}");
+    // find target from argResults.rest
+    io.FileSystemEntity target;
+    io.Directory relativeToDir;
+    if (argResults.rest.isEmpty) {
+      target = io.Directory.current;
+      relativeToDir = target;
+    } else {
+      var targetPath = argResults.rest.single;
+      if (io.Directory(targetPath).existsSync()) {
+        target = io.Directory(targetPath);
+        relativeToDir = target;
+      } else if (io.File(targetPath).existsSync()) {
+        target = io.File(targetPath);
+        relativeToDir = target.parent;
+      } else {
+        usageException("Directory or file doesn't exist: $targetPath");
+      }
     }
 
     final List<AnalysisError> errors = <AnalysisError>[];
@@ -85,11 +96,11 @@ class AnalyzeCommand extends DartdevCommand {
 
     var progress = machineFormat
         ? null
-        : log.progress('Analyzing ${path.basename(dir.path)}');
+        : log.progress('Analyzing ${path.basename(target.path)}');
 
     final AnalysisServer server = AnalysisServer(
       io.Directory(sdk.sdkPath),
-      dir,
+      target,
     );
 
     server.onErrors.listen((FileAnalysisErrors fileErrors) {
@@ -128,7 +139,8 @@ class AnalyzeCommand extends DartdevCommand {
     if (machineFormat) {
       emitMachineFormat(log, errors);
     } else {
-      emitDefaultFormat(log, errors, relativeToDir: dir, verbose: verbose);
+      emitDefaultFormat(log, errors,
+          relativeToDir: relativeToDir, verbose: verbose);
     }
 
     bool hasErrors = false;
@@ -180,7 +192,7 @@ class AnalyzeCommand extends DartdevCommand {
       if (error.isError) {
         severity = ansi.error(severity);
       }
-      var filePath = _relativePath(error.file, relativeToDir?.path);
+      var filePath = _relativePath(error.file, relativeToDir);
       var codeRef = error.code;
       // If we're in verbose mode, write any error urls instead of error codes.
       if (error.url != null && verbose) {
@@ -207,7 +219,7 @@ class AnalyzeCommand extends DartdevCommand {
 
       // Add any context messages as bullet list items.
       for (var message in error.contextMessages) {
-        var contextPath = _relativePath(error.file, relativeToDir?.path);
+        var contextPath = _relativePath(error.file, relativeToDir);
         var messageSentenceFragment = trimEnd(message.message, '.');
 
         log.stdout('$_bodyIndent'
@@ -222,8 +234,9 @@ class AnalyzeCommand extends DartdevCommand {
     log.stdout('$errorCount ${pluralize('issue', errorCount)} found.');
   }
 
-  /// Return a relative path if it is a shorter reference than the given path.
-  static String _relativePath(String givenPath, String fromPath) {
+  /// Return a relative path if it is a shorter reference than the given dir.
+  static String _relativePath(String givenPath, io.Directory fromDir) {
+    String fromPath = fromDir?.absolute?.resolveSymbolicLinksSync();
     String relative = path.relative(givenPath, from: fromPath);
     return relative.length <= givenPath.length ? relative : givenPath;
   }

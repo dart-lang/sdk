@@ -144,7 +144,8 @@ class InvocationInferenceHelper {
     // for FunctionExpressionInvocation(s), so set it here, if not inferred.
     if (node is FunctionExpressionInvocationImpl) {
       if (typeArguments != null) {
-        var typeArgs = typeArguments.arguments.map((n) => n.type!).toList();
+        var typeArgs =
+            typeArguments.arguments.map((n) => n.typeOrThrow).toList();
         node.typeArgumentTypes = typeArgs;
       } else {
         node.typeArgumentTypes = const <DartType>[];
@@ -420,7 +421,7 @@ class InvocationInferenceHelper {
       );
     } else {
       typeArguments = typeArgumentList.arguments
-          .map((typeArgument) => typeArgument.type!)
+          .map((typeArgument) => typeArgument.typeOrThrow)
           .toList(growable: true);
     }
 

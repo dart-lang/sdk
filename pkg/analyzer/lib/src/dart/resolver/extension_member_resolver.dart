@@ -199,7 +199,7 @@ class ExtensionMemberResolver {
     if (typeArguments != null) {
       var arguments = typeArguments.arguments;
       if (arguments.length == typeParameters.length) {
-        typeArgumentTypes = arguments.map((a) => a.type!).toList();
+        typeArgumentTypes = arguments.map((a) => a.typeOrThrow).toList();
       } else {
         typeArgumentTypes = _listOfDynamic(typeParameters);
       }
@@ -392,7 +392,7 @@ class ExtensionMemberResolver {
         if (typeParameters.isEmpty) {
           return const <DartType>[];
         }
-        return arguments.map((a) => a.type!).toList();
+        return arguments.map((a) => a.typeOrThrow).toList();
       } else {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,

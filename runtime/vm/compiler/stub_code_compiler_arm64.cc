@@ -1134,7 +1134,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // Check length >= 0 && length <= kMaxNewSpaceElements
     const intptr_t max_len =
         target::ToRawSmi(target::Array::kMaxNewSpaceElements);
-    __ CompareImmediate(R2, max_len);
+    __ CompareImmediate(R2, max_len, kObjectBytes);
     __ b(&slow_case, HI);
 
     const intptr_t cid = kArrayCid;
@@ -1149,7 +1149,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
         target::Array::header_size() +
         target::ObjectAlignment::kObjectAlignment - 1;
     __ LoadImmediate(R3, fixed_size_plus_alignment_padding);
-    __ add(R3, R3, Operand(R2, LSL, 2));  // R2 is Smi.
+    __ add(R3, R3, Operand(R2, LSL, 2), kObjectBytes);  // R2 is Smi.
     ASSERT(kSmiTagShift == 1);
     __ andi(R3, R3,
             Immediate(~(target::ObjectAlignment::kObjectAlignment - 1)));
@@ -2177,25 +2177,19 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ BranchIfNotSmi(TMP, not_smi_or_overflow);
   switch (kind) {
     case Token::kADD: {
-#if !defined(DART_COMPRESSED_POINTERS)
-      __ adds(R0, R1, Operand(R0));   // Add.
+      __ adds(R0, R1, Operand(R0), kObjectBytes);  // Add.
       __ b(not_smi_or_overflow, VS);  // Branch if overflow.
-#else
-      __ addsw(R0, R1, Operand(R0));  // Add (32-bit).
-      __ b(not_smi_or_overflow, VS);  // Branch if overflow.
-      __ sxtw(R0, R0);                // Sign extend.
-#endif
       break;
     }
     case Token::kLT: {
-      __ CompareRegisters(R0, R1);
+      __ CompareObjectRegisters(R0, R1);
       __ LoadObject(R0, CastHandle<Object>(TrueObject()));
       __ LoadObject(R1, CastHandle<Object>(FalseObject()));
       __ csel(R0, R0, R1, LT);
       break;
     }
     case Token::kEQ: {
-      __ CompareRegisters(R0, R1);
+      __ CompareObjectRegisters(R0, R1);
       __ LoadObject(R0, CastHandle<Object>(TrueObject()));
       __ LoadObject(R1, CastHandle<Object>(FalseObject()));
       __ csel(R0, R0, R1, EQ);
@@ -3136,7 +3130,8 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   // Double values bitwise compare.
   __ LoadFieldFromOffset(left, left, target::Double::value_offset());
   __ LoadFieldFromOffset(right, right, target::Double::value_offset());
-  __ b(&reference_compare);
+  __ CompareRegisters(left, right);
+  __ b(&done);
 
   __ Bind(&check_mint);
   __ CompareClassId(left, kMintCid);
@@ -3145,9 +3140,11 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ b(&done, NE);
   __ LoadFieldFromOffset(left, left, target::Mint::value_offset());
   __ LoadFieldFromOffset(right, right, target::Mint::value_offset());
+  __ CompareRegisters(left, right);
+  __ b(&done);
 
   __ Bind(&reference_compare);
-  __ CompareRegisters(left, right);
+  __ CompareObjectRegisters(left, right);
   __ Bind(&done);
 }
 
@@ -3584,7 +3581,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   __ SmiUntag(R2);
   /* Check for length >= 0 && length <= max_len. */
   /* R2: untagged array length. */
-  __ CompareImmediate(R2, max_len);
+  __ CompareImmediate(R2, max_len, kObjectBytes);
   __ b(&call_runtime, HI);
   __ LslImmediate(R2, R2, scale_shift);
   const intptr_t fixed_size_plus_alignment_padding =

@@ -1207,7 +1207,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (_typeSystem.isPotentiallyNullable(type.type!)) {
+    if (_typeSystem.isPotentiallyNullable(type.typeOrThrow)) {
       _errorReporter.reportErrorForNode(
         HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
         type,
@@ -1596,7 +1596,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// on [node].  See [HintCode.UNNECESSARY_CAST].
   static bool isUnnecessaryCast(AsExpression node, TypeSystemImpl typeSystem) {
     var leftType = node.expression.typeOrThrow;
-    var rightType = node.type.type!;
+    var rightType = node.type.typeOrThrow;
 
     // `dynamicValue as SomeType` is a valid use case.
     if (leftType.isDynamic) {

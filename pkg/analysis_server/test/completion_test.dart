@@ -2351,9 +2351,7 @@ main() {
         <String>['1+HttpServer', '1-HttpClient'],
         failingTests: '1');
 
-    buildTests(
-        'test038',
-        '''
+    buildTests('test038', '''
 class X {
   x(){}
 }
@@ -2367,9 +2365,7 @@ class A<Z extends X> {
     ay.!1y;
     az.!2x;
   }
-}''',
-        <String>['1+y', '1-x', '2+x', '2-y'],
-        failingTests: '2');
+}''', <String>['1+y', '1-x', '2+x', '2-y']);
 
     // test analysis of untyped fields and top-level vars
     buildTests(

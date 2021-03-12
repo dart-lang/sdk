@@ -222,8 +222,8 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
   RELEASE_ASSERT(cursor.TryMatch({
       kMoveGlob,
       kMatchAndMoveCreateArray,
-      kMatchAndMoveUnboxInt64,
       {kMoveAny, &unbox1},
+      kMatchAndMoveUnboxInt64,
       {kMoveAny, &unbox2},
       kMatchAndMoveGoto,
 

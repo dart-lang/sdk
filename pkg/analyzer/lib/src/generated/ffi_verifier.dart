@@ -546,7 +546,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, fields.variables[0].name);
     } else {
-      DartType declaredType = fieldType.type!;
+      DartType declaredType = fieldType.typeOrThrow;
       if (declaredType.isDartCoreInt) {
         _validateAnnotations(fieldType, annotations, _PrimitiveDartType.int);
       } else if (declaredType.isDartCoreDouble) {

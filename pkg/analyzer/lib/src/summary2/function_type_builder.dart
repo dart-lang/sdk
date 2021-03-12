@@ -168,7 +168,7 @@ class FunctionTypeBuilder extends TypeBuilder {
     if (node == null) {
       return _dynamicType;
     } else {
-      return node.type!;
+      return node.typeOrThrow;
     }
   }
 

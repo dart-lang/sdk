@@ -543,7 +543,7 @@ class ConstantsTransformer extends RemovingTransformer {
       if (node.function != null) {
         node.function = transform(node.function)..parent = node;
       }
-      constantEvaluator.env.updateVariableValue(
+      constantEvaluator.env.addVariableValue(
           node.variable, new IntermediateValue(node.function));
     } else {
       return super.visitFunctionDeclaration(node, removalSentinel);
@@ -559,7 +559,7 @@ class ConstantsTransformer extends RemovingTransformer {
     if (node.initializer != null) {
       if (node.isConst) {
         final Constant constant = evaluateWithContext(node, node.initializer);
-        constantEvaluator.env.updateVariableValue(node, constant);
+        constantEvaluator.env.addVariableValue(node, constant);
         node.initializer = makeConstantExpression(constant, node.initializer)
           ..parent = node;
 
@@ -1669,14 +1669,14 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             : _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;
-        env.updateVariableValue(parameter, value);
+        env.addVariableValue(parameter, value);
       }
       for (final VariableDeclaration parameter in function.namedParameters) {
         final Constant value = namedArguments[parameter.name] ??
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;
-        env.updateVariableValue(parameter, value);
+        env.addVariableValue(parameter, value);
       }
 
       // Step 2) Run all initializers (including super calls) with environment
@@ -1697,7 +1697,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           final VariableDeclaration variable = init.variable;
           Constant constant = _evaluateSubexpression(variable.initializer);
           if (constant is AbortConstant) return constant;
-          env.updateVariableValue(variable, constant);
+          env.addVariableValue(variable, constant);
         } else if (init is SuperInitializer) {
           AbortConstant error = checkConstructorConst(init, constructor);
           if (error != null) return error;
@@ -2412,7 +2412,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   Constant visitLet(Let node) {
     Constant value = _evaluateSubexpression(node.variable.initializer);
     if (value is AbortConstant) return value;
-    env.updateVariableValue(node.variable, value);
+    env.addVariableValue(node.variable, value);
     return _evaluateSubexpression(node.body);
   }
 
@@ -2443,6 +2443,19 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     }
     return createInvalidExpressionConstant(
         node, 'Variable get of a non-const variable.');
+  }
+
+  @override
+  Constant visitVariableSet(VariableSet node) {
+    if (enableConstFunctions) {
+      final VariableDeclaration variable = node.variable;
+      Constant value = _evaluateSubexpression(node.value);
+      if (value is AbortConstant) return value;
+      return env.updateVariableValue(variable, value) ??
+          createInvalidExpressionConstant(
+              node, 'Variable set of an unknown value.');
+    }
+    return defaultExpression(node);
   }
 
   /// Computes the constant for [expression] defined in the context of [member].
@@ -2772,14 +2785,14 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             : _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;
-        env.updateVariableValue(parameter, value);
+        env.addVariableValue(parameter, value);
       }
       for (final VariableDeclaration parameter in function.namedParameters) {
         final Constant value = namedArguments[parameter.name] ??
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;
-        env.updateVariableValue(parameter, value);
+        env.addVariableValue(parameter, value);
       }
       return execute(function.body);
     });
@@ -3295,9 +3308,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitThrow(Throw node) => defaultExpression(node);
-
-  @override
-  Constant visitVariableSet(VariableSet node) => defaultExpression(node);
 }
 
 class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
@@ -3330,6 +3340,13 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   }
 
   @override
+  ExecutionStatus visitExpressionStatement(ExpressionStatement node) {
+    Constant value = evaluate(node.expression);
+    if (value is AbortConstant) return new ReturnStatus(value);
+    return const ProceedStatus();
+  }
+
+  @override
   ExecutionStatus visitReturnStatement(ReturnStatement node) =>
       new ReturnStatus(evaluate(node.expression));
 
@@ -3337,7 +3354,7 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   ExecutionStatus visitVariableDeclaration(VariableDeclaration node) {
     Constant value = evaluate(node.initializer);
     if (value is AbortConstant) return new ReturnStatus(value);
-    exprEvaluator.env.updateVariableValue(node, value);
+    exprEvaluator.env.addVariableValue(node, value);
     return const ProceedStatus();
   }
 }
@@ -3426,15 +3443,19 @@ class EvaluationEnvironment {
     _typeVariables[parameter] = value;
   }
 
-  void updateVariableValue(VariableDeclaration variable, Constant value) {
-    if (!_variables.containsKey(variable)) {
-      _variables[variable] = new EvaluationReference(value);
-    } else {
-      _variables[variable].value = value;
-    }
+  void addVariableValue(VariableDeclaration variable, Constant value) {
+    _variables[variable] = new EvaluationReference(value);
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.add(variable);
     }
+  }
+
+  Constant updateVariableValue(VariableDeclaration variable, Constant value) {
+    if (_variables.containsKey(variable)) {
+      _variables[variable].value = value;
+      return value;
+    }
+    return _parent?.updateVariableValue(variable, value);
   }
 
   Constant lookupVariable(VariableDeclaration variable) {

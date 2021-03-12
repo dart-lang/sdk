@@ -1901,7 +1901,7 @@ void FlowGraph::InsertConversionsFor(Definition* def) {
   }
 }
 
-static void UnboxPhi(PhiInstr* phi) {
+static void UnboxPhi(PhiInstr* phi, bool is_aot) {
   Representation unboxed = phi->representation();
 
   switch (phi->Type()->ToCid()) {
@@ -2004,10 +2004,22 @@ static void UnboxPhi(PhiInstr* phi) {
     }
   }
 
+#if defined(TARGET_ARCH_IS_64_BIT)
+  // In AOT mode on 64-bit platforms always unbox integer typed phis (similar
+  // to how we treat doubles and other boxed numeric types).
+  // In JIT mode only unbox phis which are not fully known to be Smi.
+  if ((unboxed == kTagged) && phi->Type()->IsInt() &&
+      (is_aot || phi->Type()->ToCid() != kSmiCid)) {
+    unboxed = kUnboxedInt64;
+  }
+#endif
+
   phi->set_representation(unboxed);
 }
 
 void FlowGraph::SelectRepresentations() {
+  const auto is_aot = CompilerState::Current().is_aot();
+
   // First we decide for each phi if it is beneficial to unbox it. If so, we
   // change it's `phi->representation()`
   for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
@@ -2016,7 +2028,7 @@ void FlowGraph::SelectRepresentations() {
     if (join_entry != NULL) {
       for (PhiIterator it(join_entry); !it.Done(); it.Advance()) {
         PhiInstr* phi = it.Current();
-        UnboxPhi(phi);
+        UnboxPhi(phi, is_aot);
       }
     }
   }

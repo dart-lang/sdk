@@ -51,7 +51,7 @@ ISOLATE_UNIT_TEST_CASE(ConstantPropagation_PhiUnwrappingAndConvergence) {
 
   {
     BlockBuilder builder(H.flow_graph(), b2);
-    v1 = H.Phi(b2, {{b1, v0}, {b3, FlowGraphBuilderHelper::kPhiSelfReference}});
+    v1 = H.Phi(b2, {{b1, v0}, {b3, &v1}});
     builder.AddPhi(v1);
     auto v2 = builder.AddDefinition(
         new EqualityCompareInstr(InstructionSource(), Token::kEQ, new Value(v1),

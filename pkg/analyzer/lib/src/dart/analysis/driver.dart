@@ -44,12 +44,6 @@ import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:meta/meta.dart';
 
-/// TODO(scheglov) We could use generalized Function in
-/// [AnalysisDriverTestView], but this breaks `AnalysisContext` and code
-/// generation. So, for now let's work around them, and rewrite generators to
-/// [AnalysisDriver].
-typedef WorkToWaitAfterComputingResult = Future<void> Function(String path);
-
 /// This class computes [AnalysisResult]s for Dart files.
 ///
 /// Let the set of "explicitly analyzed files" denote the set of paths that have
@@ -528,7 +522,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     _discoverAvailableFiles();
     _scheduler.notify(this);
-    return _discoverAvailableFilesTask!.completer!.future;
+    return _discoverAvailableFilesTask!.completer.future;
   }
 
   @override
@@ -2214,28 +2208,31 @@ class _DiscoverAvailableFilesTask {
 
   final AnalysisDriver driver;
 
-  bool isCompleted = false;
-  Completer<void>? completer = Completer<void>();
+  final Completer<void> completer = Completer<void>();
 
   Iterator<Folder>? folderIterator;
-  List<String>? files = [];
+
+  final List<String> files = [];
+
   int fileIndex = 0;
 
   _DiscoverAvailableFilesTask(this.driver);
+
+  bool get isCompleted => completer.isCompleted;
 
   /// Perform the next piece of work, and set [isCompleted] to `true` to
   /// indicate that the task is done, or keeps it `false` to indicate that the
   /// task should continue to be run.
   void perform() {
     if (folderIterator == null) {
-      files!.addAll(driver.addedFiles);
+      files.addAll(driver.addedFiles);
 
       // Discover SDK libraries.
       var dartSdk = driver._sourceFactory.dartSdk;
       if (dartSdk != null) {
         for (var sdkLibrary in dartSdk.sdkLibraries) {
           var file = dartSdk.mapDartUri(sdkLibrary.shortName)!.fullName;
-          files!.add(file);
+          files.add(file);
         }
       }
 
@@ -2262,22 +2259,18 @@ class _DiscoverAvailableFilesTask {
     }
 
     // Get know files one by one.
-    while (fileIndex < files!.length) {
+    while (fileIndex < files.length) {
       if (timer.elapsedMilliseconds > _MS_WORK_INTERVAL) {
         return;
       }
-      var file = files![fileIndex++];
+      var file = files[fileIndex++];
       driver._fsState.getFileForPath(file);
     }
 
     // The task is done, clean up.
     folderIterator = null;
-    files = null;
-
-    // Complete and clean up.
-    isCompleted = true;
-    completer!.complete();
-    completer = null;
+    files.clear();
+    completer.complete();
   }
 
   void _appendFilesRecursively(Folder folder) {
@@ -2287,7 +2280,7 @@ class _DiscoverAvailableFilesTask {
         if (child is File) {
           var path = child.path;
           if (file_paths.isDart(pathContext, path)) {
-            files!.add(path);
+            files.add(path);
           }
         } else if (child is Folder) {
           _appendFilesRecursively(child);
