@@ -197,11 +197,17 @@ class CallablePropertyNode extends CallableNode {
 }
 
 class TypeVariableTests {
-  Map<ClassEntity, ClassNode> _classes = {};
-  Map<Entity, MethodNode> _methods = {};
-  Map<MemberEntity, CallablePropertyNode> _callableProperties = {};
+  final ElementEnvironment _elementEnvironment;
+  final CommonElements _commonElements;
+  final BuiltWorld _world;
+  final Set<GenericInstantiation> _genericInstantiations;
+  final bool forRtiNeeds;
+
+  final Map<ClassEntity, ClassNode> _classes = {};
+  final Map<Entity, MethodNode> _methods = {};
+  final Map<MemberEntity, CallablePropertyNode> _callableProperties = {};
   Map<Selector, Set<Entity>> _appliedSelectorMap;
-  Map<GenericInstantiation, Set<Entity>> _instantiationMap;
+  final Map<Entity, Set<GenericInstantiation>> _instantiationMap = {};
 
   /// All explicit is-tests.
   final Set<DartType> explicitIsChecks;
@@ -209,24 +215,19 @@ class TypeVariableTests {
   /// All implicit is-tests.
   final Set<DartType> implicitIsChecks = new Set<DartType>();
 
-  TypeVariableTests(
-      ElementEnvironment elementEnvironment,
-      CommonElements commonElements,
-      DartTypes types,
-      BuiltWorld world,
-      Set<GenericInstantiation> genericInstantiations,
-      {bool forRtiNeeds: true})
-      : explicitIsChecks = new Set<DartType>.from(world.isChecks) {
-    _setupDependencies(
-        elementEnvironment, commonElements, world, genericInstantiations,
-        forRtiNeeds: forRtiNeeds);
-    _propagateTests(commonElements, elementEnvironment, world);
+  TypeVariableTests(this._elementEnvironment, this._commonElements, this._world,
+      this._genericInstantiations,
+      {this.forRtiNeeds: true})
+      : explicitIsChecks = _world.isChecks.toSet() {
+    _setupDependencies();
+    _propagateTests();
     if (forRtiNeeds) {
-      _propagateLiterals(elementEnvironment, world);
+      _propagateLiterals();
     }
-    _collectResults(commonElements, elementEnvironment, types, world,
-        forRtiNeeds: forRtiNeeds);
+    _collectResults();
   }
+
+  DartTypes get _dartTypes => _commonElements.dartTypes;
 
   /// Classes whose type variables are explicitly or implicitly used in
   /// is-tests.
@@ -323,9 +324,9 @@ class TypeVariableTests {
 
   /// Calls [f] for each generic instantiation that applies to generic
   /// closurized [targets].
-  void forEachGenericInstantiation(
-      void f(GenericInstantiation instantiation, Set<Entity> targets)) {
-    _instantiationMap?.forEach(f);
+  void forEachInstantiatedEntity(
+      void f(Entity target, Set<GenericInstantiation> instantiations)) {
+    _instantiationMap.forEach(f);
   }
 
   ClassNode _getClassNode(ClassEntity cls) {
@@ -366,12 +367,7 @@ class TypeVariableTests {
       _callableProperties.putIfAbsent(
           property, () => CallablePropertyNode(property, type));
 
-  void _setupDependencies(
-      ElementEnvironment elementEnvironment,
-      CommonElements commonElements,
-      BuiltWorld world,
-      Set<GenericInstantiation> genericInstantiations,
-      {bool forRtiNeeds: true}) {
+  void _setupDependencies() {
     /// Register that if `node.entity` needs type arguments then so do entities
     /// whose type variables occur in [type].
     ///
@@ -387,9 +383,31 @@ class TypeVariableTests {
           node.addDependency(_getClassNode(typeDeclaration));
         } else {
           node.addDependency(
-              _getMethodNode(elementEnvironment, world, typeDeclaration));
+              _getMethodNode(_elementEnvironment, _world, typeDeclaration));
         }
       });
+    }
+
+    void registerDependenciesForInstantiation(RtiNode node, DartType type) {
+      void onInterface(InterfaceType type) {
+        if (type.typeArguments.isNotEmpty) {
+          node.addDependency(_getClassNode(type.element));
+        }
+      }
+
+      void onTypeVariable(TypeVariableType type) {
+        Entity declaration = type.element.typeDeclaration;
+        if (declaration is ClassEntity) {
+          node.addDependency(_getClassNode(declaration));
+        } else {
+          node.addDependency(
+              _getMethodNode(_elementEnvironment, _world, declaration));
+        }
+      }
+
+      _DependencyVisitor(
+              onInterface: onInterface, onTypeVariable: onTypeVariable)
+          .run(type);
     }
 
     // Add the rti dependencies that are implicit in the way the backend
@@ -412,17 +430,17 @@ class TypeVariableTests {
     //
     // TODO(johnniwinther): Make this dependency visible from code, possibly
     // using generic methods.
-    if (commonElements.jsArrayClass != null) {
-      _getClassNode(commonElements.jsArrayClass)
-          .addDependency(_getClassNode(commonElements.listClass));
+    if (_commonElements.jsArrayClass != null) {
+      _getClassNode(_commonElements.jsArrayClass)
+          .addDependency(_getClassNode(_commonElements.listClass));
     }
-    if (commonElements.setLiteralClass != null) {
-      _getClassNode(commonElements.setLiteralClass)
-          .addDependency(_getClassNode(commonElements.setClass));
+    if (_commonElements.setLiteralClass != null) {
+      _getClassNode(_commonElements.setLiteralClass)
+          .addDependency(_getClassNode(_commonElements.setClass));
     }
-    if (commonElements.mapLiteralClass != null) {
-      _getClassNode(commonElements.mapLiteralClass)
-          .addDependency(_getClassNode(commonElements.mapClass));
+    if (_commonElements.mapLiteralClass != null) {
+      _getClassNode(_commonElements.mapLiteralClass)
+          .addDependency(_getClassNode(_commonElements.mapClass));
     }
 
     void processCheckedType(DartType type) {
@@ -439,36 +457,36 @@ class TypeVariableTests {
         // For the implied `is Future<X>` test, register that if `Future` needs
         // type arguments then so do the entities that declare type variables
         // occurring in `type.typeArgument`.
-        registerDependencies(_getClassNode(commonElements.futureClass),
+        registerDependencies(_getClassNode(_commonElements.futureClass),
             typeWithoutNullability.typeArgument);
         // Process `type.typeArgument` for the implied `is X` test.
         processCheckedType(typeWithoutNullability.typeArgument);
       }
     }
 
-    world.isChecks.forEach(processCheckedType);
+    _world.isChecks.forEach(processCheckedType);
 
-    world.instantiatedTypes.forEach((InterfaceType type) {
+    _world.instantiatedTypes.forEach((InterfaceType type) {
       // Register that if [cls] needs type arguments then so do the entities
       // that declare type variables occurring in [type].
       ClassEntity cls = type.element;
       registerDependencies(_getClassNode(cls), type);
     });
 
-    world.forEachStaticTypeArgument(
+    _world.forEachStaticTypeArgument(
         (Entity entity, Iterable<DartType> typeArguments) {
       for (DartType type in typeArguments) {
         // Register that if [entity] needs type arguments then so do the
         // entities that declare type variables occurring in [type].
         registerDependencies(
-            _getMethodNode(elementEnvironment, world, entity), type);
+            _getMethodNode(_elementEnvironment, _world, entity), type);
       }
     });
 
-    world.forEachDynamicTypeArgument(
+    _world.forEachDynamicTypeArgument(
         (Selector selector, Iterable<DartType> typeArguments) {
       void processCallableNode(CallableNode node) {
-        if (node.selectorApplies(selector, world)) {
+        if (node.selectorApplies(selector, _world)) {
           for (DartType type in typeArguments) {
             // Register that if `node.entity` needs type arguments then so do
             // the entities that declare type variables occurring in [type].
@@ -478,7 +496,7 @@ class TypeVariableTests {
       }
 
       void processMethod(Entity entity) {
-        MethodNode node = _getMethodNode(elementEnvironment, world, entity);
+        MethodNode node = _getMethodNode(_elementEnvironment, _world, entity);
         processCallableNode(node);
       }
 
@@ -487,47 +505,38 @@ class TypeVariableTests {
         processCallableNode(node);
       }
 
-      world.forEachGenericInstanceMethod(processMethod);
-      world.genericLocalFunctions.forEach(processMethod);
-      world.closurizedStatics.forEach(processMethod);
-      world.userNoSuchMethods.forEach(processMethod);
-      world.genericCallableProperties.forEach(processCallableProperty);
+      _world.forEachGenericInstanceMethod(processMethod);
+      _world.genericLocalFunctions.forEach(processMethod);
+      _world.closurizedStatics.forEach(processMethod);
+      _world.userNoSuchMethods.forEach(processMethod);
+      _world.genericCallableProperties.forEach(processCallableProperty);
     });
 
-    for (GenericInstantiation instantiation in genericInstantiations) {
+    for (GenericInstantiation instantiation in _genericInstantiations) {
       void processEntity(Entity entity) {
-        MethodNode node = _getMethodNode(elementEnvironment, world, entity);
-        if (node.parameterStructure.typeParameters ==
-            instantiation.typeArguments.length) {
-          if (forRtiNeeds) {
-            _instantiationMap ??= <GenericInstantiation, Set<Entity>>{};
-            _instantiationMap
-                .putIfAbsent(instantiation, () => new Set<Entity>())
-                .add(entity);
-          }
+        MethodNode node = _getMethodNode(_elementEnvironment, _world, entity);
+        if (node.parameterStructure ==
+            ParameterStructure.fromType(instantiation.functionType)) {
+          _instantiationMap.putIfAbsent(entity, () => {}).add(instantiation);
           for (DartType type in instantiation.typeArguments) {
-            // Register that if `node.entity` needs type arguments then so do
-            // the entities that declare type variables occurring in [type].
-            registerDependencies(node, type);
+            registerDependenciesForInstantiation(node, type);
           }
         }
       }
 
-      world.closurizedMembers.forEach(processEntity);
-      world.closurizedStatics.forEach(processEntity);
-      world.genericLocalFunctions.forEach(processEntity);
+      _world.closurizedMembers.forEach(processEntity);
+      _world.closurizedStatics.forEach(processEntity);
+      _world.genericLocalFunctions.forEach(processEntity);
     }
   }
 
-  void _propagateTests(CommonElements commonElements,
-      ElementEnvironment elementEnvironment, BuiltWorld worldBuilder) {
+  void _propagateTests() {
     void processTypeVariableType(TypeVariableType type, {bool direct: true}) {
       TypeVariableEntity variable = type.element;
       if (variable.typeDeclaration is ClassEntity) {
         _getClassNode(variable.typeDeclaration).markTest(direct: direct);
       } else {
-        _getMethodNode(
-                elementEnvironment, worldBuilder, variable.typeDeclaration)
+        _getMethodNode(_elementEnvironment, _world, variable.typeDeclaration)
             .markTest(direct: direct);
       }
     }
@@ -535,7 +544,7 @@ class TypeVariableTests {
     void processType(DartType type, {bool direct: true}) {
       var typeWithoutNullability = type.withoutNullability;
       if (typeWithoutNullability is FutureOrType) {
-        _getClassNode(commonElements.futureClass).markIndirectTest();
+        _getClassNode(_commonElements.futureClass).markIndirectTest();
         processType(typeWithoutNullability.typeArgument, direct: false);
       } else {
         typeWithoutNullability.forEachTypeVariable((TypeVariableType type) {
@@ -544,17 +553,17 @@ class TypeVariableTests {
       }
     }
 
-    worldBuilder.isChecks.forEach(processType);
+    _world.isChecks.forEach(processType);
   }
 
-  void _propagateLiterals(
-      ElementEnvironment elementEnvironment, BuiltWorld world) {
-    world.typeVariableTypeLiterals.forEach((TypeVariableType typeVariableType) {
+  void _propagateLiterals() {
+    _world.typeVariableTypeLiterals
+        .forEach((TypeVariableType typeVariableType) {
       TypeVariableEntity variable = typeVariableType.element;
       if (variable.typeDeclaration is ClassEntity) {
         _getClassNode(variable.typeDeclaration).markDirectLiteral();
       } else {
-        _getMethodNode(elementEnvironment, world, variable.typeDeclaration)
+        _getMethodNode(_elementEnvironment, _world, variable.typeDeclaration)
             .markDirectLiteral();
       }
     });
@@ -608,34 +617,45 @@ class TypeVariableTests {
     return sb.toString();
   }
 
-  void _collectResults(CommonElements commonElements,
-      ElementEnvironment elementEnvironment, DartTypes types, BuiltWorld world,
-      {bool forRtiNeeds: true}) {
-    /// Register the implicit is-test of [type].
-    ///
-    /// If [type] is of the form `FutureOr<X>`, also register the implicit
-    /// is-tests of `Future<X>` and `X`.
-    void addImplicitCheck(DartType type) {
-      var typeWithoutNullability = type.withoutNullability;
-      if (implicitIsChecks.add(typeWithoutNullability)) {
-        if (typeWithoutNullability is FutureOrType) {
-          addImplicitCheck(
-              commonElements.futureType(typeWithoutNullability.typeArgument));
-          addImplicitCheck(typeWithoutNullability.typeArgument);
-        }
+  /// Register the implicit is-test of [type].
+  ///
+  /// If [type] is of the form `FutureOr<X>`, also register the implicit
+  /// is-tests of `Future<X>` and `X`.
+  void _addImplicitCheck(DartType type) {
+    var typeWithoutNullability = type.withoutNullability;
+    if (implicitIsChecks.add(typeWithoutNullability)) {
+      if (typeWithoutNullability is FutureOrType) {
+        _addImplicitCheck(
+            _commonElements.futureType(typeWithoutNullability.typeArgument));
+        _addImplicitCheck(typeWithoutNullability.typeArgument);
+      } else if (typeWithoutNullability is TypeVariableType) {
+        _addImplicitChecksViaInstantiation(typeWithoutNullability);
       }
     }
+  }
 
-    void addImplicitChecks(Iterable<DartType> types) {
-      types.forEach(addImplicitCheck);
-    }
+  void _addImplicitChecks(Iterable<DartType> types) {
+    types.forEach(_addImplicitCheck);
+  }
 
-    world.isChecks.forEach((DartType type) {
+  void _addImplicitChecksViaInstantiation(TypeVariableType variable) {
+    TypeVariableEntity entity = variable.element;
+    Entity declaration = entity.typeDeclaration;
+    _instantiationMap[declaration]
+        ?.forEach((GenericInstantiation instantiation) {
+      _addImplicitCheck(instantiation.typeArguments[entity.index]);
+    });
+  }
+
+  void _collectResults() {
+    _world.isChecks.forEach((DartType type) {
       var typeWithoutNullability = type.withoutNullability;
       if (typeWithoutNullability is FutureOrType) {
-        addImplicitCheck(
-            commonElements.futureType(typeWithoutNullability.typeArgument));
-        addImplicitCheck(typeWithoutNullability.typeArgument);
+        _addImplicitCheck(
+            _commonElements.futureType(typeWithoutNullability.typeArgument));
+        _addImplicitCheck(typeWithoutNullability.typeArgument);
+      } else if (typeWithoutNullability is TypeVariableType) {
+        _addImplicitChecksViaInstantiation(typeWithoutNullability);
       }
     });
 
@@ -646,49 +666,68 @@ class TypeVariableTests {
       // Find all instantiated types that are a subtype of a class that uses
       // one of its type arguments in an is-check and add the arguments to the
       // set of is-checks.
-      for (InterfaceType type in world.instantiatedTypes) {
+      for (InterfaceType type in _world.instantiatedTypes) {
         // We need the type as instance of its superclass anyway, so we just
         // try to compute the substitution; if the result is [:null:], the
         // classes are not related.
-        InterfaceType instance = types.asInstanceOf(type, cls);
+        InterfaceType instance = _dartTypes.asInstanceOf(type, cls);
         if (instance != null) {
           for (DartType argument in instance.typeArguments) {
-            addImplicitCheck(argument);
+            _addImplicitCheck(argument);
           }
         }
       }
     });
 
-    world.forEachStaticTypeArgument(
+    _world.forEachStaticTypeArgument(
         (Entity function, Iterable<DartType> typeArguments) {
-      if (!_getMethodNode(elementEnvironment, world, function).hasTest) {
+      if (!_getMethodNode(_elementEnvironment, _world, function).hasTest) {
         return;
       }
-      addImplicitChecks(typeArguments);
+      _addImplicitChecks(typeArguments);
     });
 
     if (forRtiNeeds) {
       _appliedSelectorMap = <Selector, Set<Entity>>{};
     }
 
-    world.forEachDynamicTypeArgument(
+    _world.forEachDynamicTypeArgument(
         (Selector selector, Iterable<DartType> typeArguments) {
       for (CallableNode node in [
         ..._methods.values,
         ..._callableProperties.values
       ]) {
-        if (node.selectorApplies(selector, world)) {
+        if (node.selectorApplies(selector, _world)) {
           if (forRtiNeeds) {
             _appliedSelectorMap
                 .putIfAbsent(selector, () => {})
                 .add(node.entity);
           }
           if (node.hasTest) {
-            addImplicitChecks(typeArguments);
+            _addImplicitChecks(typeArguments);
           }
         }
       }
     });
+  }
+}
+
+class _DependencyVisitor extends DartTypeStructuralPredicateVisitor {
+  void Function(InterfaceType) onInterface;
+  void Function(TypeVariableType) onTypeVariable;
+
+  _DependencyVisitor({this.onInterface, this.onTypeVariable});
+
+  @override
+  bool handleInterfaceType(InterfaceType type) {
+    onInterface(type);
+    return false;
+  }
+
+  @override
+  bool handleTypeVariableType(TypeVariableType type) {
+    onTypeVariable(type);
+    return false;
   }
 }
 
@@ -770,7 +809,7 @@ abstract class RuntimeTypesNeed {
   /// arguments.
   // TODO(johnniwinther): Use [functionType].
   bool instantiationNeedsTypeArguments(
-      DartType functionType, int typeArgumentCount);
+      FunctionType functionType, int typeArgumentCount);
 }
 
 class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
@@ -804,7 +843,7 @@ class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
 
   @override
   bool instantiationNeedsTypeArguments(
-      DartType functionType, int typeArgumentCount) {
+      FunctionType functionType, int typeArgumentCount) {
     return true;
   }
 }
@@ -903,7 +942,7 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
 
   @override
   bool instantiationNeedsTypeArguments(
-      DartType functionType, int typeArgumentCount) {
+      FunctionType functionType, int typeArgumentCount) {
     return instantiationsNeedingTypeArguments.contains(typeArgumentCount);
   }
 }
@@ -963,8 +1002,11 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
 
   Map<Selector, Set<Entity>> selectorsNeedingTypeArgumentsForTesting;
 
-  Map<GenericInstantiation, Set<Entity>>
-      instantiationsNeedingTypeArgumentsForTesting;
+  Map<Entity, Set<GenericInstantiation>>
+      _instantiatedEntitiesNeedingTypeArgumentsForTesting;
+  Map<Entity, Set<GenericInstantiation>>
+      get instantiatedEntitiesNeedingTypeArgumentsForTesting =>
+          _instantiatedEntitiesNeedingTypeArgumentsForTesting ?? const {};
 
   final Set<GenericInstantiation> _genericInstantiations =
       new Set<GenericInstantiation>();
@@ -999,7 +1041,6 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     TypeVariableTests typeVariableTests = new TypeVariableTests(
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
-        closedWorld.dartTypes,
         closedWorld,
         _genericInstantiations);
     Set<ClassEntity> classesNeedingTypeArguments = new Set<ClassEntity>();
@@ -1348,24 +1389,19 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
       }
     });
     Set<int> instantiationsNeedingTypeArguments = new Set<int>();
-    typeVariableTests.forEachGenericInstantiation(
-        (GenericInstantiation instantiation, Set<Entity> targets) {
-      for (Entity target in targets) {
-        if (methodsNeedingTypeArguments.contains(target) ||
-            localFunctionsNeedingTypeArguments.contains(target)) {
-          // TODO(johnniwinther): Use the static type of the instantiated
-          // expression.
-          instantiationsNeedingTypeArguments
-              .add(instantiation.typeArguments.length);
-          if (retainDataForTesting) {
-            instantiationsNeedingTypeArgumentsForTesting ??=
-                <GenericInstantiation, Set<Entity>>{};
-            instantiationsNeedingTypeArgumentsForTesting
-                .putIfAbsent(instantiation, () => new Set<Entity>())
-                .add(target);
-          } else {
-            return;
-          }
+    typeVariableTests.forEachInstantiatedEntity(
+        (Entity target, Set<GenericInstantiation> instantiations) {
+      if (methodsNeedingTypeArguments.contains(target) ||
+          localFunctionsNeedingTypeArguments.contains(target)) {
+        // TODO(johnniwinther): Use the static type of the instantiated
+        // expression.
+        instantiationsNeedingTypeArguments
+            .add(instantiations.first.typeArguments.length);
+        if (retainDataForTesting) {
+          _instantiatedEntitiesNeedingTypeArgumentsForTesting ??= {};
+          _instantiatedEntitiesNeedingTypeArgumentsForTesting
+              .putIfAbsent(target, () => {})
+              .addAll(instantiations);
         }
       }
     });

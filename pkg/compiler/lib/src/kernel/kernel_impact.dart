@@ -700,7 +700,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       ir.FunctionType expressionType, List<ir.DartType> typeArguments) {
     // TODO(johnniwinther): Track which arities are used in instantiation.
     impactBuilder.registerInstantiation(new GenericInstantiation(
-        elementMap.getDartType(expressionType),
+        elementMap.getDartType(expressionType).withoutNullability,
         typeArguments.map(elementMap.getDartType).toList()));
   }
 

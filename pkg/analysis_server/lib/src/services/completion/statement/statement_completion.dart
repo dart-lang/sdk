@@ -427,14 +427,8 @@ class StatementCompletionProcessor {
     }
     DoStatement statement = node;
     var sb = _sourceBuilderAfterKeyword(statement.doKeyword);
-    // I modified the code and ran the tests with both the old and new parser.
-    // Apparently the old parser sometimes sticks something other than 'while'
-    // into the whileKeyword field, which causes statement completion to throw
-    // an exception further downstream.
-    // TODO(danrubel): change `statement.whileKeyword?.lexeme == "while"`
-    // to `statement.whileKeyword != null` once the fasta parser is the default.
-    var hasWhileKeyword = statement.whileKeyword?.lexeme == 'while' &&
-        !statement.whileKeyword.isSynthetic;
+    var hasWhileKeyword =
+        statement.whileKeyword != null && !statement.whileKeyword.isSynthetic;
     var exitDelta = 0;
     if (!_statementHasValidBody(statement.doKeyword, statement.body)) {
       var text = utils.getNodeText(statement.body);

@@ -1411,5 +1411,5 @@ abstract class ClosureRtiNeed {
   bool selectorNeedsTypeArguments(Selector selector);
 
   bool instantiationNeedsTypeArguments(
-      DartType functionType, int typeArgumentCount);
+      FunctionType functionType, int typeArgumentCount);
 }

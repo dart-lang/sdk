@@ -5193,15 +5193,16 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     node.expression.accept(this);
     arguments.add(pop());
     StaticType expressionType = _getStaticType(node.expression);
+    FunctionType functionType = expressionType.type.withoutNullability;
     bool typeArgumentsNeeded = _rtiNeed.instantiationNeedsTypeArguments(
-        expressionType.type, node.typeArguments.length);
+        functionType, node.typeArguments.length);
     List<DartType> typeArguments = node.typeArguments
         .map((type) => typeArgumentsNeeded
             ? _elementMap.getDartType(type)
             : _commonElements.dynamicType)
         .toList();
     registry.registerGenericInstantiation(
-        new GenericInstantiation(expressionType.type, typeArguments));
+        new GenericInstantiation(functionType, typeArguments));
     // TODO(johnniwinther): Can we avoid creating the instantiation object?
     for (DartType type in typeArguments) {
       HInstruction instruction =

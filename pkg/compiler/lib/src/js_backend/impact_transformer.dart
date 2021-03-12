@@ -415,10 +415,16 @@ class CodegenImpactTransformer {
         case ConstantValueKind.SET:
         case ConstantValueKind.MAP:
         case ConstantValueKind.CONSTRUCTED:
-        case ConstantValueKind.INSTANTIATION:
         case ConstantValueKind.LIST:
           transformed.registerStaticUse(StaticUse.staticInvoke(
               _closedWorld.commonElements.findType, CallStructure.ONE_ARG));
+          break;
+        case ConstantValueKind.INSTANTIATION:
+          transformed.registerStaticUse(StaticUse.staticInvoke(
+              _closedWorld.commonElements.findType, CallStructure.ONE_ARG));
+          InstantiationConstantValue instantiation = constantUse.value;
+          _rtiChecksBuilder.registerGenericInstantiation(GenericInstantiation(
+              instantiation.function.type, instantiation.typeArguments));
           break;
         case ConstantValueKind.DEFERRED_GLOBAL:
           _closedWorld.outputUnitData
