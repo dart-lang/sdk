@@ -55,13 +55,6 @@ void main() {
       test('defaults', () {
         var options = parse(['--dart-sdk', '.', 'foo.dart']);
         expect(options, isNotNull);
-        expect(options.buildMode, isFalse);
-        expect(options.buildAnalysisOutput, isNull);
-        expect(options.buildSummaryInputs, isEmpty);
-        expect(options.buildSummaryOnly, isFalse);
-        expect(options.buildSummaryOutput, isNull);
-        expect(options.buildSummaryOutputSemantic, isNull);
-        expect(options.buildSuppressExitCode, isFalse);
         expect(options.dartSdkPath, isNotNull);
         expect(options.disableCacheFlushing, isFalse);
         expect(options.disableHints, isFalse);
@@ -270,54 +263,13 @@ void main() {
       });
     });
   });
-  defineReflectiveTests(CommandLineOptions_BuildMode_Test);
-}
-
-@reflectiveTest
-class AbstractStatusTest {
-  int lastExitHandlerCode;
-  StringBuffer outStringBuffer = StringBuffer();
-  StringBuffer errorStringBuffer = StringBuffer();
-
-  StringSink savedOutSink, savedErrorSink;
-  int savedExitCode;
-  ExitHandler savedExitHandler;
-
-  void setUp() {
-    savedOutSink = outSink;
-    savedErrorSink = errorSink;
-    savedExitHandler = exitHandler;
-    savedExitCode = exitCode;
-    exitHandler = (int code) {
-      lastExitHandlerCode = code;
-    };
-    outSink = outStringBuffer;
-    errorSink = errorStringBuffer;
-  }
-
-  void tearDown() {
-    outSink = savedOutSink;
-    errorSink = savedErrorSink;
-    exitCode = savedExitCode;
-    exitHandler = savedExitHandler;
-  }
+  defineReflectiveTests(ArgumentsTest);
 }
 
 @reflectiveTest
 class ArgumentsTest with ResourceProviderMixin {
   CommandLineOptions commandLineOptions;
   String failureMessage;
-
-  void test_dartSdkSummaryPath() {
-    var expected = 'my_sdk.summary';
-    _parse(['--dart-sdk-summary=$expected', 'a.dart']);
-
-    var builderOptions = commandLineOptions.contextBuilderOptions;
-    expect(
-      builderOptions.dartSdkSummaryPath,
-      endsWith(expected),
-    );
-  }
 
   void test_declaredVariables() {
     _parse(['-Da=0', '-Db=', 'a.dart']);
@@ -374,46 +326,6 @@ class ArgumentsTest with ResourceProviderMixin {
       result,
       orderedEquals(['--a', '--c=0', '-Da=b', '-e=2', '-f', 'bar']),
     );
-  }
-
-  void test_preprocessArgs_noReplacement() {
-    var original = <String>['--xx' '--yy' 'baz'];
-    var result = CommandLineOptions.preprocessArgs(resourceProvider, original);
-    expect(result, orderedEquals(original));
-    expect(identical(original, result), isFalse);
-  }
-
-  void test_preprocessArgs_replacement_exists() {
-    var filePath = convertPath('/args.txt');
-    newFile(filePath, content: '''
--a
---xx
-
-foo
-bar
-''');
-    var result = CommandLineOptions.preprocessArgs(
-        resourceProvider, ['--preserved', '@$filePath']);
-    expect(result, orderedEquals(['--preserved', '-a', '--xx', 'foo', 'bar']));
-  }
-
-  void test_preprocessArgs_replacement_nonexistent() {
-    var filePath = convertPath('/args.txt');
-    var args = <String>['ignored', '@$filePath'];
-    try {
-      CommandLineOptions.preprocessArgs(resourceProvider, args);
-      fail('Expect exception');
-    } on Exception catch (e) {
-      expect(e.toString(), contains('Failed to read file'));
-      expect(e.toString(), contains('@$filePath'));
-    }
-  }
-
-  void test_preprocessArgs_replacement_notLast() {
-    var filePath = convertPath('/args.txt');
-    var args = <String>['a', '@$filePath', 'b'];
-    var result = CommandLineOptions.preprocessArgs(resourceProvider, args);
-    expect(result, orderedEquals(args));
   }
 
   void test_updateAnalysisOptions_defaultLanguageVersion() {
@@ -654,142 +566,5 @@ bar
         failureMessage = msg;
       },
     );
-  }
-}
-
-@reflectiveTest
-class CommandLineOptions_BuildMode_Test extends AbstractStatusTest {
-  CommandLineOptions options;
-  String failureMessage;
-
-  void test_buildAnalysisOutput() {
-    _parseBuildMode([
-      '--build-analysis-output=//path/to/output.analysis',
-      'package:p/foo.dart|/path/to/p/lib/foo.dart',
-    ]);
-    expect(options.buildMode, isTrue);
-    expect(options.buildAnalysisOutput, '//path/to/output.analysis');
-  }
-
-  void test_buildMode() {
-    _parseBuildMode([
-      'package:p/foo.dart|/path/to/p/lib/foo.dart',
-    ]);
-    expect(options.buildMode, isTrue);
-  }
-
-  void test_buildMode_allowsEmptyFileList() {
-    _parseBuildMode([]);
-    expect(options.buildMode, isTrue);
-    expect(options.sourceFiles, isEmpty);
-  }
-
-  void test_buildMode_noDartSdkSummary() {
-    _parseBuildMode(
-      ['package:aaa/a.dart|/aaa/lib/a.dart'],
-      withDartSdkSummary: false,
-    );
-    expect(options, isNull);
-    expect(failureMessage, contains('--dart-sdk-summary'));
-  }
-
-  void test_buildSummaryInputs_commaSeparated() {
-    _parseBuildMode([
-      '--build-summary-input=/path/to/aaa.sum,/path/to/bbb.sum',
-      'package:p/foo.dart|/path/to/p/lib/foo.dart',
-    ]);
-    expect(options.buildMode, isTrue);
-    expect(
-        options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
-  }
-
-  void test_buildSummaryInputs_commaSeparated_normalMode() {
-    _parse([
-      '--build-summary-input=/path/to/aaa.sum,/path/to/bbb.sum',
-      '/path/to/p/lib/foo.dart',
-    ]);
-    expect(options.buildMode, isFalse);
-    expect(
-        options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
-  }
-
-  void test_buildSummaryInputs_separateFlags() {
-    _parseBuildMode([
-      '--build-summary-input=/path/to/aaa.sum',
-      '--build-summary-input=/path/to/bbb.sum',
-      'package:p/foo.dart|/path/to/p/lib/foo.dart',
-    ]);
-    expect(options.buildMode, isTrue);
-    expect(
-        options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
-  }
-
-  void test_buildSummaryInputs_separateFlags_normalMode() {
-    _parse([
-      '--build-summary-input=/path/to/aaa.sum',
-      '--build-summary-input=/path/to/bbb.sum',
-      'package:p/foo.dart|/path/to/p/lib/foo.dart',
-    ]);
-    expect(options.buildMode, isFalse);
-    expect(
-        options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
-  }
-
-  void test_buildSummaryOnly() {
-    _parseBuildMode([
-      '--build-summary-output=/path/to/aaa.sum',
-      '--build-summary-only',
-      'package:p/foo.dart|/path/to/p/lib/foo.dart',
-    ]);
-    expect(options.buildMode, isTrue);
-    expect(options.buildSummaryOnly, isTrue);
-  }
-
-  void test_buildSummaryOutput() {
-    _parseBuildMode([
-      '--build-summary-output=//path/to/output.sum',
-      'package:p/foo.dart|/path/to/p/lib/foo.dart',
-    ]);
-    expect(options.buildMode, isTrue);
-    expect(options.buildSummaryOutput, '//path/to/output.sum');
-  }
-
-  void test_buildSummaryOutputSemantic() {
-    _parseBuildMode([
-      '--build-summary-output-semantic=//path/to/output.sum',
-      'package:p/foo.dart|/path/to/p/lib/foo.dart',
-    ]);
-    expect(options.buildMode, isTrue);
-    expect(options.buildSummaryOutputSemantic, '//path/to/output.sum');
-  }
-
-  void test_buildSuppressExitCode() {
-    _parseBuildMode([
-      '--build-suppress-exit-code',
-      'package:p/foo.dart|/path/to/p/lib/foo.dart',
-    ]);
-    expect(options.buildMode, isTrue);
-    expect(options.buildSuppressExitCode, isTrue);
-  }
-
-  void _parse(List<String> args) {
-    var resourceProvider = PhysicalResourceProvider.INSTANCE;
-    options =
-        CommandLineOptions.parse(resourceProvider, args, printAndFail: (msg) {
-      failureMessage = msg;
-    });
-  }
-
-  void _parseBuildMode(List<String> specificArguments,
-      {bool withDartSdkSummary = true}) {
-    var args = [
-      '--build-mode',
-      if (withDartSdkSummary) ...[
-        '--dart-sdk-summary',
-        '/sdk/lib/strong.sum',
-      ],
-      ...specificArguments
-    ];
-    _parse(args);
   }
 }
