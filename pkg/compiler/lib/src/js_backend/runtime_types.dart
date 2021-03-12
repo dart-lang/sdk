@@ -533,7 +533,6 @@ class RuntimeTypesImpl
     TypeVariableTests typeVariableTests = new TypeVariableTests(
         _elementEnvironment,
         _commonElements,
-        _types,
         codegenWorld,
         _genericInstantiations,
         forRtiNeeds: false);

@@ -89,8 +89,8 @@ method11() {
 }
 
 method12() {
-  /*spec.direct,explicit=[local.T*],needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/
-  /*prod.needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/num local<T>(num n, T t) => null;
+  /*spec.direct,explicit=[local.T*],needsArgs,needsSignature*/
+  /*prod.needsArgs,needsSignature*/num local<T>(num n, T t) => null;
   return local;
 }
 

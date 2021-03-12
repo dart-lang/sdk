@@ -528,7 +528,7 @@ class TrivialClosureRtiNeed implements ClosureRtiNeed {
 
   @override
   bool instantiationNeedsTypeArguments(
-          DartType functionType, int typeArgumentCount) =>
+          FunctionType functionType, int typeArgumentCount) =>
       true;
 }
 
@@ -568,7 +568,7 @@ class JsClosureRtiNeed implements ClosureRtiNeed {
 
   @override
   bool instantiationNeedsTypeArguments(
-          DartType functionType, int typeArgumentCount) =>
+          FunctionType functionType, int typeArgumentCount) =>
       rtiNeed.instantiationNeedsTypeArguments(functionType, typeArgumentCount);
 }
 

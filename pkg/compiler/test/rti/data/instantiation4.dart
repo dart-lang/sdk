@@ -9,8 +9,8 @@ bool f<T>(T a) => a is T;
 
 typedef bool F<R>(R a);
 
-/*spec.class: B:direct,explicit=[bool* Function(B.S*)*],needsArgs*/
-/*prod.class: B:indirect,needsArgs*/
+/*spec.class: B:direct,explicit=[bool* Function(B.S*)*],implicit=[B.S],needsArgs*/
+/*prod.class: B:implicit=[B.S],indirect,needsArgs*/
 class B<S> {
   F<S> c;
 

@@ -237,7 +237,7 @@ class GenericInstantiation {
   static const String tag = 'generic-instantiation';
 
   /// The static type of the instantiated expression.
-  final DartType functionType;
+  final FunctionType functionType;
 
   /// The type arguments of the instantiation.
   final List<DartType> typeArguments;

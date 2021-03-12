@@ -1381,7 +1381,7 @@ abstract class DartTypeStructuralPredicateVisitor
 
   @override
   bool visitNeverType(NeverType type, List<FunctionTypeVariable> bindings) =>
-      false;
+      handleNeverType(type);
 
   @override
   bool visitVoidType(VoidType type, List<FunctionTypeVariable> bindings) =>
