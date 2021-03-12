@@ -251,6 +251,7 @@ corelib
 corrected
 corrections
 cosmetic
+costly
 counters
 covariances
 coverage
@@ -1376,6 +1377,7 @@ with1
 wn
 worthwhile
 worthy
+woven
 writeln
 wrongfully
 wrt
