@@ -744,6 +744,13 @@ class LinkedResolutionReader {
           aliasElement: aliasElement,
           aliasArguments: aliasArguments,
         );
+      } else if (type is TypeParameterType) {
+        return TypeParameterTypeImpl(
+          element: type.element,
+          nullabilitySuffix: type.nullabilitySuffix,
+          aliasElement: aliasElement,
+          aliasArguments: aliasArguments,
+        );
       } else if (type is VoidType) {
         // TODO(scheglov) add support for `void` aliasing
         return type;

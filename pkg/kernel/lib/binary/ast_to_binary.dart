@@ -2288,6 +2288,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitExtensionType(ExtensionType node) {
+    // TODO(dmitryas): Serialize ExtensionType.
+    node.onType.accept(this);
+  }
+
+  @override
   void visitFutureOrType(FutureOrType node) {
     // TODO(dmitryas): Remove special treatment of FutureOr when the VM supports
     // the new encoding: just write the tag.
@@ -2521,6 +2527,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitClassReference(Class node) {
+    throw new UnsupportedError('serialization of Class references');
+  }
+
+  @override
+  void visitExtensionReference(Extension node) {
     throw new UnsupportedError('serialization of Class references');
   }
 

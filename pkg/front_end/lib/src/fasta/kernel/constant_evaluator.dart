@@ -3340,6 +3340,29 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   }
 
   @override
+  ExecutionStatus visitIfStatement(IfStatement node) {
+    Constant condition = evaluate(node.condition);
+    if (condition is AbortConstant) return new ReturnStatus(condition);
+    if (condition is BoolConstant) {
+      if (condition.value) {
+        return node.then.accept(this);
+      } else if (node.otherwise != null) {
+        return node.otherwise.accept(this);
+      } else {
+        return const ProceedStatus();
+      }
+    } else {
+      return new ReturnStatus(exprEvaluator.createErrorConstant(
+          node.condition,
+          templateConstEvalInvalidType.withArguments(
+              condition,
+              exprEvaluator.typeEnvironment.coreTypes.boolLegacyRawType,
+              condition.getType(exprEvaluator._staticTypeContext),
+              exprEvaluator.isNonNullableByDefault)));
+    }
+  }
+
+  @override
   ExecutionStatus visitExpressionStatement(ExpressionStatement node) {
     Constant value = evaluate(node.expression);
     if (value is AbortConstant) return new ReturnStatus(value);
@@ -3436,7 +3459,12 @@ class EvaluationEnvironment {
   EvaluationEnvironment.withParent(this._parent);
 
   /// Whether the current environment is empty.
-  bool get isEmpty => _typeVariables.isEmpty && _variables.isEmpty;
+  bool get isEmpty {
+    // Since we look up variables in enclosing environment, the environment
+    // is not empty if its parent is not empty.
+    if (_parent != null && !_parent.isEmpty) return false;
+    return _typeVariables.isEmpty && _variables.isEmpty;
+  }
 
   void addTypeParameterValue(TypeParameter parameter, DartType value) {
     assert(!_typeVariables.containsKey(parameter));

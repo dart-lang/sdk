@@ -529,6 +529,7 @@ abstract class DartTypeVisitor<R> {
   R visitTypedefType(TypedefType node) => defaultDartType(node);
   R visitNeverType(NeverType node) => defaultDartType(node);
   R visitNullType(NullType node) => defaultDartType(node);
+  R visitExtensionType(ExtensionType node) => defaultDartType(node);
 }
 
 abstract class DartTypeVisitor1<R, T> {
@@ -545,6 +546,7 @@ abstract class DartTypeVisitor1<R, T> {
   R visitTypedefType(TypedefType node, T arg) => defaultDartType(node, arg);
   R visitNeverType(NeverType node, T arg) => defaultDartType(node, arg);
   R visitNullType(NullType node, T arg) => defaultDartType(node, arg);
+  R visitExtensionType(ExtensionType node, T arg) => defaultDartType(node, arg);
 }
 
 /// Visitor for [Constant] nodes.
@@ -783,6 +785,7 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitTypedefType(TypedefType node) => defaultDartType(node);
   R visitNeverType(NeverType node) => defaultDartType(node);
   R visitNullType(NullType node) => defaultDartType(node);
+  R visitExtensionType(ExtensionType node) => defaultDartType(node);
 
   // Constants
   R defaultConstant(Constant node) => defaultNode(node);
@@ -806,6 +809,8 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitClassReference(Class node);
 
   R visitTypedefReference(Typedef node);
+
+  R visitExtensionReference(Extension node);
 
   // Constant references
   R defaultConstantReference(Constant node);
@@ -906,6 +911,9 @@ mixin VisitorNullMixin<R> implements Visitor<R?> {
   R? visitTypedefReference(Typedef node) => null;
 
   @override
+  R? visitExtensionReference(Extension node) => null;
+
+  @override
   R? defaultConstantReference(Constant node) => null;
 
   @override
@@ -922,6 +930,9 @@ mixin VisitorVoidMixin implements Visitor<void> {
 
   @override
   void visitTypedefReference(Typedef node) {}
+
+  @override
+  void visitExtensionReference(Extension node) {}
 
   @override
   void defaultConstantReference(Constant node) {}
@@ -942,6 +953,9 @@ mixin VisitorDefaultValueMixin<R> implements Visitor<R> {
 
   @override
   R visitTypedefReference(Typedef node) => defaultValue;
+
+  @override
+  R visitExtensionReference(Extension node) => defaultValue;
 
   @override
   R defaultConstantReference(Constant node) => defaultValue;

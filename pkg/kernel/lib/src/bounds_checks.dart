@@ -739,6 +739,21 @@ class VarianceCalculator
   }
 
   @override
+  int visitExtensionType(ExtensionType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    int result = Variance.unrelated;
+    for (int i = 0; i < node.typeArguments.length; ++i) {
+      result = Variance.meet(
+          result,
+          Variance.combine(
+              node.extension.typeParameters[i].variance,
+              computeVariance(typeParameter, node.typeArguments[i],
+                  computedVariances: computedVariances)));
+    }
+    return result;
+  }
+
+  @override
   int visitFutureOrType(FutureOrType node,
       Map<TypeParameter, Map<DartType, int>> computedVariances) {
     return computeVariance(typeParameter, node.typeArgument,

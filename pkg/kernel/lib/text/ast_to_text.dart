@@ -2436,6 +2436,17 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeNullability(node.nullability);
   }
 
+  visitExtensionType(ExtensionType node) {
+    writeExtensionReferenceFromReference(node.extensionReference);
+    if (node.typeArguments.isNotEmpty) {
+      writeSymbol('<');
+      writeList(node.typeArguments, writeType);
+      writeSymbol('>');
+      state = Printer.WORD;
+    }
+    writeNullability(node.declaredNullability);
+  }
+
   visitFutureOrType(FutureOrType node) {
     writeWord('FutureOr');
     writeSymbol('<');

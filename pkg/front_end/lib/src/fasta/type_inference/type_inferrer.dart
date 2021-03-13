@@ -896,7 +896,7 @@ class TypeInferrerImpl implements TypeInferrer {
     Member targetTearoff;
     ProcedureKind targetKind;
     for (ExtensionMemberDescriptor descriptor
-        in receiverType.extensionNode.members) {
+        in receiverType.extension.members) {
       if (descriptor.name == name) {
         switch (descriptor.kind) {
           case ExtensionMemberKind.Method:

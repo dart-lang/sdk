@@ -9,7 +9,6 @@ import 'package:kernel/core_types.dart';
 
 import '../fasta_codes.dart'
     show templateInternalProblemNotFoundIn, templateTypeArgumentMismatch;
-import '../kernel/internal_ast.dart';
 import '../scope.dart';
 import '../source/source_library_builder.dart';
 import '../problems.dart';
