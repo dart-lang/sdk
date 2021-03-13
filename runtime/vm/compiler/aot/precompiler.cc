@@ -667,6 +667,28 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
     }
   }
 
+  const ExceptionHandlers& handlers =
+      ExceptionHandlers::Handle(Z, code.exception_handlers());
+  if (!handlers.IsNull()) {
+#if defined(PRODUCT)
+    // List of handled types is only used by debugger and
+    // can be removed in PRODUCT mode.
+    for (intptr_t i = 0; i < handlers.num_entries(); i++) {
+      handlers.SetHandledTypes(i, Array::empty_array());
+    }
+#else
+    Array& types = Array::Handle(Z);
+    AbstractType& type = AbstractType::Handle(Z);
+    for (intptr_t i = 0; i < handlers.num_entries(); i++) {
+      types = handlers.GetHandledTypes(i);
+      for (intptr_t j = 0; j < types.Length(); j++) {
+        type ^= types.At(j);
+        AddType(type);
+      }
+    }
+#endif  // defined(PRODUCT)
+  }
+
 #if defined(TARGET_ARCH_IA32)
   FATAL("Callee scanning unimplemented for IA32");
 #endif
@@ -806,7 +828,6 @@ void Precompiler::AddTypesOf(const Function& function) {
   const FunctionType& signature = FunctionType::Handle(Z, function.signature());
   AddType(signature);
 
-  AbstractType& type = AbstractType::Handle(Z);
   // At this point, ensure any cached default type arguments are canonicalized.
   function.UpdateCachedDefaultTypeArguments(thread());
   if (function.CachesDefaultTypeArguments()) {
@@ -814,20 +835,6 @@ void Precompiler::AddTypesOf(const Function& function) {
         Z, function.default_type_arguments(/*kind_out=*/nullptr));
     ASSERT(defaults.IsCanonical());
     AddTypeArguments(defaults);
-  }
-  Code& code = Code::Handle(Z, function.CurrentCode());
-  ASSERT(!code.IsNull());
-  const ExceptionHandlers& handlers =
-      ExceptionHandlers::Handle(Z, code.exception_handlers());
-  if (!handlers.IsNull()) {
-    Array& types = Array::Handle(Z);
-    for (intptr_t i = 0; i < handlers.num_entries(); i++) {
-      types = handlers.GetHandledTypes(i);
-      for (intptr_t j = 0; j < types.Length(); j++) {
-        type ^= types.At(j);
-        AddType(type);
-      }
-    }
   }
   // A function can always be inlined and have only a nested local function
   // remain.
@@ -1607,6 +1614,8 @@ void Precompiler::TraceForRetainedFunctions() {
   String& name = String::Handle(Z);
   Function& function = Function::Handle(Z);
   Function& function2 = Function::Handle(Z);
+  Array& fields = Array::Handle(Z);
+  Field& field = Field::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -1631,6 +1640,25 @@ void Precompiler::TraceForRetainedFunctions() {
         if (retain) {
           function.DropUncompiledImplicitClosureFunction();
           AddTypesOf(function);
+          if (function.HasImplicitClosureFunction()) {
+            function2 = function.ImplicitClosureFunction();
+            if (possibly_retained_functions_.ContainsKey(function2)) {
+              AddTypesOf(function2);
+            }
+          }
+        }
+      }
+
+      fields = cls.fields();
+      for (intptr_t j = 0; j < fields.Length(); j++) {
+        field ^= fields.At(j);
+        if (fields_to_retain_.HasKey(&field) &&
+            field.HasInitializerFunction()) {
+          function = field.InitializerFunction();
+          bool retain = possibly_retained_functions_.ContainsKey(function);
+          if (retain) {
+            AddTypesOf(function);
+          }
         }
       }
 
@@ -1670,6 +1698,22 @@ void Precompiler::TraceForRetainedFunctions() {
     }
     return true;  // Continue iteration.
   });
+
+#ifdef DEBUG
+  // Make sure functions_to_retain_ is a super-set of
+  // possibly_retained_functions_.
+  FunctionSet::Iterator it(&possibly_retained_functions_);
+  while (it.MoveNext()) {
+    function ^= possibly_retained_functions_.GetKey(it.Current());
+    // Ffi trampoline functions are not reachable from program structure,
+    // they are referenced only from code (object pool).
+    if (!functions_to_retain_.ContainsKey(function) &&
+        !function.IsFfiTrampoline()) {
+      FATAL1("Function %s was not traced in TraceForRetainedFunctions\n",
+             function.ToFullyQualifiedCString());
+    }
+  }
+#endif  // DEBUG
 }
 
 void Precompiler::FinalizeDispatchTable() {
