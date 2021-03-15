@@ -67,47 +67,44 @@ main(List<String> args) async {
         buffer.write(retentionFlags[j]);
         flags.add(buffer.toString());
       }
-      await testTracePrecompiler(scriptDill, flags);
+      await testTracePrecompiler(tempDir, scriptDill, flags);
     }
   });
 }
 
-const _jsonHeaders = {'JSON for function decisions: '};
-
-Future<void> testTracePrecompiler(String scriptDill, List<String> flags) async {
-  final result = await runHelper(genSnapshot, <String>[
+Future<void> testTracePrecompiler(
+    String tempDir, String scriptDill, List<String> flags) async {
+  final reasonsFile = path.join(tempDir, 'reasons.json');
+  final snapshot = path.join(tempDir, 'snapshot.so');
+  final result = await run(genSnapshot, <String>[
     ...flags,
-    '--trace-precompiler',
+    '--write-retained-reasons-to=$reasonsFile',
     '--snapshot-kind=app-aot-elf',
-    '--elf=snapshot.so',
+    '--elf=$snapshot',
     scriptDill,
   ]);
 
-  Expect.equals(result.exitCode, 0);
-
-  // Tracing output is on stderr.
-  Expect.isTrue(result.stdout.isEmpty);
-  Expect.isTrue(result.stderr.isNotEmpty);
-
-  final seenHeaders = <String>{};
-  final lines =
-      Stream.value(result.stderr as String).transform(const LineSplitter());
-  await for (final s in lines) {
-    for (final header in _jsonHeaders) {
-      if (s.startsWith(header)) {
-        // We only expect a single instance of each header.
-        Expect.isFalse(seenHeaders.contains(header),
-            'multiple instances of \"$header\" seen');
-        seenHeaders.add(header);
-        final j = s.substring(header.length);
-        // For now, just test that the JSON parses and that we get back a list.
-        Expect.isTrue(json.decode(j) is List, 'not a list of decisions');
+  final stream = Stream.fromFuture(File(reasonsFile).readAsString());
+  final decisionsJson = await json.decoder.bind(stream).first;
+  Expect.isTrue(decisionsJson is List, 'not a list of decisions');
+  Expect.isTrue((decisionsJson as List).every((o) => o is Map),
+      'not a list of decision objects');
+  final decisions = (decisionsJson as List).map((o) => o as Map);
+  for (final m in decisions) {
+    Expect.isTrue(m.containsKey("name"), 'no name field in decision');
+    Expect.isTrue(m["name"] is String, 'name field is not a string');
+    Expect.isTrue(m.containsKey("type"), 'no type field in decision');
+    Expect.isTrue(m["type"] is String, 'type field is not a string');
+    Expect.isTrue(m.containsKey("retained"), 'no retained field in decision');
+    Expect.isTrue(m["retained"] is bool, 'retained field is not a boolean');
+    if (m["retained"] as bool) {
+      Expect.isTrue(m.containsKey("reasons"), 'no reasons field in decision');
+      Expect.isTrue(m["reasons"] is List, 'reasons field is not a list');
+      final reasons = m["reasons"] as List;
+      Expect.isFalse(reasons.isEmpty, 'reasons list should not be empty');
+      for (final o in reasons) {
+        Expect.isTrue(o is String, 'reason is not a string');
       }
     }
-  }
-  // Check that all headers were seen in the output.
-  for (final header in _jsonHeaders) {
-    Expect.isTrue(
-        seenHeaders.contains(header), 'no instance of \"$header\" seen');
   }
 }

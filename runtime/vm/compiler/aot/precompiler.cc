@@ -5,6 +5,7 @@
 #include "vm/compiler/aot/precompiler.h"
 
 #include "platform/unicode.h"
+#include "platform/utils.h"
 #include "vm/canonical_tables.h"
 #include "vm/class_finalizer.h"
 #include "vm/closure_functions_cache.h"
@@ -67,6 +68,10 @@ DEFINE_FLAG(
     max_speculative_inlining_attempts,
     1,
     "Max number of attempts with speculative inlining (precompilation only)");
+DEFINE_FLAG(charp,
+            write_retained_reasons_to,
+            nullptr,
+            "Print reasons for retaining objects to the given file");
 
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
@@ -109,6 +114,9 @@ struct RetainReasons : public AllStatic {
   // The object is the initializer for a static field.
   static constexpr const char* kStaticFieldInitializer =
       "static field initializer";
+  // The object is the initializer for a instance field.
+  static constexpr const char* kInstanceFieldInitializer =
+      "instance field initializer";
   // The object is the initializer for a late field.
   static constexpr const char* kLateFieldInitializer = "late field initializer";
   // The object is an implicit getter.
@@ -134,6 +142,149 @@ struct RetainReasons : public AllStatic {
   static constexpr const char* kLocalParent = "parent of a local function";
   // The object has an entry point pragma that requires it be retained.
   static constexpr const char* kEntryPointPragma = "entry point pragma";
+};
+
+class RetainedReasonsWriter : public ValueObject {
+ public:
+  explicit RetainedReasonsWriter(Zone* zone)
+      : zone_(zone), retained_reasons_map_(zone) {}
+
+  void Init(const char* filename) {
+    if (filename == nullptr) return;
+    const auto file_open = Dart::file_open_callback();
+    if (file_open == nullptr) return;
+
+    const auto file = file_open(filename, /*write=*/true);
+    if (file == nullptr) {
+      OS::PrintErr("Failed to open file %s\n", filename);
+      return;
+    }
+
+    file_ = file;
+    // We open the array here so that we can also print some objects to the
+    // JSON as we go, instead of requiring all information be collected
+    // and printed at one point. This avoids having to keep otherwise
+    // unneeded information around.
+    writer_.OpenArray();
+  }
+
+  void AddDropped(const Object& obj) {
+    if (HasReason(obj)) {
+      FATAL("dropped object has reasons to retain");
+    }
+    writer_.OpenObject();
+    WriteRetainedObjectSpecificFields(obj);
+    writer_.PrintPropertyBool("retained", false);
+    writer_.CloseObject();
+  }
+
+  bool HasReason(const Object& obj) const {
+    return retained_reasons_map_.HasKey(&obj);
+  }
+
+  void AddReason(const Object& obj, const char* reason) {
+    if (auto const kv = retained_reasons_map_.Lookup(&obj)) {
+      if (kv->value->Lookup(reason) == nullptr) {
+        kv->value->Insert(reason);
+      }
+      return;
+    }
+    auto const key = &Object::ZoneHandle(zone_, obj.ptr());
+    auto const value = new (zone_) ZoneCStringSet(zone_);
+    value->Insert(reason);
+    retained_reasons_map_.Insert(RetainedReasonsTrait::Pair(key, value));
+  }
+
+  // Finalizes the JSON output and writes it.
+  void Write() {
+    if (file_ == nullptr) return;
+
+    // Add all the objects for which we have reasons to retain.
+    auto it = retained_reasons_map_.GetIterator();
+
+    for (auto kv = it.Next(); kv != nullptr; kv = it.Next()) {
+      writer_.OpenObject();
+      WriteRetainedObjectSpecificFields(*kv->key);
+      writer_.PrintPropertyBool("retained", true);
+
+      writer_.OpenArray("reasons");
+      auto it = kv->value->GetIterator();
+      for (auto cstrp = it.Next(); cstrp != nullptr; cstrp = it.Next()) {
+        ASSERT(*cstrp != nullptr);
+        writer_.PrintValue(*cstrp);
+      }
+      writer_.CloseArray();
+
+      writer_.CloseObject();
+    }
+
+    writer_.CloseArray();
+    char* output = nullptr;
+    intptr_t length = -1;
+    writer_.Steal(&output, &length);
+
+    if (const auto file_write = Dart::file_write_callback()) {
+      file_write(output, length, file_);
+    }
+
+    if (const auto file_close = Dart::file_close_callback()) {
+      file_close(file_);
+    }
+
+    free(output);
+  }
+
+ private:
+  struct RetainedReasonsTrait {
+    using Key = const Object*;
+    using Value = ZoneCStringSet*;
+
+    struct Pair {
+      Key key;
+      Value value;
+
+      Pair() : key(nullptr), value(nullptr) {}
+      Pair(Key key, Value value) : key(key), value(value) {}
+    };
+
+    static Key KeyOf(Pair kv) { return kv.key; }
+
+    static Value ValueOf(Pair kv) { return kv.value; }
+
+    static inline intptr_t Hashcode(Key key) {
+      if (key->IsFunction()) {
+        return Function::Cast(*key).Hash();
+      }
+      if (key->IsClass()) {
+        return Utils::WordHash(Class::Cast(*key).id());
+      }
+      return Utils::WordHash(key->GetClassId());
+    }
+
+    static inline bool IsKeyEqual(Pair pair, Key key) {
+      return pair.key->ptr() == key->ptr();
+    }
+  };
+
+  using RetainedReasonsMap = DirectChainedHashMap<RetainedReasonsTrait>;
+
+  void WriteRetainedObjectSpecificFields(const Object& obj) {
+    if (obj.IsFunction()) {
+      writer_.PrintProperty("type", "Function");
+      const auto& function = Function::Cast(obj);
+      writer_.PrintProperty("name",
+                            function.ToLibNamePrefixedQualifiedCString());
+      writer_.PrintProperty("kind",
+                            UntaggedFunction::KindToCString(function.kind()));
+      return;
+    }
+    FATAL("Unexpected object %s", obj.ToCString());
+  }
+
+  Zone* const zone_;
+  RetainedReasonsMap retained_reasons_map_;
+  JSONWriter writer_;
+  void* file_;
 };
 
 class PrecompileParsedFunctionHelper : public ValueObject {
@@ -243,11 +394,11 @@ void Precompiler::DoCompileAll() {
   {
     StackZone stack_zone(T);
     zone_ = stack_zone.GetZone();
+    RetainedReasonsWriter reasons_writer(zone_);
 
-    if (FLAG_trace_precompiler) {
-      // Set up the retained reasons map now that the precompiler has an
-      // appropriate zone.
-      retained_reasons_map_ = new (Z) RetainedReasonsMap(Z);
+    if (FLAG_write_retained_reasons_to != nullptr) {
+      reasons_writer.Init(FLAG_write_retained_reasons_to);
+      retained_reasons_writer_ = &reasons_writer;
     }
 
     if (FLAG_use_bare_instructions) {
@@ -427,6 +578,11 @@ void Precompiler::DoCompileAll() {
 #endif
     DiscardCodeObjects();
     ProgramVisitor::Dedup(T);
+
+    if (FLAG_write_retained_reasons_to != nullptr) {
+      reasons_writer.Write();
+      retained_reasons_writer_ = nullptr;
+    }
 
     zone_ = NULL;
   }
@@ -798,23 +954,14 @@ void Precompiler::AddTypesOf(const Class& cls) {
 }
 
 void Precompiler::AddRetainReason(const Object& obj, const char* reason) {
-  if (!FLAG_trace_precompiler || reason == nullptr) return;
-  if (auto const kv = retained_reasons_map_->Lookup(&obj)) {
-    if (kv->value->Lookup(reason) == nullptr) {
-      kv->value->Insert(reason);
-    }
-    return;
-  }
-  auto const key = &Object::ZoneHandle(Z, obj.ptr());
-  auto const value = new (Z) ZoneCStringSet(Z);
-  value->Insert(reason);
-  retained_reasons_map_->Insert(RetainedReasonsTrait::Pair(key, value));
+  if (retained_reasons_writer_ == nullptr || reason == nullptr) return;
+  retained_reasons_writer_->AddReason(obj, reason);
 }
 
 void Precompiler::AddTypesOf(const Function& function) {
   if (function.IsNull()) return;
-  if (FLAG_trace_precompiler &&
-      retained_reasons_map_->Lookup(&function) == nullptr) {
+  if (retained_reasons_writer_ != nullptr &&
+      !retained_reasons_writer_->HasReason(function)) {
     FATAL("no retaining reasons given");
   }
   if (functions_to_retain_.ContainsKey(function)) return;
@@ -1838,38 +1985,6 @@ void Precompiler::DropFunctions() {
   Code& code = Code::Handle(Z);
   Object& owner = Object::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
-  JSONWriter json;
-
-  if (FLAG_trace_precompiler) {
-    json.OpenArray();
-  }
-
-  auto retain_function = [&](const Function& function) {
-    if (FLAG_trace_precompiler) {
-      auto const name = function.ToLibNamePrefixedQualifiedCString();
-      auto const kind = UntaggedFunction::KindToCString(function.kind());
-      json.OpenObject();
-      json.PrintProperty("name", name);
-      json.PrintProperty("kind", kind);
-      json.PrintPropertyBool("retained", true);
-      LogBlock lb;
-      THR_Print("Retaining %s function %s\n", kind, name);
-      json.OpenArray("reasons");
-      if (auto const kv = retained_reasons_map_->Lookup(&function)) {
-        auto it = kv->value->GetIterator();
-        for (auto cstrp = it.Next(); cstrp != nullptr; cstrp = it.Next()) {
-          ASSERT(*cstrp != nullptr);
-          json.PrintValue(*cstrp);
-          THR_Print("Reason: %s\n", *cstrp);
-        }
-      } else {
-        THR_Print("No reasons recorded\n");
-      }
-      json.CloseArray();
-      json.CloseObject();
-    }
-    retained_functions.Add(function);
-  };
 
   auto drop_function = [&](const Function& function) {
     if (function.HasCode()) {
@@ -1884,14 +1999,11 @@ void Precompiler::DropFunctions() {
     }
     dropped_function_count_++;
     if (FLAG_trace_precompiler) {
-      auto const name = function.ToLibNamePrefixedQualifiedCString();
-      auto const kind = UntaggedFunction::KindToCString(function.kind());
-      json.OpenObject();
-      json.PrintProperty("name", name);
-      json.PrintProperty("kind", kind);
-      json.PrintPropertyBool("retained", false);
-      json.CloseObject();
-      THR_Print("Dropping %s function %s\n", kind, name);
+      THR_Print("Dropping function %s\n",
+                function.ToLibNamePrefixedQualifiedCString());
+    }
+    if (retained_reasons_writer_ != nullptr) {
+      retained_reasons_writer_->AddDropped(function);
     }
   };
 
@@ -1910,7 +2022,7 @@ void Precompiler::DropFunctions() {
         function ^= functions.At(j);
         function.DropUncompiledImplicitClosureFunction();
         if (functions_to_retain_.ContainsKey(function)) {
-          retain_function(function);
+          retained_functions.Add(function);
         } else {
           drop_function(function);
         }
@@ -1935,7 +2047,7 @@ void Precompiler::DropFunctions() {
           if (functions_to_retain_.ContainsKey(function)) {
             retained_functions.Add(name);
             retained_functions.Add(desc);
-            retain_function(function);
+            retained_functions.Add(function);
           } else {
             drop_function(function);
           }
@@ -1957,18 +2069,13 @@ void Precompiler::DropFunctions() {
   retained_functions = GrowableObjectArray::New();
   ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& function) {
     if (functions_to_retain_.ContainsKey(function)) {
-      retain_function(function);
+      retained_functions.Add(function);
     } else {
       drop_function(function);
     }
     return true;  // Continue iteration.
   });
   IG->object_store()->set_closure_functions(retained_functions);
-
-  if (FLAG_trace_precompiler) {
-    json.CloseArray();
-    THR_Print("JSON for function decisions: %s\n", json.ToCString());
-  }
 }
 
 void Precompiler::DropFields() {
@@ -1976,7 +2083,6 @@ void Precompiler::DropFields() {
   Class& cls = Class::Handle(Z);
   Array& fields = Array::Handle(Z);
   Field& field = Field::Handle(Z);
-  Function& function = Function::Handle(Z);
   GrowableObjectArray& retained_fields = GrowableObjectArray::Handle(Z);
   AbstractType& type = AbstractType::Handle(Z);
 
@@ -1999,12 +2105,6 @@ void Precompiler::DropFields() {
 #endif
         if (retain) {
           if (FLAG_trace_precompiler) {
-            function = field.InitializerFunction();
-            if (!function.IsNull()) {
-              THR_Print("Retaining initializer function for %s field %s\n",
-                        field.is_static() ? "static" : "instance",
-                        function.ToLibNamePrefixedQualifiedCString());
-            }
             THR_Print("Retaining %s field %s\n",
                       field.is_static() ? "static" : "instance",
                       field.ToCString());
@@ -2015,12 +2115,6 @@ void Precompiler::DropFields() {
         } else {
           dropped_field_count_++;
           if (FLAG_trace_precompiler) {
-            function = field.InitializerFunction();
-            if (!function.IsNull()) {
-              THR_Print("Dropping initializer function for %s field %s\n",
-                        field.is_static() ? "static" : "instance",
-                        function.ToLibNamePrefixedQualifiedCString());
-            }
             THR_Print("Dropping %s field %s\n",
                       field.is_static() ? "static" : "instance",
                       field.ToCString());
