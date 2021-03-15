@@ -70,6 +70,17 @@ int function7() {
   return value;
 }
 
+int function8() {
+  int add(int a, int b) => a + b;
+  const value = add(1, 1);
+  //            ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  const value1 = add(2, 3);
+  //             ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  return value + value1;
+}
+
 void main() {
   Expect.equals(function1(), 12);
   Expect.equals(function2(), 4);
@@ -78,4 +89,5 @@ void main() {
   Expect.equals(function5(), 3);
   Expect.equals(function6(), 1);
   Expect.equals(function7(), 2);
+  Expect.equals(function8(), 7);
 }

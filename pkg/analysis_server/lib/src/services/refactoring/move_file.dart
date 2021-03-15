@@ -161,7 +161,9 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       Source newSource =
           NonExistingSource(newFile, pathos.toUri(newFile), UriKind.FILE_URI);
       var restoredUri = driver.sourceFactory.restoreUri(newSource);
-      if (restoredUri != null) {
+      // If the new URI is not a package: URI, fall back to computing a relative
+      // URI below.
+      if (restoredUri?.isScheme('package') ?? false) {
         return restoredUri.toString();
       }
     }

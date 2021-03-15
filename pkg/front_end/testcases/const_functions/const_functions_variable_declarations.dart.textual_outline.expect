@@ -1,6 +1,7 @@
 import "package:expect/expect.dart";
 
 const var1 = function1(1, 2);
+const var1_1 = function1(2, 2);
 int function1(int a, int b) {}
 const var2 = function2();
 String function2() {}

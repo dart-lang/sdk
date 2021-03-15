@@ -27,6 +27,7 @@ int function() {
 }
 
 const var3 = varAssignmentTest3(1);
+const var4 = varAssignmentTest3(2);
 int varAssignmentTest3(int a) {
   int x = 4;
   x = a + 1;
@@ -37,4 +38,5 @@ void main() {
   Expect.equals(var1, 3);
   Expect.equals(function(), 3);
   Expect.equals(var3, 2);
+  Expect.equals(var4, 3);
 }

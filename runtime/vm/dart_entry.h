@@ -296,13 +296,6 @@ class DartLibraryCalls : public AllStatic {
   // _startMicrotaskLoop from dart:async.
   // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr EnsureScheduleImmediate();
-
-  // map[key] = value;
-  //
-  // Returns null on success, an ErrorPtr on failure.
-  static ObjectPtr MapSetAt(const Instance& map,
-                            const Instance& key,
-                            const Instance& value);
 };
 
 }  // namespace dart

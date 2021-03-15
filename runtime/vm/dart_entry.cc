@@ -344,21 +344,10 @@ ObjectPtr DartEntry::InvokeNoSuchMethod(Thread* thread,
   }
 
   // Now use the invocation mirror object and invoke NoSuchMethod.
-  const int kTypeArgsLen = 0;
   const int kNumArguments = 2;
-  const ArgumentsDescriptor nsm_args_desc(Array::Handle(
-      zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
-  Function& function = Function::Handle(
-      zone, Resolver::ResolveDynamic(receiver, Symbols::NoSuchMethod(),
-                                     nsm_args_desc));
-  if (function.IsNull()) {
-    ASSERT(!FLAG_lazy_dispatchers);
-    // If noSuchMethod(invocation) is not found, call Object::noSuchMethod.
-    function = Resolver::ResolveDynamicForReceiverClass(
-        Class::Handle(zone,
-                      thread->isolate_group()->object_store()->object_class()),
-        Symbols::NoSuchMethod(), nsm_args_desc);
-  }
+  const Function& function = Function::Handle(
+      zone,
+      core_lib.LookupFunctionAllowPrivate(Symbols::_objectNoSuchMethod()));
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(zone, Array::New(kNumArguments));
   args.SetAt(0, receiver);
@@ -621,55 +610,71 @@ ObjectPtr DartLibraryCalls::InstanceCreate(const Library& lib,
 }
 
 ObjectPtr DartLibraryCalls::ToString(const Instance& receiver) {
-  const int kTypeArgsLen = 0;
-  const int kNumArguments = 1;  // Receiver.
-  ArgumentsDescriptor args_desc(Array::Handle(
-      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
-  const Class& receiver_class = Class::Handle(receiver.clazz());
-  const auto& error = receiver_class.EnsureIsFinalized(Thread::Current());
-  ASSERT(error == Error::null());
-  const Function& function = Function::Handle(
-      Resolver::ResolveDynamic(receiver, Symbols::toString(), args_desc));
-  ASSERT(!function.IsNull());
-  const Array& args = Array::Handle(Array::New(kNumArguments));
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Function& function = Function::Handle(
+      zone,
+      thread->isolate_group()->object_store()->_object_to_string_function());
+  if (function.IsNull()) {
+    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
+    ASSERT(!core_lib.IsNull());
+    function = core_lib.LookupFunctionAllowPrivate(Symbols::_objectToString());
+    ASSERT(!function.IsNull());
+    thread->isolate_group()->object_store()->set__object_to_string_function(
+        function);
+  }
+  const int kNumArguments = 1;
+  const Array& args = Array::Handle(zone, Array::New(kNumArguments));
   args.SetAt(0, receiver);
   const Object& result =
-      Object::Handle(DartEntry::InvokeFunction(function, args));
+      Object::Handle(zone, DartEntry::InvokeFunction(function, args));
   ASSERT(result.IsInstance() || result.IsError());
   return result.ptr();
 }
 
 ObjectPtr DartLibraryCalls::HashCode(const Instance& receiver) {
-  const int kTypeArgsLen = 0;
-  const int kNumArguments = 1;  // Receiver.
-  ArgumentsDescriptor args_desc(Array::Handle(
-      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
-  const Function& function = Function::Handle(
-      Resolver::ResolveDynamic(receiver, Symbols::hashCode(), args_desc));
-  ASSERT(!function.IsNull());
-  const Array& args = Array::Handle(Array::New(kNumArguments));
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Function& function = Function::Handle(
+      zone,
+      thread->isolate_group()->object_store()->_object_hash_code_function());
+  if (function.IsNull()) {
+    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
+    ASSERT(!core_lib.IsNull());
+    function = core_lib.LookupFunctionAllowPrivate(Symbols::_objectHashCode());
+    ASSERT(!function.IsNull());
+    thread->isolate_group()->object_store()->set__object_hash_code_function(
+        function);
+  }
+  const int kNumArguments = 1;
+  const Array& args = Array::Handle(zone, Array::New(kNumArguments));
   args.SetAt(0, receiver);
   const Object& result =
-      Object::Handle(DartEntry::InvokeFunction(function, args));
+      Object::Handle(zone, DartEntry::InvokeFunction(function, args));
   ASSERT(result.IsInstance() || result.IsError());
   return result.ptr();
 }
 
 ObjectPtr DartLibraryCalls::Equals(const Instance& left,
                                    const Instance& right) {
-  const int kTypeArgsLen = 0;
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Function& function = Function::Handle(
+      zone, thread->isolate_group()->object_store()->_object_equals_function());
+  if (function.IsNull()) {
+    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
+    ASSERT(!core_lib.IsNull());
+    function = core_lib.LookupFunctionAllowPrivate(Symbols::_objectEquals());
+    ASSERT(!function.IsNull());
+    thread->isolate_group()->object_store()->set__object_equals_function(
+        function);
+  }
   const int kNumArguments = 2;
-  ArgumentsDescriptor args_desc(Array::Handle(
-      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
-  const Function& function = Function::Handle(
-      Resolver::ResolveDynamic(left, Symbols::EqualOperator(), args_desc));
-  ASSERT(!function.IsNull());
-
-  const Array& args = Array::Handle(Array::New(kNumArguments));
+  const Array& args = Array::Handle(zone, Array::New(kNumArguments));
   args.SetAt(0, left);
   args.SetAt(1, right);
   const Object& result =
-      Object::Handle(DartEntry::InvokeFunction(function, args));
+      Object::Handle(zone, DartEntry::InvokeFunction(function, args));
   ASSERT(result.IsInstance() || result.IsError());
   return result.ptr();
 }
@@ -818,25 +823,6 @@ ObjectPtr DartLibraryCalls::EnsureScheduleImmediate() {
   const Object& result = Object::Handle(
       zone, DartEntry::InvokeFunction(function, Object::empty_array()));
   ASSERT(result.IsNull() || result.IsError());
-  return result.ptr();
-}
-
-ObjectPtr DartLibraryCalls::MapSetAt(const Instance& map,
-                                     const Instance& key,
-                                     const Instance& value) {
-  const int kTypeArgsLen = 0;
-  const int kNumArguments = 3;
-  ArgumentsDescriptor args_desc(Array::Handle(
-      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
-  const Function& function = Function::Handle(
-      Resolver::ResolveDynamic(map, Symbols::AssignIndexToken(), args_desc));
-  ASSERT(!function.IsNull());
-  const Array& args = Array::Handle(Array::New(kNumArguments));
-  args.SetAt(0, map);
-  args.SetAt(1, key);
-  args.SetAt(2, value);
-  const Object& result =
-      Object::Handle(DartEntry::InvokeFunction(function, args));
   return result.ptr();
 }
 

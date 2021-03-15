@@ -59,6 +59,14 @@ const doub = doubleFn(2.2, 2);
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 double doubleFn(double a, double b) => a * b;
 
+const multi = multiFn(1);
+//            ^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+const multi2 = multiFn(2);
+//             ^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+int multiFn(int a) => a + 1;
+
 void main() {
   Expect.equals(binary, 1);
   Expect.equals(optional, 2);
@@ -71,4 +79,6 @@ void main() {
   Expect.equals(neg, -2);
   Expect.equals(boolean, true);
   Expect.equals(doub, 4.4);
+  Expect.equals(multi, 2);
+  Expect.equals(multi2, 3);
 }

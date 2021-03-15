@@ -5,6 +5,7 @@ import "dart:core" as core;
 import "package:expect/expect.dart";
 
 static const field core::int var1 = self::function1(1, 2);
+static const field core::int var1_1 = self::function1(2, 2);
 static const field core::String var2 = self::function2();
 static const field core::int var3 = self::function3();
 static const field core::int var4 = self::function4();

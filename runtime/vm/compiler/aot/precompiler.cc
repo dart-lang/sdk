@@ -1214,18 +1214,8 @@ const char* Precompiler::MustRetainFunction(const Function& function) {
     return "native function";
   }
 
-  // Resolver::ResolveDynamic uses.
-  const auto& selector = String::Handle(Z, function.name());
-  if (selector.ptr() == Symbols::toString().ptr() ||
-      selector.ptr() == Symbols::AssignIndexToken().ptr() ||
-      selector.ptr() == Symbols::IndexToken().ptr() ||
-      selector.ptr() == Symbols::hashCode().ptr() ||
-      selector.ptr() == Symbols::NoSuchMethod().ptr() ||
-      selector.ptr() == Symbols::EqualOperator().ptr()) {
-    return "used by VM in Resolver::ResolveDynamic call";
-  }
-
   // Use the same check for _Closure.call as in stack_trace.{h|cc}.
+  const auto& selector = String::Handle(Z, function.name());
   if (selector.ptr() == Symbols::Call().ptr()) {
     const auto& name = String::Handle(Z, function.QualifiedScrubbedName());
     if (name.Equals(Symbols::_ClosureCall())) {

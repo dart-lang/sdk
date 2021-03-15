@@ -158,6 +158,9 @@ class ObjectPointerVisitor;
   RW(GrowableObjectArray, pending_classes)                                     \
   RW(Instance, stack_overflow)                                                 \
   RW(Instance, out_of_memory)                                                  \
+  RW(Function, _object_equals_function)                                        \
+  RW(Function, _object_hash_code_function)                                     \
+  RW(Function, _object_to_string_function)                                     \
   RW(Function, lookup_port_handler)                                            \
   RW(Function, lookup_open_ports)                                              \
   RW(Function, handle_message_function)                                        \

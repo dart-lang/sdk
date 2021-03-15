@@ -112,7 +112,7 @@ class MemberSuggestionBuilder {
         if ((alreadyGenerated & _COMPLETION_TYPE_SETTER) != 0) {
           return false;
         } else if (element.hasDeprecated &&
-            !element.correspondingGetter.hasDeprecated) {
+            !(element.correspondingGetter?.hasDeprecated ?? true)) {
           // A deprecated setter should not take priority over a non-deprecated
           // getter.
           return false;
