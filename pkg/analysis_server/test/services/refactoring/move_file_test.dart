@@ -237,6 +237,31 @@ import 'new_name.dart';
     assertNoFileChange(testFile);
   }
 
+  Future<void> test_file_moveOutOfLib() async {
+    var binMainPath = convertPath('/home/test/bin/main.dart');
+    addSource(binMainPath, '''
+import 'package:test/test.dart';
+
+main() {
+  var a = new Foo();
+}
+''');
+    await resolveTestCode('''
+class Foo {}
+''');
+    // perform refactoring
+    _createRefactoring('/home/test/bin/test.dart');
+    await _assertSuccessfulRefactoring();
+    assertFileChangeResult(binMainPath, '''
+import 'test.dart';
+
+main() {
+  var a = new Foo();
+}
+''');
+    assertNoFileChange(testFile);
+  }
+
   @failingTest
   Future<void> test_file_referenced_by_multiple_libraries() async {
     // This test fails because the search index doesn't support multiple uris for
