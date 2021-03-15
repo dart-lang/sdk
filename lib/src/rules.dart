@@ -174,6 +174,7 @@ import 'rules/unnecessary_string_interpolations.dart';
 import 'rules/unnecessary_this.dart';
 import 'rules/unrelated_type_equality_checks.dart';
 import 'rules/unsafe_html.dart';
+import 'rules/use_build_context_synchronously.dart';
 import 'rules/use_full_hex_values_for_flutter_colors.dart';
 import 'rules/use_function_type_syntax_for_parameters.dart';
 import 'rules/use_if_null_to_convert_nulls_to_bools.dart';
@@ -189,7 +190,7 @@ import 'rules/use_to_and_as_if_applicable.dart';
 import 'rules/valid_regexps.dart';
 import 'rules/void_checks.dart';
 
-void registerLintRules() {
+void registerLintRules({bool inTestMode = false}) {
   Analyzer.facade.cacheLinterVersion();
   Analyzer.facade
     ..register(AlwaysDeclareReturnTypes())
@@ -365,6 +366,7 @@ void registerLintRules() {
     ..register(UnnecessaryThis())
     ..register(UnrelatedTypeEqualityChecks())
     ..register(UnsafeHtml())
+    ..register(UseBuildContextSynchronously(inTestMode: inTestMode))
     ..register(UseFullHexValuesForFlutterColors())
     ..register(UseFunctionTypeSyntaxForParameters())
     ..register(UseIfNullToConvertNullsToBools())

@@ -3,11 +3,13 @@
 // found in the LICENSE file.
 
 import '../../foundation.dart';
+import '../rendering/object.dart';
 
 typedef void VoidCallback();
 
 abstract class BuildContext {
   Widget get widget;
+  RenderObject? findRenderObject();
 }
 
 abstract class State<T extends StatefulWidget> {

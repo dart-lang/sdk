@@ -215,7 +215,7 @@ void defineSoloRuleTest(String ruleToTest) {
 
 void testRule(String ruleName, File file,
     {bool debug = false, String? analysisOptions}) {
-  registerLintRules();
+  registerLintRules(inTestMode: debug);
 
   test('$ruleName', () async {
     if (!file.existsSync()) {
