@@ -312,6 +312,7 @@ deserializers
 deserializes
 deserializing
 design
+designation
 despite
 destination
 destinations
@@ -693,6 +694,7 @@ meeting
 merely
 meta
 metadata's
+metadatum
 method10a
 method10b
 method1a

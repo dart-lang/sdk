@@ -105,10 +105,12 @@ Token skipMetadata(Token token) {
   token = token.next!;
   assert(optional('@', token));
   Token next = token.next!;
+  // Corresponds to 'ensureIdentifier' in [parseMetadata].
   if (next.isIdentifier) {
     token = next;
     next = token.next!;
-    while (optional('.', next)) {
+    // Corresponds to 'parseQualifiedRestOpt' in [parseMetadata].
+    if (optional('.', next)) {
       token = next;
       next = token.next!;
       if (next.isIdentifier) {
@@ -116,6 +118,23 @@ Token skipMetadata(Token token) {
         next = token.next!;
       }
     }
+    // Corresponds to 'computeTypeParamOrArg' in [parseMetadata].
+    if (optional('<', next) && !next.endGroup!.isSynthetic) {
+      token = next.endGroup!;
+      next = token.next!;
+    }
+
+    // The extra .identifier after arguments in in [parseMetadata].
+    if (optional('.', next)) {
+      token = next;
+      next = token.next!;
+      if (next.isIdentifier) {
+        token = next;
+        next = token.next!;
+      }
+    }
+
+    // Corresponds to 'parseArgumentsOpt' in [parseMetadata].
     if (optional('(', next) && !next.endGroup!.isSynthetic) {
       token = next.endGroup!;
       next = token.next!;

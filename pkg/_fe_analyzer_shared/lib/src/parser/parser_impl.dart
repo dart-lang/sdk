@@ -1044,10 +1044,43 @@ class Parser {
   }
 
   /// ```
-  /// annotation:
-  ///   '@' qualified ('.' identifier)? arguments?
-  /// ;
+  /// <metadata> ::= (‘@’ <metadatum>)*
+  /// <metadatum> ::= <identifier>
+  ///   | <qualifiedName>
+  ///   | <constructorDesignation> <arguments>
+  /// <qualifiedName> ::= <typeIdentifier> ‘.’ <identifier>
+  ///   | <typeIdentifier> ‘.’ <typeIdentifier> ‘.’ <identifier>
+  /// <constructorDesignation> ::= <typeIdentifier>
+  ///   | <qualifiedName>
+  ///   | <typeName> <typeArguments> (‘.’ <identifier>)?
+  /// <typeName> ::= <typeIdentifier> (‘.’ <typeIdentifier>)?
   /// ```
+  /// (where typeIdentifier is an identifier that's not on the list of
+  /// built in identifiers)
+  /// So these are legal:
+  /// * identifier
+  /// qualifiedName:
+  /// * typeIdentifier.identifier
+  /// * typeIdentifier.typeIdentifier.identifier
+  /// via constructorDesignation part 1
+  /// * typeIdentifier(arguments)
+  /// via constructorDesignation part 2
+  /// * typeIdentifier.identifier(arguments)
+  /// * typeIdentifier.typeIdentifier.identifier(arguments)
+  /// via constructorDesignation part 3
+  /// * typeIdentifier<typeArguments>(arguments)
+  /// * typeIdentifier<typeArguments>.identifier(arguments)
+  /// * typeIdentifier.typeIdentifier<typeArguments>(arguments)
+  /// * typeIdentifier.typeIdentifier<typeArguments>.identifier(arguments)
+  ///
+  /// So in another way (ignoring the difference between typeIdentifier and
+  /// identifier):
+  /// * 1, 2 or 3 identifiers with or without arguments.
+  /// * 1 or 2 identifiers, then type arguments, then possibly followed by a
+  ///   single identifier, and then (required!) arguments.
+  ///
+  /// Note that if this is updated [skipMetadata] (in util.dart) should be
+  /// updated as well.
   Token parseMetadata(Token token) {
     Token atToken = token.next!;
     assert(optional('@', atToken));
