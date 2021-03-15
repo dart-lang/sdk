@@ -6912,19 +6912,27 @@ void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label is_true, is_false;
   BranchLabels labels = {&is_true, &is_false, &is_false};
   Condition true_condition = EmitComparisonCode(compiler, labels);
-  const Register result = this->locs()->out(0).reg();
 
-  // TODO(dartbug.com/29908): Use csel here for better branch prediction?
-  if (true_condition != kInvalidCondition) {
-    EmitBranchOnCondition(compiler, true_condition, labels);
+  const Register result = this->locs()->out(0).reg();
+  if (is_true.IsLinked() || is_false.IsLinked()) {
+    if (true_condition != kInvalidCondition) {
+      EmitBranchOnCondition(compiler, true_condition, labels);
+    }
+    compiler::Label done;
+    __ Bind(&is_false);
+    __ LoadObject(result, Bool::False());
+    __ b(&done);
+    __ Bind(&is_true);
+    __ LoadObject(result, Bool::True());
+    __ Bind(&done);
+  } else {
+    // If EmitComparisonCode did not use the labels and just returned
+    // a condition we can avoid the branch and use conditional loads.
+    ASSERT(true_condition != kInvalidCondition);
+    __ LoadObject(TMP, Bool::True());
+    __ LoadObject(TMP2, Bool::False());
+    __ csel(result, TMP, TMP2, true_condition);
   }
-  compiler::Label done;
-  __ Bind(&is_false);
-  __ LoadObject(result, Bool::False());
-  __ b(&done);
-  __ Bind(&is_true);
-  __ LoadObject(result, Bool::True());
-  __ Bind(&done);
 }
 
 void ComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,

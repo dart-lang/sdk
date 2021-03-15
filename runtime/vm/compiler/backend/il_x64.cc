@@ -931,17 +931,31 @@ void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label is_true, is_false;
   BranchLabels labels = {&is_true, &is_false, &is_false};
   Condition true_condition = EmitComparisonCode(compiler, labels);
-  if (true_condition != kInvalidCondition) {
-    EmitBranchOnCondition(compiler, true_condition, labels);
-  }
+
   Register result = locs()->out(0).reg();
-  compiler::Label done;
-  __ Bind(&is_false);
-  __ LoadObject(result, Bool::False());
-  __ jmp(&done);
-  __ Bind(&is_true);
-  __ LoadObject(result, Bool::True());
-  __ Bind(&done);
+  if (is_true.IsLinked() || is_false.IsLinked()) {
+    if (true_condition != kInvalidCondition) {
+      EmitBranchOnCondition(compiler, true_condition, labels);
+    }
+    compiler::Label done;
+    __ Bind(&is_false);
+    __ LoadObject(result, Bool::False());
+    __ jmp(&done, compiler::Assembler::kNearJump);
+    __ Bind(&is_true);
+    __ LoadObject(result, Bool::True());
+    __ Bind(&done);
+  } else {
+    // If EmitComparisonCode did not use the labels and just returned
+    // a condition we can avoid the branch and use conditional loads.
+    ASSERT(true_condition != kInvalidCondition);
+    __ setcc(InvertCondition(true_condition), ByteRegisterOf(result));
+    __ movzxb(result, result);
+    __ movq(result,
+            compiler::Address(THR, result, TIMES_8,
+                              compiler::target::Thread::bool_true_offset()));
+    ASSERT(compiler::target::Thread::bool_true_offset() + 8 ==
+           compiler::target::Thread::bool_false_offset());
+  }
 }
 
 void ComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
