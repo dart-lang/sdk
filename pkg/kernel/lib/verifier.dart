@@ -459,6 +459,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   visitLet(Let node) {
+    if (_isCompileTimeErrorEncoding(node)) return;
     visitWithLocalScope(node);
   }
 
@@ -921,6 +922,12 @@ class VerifyGetStaticType extends RecursiveVisitor {
   }
 
   @override
+  void visitLet(Let node) {
+    if (_isCompileTimeErrorEncoding(node)) return;
+    super.visitLet(node);
+  }
+
+  @override
   void defaultExpression(Expression node) {
     try {
       node.getStaticType(_staticTypeContext);
@@ -960,4 +967,8 @@ class CheckParentPointers extends Visitor<void> with VisitorVoidMixin {
 
 void checkInitializers(Constructor constructor) {
   // TODO(ahe): I'll add more here in other CLs.
+}
+
+bool _isCompileTimeErrorEncoding(TreeNode? node) {
+  return node is Let && node.variable.initializer is InvalidExpression;
 }

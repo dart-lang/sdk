@@ -2058,7 +2058,8 @@ class TypeInferrerImpl implements TypeInferrer {
       bool isConst: false,
       bool isImplicitExtensionMember: false,
       bool isImplicitCall: false,
-      Member staticTarget}) {
+      Member staticTarget,
+      bool isExtensionMemberInvocation = false}) {
     int extensionTypeParameterCount = getExtensionTypeParameterCount(arguments);
     if (extensionTypeParameterCount != 0) {
       return _inferGenericExtensionMethodInvocation(extensionTypeParameterCount,
@@ -2079,7 +2080,8 @@ class TypeInferrerImpl implements TypeInferrer {
         isConst: isConst,
         isImplicitExtensionMember: isImplicitExtensionMember,
         isImplicitCall: isImplicitCall,
-        staticTarget: staticTarget);
+        staticTarget: staticTarget,
+        isExtensionMemberInvocation: isExtensionMemberInvocation);
   }
 
   InvocationInferenceResult _inferGenericExtensionMethodInvocation(
@@ -2114,7 +2116,8 @@ class TypeInferrerImpl implements TypeInferrer {
         receiverType: receiverType,
         isImplicitExtensionMember: isImplicitExtensionMember,
         isImplicitCall: isImplicitCall,
-        staticTarget: staticTarget);
+        staticTarget: staticTarget,
+        isExtensionMemberInvocation: true);
     Substitution extensionSubstitution = Substitution.fromPairs(
         extensionFunctionType.typeParameters, extensionArguments.types);
 
@@ -2171,7 +2174,8 @@ class TypeInferrerImpl implements TypeInferrer {
       bool isConst: false,
       bool isImplicitExtensionMember: false,
       bool isImplicitCall,
-      Member staticTarget}) {
+      Member staticTarget,
+      bool isExtensionMemberInvocation: false}) {
     List<TypeParameter> calleeTypeParameters = calleeType.typeParameters;
     if (calleeTypeParameters.isNotEmpty) {
       // It's possible that one of the callee type parameters might match a type
@@ -2391,8 +2395,9 @@ class TypeInferrerImpl implements TypeInferrer {
     List<DartType> positionalArgumentTypes = [];
     List<NamedType> namedArgumentTypes = [];
     if (typeChecksNeeded && !identical(calleeType, unknownFunction)) {
-      LocatedMessage argMessage =
-          helper.checkArgumentsForType(calleeType, arguments, offset);
+      LocatedMessage argMessage = helper.checkArgumentsForType(
+          calleeType, arguments, offset,
+          isExtensionMemberInvocation: isExtensionMemberInvocation);
       if (argMessage != null) {
         return new WrapInProblemInferenceResult(
             const InvalidType(),
@@ -2860,7 +2865,8 @@ class TypeInferrerImpl implements TypeInferrer {
           hoistedExpressions: hoistedExpressions,
           receiverType: receiverType,
           isImplicitExtensionMember: true,
-          isImplicitCall: isImplicitCall);
+          isImplicitCall: isImplicitCall,
+          isExtensionMemberInvocation: true);
       if (!isTopLevel) {
         library.checkBoundsInStaticInvocation(staticInvocation,
             typeSchemaEnvironment, helper.uri, getTypeArgumentsInfo(arguments));
