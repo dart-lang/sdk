@@ -33,7 +33,22 @@ abstract class C {
 
 @reflectiveTest
 class PropertyAccessorCompletionTest extends CompletionTestCase {
-  Future<void> test_constructor_abstract() async {
+  Future<void> test_setter_deprecated() async {
+    addTestFile('''
+void f(C c) {
+  c.^;
+}
+class C {
+  @deprecated
+  set x(int x) {}
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('x',
+        elementKind: ElementKind.SETTER, isDeprecated: true);
+  }
+
+  Future<void> test_setter_deprecated_withNonDeprecatedGetter() async {
     addTestFile('''
 void f(C c) {
   c.^;
