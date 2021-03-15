@@ -4253,7 +4253,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       {bool isTearOff}) {
     List<TypeParameter> typeParameters = target.function.typeParameters;
     LocatedMessage argMessage = checkArgumentsForFunction(
-        target.function, arguments, fileOffset, typeParameters);
+        target.function, arguments, fileOffset, typeParameters,
+        isExtensionMemberInvocation: true);
     if (argMessage != null) {
       return throwNoSuchMethodError(forest.createNullLiteral(fileOffset),
           target.name.text, arguments, fileOffset,
@@ -4272,19 +4273,32 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   LocatedMessage checkArgumentsForFunction(FunctionNode function,
-      Arguments arguments, int offset, List<TypeParameter> typeParameters) {
+      Arguments arguments, int offset, List<TypeParameter> typeParameters,
+      {bool isExtensionMemberInvocation = false}) {
+    int requiredPositionalParameterCountToReport =
+        function.requiredParameterCount;
+    int positionalParameterCountToReport = function.positionalParameters.length;
+    int positionalArgumentCountToReport =
+        forest.argumentsPositional(arguments).length;
+    if (isExtensionMemberInvocation) {
+      // Extension member invocations have additional synthetic parameter for
+      // `this`.
+      --requiredPositionalParameterCountToReport;
+      --positionalParameterCountToReport;
+      --positionalArgumentCountToReport;
+    }
     if (forest.argumentsPositional(arguments).length <
         function.requiredParameterCount) {
       return fasta.templateTooFewArguments
-          .withArguments(function.requiredParameterCount,
-              forest.argumentsPositional(arguments).length)
+          .withArguments(requiredPositionalParameterCountToReport,
+              positionalArgumentCountToReport)
           .withLocation(uri, arguments.fileOffset, noLength);
     }
     if (forest.argumentsPositional(arguments).length >
         function.positionalParameters.length) {
       return fasta.templateTooManyArguments
-          .withArguments(function.positionalParameters.length,
-              forest.argumentsPositional(arguments).length)
+          .withArguments(
+              positionalParameterCountToReport, positionalArgumentCountToReport)
           .withLocation(uri, arguments.fileOffset, noLength);
     }
     List<NamedExpression> named = forest.argumentsNamed(arguments);
@@ -4331,19 +4345,32 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   LocatedMessage checkArgumentsForType(
-      FunctionType function, Arguments arguments, int offset) {
+      FunctionType function, Arguments arguments, int offset,
+      {bool isExtensionMemberInvocation = false}) {
+    int requiredPositionalParameterCountToReport =
+        function.requiredParameterCount;
+    int positionalParameterCountToReport = function.positionalParameters.length;
+    int positionalArgumentCountToReport =
+        forest.argumentsPositional(arguments).length;
+    if (isExtensionMemberInvocation) {
+      // Extension member invocations have additional synthetic parameter for
+      // `this`.
+      --requiredPositionalParameterCountToReport;
+      --positionalParameterCountToReport;
+      --positionalArgumentCountToReport;
+    }
     if (forest.argumentsPositional(arguments).length <
         function.requiredParameterCount) {
       return fasta.templateTooFewArguments
-          .withArguments(function.requiredParameterCount,
-              forest.argumentsPositional(arguments).length)
+          .withArguments(requiredPositionalParameterCountToReport,
+              positionalArgumentCountToReport)
           .withLocation(uri, arguments.fileOffset, noLength);
     }
     if (forest.argumentsPositional(arguments).length >
         function.positionalParameters.length) {
       return fasta.templateTooManyArguments
-          .withArguments(function.positionalParameters.length,
-              forest.argumentsPositional(arguments).length)
+          .withArguments(
+              positionalParameterCountToReport, positionalArgumentCountToReport)
           .withLocation(uri, arguments.fileOffset, noLength);
     }
     List<NamedExpression> named = forest.argumentsNamed(arguments);
