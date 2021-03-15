@@ -14,10 +14,14 @@ class BodyInferenceContext {
   static const _key = 'BodyInferenceContext';
 
   final TypeSystemImpl _typeSystem;
-  final bool _isAsynchronous;
-  final bool _isGenerator;
+  final bool isAsynchronous;
+  final bool isGenerator;
 
-  /// The context type, computed from the imposed return type schema.
+  /// The imposed return type, from the typing context.
+  /// Might be `null` if an empty typing context.
+  final DartType? imposedType;
+
+  /// The context type, computed from [imposedType].
   /// Might be `null` if an empty typing context.
   final DartType? contextType;
 
@@ -35,6 +39,7 @@ class BodyInferenceContext {
       typeSystem: typeSystem,
       isAsynchronous: node.isAsynchronous,
       isGenerator: node.isGenerator,
+      imposedType: imposedType,
       contextType: contextType,
     );
     node.setProperty(_key, bodyContext);
@@ -44,12 +49,13 @@ class BodyInferenceContext {
 
   BodyInferenceContext._({
     required TypeSystemImpl typeSystem,
-    required bool isAsynchronous,
-    required bool isGenerator,
+    required this.isAsynchronous,
+    required this.isGenerator,
+    required this.imposedType,
     required this.contextType,
-  })   : _typeSystem = typeSystem,
-        _isAsynchronous = isAsynchronous,
-        _isGenerator = isGenerator;
+  }) : _typeSystem = typeSystem;
+
+  bool get isSynchronous => !isAsynchronous;
 
   TypeProvider get _typeProvider => _typeSystem.typeProvider;
 
@@ -58,7 +64,7 @@ class BodyInferenceContext {
       _returnTypes.add(_typeProvider.nullType);
     } else {
       var type = expression.typeOrThrow;
-      if (_isAsynchronous) {
+      if (isAsynchronous) {
         type = _typeSystem.flatten(type);
       }
       _returnTypes.add(type);
@@ -73,8 +79,8 @@ class BodyInferenceContext {
       return;
     }
 
-    if (_isGenerator) {
-      var requiredClass = _isAsynchronous
+    if (isGenerator) {
+      var requiredClass = isAsynchronous
           ? _typeProvider.streamElement
           : _typeProvider.iterableElement;
       var type = _argumentOf(expressionType, requiredClass);
@@ -93,14 +99,14 @@ class BodyInferenceContext {
 
     var clampedReturnedType = _clampToContextType(actualReturnedType);
 
-    if (_isGenerator) {
-      if (_isAsynchronous) {
+    if (isGenerator) {
+      if (isAsynchronous) {
         return _typeProvider.streamType(clampedReturnedType);
       } else {
         return _typeProvider.iterableType(clampedReturnedType);
       }
     } else {
-      if (_isAsynchronous) {
+      if (isAsynchronous) {
         return _typeProvider.futureType(
           _typeSystem.flatten(clampedReturnedType),
         );
@@ -122,7 +128,7 @@ class BodyInferenceContext {
     // `FutureOr<void>`, let `S` be `void`.
     if (_typeSystem.isNonNullableByDefault) {
       if (R.isVoid ||
-          _isAsynchronous &&
+          isAsynchronous &&
               R is InterfaceType &&
               R.isDartAsyncFutureOr &&
               R.typeArguments[0].isVoid) {
@@ -142,7 +148,7 @@ class BodyInferenceContext {
   DartType _computeActualReturnedType({
     required bool endOfBlockIsReachable,
   }) {
-    if (_isGenerator) {
+    if (isGenerator) {
       if (_returnTypes.isEmpty) {
         return DynamicTypeImpl.instance;
       }
