@@ -832,6 +832,17 @@ m() {
     ]);
   }
 
+  test_invoke_dynamicFunctionType_nullable2() async {
+    await assertErrorsInCode(r'''
+void f<F extends Function>(List<F?> funcList) {
+  funcList[0]();
+}
+''', [
+      error(
+          CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 50, 11),
+    ]);
+  }
+
   test_invoke_nonNullable() async {
     await assertNoErrorsInCode(r'''
 m() {

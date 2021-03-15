@@ -1155,9 +1155,6 @@ void f(C<void> c) {
   c.foo();
 }
 ''', [
-      if (typeToStringWithNullability)
-        error(
-            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 61, 5),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 61, 5),
     ]);
 
@@ -1179,9 +1176,6 @@ main() {
   foo();
 }
 ''', [
-      if (typeToStringWithNullability)
-        error(
-            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 23, 3),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
 
@@ -1203,9 +1197,6 @@ main() {
   foo()();
 }
 ''', [
-      if (typeToStringWithNullability)
-        error(
-            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 26, 5),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 3),
     ]);
     assertMethodInvocation(
@@ -1223,9 +1214,6 @@ main() {
   foo();
 }
 ''', [
-      if (typeToStringWithNullability)
-        error(
-            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 22, 3),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 22, 3),
     ]);
 

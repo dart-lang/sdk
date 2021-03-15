@@ -765,14 +765,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     DartType expressionType = functionExpression.typeOrThrow;
-    if (!_checkForUseOfVoidResult(functionExpression) &&
-        !_checkForUseOfNever(functionExpression) &&
-        node.staticElement == null &&
-        !_isFunctionType(expressionType)) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
-          functionExpression);
-    } else if (expressionType is FunctionType) {
+    if (expressionType is FunctionType) {
       _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
     }
     _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
@@ -4502,24 +4495,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// While in general Never is a sort of placehold type that should be usable
-  /// anywhere, we explicitly bar it from some dubious syntactic locations such
-  /// as calling a method on Never, which in practice would look something like
-  /// `(throw x).toString()` which is clearly something between a mistake and
-  /// dead code.
-  ///
-  /// See [StaticWarningCode.RECEIVER_OF_TYPE_NEVER].
-  bool _checkForUseOfNever(Expression expression) {
-    if (!identical(expression.staticType, NeverTypeImpl.instance)) {
-      return false;
-    }
-
-    _errorReporter.reportErrorForNode(
-        HintCode.RECEIVER_OF_TYPE_NEVER, expression);
-
-    return true;
-  }
-
   /// Check for situations where the result of a method or function is used,
   /// when it returns 'void'. Or, in rare cases, when other types of expressions
   /// are void, such as identifiers.
@@ -5216,19 +5191,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
       constructors.add(current);
       current = current.redirectedConstructor?.declaration;
-    }
-    return false;
-  }
-
-  bool _isFunctionType(DartType type) {
-    if (type.isDynamic || type.isDartCoreNull) {
-      return true;
-    } else if (type is FunctionType || type.isDartCoreFunction) {
-      return true;
-    } else if (type is InterfaceType) {
-      var callMethod =
-          type.lookUpMethod2(FunctionElement.CALL_METHOD_NAME, _currentLibrary);
-      return callMethod != null;
     }
     return false;
   }

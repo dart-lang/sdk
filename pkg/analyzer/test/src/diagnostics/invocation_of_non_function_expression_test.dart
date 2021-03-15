@@ -15,13 +15,35 @@ main() {
 
 @reflectiveTest
 class InvocationOfNonFunctionExpressionTest extends PubPackageResolutionTest {
-  test_invocationOfNonFunctionExpression_literal() async {
+  test_literal_int() async {
     await assertErrorsInCode(r'''
-f() {
+void f() {
   3(5);
 }
 ''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 8, 1),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 13, 1),
+    ]);
+  }
+
+  test_literal_null() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.9
+void f() {
+  null();
+}
+''', [
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 28, 4),
+    ]);
+  }
+
+  test_type_Null() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.9
+void f(Null a) {
+  a();
+}
+''', [
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 34, 1),
     ]);
   }
 }
