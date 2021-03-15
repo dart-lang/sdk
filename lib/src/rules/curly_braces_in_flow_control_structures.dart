@@ -13,7 +13,7 @@ const _details = r'''
 
 **DO** use curly braces for all flow control structures.
 
-Doing so avoids the [dangling else](http://en.wikipedia.org/wiki/Dangling_else)
+Doing so avoids the [dangling else](https://en.wikipedia.org/wiki/Dangling_else)
 problem.
 
 **GOOD:**
