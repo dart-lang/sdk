@@ -11,6 +11,9 @@ import "package:expect/expect.dart";
 const var1 = function1(1, 2);
 //           ^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+const var1_1 = function1(2, 2);
+//             ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 int function1(int a, int b) {
   var x = 1 + a + b;
   return x;
@@ -52,6 +55,7 @@ int function5() {
 
 void main() {
   Expect.equals(var1, 4);
+  Expect.equals(var1_1, 5);
   Expect.equals(var2, "string");
   Expect.equals(var3, 6);
   Expect.equals(var4, 2);

@@ -35,6 +35,9 @@ int function() {
 const var3 = varAssignmentTest3(1);
 //           ^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+const var4 = varAssignmentTest3(2);
+//           ^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 int varAssignmentTest3(int a) {
   int x = 4;
   x = a + 1;
@@ -45,4 +48,5 @@ void main() {
   Expect.equals(var1, 3);
   Expect.equals(function(), 3);
   Expect.equals(var3, 2);
+  Expect.equals(var4, 3);
 }

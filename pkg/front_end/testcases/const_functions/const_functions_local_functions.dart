@@ -18,6 +18,7 @@ int function2() {
     int b = a + constTwo;
     return b;
   }
+
   const value = addTwo(2);
   return value;
 }
@@ -53,6 +54,13 @@ int function7() {
   return value;
 }
 
+int function8() {
+  int add(int a, int b) => a + b;
+  const value = add(1, 1);
+  const value1 = add(2, 3);
+  return value + value1;
+}
+
 void main() {
   Expect.equals(function1(), 12);
   Expect.equals(function2(), 4);
@@ -61,4 +69,5 @@ void main() {
   Expect.equals(function5(), 3);
   Expect.equals(function6(), 1);
   Expect.equals(function7(), 2);
+  Expect.equals(function8(), 7);
 }

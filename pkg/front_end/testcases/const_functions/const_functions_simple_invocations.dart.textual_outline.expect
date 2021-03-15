@@ -20,4 +20,7 @@ const boolean = boolFn(true, false);
 bool boolFn(bool a, bool b) => a || b;
 const doubleResult = doubleFn(2.2, 2);
 double doubleFn(double a, double b) => a * b;
+const multi = multiFn(1);
+const multi2 = multiFn(2);
+int multiFn(int a) => a + 1;
 void main() {}

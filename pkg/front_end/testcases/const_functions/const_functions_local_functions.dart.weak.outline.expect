@@ -19,5 +19,7 @@ static method function6() → core::int
   ;
 static method function7() → core::int
   ;
+static method function8() → core::int
+  ;
 static method main() → void
   ;
