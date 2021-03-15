@@ -275,6 +275,14 @@ struct AllocateTypedDataArrayABI {
   static const Register kResultReg = RAX;
 };
 
+// ABI for DispatchTableNullErrorStub and consequently for all dispatch
+// table calls (though normal functions will not expect or use this
+// register). This ABI is added to distinguish memory corruption errors from
+// null errors.
+struct DispatchTableNullErrorABI {
+  static const Register kClassIdReg = RCX;
+};
+
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;
 const RegList kAllFpuRegistersList = 0xFFFF;

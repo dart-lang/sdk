@@ -767,8 +767,7 @@ class FlowGraphCompiler : public ValueObject {
                        intptr_t total_ic_calls,
                        Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
-  void EmitDispatchTableCall(Register cid_reg,
-                             int32_t selector_offset,
+  void EmitDispatchTableCall(int32_t selector_offset,
                              const Array& arguments_descriptor);
 
   Condition EmitEqualityRegConstCompare(Register reg,

@@ -701,9 +701,9 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
 }
 
 void FlowGraphCompiler::EmitDispatchTableCall(
-    Register cid_reg,
     int32_t selector_offset,
     const Array& arguments_descriptor) {
+  const auto cid_reg = DispatchTableNullErrorABI::kClassIdReg;
   ASSERT(CanCallDart());
   ASSERT(cid_reg != ARGS_DESC_REG);
   if (!arguments_descriptor.IsNull()) {
@@ -712,6 +712,9 @@ void FlowGraphCompiler::EmitDispatchTableCall(
   intptr_t offset = (selector_offset - DispatchTable::OriginElement()) *
                     compiler::target::kWordSize;
   CLOBBERS_LR({
+    // Would like cid_reg to be available on entry to the target function
+    // for checking purposes.
+    ASSERT(cid_reg != LR);
     if (offset == 0) {
       __ ldr(LR, compiler::Address(DISPATCH_TABLE_REG, cid_reg, LSL,
                                    compiler::target::kWordSizeLog2));

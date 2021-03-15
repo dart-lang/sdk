@@ -176,7 +176,7 @@ static void NullErrorHelper(Zone* zone, const String& selector) {
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
 }
 
-DEFINE_RUNTIME_ENTRY(NullError, 0) {
+static void DoThrowNullError(Isolate* isolate, Thread* thread, Zone* zone) {
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   const StackFrame* caller_frame = iterator.NextFrame();
@@ -204,6 +204,59 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
   }
 
   NullErrorHelper(zone, member_name);
+}
+
+DEFINE_RUNTIME_ENTRY(NullError, 0) {
+  DoThrowNullError(isolate, thread, zone);
+}
+
+// Collects information about pointers within the top |kMaxSlotsCollected|
+// slots on the stack.
+// TODO(b/179632636) This code is added in attempt to better understand
+// b/179632636 and should be removed in the future.
+void ReportImpossibleNullError(intptr_t cid,
+                               StackFrame* caller_frame,
+                               Thread* thread) {
+  TextBuffer buffer(512);
+  buffer.Printf("hit null error with cid %" Pd ", caller context: ", cid);
+
+  const intptr_t kMaxSlotsCollected = 5;
+  const auto slots = reinterpret_cast<ObjectPtr*>(caller_frame->sp());
+  const auto num_slots_in_frame =
+      reinterpret_cast<ObjectPtr*>(caller_frame->fp()) - slots;
+  const auto num_slots_to_collect =
+      Utils::Maximum(kMaxSlotsCollected, num_slots_in_frame);
+  bool comma = false;
+  for (intptr_t i = 0; i < num_slots_to_collect; i++) {
+    const ObjectPtr ptr = slots[i];
+    buffer.Printf("%s[sp+%" Pd "] %" Pp "", comma ? ", " : "", i,
+                  static_cast<uword>(ptr));
+    if (ptr->IsHeapObject() &&
+        (Dart::vm_isolate_group()->heap()->Contains(
+             UntaggedObject::ToAddr(ptr)) ||
+         thread->heap()->Contains(UntaggedObject::ToAddr(ptr)))) {
+      buffer.Printf("(%" Pp ")", static_cast<uword>(ptr->untag()->tags_));
+    }
+    comma = true;
+  }
+
+  const char* message = buffer.buffer();
+  FATAL("%s", message);
+}
+
+DEFINE_RUNTIME_ENTRY(DispatchTableNullError, 1) {
+  const Smi& cid = Smi::CheckedHandle(zone, arguments.ArgAt(0));
+  if (cid.Value() != kNullCid) {
+    // We hit null error, but receiver is not null itself. This most likely
+    // is a memory corruption. Crash the VM but provide some additonal
+    // information about the arguments on the stack.
+    DartFrameIterator iterator(thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
+    StackFrame* caller_frame = iterator.NextFrame();
+    RELEASE_ASSERT(caller_frame->IsDartFrame());
+    ReportImpossibleNullError(cid.Value(), caller_frame, thread);
+  }
+  DoThrowNullError(isolate, thread, zone);
 }
 
 DEFINE_RUNTIME_ENTRY(NullErrorWithSelector, 1) {

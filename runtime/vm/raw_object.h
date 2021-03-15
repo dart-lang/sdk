@@ -43,6 +43,7 @@ class IsolateGroup;
 CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
 class CodeStatistics;
+class StackFrame;
 
 #define VISIT_FROM(type, first)                                                \
   type* from() { return reinterpret_cast<type*>(&first##_); }
@@ -733,6 +734,9 @@ class UntaggedObject {
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
   friend class Object;
+  friend void ReportImpossibleNullError(intptr_t cid,
+                                        StackFrame* caller_frame,
+                                        Thread* thread);
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(UntaggedObject);

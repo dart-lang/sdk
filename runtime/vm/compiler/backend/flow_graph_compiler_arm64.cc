@@ -694,18 +694,23 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
 }
 
 void FlowGraphCompiler::EmitDispatchTableCall(
-    Register cid_reg,
     int32_t selector_offset,
     const Array& arguments_descriptor) {
+  const auto cid_reg = DispatchTableNullErrorABI::kClassIdReg;
   ASSERT(CanCallDart());
   ASSERT(cid_reg != ARGS_DESC_REG);
   if (!arguments_descriptor.IsNull()) {
     __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
   }
   const intptr_t offset = selector_offset - DispatchTable::OriginElement();
-  __ AddImmediate(cid_reg, cid_reg, offset);
-  __ Call(compiler::Address(DISPATCH_TABLE_REG, cid_reg, UXTX,
-                            compiler::Address::Scaled));
+  CLOBBERS_LR({
+    // Would like cid_reg to be available on entry to the target function
+    // for checking purposes.
+    ASSERT(cid_reg != LR);
+    __ AddImmediate(LR, cid_reg, offset);
+    __ Call(compiler::Address(DISPATCH_TABLE_REG, LR, UXTX,
+                              compiler::Address::Scaled));
+  });
 }
 
 Condition FlowGraphCompiler::EmitEqualityRegConstCompare(

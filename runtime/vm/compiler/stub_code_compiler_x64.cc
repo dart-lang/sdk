@@ -488,7 +488,9 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
 void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
     Assembler* assembler) {
   __ EnterStubFrame();
-  __ CallRuntime(kNullErrorRuntimeEntry, /*argument_count=*/0);
+  __ SmiTag(DispatchTableNullErrorABI::kClassIdReg);
+  __ PushRegister(DispatchTableNullErrorABI::kClassIdReg);
+  __ CallRuntime(kDispatchTableNullErrorRuntimeEntry, /*argument_count=*/1);
   // The NullError runtime entry does not return.
   __ Breakpoint();
 }
