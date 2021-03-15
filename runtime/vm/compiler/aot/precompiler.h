@@ -29,6 +29,7 @@ class String;
 class Precompiler;
 class FlowGraph;
 class PrecompilerTracer;
+class RetainedReasonsWriter;
 
 class TableSelectorKeyValueTrait {
  public:
@@ -351,39 +352,6 @@ class Precompiler : public ValueObject {
   Isolate* isolate() const { return isolate_; }
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
 
-  struct RetainedReasonsTrait {
-    using Key = const Object*;
-    using Value = ZoneCStringSet*;
-
-    struct Pair {
-      Key key;
-      Value value;
-
-      Pair() : key(nullptr), value(nullptr) {}
-      Pair(Key key, Value value) : key(key), value(value) {}
-    };
-
-    static Key KeyOf(Pair kv) { return kv.key; }
-
-    static Value ValueOf(Pair kv) { return kv.value; }
-
-    static inline intptr_t Hashcode(Key key) {
-      if (key->IsFunction()) {
-        return Function::Cast(*key).Hash();
-      }
-      if (key->IsClass()) {
-        return Utils::WordHash(Class::Cast(*key).id());
-      }
-      return Utils::WordHash(key->GetClassId());
-    }
-
-    static inline bool IsKeyEqual(Pair pair, Key key) {
-      return pair.key->ptr() == key->ptr();
-    }
-  };
-
-  using RetainedReasonsMap = ZoneDirectChainedHashMap<RetainedReasonsTrait>;
-
   Thread* thread_;
   Zone* zone_;
   Isolate* isolate_;
@@ -412,7 +380,6 @@ class Precompiler : public ValueObject {
   FunctionSet possibly_retained_functions_;
   FieldSet fields_to_retain_;
   FunctionSet functions_to_retain_;
-  RetainedReasonsMap* retained_reasons_map_ = nullptr;
   ClassSet classes_to_retain_;
   TypeArgumentsSet typeargs_to_retain_;
   AbstractTypeSet types_to_retain_;
@@ -428,6 +395,7 @@ class Precompiler : public ValueObject {
 
   Phase phase_ = Phase::kPreparation;
   PrecompilerTracer* tracer_ = nullptr;
+  RetainedReasonsWriter* retained_reasons_writer_ = nullptr;
   bool is_tracing_ = false;
 };
 
