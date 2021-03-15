@@ -304,6 +304,14 @@ struct AllocateTypedDataArrayABI {
   static const Register kResultReg = R0;
 };
 
+// ABI for DispatchTableNullErrorStub and consequently for all dispatch
+// table calls (though normal functions will not expect or use this
+// register). This ABI is added to distinguish memory corruption errors from
+// null errors.
+struct DispatchTableNullErrorABI {
+  static const Register kClassIdReg = R0;
+};
+
 // TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
 // of reusing the constants of the instantiation stubs ABI.
 

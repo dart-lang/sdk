@@ -5042,16 +5042,26 @@ DispatchTableCallInstr* DispatchTableCallInstr::FromCall(
   return dispatch_table_call;
 }
 
+LocationSummary* DispatchTableCallInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(
+      0, Location::RegisterLocation(DispatchTableNullErrorABI::kClassIdReg));
+  return MakeCallSummary(zone, this, summary);
+}
+
 void DispatchTableCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(locs()->in(0).reg() == DispatchTableNullErrorABI::kClassIdReg);
   Array& arguments_descriptor = Array::ZoneHandle();
   if (selector()->requires_args_descriptor) {
     ArgumentsInfo args_info(type_args_len(), ArgumentCount(), ArgumentsSize(),
                             argument_names());
     arguments_descriptor = args_info.ToArgumentsDescriptor();
   }
-  const Register cid_reg = locs()->in(0).reg();
-  compiler->EmitDispatchTableCall(cid_reg, selector()->offset,
-                                  arguments_descriptor);
+  compiler->EmitDispatchTableCall(selector()->offset, arguments_descriptor);
   compiler->EmitCallsiteMetadata(source(), DeoptId::kNone,
                                  UntaggedPcDescriptors::kOther, locs());
   if (selector()->called_on_null && !selector()->on_null_interface) {

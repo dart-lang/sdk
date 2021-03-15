@@ -7317,16 +7317,6 @@ Condition StrictCompareInstr::EmitComparisonCodeRegConstant(
                                                source(), deopt_id());
 }
 
-LocationSummary* DispatchTableCallInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(RCX));  // ClassId
-  return MakeCallSummary(zone, this, summary);
-}
-
 LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
