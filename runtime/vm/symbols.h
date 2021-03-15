@@ -439,9 +439,19 @@ class ObjectPointerVisitor;
   V(_get, "_get")                                                              \
   V(_handleMessage, "_handleMessage")                                          \
   V(_instanceOf, "_instanceOf")                                                \
+  V(_listGetAt, "_listGetAt")                                                  \
+  V(_listLength, "_listLength")                                                \
+  V(_listSetAt, "_listSetAt")                                                  \
   V(_lookupHandler, "_lookupHandler")                                          \
   V(_lookupOpenPorts, "_lookupOpenPorts")                                      \
+  V(_mapContainsKey, "_mapContainsKey")                                        \
+  V(_mapGet, "_mapGet")                                                        \
+  V(_mapKeys, "_mapKeys")                                                      \
   V(_name, "_name")                                                            \
+  V(_objectEquals, "_objectEquals")                                            \
+  V(_objectHashCode, "_objectHashCode")                                        \
+  V(_objectNoSuchMethod, "_objectNoSuchMethod")                                \
+  V(_objectToString, "_objectToString")                                        \
   V(_onData, "_onData")                                                        \
   V(_rehashObjects, "_rehashObjects")                                          \
   V(_resultOrListeners, "_resultOrListeners")                                  \

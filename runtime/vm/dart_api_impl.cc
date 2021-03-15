@@ -275,36 +275,51 @@ static Dart_Handle GetNativeFieldsOfArgument(NativeArguments* arguments,
                        current_func, field_count, num_fields);
 }
 
-static ObjectPtr Send0Arg(const Instance& receiver, const String& selector) {
-  const intptr_t kTypeArgsLen = 0;
-  const intptr_t kNumArgs = 1;
-  ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
+static FunctionPtr FindCoreLibPrivateFunction(Zone* zone, const String& name) {
+  const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
+  ASSERT(!core_lib.IsNull());
   const Function& function =
-      Function::Handle(Resolver::ResolveDynamic(receiver, selector, args_desc));
-  if (function.IsNull()) {
-    return ApiError::New(String::Handle(String::New("")));
-  }
-  const Array& args = Array::Handle(Array::New(kNumArgs));
-  args.SetAt(0, receiver);
+      Function::Handle(zone, core_lib.LookupFunctionAllowPrivate(name));
+  ASSERT(!function.IsNull());
+  return function.ptr();
+}
+
+static ObjectPtr CallStatic1Arg(Zone* zone,
+                                const String& name,
+                                const Instance& arg0) {
+  const intptr_t kNumArgs = 1;
+  const Function& function =
+      Function::Handle(zone, FindCoreLibPrivateFunction(zone, name));
+  const Array& args = Array::Handle(zone, Array::New(kNumArgs));
+  args.SetAt(0, arg0);
   return DartEntry::InvokeFunction(function, args);
 }
 
-static ObjectPtr Send1Arg(const Instance& receiver,
-                          const String& selector,
-                          const Instance& argument) {
-  const intptr_t kTypeArgsLen = 0;
+static ObjectPtr CallStatic2Args(Zone* zone,
+                                 const String& name,
+                                 const Instance& arg0,
+                                 const Instance& arg1) {
   const intptr_t kNumArgs = 2;
-  ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
   const Function& function =
-      Function::Handle(Resolver::ResolveDynamic(receiver, selector, args_desc));
-  if (function.IsNull()) {
-    return ApiError::New(String::Handle(String::New("")));
-  }
+      Function::Handle(zone, FindCoreLibPrivateFunction(zone, name));
+  const Array& args = Array::Handle(zone, Array::New(kNumArgs));
+  args.SetAt(0, arg0);
+  args.SetAt(1, arg1);
+  return DartEntry::InvokeFunction(function, args);
+}
+
+static ObjectPtr CallStatic3Args(Zone* zone,
+                                 const String& name,
+                                 const Instance& arg0,
+                                 const Instance& arg1,
+                                 const Instance& arg2) {
+  const intptr_t kNumArgs = 3;
+  const Function& function =
+      Function::Handle(zone, FindCoreLibPrivateFunction(zone, name));
   const Array& args = Array::Handle(Array::New(kNumArgs));
-  args.SetAt(0, receiver);
-  args.SetAt(1, argument);
+  args.SetAt(0, arg0);
+  args.SetAt(1, arg1);
+  args.SetAt(2, arg2);
   return DartEntry::InvokeFunction(function, args);
 }
 
@@ -3187,21 +3202,8 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
     return Api::NewArgumentError(
         "Object does not implement the List interface");
   }
-  const String& name = String::Handle(Z, Field::GetterName(Symbols::Length()));
-  const int kTypeArgsLen = 0;
-  const int kNumArgs = 1;
-  ArgumentsDescriptor args_desc(
-      Array::Handle(Z, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
-  const Function& function =
-      Function::Handle(Z, Resolver::ResolveDynamic(instance, name, args_desc));
-  if (function.IsNull()) {
-    return Api::NewArgumentError("List object does not have a 'length' field.");
-  }
-
-  const Array& args = Array::Handle(Z, Array::New(kNumArgs));
-  args.SetAt(0, instance);  // Set up the receiver as the first argument.
   const Object& retval =
-      Object::Handle(Z, DartEntry::InvokeFunction(function, args));
+      Object::Handle(Z, CallStatic1Arg(Z, Symbols::_listLength(), instance));
   if (retval.IsSmi()) {
     *len = Smi::Cast(retval).Value();
     return Api::Success();
@@ -3242,9 +3244,9 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
     // Check and handle a dart object that implements the List interface.
     const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
     if (!instance.IsNull()) {
-      return Api::NewHandle(T,
-                            Send1Arg(instance, Symbols::IndexToken(),
-                                     Instance::Handle(Z, Integer::New(index))));
+      return Api::NewHandle(
+          T, CallStatic2Args(Z, Symbols::_listGetAt(), instance,
+                             Instance::Handle(Z, Integer::New(index))));
     }
     return Api::NewArgumentError(
         "Object does not implement the 'List' interface");
@@ -3281,27 +3283,21 @@ DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
     // Check and handle a dart object that implements the List interface.
     const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
     if (!instance.IsNull()) {
-      const intptr_t kTypeArgsLen = 0;
       const intptr_t kNumArgs = 2;
-      ArgumentsDescriptor args_desc(
-          Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
       const Function& function = Function::Handle(
-          Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
-                                      args_desc));
-      if (!function.IsNull()) {
-        const Array& args = Array::Handle(Array::New(kNumArgs));
-        args.SetAt(0, instance);
-        Instance& index = Instance::Handle(Z);
-        for (intptr_t i = 0; i < length; ++i) {
-          index = Integer::New(i);
-          args.SetAt(1, index);
-          Dart_Handle value =
-              Api::NewHandle(T, DartEntry::InvokeFunction(function, args));
-          if (Api::IsError(value)) return value;
-          result[i] = value;
-        }
-        return Api::Success();
+          Z, FindCoreLibPrivateFunction(Z, Symbols::_listGetAt()));
+      const Array& args = Array::Handle(Z, Array::New(kNumArgs));
+      args.SetAt(0, instance);
+      Instance& index = Instance::Handle(Z);
+      for (intptr_t i = 0; i < length; ++i) {
+        index = Integer::New(i);
+        args.SetAt(1, index);
+        Dart_Handle value =
+            Api::NewHandle(T, DartEntry::InvokeFunction(function, args));
+        if (Api::IsError(value)) return value;
+        result[i] = value;
       }
+      return Api::Success();
     }
     return Api::NewArgumentError(
         "Object does not implement the 'List' interface");
@@ -3339,25 +3335,14 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
     // Check and handle a dart object that implements the List interface.
     const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
     if (!instance.IsNull()) {
-      const intptr_t kTypeArgsLen = 0;
-      const intptr_t kNumArgs = 3;
-      ArgumentsDescriptor args_desc(
-          Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
-      const Function& function = Function::Handle(
-          Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
-                                      args_desc));
-      if (!function.IsNull()) {
-        const Integer& index_obj = Integer::Handle(Z, Integer::New(index));
-        const Object& value_obj = Object::Handle(Z, Api::UnwrapHandle(value));
-        if (!value_obj.IsNull() && !value_obj.IsInstance()) {
-          RETURN_TYPE_ERROR(Z, value, Instance);
-        }
-        const Array& args = Array::Handle(Z, Array::New(kNumArgs));
-        args.SetAt(0, instance);
-        args.SetAt(1, index_obj);
-        args.SetAt(2, value_obj);
-        return Api::NewHandle(T, DartEntry::InvokeFunction(function, args));
+      const Integer& index_obj = Integer::Handle(Z, Integer::New(index));
+      const Object& value_obj = Object::Handle(Z, Api::UnwrapHandle(value));
+      if (!value_obj.IsNull() && !value_obj.IsInstance()) {
+        RETURN_TYPE_ERROR(Z, value, Instance);
       }
+      return Api::NewHandle(
+          T, CallStatic3Args(Z, Symbols::_listSetAt(), instance, index_obj,
+                             Instance::Cast(value_obj)));
     }
     return Api::NewArgumentError(
         "Object does not implement the 'List' interface");
@@ -3524,41 +3509,35 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   // Check and handle a dart object that implements the List interface.
   const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
   if (!instance.IsNull()) {
-    const int kTypeArgsLen = 0;
     const int kNumArgs = 2;
-    ArgumentsDescriptor args_desc(
-        Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
     const Function& function = Function::Handle(
-        Z,
-        Resolver::ResolveDynamic(instance, Symbols::IndexToken(), args_desc));
-    if (!function.IsNull()) {
-      Object& result = Object::Handle(Z);
-      Integer& intobj = Integer::Handle(Z);
-      const Array& args = Array::Handle(Z, Array::New(kNumArgs));
-      args.SetAt(0, instance);  // Set up the receiver as the first argument.
-      for (int i = 0; i < length; i++) {
-        HANDLESCOPE(T);
-        intobj = Integer::New(offset + i);
-        args.SetAt(1, intobj);
-        result = DartEntry::InvokeFunction(function, args);
-        if (result.IsError()) {
-          return Api::NewHandle(T, result.ptr());
-        }
-        if (!result.IsInteger()) {
-          return Api::NewError(
-              "%s expects the argument 'list' to be "
-              "a List of int",
-              CURRENT_FUNC);
-        }
-        const Integer& integer_result = Integer::Cast(result);
-        ASSERT(integer_result.AsInt64Value() <= 0xff);
-        // TODO(hpayer): value should always be smaller then 0xff. Add error
-        // handling.
-        native_array[i] =
-            static_cast<uint8_t>(integer_result.AsInt64Value() & 0xff);
+        Z, FindCoreLibPrivateFunction(Z, Symbols::_listGetAt()));
+    Object& result = Object::Handle(Z);
+    Integer& intobj = Integer::Handle(Z);
+    const Array& args = Array::Handle(Z, Array::New(kNumArgs));
+    args.SetAt(0, instance);  // Set up the receiver as the first argument.
+    for (int i = 0; i < length; i++) {
+      HANDLESCOPE(T);
+      intobj = Integer::New(offset + i);
+      args.SetAt(1, intobj);
+      result = DartEntry::InvokeFunction(function, args);
+      if (result.IsError()) {
+        return Api::NewHandle(T, result.ptr());
       }
-      return Api::Success();
+      if (!result.IsInteger()) {
+        return Api::NewError(
+            "%s expects the argument 'list' to be "
+            "a List of int",
+            CURRENT_FUNC);
+      }
+      const Integer& integer_result = Integer::Cast(result);
+      ASSERT(integer_result.AsInt64Value() <= 0xff);
+      // TODO(hpayer): value should always be smaller then 0xff. Add error
+      // handling.
+      native_array[i] =
+          static_cast<uint8_t>(integer_result.AsInt64Value() & 0xff);
     }
+    return Api::Success();
   }
   return Api::NewArgumentError(
       "Object does not implement the 'List' interface");
@@ -3611,31 +3590,25 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
   // Check and handle a dart object that implements the List interface.
   const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
   if (!instance.IsNull()) {
-    const int kTypeArgsLen = 0;
     const int kNumArgs = 3;
-    ArgumentsDescriptor args_desc(Array::Handle(
-        Z, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
     const Function& function = Function::Handle(
-        Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
-                                    args_desc));
-    if (!function.IsNull()) {
-      Integer& indexobj = Integer::Handle(Z);
-      Integer& valueobj = Integer::Handle(Z);
-      const Array& args = Array::Handle(Z, Array::New(kNumArgs));
-      args.SetAt(0, instance);  // Set up the receiver as the first argument.
-      for (int i = 0; i < length; i++) {
-        indexobj = Integer::New(offset + i);
-        valueobj = Integer::New(native_array[i]);
-        args.SetAt(1, indexobj);
-        args.SetAt(2, valueobj);
-        const Object& result =
-            Object::Handle(Z, DartEntry::InvokeFunction(function, args));
-        if (result.IsError()) {
-          return Api::NewHandle(T, result.ptr());
-        }
+        Z, FindCoreLibPrivateFunction(Z, Symbols::_listSetAt()));
+    Integer& indexobj = Integer::Handle(Z);
+    Integer& valueobj = Integer::Handle(Z);
+    const Array& args = Array::Handle(Z, Array::New(kNumArgs));
+    args.SetAt(0, instance);  // Set up the receiver as the first argument.
+    for (int i = 0; i < length; i++) {
+      indexobj = Integer::New(offset + i);
+      valueobj = Integer::New(native_array[i]);
+      args.SetAt(1, indexobj);
+      args.SetAt(2, valueobj);
+      const Object& result =
+          Object::Handle(Z, DartEntry::InvokeFunction(function, args));
+      if (result.IsError()) {
+        return Api::NewHandle(T, result.ptr());
       }
-      return Api::Success();
     }
+    return Api::Success();
   }
   return Api::NewArgumentError(
       "Object does not implement the 'List' interface");
@@ -3653,8 +3626,8 @@ DART_EXPORT Dart_Handle Dart_MapGetAt(Dart_Handle map, Dart_Handle key) {
     if (!(key_obj.IsInstance() || key_obj.IsNull())) {
       return Api::NewError("Key is not an instance");
     }
-    return Api::NewHandle(
-        T, Send1Arg(instance, Symbols::IndexToken(), Instance::Cast(key_obj)));
+    return Api::NewHandle(T, CallStatic2Args(Z, Symbols::_mapGet(), instance,
+                                             Instance::Cast(key_obj)));
   }
   return Api::NewArgumentError("Object does not implement the 'Map' interface");
 }
@@ -3670,8 +3643,8 @@ DART_EXPORT Dart_Handle Dart_MapContainsKey(Dart_Handle map, Dart_Handle key) {
       return Api::NewError("Key is not an instance");
     }
     return Api::NewHandle(
-        T, Send1Arg(instance, String::Handle(Z, String::New("containsKey")),
-                    Instance::Cast(key_obj)));
+        T, CallStatic2Args(Z, Symbols::_mapContainsKey(), instance,
+                           Instance::Cast(key_obj)));
   }
   return Api::NewArgumentError("Object does not implement the 'Map' interface");
 }
@@ -3682,13 +3655,7 @@ DART_EXPORT Dart_Handle Dart_MapKeys(Dart_Handle map) {
   Object& obj = Object::Handle(Z, Api::UnwrapHandle(map));
   Instance& instance = Instance::Handle(Z, GetMapInstance(Z, obj));
   if (!instance.IsNull()) {
-    const Object& iterator = Object::Handle(
-        Send0Arg(instance, String::Handle(Z, String::New("get:keys"))));
-    if (!iterator.IsInstance()) {
-      return Api::NewHandle(T, iterator.ptr());
-    }
-    return Api::NewHandle(T, Send0Arg(Instance::Cast(iterator),
-                                      String::Handle(String::New("toList"))));
+    return Api::NewHandle(T, CallStatic1Arg(Z, Symbols::_mapKeys(), instance));
   }
   return Api::NewArgumentError("Object does not implement the 'Map' interface");
 }
