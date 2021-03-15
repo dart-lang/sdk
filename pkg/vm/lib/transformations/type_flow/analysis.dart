@@ -1636,14 +1636,13 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   /// ---- Implementation of [EntryPointsListener] interface. ----
 
   @override
-  void addDirectFieldAccess(Field field, Type value) {
+  void addFieldUsedInConstant(Field field, Type instance, Type value) {
+    assert(!field.isStatic);
     final fieldValue = getFieldValue(field);
-    if (field.isStatic) {
-      fieldValue.setValue(value, this, /*receiver_type=*/ null);
-    } else {
-      final receiver = new ConeType(hierarchyCache.getTFClass(field.parent));
-      fieldValue.setValue(value, this, receiver);
-    }
+    fieldValue.setValue(value, this, instance);
+    // Make sure the field is retained as removing fields used in constants
+    // may affect identity of the constants.
+    fieldValue.isGetterUsed = true;
   }
 
   @override
