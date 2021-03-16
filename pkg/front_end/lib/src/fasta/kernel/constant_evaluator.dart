@@ -1009,6 +1009,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     ExecutionStatus status = statement.accept(statementEvaluator);
     if (status is ReturnStatus) {
       return status.value;
+    } else if (status is AbortStatus) {
+      return status.error;
     }
     return createInvalidExpressionConstant(statement,
         'No valid constant returned from the execution of $statement.');
@@ -3342,7 +3344,7 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   @override
   ExecutionStatus visitIfStatement(IfStatement node) {
     Constant condition = evaluate(node.condition);
-    if (condition is AbortConstant) return new ReturnStatus(condition);
+    if (condition is AbortConstant) return new AbortStatus(condition);
     if (condition is BoolConstant) {
       if (condition.value) {
         return node.then.accept(this);
@@ -3352,7 +3354,7 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
         return const ProceedStatus();
       }
     } else {
-      return new ReturnStatus(exprEvaluator.createErrorConstant(
+      return new AbortStatus(exprEvaluator.createErrorConstant(
           node.condition,
           templateConstEvalInvalidType.withArguments(
               condition,
@@ -3365,7 +3367,7 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   @override
   ExecutionStatus visitExpressionStatement(ExpressionStatement node) {
     Constant value = evaluate(node.expression);
-    if (value is AbortConstant) return new ReturnStatus(value);
+    if (value is AbortConstant) return new AbortStatus(value);
     return const ProceedStatus();
   }
 
@@ -3376,7 +3378,7 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   @override
   ExecutionStatus visitVariableDeclaration(VariableDeclaration node) {
     Constant value = evaluate(node.initializer);
-    if (value is AbortConstant) return new ReturnStatus(value);
+    if (value is AbortConstant) return new AbortStatus(value);
     exprEvaluator.env.addVariableValue(node, value);
     return const ProceedStatus();
   }
@@ -3547,6 +3549,12 @@ class ProceedStatus extends ExecutionStatus {
 class ReturnStatus extends ExecutionStatus {
   final Constant value;
   ReturnStatus(this.value);
+}
+
+/// Status with an exception or error that the statement has thrown.
+class AbortStatus extends ExecutionStatus {
+  final AbortConstant error;
+  AbortStatus(this.error);
 }
 
 /// An intermediate result that is used within the [ConstantEvaluator].
