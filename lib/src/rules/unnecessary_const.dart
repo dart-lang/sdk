@@ -5,6 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 import '../analyzer.dart';
 
@@ -58,15 +60,10 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (node.keyword == null) return;
+    if (node.keyword?.type != Keyword.CONST) return;
 
-    // remove keyword and check if there's const error
-    final oldKeyword = node.keyword;
-    node.keyword = null;
-    final isConstWithoutKeyword = node.isConst;
-    node.keyword = oldKeyword;
-
-    if (isConstWithoutKeyword && node.keyword?.type == Keyword.CONST) {
+    // todo (pq): remove cast when `inConstantContext` is public on Expression
+    if ((node as ExpressionImpl).inConstantContext) {
       rule.reportLint(node);
     }
   }
@@ -80,15 +77,10 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   void _visitTypedLiteral(TypedLiteral node) {
-    if (node.constKeyword == null) return;
+    if (node.constKeyword?.type != Keyword.CONST) return;
 
-    // remove keyword and check if there's const error
-    final oldKeyword = node.constKeyword;
-    node.constKeyword = null;
-    final isConstWithoutKeyword = node.isConst;
-    node.constKeyword = oldKeyword;
-
-    if (isConstWithoutKeyword && node.constKeyword?.type == Keyword.CONST) {
+    // todo (pq): remove cast when `inConstantContext` is public on Expression
+    if ((node as ExpressionImpl).inConstantContext) {
       rule.reportLint(node);
     }
   }

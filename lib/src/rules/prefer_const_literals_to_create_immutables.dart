@@ -3,13 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../ast.dart';
 
 const desc =
     'Prefer const literals as parameters of constructors on @immutable classes.';
@@ -126,19 +124,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    bool hasConstError;
-
-    // put a fake const keyword and check if there's const error
-    final oldKeyword = literal.constKeyword;
-    literal.constKeyword = KeywordToken(Keyword.CONST, node.offset);
-    try {
-      hasConstError = hasConstantError(context, literal);
-    } finally {
-      // restore old keyword
-      literal.constKeyword = oldKeyword;
-    }
-
-    if (!hasConstError) {
+    if (context.canBeConst(literal)) {
       rule.reportLint(literal);
     }
   }
