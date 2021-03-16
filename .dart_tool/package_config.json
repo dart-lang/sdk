@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-03-12T09:00:31.497265",
+  "generated": "2021-03-15T10:48:35.022974",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -220,7 +220,7 @@
       "name": "dart_style",
       "rootUri": "../third_party/pkg_tested/dart_style",
       "packageUri": "lib/",
-      "languageVersion": "2.9"
+      "languageVersion": "2.12"
     },
     {
       "name": "dartdev",
@@ -695,13 +695,13 @@
       "name": "test_descriptor",
       "rootUri": "../third_party/pkg/test_descriptor",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "test_process",
       "rootUri": "../third_party/pkg/test_process",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "test_reflective_loader",

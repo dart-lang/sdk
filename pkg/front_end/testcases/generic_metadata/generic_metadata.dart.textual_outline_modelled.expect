@@ -14,11 +14,6 @@ class D<S extends num, T extends S> {
   const D();
 }
 
-@A<int, num>()
-@B<int>()
-@C<String>()
-@D<int, num>()
-test() {}
 @A()
 @A<int>()
 @B()
@@ -30,3 +25,8 @@ test() {}
 @D<num, num>()
 @D<num, int>()
 main() {}
+@A<int, num>()
+@B<int>()
+@C<String>()
+@D<int, num>()
+test() {}

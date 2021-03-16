@@ -98,7 +98,7 @@ vars = {
   #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.3.11",  # Please see the note above before updating.
+  "dart_style_tag": "a1d65dd9c4b83c9702ba409465879b94caeb04ea",
 
   "chromedriver_tag": "83.0.4103.39",
   "dartdoc_rev" : "174021f3d76c2a8500b54977c80f32c5bbc099f1",
@@ -155,8 +155,8 @@ vars = {
   "stream_channel_tag": "d7251e61253ec389ee6e045ee1042311bced8f1d",
   "string_scanner_rev": "1b63e6e5db5933d7be0a45da6e1129fe00262734",
   "sync_http_rev": "b59c134f2e34d12acac110d4f17f83e5a7db4330",
-  "test_descriptor_tag": "1.1.1",
-  "test_process_tag": "1.0.3",
+  "test_descriptor_tag": "2.0.0",
+  "test_process_tag": "2.0.0",
   "term_glyph_rev": "6a0f9b6fb645ba75e7a00a4e20072678327a0347",
   "test_reflective_loader_rev": "54e930a11c372683792e22bddad79197728c91ce",
   "test_rev": "e673623f45d75ccec750d35271b0b4d1423e9fac",
