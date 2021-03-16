@@ -6,7 +6,6 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/context_collection_resolution.dart';
 import 'sdk_constraint_verifier_support.dart';
 
 main() {
@@ -21,18 +20,6 @@ class SdkVersionGtGtGtOperatorTest extends SdkConstraintVerifierTest {
   String get testPackageLanguageVersion =>
       '${ExperimentStatus.currentVersion.major}.'
       '${ExperimentStatus.currentVersion.minor}';
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: [
-          EnableString.triple_shift,
-        ],
-      ),
-    );
-  }
 
   test_const_equals() async {
     // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
@@ -75,7 +62,7 @@ class A {
 
   test_nonConst_equals() async {
     // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
-    //  UNDEFINED_OPERATOR when constant update is enabled by default.
+    //  UNDEFINED_OPERATOR when triple_shift is enabled by default.
     await verifyVersion('2.5.0', '''
 var a = 42 >>> 3;
 ''', expectedErrors: [
@@ -85,7 +72,7 @@ var a = 42 >>> 3;
 
   test_nonConst_lessThan() async {
     // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
-    //  UNDEFINED_OPERATOR when constant update is enabled by default.
+    //  UNDEFINED_OPERATOR when triple_shift is enabled by default.
     await verifyVersion('2.2.0', '''
 var a = 42 >>> 3;
 ''', expectedErrors: [
