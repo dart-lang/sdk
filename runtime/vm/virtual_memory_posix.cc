@@ -347,6 +347,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 VirtualMemory::~VirtualMemory() {
 #if defined(DART_COMPRESSED_POINTERS)
   if (VirtualMemoryCompressedHeap::Contains(reserved_.pointer())) {
+    madvise(reserved_.pointer(), reserved_.size(), MADV_DONTNEED);
     VirtualMemoryCompressedHeap::Free(reserved_.pointer(), reserved_.size());
     return;
   }
