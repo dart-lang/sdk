@@ -335,13 +335,16 @@ class JSNumber extends Interceptor implements int, double {
     return _shrOtherPositive(other);
   }
 
-  int operator >>>(@nullCheck num other) =>
-    throw UnimplementedError('int.>>> is not implemented yet');
+  @notNull
+  int operator >>>(@nullCheck num other) {
+    if (JS<num>('!', '#', other) < 0) throwArgumentErrorValue(other);
+    return _shrUnsigned(other);
+  }
 
   @notNull
   int _shrOtherPositive(@notNull num other) {
     return JS<num>('!', '#', this) > 0
-        ? _shrBothPositive(other)
+        ? _shrUnsigned(other)
         // For negative numbers we just clamp the shift-by amount.
         // `this` could be negative but not have its 31st bit set.
         // The ">>" would then shift in 0s instead of 1s. Therefore
@@ -350,7 +353,7 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   @notNull
-  int _shrBothPositive(@notNull num other) {
+  int _shrUnsigned(@notNull num other) {
     return JS<bool>('!', r'# > 31', other)
         // JavaScript only looks at the last 5 bits of the shift-amount. In JS
         // shifting by 33 is hence equivalent to a shift by 1. Shortcut the
