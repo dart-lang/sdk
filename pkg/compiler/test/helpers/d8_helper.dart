@@ -11,7 +11,6 @@ library dart2js.kernel.compiler_helper;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/dart2js.dart' as dart2js;
 import 'package:_fe_analyzer_shared/src/util/filenames.dart';
