@@ -129,19 +129,19 @@ final Element footerPanel = document.querySelector('footer');
 
 final Element headerPanel = document.querySelector('header');
 
-final Element unitName = document.querySelector('#unit-name');
+final Element migrateUnitStatusIcon =
+    document.querySelector('#migrate-unit-status-icon');
 
 final Element migrateUnitStatusIconLabel =
     document.querySelector('#migrate-unit-status-icon-label');
 
-final Element migrateUnitStatusIcon =
-    document.querySelector('#migrate-unit-status-icon');
+List<NavigationTreeNode> /*?*/ navigationTree;
+
+final Element unitName = document.querySelector('#unit-name');
 
 String get rootPath => querySelector('.root').text.trim();
 
 String get sdkVersion => document.getElementById('sdk-version').text;
-
-List<NavigationTreeNode> /*?*/ navigationTree;
 
 void addArrowClickHandler(Element arrow) {
   var childList = (arrow.parentNode as Element).querySelector(':scope > ul');
@@ -730,25 +730,6 @@ void toggleFileMigrationStatus(NavigationTreeFileNode entity) {
   }
 }
 
-/// Updates the navigation [icon] and current file icon according to the current
-/// migration status of [entity].
-void updateIconsForNode(Element icon, NavigationTreeNode entity) {
-  var status = entity.migrationStatus;
-  updateIconForStatus(icon, status);
-  // Update the status at the top of the file view if [entity] represents the
-  // current file.
-  var unitPath = unitName.innerText;
-  if (entity.path == unitPath) {
-    if (entity is NavigationTreeFileNode &&
-        !entity.migrationStatusCanBeChanged) {
-      icon.classes.add('disabled');
-    } else {
-      icon.classes.remove('disabled');
-    }
-    updateIconForStatus(migrateUnitStatusIcon, status);
-  }
-}
-
 /// Updates [icon] according to [status].
 void updateIconForStatus(Element icon, UnitMigrationStatus status) {
   switch (status) {
@@ -778,6 +759,25 @@ void updateIconForStatus(Element icon, UnitMigrationStatus status) {
       icon.setAttribute(
           'title', "Mixed statuses of 'migrating' and 'opting out'");
       break;
+  }
+}
+
+/// Updates the navigation [icon] and current file icon according to the current
+/// migration status of [entity].
+void updateIconsForNode(Element icon, NavigationTreeNode entity) {
+  var status = entity.migrationStatus;
+  updateIconForStatus(icon, status);
+  // Update the status at the top of the file view if [entity] represents the
+  // current file.
+  var unitPath = unitName.innerText;
+  if (entity.path == unitPath) {
+    if (entity is NavigationTreeFileNode &&
+        !entity.migrationStatusCanBeChanged) {
+      icon.classes.add('disabled');
+    } else {
+      icon.classes.remove('disabled');
+    }
+    updateIconForStatus(migrateUnitStatusIcon, status);
   }
 }
 
