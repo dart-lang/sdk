@@ -390,6 +390,30 @@ class PointerUint32 extends BenchmarkBase {
   }
 }
 
+class PointerUint32Unaligned extends BenchmarkBase {
+  Pointer<Float> pointer;
+  Pointer<Uint32> unalignedPointer;
+  PointerUint32Unaligned() : super('FfiMemory.PointerUint32Unaligned');
+
+  @override
+  void setup() {
+    pointer = calloc(N + 1);
+    unalignedPointer = Pointer.fromAddress(pointer.address + 1);
+  }
+
+  @override
+  void teardown() => calloc.free(pointer);
+
+  @override
+  void run() {
+    doStoreUint32(unalignedPointer, N);
+    final int x = doLoadUint32(unalignedPointer, N);
+    if (x != N) {
+      throw Exception('$name: Unexpected result: $x');
+    }
+  }
+}
+
 class PointerInt64 extends BenchmarkBase {
   Pointer<Int64> pointer;
   PointerInt64() : super('FfiMemory.PointerInt64');
@@ -527,6 +551,7 @@ void main() {
     () => PointerUint16(),
     () => PointerInt32(),
     () => PointerUint32(),
+    () => PointerUint32Unaligned(),
     () => PointerInt64(),
     () => PointerInt64Mint(),
     () => PointerUint64(),
