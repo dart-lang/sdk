@@ -617,6 +617,10 @@ class FileResolver {
       });
     }
 
+    if (isThirdParty) {
+      options.hint = false;
+    }
+
     return options;
   }
 

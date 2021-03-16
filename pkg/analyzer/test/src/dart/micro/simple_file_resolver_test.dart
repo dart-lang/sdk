@@ -481,6 +481,15 @@ import 'dart:math';
     ]);
   }
 
+  test_hint_in_third_party() async {
+    var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
+    newFile(aPath, content: r'''
+import 'dart:math';
+''');
+    await resolveFile(aPath);
+    assertNoErrorsInResult();
+  }
+
   test_linkLibraries_getErrors() {
     addTestFile(r'''
 var a = b;

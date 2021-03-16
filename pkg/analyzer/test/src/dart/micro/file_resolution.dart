@@ -65,7 +65,8 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   @override
   Future<ResolvedUnitResult> resolveFile(String path) async {
-    return fileResolver.resolve(path: path);
+    result = fileResolver.resolve(path: path);
+    return result;
   }
 
   @override
