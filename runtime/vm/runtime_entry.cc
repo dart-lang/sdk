@@ -222,7 +222,7 @@ void ReportImpossibleNullError(intptr_t cid,
 
   const intptr_t kMaxSlotsCollected = 5;
   const auto slots = reinterpret_cast<ObjectPtr*>(caller_frame->sp());
-  const auto num_slots_in_frame =
+  const intptr_t num_slots_in_frame =
       reinterpret_cast<ObjectPtr*>(caller_frame->fp()) - slots;
   const auto num_slots_to_collect =
       Utils::Maximum(kMaxSlotsCollected, num_slots_in_frame);
