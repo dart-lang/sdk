@@ -26,8 +26,7 @@ void main() {
           if (test is! File) continue;
           final testFile = test;
           final ruleName = p.basenameWithoutExtension(test.path);
-          testRule(ruleName, testFile,
-              analysisOptions: analysisOptions, debug: true);
+          testRule(ruleName, testFile, analysisOptions: analysisOptions);
         }
       });
     }

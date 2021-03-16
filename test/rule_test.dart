@@ -69,7 +69,6 @@ void defineRuleTests() {
       }
     });
     group('format', () {
-      registerLintRules();
       for (final rule in Registry.ruleRegistry.rules) {
         test('`${rule.name}` description', () {
           expect(rule.description.endsWith('.'), isTrue,
@@ -197,7 +196,6 @@ void defineSanityTests() {
   });
 
   test('linter version caching', () {
-    registerLintRules();
     expect(lint_service.linterVersion, version);
   });
 }
@@ -214,7 +212,7 @@ void defineSoloRuleTest(String ruleToTest) {
 }
 
 void testRule(String ruleName, File file,
-    {bool debug = false, String? analysisOptions}) {
+    {bool debug = true, String? analysisOptions}) {
   registerLintRules(inTestMode: debug);
 
   test('$ruleName', () async {
@@ -284,7 +282,7 @@ void testRules(String ruleDir, {String? analysisOptions}) {
       // Disabled pending fix: https://github.com/dart-lang/linter/issues/23
       continue;
     }
-    testRule(ruleName, entry, debug: true, analysisOptions: analysisOptions);
+    testRule(ruleName, entry, analysisOptions: analysisOptions);
   }
 }
 

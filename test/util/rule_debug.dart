@@ -20,5 +20,5 @@ import '../rule_test.dart';
 void main(List<String> args) {
   final ruleName = args[0];
   final dir = Directory(ruleDir).absolute;
-  testRule(ruleName, File(p.join(dir.path, '$ruleName.dart')), debug: true);
+  testRule(ruleName, File(p.join(dir.path, '$ruleName.dart')));
 }
