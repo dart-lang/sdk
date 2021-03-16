@@ -19,12 +19,6 @@ import 'package:test/test.dart';
 
 import '../../../abstract_context.dart';
 
-int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
-  var c1 = s1.completion.toLowerCase();
-  var c2 = s2.completion.toLowerCase();
-  return c1.compareTo(c2);
-}
-
 SuggestionMatcher suggestionHas(
         {@required String completion,
         ElementKind element,

@@ -1185,9 +1185,11 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableInitializer([node.value]);
     } else {
-      assert(shaker.isMemberBodyReachable(node.field),
-          "Field should be reachable: ${node.field}");
-      if (!shaker.retainField(node.field)) {
+      final field =
+          fieldMorpher.getOriginalMember(node.fieldReference.asMember) as Field;
+      assert(shaker.isMemberBodyReachable(field),
+          "Field should be reachable: ${field}");
+      if (!shaker.retainField(field)) {
         if (mayHaveSideEffects(node.value)) {
           return LocalInitializer(
               VariableDeclaration(null, initializer: node.value));

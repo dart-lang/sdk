@@ -12,7 +12,7 @@
 namespace dart {
 
 #if defined(DART_COMPRESSED_POINTERS)
-static constexpr intptr_t kCompressedHeapSize = 2 * GB;
+static constexpr intptr_t kCompressedHeapSize = 4 * GB;
 static constexpr intptr_t kCompressedHeapAlignment = 4 * GB;
 static constexpr intptr_t kCompressedHeapPageSize = kOldPageSize;
 static constexpr intptr_t kCompressedHeapNumPages =

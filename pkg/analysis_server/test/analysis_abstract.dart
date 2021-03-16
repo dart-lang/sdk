@@ -248,15 +248,3 @@ analyzer:
     super.createProject(packageRoots: packageRoots);
   }
 }
-
-mixin WithNullSafetyMixin on AbstractAnalysisTest {
-  @override
-  void createProject({Map<String, String> packageRoots}) {
-    addAnalysisOptionsFile('''
-analyzer:
-  enable-experiment:
-    - non-nullable
-''');
-    super.createProject(packageRoots: packageRoots);
-  }
-}
