@@ -37,6 +37,7 @@ import 'integration/prefer_asserts_in_initializer_lists.dart'
     as prefer_asserts_in_initializer_lists;
 import 'integration/prefer_const_constructors_in_immutables.dart'
     as prefer_const_constructors_in_immutables;
+import 'integration/prefer_mixin.dart' as prefer_mixin;
 import 'integration/prefer_relative_imports.dart' as prefer_relative_imports;
 import 'integration/public_member_api_docs.dart' as public_member_api_docs;
 import 'integration/sort_pub_dependencies.dart' as sort_pub_dependencies;
@@ -184,6 +185,7 @@ void ruleTests() {
     avoid_private_typedef_functions.main();
     sort_pub_dependencies.main();
     unnecessary_string_escapes.main();
+    prefer_mixin.main();
   });
 }
 
