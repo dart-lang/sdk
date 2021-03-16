@@ -1,6 +1,8 @@
-## 1.2.0-dev
+## 1.2.0
 * Deprecated all setters in API of AST. Use `parseString()` instead.
 * `AnalysisSession.getErrors()` does not return `null`, check its `state`.
+* Support for `aliasElement` and `aliasArguments` for aliases of
+  `InterfaceType`s and `TypeParameterType`s.
 
 ## 1.1.0
 * Deprecated `TypeProvider.futureType2()`, `iterableType2()`, etc.

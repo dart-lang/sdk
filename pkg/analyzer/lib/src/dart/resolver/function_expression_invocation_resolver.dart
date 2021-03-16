@@ -43,13 +43,18 @@ class FunctionExpressionInvocationResolver {
       return;
     }
 
-    var receiverType = function.staticType;
+    var receiverType = function.typeOrThrow;
     if (receiverType is InterfaceType) {
       // Note: in this circumstance it's not necessary to call
       // `_nullableDereferenceVerifier.expression` because
       // `_resolveReceiverInterfaceType` calls `TypePropertyResolver.resolve`,
       // which does the necessary null checking.
       _resolveReceiverInterfaceType(node, function, receiverType);
+      return;
+    }
+
+    if (_checkForUseOfVoidResult(function, receiverType)) {
+      _unresolved(node, DynamicTypeImpl.instance);
       return;
     }
 
@@ -62,11 +67,37 @@ class FunctionExpressionInvocationResolver {
     }
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.RECEIVER_OF_TYPE_NEVER, function);
       _unresolved(node, NeverTypeImpl.instance);
       return;
     }
 
     _unresolved(node, DynamicTypeImpl.instance);
+  }
+
+  /// Check for situations where the result of a method or function is used,
+  /// when it returns 'void'. Or, in rare cases, when other types of expressions
+  /// are void, such as identifiers.
+  ///
+  /// See [StaticWarningCode.USE_OF_VOID_RESULT].
+  ///
+  /// TODO(scheglov) this is duplicate
+  bool _checkForUseOfVoidResult(Expression expression, DartType type) {
+    if (!identical(type, VoidTypeImpl.instance)) {
+      return false;
+    }
+
+    if (expression is MethodInvocation) {
+      SimpleIdentifier methodName = expression.methodName;
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.USE_OF_VOID_RESULT, methodName, []);
+    } else {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.USE_OF_VOID_RESULT, expression, []);
+    }
+
+    return true;
   }
 
   void _resolve(FunctionExpressionInvocationImpl node, FunctionType rawType) {
@@ -130,7 +161,22 @@ class FunctionExpressionInvocationResolver {
     );
     var callElement = result.getter;
 
-    if (callElement == null || callElement.kind != ElementKind.METHOD) {
+    if (callElement == null) {
+      if (result.needsGetterError) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          function,
+        );
+      }
+      _unresolved(node, DynamicTypeImpl.instance);
+      return;
+    }
+
+    if (callElement.kind != ElementKind.METHOD) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+        function,
+      );
       _unresolved(node, DynamicTypeImpl.instance);
       return;
     }
