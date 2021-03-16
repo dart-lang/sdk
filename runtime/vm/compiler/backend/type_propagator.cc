@@ -900,7 +900,7 @@ void CompileType::PrintTo(BaseTextBuffer* f) const {
   } else if (type_ != NULL) {
     type_name = type_->IsDynamicType()
                     ? "*"
-                    : String::Handle(type_->UserVisibleName()).ToCString();
+                    : String::Handle(type_->ScrubbedName()).ToCString();
   } else if (!is_nullable()) {
     type_name = "!null";
   }

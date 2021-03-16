@@ -19433,7 +19433,7 @@ const char* AbstractType::NullabilitySuffix(
     case Nullability::kNonNullable:
       return "";
     case Nullability::kLegacy:
-      return (FLAG_show_internal_names || name_visibility == kInternalName)
+      return (FLAG_show_internal_names || name_visibility != kUserVisibleName)
                  ? "*"
                  : "";
     default:
@@ -19455,6 +19455,13 @@ StringPtr AbstractType::UserVisibleName() const {
   return Symbols::New(thread, printer.buffer());
 }
 
+StringPtr AbstractType::ScrubbedName() const {
+  Thread* thread = Thread::Current();
+  ZoneTextBuffer printer(thread->zone());
+  PrintName(kScrubbedName, &printer);
+  return Symbols::New(thread, printer.buffer());
+}
+
 void AbstractType::PrintName(NameVisibility name_visibility,
                              BaseTextBuffer* printer) const {
   if (IsTypeRef()) {
@@ -19464,11 +19471,9 @@ void AbstractType::PrintName(NameVisibility name_visibility,
     ref_type.PrintName(name_visibility, printer);
     return;
   }
-  ASSERT(name_visibility != kScrubbedName);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone);
-  String& name_str = String::Handle(zone);
   if (IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(*this);
     printer->AddString(String::Handle(type_param.name()).ToCString());
@@ -19494,14 +19499,7 @@ void AbstractType::PrintName(NameVisibility name_visibility,
   cls = type_class();
   // Do not print the full vector, but only the declared type parameters.
   num_type_params = cls.NumTypeParameters();
-  if (name_visibility == kInternalName) {
-    name_str = cls.Name();
-    printer->AddString(name_str.ToCString());
-  } else {
-    ASSERT(name_visibility == kUserVisibleName);
-    // Map internal types to their corresponding public interfaces.
-    printer->AddString(cls.UserVisibleNameCString());
-  }
+  printer->AddString(cls.NameCString(name_visibility));
   if (num_type_params > num_args) {
     first_type_param_index = 0;
     if (!IsFinalized() || IsBeingFinalized()) {

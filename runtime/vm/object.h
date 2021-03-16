@@ -7682,6 +7682,10 @@ class AbstractType : public Instance {
   // Names of internal classes are mapped to their public interfaces.
   virtual StringPtr UserVisibleName() const;
 
+  // The name of this type, including the names of its type arguments, if any.
+  // Privacy suffixes are dropped.
+  virtual StringPtr ScrubbedName() const;
+
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.
   void PrintName(NameVisibility visibility, BaseTextBuffer* printer) const;
